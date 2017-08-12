@@ -49,6 +49,7 @@ import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.RelativePathUtil;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -214,7 +215,7 @@ public class GradleBuildComparison {
                 hostAttributes,
                 new Transformer<String, File>() {
                     public String transform(File original) {
-                        return GFileUtils.relativePath(reportDir, original);
+                        return RelativePathUtil.relativePath(reportDir, original);
                     }
                 }
         );

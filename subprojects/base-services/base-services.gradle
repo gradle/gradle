@@ -14,6 +14,7 @@ dependencies {
 
     implementation libraries.slf4j_api
     implementation libraries.commons_lang
+    implementation libraries.commons_io
     implementation libraries.jcip
 }
 

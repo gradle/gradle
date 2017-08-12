@@ -54,23 +54,6 @@ three
         dir.exists()
     }
 
-    def "relative path"() {
-        when:
-        def from = new File(fromPath)
-        def to = new File(toPath)
-
-        then:
-        GFileUtils.relativePath(from, to) == path
-
-        where:
-        fromPath | toPath  | path
-        "a"      | "a/b"   | "b"
-        "a"      | "a/b/a" | "b/a"
-        "a"      | "b"     | "../b"
-        "a/b"    | "b"     | "../../b"
-        "a"      | "a"     | ""
-    }
-
     def "can mkdirs"() {
         given:
         def f = temp.file("a/b/c/d")

@@ -18,12 +18,8 @@ package org.gradle.util;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.provider.Provider;
-import org.gradle.internal.Factory;
-import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.LimitedDescription;
 
-import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,10 +32,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.zip.Checksum;
-
-import static org.gradle.util.GUtil.uncheckedCall;
 
 public class GFileUtils {
 
@@ -170,27 +163,6 @@ public class GFileUtils {
         return FileUtils.deleteQuietly(file);
     }
 
-    /**
-     * Successively unpacks a path that may be deferred by a Callable or Factory
-     * until it's resolved to null or something other than a Callable or Factory.
-     */
-    @Nullable
-    public static Object unpack(Object path) {
-        Object current = path;
-        while (current != null) {
-            if (current instanceof Callable) {
-                current = uncheckedCall((Callable) current);
-            } else if (current instanceof Provider) {
-                current = ((Provider<?>) current).get();
-            } else if (current instanceof Factory) {
-                return ((Factory) current).create();
-            } else {
-                return current;
-            }
-        }
-        return null;
-    }
-
     public static class TailReadingException extends RuntimeException {
         public TailReadingException(Throwable throwable) {
             super(throwable);
@@ -246,21 +218,6 @@ public class GFileUtils {
             return FileUtils.checksum(file, checksum);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
-        }
-    }
-
-    /**
-     * Returns a relative path from 'from' to 'to'
-     *
-     * @param from where to calculate from
-     * @param to where to calculate to
-     * @return The relative path
-     */
-    public static String relativePath(File from, File to) {
-        try {
-            return org.apache.tools.ant.util.FileUtils.getRelativePath(from, to);
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
