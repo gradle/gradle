@@ -126,7 +126,7 @@
                     <td>twirlTemplates</td>
                     <td><apilink class="org.gradle.language.twirl.TwirlSourceSet"/></td>
                     <td>app</td>
-                    <td>**/*.html</td>
+                    <td>**/*.scala.*</td>
                 </tr>
                 <tr>
                     <td>javaScript</td>
@@ -287,10 +287,10 @@
                     <literal>compilePlayBinaryPlayTwirlTemplates</literal>
                 </td>
                 <td>
-                    Twirl HTML templates
+                    Twirl templates
                 </td>
                 <td><apilink class="org.gradle.play.tasks.TwirlCompile"/></td>
-                <td>Compiles HTML templates with the Twirl compiler.</td>
+                <td>Compiles templates with the Twirl compiler.</td>
             </tr>
             <tr>
                 <td>

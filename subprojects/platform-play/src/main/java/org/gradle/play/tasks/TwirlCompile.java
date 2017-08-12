@@ -191,18 +191,29 @@ public class TwirlCompile extends SourceTask {
         throw new UnsupportedOperationException();
     }
 
-    // TODO: Docs
-    @Optional
-    @Nested
+    /**
+     * Returns the custom template formats configured for this task.
+     */
+    @Internal
     public List<TwirlTemplateFormat> getUserTemplateFormats() {
         return userTemplateFormats;
     }
 
+    /**
+     * Sets the custom template formats for this task.
+     */
     public void setUserTemplateFormats(List<TwirlTemplateFormat> userTemplateFormats) {
         this.userTemplateFormats = userTemplateFormats;
     }
 
-    public void addUserTemplateFormat(String extension, String templateType, String... imports) {
+    /**
+     * Adds a custom template format.
+     *
+     * @param extension file extension this template applies to (e.g., {@code html}).
+     * @param templateType fully-qualified type for this template format.
+     * @param imports additional imports to add for the custom template format.
+     */
+    public void addUserTemplateFormat(final String extension, String templateType, String... imports) {
         userTemplateFormats.add(new DefaultTwirlTemplateFormat(extension, templateType, Arrays.asList(imports)));
     }
 
