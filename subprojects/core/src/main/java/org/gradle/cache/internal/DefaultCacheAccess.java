@@ -19,8 +19,6 @@ import com.google.common.base.Objects;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.cache.AsyncCacheAccess;
 import org.gradle.cache.CacheDecorator;
 import org.gradle.cache.FileAccess;
@@ -40,6 +38,8 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.util.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -55,7 +55,7 @@ import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
 
 @ThreadSafe
 public class DefaultCacheAccess implements CacheCoordinator {
-    private final static Logger LOG = Logging.getLogger(DefaultCacheAccess.class);
+    private final static Logger LOG = LoggerFactory.getLogger(DefaultCacheAccess.class);
     private final static Runnable NO_OP = new Runnable() {
         @Override
         public void run() {

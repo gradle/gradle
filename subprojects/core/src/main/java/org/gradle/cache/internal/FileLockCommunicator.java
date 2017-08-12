@@ -16,9 +16,9 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -33,7 +33,7 @@ import java.net.SocketException;
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 public class FileLockCommunicator {
-    private static final Logger LOGGER = Logging.getLogger(FileLockCommunicator.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileLockCommunicator.class);
     private static final String SOCKET_OPERATION_NOT_PERMITTED_ERROR_MESSAGE = "Operation not permitted";
 
     private static final byte PROTOCOL_VERSION = 1;
