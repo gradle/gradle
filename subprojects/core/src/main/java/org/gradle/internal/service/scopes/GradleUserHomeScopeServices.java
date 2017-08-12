@@ -50,7 +50,9 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
+import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
 import org.gradle.groovy.scripts.internal.RegistryAwareClassLoaderHierarchyHasher;
+import org.gradle.groovy.scripts.internal.ScriptSourceHasher;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.classloader.ClassLoaderHasher;
@@ -63,6 +65,7 @@ import org.gradle.internal.classpath.CachedJarFileStore;
 import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.JarCache;
+import org.gradle.internal.hash.FileContentHasherFactory;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -111,13 +114,17 @@ public class GradleUserHomeScopeServices {
         return timeStampInspector;
     }
 
-    FileHasher createCachingFileHasher(StringInterner stringInterner, CrossBuildFileHashCache fileStore, FileSystem fileSystem, GlobalScopeFileTimeStampInspector fileTimeStampInspector) {
-        CachingFileHasher fileHasher = new CachingFileHasher(new DefaultFileHasher(), fileStore, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem);
+    FileHasher createCachingFileHasher(StringInterner stringInterner, CrossBuildFileHashCache fileStore, FileSystem fileSystem, GlobalScopeFileTimeStampInspector fileTimeStampInspector, FileContentHasherFactory hasherFactory) {
+        CachingFileHasher fileHasher = new CachingFileHasher(new DefaultFileHasher(hasherFactory), fileStore, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem);
         fileTimeStampInspector.attach(fileHasher);
         return fileHasher;
     }
 
-    CrossBuildInMemoryCachingScriptClassCache createCachingScriptCompiler(FileHasher hasher, CrossBuildInMemoryCacheFactory cacheFactory) {
+    ScriptSourceHasher createScriptSourceHasher(FileHasher fileHasher, FileContentHasherFactory contentHasherFactory) {
+        return new DefaultScriptSourceHasher(fileHasher, contentHasherFactory);
+    }
+
+    CrossBuildInMemoryCachingScriptClassCache createCachingScriptCompiler(ScriptSourceHasher hasher, CrossBuildInMemoryCacheFactory cacheFactory) {
         return new CrossBuildInMemoryCachingScriptClassCache(hasher, cacheFactory);
     }
 

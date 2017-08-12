@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.hash.DefaultFileHasher
+import org.gradle.api.internal.hash.TestFileHasher
 import org.gradle.caching.internal.DefaultBuildCacheHasher
 import org.gradle.internal.nativeintegration.filesystem.FileType
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -27,7 +27,7 @@ import spock.lang.Specification
 
 class DefaultFileSystemSnapshotterTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def fileHasher = new DefaultFileHasher()
+    def fileHasher = new TestFileHasher()
     def fileSystemMirror = new DefaultFileSystemMirror([])
     def snapshotter = new DefaultFileSystemSnapshotter(fileHasher, new StringInterner(), TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror)
 

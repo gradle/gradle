@@ -25,7 +25,6 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.hash.FileHasher
 import org.gradle.cache.PersistentIndexedCache
 import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata
-import org.gradle.internal.resource.TextResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -193,38 +192,6 @@ class CachingFileHasherTest extends Specification {
             assert fileInfo.length == length
             assert fileInfo.timestamp == lastModified
         }
-        0 * _._
-    }
-
-    def hashesBackingFileWhenResourceIsBackedByFile() {
-        def stat = fileSystem.stat(file)
-        def resource = Mock(TextResource)
-
-        when:
-        def result = hasher.hash(resource)
-
-        then:
-        result == hash
-
-        and:
-        1 * resource.file >> file
-        1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(file.absolutePath, stat.lastModified) >> true
-        1 * cache.get(file.absolutePath) >> new FileInfo(hash, stat.length, stat.lastModified)
-        0 * _._
-    }
-
-    def hashesContentWhenResourceIsNotBackedByFile() {
-        def resource = Mock(TextResource)
-
-        when:
-        def result = hasher.hash(resource)
-
-        then:
-        result == hash
-
-        and:
-        1 * resource.file >> null
-        1 * target.hash(resource) >> hash
         0 * _._
     }
 }
