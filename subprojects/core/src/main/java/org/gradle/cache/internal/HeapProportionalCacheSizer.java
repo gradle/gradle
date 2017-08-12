@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.cache;
+package org.gradle.cache.internal;
 
 public class HeapProportionalCacheSizer {
     public static final String CACHE_RESERVED_SYSTEM_PROPERTY = "org.gradle.cache.reserved.mb";

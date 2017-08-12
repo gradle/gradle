@@ -21,7 +21,6 @@ import com.google.common.cache.CacheBuilder;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.cache.CrossBuildInMemoryCache;
 import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory;
-import org.gradle.api.internal.cache.HeapProportionalCacheSizer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.AsyncCacheAccess;
@@ -31,6 +30,7 @@ import org.gradle.cache.FileLock;
 import org.gradle.cache.MultiProcessSafePersistentIndexedCache;
 import org.gradle.cache.internal.AsyncCacheAccessDecoratedCache;
 import org.gradle.cache.internal.CrossProcessSynchronizingCache;
+import org.gradle.cache.internal.HeapProportionalCacheSizer;
 import org.gradle.cache.internal.MultiProcessSafeAsyncPersistentIndexedCache;
 
 import java.util.concurrent.atomic.AtomicReference;
