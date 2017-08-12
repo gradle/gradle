@@ -59,6 +59,7 @@ data class CIBuildModel (
             GradleSubproject("antlr"),
             GradleSubproject("baseServices"),
             GradleSubproject("baseServicesGroovy", functionalTests = false),
+            GradleSubproject("buildCache"),
             GradleSubproject("buildCacheHttp"),
             GradleSubproject("buildComparison"),
             GradleSubproject("buildInit"),
