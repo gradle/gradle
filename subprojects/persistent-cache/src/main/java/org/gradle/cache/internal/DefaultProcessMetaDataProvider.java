@@ -15,7 +15,7 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.internal.nativeintegration.*;
+import org.gradle.internal.nativeintegration.ProcessEnvironment;
 
 public class DefaultProcessMetaDataProvider implements ProcessMetaDataProvider {
     private final ProcessEnvironment environment;

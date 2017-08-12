@@ -18,6 +18,12 @@ apply plugin: 'java-library'
 dependencies {
     api project(":baseServices")
     api project(":messaging")
+    api project(":native")
+    api libraries.jcip
+
+    implementation libraries.commons_collections
+    implementation libraries.commons_io
+    implementation libraries.commons_lang
 }
 
 useTestFixtures()
