@@ -15,6 +15,7 @@
  */
 package org.gradle.cache.internal.btree;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.serialize.Serializer;
@@ -44,6 +45,7 @@ import java.util.List;
 // todo - free list leaks disk space
 // todo - merge adjacent free blocks
 // todo - use more efficient lookup for free block with nearest size
+@SuppressWarnings("unchecked")
 public class BTreePersistentIndexedCache<K, V> {
     private static final Logger LOGGER = LoggerFactory.getLogger(BTreePersistentIndexedCache.class);
     private final File cacheFile;
@@ -65,8 +67,8 @@ public class BTreePersistentIndexedCache<K, V> {
         this.serializer = valueSerializer;
         this.maxChildIndexEntries = maxChildIndexEntries;
         this.minIndexChildNodes = maxChildIndexEntries / 2;
-        BlockStore cachingStore = new CachingBlockStore(new FileBackedBlockStore(cacheFile), IndexBlock.class, FreeListBlockStore.FreeListBlock.class);
-        store = new StateCheckBlockStore(new FreeListBlockStore(cachingStore, maxFreeListEntries));
+        BlockStore cachingStore = new CachingBlockStore(new FileBackedBlockStore(cacheFile), ImmutableSet.of(IndexBlock.class, FreeListBlockStore.FreeListBlock.class));
+        this.store = new StateCheckBlockStore(new FreeListBlockStore(cachingStore, maxFreeListEntries));
         try {
             open();
         } catch (Exception e) {

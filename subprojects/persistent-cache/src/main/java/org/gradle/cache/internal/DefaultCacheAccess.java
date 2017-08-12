@@ -30,6 +30,7 @@ import org.gradle.cache.MultiProcessSafePersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.cache.internal.cacheops.CacheAccessOperationsStack;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
@@ -68,7 +69,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
     private final CacheCleanupAction cleanupAction;
     private final ExecutorFactory executorFactory;
     private final FileAccess fileAccess = new UnitOfWorkFileAccess();
-    private final Map<String, IndexedCacheEntry> caches = new HashMap<String, IndexedCacheEntry>();
+    private final Map<String, IndexedCacheEntry<?, ?>> caches = new HashMap<String, IndexedCacheEntry<?, ?>>();
     private final AbstractCrossProcessCacheAccess crossProcessCacheAccess;
     private final CacheAccessOperationsStack operations;
 
@@ -273,7 +274,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
     @Override
     public <K, V> MultiProcessSafePersistentIndexedCache<K, V> newCache(final PersistentIndexedCacheParameters<K, V> parameters) {
         stateLock.lock();
-        IndexedCacheEntry entry = caches.get(parameters.getCacheName());
+        IndexedCacheEntry<K, V> entry = Cast.uncheckedCast(caches.get(parameters.getCacheName()));
         try {
             if (entry == null) {
                 final File cacheFile = new File(baseDir, parameters.getCacheName() + ".bin");
@@ -292,7 +293,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
                         useCache(NO_OP);
                     }
                 }
-                entry = new IndexedCacheEntry(parameters, indexedCache);
+                entry = new IndexedCacheEntry<K, V>(parameters, indexedCache);
                 caches.put(parameters.getCacheName(), entry);
                 if (fileLock != null) {
                     indexedCache.afterLockAcquire(stateAtOpen);
@@ -319,7 +320,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         this.stateAtOpen = fileLock.getState();
         takeOwnershipNow();
         try {
-            for (IndexedCacheEntry entry : caches.values()) {
+            for (IndexedCacheEntry<?, ?> entry : caches.values()) {
                 entry.getCache().afterLockAcquire(stateAtOpen);
             }
         } finally {
@@ -337,13 +338,13 @@ public class DefaultCacheAccess implements CacheCoordinator {
             takeOwnershipNow();
             try {
                 // Notify caches that lock is to be released. The caches may do work on the cache files during this
-                for (IndexedCacheEntry entry : caches.values()) {
+                for (IndexedCacheEntry<?, ?> entry : caches.values()) {
                     entry.getCache().finishWork();
                 }
 
                 // Snapshot the state and notify the caches
                 FileLock.State state = fileLock.getState();
-                for (IndexedCacheEntry entry : caches.values()) {
+                for (IndexedCacheEntry<?, ?> entry : caches.values()) {
                     entry.getCache().beforeLockRelease(state);
                 }
             } finally {
@@ -414,24 +415,24 @@ public class DefaultCacheAccess implements CacheCoordinator {
         return fileAccess;
     }
 
-    private static class IndexedCacheEntry {
-        private final MultiProcessSafePersistentIndexedCache cache;
-        private final PersistentIndexedCacheParameters parameters;
+    private static class IndexedCacheEntry<K, V> {
+        private final MultiProcessSafePersistentIndexedCache<K, V> cache;
+        private final PersistentIndexedCacheParameters<K, V> parameters;
 
-        IndexedCacheEntry(PersistentIndexedCacheParameters parameters, MultiProcessSafePersistentIndexedCache cache) {
+        IndexedCacheEntry(PersistentIndexedCacheParameters<K, V> parameters, MultiProcessSafePersistentIndexedCache<K, V> cache) {
             this.parameters = parameters;
             this.cache = cache;
         }
 
-        public MultiProcessSafePersistentIndexedCache getCache() {
+        public MultiProcessSafePersistentIndexedCache<K, V> getCache() {
             return cache;
         }
 
-        public PersistentIndexedCacheParameters getParameters() {
+        public PersistentIndexedCacheParameters<K, V> getParameters() {
             return parameters;
         }
 
-        void assertCompatibleCacheParameters(PersistentIndexedCacheParameters parameters) {
+        void assertCompatibleCacheParameters(PersistentIndexedCacheParameters<K, V> parameters) {
             List<String> faultMessages = new ArrayList<String>();
 
             checkCacheNameMatch(faultMessages, parameters.getCacheName());
@@ -455,7 +456,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
             }
         }
 
-        private void checkCompatibleKeySerializer(Collection<String> faultMessages, Serializer keySerializer) {
+        private void checkCompatibleKeySerializer(Collection<String> faultMessages, Serializer<K> keySerializer) {
             if (!Objects.equal(keySerializer, parameters.getKeySerializer())) {
                 faultMessages.add(
                     String.format(" * Requested key serializer type (%s) doesn't match current cache type (%s)",
@@ -464,7 +465,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
             }
         }
 
-        private void checkCompatibleValueSerializer(Collection<String> faultMessages, Serializer valueSerializer) {
+        private void checkCompatibleValueSerializer(Collection<String> faultMessages, Serializer<V> valueSerializer) {
             if (!Objects.equal(valueSerializer, parameters.getValueSerializer())) {
                 faultMessages.add(
                     String.format(" * Requested value serializer type (%s) doesn't match current cache type (%s)",

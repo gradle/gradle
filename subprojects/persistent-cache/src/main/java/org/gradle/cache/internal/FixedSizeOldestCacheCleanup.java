@@ -38,9 +38,9 @@ import java.util.List;
 
 public final class FixedSizeOldestCacheCleanup implements Action<PersistentCache> {
     private static final Logger LOGGER = LoggerFactory.getLogger(FixedSizeOldestCacheCleanup.class);
-    private static final Comparator<File> NEWEST_FIRST = Ordering.natural().onResultOf(new Function<File, Comparable>() {
+    private static final Comparator<File> NEWEST_FIRST = Ordering.natural().onResultOf(new Function<File, Comparable<Long>>() {
         @Override
-        public Comparable apply(File input) {
+        public Comparable<Long> apply(File input) {
             return input.lastModified();
         }
     }).reverse();
