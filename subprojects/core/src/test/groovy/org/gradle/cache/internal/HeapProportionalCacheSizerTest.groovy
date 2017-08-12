@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.cache
+package org.gradle.cache.internal
 
-import org.gradle.cache.internal.HeapProportionalCacheSizer
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification

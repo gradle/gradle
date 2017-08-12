@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.cache;
+package org.gradle.cache.internal;
 
 /**
- * Stashes an object of given type.
+ * Provides an object of given type.
  *
  * @param <T>
  */
-public interface Stash<T> {
-    void put(T object);
+public interface Loader<T> {
+    T get();
 }

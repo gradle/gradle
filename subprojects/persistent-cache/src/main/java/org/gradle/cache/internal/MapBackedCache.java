@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.cache.internal;
 
-package org.gradle.api.internal.cache;
+import java.util.Map;
 
-import net.jcip.annotations.ThreadSafe;
+public class MapBackedCache<K, V> extends CacheSupport<K, V> {
 
-import java.io.File;
+    private final Map<K, V> map;
 
-/**
- * A cache with keys that represent files, and whose values are computed from the contents of the file.
- */
-@ThreadSafe
-public interface FileContentCache<V> {
-    /**
-     * Returns the computed value for the given file.
-     */
-    V get(File file);
+    public MapBackedCache(Map<K, V> map) {
+        this.map = map;
+    }
+
+    protected <T extends K> V doGet(T key) {
+        return map.get(key);
+    }
+
+    protected <T extends K, N extends V> void doCache(T key, N value) {
+        map.put(key, value);
+    }
+
 }

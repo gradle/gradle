@@ -20,7 +20,6 @@ import com.google.common.hash.HashCode
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.state.CacheBackedFileSnapshotRepository
@@ -41,6 +40,7 @@ import org.gradle.api.internal.hash.TestFileHasher
 import org.gradle.api.tasks.incremental.InputFileDetails
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheScopeMapping
+import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.internal.classloader.ConfigurableClassLoaderHierarchyHasher
 import org.gradle.internal.event.DefaultListenerManager

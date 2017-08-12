@@ -13,23 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.cache;
+package org.gradle.cache.internal
 
-import org.gradle.internal.Factory;
+import org.gradle.internal.Factory
+import spock.lang.Specification
 
-public abstract class CacheSupport<K, V> implements Cache<K, V> {
-    
-    public V get(K key, Factory<V> factory) {
-        V value = doGet(key);
-        if (value == null) {
-            value = factory.create();
-            doCache(key, value);
-        }
-        
-        return value;
+class MapBackedCacheTest extends Specification {
+
+    def cache(map = [:]) {
+        new MapBackedCache(map)
     }
 
-    abstract protected <T extends K> V doGet(T key);
-    
-    abstract protected <T extends K, N extends V> void doCache(T key, N value);
+    def "has cache semantics"() {
+        given:
+        def map = [:]
+        def cache = cache(map)
+
+        expect:
+        cache.get("a", { 1 } as Factory) == 1
+        cache.get("a", { 2 } as Factory) == 1
+
+        and:
+        map.a == 1
+
+        when:
+        map.clear()
+
+        then:
+        cache.get("a", { 2 } as Factory) == 2
+    }
+
 }

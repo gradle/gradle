@@ -28,10 +28,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
-import org.gradle.api.internal.cache.BinaryStore;
-import org.gradle.api.internal.cache.Store;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.cache.internal.BinaryStore;
+import org.gradle.cache.internal.Store;
 import org.gradle.internal.Factory;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.serialize.Decoder;

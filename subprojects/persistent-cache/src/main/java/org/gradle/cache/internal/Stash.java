@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.cache;
 
-import java.util.Map;
+package org.gradle.cache.internal;
 
-public class MapBackedCache<K, V> extends CacheSupport<K, V> {
-    
-    private final Map<K, V> map;
-    
-    public MapBackedCache(Map<K, V> map) {
-        this.map = map;
-    }
-        
-    protected <T extends K> V doGet(T key) {
-        return map.get(key);
-    }
-    
-    protected <T extends K, N extends V> void doCache(T key, N value) {
-        map.put(key, value);
-    }
-    
+/**
+ * Stashes an object of given type.
+ *
+ * @param <T>
+ */
+public interface Stash<T> {
+    void put(T object);
 }

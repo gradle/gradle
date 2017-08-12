@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.cache;
+package org.gradle.cache.internal;
 
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.changedetection.state.FileSnapshot;

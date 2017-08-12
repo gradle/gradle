@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.cache;
+package org.gradle.cache.internal;
 
 import org.gradle.internal.Factory;
 
-public interface Cache<K, V>  {
-    V get(K key, Factory<V> factory);
+public interface Store<T> {
+    T load(Factory<T> createIfNotPresent);
 }

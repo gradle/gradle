@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.cache;
+package org.gradle.cache.internal;
 
-import org.gradle.api.internal.file.TestFiles;
-import org.gradle.internal.serialize.Serializer;
+import net.jcip.annotations.ThreadSafe;
 
 import java.io.File;
 
-public class TestFileContentCacheFactory implements FileContentCacheFactory {
-    @Override
-    public <V> FileContentCache<V> newCache(String name, int normalizedCacheSize, final Calculator<? extends V> calculator, Serializer<V> serializer) {
-        return new FileContentCache<V>() {
-            @Override
-            public V get(File file) {
-                return calculator.calculate(file, TestFiles.fileSystem().stat(file).getType());
-            }
-        };
-    }
+/**
+ * A cache with keys that represent files, and whose values are computed from the contents of the file.
+ */
+@ThreadSafe
+public interface FileContentCache<V> {
+    /**
+     * Returns the computed value for the given file.
+     */
+    V get(File file);
 }
