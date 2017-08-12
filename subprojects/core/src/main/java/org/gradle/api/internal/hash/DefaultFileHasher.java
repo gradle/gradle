@@ -15,14 +15,12 @@
  */
 package org.gradle.api.internal.hash;
 
-import com.google.common.base.Charsets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hasher;
-import com.google.common.hash.Hashing;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.internal.hash.FileContentHasherFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
-import org.gradle.internal.resource.TextResource;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -32,8 +30,12 @@ import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 
 public class DefaultFileHasher implements FileHasher {
-    private static final byte[] SIGNATURE = Hashing.md5().hashString(DefaultFileHasher.class.getName(), Charsets.UTF_8).asBytes();
     private final Queue<byte[]> buffers = new ArrayBlockingQueue<byte[]>(16);
+    private final FileContentHasherFactory hasherFactory;
+
+    public DefaultFileHasher(FileContentHasherFactory hasherFactory) {
+        this.hasherFactory = hasherFactory;
+    }
 
     @Override
     public HashCode hash(InputStream inputStream) {
@@ -42,13 +44,6 @@ public class DefaultFileHasher implements FileHasher {
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to create MD5 hash for file content.", e);
         }
-    }
-
-    @Override
-    public HashCode hash(TextResource resource) {
-        Hasher hasher = createFileHasher();
-        hasher.putString(resource.getText(), Charsets.UTF_8);
-        return hasher.hash();
     }
 
     @Override
@@ -65,7 +60,7 @@ public class DefaultFileHasher implements FileHasher {
         try {
             byte[] buffer = takeBuffer();
             try {
-                Hasher hasher = createFileHasher();
+                Hasher hasher = hasherFactory.create();
                 while (true) {
                     int nread = inputStream.read(buffer);
                     if (nread < 0) {
@@ -103,11 +98,5 @@ public class DefaultFileHasher implements FileHasher {
     @Override
     public HashCode hash(FileTreeElement fileDetails) {
         return hash(fileDetails.getFile());
-    }
-
-    private static Hasher createFileHasher() {
-        Hasher hasher = Hashing.md5().newHasher();
-        hasher.putBytes(SIGNATURE);
-        return hasher;
     }
 }

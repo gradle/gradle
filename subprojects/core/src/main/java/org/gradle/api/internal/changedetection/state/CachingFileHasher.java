@@ -24,7 +24,6 @@ import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -51,15 +50,6 @@ public class CachingFileHasher implements FileHasher {
     @Override
     public String toString() {
         return "{hasher cache: " + cache + "}";
-    }
-
-    @Override
-    public HashCode hash(TextResource resource) {
-        File file = resource.getFile();
-        if (file != null) {
-            return hash(file);
-        }
-        return delegate.hash(resource);
     }
 
     @Override

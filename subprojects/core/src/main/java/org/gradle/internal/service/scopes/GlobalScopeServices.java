@@ -41,6 +41,7 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.hash.DefaultFileContentHasherFactory;
 import org.gradle.api.internal.model.DefaultObjectFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
@@ -75,6 +76,7 @@ import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.DefaultFileWatcherFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
+import org.gradle.internal.hash.FileContentHasherFactory;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -345,5 +347,9 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
 
     BuildOperationIdFactory createBuildOperationIdProvider() {
         return new DefaultBuildOperationIdFactory();
+    }
+
+    FileContentHasherFactory createFileHasherFactory() {
+        return new DefaultFileContentHasherFactory();
     }
 }
