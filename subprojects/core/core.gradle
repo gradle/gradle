@@ -35,6 +35,7 @@ dependencies {
     api project(":cli")
     api project(":native")
     api project(":persistentCache")
+    api project(":buildCache")
 
     api project(":processServices")
     api project(":jvmServices")

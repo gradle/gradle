@@ -43,7 +43,7 @@ public class DirectoryBuildCache extends AbstractBuildCache {
     /**
      * Sets the directory to use to store the build cache.
      *
-     * The directory is evaluated as per {@link org.gradle.api.Project#file(Object)}.
+     * The directory is evaluated as per {@code Project.file(Object)}.
      */
     public void setDirectory(Object directory) {
         this.directory = directory;
