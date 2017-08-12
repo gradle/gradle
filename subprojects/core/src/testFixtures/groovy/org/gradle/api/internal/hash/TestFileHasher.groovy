@@ -20,7 +20,8 @@ import com.google.common.hash.HashCode
 import com.google.common.hash.Hashing
 import com.google.common.io.Files
 import org.gradle.api.file.FileTreeElement
-import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot
+import org.gradle.internal.file.FileMetadataSnapshot
+import org.gradle.internal.hash.FileHasher
 
 class TestFileHasher implements FileHasher {
     private final static HASH_FUNCTION = Hashing.md5()

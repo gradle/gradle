@@ -17,10 +17,10 @@
 package org.gradle.integtests
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.api.internal.hash.DefaultFileContentHasherFactory
-import org.gradle.api.internal.hash.DefaultFileHasher
-import org.gradle.api.internal.hash.FileHasher
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.internal.hash.DefaultFileContentHasherFactory
+import org.gradle.internal.hash.DefaultFileHasher
+import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer

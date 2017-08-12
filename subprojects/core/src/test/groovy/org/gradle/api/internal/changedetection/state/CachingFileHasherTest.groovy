@@ -22,8 +22,8 @@ import org.gradle.api.file.FileTreeElement
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.CachingFileHasher.FileInfo
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.hash.FileHasher
 import org.gradle.cache.PersistentIndexedCache
+import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

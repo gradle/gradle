@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeintegration.filesystem;
+package org.gradle.internal.hash;
 
-/**
- * An immutable snapshot of the metadata of a file.
- */
-public interface FileMetadataSnapshot {
-    FileType getType();
+import com.google.common.base.Charsets;
+import com.google.common.hash.Hasher;
+import com.google.common.hash.Hashing;
 
-    /**
-     * Note: always 0 for directories and missing files.
-     */
-    long getLastModified();
+public class DefaultFileContentHasherFactory implements FileContentHasherFactory {
+    private static final byte[] SIGNATURE = Hashing.md5().hashString(DefaultFileContentHasherFactory.class.getName(), Charsets.UTF_8).asBytes();
 
-    /**
-     * Note: always 0 for directories and missing files.
-     */
-    long getLength();
+    @Override
+    public Hasher create() {
+        Hasher hasher = Hashing.md5().newHasher();
+        hasher.putBytes(SIGNATURE);
+        return hasher;
+    }
 }

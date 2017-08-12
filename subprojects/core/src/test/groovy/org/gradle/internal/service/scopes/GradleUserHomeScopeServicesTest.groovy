@@ -29,7 +29,6 @@ import org.gradle.api.internal.changedetection.state.ValueSnapshotter
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
-import org.gradle.api.internal.hash.FileHasher
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.cache.CacheDecorator
 import org.gradle.cache.PersistentCache
@@ -45,6 +44,7 @@ import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ParallelismConfigurationManager
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.hash.FileContentHasherFactory
+import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.jvm.inspection.JvmVersionDetector
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.events.OutputEventListener

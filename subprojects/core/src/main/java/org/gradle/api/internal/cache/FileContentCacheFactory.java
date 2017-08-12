@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.cache;
 
-import org.gradle.internal.nativeintegration.filesystem.FileType;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;

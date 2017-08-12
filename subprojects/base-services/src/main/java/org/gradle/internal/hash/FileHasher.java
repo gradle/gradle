@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.hash;
+package org.gradle.internal.hash;
 
 import com.google.common.hash.HashCode;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
+import org.gradle.internal.file.FileMetadataSnapshot;
 
 import java.io.File;
 import java.io.InputStream;

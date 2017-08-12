@@ -20,10 +20,10 @@ import com.google.common.hash.HashCode;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
-import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependentsAccumulator;
+import org.gradle.internal.hash.FileHasher;
 
 import java.io.IOException;
 import java.io.InputStream;

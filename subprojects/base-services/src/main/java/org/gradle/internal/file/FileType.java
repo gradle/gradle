@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeintegration.filesystem;
+package org.gradle.internal.file;
 
 public enum FileType {
     RegularFile,

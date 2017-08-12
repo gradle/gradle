@@ -30,7 +30,7 @@ import org.gradle.cache.MultiProcessSafePersistentIndexedCache
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.cache.internal.DefaultCacheScopeMapping
 import org.gradle.internal.event.DefaultListenerManager
-import org.gradle.internal.nativeintegration.filesystem.FileType
+import org.gradle.internal.file.FileType
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryCacheFactory

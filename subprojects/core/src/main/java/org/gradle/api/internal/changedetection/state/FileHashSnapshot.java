@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.base.Objects;
 import com.google.common.hash.HashCode;
-import org.gradle.internal.nativeintegration.filesystem.FileType;
+import org.gradle.internal.file.FileType;
 
 class FileHashSnapshot implements FileContentSnapshot {
     private final HashCode hash;

@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.rules
 
-import org.gradle.internal.nativeintegration.filesystem.FileType
+import org.gradle.internal.file.FileType
 import spock.lang.Specification
 import spock.lang.Unroll
 

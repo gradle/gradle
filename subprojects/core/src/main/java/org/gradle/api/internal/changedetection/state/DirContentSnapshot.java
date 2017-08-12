@@ -19,7 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.base.Charsets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
-import org.gradle.internal.nativeintegration.filesystem.FileType;
+import org.gradle.internal.file.FileType;
 
 class DirContentSnapshot implements FileContentSnapshot {
     private static final DirContentSnapshot INSTANCE = new DirContentSnapshot();
