@@ -13,35 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.cache
+package org.gradle.cache.internal;
 
-import org.gradle.internal.Factory
+import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.Synchronizer;
 
-import spock.lang.*
+public class CacheAccessSerializer<K, V> implements Cache<K, V> {
 
-class MapBackedCacheTest extends Specification {
-    
-    def cache(map = [:]) {
-        new MapBackedCache(map)
+    final private Synchronizer synchronizer = new Synchronizer();
+    final private Cache<K, V> cache;
+
+    public CacheAccessSerializer(Cache<K, V> cache) {
+        this.cache = cache;
     }
 
-    def "has cache semantics"() {
-        given:
-        def map = [:]
-        def cache = cache(map)
-        
-        expect:
-        cache.get("a", { 1 } as Factory) == 1
-        cache.get("a", { 2 } as Factory) == 1
-        
-        and:
-        map.a == 1
-        
-        when:
-        map.clear()
-        
-        then:
-        cache.get("a", { 2 } as Factory) == 2
+    public V get(final K key, final Factory<V> factory) {
+        return synchronizer.synchronize(new Factory<V>() {
+            public V create() {
+                return cache.get(key, factory);
+            }
+        });
     }
-    
+
 }

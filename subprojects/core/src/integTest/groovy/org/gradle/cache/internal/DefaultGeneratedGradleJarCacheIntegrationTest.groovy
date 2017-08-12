@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.cache
+package org.gradle.cache.internal
 
 import org.gradle.api.Action
 import org.gradle.cache.CacheRepository
-import org.gradle.cache.internal.CacheFactory
-import org.gradle.cache.internal.CacheScopeMapping
-import org.gradle.cache.internal.DefaultCacheRepository
-import org.gradle.cache.internal.DefaultCacheScopeMapping
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.GlobalScopeServices

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.cache;
+package org.gradle.cache.internal;
 
 import org.gradle.api.Action;
 import org.gradle.cache.CacheRepository;
@@ -26,7 +26,7 @@ import java.io.File;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class DefaultGeneratedGradleJarCache implements GeneratedGradleJarCache, Closeable {
+public class DefaultGeneratedGradleJarCache implements GeneratedGradleJarCache, org.gradle.api.internal.cache.GeneratedGradleJarCache, Closeable {
 
     private final PersistentCache cache;
     private final String gradleVersion;

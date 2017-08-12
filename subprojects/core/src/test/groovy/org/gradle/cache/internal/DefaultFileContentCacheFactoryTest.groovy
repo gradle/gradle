@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.cache
+package org.gradle.cache.internal
 
 import com.google.common.hash.HashCode
 import org.gradle.api.internal.changedetection.state.FileHashSnapshot
@@ -27,8 +27,6 @@ import org.gradle.cache.AsyncCacheAccess
 import org.gradle.cache.CacheDecorator
 import org.gradle.cache.CrossProcessCacheAccess
 import org.gradle.cache.MultiProcessSafePersistentIndexedCache
-import org.gradle.cache.internal.DefaultCacheRepository
-import org.gradle.cache.internal.DefaultCacheScopeMapping
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.file.FileType
 import org.gradle.internal.serialize.BaseSerializerFactory

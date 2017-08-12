@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.cache;
+package org.gradle.cache.internal;
 
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.serialize.Serializer;

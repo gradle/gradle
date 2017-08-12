@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.cache.internal;
 
-package org.gradle.api.internal.cache;
+import org.gradle.internal.Factory;
 
-/**
- * Provides an object of given type.
- *
- * @param <T>
- */
-public interface Loader<T> {
-    T get();
+public abstract class CacheSupport<K, V> implements Cache<K, V> {
+
+    public V get(K key, Factory<V> factory) {
+        V value = doGet(key);
+        if (value == null) {
+            value = factory.create();
+            doCache(key, value);
+        }
+
+        return value;
+    }
+
+    abstract protected <T extends K> V doGet(T key);
+
+    abstract protected <T extends K, N extends V> void doCache(T key, N value);
 }

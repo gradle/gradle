@@ -18,7 +18,6 @@ package org.gradle.internal.service.scopes
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.ClassPathRegistry
-import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache
 import org.gradle.api.internal.changedetection.state.FileSystemMirror
@@ -33,6 +32,7 @@ import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.cache.CacheDecorator
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.CacheFactory
+import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
 import org.gradle.concurrent.ParallelismConfiguration
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache
 import org.gradle.initialization.ClassLoaderRegistry

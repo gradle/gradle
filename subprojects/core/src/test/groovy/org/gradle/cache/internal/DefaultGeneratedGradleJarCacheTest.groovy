@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.cache
+package org.gradle.cache.internal
 
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
@@ -27,11 +27,11 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.api.internal.cache.GeneratedGradleJarCache.CACHE_DISPLAY_NAME
-import static org.gradle.api.internal.cache.GeneratedGradleJarCache.CACHE_KEY
+import static org.gradle.cache.internal.GeneratedGradleJarCache.CACHE_DISPLAY_NAME
+import static org.gradle.cache.internal.GeneratedGradleJarCache.CACHE_KEY
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
-class GeneratedGradleJarCacheTest extends Specification {
+class DefaultGeneratedGradleJarCacheTest extends Specification {
 
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()

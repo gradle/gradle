@@ -19,9 +19,9 @@ import com.google.common.hash.HashCode;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
-import org.gradle.api.internal.cache.CrossBuildInMemoryCache;
-import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
+import org.gradle.cache.internal.CrossBuildInMemoryCache;
+import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Cast;
 
