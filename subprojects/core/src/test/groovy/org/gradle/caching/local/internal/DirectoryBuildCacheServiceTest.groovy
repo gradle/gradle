@@ -16,12 +16,10 @@
 
 package org.gradle.caching.local.internal
 
-import org.gradle.cache.CacheBuilder
-import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
 import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheKey
-import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.resource.local.PathKeyFileStore
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
@@ -33,17 +31,12 @@ import spock.lang.Specification
 class DirectoryBuildCacheServiceTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     def cacheDir = temporaryFolder.createDir("cache")
+    def fileStore = Mock(PathKeyFileStore)
     def persistentCache = Mock(PersistentCache) {
         getBaseDir() >> cacheDir
     }
-    def cacheBuilder = Mock(CacheBuilder) {
-        open() >> persistentCache
-        _ * _(_) >> { cacheBuilder }
-    }
-    def cacheRepository = Mock(CacheRepository) {
-        cache(cacheDir) >> cacheBuilder
-    }
-    def service = new DirectoryBuildCacheService(cacheRepository, Mock(BuildOperationExecutor), cacheDir, Long.MAX_VALUE)
+    def tempFileStore = new DefaultBuildCacheTempFileStore(cacheDir, ".part")
+    def service = new DirectoryBuildCacheService(fileStore, persistentCache, tempFileStore, ".failed")
     def key = Mock(BuildCacheKey)
 
     def "does not store partial result"() {
