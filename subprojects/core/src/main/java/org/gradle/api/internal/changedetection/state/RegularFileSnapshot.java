@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.hash.HashCode;
 import org.gradle.api.file.RelativePath;
-import org.gradle.internal.nativeintegration.filesystem.FileType;
+import org.gradle.internal.file.FileType;
 
 /**
  * Snapshot for a regular file.

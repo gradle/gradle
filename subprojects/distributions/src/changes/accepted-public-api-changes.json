@@ -86,6 +86,14 @@
             "changes": [
                 "Constructor has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getCachingFileHasher()",
+            "acceptation": "Injected type was moved (protected)",
+            "changes": [
+                "Method return type has changed"
+            ]
         }
     ]
 }

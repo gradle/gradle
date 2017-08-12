@@ -40,8 +40,6 @@ import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFacto
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.hash.DefaultFileHasher;
-import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.model.ObjectFactory;
@@ -62,7 +60,9 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.PendingChangesManager;
+import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.FileContentHasherFactory;
+import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;

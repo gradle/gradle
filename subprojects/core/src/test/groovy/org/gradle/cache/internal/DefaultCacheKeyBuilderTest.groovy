@@ -20,10 +20,10 @@ import com.google.common.base.Charsets
 import com.google.common.hash.HashCode
 import com.google.common.hash.HashFunction
 import com.google.common.hash.Hasher
-import org.gradle.api.internal.hash.FileHasher
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.hash.FileHasher
 import spock.lang.Specification
 
 import static org.gradle.cache.internal.CacheKeyBuilder.CacheKeySpec

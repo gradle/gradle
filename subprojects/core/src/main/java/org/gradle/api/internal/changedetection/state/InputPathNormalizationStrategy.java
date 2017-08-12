@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.internal.nativeintegration.filesystem.FileType;
+import org.gradle.internal.file.FileType;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

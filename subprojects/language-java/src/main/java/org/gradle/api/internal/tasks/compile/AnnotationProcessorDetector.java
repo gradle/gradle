@@ -29,7 +29,7 @@ import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.FileUtils;
-import org.gradle.internal.nativeintegration.filesystem.FileType;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.util.DeprecationLogger;
 

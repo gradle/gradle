@@ -19,7 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
-import org.gradle.internal.nativeintegration.filesystem.FileType;
+import org.gradle.internal.file.FileType;
 
 import java.io.Closeable;
 import java.io.File;

@@ -17,7 +17,7 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.hash.FileHasher;
+import org.gradle.internal.hash.FileHasher;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
