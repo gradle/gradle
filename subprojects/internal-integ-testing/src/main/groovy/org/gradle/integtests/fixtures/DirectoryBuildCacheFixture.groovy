@@ -59,7 +59,7 @@ trait DirectoryBuildCacheFixture extends BuildCacheFixture {
     }
 
     List<TestFile> listCacheTempFiles() {
-        cacheDir.listFiles().findAll { it.name.endsWith(BuildCacheTempFileStore.SUFFIX) }.sort()
+        cacheDir.listFiles().findAll { it.name.endsWith(BuildCacheTempFileStore.PARTIAL_FILE_SUFFIX) }.sort()
     }
 
     List<TestFile> listCacheFiles() {

@@ -38,7 +38,7 @@ public class DefaultBuildCacheTempFileStore implements BuildCacheTempFileStore {
         String hashCode = key.getHashCode();
         final File tempFile;
         try {
-            tempFile = File.createTempFile(hashCode, SUFFIX, dir);
+            tempFile = File.createTempFile(hashCode, PARTIAL_FILE_SUFFIX, dir);
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);
         }

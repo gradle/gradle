@@ -24,7 +24,6 @@ import org.gradle.api.Action;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.PersistentCache;
-import org.gradle.caching.local.internal.BuildCacheTempFileStore;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
@@ -48,10 +47,12 @@ public final class FixedSizeOldestCacheCleanup implements Action<PersistentCache
 
     private final BuildOperationExecutor buildOperationExecutor;
     private final long targetSizeInMB;
+    private final String partialFileSuffix;
 
-    public FixedSizeOldestCacheCleanup(BuildOperationExecutor buildOperationExecutor, long targetSizeInMB) {
+    public FixedSizeOldestCacheCleanup(BuildOperationExecutor buildOperationExecutor, long targetSizeInMB, String partialFileSuffix) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.targetSizeInMB = targetSizeInMB;
+        this.partialFileSuffix = partialFileSuffix;
     }
 
     @Override
@@ -166,6 +167,6 @@ public final class FixedSizeOldestCacheCleanup implements Action<PersistentCache
     }
 
     boolean canBeDeleted(String name) {
-        return !(name.endsWith(".properties") || name.endsWith(".lock") || name.endsWith(BuildCacheTempFileStore.SUFFIX));
+        return !(name.endsWith(".properties") || name.endsWith(".lock") || name.endsWith(partialFileSuffix));
     }
 }

@@ -55,7 +55,7 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
         this.fileStore = new PathKeyFileStore(baseDir);
         this.persistentCache = cacheRepository
             .cache(checkDirectory(baseDir))
-            .withCleanup(new FixedSizeOldestCacheCleanup(buildOperationExecutor, targetCacheSize))
+            .withCleanup(new FixedSizeOldestCacheCleanup(buildOperationExecutor, targetCacheSize, PARTIAL_FILE_SUFFIX))
             .withDisplayName("Build cache")
             .withLockOptions(mode(None))
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
