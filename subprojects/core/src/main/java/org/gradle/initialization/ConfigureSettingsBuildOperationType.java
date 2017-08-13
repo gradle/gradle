@@ -43,8 +43,18 @@ public final class ConfigureSettingsBuildOperationType implements BuildOperation
 
     public interface Result {
 
+        /**
+         * A description of the root Project.
+         *
+         * @see org.gradle.api.initialization.Settings#getRootProject()
+         */
         ProjectDescription getRootProject();
 
+        /**
+         * The build path of the root Project.
+         *
+         * @see org.gradle.api.internal.GradleInternal#getIdentityPath()
+         */
         String getBuildPath();
 
         interface ProjectDescription {
