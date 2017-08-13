@@ -28,12 +28,10 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.util.CollectionUtils;
 
+import java.util.Comparator;
 import java.util.Set;
 
-import static org.gradle.initialization.ConfigureSettingsBuildOperationType.PROJECT_DESCRIPTION_COMPARATOR;
-
 public class NotifyingSettingsProcessor implements SettingsProcessor {
-
     private final SettingsProcessor settingsProcessor;
     private final BuildOperationExecutor buildOperationExecutor;
 
@@ -71,7 +69,7 @@ public class NotifyingSettingsProcessor implements SettingsProcessor {
         });
     }
 
-    private ConfigureSettingsBuildOperationType.ProjectDescription convertDescriptors(org.gradle.api.initialization.ProjectDescriptor projectDescription) {
+    private ConfigureSettingsBuildOperationType.Result.ProjectDescription convertDescriptors(org.gradle.api.initialization.ProjectDescriptor projectDescription) {
         return new DefaultProjectDescription(projectDescription.getName(),
             projectDescription.getPath(),
             projectDescription.getProjectDir().getAbsolutePath(),
@@ -79,26 +77,26 @@ public class NotifyingSettingsProcessor implements SettingsProcessor {
             ImmutableSortedSet.copyOf(PROJECT_DESCRIPTION_COMPARATOR, convertDescriptors(projectDescription.getChildren())));
     }
 
-    private Set<ConfigureSettingsBuildOperationType.ProjectDescription> convertDescriptors(Set<org.gradle.api.initialization.ProjectDescriptor> children) {
-        return CollectionUtils.collect(children, new Transformer<ConfigureSettingsBuildOperationType.ProjectDescription, org.gradle.api.initialization.ProjectDescriptor>() {
+    private Set<ConfigureSettingsBuildOperationType.Result.ProjectDescription> convertDescriptors(Set<org.gradle.api.initialization.ProjectDescriptor> children) {
+        return CollectionUtils.collect(children, new Transformer<ConfigureSettingsBuildOperationType.Result.ProjectDescription, org.gradle.api.initialization.ProjectDescriptor>() {
             @Override
-            public ConfigureSettingsBuildOperationType.ProjectDescription transform(org.gradle.api.initialization.ProjectDescriptor projectDescriptor) {
+            public ConfigureSettingsBuildOperationType.Result.ProjectDescription transform(org.gradle.api.initialization.ProjectDescriptor projectDescriptor) {
                 return convertDescriptors(projectDescriptor);
             }
         });
     }
 
     private class OperationResult implements ConfigureSettingsBuildOperationType.Result {
-        private final ConfigureSettingsBuildOperationType.ProjectDescription rootProject;
+        private final ConfigureSettingsBuildOperationType.Result.ProjectDescription rootProject;
         private final String buildPath;
 
-        public OperationResult(ConfigureSettingsBuildOperationType.ProjectDescription rootProject, String buildPath) {
+        public OperationResult(ConfigureSettingsBuildOperationType.Result.ProjectDescription rootProject, String buildPath) {
             this.rootProject = rootProject;
             this.buildPath = buildPath;
         }
 
         @Override
-        public ConfigureSettingsBuildOperationType.ProjectDescription getRootProject() {
+        public ConfigureSettingsBuildOperationType.Result.ProjectDescription getRootProject() {
             return rootProject;
         }
 
@@ -108,14 +106,14 @@ public class NotifyingSettingsProcessor implements SettingsProcessor {
         }
     }
 
-    private class DefaultProjectDescription implements ConfigureSettingsBuildOperationType.ProjectDescription {
+    private class DefaultProjectDescription implements ConfigureSettingsBuildOperationType.Result.ProjectDescription {
         final String name;
         final String path;
         final String projectDir;
         final String buildFile;
-        final ImmutableSortedSet<ConfigureSettingsBuildOperationType.ProjectDescription> children;
+        final ImmutableSortedSet<ConfigureSettingsBuildOperationType.Result.ProjectDescription> children;
 
-        public DefaultProjectDescription(String name, String path, String projectDir, String buildFile, ImmutableSortedSet<ConfigureSettingsBuildOperationType.ProjectDescription> children){
+        public DefaultProjectDescription(String name, String path, String projectDir, String buildFile, ImmutableSortedSet<ConfigureSettingsBuildOperationType.Result.ProjectDescription> children){
             this.name = name;
             this.path = path;
             this.projectDir = projectDir;
@@ -139,8 +137,18 @@ public class NotifyingSettingsProcessor implements SettingsProcessor {
             return buildFile;
         }
 
-        public Set<ConfigureSettingsBuildOperationType.ProjectDescription> getChildren() {
+        public Set<ConfigureSettingsBuildOperationType.Result.ProjectDescription> getChildren() {
             return children;
         }
     }
+
+
+    private static final Comparator<ConfigureSettingsBuildOperationType.Result.ProjectDescription> PROJECT_DESCRIPTION_COMPARATOR = new Comparator<ConfigureSettingsBuildOperationType.Result.ProjectDescription>() {
+        @Override
+        public int compare(ConfigureSettingsBuildOperationType.Result.ProjectDescription o1, ConfigureSettingsBuildOperationType.Result.ProjectDescription o2) {
+            return o1.getName().compareTo(o2.getName());
+        }
+    };
+
+
 }
