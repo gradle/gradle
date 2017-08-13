@@ -39,7 +39,7 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingChangesListener, Stoppable {
+public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, PendingChangesListener, Stoppable {
     private static final Logger LOGGER = Logging.getLogger(DefaultDeploymentRegistry.class);
     // TODO: Wire this into a command-line option (like --no-eager-rebuild)
     public static final String EAGER_SYS_PROP = "org.gradle.internal.continuous.eager";

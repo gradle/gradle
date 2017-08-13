@@ -36,13 +36,13 @@ public interface DeploymentHandle {
     boolean isRunning();
 
     /**
-     * Starts the given deployment
+     * Starts the given deployment.
      * @param deployment the deployment to be started
      */
     void start(Deployment deployment);
 
     /**
-     * Stops the deployment
+     * Stops the deployment.
      */
     void stop();
 }

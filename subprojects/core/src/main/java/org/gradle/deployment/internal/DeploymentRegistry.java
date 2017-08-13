@@ -20,7 +20,6 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Incubating;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
 
 /**
  * A registry of deployment handles.
@@ -49,11 +48,6 @@ public interface DeploymentRegistry {
      */
     @Nullable
     <T extends DeploymentHandle> T get(String name, Class<T> handleType);
-
-    /**
-     * Returns all running deployments
-     */
-    Collection<Deployment> getRunningDeployments();
 
     /**
      * Behavior when a deployment is out-of-date.

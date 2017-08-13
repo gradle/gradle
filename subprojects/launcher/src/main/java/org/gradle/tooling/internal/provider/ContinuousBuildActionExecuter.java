@@ -20,13 +20,13 @@ import org.gradle.api.Action;
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.deployment.internal.Deployment;
-import org.gradle.deployment.internal.DeploymentRegistry;
+import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.execution.CancellableOperationManager;
 import org.gradle.execution.DefaultCancellableOperationManager;
 import org.gradle.execution.PassThruCancellableOperationManager;
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.ContinuousExecutionGate;
 import org.gradle.initialization.BuildRequestContext;
+import org.gradle.initialization.ContinuousExecutionGate;
 import org.gradle.initialization.ReportedException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -111,7 +111,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
                 }
             }
         };
-        final DeploymentRegistry deploymentRegistry = contextServices.get(DeploymentRegistry.class);
+        final DeploymentRegistryInternal deploymentRegistry = contextServices.get(DeploymentRegistryInternal.class);
         final Collection<Deployment> runningDeployments = deploymentRegistry.getRunningDeployments();
         if (!runningDeployments.isEmpty()) {
             cancellableOperationManager.monitorInput(new Action<BuildCancellationToken>() {

@@ -17,12 +17,14 @@
 package org.gradle.deployment.internal;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
- * A deployed application
+ * A deployed application.
  *
  * @since 4.2
  */
+@HasInternalProtocol
 @Incubating
 public interface Deployment {
     /**
@@ -31,7 +33,7 @@ public interface Deployment {
      * <p>
      * This method may block until all pending changes have been incorporated.
      * </p>
-     * @return
+     * @return the current status of this deployment.
      */
     Status status();
 
@@ -40,14 +42,14 @@ public interface Deployment {
      */
     interface Status {
         /**
-         * Returns a Throwable if the latest build failed.
-         * @return
+         * Returns a Throwable if the latest build failed for this deployment.
+         * @return any failure for the current status.
          */
         Throwable getFailure();
 
         /**
          * Returns true if the deployment's runtime may have changed since the previous status was reported.
-         * @return
+         * @return whether the deployment runtime may have changed.
          */
         boolean hasChanged();
     }
