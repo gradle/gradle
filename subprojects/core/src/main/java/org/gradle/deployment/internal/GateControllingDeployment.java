@@ -16,13 +16,9 @@
 
 package org.gradle.deployment.internal;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.initialization.ContinuousExecutionGate;
 
 class GateControllingDeployment implements DeploymentInternal {
-    private static final Logger LOGGER = Logging.getLogger(GateControllingDeployment.class);
-
     private final ContinuousExecutionGate.GateKeeper gateKeeper;
     private final DeploymentInternal delegate;
 
@@ -33,10 +29,7 @@ class GateControllingDeployment implements DeploymentInternal {
 
     @Override
     public Status status() {
-        if (gateKeeper != null) {
-            LOGGER.debug("Opening gate");
-            gateKeeper.open();
-        }
+        gateKeeper.open();
         return delegate.status();
     }
 
@@ -48,10 +41,6 @@ class GateControllingDeployment implements DeploymentInternal {
     @Override
     public void upToDate(Throwable failure) {
         delegate.upToDate(failure);
-
-        if (gateKeeper != null) {
-            LOGGER.debug("Closing gate");
-            gateKeeper.close();
-        }
+        gateKeeper.close();
     }
 }
