@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.provider
 import org.gradle.api.execution.internal.DefaultTaskInputsListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.deployment.internal.DeploymentRegistry
+import org.gradle.deployment.DeploymentRegistry
 import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.initialization.DefaultContinuousExecutionGate

@@ -16,6 +16,8 @@
 
 package org.gradle.deployment.internal;
 
+import org.gradle.deployment.Deployment;
+import org.gradle.deployment.DeploymentHandle;
 import org.gradle.internal.concurrent.Stoppable;
 
 class DefaultDeployment implements DeploymentInternal, DeploymentHandle, Stoppable {

@@ -16,6 +16,9 @@
 
 package org.gradle.integtests.tooling.r25
 
+import org.gradle.deployment.Deployment
+import org.gradle.deployment.DeploymentHandle
+import org.gradle.deployment.DeploymentRegistry
 import org.gradle.integtests.fixtures.executer.GradleVersions
 import org.gradle.integtests.tooling.fixture.ContinuousBuildToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -33,10 +36,10 @@ class DeploymentHandleContinuousBuildCrossVersionSpec extends ContinuousBuildToo
     def setup() {
         buildFile << """
             import javax.inject.Inject
-            import org.gradle.deployment.internal.DeploymentHandle
-            import org.gradle.deployment.internal.Deployment
-            import org.gradle.deployment.internal.DeploymentRegistry
-            import org.gradle.deployment.internal.DeploymentRegistry.ChangeBehavior
+            import ${DeploymentHandle.canonicalName}
+            import ${Deployment.canonicalName}
+            import ${DeploymentRegistry.canonicalName}
+            import ${DeploymentRegistry.ChangeBehavior.canonicalName}
 
             task runDeployment(type: RunTestDeployment) {
                 triggerFile = file('${triggerFile.name}')

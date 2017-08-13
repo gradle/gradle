@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.deployment.internal;
+package org.gradle.deployment;
 
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
@@ -40,6 +40,7 @@ public interface Deployment {
     /**
      * Status of a Deployment
      */
+    @Incubating
     interface Status {
         /**
          * Returns a Throwable if the latest build failed for this deployment.

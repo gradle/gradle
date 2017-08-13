@@ -14,16 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.deployment.internal;
-
-import org.gradle.deployment.Deployment;
-import org.gradle.deployment.DeploymentRegistry;
-
-import java.util.Collection;
-public interface DeploymentRegistryInternal extends DeploymentRegistry {
-
-    /**
-     * Returns all running deployments
-     */
-    Collection<Deployment> getRunningDeployments();
-}
+/**
+ * Types for defining and managing deployments.
+ *
+ * @since 4.2
+ */
+package org.gradle.deployment;

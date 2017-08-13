@@ -18,7 +18,7 @@ package org.gradle.play.internal.run;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.deployment.internal.Deployment;
+import org.gradle.deployment.Deployment;
 import org.gradle.internal.UncheckedException;
 
 import java.util.concurrent.BlockingQueue;

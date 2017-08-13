@@ -16,6 +16,8 @@
 
 package org.gradle.deployment.internal;
 
+import org.gradle.deployment.DeploymentHandle;
+import org.gradle.deployment.DeploymentRegistry;
 import org.gradle.initialization.ContinuousExecutionGate;
 
 class DeploymentFactory {
