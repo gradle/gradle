@@ -24,11 +24,15 @@ class NotifySettingsProcessorIntegrationTest extends AbstractIntegrationSpec {
 
     final buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
-    def "settings details are exposed"() {
+    def "multiproject settings with customizations are are exposed correctly"() {
         settingsFile << """
         include "a"
         include "b"
         include "a:c"
+        include "a:c:d"
+        
+        findProject(':a:c:d').projectDir = file("d")
+        findProject(':a:c:d').buildFileName = "d.gradle"
         
         rootProject.name = "root"
         rootProject.buildFileName = 'root.gradle'
@@ -44,6 +48,101 @@ class NotifySettingsProcessorIntegrationTest extends AbstractIntegrationSpec {
         operation().result.rootProject.name == "root"
         operation().result.rootProject.path == ":"
         operation().result.rootProject.projectDir == buildFile.parentFile.absolutePath
+        operation().result.rootProject.buildFile == file("root.gradle").absolutePath
+
+        project(":b").name == "b"
+        project(":b").path == ":b"
+        project(":b").projectDir == new File(testDirectory, "b").absolutePath
+        project(":b").buildFile == new File(testDirectory, "b/build.gradle").absolutePath
+
+        project(":a").name == "a"
+        project(":a").path == ":a"
+        project(":a").projectDir == new File(testDirectory, "a").absolutePath
+        project(":a").buildFile == new File(testDirectory, "a/build.gradle").absolutePath
+
+        project(":a:c").name == "c"
+        project(":a:c").path == ":a:c"
+        project(":a:c").projectDir == new File(testDirectory, "a/c").absolutePath
+        project(":a:c").buildFile == new File(testDirectory, "a/c/build.gradle").absolutePath
+
+        project(":a:c:d").name == "d"
+        project(":a:c:d").path == ":a:c:d"
+        project(":a:c:d").projectDir == new File(testDirectory, "d").absolutePath
+        project(":a:c:d").buildFile == new File(testDirectory, "d/d.gradle").absolutePath
+    }
+
+    def "settings with master folder are exposed correctly"() {
+
+        def customSettingsFile = file("master/settings.gradle")
+        customSettingsFile << """
+        rootProject.name = "root"
+        rootProject.buildFileName = 'root.gradle'
+        
+        includeFlat "a"
+        """
+
+        def projectDirectory = testDirectory.createDir("a")
+
+        when:
+        executer.withSearchUpwards()
+        projectDir(projectDirectory)
+        succeeds('help')
+
+        then:
+        operation().details.settingsDir == customSettingsFile.parentFile.absolutePath
+        operation().details.settingsFile == customSettingsFile.absolutePath
+        operation().result.buildPath == ":"
+        operation().result.rootProject.name == "root"
+        operation().result.rootProject.path == ":"
+        operation().result.rootProject.projectDir == customSettingsFile.parentFile.absolutePath
+        operation().result.rootProject.buildFile == customSettingsFile.parentFile.file("root.gradle").absolutePath
+
+        project(":a").name == "a"
+        project(":a").path == ":a"
+        project(":a").projectDir == new File(testDirectory, "a").absolutePath
+        project(":a").buildFile == new File(testDirectory, "a/build.gradle").absolutePath
+    }
+
+    def "settings set via cmdline flag are exposed correctly"() {
+        def customSettingsDir = file("custom")
+        customSettingsDir.mkdirs()
+        def customSettingsFile = new File(customSettingsDir, "settings.gradle")
+        customSettingsFile << """
+        rootProject.name = "root"
+        rootProject.buildFileName = 'root.gradle'
+        
+        include "a"
+        """
+
+        when:
+        executer.withArguments("--settings-file", customSettingsFile.absolutePath)
+        succeeds('help')
+
+        then:
+        operation().details.settingsDir == customSettingsDir.absolutePath
+        operation().details.settingsFile == customSettingsFile.absolutePath
+        operation().result.buildPath == ":"
+        operation().result.rootProject.name == "root"
+        operation().result.rootProject.path == ":"
+        operation().result.rootProject.projectDir == customSettingsDir.absolutePath
+        operation().result.rootProject.buildFile == customSettingsDir.file("root.gradle").absolutePath
+
+        project(":a").name == "a"
+        project(":a").path == ":a"
+        project(":a").projectDir == new File(customSettingsDir, "a").absolutePath
+        project(":a").buildFile == new File(customSettingsDir, "a/build.gradle").absolutePath
+    }
+
+
+    def project(String path, Map parent = null) {
+        if (parent == null) {
+            if (path.lastIndexOf(':') == 0) {
+                return operation().result.rootProject.children.find { it.path == path }
+            } else {
+                return project(path, project(path.substring(0, path.lastIndexOf(':'))))
+            }
+        }
+        return parent.children.find { it.path == path }
     }
 
     private BuildOperationRecord operation() {
