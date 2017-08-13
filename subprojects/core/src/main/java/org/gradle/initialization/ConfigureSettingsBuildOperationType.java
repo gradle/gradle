@@ -43,19 +43,19 @@ public final class ConfigureSettingsBuildOperationType implements BuildOperation
 
     public interface Result {
 
-        ProjectDescriptor getRootProject();
+        ProjectDescription getRootProject();
 
         String getBuildPath();
     }
 
-    public static class ProjectDescriptor {
+    public static class ProjectDescription {
         final String name;
         final String path;
         final String projectDir;
         final String buildFile;
-        final Set<ProjectDescriptor> children;
+        final Set<ProjectDescription> children;
 
-        public ProjectDescriptor(String name, String path, String projectDir, String buildFile, Set<ProjectDescriptor> children){
+        public ProjectDescription(String name, String path, String projectDir, String buildFile, Set<ProjectDescription> children){
             this.name = name;
             this.path = path;
             this.projectDir = projectDir;
@@ -79,7 +79,7 @@ public final class ConfigureSettingsBuildOperationType implements BuildOperation
             return buildFile;
         }
 
-        public Set<ProjectDescriptor> getChildren() {
+        public Set<ProjectDescription> getChildren() {
             return children;
         }
     }

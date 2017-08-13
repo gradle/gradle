@@ -67,34 +67,34 @@ public class NotifyingSettingsProcessor implements SettingsProcessor {
         });
     }
 
-    private ConfigureSettingsBuildOperationType.ProjectDescriptor convertDescriptors(org.gradle.api.initialization.ProjectDescriptor projectDescriptor) {
-        return new ConfigureSettingsBuildOperationType.ProjectDescriptor(projectDescriptor.getName(),
-            projectDescriptor.getPath(),
-            projectDescriptor.getProjectDir().getAbsolutePath(),
-            projectDescriptor.getBuildFile().getAbsolutePath(),
-            convertDescriptors(projectDescriptor.getChildren()));
+    private ConfigureSettingsBuildOperationType.ProjectDescription convertDescriptors(org.gradle.api.initialization.ProjectDescriptor projectDescription) {
+        return new ConfigureSettingsBuildOperationType.ProjectDescription(projectDescription.getName(),
+            projectDescription.getPath(),
+            projectDescription.getProjectDir().getAbsolutePath(),
+            projectDescription.getBuildFile().getAbsolutePath(),
+            convertDescriptors(projectDescription.getChildren()));
     }
 
-    private Set<ConfigureSettingsBuildOperationType.ProjectDescriptor> convertDescriptors(Set<org.gradle.api.initialization.ProjectDescriptor> children) {
-        return CollectionUtils.collect(children, new Transformer<ConfigureSettingsBuildOperationType.ProjectDescriptor, org.gradle.api.initialization.ProjectDescriptor>() {
+    private Set<ConfigureSettingsBuildOperationType.ProjectDescription> convertDescriptors(Set<org.gradle.api.initialization.ProjectDescriptor> children) {
+        return CollectionUtils.collect(children, new Transformer<ConfigureSettingsBuildOperationType.ProjectDescription, org.gradle.api.initialization.ProjectDescriptor>() {
             @Override
-            public ConfigureSettingsBuildOperationType.ProjectDescriptor transform(org.gradle.api.initialization.ProjectDescriptor projectDescriptor) {
+            public ConfigureSettingsBuildOperationType.ProjectDescription transform(org.gradle.api.initialization.ProjectDescriptor projectDescriptor) {
                 return convertDescriptors(projectDescriptor);
             }
         });
     }
 
     private class OperationResult implements ConfigureSettingsBuildOperationType.Result {
-        private final ConfigureSettingsBuildOperationType.ProjectDescriptor rootProject;
+        private final ConfigureSettingsBuildOperationType.ProjectDescription rootProject;
         private final String buildPath;
 
-        public OperationResult(ConfigureSettingsBuildOperationType.ProjectDescriptor rootProject, String buildPath) {
+        public OperationResult(ConfigureSettingsBuildOperationType.ProjectDescription rootProject, String buildPath) {
             this.rootProject = rootProject;
             this.buildPath = buildPath;
         }
 
         @Override
-        public ConfigureSettingsBuildOperationType.ProjectDescriptor getRootProject() {
+        public ConfigureSettingsBuildOperationType.ProjectDescription getRootProject() {
             return rootProject;
         }
 
