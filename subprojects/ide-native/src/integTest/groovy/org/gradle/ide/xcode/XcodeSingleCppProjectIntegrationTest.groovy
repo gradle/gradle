@@ -31,6 +31,7 @@ apply plugin: 'cpp-executable'
 """
 
         app.writeSources(file('src/main'))
+        file('src/main/headers/ignore.cpp') << 'broken!'
 
         when:
         succeeds("xcode")
@@ -54,6 +55,8 @@ apply plugin: 'cpp-library'
 """
 
         app.library.writeSources(file('src/main'))
+        file('src/main/public/ignore.cpp') << 'broken!'
+        file('src/main/headers/ignore.cpp') << 'broken!'
 
         when:
         succeeds("xcode")

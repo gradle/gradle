@@ -24,12 +24,13 @@ import org.gradle.language.cpp.CppLibrary;
 
 public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary {
     private final ConfigurableFileCollection publicHeaders;
-    private final FileCollection headersWithConvention;
+    private final FileCollection publicHeadersWithConvention;
 
-    public DefaultCppLibrary(final FileOperations fileOperations) {
+    public DefaultCppLibrary(FileOperations fileOperations) {
         super(fileOperations);
         publicHeaders = fileOperations.files();
-        headersWithConvention = createDirView(publicHeaders, "src/main/public");
+        publicHeadersWithConvention = createDirView(publicHeaders, "src/main/public");
+        getCompileIncludePath().setFrom(publicHeadersWithConvention, getPrivateHeaderDirs());
     }
 
     @Override
@@ -44,6 +45,11 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
 
     @Override
     public FileCollection getPublicHeaderDirs() {
-        return headersWithConvention;
+        return publicHeadersWithConvention;
+    }
+
+    @Override
+    protected FileCollection getAllHeaderDirs() {
+        return publicHeadersWithConvention.plus(super.getAllHeaderDirs());
     }
 }

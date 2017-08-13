@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
 
 /**
  * Configuration for a C++ library or executable, defining the source files that make up the component.
@@ -63,4 +64,14 @@ public interface CppComponent {
      * Returns the private header files of this component, as defined in {@link #getPrivateHeaders()}.
      */
     FileCollection getPrivateHeaderDirs();
+
+    /**
+     * Returns the header directories to use to compile this component. Includes the header directories of this component plus those of its dependencies.
+     */
+    ConfigurableFileCollection getCompileIncludePath();
+
+    /**
+     * Returns all header files of this component. Includes public and private header files.
+     */
+    FileTree getHeaderFiles();
 }

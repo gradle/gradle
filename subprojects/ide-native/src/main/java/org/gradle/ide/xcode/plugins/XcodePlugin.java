@@ -50,10 +50,8 @@ import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.cpp.CppComponent;
-import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.cpp.plugins.CppExecutablePlugin;
 import org.gradle.language.cpp.plugins.CppLibraryPlugin;
-import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.swift.model.SwiftComponent;
 import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
@@ -229,15 +227,13 @@ public class XcodePlugin extends IdePlugin {
         FileCollection sources = component.getCppSource();
         xcode.getProject().getSources().from(sources);
 
-        // TODO - Reuse the logic from `cpp-executable` or `cpp-library` to find the header files and include paths
-        CppCompile compileTask = (CppCompile) project.getTasks().getByName("compileCpp");
-        FileCollection headers = compileTask.getIncludes().minus(project.getConfigurations().getByName(CppBasePlugin.CPP_INCLUDE_PATH));
-        xcode.getProject().getSources().from(headers.getAsFileTree());
+        FileCollection headers = component.getHeaderFiles();
+        xcode.getProject().getSources().from(headers);
 
         // TODO - Reuse the logic from `cpp-executable` or `cpp-library` to find the link task path
         Task linkTask = project.getTasks().getByName("linkMain");
         XcodeTarget target = newTarget(projectName(project) + " " + toString(productType), productType, toGradleCommand(project.getRootProject()), linkTask.getPath(), project.file("build/exe/" + project.getName()), sources);
-        target.getHeaderSearchPaths().from(compileTask.getIncludes());
+        target.getHeaderSearchPaths().from(component.getCompileIncludePath());
         xcode.getProject().setTarget(target);
 
         getProjectTask().dependsOn(createSchemeTask(project.getTasks(), xcode.getProject()));

@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryVar;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -83,15 +82,13 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         // Add the component extension
         final CppLibrary component = project.getExtensions().create(CppLibrary.class, "library", DefaultCppLibrary.class, fileOperations);
 
+        // Wire in dependencies
+        component.getCompileIncludePath().from(configurations.getByName(CppBasePlugin.CPP_INCLUDE_PATH));
+
         // Add a compile task
         CppCompile compile = tasks.create("compileCpp", CppCompile.class);
-
-        compile.includes(component.getPublicHeaderDirs());
-        compile.includes(component.getPrivateHeaderDirs());
-        compile.includes(configurations.getByName(CppBasePlugin.CPP_INCLUDE_PATH));
-
-        FileCollection sources = component.getCppSource();
-        compile.source(sources);
+        compile.includes(component.getCompileIncludePath());
+        compile.source(component.getCppSource());
 
         compile.setCompilerArgs(Collections.<String>emptyList());
         compile.setPositionIndependentCode(true);

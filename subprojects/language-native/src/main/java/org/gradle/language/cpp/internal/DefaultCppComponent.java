@@ -19,7 +19,9 @@ package org.gradle.language.cpp.internal;
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
 
@@ -32,6 +34,7 @@ public class DefaultCppComponent extends DefaultNativeComponent implements CppCo
     private final FileOperations fileOperations;
     private final ConfigurableFileCollection privateHeaders;
     private final FileCollection privateHeadersWithConvention;
+    private final ConfigurableFileCollection compileIncludePath;
 
     @Inject
     public DefaultCppComponent(FileOperations fileOperations) {
@@ -40,6 +43,9 @@ public class DefaultCppComponent extends DefaultNativeComponent implements CppCo
         cppSource = createSourceView("src/main/cpp", Arrays.asList("cpp", "c++"));
         privateHeaders = fileOperations.files();
         privateHeadersWithConvention = createDirView(privateHeaders, "src/main/headers");
+        compileIncludePath = fileOperations.files();
+        compileIncludePath.from(privateHeadersWithConvention);
+
     }
 
     protected FileCollection createDirView(final ConfigurableFileCollection dirs, final String conventionLocation) {
@@ -71,6 +77,20 @@ public class DefaultCppComponent extends DefaultNativeComponent implements CppCo
 
     @Override
     public FileCollection getPrivateHeaderDirs() {
+        return privateHeadersWithConvention;
+    }
+
+    @Override
+    public ConfigurableFileCollection getCompileIncludePath() {
+        return compileIncludePath;
+    }
+
+    @Override
+    public FileTree getHeaderFiles() {
+        return getAllHeaderDirs().getAsFileTree().matching(new PatternSet().include("**/*.h"));
+    }
+
+    protected FileCollection getAllHeaderDirs() {
         return privateHeadersWithConvention;
     }
 }

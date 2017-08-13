@@ -41,4 +41,43 @@ class DefaultCppLibraryTest extends Specification {
         library.publicHeaders.from(d)
         library.publicHeaderDirs.files == [d] as Set
     }
+
+    def "compile include path includes public and private header dirs"() {
+        def defaultPrivate = tmpDir.file("src/main/headers")
+        def defaultPublic = tmpDir.file("src/main/public")
+        def d1 = tmpDir.file("src/main/d1")
+        def d2 = tmpDir.file("src/main/d2")
+        def d3 = tmpDir.file("src/main/d3")
+        def d4 = tmpDir.file("src/main/d4")
+
+        expect:
+        library.compileIncludePath.files as List == [defaultPublic, defaultPrivate]
+
+        library.publicHeaders.from(d1)
+        library.privateHeaders.from(d2)
+        library.compileIncludePath.files as List == [d1, d2]
+
+        library.compileIncludePath.from(d3, d4)
+        library.compileIncludePath.files as List == [d1, d2, d3, d4]
+
+        library.publicHeaders.setFrom(d3)
+        library.compileIncludePath.files as List == [d3, d2, d4]
+    }
+
+    def "can query the header files of the library"() {
+        def d1 = tmpDir.createDir("d1")
+        def f1 = d1.createFile("a.h")
+        def f2 = d1.createFile("nested/b.h")
+        d1.createFile("ignore-me.cpp")
+        def f3 = tmpDir.createFile("src/main/public/c.h")
+        def f4 = tmpDir.createFile("src/main/headers/c.h")
+        tmpDir.createFile("src/main/headers/ignore.cpp")
+        tmpDir.createFile("src/main/public/ignore.cpp")
+
+        expect:
+        library.headerFiles.files == [f3, f4] as Set
+
+        library.privateHeaders.from(d1)
+        library.headerFiles.files == [f3, f1, f2] as Set
+    }
 }

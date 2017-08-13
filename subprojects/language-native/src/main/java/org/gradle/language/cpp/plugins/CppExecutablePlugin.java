@@ -21,7 +21,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.DirectoryVar;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -73,14 +72,13 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         // Add the component extension
         CppComponent component = project.getExtensions().create(CppComponent.class, "executable", DefaultCppComponent.class, fileOperations);
 
+        // Wire in dependencies
+        component.getCompileIncludePath().from(configurations.getByName(CppBasePlugin.CPP_INCLUDE_PATH));
+
         // Add a compile task
         CppCompile compile = tasks.create("compileCpp", CppCompile.class);
-
-        compile.includes(component.getPrivateHeaderDirs());
-        compile.includes(configurations.getByName(CppBasePlugin.CPP_INCLUDE_PATH));
-
-        FileCollection sources = component.getCppSource();
-        compile.source(sources);
+        compile.includes(component.getCompileIncludePath());
+        compile.source(component.getCppSource());
 
         compile.setCompilerArgs(Collections.<String>emptyList());
         compile.setMacros(Collections.<String, String>emptyMap());

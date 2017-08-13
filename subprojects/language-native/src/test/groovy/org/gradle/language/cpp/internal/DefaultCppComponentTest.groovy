@@ -92,4 +92,39 @@ class DefaultCppComponentTest extends Specification {
         component.privateHeaders.from(d)
         component.privateHeaderDirs.files == [d] as Set
     }
+
+    def "compile include path includes private header dirs"() {
+        def d = tmpDir.file("src/main/headers")
+        def d2 = tmpDir.file("src/main/d1")
+        def d3 = tmpDir.file("src/main/d2")
+        def d4 = tmpDir.file("src/main/d3")
+        def d5 = tmpDir.file("src/main/d4")
+
+        expect:
+        component.compileIncludePath.files as List == [d]
+
+        component.privateHeaders.from(d2, d3)
+        component.compileIncludePath.files as List == [d2, d3]
+
+        component.compileIncludePath.from(d4, d5)
+        component.compileIncludePath.files as List == [d2, d3, d4, d5]
+
+        component.privateHeaders.setFrom(d3)
+        component.compileIncludePath.files as List == [d3, d4, d5]
+    }
+
+    def "can query the header files of the component"() {
+        def d1 = tmpDir.createDir("d1")
+        def f1 = d1.createFile("a.h")
+        def f2 = d1.createFile("nested/b.h")
+        d1.createFile("ignore-me.cpp")
+        def f3 = tmpDir.createFile("src/main/headers/c.h")
+        tmpDir.createFile("src/main/headers/ignore.cpp")
+
+        expect:
+        component.headerFiles.files == [f3] as Set
+
+        component.privateHeaders.from(d1)
+        component.headerFiles.files == [f1, f2] as Set
+    }
 }
