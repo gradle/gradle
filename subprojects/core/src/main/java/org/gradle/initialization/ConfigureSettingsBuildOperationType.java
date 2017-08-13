@@ -19,7 +19,6 @@ package org.gradle.initialization;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
-import java.util.Comparator;
 import java.util.Set;
 
 /**
@@ -28,13 +27,6 @@ import java.util.Set;
  * @since 4.2
  */
 public final class ConfigureSettingsBuildOperationType implements BuildOperationType<ConfigureSettingsBuildOperationType.Details, ConfigureSettingsBuildOperationType.Result> {
-
-    public static final Comparator<ProjectDescription> PROJECT_DESCRIPTION_COMPARATOR = new Comparator<ConfigureSettingsBuildOperationType.ProjectDescription>() {
-        @Override
-        public int compare(ConfigureSettingsBuildOperationType.ProjectDescription o1, ConfigureSettingsBuildOperationType.ProjectDescription o2) {
-            return o1.getName().compareTo(o2.getName());
-        }
-    };
 
     @UsedByScanPlugin
     public interface Details {
@@ -54,42 +46,48 @@ public final class ConfigureSettingsBuildOperationType implements BuildOperation
         ProjectDescription getRootProject();
 
         String getBuildPath();
+
+        interface ProjectDescription {
+
+            /**
+             * The name of the project.
+             *
+             * @see org.gradle.api.initialization.ProjectDescriptor#getName()
+             */
+            String getName();
+
+            /**
+             * The path of the project.
+             *
+             * @see org.gradle.api.initialization.ProjectDescriptor#getPath()
+             */
+            String getPath();
+
+            /**
+             * The absolute file path of the project directory.
+             *
+             * @see org.gradle.api.initialization.ProjectDescriptor#getProjectDir()
+             */
+            String getProjectDir();
+
+            /**
+             * The absolute file path of the projects build file.
+             *
+             * @see org.gradle.api.initialization.ProjectDescriptor#getBuildFile()
+             */
+            String getBuildFile();
+
+            /**
+             * The child projects of this project.
+             * No null values.
+             * Ordered by project name lexicographically.
+             *
+             * @see org.gradle.api.initialization.ProjectDescriptor#getChildren()
+             */
+
+            Set<ProjectDescription> getChildren();
+        }
     }
 
-    public interface ProjectDescription {
 
-        /**
-         * The name of the project.
-         * @see org.gradle.api.initialization.ProjectDescriptor#getName()
-         * */
-        String getName();
-
-        /**
-         * The path of the project.
-         * @see org.gradle.api.initialization.ProjectDescriptor#getPath()
-         * */
-        String getPath();
-
-        /**
-         * The absolute file path of the project directory.
-         * @see org.gradle.api.initialization.ProjectDescriptor#getProjectDir()
-         * */
-        String getProjectDir();
-
-        /**
-         * The absolute file path of the projects build file.
-         * @see org.gradle.api.initialization.ProjectDescriptor#getBuildFile()
-         * */
-        String getBuildFile();
-
-        /**
-         * The child projects of this project.
-         * No null values.
-         * Ordered by project name lexicographically.
-         *
-         * @see org.gradle.api.initialization.ProjectDescriptor#getChildren()
-         */
-
-        Set<ProjectDescription> getChildren();
-    }
 }

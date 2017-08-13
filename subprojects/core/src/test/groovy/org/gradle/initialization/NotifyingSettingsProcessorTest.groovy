@@ -17,38 +17,112 @@
 package org.gradle.initialization
 
 import org.gradle.StartParameter
+import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.progress.BuildOperationCategory
+import org.gradle.util.Path
 import spock.lang.Specification
 
 class NotifyingSettingsProcessorTest extends Specification {
 
-    def "delegates to decorated script plugin via build operation"() {
+    def buildOperationExecutor = new TestBuildOperationExecutor()
+    def settingsProcessor = Mock(SettingsProcessor)
+    def gradleInternal = Mock(GradleInternal)
+    def settingsLocation = Mock(SettingsLocation)
+    def buildOperationScriptPlugin = new NotifyingSettingsProcessor(settingsProcessor, buildOperationExecutor)
+    def classLoaderScope = Mock(ClassLoaderScope)
+    def startParameter = Mock(StartParameter)
+    def settingsInternal = Mock(SettingsInternal)
+    def rootProjectDescriptor = Mock(ProjectDescriptor)
+    def subProjectDescriptor = Mock(ProjectDescriptor)
+    def buildPath = Mock(Path)
+    def rootDir = new File("root")
+    def rootBuildScriptFile = new File(rootDir, "root.gradle")
+    def subDir = new File("root")
+    def subBuildScriptFile = new File(subDir, "sub.gradle")
+
+    def "delegates to decorated settings processor"() {
         given:
-        def buildOperationExecutor = new TestBuildOperationExecutor()
-        def settingsProcessor = Mock(SettingsProcessor)
-        def gradleInternal = Mock(GradleInternal)
-        def settingsLocation = Mock(SettingsLocation)
-        def buildOperationScriptPlugin = new NotifyingSettingsProcessor(settingsProcessor, buildOperationExecutor)
-        def classLoaderScope = Mock(ClassLoaderScope)
-        def startParameter = Mock(StartParameter)
+        rootProject()
+        settings()
 
         when:
         buildOperationScriptPlugin.process(gradleInternal, settingsLocation, classLoaderScope, startParameter)
 
         then:
-//        2 * scriptSource.getResource() >> scriptSourceResource
-//        1 * scriptSourceResource.getLocation() >> scriptSourceResourceLocation
-//        1 * scriptSourceResource.isContentCached() >> true
-//        1 * scriptSourceResource.getHasEmptyContent() >> false
-//        2 * decoratedScriptPlugin.getSource() >> scriptSource
-//        1 * scriptSource.getDisplayName() >> "test.source"
-//        1 * decoratedScriptPlugin.apply(target)
-//        0 * decoratedScriptPlugin._
+        1 * settingsProcessor.process(gradleInternal, settingsLocation, classLoaderScope, startParameter) >> settingsInternal
+    }
 
+    def "exposes build operation with settings configuration result"() {
+        given:
+        rootProject()
+        settings()
+
+        when:
+        buildOperationScriptPlugin.process(gradleInternal, settingsLocation, classLoaderScope, startParameter)
+
+        then:
+        1 * settingsProcessor.process(gradleInternal, settingsLocation, classLoaderScope, startParameter) >> settingsInternal
+
+        and:
         buildOperationExecutor.operations.size() == 1
-        buildOperationExecutor.operations.get(0).displayName == "Apply script test.source to Test Target"
-        buildOperationExecutor.operations.get(0).name == "Apply script test.source"
+        buildOperationExecutor.operations.get(0).displayName == "Configure settings"
+        buildOperationExecutor.operations.get(0).name == "Configure settings"
+
+        buildOperationExecutor.operations.get(0).operationType == BuildOperationCategory.UNCATEGORIZED
+        buildOperationExecutor.operations.get(0).details.settingsDir == rootDir.absolutePath
+        buildOperationExecutor.operations.get(0).details.settingsFile == "settings.gradle"
+        buildOperationExecutor.log.mostRecentResult(ConfigureSettingsBuildOperationType).buildPath == ":"
+        buildOperationExecutor.log.mostRecentResult(ConfigureSettingsBuildOperationType).rootProject.path == ":"
+        buildOperationExecutor.log.mostRecentResult(ConfigureSettingsBuildOperationType).rootProject.projectDir == rootDir.absolutePath
+        buildOperationExecutor.log.mostRecentResult(ConfigureSettingsBuildOperationType).rootProject.buildFile == rootBuildScriptFile.absolutePath
+    }
+
+    def "exposes nested project structure"() {
+        given:
+        settings()
+        rootProject(nestedProject())
+
+        when:
+        1 * settingsProcessor.process(gradleInternal, settingsLocation, classLoaderScope, startParameter) >> settingsInternal
+        buildOperationScriptPlugin.process(gradleInternal, settingsLocation, classLoaderScope, startParameter)
+        def rootProject = buildOperationExecutor.log.mostRecentResult(ConfigureSettingsBuildOperationType).rootProject
+
+        then:
+        rootProject.children[0].projectDir == subDir.absolutePath
+        rootProject.children[0].buildFile == subBuildScriptFile.absolutePath
+    }
+
+    private void settings() {
+        _ * settingsInternal.gradle >> gradleInternal
+        _ * gradleInternal.getIdentityPath() >> buildPath
+        _ * buildPath.absolutePath(":") >> ":"
+        _ * settingsLocation.settingsDir >> rootDir
+        def scriptSource = Mock(ScriptSource)
+        _ * scriptSource.getFileName() >> "settings.gradle"
+        _ * settingsLocation.settingsScriptSource >> scriptSource
+    }
+
+    private void rootProject(Set<ConfigureSettingsBuildOperationType.Result.ProjectDescription> children = []) {
+        1 * settingsInternal.rootProject >> rootProjectDescriptor
+
+        _ * rootProjectDescriptor.projectDir >> rootDir
+        _ * rootProjectDescriptor.buildFile >> rootBuildScriptFile
+        _ * rootProjectDescriptor.path >> ":"
+        _ * rootProjectDescriptor.name >> "root"
+        _ * rootProjectDescriptor.getChildren() >> children
+    }
+
+    private Set<ConfigureSettingsBuildOperationType.Result.ProjectDescription> nestedProject() {
+        _ * subProjectDescriptor.projectDir >> subDir
+        _ * subProjectDescriptor.buildFile >> subBuildScriptFile
+        _ * subProjectDescriptor.path >> ":sub"
+        _ * subProjectDescriptor.name >> "sub"
+        _ * subProjectDescriptor.getChildren() >> ([] as Set)
+        [subProjectDescriptor]
     }
 }
