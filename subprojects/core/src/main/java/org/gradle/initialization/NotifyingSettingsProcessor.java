@@ -16,6 +16,7 @@
 
 package org.gradle.initialization;
 
+import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.StartParameter;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.GradleInternal;
@@ -29,7 +30,10 @@ import org.gradle.util.CollectionUtils;
 
 import java.util.Set;
 
+import static org.gradle.initialization.ConfigureSettingsBuildOperationType.PROJECT_DESCRIPTION_COMPARATOR;
+
 public class NotifyingSettingsProcessor implements SettingsProcessor {
+
     private final SettingsProcessor settingsProcessor;
     private final BuildOperationExecutor buildOperationExecutor;
 
@@ -68,11 +72,11 @@ public class NotifyingSettingsProcessor implements SettingsProcessor {
     }
 
     private ConfigureSettingsBuildOperationType.ProjectDescription convertDescriptors(org.gradle.api.initialization.ProjectDescriptor projectDescription) {
-        return new ConfigureSettingsBuildOperationType.ProjectDescription(projectDescription.getName(),
+        return new DefaultProjectDescription(projectDescription.getName(),
             projectDescription.getPath(),
             projectDescription.getProjectDir().getAbsolutePath(),
             projectDescription.getBuildFile().getAbsolutePath(),
-            convertDescriptors(projectDescription.getChildren()));
+            ImmutableSortedSet.copyOf(PROJECT_DESCRIPTION_COMPARATOR, convertDescriptors(projectDescription.getChildren())));
     }
 
     private Set<ConfigureSettingsBuildOperationType.ProjectDescription> convertDescriptors(Set<org.gradle.api.initialization.ProjectDescriptor> children) {
@@ -101,6 +105,42 @@ public class NotifyingSettingsProcessor implements SettingsProcessor {
         @Override
         public String getBuildPath() {
             return buildPath;
+        }
+    }
+
+    private class DefaultProjectDescription implements ConfigureSettingsBuildOperationType.ProjectDescription {
+        final String name;
+        final String path;
+        final String projectDir;
+        final String buildFile;
+        final ImmutableSortedSet<ConfigureSettingsBuildOperationType.ProjectDescription> children;
+
+        public DefaultProjectDescription(String name, String path, String projectDir, String buildFile, ImmutableSortedSet<ConfigureSettingsBuildOperationType.ProjectDescription> children){
+            this.name = name;
+            this.path = path;
+            this.projectDir = projectDir;
+            this.buildFile = buildFile;
+            this.children = children;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public String getProjectDir() {
+            return projectDir;
+        }
+
+        public String getBuildFile() {
+            return buildFile;
+        }
+
+        public Set<ConfigureSettingsBuildOperationType.ProjectDescription> getChildren() {
+            return children;
         }
     }
 }

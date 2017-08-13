@@ -26,8 +26,8 @@ class NotifySettingsProcessorIntegrationTest extends AbstractIntegrationSpec {
 
     def "multiproject settings with customizations are are exposed correctly"() {
         settingsFile << """
-        include "a"
         include "b"
+        include "a"
         include "a:c"
         include "a:c:d"
         
