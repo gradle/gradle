@@ -46,4 +46,9 @@ public interface SwiftComponent {
      * Returns the Swift source files of this component, as defined in {@link #getSource()}.
      */
     FileCollection getSwiftSource();
+
+    /**
+     * Returns the import directories to use to compile this component. Includes the import directories of the component's dependencies.
+     */
+    ConfigurableFileCollection getCompileImportPath();
 }

@@ -22,7 +22,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.DirectoryVar;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -75,13 +74,13 @@ public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
         // Add the component extension
         SwiftComponent component = project.getExtensions().create(SwiftComponent.class, "executable", DefaultSwiftComponent.class, fileOperations);
 
+        // Wire in dependencies
+        component.getCompileImportPath().from(configurations.getByName(SwiftBasePlugin.SWIFT_IMPORT_PATH));
+
         // Add a compile task
         SwiftCompile compile = tasks.create("compileSwift", SwiftCompile.class);
-
-        compile.includes(configurations.getByName(SwiftBasePlugin.SWIFT_IMPORT_PATH));
-
-        FileCollection sourceFiles = component.getSwiftSource();
-        compile.source(sourceFiles);
+        compile.includes(component.getCompileImportPath());
+        compile.source(component.getSwiftSource());
 
         compile.setCompilerArgs(Lists.newArrayList("-g"));
         compile.setMacros(Collections.<String, String>emptyMap());

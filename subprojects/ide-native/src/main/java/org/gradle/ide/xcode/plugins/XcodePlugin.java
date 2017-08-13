@@ -55,7 +55,6 @@ import org.gradle.language.cpp.plugins.CppLibraryPlugin;
 import org.gradle.language.swift.model.SwiftComponent;
 import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
-import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
@@ -196,11 +195,9 @@ public class XcodePlugin extends IdePlugin {
         xcode.getProject().getSources().from(sources);
 
         // TODO - Reuse the logic from `swift-executable` or `swift-library` to determine the link task path
-        // TODO - Reuse the logic from `swift-executable` or `swift-library` to determine the header dirs
-        SwiftCompile compileTask = (SwiftCompile) project.getTasks().getByName("compileSwift");
         Task linkTask = project.getTasks().getByName("linkMain");
         XcodeTarget target = newTarget(projectName(project) + " " + toString(productType), productType, toGradleCommand(project.getRootProject()), linkTask.getPath(), project.file("build/exe/" + project.getName()), sources);
-        target.getImportPaths().from(compileTask.getIncludes());
+        target.getImportPaths().from(component.getCompileImportPath());
         xcode.getProject().setTarget(target);
 
         getProjectTask().dependsOn(createSchemeTask(project.getTasks(), xcode.getProject()));

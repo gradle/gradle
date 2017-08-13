@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryVar;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -76,14 +75,14 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
 
         SwiftComponent component = project.getExtensions().create(SwiftComponent.class, "library", DefaultSwiftComponent.class, fileOperations);
 
+        // Wire in dependencies
+        component.getCompileImportPath().from(configurations.getByName(SwiftBasePlugin.SWIFT_IMPORT_PATH));
+
         // TODO - extract some common code to setup the compile task and conventions
         // Add a compile task
-        final SwiftCompile compile = tasks.create("compileSwift", SwiftCompile.class);
-
-        compile.includes(configurations.getByName(SwiftBasePlugin.SWIFT_IMPORT_PATH));
-
-        FileCollection sourceTree = component.getSwiftSource();
-        compile.source(sourceTree);
+        SwiftCompile compile = tasks.create("compileSwift", SwiftCompile.class);
+        compile.includes(component.getCompileImportPath());
+        compile.source(component.getSwiftSource());
 
         compile.setCompilerArgs(Lists.newArrayList("-g"));
         compile.setMacros(Collections.<String, String>emptyMap());

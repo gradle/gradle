@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift.internal;
 
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
@@ -25,14 +26,21 @@ import java.util.Collections;
 
 public class DefaultSwiftComponent extends DefaultNativeComponent implements SwiftComponent {
     private final FileCollection swiftSource;
+    private final ConfigurableFileCollection importPath;
 
     public DefaultSwiftComponent(FileOperations fileOperations) {
         super(fileOperations);
         swiftSource = createSourceView("src/main/swift", Collections.singletonList("swift"));
+        importPath = fileOperations.files();
     }
 
     @Override
     public FileCollection getSwiftSource() {
         return swiftSource;
+    }
+
+    @Override
+    public ConfigurableFileCollection getCompileImportPath() {
+        return importPath;
     }
 }
