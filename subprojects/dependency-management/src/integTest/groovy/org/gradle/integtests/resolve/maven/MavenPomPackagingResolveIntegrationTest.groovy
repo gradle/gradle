@@ -333,27 +333,4 @@ compile('group:projectA:1.0') {
         succeeds 'retrieve'
     }
 
-    @Issue('https://github.com/gradle/gradle/issues/1789')
-    def "ignore artifact when relocation is defined in pom"() {
-        given:
-        buildFile << """
-repositories { jcenter() }
-configurations { compile }
-dependencies {
-    // http://repo1.maven.org/maven2/org/apache/commons/commons-io/1.3.2/commons-io-1.3.2.pom
-    compile 'org.apache.commons:commons-io:1.3.2' 
-    compile 'commons-io:commons-io:2.4'
-}
-task retrieve(type: Sync) {
-  from configurations.compile
-  into 'libs'
-}
-"""
-        when:
-        run 'retrieve'
-
-        then:
-        file("libs").assertHasDescendants("commons-io-2.4.jar")
-    }
-
 }
