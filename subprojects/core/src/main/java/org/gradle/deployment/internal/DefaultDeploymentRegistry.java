@@ -48,7 +48,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, Pe
     public static final String EAGER_SYS_PROP = "org.gradle.internal.continuous.eager";
 
     private final Lock lock = new ReentrantLock();
-    private final Map<String, DefaultDeployment> deployments = Maps.newHashMap();
+    private final Map<String, RegisteredDeployment> deployments = Maps.newHashMap();
     private final PendingChangesManager pendingChangesManager;
     private final PendingChanges pendingChanges;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -86,8 +86,8 @@ public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, Pe
                     @Override
                     public T call(BuildOperationContext context) {
                         T handle = objectFactory.newInstance(handleType, params);
-                        DefaultDeployment deployment = DeploymentFactory.createDeployment(name, changeBehavior, eagerBuild, continuousExecutionGate, handle);
-                        handle.start(deployment);
+                        RegisteredDeployment deployment = RegisteredDeployment.create(name, changeBehavior, eagerBuild, continuousExecutionGate, handle);
+                        handle.start(deployment.getDeployment());
                         if (pendingChanges.hasRemainingChanges()) {
                             deployment.outOfDate();
                         }
@@ -123,9 +123,9 @@ public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, Pe
         lock.lock();
         try {
             List<Deployment> runningDeployments = Lists.newArrayList();
-            for (DefaultDeployment deployment : deployments.values()) {
-                if (deployment.isRunning()) {
-                    runningDeployments.add(deployment);
+            for (RegisteredDeployment deployment : deployments.values()) {
+                if (deployment.getHandle().isRunning()) {
+                    runningDeployments.add(deployment.getDeployment());
                 }
             }
             return runningDeployments;
@@ -139,7 +139,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, Pe
         lock.lock();
         try {
             pendingChanges.changesMade();
-            for (DeploymentInternal deployment : deployments.values()) {
+            for (RegisteredDeployment deployment : deployments.values()) {
                 deployment.outOfDate();
             }
         } finally {
@@ -153,7 +153,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, Pe
             pendingChanges.changesIncorporated();
             if (!pendingChanges.hasRemainingChanges()) {
                 Throwable failure = buildResult.getFailure();
-                for (DefaultDeployment deployment : deployments.values()) {
+                for (RegisteredDeployment deployment : deployments.values()) {
                     deployment.upToDate(failure);
                 }
             }
