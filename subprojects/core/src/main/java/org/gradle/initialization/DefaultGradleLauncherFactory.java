@@ -83,9 +83,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         ServiceRegistry services = parent.getGradle().getServices();
         BuildRequestMetaData requestMetaData = new DefaultBuildRequestMetaData(services.get(BuildClientMetaData.class));
         BuildCancellationToken cancellationToken = services.get(BuildCancellationToken.class);
-        ContinuousExecutionGate continuousExecutionGate = services.get(ContinuousExecutionGate.class);
         BuildEventConsumer buildEventConsumer = services.get(BuildEventConsumer.class);
-        return doNewInstance(startParameter, parent, cancellationToken, continuousExecutionGate, requestMetaData, buildEventConsumer, buildTreeScopeServices, servicesToStop);
+        return doNewInstance(startParameter, parent, cancellationToken, requestMetaData, buildEventConsumer, buildTreeScopeServices, servicesToStop);
     }
 
     @Override
@@ -101,7 +100,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         BuildTreeScopeServices buildTreeScopeServices = (BuildTreeScopeServices) parentRegistry;
 
         DefaultGradleLauncher launcher = doNewInstance(startParameter, null,
-            requestContext.getCancellationToken(), requestContext.getExecutionGate(),
+            requestContext.getCancellationToken(),
             requestContext, requestContext.getEventConsumer(), buildTreeScopeServices,
             ImmutableList.of(new Stoppable() {
             @Override
@@ -112,7 +111,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         rootBuild = launcher;
 
         final DefaultDeploymentRegistry deploymentRegistry = parentRegistry.get(DefaultDeploymentRegistry.class);
-        deploymentRegistry.useContinuousExecutionGate(requestContext.getExecutionGate());
         launcher.getGradle().addBuildListener(new BuildAdapter() {
             @Override
             public void buildFinished(BuildResult result) {
@@ -124,7 +122,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     }
 
     private DefaultGradleLauncher doNewInstance(StartParameter startParameter, GradleLauncher parent,
-                                                BuildCancellationToken cancellationToken, ContinuousExecutionGate continuousExecutionGate,
+                                                BuildCancellationToken cancellationToken,
                                                 BuildRequestMetaData requestMetaData, BuildEventConsumer buildEventConsumer,
                                                 final BuildTreeScopeServices buildTreeScopeServices, List<?> servicesToStop) {
         BuildScopeServices serviceRegistry = new BuildScopeServices(buildTreeScopeServices);
@@ -132,7 +130,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         serviceRegistry.add(BuildClientMetaData.class, requestMetaData.getClient());
         serviceRegistry.add(BuildEventConsumer.class, buildEventConsumer);
         serviceRegistry.add(BuildCancellationToken.class, cancellationToken);
-        serviceRegistry.add(ContinuousExecutionGate.class, continuousExecutionGate);
         NestedBuildFactoryImpl nestedBuildFactory = new NestedBuildFactoryImpl(buildTreeScopeServices);
         serviceRegistry.add(NestedBuildFactory.class, nestedBuildFactory);
 

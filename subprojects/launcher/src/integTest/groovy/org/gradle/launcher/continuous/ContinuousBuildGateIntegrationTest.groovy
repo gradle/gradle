@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.deployment.internal.DeploymentRegistryInternal
 import org.gradle.initialization.ContinuousExecutionGate
 import org.gradle.internal.filewatch.PendingChangesListener
 import org.gradle.internal.filewatch.PendingChangesManager
@@ -31,6 +32,7 @@ class ContinuousBuildGateIntegrationTest extends Java7RequiringContinuousIntegra
         buildFile << """
             import ${ContinuousExecutionGate.canonicalName}
             import ${ContinuousExecutionGate.GateKeeper.canonicalName}
+            import ${DeploymentRegistryInternal.canonicalName}
 
             class BuildGateKeeper implements Runnable {
                 final ContinuousExecutionGate continuousExecutionGate
@@ -69,7 +71,7 @@ class ContinuousBuildGateIntegrationTest extends Java7RequiringContinuousIntegra
                 }
             }
 
-            def continuousExecutionGate = gradle.services.get(ContinuousExecutionGate)
+            def continuousExecutionGate = gradle.services.get(DeploymentRegistryInternal).executionGate
             BuildGateKeeperStarter.start(continuousExecutionGate)
 
             class SimpleTask extends DefaultTask {

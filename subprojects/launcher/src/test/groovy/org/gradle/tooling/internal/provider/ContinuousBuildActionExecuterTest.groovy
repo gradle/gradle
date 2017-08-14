@@ -19,10 +19,9 @@ package org.gradle.tooling.internal.provider
 import org.gradle.api.execution.internal.DefaultTaskInputsListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.deployment.DeploymentRegistry
+import org.gradle.deployment.internal.DeploymentRegistryInternal
 import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.initialization.DefaultBuildCancellationToken
-import org.gradle.initialization.DefaultContinuousExecutionGate
 import org.gradle.initialization.DefaultBuildRequestContext
 import org.gradle.initialization.NoOpBuildEventConsumer
 import org.gradle.initialization.ReportedException
@@ -50,10 +49,9 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def delegate = Mock(BuildActionExecuter)
     def action = Mock(BuildAction)
     def cancellationToken = new DefaultBuildCancellationToken()
-    def continuousExecutionGate = new DefaultContinuousExecutionGate()
     def clock = Mock(Clock)
     def requestMetadata = Stub(BuildRequestMetaData)
-    def requestContext = new DefaultBuildRequestContext(requestMetadata, cancellationToken, continuousExecutionGate, new NoOpBuildEventConsumer())
+    def requestContext = new DefaultBuildRequestContext(requestMetadata, cancellationToken, new NoOpBuildEventConsumer())
     def actionParameters = Stub(BuildActionParameters)
     def waiterFactory = Mock(FileSystemChangeWaiterFactory)
     def waiter = Mock(FileSystemChangeWaiter)
@@ -63,7 +61,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def globalServices = Stub(ServiceRegistry)
     def listenerManager = Stub(ListenerManager)
     def pendingChangesListener = Mock(PendingChangesListener)
-    def deploymentRegistry = Mock(DeploymentRegistry)
+    def deploymentRegistry = Mock(DeploymentRegistryInternal)
     def executer = executer()
 
     private File file = new File('file')
@@ -73,7 +71,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         listenerManager.getBroadcaster(PendingChangesListener) >> pendingChangesListener
         requestMetadata.getBuildTimeClock() >> clock
         waiterFactory.createChangeWaiter(_, _, _) >> waiter
-        globalServices.get(DeploymentRegistry) >> deploymentRegistry
+        globalServices.get(DeploymentRegistryInternal) >> deploymentRegistry
         waiter.isWatching() >> true
     }
 

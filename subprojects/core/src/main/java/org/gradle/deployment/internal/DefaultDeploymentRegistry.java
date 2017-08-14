@@ -25,6 +25,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.deployment.Deployment;
 import org.gradle.deployment.DeploymentHandle;
 import org.gradle.initialization.ContinuousExecutionGate;
+import org.gradle.initialization.DefaultContinuousExecutionGate;
 import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
@@ -53,8 +54,8 @@ public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, Pe
     private final BuildOperationExecutor buildOperationExecutor;
     private final ObjectFactory objectFactory;
     private final boolean eagerBuild;
+    private final ContinuousExecutionGate continuousExecutionGate = new DefaultContinuousExecutionGate();
     private boolean stopped;
-    private ContinuousExecutionGate continuousExecutionGate;
 
     public DefaultDeploymentRegistry(PendingChangesManager pendingChangesManager, BuildOperationExecutor buildOperationExecutor, ObjectFactory objectFactory) {
         this.pendingChangesManager = pendingChangesManager;
@@ -63,6 +64,11 @@ public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, Pe
         this.eagerBuild = Boolean.valueOf(System.getProperty(EAGER_SYS_PROP, "true"));
         this.pendingChanges = new PendingChanges();
         pendingChangesManager.addListener(this);
+    }
+
+    @Override
+    public ContinuousExecutionGate getExecutionGate() {
+        return continuousExecutionGate;
     }
 
     @Override
@@ -139,10 +145,6 @@ public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, Pe
         } finally {
             lock.unlock();
         }
-    }
-
-    public void useContinuousExecutionGate(ContinuousExecutionGate continuousExecutionGate) {
-        this.continuousExecutionGate = continuousExecutionGate;
     }
 
     public void buildFinished(BuildResult buildResult) {

@@ -29,6 +29,4 @@ public interface BuildRequestContext extends BuildRequestMetaData {
      * Returns an event consumer that will forward events to the build requester.
      */
     BuildEventConsumer getEventConsumer();
-
-    ContinuousExecutionGate getExecutionGate();
 }
