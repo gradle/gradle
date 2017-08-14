@@ -19,7 +19,6 @@ package org.gradle.util;
 import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -28,12 +27,13 @@ public class Path implements Comparable<Path> {
     public static final Path ROOT = new Path(new String[0], true);
 
     private static final Comparator<String> STRING_COMPARATOR = GUtil.caseInsensitive();
+    private static final String SEPARATOR = ":";
 
     public static Path path(String path) {
         if (Strings.isNullOrEmpty(path)) {
             throw new InvalidUserDataException("A path must be specified!");
         }
-        if (path.equals(Project.PATH_SEPARATOR)) {
+        if (path.equals(SEPARATOR)) {
             return ROOT;
         } else {
             return parsePath(path);
@@ -41,8 +41,8 @@ public class Path implements Comparable<Path> {
     }
 
     private static Path parsePath(String path) {
-        String[] segments = StringUtils.split(path, Project.PATH_SEPARATOR);
-        boolean absolute = path.startsWith(Project.PATH_SEPARATOR);
+        String[] segments = StringUtils.split(path, SEPARATOR);
+        boolean absolute = path.startsWith(SEPARATOR);
         return new Path(segments, absolute);
     }
 
@@ -92,11 +92,11 @@ public class Path implements Comparable<Path> {
     private String createFullPath() {
         StringBuilder path = new StringBuilder();
         if (absolute) {
-            path.append(Project.PATH_SEPARATOR);
+            path.append(SEPARATOR);
         }
         for (int i = 0; i < segments.length; i++) {
             if (i > 0) {
-                path.append(Project.PATH_SEPARATOR);
+                path.append(SEPARATOR);
             }
             String segment = segments[i];
             path.append(segment);
