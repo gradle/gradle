@@ -77,6 +77,7 @@ class NotifyingSettingsProcessorTest extends Specification {
         buildOperationExecutor.operations.get(0).details.settingsDir == rootDir.absolutePath
         buildOperationExecutor.operations.get(0).details.settingsFile == "settings.gradle"
         buildOperationExecutor.log.mostRecentResult(ConfigureSettingsBuildOperationType).buildPath == ":"
+        buildOperationExecutor.log.mostRecentResult(ConfigureSettingsBuildOperationType).rootProject.name == "root"
         buildOperationExecutor.log.mostRecentResult(ConfigureSettingsBuildOperationType).rootProject.path == ":"
         buildOperationExecutor.log.mostRecentResult(ConfigureSettingsBuildOperationType).rootProject.projectDir == rootDir.absolutePath
         buildOperationExecutor.log.mostRecentResult(ConfigureSettingsBuildOperationType).rootProject.buildFile == rootBuildScriptFile.absolutePath
@@ -93,6 +94,8 @@ class NotifyingSettingsProcessorTest extends Specification {
         def rootProject = buildOperationExecutor.log.mostRecentResult(ConfigureSettingsBuildOperationType).rootProject
 
         then:
+        rootProject.children[0].name== "sub"
+        rootProject.children[0].path == ":sub"
         rootProject.children[0].projectDir == subDir.absolutePath
         rootProject.children[0].buildFile == subBuildScriptFile.absolutePath
     }
