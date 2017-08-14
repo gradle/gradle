@@ -16,6 +16,7 @@
 
 package org.gradle.performance.fixture
 
+import com.google.common.base.Joiner
 import groovy.transform.CompileStatic
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
@@ -52,17 +53,26 @@ class ToolingApiBackedGradleSession implements GradleSession {
     }
 
 
+    @Override
     Action<MeasuredOperation> runner(final BuildExperimentInvocationInfo invocationInfo, InvocationCustomizer invocationCustomizer) {
         def invocation = invocationCustomizer ? invocationCustomizer.customize(invocationInfo, this.invocation) : this.invocation
+        BuildLauncher cleanLauncher
+        def cleanTasks = invocation.cleanTasks
+        if (cleanTasks) {
+            cleanLauncher = configureLauncher(invocation, cleanTasks)
+        } else {
+            cleanLauncher = null
+        }
 
-        BuildLauncher buildLauncher = projectConnection.newBuild()
-            .withArguments(invocation.args + ["-u"] as String[])
-            .forTasks(invocation.tasksToRun as String[])
-            .setJvmArguments(invocation.jvmOpts as String[])
-            .setStandardOutput(System.out)
-            .setStandardError(System.err)
+        def tasksToRun = invocation.tasksToRun
+        BuildLauncher buildLauncher = configureLauncher(invocation, tasksToRun)
 
         return { MeasuredOperation measuredOperation ->
+            if (cleanLauncher != null) {
+                System.out.println("Cleaning up by running Gradle tasks: " + Joiner.on(" ").join(cleanTasks));
+                cleanLauncher.run()
+            }
+            System.out.println("Measuring Gradle tasks: " + Joiner.on(" ").join(tasksToRun));
             DurationMeasurementImpl.measure(measuredOperation, new Runnable() {
                 @Override
                 void run() {
@@ -70,6 +80,16 @@ class ToolingApiBackedGradleSession implements GradleSession {
                 }
             })
         } as Action<MeasuredOperation>
+    }
+
+    private BuildLauncher configureLauncher(GradleInvocationSpec invocation, List<String> tasks) {
+        BuildLauncher buildLauncher = projectConnection.newBuild()
+            .withArguments(invocation.args + ["-u"] as String[])
+            .forTasks(tasks as String[])
+            .setJvmArguments(invocation.jvmOpts as String[])
+            .setStandardOutput(System.out)
+            .setStandardError(System.err)
+        buildLauncher
     }
 
     @Override

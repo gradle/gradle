@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures
 
 import groovy.transform.SelfType
 import org.gradle.caching.local.internal.BuildCacheTempFileStore
-import org.gradle.caching.local.internal.DirectoryBuildCacheService
+import org.gradle.caching.local.internal.DirectoryBuildCacheServiceFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Before
 
@@ -59,7 +59,7 @@ trait DirectoryBuildCacheFixture extends BuildCacheFixture {
     }
 
     List<TestFile> listCacheTempFiles() {
-        cacheDir.listFiles().findAll { it.name.endsWith(BuildCacheTempFileStore.SUFFIX) }.sort()
+        cacheDir.listFiles().findAll { it.name.endsWith(BuildCacheTempFileStore.PARTIAL_FILE_SUFFIX) }.sort()
     }
 
     List<TestFile> listCacheFiles() {
@@ -67,7 +67,7 @@ trait DirectoryBuildCacheFixture extends BuildCacheFixture {
     }
 
     List<TestFile> listCacheFailedFiles() {
-        cacheDir.listFiles().findAll { it.name.endsWith(DirectoryBuildCacheService.FAILED_READ_SUFFIX) }.sort()
+        cacheDir.listFiles().findAll { it.name.endsWith(DirectoryBuildCacheServiceFactory.FAILED_READ_SUFFIX) }.sort()
     }
 
     static List<TestFile> listCacheFiles(TestFile cacheDir) {

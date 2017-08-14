@@ -19,7 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
-import org.gradle.internal.nativeintegration.filesystem.FileType;
+import org.gradle.internal.file.FileType;
 
 import java.io.Closeable;
 import java.io.File;
@@ -43,8 +43,8 @@ public class DefaultTaskOutputFilesRepository implements TaskOutputFilesReposito
         return containsFilesGeneratedByGradle(absoluteFile) || isContainedInAnOutput(absoluteFile);
     }
 
-    private Boolean isContainedInAnOutput(File file) {
-        File currentFile = file;
+    private boolean isContainedInAnOutput(File absoluteFile) {
+        File currentFile = absoluteFile;
         while (currentFile != null) {
             if (outputFiles.get(currentFile.getPath()) == Boolean.TRUE) {
                 return true;
@@ -54,8 +54,8 @@ public class DefaultTaskOutputFilesRepository implements TaskOutputFilesReposito
         return false;
     }
 
-    private boolean containsFilesGeneratedByGradle(File file) {
-        return outputFiles.get(file.getPath()) != null;
+    private boolean containsFilesGeneratedByGradle(File absoluteFile) {
+        return outputFiles.get(absoluteFile.getPath()) != null;
     }
 
     @Override

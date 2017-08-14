@@ -18,11 +18,11 @@ package org.gradle.workers.internal;
 
 import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.DefaultInstantiatorFactory;
-import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory;
 import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
+import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.ClassLoaderFactory;

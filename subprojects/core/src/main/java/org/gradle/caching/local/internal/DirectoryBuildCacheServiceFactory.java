@@ -16,19 +16,31 @@
 
 package org.gradle.caching.local.internal;
 
+import org.apache.commons.io.FileUtils;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheScopeMapping;
+import org.gradle.cache.internal.FixedSizeOldestCacheCleanup;
 import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.resource.local.DefaultPathKeyFileStore;
+import org.gradle.internal.resource.local.PathKeyFileStore;
 
 import javax.inject.Inject;
 import java.io.File;
 
+import static org.gradle.cache.FileLockManager.LockMode.None;
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
+
 public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFactory<DirectoryBuildCache> {
+    public static final String FAILED_READ_SUFFIX = ".failed";
+
     private static final String BUILD_CACHE_VERSION = "1";
     private static final String BUILD_CACHE_KEY = "build-cache-" + BUILD_CACHE_VERSION;
     private static final String DIRECTORY_BUILD_CACHE_TYPE = "directory";
@@ -55,9 +67,42 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         } else {
             target = cacheScopeMapping.getBaseDirectory(null, BUILD_CACHE_KEY, VersionStrategy.SharedCache);
         }
+        checkDirectory(target);
 
-        describer.type(DIRECTORY_BUILD_CACHE_TYPE).config("location", target.getAbsolutePath());
+        long targetSizeInMB = configuration.getTargetSizeInMB();
+        String humanReadableCacheSize = FileUtils.byteCountToDisplaySize(targetSizeInMB *1024*1024);
+        describer.type(DIRECTORY_BUILD_CACHE_TYPE).
+            config("location", target.getAbsolutePath()).
+            config("targetSize", humanReadableCacheSize);
 
-        return new DirectoryBuildCacheService(cacheRepository, buildOperationExecutor, target, configuration.getTargetSizeInMB());
+        PathKeyFileStore fileStore = new DefaultPathKeyFileStore(target);
+        PersistentCache persistentCache = cacheRepository
+            .cache(target)
+            .withCleanup(new FixedSizeOldestCacheCleanup(buildOperationExecutor, targetSizeInMB, BuildCacheTempFileStore.PARTIAL_FILE_SUFFIX))
+            .withDisplayName("Build cache")
+            .withLockOptions(mode(None))
+            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
+            .open();
+        BuildCacheTempFileStore tempFileStore = new DefaultBuildCacheTempFileStore(target, BuildCacheTempFileStore.PARTIAL_FILE_SUFFIX);
+
+        return new DirectoryBuildCacheService(fileStore, persistentCache, tempFileStore, FAILED_READ_SUFFIX);
+    }
+
+    private static void checkDirectory(File directory) {
+        if (directory.exists()) {
+            if (!directory.isDirectory()) {
+                throw new IllegalArgumentException(String.format("Cache directory %s must be a directory", directory));
+            }
+            if (!directory.canRead()) {
+                throw new IllegalArgumentException(String.format("Cache directory %s must be readable", directory));
+            }
+            if (!directory.canWrite()) {
+                throw new IllegalArgumentException(String.format("Cache directory %s must be writable", directory));
+            }
+        } else {
+            if (!directory.mkdirs()) {
+                throw new UncheckedIOException(String.format("Could not create cache directory: %s", directory));
+            }
+        }
     }
 }

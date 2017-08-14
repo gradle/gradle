@@ -193,6 +193,11 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     }
 
     private void setEndStateInfo(ExecHandleState newState, int exitValue, Throwable failureCause) {
+        if (execResult != null) {
+            System.out.println(String.format("Overwriting process end state: %s, %s, %s, %s", newState, exitValue, failureCause == null, getDisplayName()));
+            System.out.println("                          was: " + execResult.displayName);
+        }
+
         ShutdownHookActionRegister.removeAction(shutdownHookAction);
 
         ExecHandleState currentState;

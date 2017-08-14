@@ -61,7 +61,6 @@ abstract class AbstractPlayContinuousBuildIntegrationTest extends Java7Requiring
 
     @Override
     protected ExecutionResult succeeds(String... tasks) {
-        executer.withArguments("--info")
         return super.succeeds(tasks)
     }
 }

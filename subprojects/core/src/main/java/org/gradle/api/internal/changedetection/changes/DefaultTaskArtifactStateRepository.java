@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.changedetection.changes;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.Iterables;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
@@ -43,6 +42,9 @@ import org.gradle.internal.reflect.Instantiator;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
     private final TaskHistoryRepository taskHistoryRepository;
@@ -50,20 +52,18 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     private final Instantiator instantiator;
     private final FileCollectionFactory fileCollectionFactory;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
-    private final TaskCacheKeyCalculator cacheKeyCalculator;
     private final ValueSnapshotter valueSnapshotter;
     private final TaskOutputFilesRepository taskOutputFilesRepository;
 
     public DefaultTaskArtifactStateRepository(TaskHistoryRepository taskHistoryRepository, Instantiator instantiator,
                                               FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry,
                                               FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-                                              TaskCacheKeyCalculator cacheKeyCalculator, ValueSnapshotter valueSnapshotter, TaskOutputFilesRepository taskOutputFilesRepository) {
+                                              ValueSnapshotter valueSnapshotter, TaskOutputFilesRepository taskOutputFilesRepository) {
         this.taskHistoryRepository = taskHistoryRepository;
         this.instantiator = instantiator;
         this.fileCollectionSnapshotterRegistry = fileCollectionSnapshotterRegistry;
         this.fileCollectionFactory = fileCollectionFactory;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
-        this.cacheKeyCalculator = cacheKeyCalculator;
         this.valueSnapshotter = valueSnapshotter;
         this.taskOutputFilesRepository = taskOutputFilesRepository;
     }
@@ -127,21 +127,21 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         public TaskOutputCachingBuildCacheKey calculateCacheKey() {
             // Ensure that states are created
             getStates();
-            return cacheKeyCalculator.calculate(history.getCurrentExecution());
+            return TaskCacheKeyCalculator.calculate(task, history.getCurrentExecution());
         }
 
         @Override
-        public FileCollection getOutputFiles() {
-            TaskExecution lastExecution = history.getPreviousExecution();
-            if (lastExecution != null && lastExecution.getOutputFilesSnapshot() != null) {
-                ImmutableSet.Builder<File> builder = ImmutableSet.builder();
-                for (FileCollectionSnapshot snapshot : lastExecution.getOutputFilesSnapshot().values()) {
-                    builder.addAll(snapshot.getFiles());
-                }
-                return fileCollectionFactory.fixed("Task " + task.getPath() + " outputs", builder.build());
-            } else {
-                return fileCollectionFactory.empty("Task " + task.getPath() + " outputs");
+        public Set<File> getOutputFiles() {
+            TaskExecution previousExecution = history.getPreviousExecution();
+            if (previousExecution == null || previousExecution.getOutputFilesSnapshot() == null) {
+                return Collections.emptySet();
             }
+            ImmutableCollection<FileCollectionSnapshot> outputFilesSnapshot = previousExecution.getOutputFilesSnapshot().values();
+            Set<File> outputs = new HashSet<File>();
+            for (FileCollectionSnapshot fileCollectionSnapshot : outputFilesSnapshot) {
+                outputs.addAll(fileCollectionSnapshot.getElements());
+            }
+            return outputs;
         }
 
         @Override

@@ -24,9 +24,9 @@ import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.DefaultFileVisitDetails
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileTreeAdapter
-import org.gradle.api.internal.hash.FileHasher
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis
+import org.gradle.internal.hash.FileHasher
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule

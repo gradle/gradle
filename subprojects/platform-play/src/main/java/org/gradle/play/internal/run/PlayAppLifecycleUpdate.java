@@ -17,30 +17,36 @@
 package org.gradle.play.internal.run;
 
 import java.io.Serializable;
+import java.net.InetSocketAddress;
 
 public class PlayAppLifecycleUpdate implements Serializable {
-    private final boolean running;
+    private final InetSocketAddress address;
     private final Exception exception;
 
     public static PlayAppLifecycleUpdate stopped() {
-        return new PlayAppLifecycleUpdate(false);
+        return new PlayAppLifecycleUpdate();
     }
 
-    public static PlayAppLifecycleUpdate running() {
-        return new PlayAppLifecycleUpdate(true);
+    public static PlayAppLifecycleUpdate running(InetSocketAddress address) {
+        return new PlayAppLifecycleUpdate(address);
     }
 
     public static PlayAppLifecycleUpdate failed(Exception exception) {
         return new PlayAppLifecycleUpdate(exception);
     }
 
-    private PlayAppLifecycleUpdate(boolean isRunning) {
-        this.running = isRunning;
+    private PlayAppLifecycleUpdate() {
+        this.address = null;
+        this.exception = null;
+    }
+
+    private PlayAppLifecycleUpdate(InetSocketAddress address) {
+        this.address = address;
         this.exception = null;
     }
 
     private PlayAppLifecycleUpdate(Exception exception) {
-        this.running = false;
+        this.address = null;
         this.exception = exception;
     }
 
@@ -48,12 +54,16 @@ public class PlayAppLifecycleUpdate implements Serializable {
         return exception;
     }
 
+    public InetSocketAddress getAddress() {
+        return address;
+    }
+
     public boolean isRunning() {
-        return running && exception == null;
+        return address!=null && exception == null;
     }
 
     public boolean isStopped() {
-        return !running && exception == null;
+        return address==null && exception == null;
     }
 
     public boolean isFailed() {

@@ -21,6 +21,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.resource.local.FileResourceConnector;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.process.internal.DefaultExecActionFactory;
@@ -63,6 +64,10 @@ public class TestFiles {
 
     public static DirectoryFileTreeFactory directoryFileTreeFactory() {
         return new DefaultDirectoryFileTreeFactory(getPatternSetFactory(), fileSystem());
+    }
+
+    public static FileOperations fileOperations(File basedDir) {
+        return new DefaultFileOperations(resolver(basedDir), null, null, DirectInstantiator.INSTANCE, fileLookup(), directoryFileTreeFactory());
     }
 
     public static FileCollectionFactory fileCollectionFactory() {

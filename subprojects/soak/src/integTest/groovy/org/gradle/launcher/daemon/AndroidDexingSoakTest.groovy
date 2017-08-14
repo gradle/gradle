@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon
 
-import org.gradle.api.internal.cache.HeapProportionalCacheSizer
+import org.gradle.cache.internal.HeapProportionalCacheSizer
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.soak.categories.SoakTest
 import org.gradle.util.Requires
@@ -46,7 +46,7 @@ class AndroidDexingSoakTest extends DaemonIntegrationSpec {
 
             import com.google.common.cache.CacheBuilder
             import com.google.common.cache.Cache
-            import org.gradle.api.internal.cache.HeapProportionalCacheSizer
+            import org.gradle.cache.internal.HeapProportionalCacheSizer
 
             // create a heap-proportional cache that we can fill up over multiple builds
             class State {

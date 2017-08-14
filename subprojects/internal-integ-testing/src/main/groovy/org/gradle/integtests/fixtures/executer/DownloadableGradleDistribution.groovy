@@ -18,12 +18,12 @@ package org.gradle.integtests.fixtures.executer
 
 import org.gradle.api.Action
 import org.gradle.cache.CacheBuilder
+import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.CacheFactory
 import org.gradle.cache.internal.DefaultCacheFactory
 import org.gradle.cache.internal.DefaultFileLockManager
 import org.gradle.cache.internal.DefaultProcessMetaDataProvider
-import org.gradle.cache.internal.FileLockManager
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.test.fixtures.file.TestFile

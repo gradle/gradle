@@ -689,7 +689,7 @@ model {
     def "visual studio project includes headers co-located with sources"() {
         when:
         // Write headers so they sit with sources
-        app.allFiles.each {
+        app.files.each {
             it.writeToFile(file("src/main/cpp/${it.name}"))
         }
         buildFile << """

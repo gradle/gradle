@@ -21,6 +21,7 @@ import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
+import org.gradle.internal.logging.events.UpdateNowEvent
 import org.gradle.internal.progress.BuildOperationCategory
 import org.gradle.util.TextUtil
 import spock.lang.Specification
@@ -111,5 +112,9 @@ abstract class OutputSpecification extends Specification {
 
     ProgressCompleteEvent complete(Long id, status='STATUS') {
         new ProgressCompleteEvent(new OperationIdentifier(id), tenAm, status)
+    }
+
+    UpdateNowEvent updateNow() {
+        new UpdateNowEvent(tenAm)
     }
 }

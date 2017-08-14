@@ -17,19 +17,19 @@
 package org.gradle.language.swift
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.app.SwiftHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftApp
+import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftAppWithLib
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-
 
 @Requires(TestPrecondition.SWIFT_SUPPORT)
 class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "rebuilds application when a single source file changes"() {
         settingsFile << "rootProject.name = 'app'"
-        def app = new SwiftHelloWorldApp()
+        def app = new IncrementalSwiftApp()
 
         given:
-        app.writeSources(file('src/main'))
+        app.app.writeToProject(testDirectory)
 
         and:
         buildFile << """
@@ -42,21 +42,21 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         then:
         result.assertTasksExecuted(":compileSwift", ":linkMain", ":installMain", ":assemble")
         result.assertTasksNotSkipped(":compileSwift", ":linkMain", ":installMain", ":assemble")
-        executable("build/exe/app").exec().out == app.englishOutput
+        executable("build/exe/app").exec().out == app.app.expectedOutput
 
         when:
-        app.alternateMainSource.writeToDir(file('src/main'))
+        app.alternateApp.files.first().writeToDir(file('src/main'))
         succeeds "assemble"
 
         then:
         result.assertTasksExecuted(":compileSwift", ":linkMain", ":installMain", ":assemble")
         result.assertTasksNotSkipped(":compileSwift", ":linkMain", ":installMain", ":assemble")
-        executable("build/exe/app").exec().out == app.alternateOutput
+        executable("build/exe/app").exec().out == app.alternateApp.expectedOutput
     }
 
     def "rebuilds application when a single source file in library changes"() {
         settingsFile << "include 'app', 'greeter'"
-        def app = new SwiftHelloWorldApp()
+        def app = new IncrementalSwiftAppWithLib()
 
         given:
         buildFile << """
@@ -70,12 +70,8 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
                 apply plugin: 'swift-library'
             }
 """
-        app.library.sourceFiles.each { it.writeToDir(file('greeter/src/main')) }
-        app.executable.sourceFiles.each { it.writeToDir(file('app/src/main')) }
-        def f = file('app/src/main/swift/main.swift')
-        f.text = """import greeter
-
-${f.text}"""
+        app.library.writeToProject(file("greeter"))
+        app.executable.writeToProject(file("app"))
 
         when:
         succeeds ":app:assemble"
@@ -83,10 +79,10 @@ ${f.text}"""
         then:
         result.assertTasksExecuted(":greeter:compileSwift", ":greeter:linkMain", ":app:compileSwift", ":app:linkMain", ":app:installMain", ":app:assemble")
         result.assertTasksNotSkipped(":greeter:compileSwift", ":greeter:linkMain", ":app:compileSwift", ":app:linkMain", ":app:installMain", ":app:assemble")
-        installation("app/build/install/app").exec().out == app.englishOutput
+        installation("app/build/install/app").exec().out == app.expectedOutput
 
         when:
-        app.alternateLibrarySources.first().writeToDir(file('greeter/src/main/'))
+        app.alternateLibrary.files.first().writeToDir(file('greeter/src/main/'))
         succeeds ":app:assemble"
 
         then:

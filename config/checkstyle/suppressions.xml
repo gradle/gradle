@@ -47,6 +47,10 @@
     <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]build-comparison[/\\]src[/\\]main[/\\]groovy[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\]buildcomparison[/\\]gradle[/\\][^/\\]+"/>
 
+    <!-- These packages are duplicated in ide-native from ide, don't require a package-info.java in each place -->
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]subprojects[/\\]ide-native[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]plugins[/\\]ide[/\\]api[/\\][^/\\]+"/>
+
     <!-- Don't require api docs for projects only used internally -->
     <suppress checks="Javadoc.*"
               files=".*[/\\]subprojects[/\\]internal-.+[/\\]src[/\\]main[/\\].+"/>

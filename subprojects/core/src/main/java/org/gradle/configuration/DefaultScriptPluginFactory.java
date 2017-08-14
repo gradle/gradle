@@ -46,14 +46,15 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
+import org.gradle.plugin.management.internal.PluginRequests;
+import org.gradle.plugin.management.internal.PluginRequestsSerializer;
 import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
-import org.gradle.plugin.management.internal.PluginRequests;
-import org.gradle.plugin.management.internal.PluginRequestsSerializer;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final static StringInterner INTERNER = new StringInterner();
@@ -72,6 +73,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final PluginRepositoryRegistry pluginRepositoryRegistry;
     private final PluginRepositoryFactory pluginRepositoryFactory;
     private final ProviderFactory providerFactory;
+    private final TextResourceLoader textResourceLoader;
     private ScriptPluginFactory scriptPluginFactory;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
@@ -85,7 +87,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       ModelRuleSourceDetector modelRuleSourceDetector,
                                       PluginRepositoryRegistry pluginRepositoryRegistry,
                                       PluginRepositoryFactory pluginRepositoryFactory,
-                                      ProviderFactory providerFactory) {
+                                      ProviderFactory providerFactory,
+                                      TextResourceLoader textResourceLoader) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.loggingManagerFactory = loggingManagerFactory;
         this.instantiator = instantiator;
@@ -98,6 +101,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.pluginRepositoryRegistry = pluginRepositoryRegistry;
         this.pluginRepositoryFactory = pluginRepositoryFactory;
         this.providerFactory = providerFactory;
+        this.textResourceLoader = textResourceLoader;
         this.scriptPluginFactory = this;
     }
 
@@ -146,6 +150,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(PluginRepositoryRegistry.class, pluginRepositoryRegistry);
             services.add(PluginRepositoryFactory.class, pluginRepositoryFactory);
             services.add(ProviderFactory.class, providerFactory);
+            services.add(TextResourceLoader.class, textResourceLoader);
 
             final ScriptTarget initialPassScriptTarget = initialPassTarget(target);
 

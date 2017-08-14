@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.api.internal.cache.CrossBuildInMemoryCache;
-import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory;
+import org.gradle.cache.internal.CrossBuildInMemoryCache;
+import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;

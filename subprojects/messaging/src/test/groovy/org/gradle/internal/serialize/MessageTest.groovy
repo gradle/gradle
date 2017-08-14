@@ -259,6 +259,18 @@ class MessageTest extends Specification {
         e2.message == 'broken toString()'
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/1618")
+    def "transports mock exception with null cause"() {
+        def exceptionWithNullCause = Mock(Exception)
+        exceptionWithNullCause.stackTrace >> null
+
+        when:
+        def transported = transport(exceptionWithNullCause)
+
+        then:
+        transported.stackTrace == [] as StackTraceElement[]
+    }
+
     @Issue("GRADLE-1996")
     def "can transport exception that implements writeReplace()"() {
         def original = new WriteReplaceException("original")

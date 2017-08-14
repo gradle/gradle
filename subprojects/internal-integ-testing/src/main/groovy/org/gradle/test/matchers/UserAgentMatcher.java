@@ -33,7 +33,7 @@ public class UserAgentMatcher extends BaseMatcher {
     }
 
     @Factory
-    public static Matcher matchesNameAndVersion(String applicationName, String version) {
+    public static UserAgentMatcher matchesNameAndVersion(String applicationName, String version) {
         return new UserAgentMatcher(applicationName, version);
     }
 

@@ -20,6 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.internal.file.BaseDirFileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
+import org.gradle.internal.operations.DefaultBuildOperationIdFactory
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.DefaultExecutorFactory
@@ -65,7 +66,7 @@ abstract class NativeCompilerTest extends Specification {
     private TimeProvider timeProvider = Mock(TimeProvider)
     ParallelismConfigurationManager parallelExecutionManager = new ParallelismConfigurationManagerFixture(DefaultParallelismConfiguration.DEFAULT)
     protected BuildOperationExecutor buildOperationExecutor = new DefaultBuildOperationExecutor(buildOperationListener, timeProvider, new NoOpProgressLoggerFactory(),
-        new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), resourceLockCoordinationService, parallelExecutionManager)
+        new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), resourceLockCoordinationService, parallelExecutionManager, new DefaultBuildOperationIdFactory())
 
     def setup() {
         _ * workerLeaseService.withLocks(_) >> { args ->

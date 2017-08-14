@@ -17,18 +17,18 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
-import org.gradle.nativeplatform.fixtures.app.SwiftHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.SwiftApp
+import org.gradle.nativeplatform.fixtures.app.SwiftLib
 
 class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
-    def app = new SwiftHelloWorldApp()
-
     def "create xcode project executable"() {
         given:
         buildFile << """
 apply plugin: 'swift-executable'
 """
 
-        app.writeSources(file('src/main'))
+        def app = new SwiftApp()
+        app.writeToProject(testDirectory)
 
         when:
         succeeds("xcode")
@@ -37,7 +37,7 @@ apply plugin: 'swift-executable'
         executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme${rootProjectName}Executable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         def project = xcodeProject("${rootProjectName}.xcodeproj").projectFile
-        project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.sourceFiles*.name)
+        project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
         project.targets.size() == 2
         project.assertTargetsAreTools()
         project.targets.every { it.productName == rootProjectName }
@@ -50,8 +50,8 @@ apply plugin: 'swift-executable'
         buildFile << """
 apply plugin: 'swift-library'
 """
-
-        app.library.writeSources(file('src/main'))
+        def lib = new SwiftLib()
+        lib.writeToProject(testDirectory)
 
         when:
         succeeds("xcode")
@@ -60,7 +60,7 @@ apply plugin: 'swift-library'
         executedAndNotSkipped(":xcodeProject", ":xcodeScheme${rootProjectName}SharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
 
         def project = xcodeProject("${rootProjectName}.xcodeproj").projectFile
-        project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.library.sourceFiles*.name)
+        project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
         project.targets.size() == 2
         project.assertTargetsAreDynamicLibraries()
         project.targets.every { it.productName == rootProjectName }
@@ -75,20 +75,22 @@ apply plugin: 'swift-executable'
 """
 
         when:
-        app.library.writeSources(file('src/main'))
+        def lib = new SwiftLib()
+        lib.writeToProject(testDirectory)
         succeeds("xcode")
 
         then:
         xcodeProject("${rootProjectName}.xcodeproj").projectFile
-            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.library.sourceFiles*.name)
+            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
 
         when:
-        app.writeSources(file('src/main'))
+        def app = new SwiftApp()
+        app.writeToProject(testDirectory)
         succeeds('xcode')
 
         then:
         xcodeProject("${rootProjectName}.xcodeproj").projectFile
-            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.sourceFiles*.name)
+            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
     }
 
     def "deleted source files are not included in the project"() {
@@ -98,20 +100,64 @@ apply plugin: 'swift-executable'
 """
 
         when:
-        app.writeSources(file('src/main'))
+        def app = new SwiftApp()
+        app.writeToProject(testDirectory)
         succeeds("xcode")
 
         then:
         xcodeProject("${rootProjectName}.xcodeproj").projectFile
-            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.sourceFiles*.name)
+            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
 
         when:
         file('src/main').deleteDir()
-        app.library.writeSources(file('src/main'))
+        def lib = new SwiftLib()
+        lib.writeToProject(testDirectory)
         succeeds('xcode')
 
         then:
         xcodeProject("${rootProjectName}.xcodeproj").projectFile
-            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.library.sourceFiles*.name)
+            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
+    }
+
+    def "executable source files in a non-default location are included in the project"() {
+        given:
+        buildFile << """
+apply plugin: 'swift-executable'
+
+executable {
+    source.from 'Sources'
+}
+"""
+
+        when:
+        def app = new SwiftApp()
+        app.writeToSourceDir(file('Sources'))
+        file('src/main/swift/ignore.swift') << 'broken!'
+        succeeds("xcode")
+
+        then:
+        xcodeProject("${rootProjectName}.xcodeproj").projectFile
+            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
+    }
+
+    def "library source files in a non-default location are included in the project"() {
+        given:
+        buildFile << """
+apply plugin: 'swift-library'
+
+library {
+    source.from 'Sources'
+}
+"""
+
+        when:
+        def lib = new SwiftLib()
+        lib.writeToSourceDir(file('Sources'))
+        file('src/main/swift/ignore.swift') << 'broken!'
+        succeeds("xcode")
+
+        then:
+        xcodeProject("${rootProjectName}.xcodeproj").projectFile
+            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
     }
 }

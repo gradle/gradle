@@ -27,22 +27,9 @@ buildTypes {
         tasks "classes", "doc:checkstyleApi", "codeQuality", "docs:check", "distribution:checkBinaryCompatibility", "javadocAll"
     }
 
-    // The minimum to be run before check-in
-    preCommitBuild {
-        tasks "doc:checkstyleApi", "docs:check", "codeQuality", "test"
-    }
-    quickCheck {
-        tasks "doc:checkstyleApi", "docs:check", "codeQuality", "test"
-    }
-
     // For testing pull requests
     pullRequestValidation {
         tasks "doc:checkstyleApi", "docs:check", "codeQuality", "core:test", "dependencyManagement:test"
-    }
-
-    // A full (in-process) test
-    developerBuild {
-        tasks "check"
     }
 
     // Used by the first phase of the build pipeline, running only last version on multiversion - tests
@@ -109,6 +96,7 @@ buildTypes {
         tasks "crossVersionTests"
         projectProperties useIncomingDistributions: true
     }
+
     quickFeedbackCrossVersionTest {
         tasks "quickFeedbackCrossVersionTests"
         projectProperties useIncomingDistributions: true
@@ -134,6 +122,7 @@ buildTypes {
         tasks "java9Test", "java9IntegTest"
         projectProperties useIncomingDistributions: true
     }
+
     java9SmokeTest {
         tasks "java9IntegTest"
         projectProperties useIncomingDistributions: true

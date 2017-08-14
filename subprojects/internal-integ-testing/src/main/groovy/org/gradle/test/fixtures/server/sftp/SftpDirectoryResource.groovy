@@ -18,7 +18,7 @@ package org.gradle.test.fixtures.server.sftp
 
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.resource.RemoteResource
-import org.gradle.util.GFileUtils
+import org.gradle.util.RelativePathUtil
 
 class SftpDirectoryResource implements RemoteResource {
 
@@ -31,7 +31,7 @@ class SftpDirectoryResource implements RemoteResource {
     }
 
     String getPathOnServer() {
-        return "/${GFileUtils.relativePath(server.baseDir, file)}/"
+        return "/${RelativePathUtil.relativePath(server.baseDir, file)}/"
     }
 
     URI getUri() {

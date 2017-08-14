@@ -31,7 +31,7 @@ public class SimpleStaleClassCleaner extends StaleClassCleaner {
     public void execute() {
         String prefix = getDestinationDir().getAbsolutePath() + File.separator;
         for (File f : taskOutputs.getPreviousOutputFiles()) {
-            if (f.getAbsolutePath().startsWith(prefix)) {
+            if (f.getAbsolutePath().startsWith(prefix) && f.isFile()) {
                 didWork |= f.delete();
             }
         }

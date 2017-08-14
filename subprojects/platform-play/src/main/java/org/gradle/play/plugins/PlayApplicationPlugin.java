@@ -15,9 +15,13 @@
  */
 package org.gradle.play.plugins;
 
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
@@ -35,7 +39,14 @@ import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
 import org.gradle.language.scala.tasks.PlatformScalaCompile;
 import org.gradle.language.twirl.TwirlSourceSet;
-import org.gradle.model.*;
+import org.gradle.model.Defaults;
+import org.gradle.model.Each;
+import org.gradle.model.Model;
+import org.gradle.model.ModelMap;
+import org.gradle.model.Mutate;
+import org.gradle.model.Path;
+import org.gradle.model.RuleSource;
+import org.gradle.model.Validate;
 import org.gradle.model.internal.core.Hidden;
 import org.gradle.platform.base.BinaryTasks;
 import org.gradle.platform.base.ComponentBinaries;
@@ -48,9 +59,14 @@ import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.PlayPlatformAwareComponentSpec;
 import org.gradle.play.PublicAssets;
-import org.gradle.play.internal.*;
+import org.gradle.play.internal.DefaultPlayApplicationBinarySpec;
+import org.gradle.play.internal.DefaultPlayPlatform;
+import org.gradle.play.internal.DefaultPlayPlatformAwareComponentSpec;
+import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
+import org.gradle.play.internal.PlayApplicationSpecInternal;
+import org.gradle.play.internal.PlayPlatformAwareComponentSpecInternal;
+import org.gradle.play.internal.PlayPlatformResolver;
 import org.gradle.play.internal.platform.PlayPlatformInternal;
-import org.gradle.play.internal.run.PlayApplicationRunnerFactory;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.tasks.PlayRun;
@@ -221,17 +237,6 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             configurations.getPlayPlatform().addDependency(((PlayPlatformInternal) playPlatform).getDependencyNotation("play"));
             configurations.getPlayTest().addDependency(((PlayPlatformInternal) playPlatform).getDependencyNotation("play-test"));
             configurations.getPlayRun().addDependency(((PlayPlatformInternal) playPlatform).getDependencyNotation("play-docs"));
-
-            addRunSupportDependencies(configurations, playPlatform);
-        }
-
-        private void addRunSupportDependencies(PlayPluginConfigurations configurations, PlayPlatform playPlatform) {
-            String playVersion = playPlatform.getPlayVersion();
-            String scalaCompatibilityVersion = playPlatform.getScalaPlatform().getScalaCompatibilityVersion();
-            Iterable<Dependency> runSupportDependencies = PlayApplicationRunnerFactory.createPlayRunAdapter(playPlatform).getRunsupportClasspathDependencies(playVersion, scalaCompatibilityVersion);
-            for (Dependency dependencyNotation : runSupportDependencies) {
-                configurations.getPlayRun().addDependency(dependencyNotation);
-            }
         }
 
         @BinaryTasks

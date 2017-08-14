@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.internal.nativeintegration.filesystem.FileType;
+import org.gradle.internal.file.FileType;
 
 import java.io.IOException;
 import java.util.List;

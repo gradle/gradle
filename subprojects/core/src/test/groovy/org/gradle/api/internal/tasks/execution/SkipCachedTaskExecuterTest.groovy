@@ -285,6 +285,7 @@ class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * cacheKey.isValid() >> true
+        1 * cacheKey.getDisplayName() >> "cache key"
         1 * taskState.getFailure() >> null
         1 * buildCacheCommandFactory.createStore(*_)
         1 * buildCacheController.store(_) >> { throw new RuntimeException("unknown error") }

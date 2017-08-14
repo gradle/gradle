@@ -82,18 +82,18 @@ public class TaskOutputCacheCommandFactory {
         }
 
         @Override
-        public BuildCacheLoadCommand.Result<TaskOutputOriginMetadata> load(InputStream input) {
+        public BuildCacheLoadCommand.Result<TaskOutputOriginMetadata> load(InputStream input) throws IOException {
             taskOutputsGenerationListener.beforeTaskOutputsGenerated();
             final TaskOutputPacker.UnpackResult unpackResult;
             try {
                 unpackResult = packer.unpack(outputProperties, input, taskOutputOriginFactory.createReader(task));
-            } catch (RuntimeException e) {
+            } catch (Exception e) {
                 LOGGER.warn("Cleaning outputs for {} after failed load from cache.", task);
                 try {
                     cleanupOutputsAfterUnpackFailure();
                     taskArtifactState.afterOutputsRemovedBeforeTask();
-                } catch (RuntimeException e2) {
-                    LOGGER.warn("Unrecoverable error during cleaning up after task output unpack failure", e2);
+                } catch (Exception eCleanup) {
+                    LOGGER.warn("Unrecoverable error during cleaning up after task output unpack failure", eCleanup);
                     throw new UnrecoverableTaskOutputUnpackingException(String.format("Failed to unpack outputs for %s, and then failed to clean up; see log above for details", task), e);
                 }
                 throw new GradleException(String.format("Failed to unpack outputs for %s", task), e);
@@ -161,8 +161,5 @@ public class TaskOutputCacheCommandFactory {
                 }
             };
         }
-
     }
-
 }
-

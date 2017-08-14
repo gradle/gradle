@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.nativeintegration.filesystem
 
+import org.gradle.internal.file.FileType
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires

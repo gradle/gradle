@@ -17,8 +17,8 @@ package org.gradle.internal.resource.cached;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.internal.resource.local.DefaultPathKeyFileStore;
 import org.gradle.internal.resource.local.GroupedAndNamedUniqueFileStore;
-import org.gradle.internal.resource.local.PathKeyFileStore;
 
 import java.io.File;
 
@@ -39,7 +39,7 @@ public class ExternalResourceFileStore extends GroupedAndNamedUniqueFileStore<St
     };
 
     public ExternalResourceFileStore(File baseDir, TemporaryFileProvider tmpProvider) {
-        super(new PathKeyFileStore(baseDir), tmpProvider, GROUPER, NAMER);
+        super(new DefaultPathKeyFileStore(baseDir), tmpProvider, GROUPER, NAMER);
     }
 
     protected String toPath(String key, String checksumPart) {

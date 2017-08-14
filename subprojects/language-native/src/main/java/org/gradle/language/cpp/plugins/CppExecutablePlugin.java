@@ -20,15 +20,17 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.language.cpp.CppComponent;
+import org.gradle.language.cpp.internal.DefaultCppComponent;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
@@ -38,37 +40,45 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
+import javax.inject.Inject;
 import java.util.Collections;
-import java.util.concurrent.Callable;
 
 /**
  * <p>A plugin that produces a native executable from C++ source.</p>
  *
  * <p>Assumes the source files are located in `src/main/cpp` and header files are located in `src/main/headers`.</p>
  *
+ * <p>Adds a {@link CppComponent} extension to the project to allow configuration of the executable.</p>
+ *
  * @since 4.1
  */
 @Incubating
 public class CppExecutablePlugin implements Plugin<ProjectInternal> {
+    private final FileOperations fileOperations;
+
+    @Inject
+    public CppExecutablePlugin(FileOperations fileOperations) {
+        this.fileOperations = fileOperations;
+    }
+
     @Override
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(CppBasePlugin.class);
 
         DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
         ConfigurationContainer configurations = project.getConfigurations();
-        TaskContainerInternal tasks = project.getTasks();
-        ProviderFactory providers = project.getProviders();
+        TaskContainer tasks = project.getTasks();
+
+        // Add the component extension
+        CppComponent component = project.getExtensions().create(CppComponent.class, "executable", DefaultCppComponent.class, fileOperations);
+
+        // Wire in dependencies
+        component.getCompileIncludePath().from(configurations.getByName(CppBasePlugin.CPP_INCLUDE_PATH));
 
         // Add a compile task
         CppCompile compile = tasks.create("compileCpp", CppCompile.class);
-
-        compile.includes("src/main/headers");
-        compile.includes(configurations.getByName(CppBasePlugin.CPP_INCLUDE_PATH));
-
-        ConfigurableFileTree sourceTree = project.fileTree("src/main/cpp");
-        sourceTree.include("**/*.cpp");
-        sourceTree.include("**/*.c++");
-        compile.source(sourceTree);
+        compile.includes(component.getCompileIncludePath());
+        compile.source(component.getCppSource());
 
         compile.setCompilerArgs(Collections.<String>emptyList());
         compile.setMacros(Collections.<String, String>emptyMap());
@@ -84,17 +94,11 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         // Add a link task
         LinkExecutable link = tasks.create("linkMain", LinkExecutable.class);
         // TODO - need to set basename
-        // TODO - include only object files from this dir
-        link.source(compile.getObjectFileDirectory().getAsFileTree());
+        link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
         link.lib(configurations.getByName(CppBasePlugin.NATIVE_LINK));
         link.setLinkerArgs(Collections.<String>emptyList());
-        final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
-        Provider<RegularFile> exeLocation = buildDirectory.file(providers.provider(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                return toolProvider.getExecutableName("exe/" + project.getName());
-            }
-        }));
+        PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
+        Provider<RegularFile> exeLocation = buildDirectory.file(toolProvider.getExecutableName("exe/" + project.getName()));
         link.setOutputFile(exeLocation);
         link.setTargetPlatform(currentPlatform);
         link.setToolChain(toolChain);

@@ -96,6 +96,11 @@ public class CrossBuildPerformanceTestHistory implements PerformanceTestHistory 
                     }
 
                     @Override
+                    public List<String> getCleanTasks() {
+                        return input.getCleanTasks();
+                    }
+
+                    @Override
                     public List<String> getArgs() {
                         return input.getArgs();
                     }
@@ -187,6 +192,12 @@ public class CrossBuildPerformanceTestHistory implements PerformanceTestHistory 
         @Nullable
         @Override
         public List<String> getTasks() {
+            return null;
+        }
+
+        @Nullable
+        @Override
+        public List<String> getCleanTasks() {
             return null;
         }
 

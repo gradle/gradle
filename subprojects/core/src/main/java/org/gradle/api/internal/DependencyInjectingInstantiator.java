@@ -17,8 +17,8 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.cache.CrossBuildInMemoryCache;
 import org.gradle.api.reflect.ObjectInstantiationException;
+import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.ServiceRegistry;

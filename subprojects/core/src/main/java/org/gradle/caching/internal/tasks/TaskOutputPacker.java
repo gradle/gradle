@@ -21,6 +21,7 @@ import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.SortedSet;
@@ -34,7 +35,7 @@ public interface TaskOutputPacker {
     // - any major changes of the layout of a cache entry
     int CACHE_ENTRY_FORMAT = 1;
 
-    PackResult pack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, OutputStream output, TaskOutputOriginWriter writeOrigin);
+    PackResult pack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException;
 
     class PackResult {
 
@@ -46,7 +47,7 @@ public interface TaskOutputPacker {
 
     }
 
-    UnpackResult unpack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, InputStream input, TaskOutputOriginReader readOrigin);
+    UnpackResult unpack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, InputStream input, TaskOutputOriginReader readOrigin) throws IOException;
 
     class UnpackResult {
 

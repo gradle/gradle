@@ -16,23 +16,18 @@
 
 package org.gradle.play.internal.run;
 
-import org.gradle.api.artifacts.Dependency;
-
 import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 
 public interface VersionedPlayRunAdapter {
-    void buildSuccess();
+    void upToDate(Throwable throwable);
 
-    void buildError(Throwable throwable);
+    void outOfDate();
 
     Object getBuildLink(ClassLoader classLoader, File projectPath, File applicationJar, Iterable<File> changingClasspath, File assetsJar, Iterable<File> assetsDirs) throws ClassNotFoundException;
 
     Object getBuildDocHandler(ClassLoader docsClassLoader, Iterable<File> classpath) throws NoSuchMethodException, ClassNotFoundException, IOException, IllegalAccessException;
 
-    void runDevHttpServer(ClassLoader classLoader, ClassLoader docsClassLoader, Object buildLink, Object buildDocHandler, int httpPort) throws ClassNotFoundException;
-
-    Iterable<Dependency> getRunsupportClasspathDependencies(String playVersion, String scalaCompatibilityVersion);
-
-    void expectPendingChanges();
+    InetSocketAddress runDevHttpServer(ClassLoader classLoader, ClassLoader docsClassLoader, Object buildLink, Object buildDocHandler, int httpPort) throws ClassNotFoundException;
 }

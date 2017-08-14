@@ -17,8 +17,8 @@
 package org.gradle.language.cpp
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
-import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
+import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.junit.Assume
 
 import static org.gradle.util.Matchers.containsText
@@ -52,8 +52,8 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
     def "sources are compiled with C++ compiler"() {
         given:
         settingsFile << "rootProject.name = 'hello'"
-        def app = new CppHelloWorldApp()
-        app.library.writeSources(file('src/main'))
+        def lib = new CppLib()
+        lib.writeToProject(testDirectory)
 
         and:
         buildFile << """
@@ -66,11 +66,68 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         sharedLibrary("build/lib/hello").assertExists()
     }
 
+    def "build logic can change source layout convention"() {
+        def lib = new CppLib()
+        settingsFile << "rootProject.name = 'hello'"
+
+        given:
+        lib.sources.writeToSourceDir(file("srcs"))
+        lib.privateHeaders.writeToSourceDir(file("include"))
+        lib.publicHeaders.writeToSourceDir(file("pub"))
+        file("src/main/public/${lib.greeter.header.sourceFile.name}") << "ignore me!"
+        file("src/main/headers/${lib.greeter.privateHeader.sourceFile.name}") << "ignore me!"
+        file("src/main/cpp/broken.cpp") << "ignore me!"
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-library'
+            library {
+                source.from 'srcs'
+                publicHeaders.from 'pub'
+                privateHeaders.from 'include'
+            }
+         """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
+
+        sharedLibrary("build/lib/hello").assertExists()
+    }
+
+    def "build logic can add individual source files"() {
+        def lib = new CppLib()
+        settingsFile << "rootProject.name = 'hello'"
+
+        given:
+        lib.headers.writeToProject(testDirectory)
+        lib.greeter.source.writeToSourceDir(file("src/one.cpp"))
+        lib.sum.source.writeToSourceDir(file("src/two.cpp"))
+        file("src/main/cpp/broken.cpp") << "ignore me!"
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-library'
+            library {
+                source {
+                    from('src/one.cpp')
+                    from('src/two.cpp')
+                }
+            }
+         """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
+
+        sharedLibrary("build/lib/hello").assertExists()
+    }
+
     def "honors changes to buildDir"() {
         given:
         settingsFile << "rootProject.name = 'hello'"
-        def app = new CppHelloWorldApp()
-        app.library.writeSources(file('src/main'))
+        def lib = new CppLib()
+        lib.writeToProject(testDirectory)
 
         and:
         buildFile << """
@@ -81,15 +138,17 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         expect:
         succeeds "assemble"
         result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
+
         !file("build").exists()
+        file("output/main/objs").assertIsDir()
         sharedLibrary("output/lib/hello").assertExists()
     }
 
     def "honors changes to task output locations"() {
         given:
         settingsFile << "rootProject.name = 'hello'"
-        def app = new CppHelloWorldApp()
-        app.library.writeSources(file('src/main'))
+        def lib = new CppLib()
+        lib.writeToProject(testDirectory)
 
         and:
         buildFile << """
@@ -101,15 +160,19 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         expect:
         succeeds "assemble"
         result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
+
+        file("build/object-files").assertIsDir()
         file("build/some-lib/main.bin").assertIsFile()
     }
 
-    def "can define public headers"() {
+    def "library can define public and implementation headers"() {
         given:
         settingsFile << "rootProject.name = 'hello'"
-        def app = new CppHelloWorldApp()
-        app.library.headerFiles.each { it.writeToFile(file("src/main/public/$it.name")) }
-        app.library.sourceFiles.each { it.writeToFile(file("src/main/cpp/$it.name")) }
+        def lib = new CppLib()
+        lib.greeter.header.writeToSourceDir(file("src/main/public"))
+        lib.greeter.privateHeader.writeToSourceDir(file("src/main/headers"))
+        lib.sum.header.writeToSourceDir(file("src/main/public"))
+        lib.sources.writeToProject(testDirectory)
 
         and:
         buildFile << """
@@ -124,7 +187,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
     def "can compile and link against another library"() {
         settingsFile << "include 'lib1', 'lib2'"
-        def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
+        def app = new CppAppWithLibraries()
 
         given:
         buildFile << """
@@ -138,10 +201,8 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
                 apply plugin: 'cpp-library'
             }
 """
-        app.library.headerFiles.each { it.writeToFile(file("lib1/src/main/headers/$it.name")) }
-        app.library.sourceFiles.each { it.writeToFile(file("lib1/src/main/cpp/$it.name")) }
-        app.greetingsLibrary.headerFiles.each { it.writeToFile(file("lib2/src/main/public/$it.name")) }
-        app.greetingsLibrary.sourceFiles.each { it.writeToFile(file("lib2/src/main/cpp/$it.name")) }
+        app.greeterLib.writeToProject(file("lib1"))
+        app.loggerLib.writeToProject(file("lib2"))
 
         expect:
         succeeds ":lib1:assemble"

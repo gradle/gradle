@@ -21,7 +21,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.cache.DefaultGeneratedGradleJarCache;
 import org.gradle.api.internal.cache.GeneratedGradleJarCache;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.BuildScopeFileTimeStampInspector;
@@ -40,17 +39,18 @@ import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFacto
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.hash.DefaultFileHasher;
-import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.cache.internal.CacheScopeMapping;
+import org.gradle.cache.internal.DefaultGeneratedGradleJarCache;
 import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
-import org.gradle.deployment.internal.DeploymentRegistry;
+import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
+import org.gradle.groovy.scripts.internal.ScriptSourceHasher;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
@@ -59,9 +59,14 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.filewatch.PendingChangesManager;
+import org.gradle.internal.hash.DefaultFileHasher;
+import org.gradle.internal.hash.FileContentHasherFactory;
+import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
 import org.gradle.internal.operations.trace.BuildOperationTrace;
 import org.gradle.internal.progress.BuildOperationListener;
@@ -112,8 +117,12 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         addProvider(new ScopeIdsServices());
     }
 
-    DeploymentRegistry createDeploymentRegistry() {
-        return new DefaultDeploymentRegistry();
+    PendingChangesManager createPendingChangesManager(ListenerManager listenerManager) {
+        return new PendingChangesManager(listenerManager);
+    }
+
+    DefaultDeploymentRegistry createDeploymentRegistry(StartParameter startParameter, PendingChangesManager pendingChangesManager, BuildOperationExecutor buildOperationExecutor, ObjectFactory objectFactory) {
+        return new DefaultDeploymentRegistry(startParameter, pendingChangesManager, buildOperationExecutor, objectFactory);
     }
 
     ListenerManager createListenerManager(ListenerManager parent) {
@@ -136,6 +145,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         ExecutorFactory executorFactory,
         ResourceLockCoordinationService resourceLockCoordinationService,
         ParallelismConfigurationManager parallelismConfigurationManager,
+        BuildOperationIdFactory buildOperationIdFactory,
         @SuppressWarnings("unused") BuildOperationTrace buildOperationTrace // required in order to init this
     ) {
         return new DefaultBuildOperationExecutor(
@@ -144,7 +154,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
             new DefaultBuildOperationQueueFactory(workerLeaseService),
             executorFactory,
             resourceLockCoordinationService,
-            parallelismConfigurationManager
+            parallelismConfigurationManager,
+            buildOperationIdFactory
         );
     }
 
@@ -175,8 +186,12 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new CrossBuildFileHashCache(cacheDir, cacheRepository, inMemoryCacheDecoratorFactory);
     }
 
-    FileHasher createFileSnapshotter(TaskHistoryStore cacheAccess, StringInterner stringInterner, FileSystem fileSystem, BuildScopeFileTimeStampInspector fileTimeStampInspector) {
-        return new CachingFileHasher(new DefaultFileHasher(), cacheAccess, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem);
+    FileHasher createFileSnapshotter(TaskHistoryStore cacheAccess, StringInterner stringInterner, FileSystem fileSystem, BuildScopeFileTimeStampInspector fileTimeStampInspector, FileContentHasherFactory hasherFactory) {
+        return new CachingFileHasher(new DefaultFileHasher(hasherFactory), cacheAccess, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem);
+    }
+
+    ScriptSourceHasher createScriptSourceHasher(FileHasher fileHasher, FileContentHasherFactory contentHasherFactory) {
+        return new DefaultScriptSourceHasher(fileHasher, contentHasherFactory);
     }
 
     FileSystemSnapshotter createFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror) {

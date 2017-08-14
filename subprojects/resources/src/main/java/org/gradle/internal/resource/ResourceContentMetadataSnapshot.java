@@ -17,7 +17,7 @@
 package org.gradle.internal.resource;
 
 import com.google.common.hash.HashCode;
-import org.gradle.internal.nativeintegration.filesystem.FileType;
+import org.gradle.internal.file.FileType;
 
 /**
  * An immutable snapshot of the type and content of a resource. Does not include any information about the identity of the resource. The resource may not exist.

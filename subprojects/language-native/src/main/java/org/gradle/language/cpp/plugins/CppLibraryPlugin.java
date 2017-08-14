@@ -23,14 +23,18 @@ import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.language.cpp.CppLibrary;
+import org.gradle.language.cpp.internal.DefaultCppLibrary;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
@@ -39,7 +43,10 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
+import javax.inject.Inject;
+import java.io.File;
 import java.util.Collections;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
@@ -47,31 +54,41 @@ import java.util.concurrent.Callable;
  *
  * <p>Assumes the source files are located in `src/main/cpp`, public headers are located in `src/main/public` and implementation header files are located in `src/main/headers`.</p>
  *
+ * <p>Adds a {@link CppLibrary} extension to the project to allow configuration of the library.</p>
+ *
  * @since 4.1
  */
 @Incubating
 public class CppLibraryPlugin implements Plugin<ProjectInternal> {
+    private final FileOperations fileOperations;
+
+    @Inject
+    public CppLibraryPlugin(FileOperations fileOperations) {
+        this.fileOperations = fileOperations;
+    }
+
     @Override
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(CppBasePlugin.class);
 
-        TaskContainerInternal tasks = project.getTasks();
+        TaskContainer tasks = project.getTasks();
         ConfigurationContainer configurations = project.getConfigurations();
         DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
         ObjectFactory objectFactory = project.getObjects();
+        ProviderFactory providers = project.getProviders();
 
         // TODO - extract some common code to setup the compile task and conventions
+
+        // Add the component extension
+        final CppLibrary component = project.getExtensions().create(CppLibrary.class, "library", DefaultCppLibrary.class, fileOperations);
+
+        // Wire in dependencies
+        component.getCompileIncludePath().from(configurations.getByName(CppBasePlugin.CPP_INCLUDE_PATH));
+
         // Add a compile task
         CppCompile compile = tasks.create("compileCpp", CppCompile.class);
-
-        compile.includes("src/main/public");
-        compile.includes("src/main/headers");
-        compile.includes(configurations.getByName(CppBasePlugin.CPP_INCLUDE_PATH));
-
-        ConfigurableFileTree sourceTree = project.fileTree("src/main/cpp");
-        sourceTree.include("**/*.cpp");
-        sourceTree.include("**/*.c++");
-        compile.source(sourceTree);
+        compile.includes(component.getCompileIncludePath());
+        compile.source(component.getCppSource());
 
         compile.setCompilerArgs(Collections.<String>emptyList());
         compile.setPositionIndependentCode(true);
@@ -89,18 +106,12 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
 
         // Add a link task
         final LinkSharedLibrary link = tasks.create("linkMain", LinkSharedLibrary.class);
-        // TODO - include only object files
-        link.source(compile.getObjectFileDirectory().getAsFileTree());
+        link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
         link.lib(configurations.getByName(CppBasePlugin.NATIVE_LINK));
         link.setLinkerArgs(Collections.<String>emptyList());
         // TODO - need to set basename and soname
-        String linkFileName = platformToolChain.getSharedLibraryLinkFileName("build/lib/" + project.getName());
-        Provider<RegularFile> runtimeFile = buildDirectory.file(project.getProviders().provider(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                return platformToolChain.getSharedLibraryName("lib/" + project.getName());
-            }
-        }));
+        Provider<RegularFile> linkFile = buildDirectory.file(platformToolChain.getSharedLibraryLinkFileName("lib/" + project.getName()));
+        Provider<RegularFile> runtimeFile = buildDirectory.file(platformToolChain.getSharedLibraryName("lib/" + project.getName()));
         link.setOutputFile(runtimeFile);
         link.setTargetPlatform(currentPlatform);
         link.setToolChain(toolChain);
@@ -112,7 +123,18 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         Configuration apiElements = configurations.create("cppApiElements");
         apiElements.setCanBeResolved(false);
         apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.C_PLUS_PLUS_API));
-        apiElements.getOutgoing().artifact(project.file("src/main/public"));
+        // TODO - deal with more than one header dir, e.g. generated public headers
+        Provider<File> publicHeaders = providers.provider(new Callable<File>() {
+            @Override
+            public File call() throws Exception {
+                Set<File> files = component.getPublicHeaderDirs().getFiles();
+                if (files.size() != 1) {
+                    throw new UnsupportedOperationException(String.format("The C++ library plugin currently requires exactly one public header directory, however there are %d directories are configured: %s", files.size(), files));
+                }
+                return files.iterator().next();
+            }
+        });
+        apiElements.getOutgoing().artifact(publicHeaders);
 
         Configuration implementation = configurations.getByName(CppBasePlugin.IMPLEMENTATION);
 
@@ -120,8 +142,8 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         linkElements.extendsFrom(implementation);
         linkElements.setCanBeResolved(false);
         linkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
-        // TODO - should be lazy and reflect changes to task output file
-        linkElements.getOutgoing().artifact(project.file(linkFileName), new Action<ConfigurablePublishArtifact>() {
+        // TODO - should reflect changes to task output file
+        linkElements.getOutgoing().artifact(linkFile, new Action<ConfigurablePublishArtifact>() {
             @Override
             public void execute(ConfigurablePublishArtifact artifact) {
                 artifact.builtBy(link);
@@ -132,12 +154,6 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         runtimeElements.extendsFrom(implementation);
         runtimeElements.setCanBeResolved(false);
         runtimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
-        // TODO - should be lazy and reflect changes to task output file
-        runtimeElements.getOutgoing().artifact(link.getOutputFile(), new Action<ConfigurablePublishArtifact>() {
-            @Override
-            public void execute(ConfigurablePublishArtifact artifact) {
-                artifact.builtBy(link);
-            }
-        });
+        runtimeElements.getOutgoing().artifact(link.getBinaryFile());
     }
 }

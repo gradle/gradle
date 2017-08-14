@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.base.Objects;
 import org.gradle.api.tasks.incremental.InputFileDetails;
-import org.gradle.internal.nativeintegration.filesystem.FileType;
+import org.gradle.internal.file.FileType;
 
 import java.io.File;
 

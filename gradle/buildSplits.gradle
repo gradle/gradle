@@ -31,6 +31,7 @@ def buckets = [
         ":distributions",
         ":soak",
         ":smokeTest",
+        ":buildCache",
         ":buildCacheHttp",
         ":workers"
     ],
@@ -88,6 +89,7 @@ def buckets = [
 
     "7": [
         ":core",
+        ":persistentCache",
         ":languageScala",
         ":scala",
         ":platformNative",

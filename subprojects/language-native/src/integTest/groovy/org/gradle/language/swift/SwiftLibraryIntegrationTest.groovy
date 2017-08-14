@@ -17,8 +17,8 @@
 package org.gradle.language.swift
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingSwiftLibraryHelloWorldApp
-import org.gradle.nativeplatform.fixtures.app.SwiftHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
+import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -27,29 +27,27 @@ import static org.gradle.util.Matchers.containsText
 @Requires(TestPrecondition.SWIFT_SUPPORT)
 class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "build fails when compilation fails"() {
-        def app = new SwiftHelloWorldApp()
-
         given:
         buildFile << """
             apply plugin: 'swift-library'
          """
 
         and:
-        app.brokenFile.writeToDir(file("src/main"))
+        file("src/main/swift/broken.swift") << "broken!"
 
         expect:
         fails "assemble"
-        failure.assertHasDescription("Execution failed for task ':compileSwift'.");
+        failure.assertHasDescription("Execution failed for task ':compileSwift'.")
         failure.assertHasCause("A build operation failed.")
         failure.assertThatCause(containsText("Swift compiler failed while compiling swift file(s)"))
     }
 
     def "sources are compiled with Swift compiler"() {
-        def app = new SwiftHelloWorldApp()
+        def lib = new SwiftLib()
         settingsFile << "rootProject.name = 'hello'"
 
         given:
-        app.library.writeSources(file('src/main'))
+        lib.writeToProject(testDirectory)
 
         and:
         buildFile << """
@@ -62,11 +60,103 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         sharedLibrary("build/lib/hello").assertExists()
     }
 
+    def "build logic can change source layout convention"() {
+        def lib = new SwiftLib()
+        settingsFile << "rootProject.name = 'hello'"
+
+        given:
+        lib.writeToSourceDir(file("Sources"))
+        file("src/main/swift/broken.swift") << "ignore me!"
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-library'
+            library {
+                source.from 'Sources'
+            }
+         """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
+
+        sharedLibrary("build/lib/hello").assertExists()
+    }
+
+    def "build logic can add individual source files"() {
+        def lib = new SwiftLib()
+        settingsFile << "rootProject.name = 'hello'"
+
+        given:
+        lib.greeter.writeToSourceDir(file("src/one.swift"))
+        lib.sum.writeToSourceDir(file("src/two.swift"))
+        file("src/main/swift/broken.swift") << "ignore me!"
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-library'
+            library {
+                source {
+                    from('src/one.swift')
+                    from('src/two.swift')
+                }
+            }
+         """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
+
+        sharedLibrary("build/lib/hello").assertExists()
+    }
+
+    def "build logic can change buildDir"() {
+        given:
+        settingsFile << "rootProject.name = 'hello'"
+        def lib = new SwiftLib()
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-library'
+            buildDir = 'output'
+         """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
+
+        !file("build").exists()
+        file("output/main/objs").assertIsDir()
+        sharedLibrary("output/lib/hello").assertExists()
+    }
+
+    def "build logic can change task output locations"() {
+        given:
+        settingsFile << "rootProject.name = 'hello'"
+        def lib = new SwiftLib()
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-library'
+            compileSwift.objectFileDirectory.set(layout.buildDirectory.dir("object-files"))
+            linkMain.binaryFile.set(layout.buildDirectory.file("some-lib/main.bin"))
+         """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
+
+        file("build/object-files").assertIsDir()
+        file("build/some-lib/main.bin").assertIsFile()
+    }
+
     def "can define public library"() {
         settingsFile << "rootProject.name = 'hello'"
         given:
-        def app = new SwiftHelloWorldApp()
-        app.library.writeSources(file("src/main"))
+        def lib = new SwiftLib()
+        lib.writeToProject(testDirectory)
 
         and:
         buildFile << """
@@ -81,34 +171,34 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
     }
 
     def "can compile and link against another library"() {
-        settingsFile << "include 'hello', 'greeting'"
-        def app = new ExeWithLibraryUsingSwiftLibraryHelloWorldApp()
+        settingsFile << "include 'hello', 'log'"
+        def app = new SwiftAppWithLibraries()
 
         given:
         buildFile << """
             project(':hello') {
                 apply plugin: 'swift-library'
                 dependencies {
-                    implementation project(':greeting')
+                    implementation project(':log')
                 }
             }
-            project(':greeting') {
+            project(':log') {
                 apply plugin: 'swift-library'
             }
 """
-        app.library.writeSources(file("hello/src/main"))
-        app.greetingsLibrary.writeSources(file("greeting/src/main"))
+        app.library.writeToProject(file("hello"))
+        app.logLibrary.writeToProject(file("log"))
 
         expect:
         succeeds ":hello:assemble"
-        result.assertTasksExecuted(":greeting:compileSwift", ":greeting:linkMain", ":hello:compileSwift", ":hello:linkMain", ":hello:assemble")
+        result.assertTasksExecuted(":log:compileSwift", ":log:linkMain", ":hello:compileSwift", ":hello:linkMain", ":hello:assemble")
         sharedLibrary("hello/build/lib/hello").assertExists()
-        sharedLibrary("greeting/build/lib/greeting").assertExists()
+        sharedLibrary("log/build/lib/log").assertExists()
     }
 
     def "can change default module name and successfully link against library"() {
         settingsFile << "include 'lib1', 'lib2'"
-        def app = new ExeWithLibraryUsingSwiftLibraryHelloWorldApp()
+        def app = new SwiftAppWithLibraries()
 
         given:
         buildFile << """
@@ -121,11 +211,11 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
             }
             project(':lib2') {
                 apply plugin: 'swift-library'
-                tasks.withType(SwiftCompile)*.moduleName = 'greeting'
+                tasks.withType(SwiftCompile)*.moduleName = 'log'
             }
 """
-        app.library.writeSources(file("lib1/src/main"))
-        app.greetingsLibrary.writeSources(file("lib2/src/main"))
+        app.library.writeToProject(file("lib1"))
+        app.logLibrary.writeToProject(file("lib2"))
 
         expect:
         succeeds ":lib1:assemble"

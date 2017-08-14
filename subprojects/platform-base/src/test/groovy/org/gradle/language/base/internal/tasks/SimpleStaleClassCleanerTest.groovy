@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 package org.gradle.language.base.internal.tasks
-import org.gradle.api.file.FileCollection
+
+import com.google.common.collect.Sets
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 class SimpleStaleClassCleanerTest extends Specification {
-    @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     private final outputs = Mock(TaskOutputsInternal)
     private final SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(outputs)
 
@@ -36,7 +38,7 @@ class SimpleStaleClassCleanerTest extends Specification {
         then:
         !file1.exists()
         !file2.exists()
-        1 * outputs.previousOutputFiles >> { [iterator: { [file1, file2].iterator() }] as FileCollection }
+        1 * outputs.previousOutputFiles >> files(file1, file2)
 
         and:
         cleaner.didWork
@@ -54,7 +56,7 @@ class SimpleStaleClassCleanerTest extends Specification {
         then:
         !file1.exists()
         file2.exists()
-        1 * outputs.previousOutputFiles >> { [iterator: { [file1, file2].iterator() }] as FileCollection }
+        1 * outputs.previousOutputFiles >> files(file1, file2)
 
         and:
         cleaner.didWork
@@ -67,9 +69,13 @@ class SimpleStaleClassCleanerTest extends Specification {
         cleaner.execute()
 
         then:
-        1 * outputs.previousOutputFiles >> { [iterator: { [].iterator() }] as FileCollection }
+        1 * outputs.previousOutputFiles >> files()
 
         and:
         !cleaner.didWork
+    }
+
+    Set<File> files(File... args) {
+        Sets.newHashSet(args)
     }
 }

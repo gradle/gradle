@@ -17,6 +17,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.Requires
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
@@ -52,6 +53,75 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.output.contains('it works!')
+    }
+
+    def 'can apply Groovy script from url'() {
+        given:
+        HttpServer server = new HttpServer()
+        server.start()
+
+        def scriptFile = file("script.gradle") << """
+            task hello {
+                doLast {
+                    println "Hello!"
+                }
+            }
+        """
+
+        buildFile << """
+            apply { 
+                from("http://localhost:${server.port}/script.gradle") 
+            }
+        """
+
+        server.expectGet('/script.gradle', scriptFile)
+
+        when:
+        run 'hello'
+
+        then:
+        result.output.contains("Hello!")
+
+        when:
+        server.stop()
+        args("--offline")
+
+        then:
+        succeeds 'hello'
+        result.output.contains("Hello!")
+    }
+
+    def 'can apply Kotlin script from url'() {
+        given:
+        HttpServer server = new HttpServer()
+        server.start()
+
+        def scriptFile = file("script.gradle.kts") << """
+            tasks {
+                "hello" {
+                    doLast { 
+                        println("Hello!") 
+                    }
+                }
+            }
+        """
+        server.expectGet('/script.gradle.kts', scriptFile)
+
+        buildFile << """apply { from("http://localhost:${server.port}/script.gradle.kts") }"""
+
+        when:
+        run 'hello'
+
+        then:
+        result.output.contains("Hello!")
+
+        when:
+        server.stop()
+        args("--offline")
+
+        then:
+        succeeds 'hello'
+        result.output.contains("Hello!")
     }
 
     def 'can query KotlinBuildScriptModel'() {
