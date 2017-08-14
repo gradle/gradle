@@ -53,6 +53,7 @@ public class SubscribableBuildActionRunner implements BuildActionRunner {
             for (BuildOperationListener listener : listeners) {
                 buildOperationListenerManager.removeListener(listener);
             }
+            listeners.clear();
         }
     }
 
