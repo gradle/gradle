@@ -13,21 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply plugin: 'java-library'
 
-dependencies {
-    api project(":baseServices")
-    api libraries.inject
+package org.gradle.caching.local.internal;
 
-    implementation project(":messaging")
-    implementation project(":native")
-    implementation project(":persistentCache")
-    implementation project(":resources")
-    implementation project(":logging")
+import org.gradle.internal.resource.local.PathKeyFileStore;
 
-    implementation libraries.commons_io
+import java.io.File;
+
+public interface DirectoryBuildCacheFileStoreFactory {
+    PathKeyFileStore createFileStore(File baseDir);
 }
-
-useTestFixtures()
-useClassycle()
-strictCompile()

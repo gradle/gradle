@@ -18,7 +18,6 @@ package org.gradle.caching.local.internal;
 
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
@@ -28,8 +27,8 @@ import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.resource.local.DefaultPathKeyFileStore;
 import org.gradle.internal.resource.local.PathKeyFileStore;
 
 import javax.inject.Inject;
@@ -47,15 +46,17 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
 
     private final CacheRepository cacheRepository;
     private final CacheScopeMapping cacheScopeMapping;
-    private final FileResolver resolver;
+    private final PathToFileResolver resolver;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final DirectoryBuildCacheFileStoreFactory fileStoreFactory;
 
     @Inject
-    public DirectoryBuildCacheServiceFactory(CacheRepository cacheRepository, CacheScopeMapping cacheScopeMapping, FileResolver resolver, BuildOperationExecutor buildOperationExecutor) {
+    public DirectoryBuildCacheServiceFactory(CacheRepository cacheRepository, CacheScopeMapping cacheScopeMapping, PathToFileResolver resolver, BuildOperationExecutor buildOperationExecutor, DirectoryBuildCacheFileStoreFactory fileStoreFactory) {
         this.cacheRepository = cacheRepository;
         this.cacheScopeMapping = cacheScopeMapping;
         this.resolver = resolver;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.fileStoreFactory = fileStoreFactory;
     }
 
     @Override
@@ -75,7 +76,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
             config("location", target.getAbsolutePath()).
             config("targetSize", humanReadableCacheSize);
 
-        PathKeyFileStore fileStore = new DefaultPathKeyFileStore(target);
+        PathKeyFileStore fileStore = fileStoreFactory.createFileStore(target);
         PersistentCache persistentCache = cacheRepository
             .cache(target)
             .withCleanup(new FixedSizeOldestCacheCleanup(buildOperationExecutor, targetSizeInMB, BuildCacheTempFileStore.PARTIAL_FILE_SUFFIX))
