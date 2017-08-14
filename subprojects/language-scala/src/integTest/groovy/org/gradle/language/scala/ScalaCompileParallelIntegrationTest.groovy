@@ -215,7 +215,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
             class LockTimeoutLoggerListener extends TaskExecutionAdapter {
                 void afterExecute(Task task, TaskState state) {
                     if(state.failure) {
-                        def lockTimeoutException = resolveCausalChain(state.failure).find { it.getClass().name == 'org.gradle.cache.internal.LockTimeoutException' }
+                        def lockTimeoutException = resolveCausalChain(state.failure).find { it.getClass().name == 'org.gradle.cache.LockTimeoutException' }
                         if (lockTimeoutException?.ownerPid && lockTimeoutException.ownerPid.toString().isNumber()) {
                             def jstackOutput = dumpStacks(lockTimeoutException.ownerPid)
                             if (jstackOutput) {

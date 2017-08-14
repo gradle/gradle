@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.compile.incremental;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.CachingClassDependenciesAnalyzer;
@@ -32,6 +31,7 @@ import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapsho
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotMaker;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotter;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.internal.hash.FileHasher;
 import org.gradle.language.base.internal.compile.Compiler;
 
 import java.util.List;

@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.Iterators;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.DeferredUtil;
 
 import java.io.File;
 import java.util.Iterator;
@@ -46,7 +46,7 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
     }
 
     public Iterator<TaskOutputFilePropertySpec> resolveToOutputProperties() {
-        Object unpackedPaths = GFileUtils.unpack(paths);
+        Object unpackedPaths = DeferredUtil.unpack(paths);
         if (unpackedPaths == null) {
             return Iterators.emptyIterator();
         } else if (unpackedPaths instanceof Map) {

@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal
 
-import org.gradle.api.internal.cache.CrossBuildInMemoryCache
-import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory
+import org.gradle.cache.internal.CrossBuildInMemoryCache
+import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.service.ServiceRegistry
 import spock.lang.Specification

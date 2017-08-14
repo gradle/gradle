@@ -23,7 +23,7 @@ import java.io.File;
 
 public interface BuildCacheTempFileStore {
 
-    String SUFFIX = ".part";
+    String PARTIAL_FILE_SUFFIX = ".part";
 
     void allocateTempFile(BuildCacheKey key, Action<? super File> action);
 

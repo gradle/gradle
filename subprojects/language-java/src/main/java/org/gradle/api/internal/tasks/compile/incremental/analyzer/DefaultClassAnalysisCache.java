@@ -17,9 +17,9 @@
 package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
 import com.google.common.hash.HashCode;
-import org.gradle.api.internal.cache.MinimalPersistentCache;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.internal.MinimalPersistentCache;
 
 /**
  * Cross-process, global cache of class bytecode/dependency analysis. Required to make incremental java compilation fast.

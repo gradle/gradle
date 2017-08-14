@@ -25,10 +25,10 @@ import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFacto
 import org.gradle.api.internal.changedetection.state.Snapshot;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
-import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.initialization.RootBuildLifecycleListener;

@@ -40,7 +40,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import static org.gradle.cache.internal.FileLockManager.LockMode.None;
+import static org.gradle.cache.FileLockManager.LockMode.None;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DirectoryBuildCacheService implements LocalBuildCacheService, BuildCacheService {
@@ -55,7 +55,7 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
         this.fileStore = new PathKeyFileStore(baseDir);
         this.persistentCache = cacheRepository
             .cache(checkDirectory(baseDir))
-            .withCleanup(new FixedSizeOldestCacheCleanup(buildOperationExecutor, targetCacheSize))
+            .withCleanup(new FixedSizeOldestCacheCleanup(buildOperationExecutor, targetCacheSize, PARTIAL_FILE_SUFFIX))
             .withDisplayName("Build cache")
             .withLockOptions(mode(None))
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)

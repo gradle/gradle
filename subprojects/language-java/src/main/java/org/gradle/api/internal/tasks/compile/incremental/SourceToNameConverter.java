@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import org.gradle.util.GFileUtils;
+import org.gradle.util.RelativePathUtil;
 
 import java.io.File;
 import java.util.List;
@@ -35,7 +35,7 @@ public class SourceToNameConverter {
         List<File> dirs = sourceDirs.getSourceRoots();
         for (File sourceDir : dirs) {
             if (javaSourceClass.getAbsolutePath().startsWith(sourceDir.getAbsolutePath())) { //perf tweak only
-                String relativePath = GFileUtils.relativePath(sourceDir, javaSourceClass);
+                String relativePath = RelativePathUtil.relativePath(sourceDir, javaSourceClass);
                 if (!relativePath.startsWith("..")) {
                     return relativePath.replaceAll("/", ".").replaceAll("\\.java$", "");
                 }

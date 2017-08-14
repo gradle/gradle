@@ -16,8 +16,8 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services
 
+import org.gradle.internal.file.FileType
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor
-import org.gradle.internal.nativeintegration.filesystem.FileType
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition

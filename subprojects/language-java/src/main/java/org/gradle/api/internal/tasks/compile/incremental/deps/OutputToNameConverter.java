@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental.deps;
 
 import java.io.File;
 
-import static org.gradle.util.GFileUtils.relativePath;
+import static org.gradle.util.RelativePathUtil.relativePath;
 
 class OutputToNameConverter {
 

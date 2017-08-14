@@ -15,8 +15,8 @@
  */
 package org.gradle.testfixtures.internal;
 
+import org.gradle.cache.FileLockManager;
 import org.gradle.cache.internal.CacheFactory;
-import org.gradle.cache.internal.FileLockManager;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;

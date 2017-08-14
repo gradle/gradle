@@ -22,8 +22,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.cache.HeapProportionalCacheSizer;
 import org.gradle.api.specs.Spec;
+import org.gradle.cache.internal.HeapProportionalCacheSizer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 

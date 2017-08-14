@@ -17,7 +17,6 @@ package org.gradle.groovy.scripts.internal
 
 import com.google.common.hash.HashCode
 import org.gradle.api.Action
-import org.gradle.api.internal.hash.FileHasher
 import org.gradle.api.internal.initialization.ClassLoaderIds
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.cache.CacheBuilder
@@ -46,7 +45,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
     final classLoader = Mock(ClassLoader)
     final Transformer transformer = Mock()
     final CompileOperation<?> operation = Mock()
-    final FileHasher hasher = Mock()
+    final ScriptSourceHasher hasher = Mock()
     final ClassLoaderCache classLoaderCache = Mock()
     final classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher) {
         getClassLoaderHash(classLoader) >> HashCode.fromLong(9999)
@@ -84,7 +83,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
 
         then:
         result == Script
-        1 * hasher.hash(resource) >> HashCode.fromString("0123")
+        1 * hasher.hash(source) >> HashCode.fromString("0123")
         1 * cacheRepository.cache({ it =~ "scripts-remapped/ScriptClassName/\\p{XDigit}+/TransformerId\\p{XDigit}+" }) >> localCacheBuilder
         1 * localCacheBuilder.withInitializer(!null) >> { args ->
             initializer = args[0]
@@ -109,7 +108,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
 
     def "passes CacheValidator to cache builders"() {
         setup:
-        hasher.hash(resource) >> HashCode.fromString("0123")
+        hasher.hash(source) >> HashCode.fromString("0123")
         cacheRepository.cache({ it =~ "scripts-remapped/ScriptClassName/\\p{XDigit}+/TransformerId\\p{XDigit}+" }) >> localCacheBuilder
         localCacheBuilder.withProperties(!null) >> localCacheBuilder
         localCacheBuilder.withInitializer(!null) >> localCacheBuilder
@@ -136,7 +135,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
 
         then:
         result == Script
-        1 * hasher.hash(resource) >> HashCode.fromString("0123")
+        1 * hasher.hash(source) >> HashCode.fromString("0123")
         1 * cacheRepository.cache({ it =~ "scripts-remapped/ScriptClassName/\\p{XDigit}+/TransformerId\\p{XDigit}+" }) >> localCacheBuilder
         1 * localCacheBuilder.withInitializer(!null) >> { args ->
             initializer = args[0]

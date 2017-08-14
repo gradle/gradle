@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.DeferredUtil;
 
 import java.io.File;
 
@@ -42,7 +42,7 @@ public class DefaultCacheableTaskOutputFilePropertySpec extends AbstractTaskOutp
 
     @Override
     public File getOutputFile() {
-        Object unpackedOutput = GFileUtils.unpack(path);
+        Object unpackedOutput = DeferredUtil.unpack(path);
         if (unpackedOutput == null && isOptional()) {
             return null;
         }

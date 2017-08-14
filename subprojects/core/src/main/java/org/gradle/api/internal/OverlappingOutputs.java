@@ -18,7 +18,7 @@ package org.gradle.api.internal;
 
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot;
-import org.gradle.internal.nativeintegration.filesystem.FileType;
+import org.gradle.internal.file.FileType;
 
 import java.util.Map;
 

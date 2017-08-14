@@ -20,9 +20,9 @@ import org.gradle.api.Task
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.DefaultInstantiatorFactory
 import org.gradle.api.internal.InstantiatorFactory
-import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
+import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
 import org.gradle.groovy.scripts.DefaultScript
 import org.gradle.groovy.scripts.Script
 import org.gradle.groovy.scripts.ScriptSource

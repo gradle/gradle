@@ -24,7 +24,7 @@ import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.JavaForkOptions;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.RelativePathUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -269,7 +269,7 @@ public class JacocoTaskExtension {
         StringBuilder builder = new StringBuilder();
         ArgumentAppender argument = new ArgumentAppender(builder, task.getWorkingDir());
         builder.append("-javaagent:");
-        builder.append(GFileUtils.relativePath(task.getWorkingDir(), agent.getJar()));
+        builder.append(RelativePathUtil.relativePath(task.getWorkingDir(), agent.getJar()));
         builder.append('=');
         argument.append("destfile", getDestinationFile());
         argument.append("append", isAppend());
@@ -316,7 +316,7 @@ public class JacocoTaskExtension {
                 if (value instanceof Collection) {
                     builder.append(Joiner.on(':').join((Collection) value));
                 } else if (value instanceof File) {
-                    builder.append(GFileUtils.relativePath(workingDirectory, (File) value));
+                    builder.append(RelativePathUtil.relativePath(workingDirectory, (File) value));
                 } else {
                     builder.append(value);
                 }

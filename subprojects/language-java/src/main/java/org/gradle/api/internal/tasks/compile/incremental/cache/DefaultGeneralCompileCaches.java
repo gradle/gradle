@@ -33,10 +33,10 @@ import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotDataSeri
 import org.gradle.api.internal.tasks.compile.incremental.jar.LocalJarClasspathSnapshotStore;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
-import org.gradle.cache.internal.FileLockManager;
 import org.gradle.internal.serialize.HashCodeSerializer;
 
 import java.io.Closeable;
