@@ -5,11 +5,19 @@
     "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
 
 <suppressions>
-    <!-- These packages are duplicated in core, don't require a package-info.java in each place -->
+    <!-- These packages are duplicated in core-api, don't require a package-info.java in each place -->
     <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]model-core[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
+              files=".*[/\\]subprojects[/\\]core[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]subprojects[/\\]core[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]subprojects[/\\]core[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]testfixtures[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]platform-base[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]subprojects[/\\]core[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]testfixtures[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]resources[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]resources[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
@@ -63,7 +71,7 @@
     <suppress checks="InterfaceIsTypeCheck"
               files=".*[/\\]subprojects[/\\]tooling-api[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]tooling[/\\]internal[/\\]protocol.+"/>
     <suppress checks="InterfaceIsTypeCheck"
-              files=".*[/\\]subprojects[/\\]core[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]attributes[/\\]Usage.+"/>
+              files=".*[/\\]subprojects[/\\]core-api[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]attributes[/\\]Usage.+"/>
 
 
 </suppressions>

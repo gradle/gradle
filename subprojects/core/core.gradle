@@ -36,6 +36,7 @@ dependencies {
     api project(":native")
     api project(":persistentCache")
     api project(":buildCache")
+    api project(":coreApi")
 
     api project(":processServices")
     api project(":jvmServices")
@@ -82,6 +83,7 @@ dependencies {
 }
 
 useTestFixtures()
+useTestFixtures(project: ":coreApi")
 useTestFixtures(project: ":messaging")
 useTestFixtures(project: ":modelCore")
 useTestFixtures(project: ":logging")
