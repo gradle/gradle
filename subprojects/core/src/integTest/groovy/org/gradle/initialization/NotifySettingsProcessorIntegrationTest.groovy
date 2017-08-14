@@ -47,11 +47,13 @@ class NotifySettingsProcessorIntegrationTest extends AbstractIntegrationSpec {
         operation().result.buildPath == ":"
         operation().result.rootProject.name == "root"
         operation().result.rootProject.path == ":"
+        operation().result.rootProject.identityPath == ":"
         operation().result.rootProject.projectDir == buildFile.parentFile.absolutePath
         operation().result.rootProject.buildFile == file("root.gradle").absolutePath
 
         project(":b").name == "b"
         project(":b").path == ":b"
+        project(":b").identityPath == ":b"
         project(":b").projectDir == new File(testDirectory, "b").absolutePath
         project(":b").buildFile == new File(testDirectory, "b/build.gradle").absolutePath
 
@@ -67,6 +69,7 @@ class NotifySettingsProcessorIntegrationTest extends AbstractIntegrationSpec {
 
         project(":a:c:d").name == "d"
         project(":a:c:d").path == ":a:c:d"
+        project(":a:c:d").identityPath == ":a:c:d"
         project(":a:c:d").projectDir == new File(testDirectory, "d").absolutePath
         project(":a:c:d").buildFile == new File(testDirectory, "d/d.gradle").absolutePath
     }
@@ -99,6 +102,7 @@ class NotifySettingsProcessorIntegrationTest extends AbstractIntegrationSpec {
 
         project(":a").name == "a"
         project(":a").path == ":a"
+        project(":a").identityPath == ":a"
         project(":a").projectDir == new File(testDirectory, "a").absolutePath
         project(":a").buildFile == new File(testDirectory, "a/build.gradle").absolutePath
     }
@@ -129,10 +133,47 @@ class NotifySettingsProcessorIntegrationTest extends AbstractIntegrationSpec {
 
         project(":a").name == "a"
         project(":a").path == ":a"
+        project(":a").identityPath == ":a"
         project(":a").projectDir == new File(customSettingsDir, "a").absolutePath
         project(":a").buildFile == new File(customSettingsDir, "a/build.gradle").absolutePath
     }
 
+    def "supports composites"() {
+        settingsFile << """
+            include "a"
+            includeBuild "nested"
+            
+            rootProject.name = "root"
+            rootProject.buildFileName = 'root.gradle'
+            
+        """
+
+        file("nested/settings.gradle") << """
+            rootProject.name = "nested"    
+        """
+        file("nested/build.gradle") << """
+        group = "org.acme"
+        version = "1.0"
+        """
+
+        when:
+        succeeds('help')
+
+        then:
+        operation().details.settingsDir == settingsFile.parentFile.absolutePath
+        operation().details.settingsFile == settingsFile.absolutePath
+        operation().result.buildPath == ":"
+        operation().result.rootProject.name == "root"
+        operation().result.rootProject.path == ":"
+        operation().result.rootProject.projectDir == settingsFile.parentFile.absolutePath
+        operation().result.rootProject.buildFile == settingsFile.file("root.gradle").absolutePath
+
+        project(":a").name == "a"
+        project(":a").path == ":a"
+        project(":a").identityPath == ":a"
+        project(":a").projectDir == new File(customSettingsDir, "a").absolutePath
+        project(":a").buildFile == new File(customSettingsDir, "a/build.gradle").absolutePath
+    }
 
     def project(String path, Map parent = null) {
         if (parent == null) {

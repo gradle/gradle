@@ -39,7 +39,7 @@ class NotifyingSettingsProcessorTest extends Specification {
     def settingsInternal = Mock(SettingsInternal)
     def rootProjectDescriptor = Mock(ProjectDescriptor)
     def subProjectDescriptor = Mock(ProjectDescriptor)
-    def buildPath = Mock(Path)
+    def buildPath = Path.path(":")
     def rootDir = new File("root")
     def rootBuildScriptFile = new File(rootDir, "root.gradle")
     def subDir = new File("root")
@@ -79,6 +79,7 @@ class NotifyingSettingsProcessorTest extends Specification {
         buildOperationExecutor.log.mostRecentResult(ConfigureSettingsBuildOperationType).buildPath == ":"
         buildOperationExecutor.log.mostRecentResult(ConfigureSettingsBuildOperationType).rootProject.name == "root"
         buildOperationExecutor.log.mostRecentResult(ConfigureSettingsBuildOperationType).rootProject.path == ":"
+        buildOperationExecutor.log.mostRecentResult(ConfigureSettingsBuildOperationType).rootProject.identityPath == ":"
         buildOperationExecutor.log.mostRecentResult(ConfigureSettingsBuildOperationType).rootProject.projectDir == rootDir.absolutePath
         buildOperationExecutor.log.mostRecentResult(ConfigureSettingsBuildOperationType).rootProject.buildFile == rootBuildScriptFile.absolutePath
     }
@@ -96,11 +97,26 @@ class NotifyingSettingsProcessorTest extends Specification {
         then:
         rootProject.children[0].name== "sub"
         rootProject.children[0].path == ":sub"
+        rootProject.children[0].identityPath == ":sub"
         rootProject.children[0].projectDir == subDir.absolutePath
         rootProject.children[0].buildFile == subBuildScriptFile.absolutePath
     }
 
-    private void settings() {
+    def "calculates identity path for nested projects"() {
+        given:
+        settings(Path.path(":composite"))
+        rootProject(nestedProject())
+
+        when:
+        1 * settingsProcessor.process(gradleInternal, settingsLocation, classLoaderScope, startParameter) >> settingsInternal
+        buildOperationScriptPlugin.process(gradleInternal, settingsLocation, classLoaderScope, startParameter)
+        def rootProject = buildOperationExecutor.log.mostRecentResult(ConfigureSettingsBuildOperationType).rootProject
+
+        then:
+        rootProject.children[0].identityPath == ":composite:sub"
+    }
+
+    private void settings(Path buildPath = buildPath) {
         _ * settingsInternal.gradle >> gradleInternal
         _ * gradleInternal.getIdentityPath() >> buildPath
         _ * buildPath.absolutePath(":") >> ":"

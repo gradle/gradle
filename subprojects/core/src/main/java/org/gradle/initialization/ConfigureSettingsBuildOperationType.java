@@ -74,6 +74,13 @@ public final class ConfigureSettingsBuildOperationType implements BuildOperation
             String getPath();
 
             /**
+             * The identityPath of the project.
+             *
+             * @see org.gradle.api.internal.project.ProjectInternal#getIdentityPath()
+             */
+            String getIdentityPath();
+
+            /**
              * The absolute file path of the project directory.
              *
              * @see org.gradle.api.initialization.ProjectDescriptor#getProjectDir()
