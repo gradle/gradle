@@ -47,7 +47,7 @@ val m2CleanScriptWindows = """
 fun subProjectCheckLinux(subProject: String) : String {
     val subProjectFolder = subProject.replace(Regex("([A-Z])"), { "-" + it.groups[1]!!.value.toLowerCase()})
     return """
-        if [ ! -d "subprojects/$subProjectFolder" ]; then
+        if [ ! -d "subprojects/$subProjectFolder/" ]; then
             echo "##teamcity[buildStatus status='SUCCESS' text='Ignored: Subproject $subProject does not exist on this branch']"
         fi
     """.trimIndent()
@@ -56,7 +56,7 @@ fun subProjectCheckLinux(subProject: String) : String {
 fun subProjectCheckWindows(subProject: String) : String {
     val subProjectFolder = subProject.replace(Regex("([A-Z])"), { "-" + it.groups[1]!!.value.toLowerCase()})
     return """
-        IF NOT EXIST subprojects\$subProjectFolder (
+        IF NOT EXIST subprojects\$subProjectFolder\ (
             echo ##teamcity[buildStatus status='SUCCESS' text='Ignored: Subproject $subProject does not exist on this branch']
         )
     """.trimIndent()
