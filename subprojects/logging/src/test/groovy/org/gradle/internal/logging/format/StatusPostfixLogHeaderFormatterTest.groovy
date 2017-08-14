@@ -27,7 +27,7 @@ class StatusPostfixLogHeaderFormatterTest extends Specification {
 
     def "does not render null status"() {
         when:
-        def output = statusPostfixLogHeaderFormatter.format(null, DESCRIPTION, null, null)
+        def output = statusPostfixLogHeaderFormatter.format(null, DESCRIPTION, null, null, false)
 
         then:
         rendered(output) == """<Normal>DESCRIPTION</Normal><Normal>${LogHeaderFormatter.EOL}</Normal>"""
@@ -38,7 +38,7 @@ class StatusPostfixLogHeaderFormatterTest extends Specification {
         def status = "STATUS"
 
         when:
-        def output = statusPostfixLogHeaderFormatter.format(HEADER, DESCRIPTION, SHORT_DESCRIPTION, status)
+        def output = statusPostfixLogHeaderFormatter.format(HEADER, DESCRIPTION, SHORT_DESCRIPTION, status, false)
 
         then:
         rendered(output) == """<Normal>HEADER </Normal><ProgressStatus>STATUS</ProgressStatus><Normal>${LogHeaderFormatter.EOL}</Normal>"""
@@ -46,7 +46,7 @@ class StatusPostfixLogHeaderFormatterTest extends Specification {
 
     def "prefers short description over description"() {
         when:
-        def output = statusPostfixLogHeaderFormatter.format(null, DESCRIPTION, SHORT_DESCRIPTION, null)
+        def output = statusPostfixLogHeaderFormatter.format(null, DESCRIPTION, SHORT_DESCRIPTION, null, false)
 
         then:
         rendered(output) == """<Normal>SHORT</Normal><Normal>${LogHeaderFormatter.EOL}</Normal>"""

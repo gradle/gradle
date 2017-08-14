@@ -78,7 +78,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         1 * buildOperation.call(_) >> "result"
 
         then:
-        1 * progressLogger.completed(null)
+        1 * progressLogger.completed(null, false)
 
         then:
         1 * timeProvider.currentTime >> 124L
@@ -134,7 +134,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         1 * buildOperation.run(_) >> { throw failure }
 
         then:
-        1 * progressLogger.completed(null)
+        1 * progressLogger.completed(null, false)
 
         then:
         1 * timeProvider.currentTime >> 124L

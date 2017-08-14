@@ -200,7 +200,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
                     worker.execute(buildOperation, context);
                 } finally {
                     LOGGER.debug("Completing Build operation '{}'", descriptor.getDisplayName());
-                    progressLogger.completed(context.status);
+                    progressLogger.completed(context.status, context.failure != null);
                     assertParentRunning("Parent operation (%2$s) completed before this operation (%1$s).", descriptor, parent);
                 }
             } catch (Throwable t) {
