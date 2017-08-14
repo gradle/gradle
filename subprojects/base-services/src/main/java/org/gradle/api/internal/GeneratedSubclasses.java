@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
-
-import org.gradle.api.internal.GeneratedSubclass;
+package org.gradle.api.internal;
 
 public class GeneratedSubclasses {
 
