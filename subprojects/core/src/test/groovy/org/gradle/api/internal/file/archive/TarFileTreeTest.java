@@ -27,19 +27,17 @@ import org.gradle.util.Resources;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.gradle.api.file.FileVisitorUtil.*;
-import static org.gradle.api.internal.file.TestFiles.directoryFileTreeFactory;
-import static org.gradle.api.internal.file.TestFiles.fileHasher;
-import static org.gradle.api.internal.file.TestFiles.fileSystem;
+import static org.gradle.api.internal.file.TestFiles.*;
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes;
 import static org.gradle.util.WrapUtil.toList;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 public class TarFileTreeTest {
     @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
@@ -166,7 +164,9 @@ public class TarFileTreeTest {
         rootDir.tarTo(tarFile);
 
         assertVisits(tree, toList("file1.txt"), new ArrayList<String>());
-        expandDir.listFiles()[0].listFiles()[0].setWritable(false);
+        File unpackedFile = expandDir.listFiles()[0].listFiles()[0];
+        unpackedFile.setWritable(false);
         assertVisits(tree, toList("file1.txt"), new ArrayList<String>());
+        assertFalse(unpackedFile.canWrite());
     }
 }
