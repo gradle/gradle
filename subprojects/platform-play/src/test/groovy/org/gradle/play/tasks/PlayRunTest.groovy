@@ -19,7 +19,7 @@ package org.gradle.play.tasks
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.deployment.Deployment
 import org.gradle.play.internal.run.PlayApplicationRunner
-import org.gradle.play.internal.run.PlayApplicationRunnerToken
+import org.gradle.play.internal.run.PlayApplication
 import org.gradle.play.internal.run.PlayRunSpec
 import org.gradle.play.internal.toolchain.PlayToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -31,7 +31,7 @@ class PlayRunTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    PlayApplicationRunnerToken runnerToken = Mock(PlayApplicationRunnerToken)
+    PlayApplication runnerToken = Mock(PlayApplication)
     PlayToolProvider playToolProvider = Mock(PlayToolProvider)
     PlayApplicationRunner playApplicationRunner = Mock(PlayApplicationRunner)
     def address = InetSocketAddress.createUnresolved("localhost", 12345)

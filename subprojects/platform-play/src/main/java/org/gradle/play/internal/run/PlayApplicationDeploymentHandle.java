@@ -25,7 +25,7 @@ import java.net.InetSocketAddress;
 public class PlayApplicationDeploymentHandle implements DeploymentHandle {
     private final PlayRunSpec spec;
     private final PlayApplicationRunner playApplicationRunner;
-    private PlayApplicationRunnerToken runnerToken;
+    private PlayApplication playApplication;
 
     @Inject
     public PlayApplicationDeploymentHandle(PlayRunSpec spec, PlayApplicationRunner playApplicationRunner) {
@@ -35,23 +35,23 @@ public class PlayApplicationDeploymentHandle implements DeploymentHandle {
 
     @Override
     public boolean isRunning() {
-        return runnerToken != null && runnerToken.isRunning();
+        return playApplication != null && playApplication.isRunning();
     }
 
     @Override
     public void start(Deployment deployment) {
-        runnerToken = playApplicationRunner.start(spec, deployment);
+        playApplication = playApplicationRunner.start(spec, deployment);
     }
 
     public InetSocketAddress getPlayAppAddress() {
         if (isRunning()) {
-            return runnerToken.getPlayAppAddress();
+            return playApplication.getPlayAppAddress();
         }
         return null;
     }
 
     @Override
     public void stop() {
-        runnerToken.stop();
+        playApplication.stop();
     }
 }

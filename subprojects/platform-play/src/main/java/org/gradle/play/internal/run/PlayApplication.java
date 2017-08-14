@@ -16,25 +16,50 @@
 
 package org.gradle.play.internal.run;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
+import org.gradle.api.GradleException;
 import org.gradle.deployment.Deployment;
 import org.gradle.internal.UncheckedException;
+import org.gradle.process.internal.worker.WorkerProcess;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.net.InetSocketAddress;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-public class PlayWorkerClient implements PlayRunWorkerClientProtocol {
-    private static final Logger LOGGER = Logging.getLogger(PlayWorkerClient.class);
+public class PlayApplication implements PlayRunWorkerClientProtocol {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PlayApplication.class);
+
+    private final PlayRunWorkerServerProtocol workerServer;
+    private final WorkerProcess process;
+    private final AtomicBoolean stopped;
 
     private final BlockingQueue<PlayAppStart> startEvent = new SynchronousQueue<PlayAppStart>();
     private final BlockingQueue<PlayAppStop> stopEvent = new SynchronousQueue<PlayAppStop>();
     private final Deployment activity;
-    private final PlayRunWorkerServerProtocol workerServer;
+    private InetSocketAddress playAppAddress;
 
-    public PlayWorkerClient(Deployment activity, PlayRunWorkerServerProtocol workerServer) {
-        this.activity = activity;
+    public PlayApplication(Deployment activity, PlayRunWorkerServerProtocol workerServer, WorkerProcess process) {
         this.workerServer = workerServer;
+        this.process = process;
+        this.stopped = new AtomicBoolean(false);
+        this.activity = activity;
+    }
+
+    public boolean isRunning() {
+        return !stopped.get();
+    }
+
+    public InetSocketAddress getPlayAppAddress() {
+        return playAppAddress;
+    }
+
+    public void stop() {
+        workerServer.stop();
+        waitForEvent(stopEvent);
+        process.waitForStop();
+        stopped.set(true);
     }
 
     @Override
@@ -56,17 +81,19 @@ public class PlayWorkerClient implements PlayRunWorkerClientProtocol {
         }
     }
 
-    public PlayAppStart waitForRunning() {
-        try {
-            return startEvent.take();
-        } catch (InterruptedException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+    public void waitForRunning() {
+        PlayAppStart playAppStart = waitForEvent(startEvent);
+        if (playAppStart.isRunning()) {
+            playAppAddress = playAppStart.getAddress();
+        } else {
+            throw new GradleException("Unable to start Play application.", playAppStart.getException());
         }
+
     }
 
-    public PlayAppStop waitForStop() {
+    private <T> T waitForEvent(BlockingQueue<T> queue) {
         try {
-            return stopEvent.take();
+            return queue.take();
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

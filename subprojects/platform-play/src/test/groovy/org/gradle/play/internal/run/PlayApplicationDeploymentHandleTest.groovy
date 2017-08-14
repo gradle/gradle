@@ -22,7 +22,7 @@ import spock.lang.Specification
 class PlayApplicationDeploymentHandleTest extends Specification {
     PlayRunSpec spec = Mock()
     PlayApplicationRunner runner = Mock()
-    PlayApplicationRunnerToken runnerToken = Mock(PlayApplicationRunnerToken)
+    PlayApplication runnerToken = Mock(PlayApplication)
     PlayApplicationDeploymentHandle deploymentHandle = new PlayApplicationDeploymentHandle(spec, runner)
 
     def failure = new Throwable()
