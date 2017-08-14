@@ -16,9 +16,7 @@
 
 package org.gradle.caching.internal.controller
 
-import org.gradle.StartParameter
 import org.gradle.api.Action
-import org.gradle.api.internal.GradleInternal
 import org.gradle.caching.BuildCacheEntryReader
 import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheException
@@ -39,15 +37,6 @@ import org.gradle.util.Path
 class BuildCacheControllerFactoryTest extends Specification {
 
     def buildCacheEnabled = true
-    def startParameter = Mock(StartParameter) {
-        getSystemPropertiesArgs() >> [:]
-        isBuildCacheEnabled() >> { buildCacheEnabled }
-    }
-    def gradle = Mock(GradleInternal) {
-        getStartParameter() >> startParameter
-        getIdentityPath() >> Path.path("test")
-    }
-
     def buildOperationExecuter = new TestBuildOperationExecutor()
     def config = new DefaultBuildCacheConfiguration(DirectInstantiator.INSTANCE, [
         new DefaultBuildCacheServiceRegistration(DirectoryBuildCache, TestDirectoryBuildCacheServiceFactory),
@@ -62,8 +51,12 @@ class BuildCacheControllerFactoryTest extends Specification {
     private <T extends BuildCacheController> T createController(Class<T> controllerType) {
         def controller = BuildCacheControllerFactory.create(
             buildOperationExecuter,
-            gradle,
+            Path.path("test"),
+            null,
             config,
+            buildCacheEnabled,
+            false,
+            false,
             DirectInstantiator.INSTANCE
         )
         assert controllerType.isInstance(controller)

@@ -20,12 +20,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
-import org.gradle.StartParameter;
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.tasks.GeneratedSubclasses;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
@@ -40,35 +35,35 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.Path;
-import org.gradle.util.SingleMessageLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public final class BuildCacheControllerFactory {
 
-    private static final Logger LOGGER = Logging.getLogger(BuildCacheControllerFactory.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheControllerFactory.class);
 
     public static BuildCacheController create(
         final BuildOperationExecutor buildOperationExecutor,
-        final GradleInternal gradle,
+        final Path buildIdentityPath,
+        final File gradleUserHomeDir,
         final BuildCacheConfigurationInternal buildCacheConfiguration,
+        final boolean buildCacheEnabled,
+        final boolean offline,
+        final boolean logStackTraces,
         final Instantiator instantiator
     ) {
         return buildOperationExecutor.call(new CallableBuildOperation<BuildCacheController>() {
             @Override
             public BuildCacheController call(BuildOperationContext context) {
-                StartParameter startParameter = gradle.getStartParameter();
-                Path buildIdentityPath = gradle.getIdentityPath();
-                if (!startParameter.isBuildCacheEnabled()) {
+                if (!buildCacheEnabled) {
                     context.setResult(ResultImpl.disabled());
                     return NoOpBuildCacheController.INSTANCE;
-                }
-
-                if (startParameter.isBuildCacheEnabled()) {
-                    SingleMessageLogger.incubatingFeatureUsed("Build cache");
                 }
 
                 BuildCache local = buildCacheConfiguration.getLocal();
@@ -77,7 +72,7 @@ public final class BuildCacheControllerFactory {
                 boolean localEnabled = local != null && local.isEnabled();
                 boolean remoteEnabled = remote != null && remote.isEnabled();
 
-                if (remoteEnabled && startParameter.isOffline()) {
+                if (remoteEnabled && offline) {
                     remoteEnabled = false;
                     LOGGER.warn("Remote build cache is disabled when running with --offline.");
                 }
@@ -93,15 +88,12 @@ public final class BuildCacheControllerFactory {
                 context.setResult(new ResultImpl(
                     true,
                     local != null && local.isEnabled(),
-                    remote != null && remote.isEnabled() && !startParameter.isOffline(),
+                    remote != null && remote.isEnabled() && !offline,
                     localDescribedService == null ? null : localDescribedService.description,
                     remoteDescribedService == null ? null : remoteDescribedService.description
                 ));
 
-
-                if (!startParameter.isBuildCacheEnabled()) {
-                    return NoOpBuildCacheController.INSTANCE;
-                } else if (!localEnabled && !remoteEnabled) {
+                if (!localEnabled && !remoteEnabled) {
                     LOGGER.warn("Task output caching is enabled, but no build caches are configured or enabled.");
                     return NoOpBuildCacheController.INSTANCE;
                 } else {
@@ -113,8 +105,8 @@ public final class BuildCacheControllerFactory {
                     return new DefaultBuildCacheController(
                         config,
                         buildOperationExecutor,
-                        gradle.getGradleUserHomeDir(),
-                        startParameter.getShowStacktrace() != ShowStacktrace.INTERNAL_EXCEPTIONS
+                        gradleUserHomeDir,
+                        logStackTraces
                     );
                 }
             }
