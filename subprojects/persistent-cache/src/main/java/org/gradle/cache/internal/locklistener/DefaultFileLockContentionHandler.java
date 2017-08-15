@@ -76,29 +76,26 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
                     } catch (GracefullyStoppedException e) {
                         return;
                     }
-                    Runnable action;
 
                     lock.lock();
                     if (contendedActionsRunning.contains(lockId)) {
-                        action = null;
+                        // confirm that the unlock is already in progress to anyone who asked
+                        communicator.confirmUnlockRequest(packet);
                     } else {
-                        action = contendedActions.get(lockId);
+                        Runnable action = contendedActions.get(lockId);
                         if (action == null) {
                             // The other side has the action and confirmed now that it started it
                             unlocksConfirmedFrom.put(lockId, packet.getPort());
                             LOGGER.debug("Gradle process at port {} confirmed unlock request for lock with id {}.", packet.getPort(), lockId);
                         } else {
+                            // I have the action, I execute it and tell the other side that I am on it
+                            unlockActionExecutor.execute(action);
                             contendedActionsRunning.add(lockId);
+                            communicator.confirmUnlockRequest(packet);
                         }
 
                     }
                     lock.unlock();
-
-                    if (action != null) {
-                        // I have the action, I execute it and tell the other side that I am on it
-                        unlockActionExecutor.execute(action);
-                        communicator.confirmUnlockRequest(packet);
-                    }
                 }
             }
         };
