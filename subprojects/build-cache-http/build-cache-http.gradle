@@ -25,6 +25,5 @@ dependencies {
     integTestCompile libraries.jetty
 }
 
-useTestFixtures()
 useClassycle()
 strictCompile()
