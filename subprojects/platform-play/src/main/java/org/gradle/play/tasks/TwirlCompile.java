@@ -17,7 +17,6 @@
 package org.gradle.play.tasks;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileVisitDetails;
@@ -49,10 +48,8 @@ import org.gradle.play.toolchain.PlayToolChain;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -194,7 +191,7 @@ public class TwirlCompile extends SourceTask {
     /**
      * Returns the custom template formats configured for this task.
      */
-    @Internal
+    @Input
     public List<TwirlTemplateFormat> getUserTemplateFormats() {
         return userTemplateFormats;
     }
@@ -215,25 +212,6 @@ public class TwirlCompile extends SourceTask {
      */
     public void addUserTemplateFormat(final String extension, String templateType, String... imports) {
         userTemplateFormats.add(new DefaultTwirlTemplateFormat(extension, templateType, Arrays.asList(imports)));
-    }
-
-    // TODO: Workarounds for lack of @Nested support on collections
-    @Input
-    private Map<String, String> getUserTemplateFormatTypesAsMap() {
-        Map<String, String> extensionToTypes = Maps.newLinkedHashMap();
-        for (TwirlTemplateFormat format : userTemplateFormats) {
-            extensionToTypes.put(format.getExtension(), format.getFormatType());
-        }
-        return extensionToTypes;
-    }
-
-    @Input
-    private Map<String, Collection<String>> getUserTemplateFormatImportsAsMap() {
-        Map<String, Collection<String>> extensionToImports = Maps.newLinkedHashMap();
-        for (TwirlTemplateFormat format : userTemplateFormats) {
-            extensionToImports.put(format.getExtension(), format.getTemplateImports());
-        }
-        return extensionToImports;
     }
 
     private static class TwirlStaleOutputCleaner {

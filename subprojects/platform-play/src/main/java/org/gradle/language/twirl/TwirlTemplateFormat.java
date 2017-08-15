@@ -17,7 +17,6 @@
 package org.gradle.language.twirl;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.tasks.Input;
 
 import java.util.Collection;
 
@@ -31,7 +30,6 @@ public interface TwirlTemplateFormat {
      *
      * @return file extension
      */
-    @Input
     String getExtension();
 
     /**
@@ -39,7 +37,6 @@ public interface TwirlTemplateFormat {
      *
      * @return class name of the format
      */
-    @Input
     String getFormatType();
 
     /**
@@ -50,6 +47,5 @@ public interface TwirlTemplateFormat {
      * </p>
      * @return collection of imports to be added after the default Twirl imports
      */
-    @Input
     Collection<String> getTemplateImports();
 }

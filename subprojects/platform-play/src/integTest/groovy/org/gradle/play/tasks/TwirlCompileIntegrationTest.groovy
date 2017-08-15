@@ -86,7 +86,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         generatedFile.assertContents(containsString("import views.formats.csv._;"))
         generatedFile.assertContents(containsString("CsvFormat"))
 
-        // Modifying user templates causes templates to be out-of-date and causes regeneration
+        // Modifying user templates causes TwirlCompile to be out-of-date
         when:
         buildFile << """
             model {
