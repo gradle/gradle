@@ -10,10 +10,6 @@ Add-->
 ### Example new and noteworthy
 -->
 
-### Support for Play 2.6
-
-TODO Placeholder
-
 ### Support for Google Cloud Storage backed repositories
 
 It is now possible to consume dependencies from, and publish to, [Google Cloud Storage](https://cloud.google.com/storage/) buckets when using [`MavenArtifactRepository`](dsl/org.gradle.api.artifacts.repositories.MavenArtifactRepository.html) or [`IvyArtifactRepository`](dsl/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html).
@@ -62,6 +58,16 @@ Script plugins are applied to Gradle settings or projects via the `apply from: '
 
 - HTTP script plugins are cached for [`--offline`](userguide/dependency_management.html#sub:cache_offline) use.
 - Download of HTTP script plugins honours [proxy authentication settings](userguide/build_environment.html#sec:accessing_the_web_via_a_proxy).
+
+### Improved Play support
+
+#### Support for Play 2.6
+
+TODO Placeholder
+
+#### Only trigger a rebuild when someone reloads the Play app
+
+TODO Placeholder
 
 ## Promoted features
 
