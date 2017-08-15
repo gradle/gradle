@@ -43,10 +43,10 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     // Lock protects the following state, using an intentionally simple locking strategy
     private final ReentrantLock lock = new ReentrantLock();
     private final Condition workAvailable = lock.newCondition();
-    private final Condition workDone = lock.newCondition();
+    private final Condition operationsComplete = lock.newCondition();
     private QueueState queueState = QueueState.Working;
     private int workerCount;
-    private int pendingCount;
+    private int pendingOperations;
     private final Deque<T> workQueue = new LinkedList<T>();
     private final LinkedList<Throwable> failures = new LinkedList<Throwable>();
 
@@ -68,7 +68,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
                 return;
             }
             workQueue.add(operation);
-            pendingCount++;
+            pendingOperations++;
             workAvailable.signalAll();
             if (workerCount == 0 || workerCount < workerLeases.getMaxWorkerCount()) {
                 // TODO This could be more efficient, so that we only start a worker when there are none idle _and_ there is a worker lease available
@@ -87,7 +87,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
                 return;
             }
             queueState = QueueState.Cancelled;
-            pendingCount = pendingCount - workQueue.size();
+            completeOperations(workQueue.size());
             workQueue.clear();
             workAvailable.signalAll();
         } finally {
@@ -118,9 +118,9 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         lock.lock();
         try {
             // Wait for any work still running in other threads
-            while (pendingCount > 0) {
+            while (pendingOperations > 0) {
                 try {
-                    workDone.await();
+                    operationsComplete.await();
                 } catch (InterruptedException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
@@ -139,6 +139,16 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         lock.lock();
         try {
             failures.add(failure);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void completeOperations(int count) {
+        lock.lock();
+        try {
+            pendingOperations = pendingOperations - count;
+            operationsComplete.signalAll();
         } finally {
             lock.unlock();
         }
@@ -186,7 +196,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             // We need to update pending count outside of withLocks() so that we don't have a race
             // condition where the pending count is 0, but a child worker lease is still held when
             // the parent lease is released.
-            operationsFinished(
+            completeOperations(
                 workerLeases.withLocks(Collections.singleton(parentWorkerLease.createChild()), new Callable<Integer>() {
                     @Override
                     public Integer call() throws Exception {
@@ -220,20 +230,10 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             }
         }
 
-        private void operationsFinished(int count) {
-            lock.lock();
-            try {
-                pendingCount = pendingCount - count;
-            } finally {
-                lock.unlock();
-            }
-        }
-
         private void shutDown() {
             lock.lock();
             try {
                 workerCount--;
-                workDone.signalAll();
             } finally {
                 lock.unlock();
             }
