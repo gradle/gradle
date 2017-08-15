@@ -19,7 +19,7 @@ package org.gradle.initialization;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
-public class ConfigureSettingsBuildOperationType implements BuildOperationType<ConfigureSettingsBuildOperationType.Details, ConfigureSettingsBuildOperationType.Result> {
+public class EvaluateSettingsBuildOperationType implements BuildOperationType<EvaluateSettingsBuildOperationType.Details, EvaluateSettingsBuildOperationType.Result> {
     @UsedByScanPlugin
     public interface Details {
         /**

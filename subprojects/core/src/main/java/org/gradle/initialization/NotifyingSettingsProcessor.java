@@ -25,8 +25,8 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 
-import static org.gradle.initialization.ConfigureSettingsBuildOperationType.Details;
-import static org.gradle.initialization.ConfigureSettingsBuildOperationType.Result;
+import static org.gradle.initialization.EvaluateSettingsBuildOperationType.Details;
+import static org.gradle.initialization.EvaluateSettingsBuildOperationType.Result;
 
 public class NotifyingSettingsProcessor implements SettingsProcessor {
     private final SettingsProcessor settingsProcessor;
@@ -49,7 +49,7 @@ public class NotifyingSettingsProcessor implements SettingsProcessor {
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Configure settings").
+                return BuildOperationDescriptor.displayName("Evaluate settings").
                     progressDisplayName("settings").
                     details(new Details(){
                         @Override
