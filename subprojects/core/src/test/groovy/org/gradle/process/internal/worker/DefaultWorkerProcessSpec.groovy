@@ -15,7 +15,7 @@
  */
 package org.gradle.process.internal.worker
 
-import org.gradle.internal.remote.ConnectionAcceptor
+import  org.gradle.internal.remote.ConnectionAcceptor
 import org.gradle.internal.remote.ObjectConnection
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecException
@@ -46,13 +46,14 @@ class DefaultWorkerProcessSpec extends Specification {
     def jvmMemoryStatus = Mock(JvmMemoryStatus)
     def workerProcess = new DefaultWorkerProcess(1, TimeUnit.SECONDS, jvmMemoryStatus)
     def acceptor = Mock(ConnectionAcceptor)
+    // Use a shorter wait time before callback is called, so that we don't hit the 1 sec connection timeout
+    def op = concurrent.waitsForAsyncCallback().withWaitTime(200)
 
     def startsChildProcessAndBlocksUntilConnectionEstablished() {
         when:
         workerProcess.setExecHandle(execHandle)
         workerProcess.startAccepting(acceptor)
 
-        def op = concurrent.waitsForAsyncCallback()
         op.start {
             op.callbackLater {
                 workerProcess.onConnect(connection)
@@ -102,7 +103,6 @@ class DefaultWorkerProcessSpec extends Specification {
         workerProcess.setExecHandle(execHandle)
         workerProcess.startAccepting(acceptor)
 
-        def op = concurrent.waitsForAsyncCallback()
         op.start {
             op.callbackLater {
                 listener.executionFinished(execHandle, execResult)
@@ -135,7 +135,6 @@ class DefaultWorkerProcessSpec extends Specification {
         workerProcess.setExecHandle(execHandle)
         workerProcess.startAccepting(acceptor)
 
-        def op = concurrent.waitsForAsyncCallback()
         op.start {
             op.callbackLater {
                 listener.executionFinished(execHandle, execResult)
@@ -161,7 +160,6 @@ class DefaultWorkerProcessSpec extends Specification {
         workerProcess.startAccepting(acceptor)
         workerProcess.setExecHandle(execHandle)
 
-        def op = concurrent.waitsForAsyncCallback()
         op.start {
             op.callbackLater {
                 workerProcess.onConnect(connection)
