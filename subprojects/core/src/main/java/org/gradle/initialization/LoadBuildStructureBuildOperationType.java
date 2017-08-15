@@ -22,33 +22,34 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 import java.util.Set;
 
 /**
- * Details about a Settings being configured.
+ * An operation to load the project structure from the processed settings.
+ * Provides details of the project structure without projects being configured.
  *
  * @since 4.2
  */
-public final class LoadingBuildBuildOperationType implements BuildOperationType<LoadingBuildBuildOperationType.Details, LoadingBuildBuildOperationType.Result> {
+public final class LoadBuildStructureBuildOperationType implements BuildOperationType<LoadBuildStructureBuildOperationType.Details, LoadBuildStructureBuildOperationType.Result> {
 
     @UsedByScanPlugin
     public interface Details {
     }
 
     public interface Result {
-
         /**
-         * A description of the root Project.
-         *
-         * @see org.gradle.api.initialization.Settings#getRootProject()
-         */
-        ProjectDescription getRootProject();
-
-        /**
-         * The build path of the root Project.
+         * The path of the build configuration that contains these projects.
+         * This will be ':' for top-level builds. Nested builds will have a sub-path.
          *
          * @see org.gradle.api.internal.GradleInternal#getIdentityPath()
          */
         String getBuildPath();
 
-        interface ProjectDescription {
+        /**
+         * A description of the root Project for this build.
+         *
+         * @see org.gradle.api.initialization.Settings#getRootProject()
+         */
+        Project getRootProject();
+
+        interface Project {
 
             /**
              * The name of the project.
@@ -65,7 +66,9 @@ public final class LoadingBuildBuildOperationType implements BuildOperationType<
             String getPath();
 
             /**
-             * The identityPath of the project.
+             * The path of the project within the entire build execution.
+             * For top-level builds this will be the same as {@link #getPath()}.
+             * For nested builds the project path will be prefixed with a build path.
              *
              * @see org.gradle.api.internal.project.ProjectInternal#getIdentityPath()
              */
@@ -93,7 +96,7 @@ public final class LoadingBuildBuildOperationType implements BuildOperationType<
              * @see org.gradle.api.initialization.ProjectDescriptor#getChildren()
              */
 
-            Set<ProjectDescription> getChildren();
+            Set<Project> getChildren();
         }
     }
 
