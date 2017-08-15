@@ -85,6 +85,10 @@ public class DefaultFileLockManager implements FileLockManager {
     }
 
     public FileLock lock(File target, LockOptions options, String targetDisplayName, String operationDisplayName) {
+        return lock(target, options, targetDisplayName, operationDisplayName, null);
+    }
+
+    public FileLock lock(File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended) {
         if (options.getMode() == LockMode.None) {
             throw new UnsupportedOperationException(String.format("No %s mode lock implementation available.", options));
         }
@@ -94,16 +98,11 @@ public class DefaultFileLockManager implements FileLockManager {
         }
         try {
             int port = fileLockContentionHandler.reservePort();
-            return new DefaultFileLock(canonicalTarget, options, targetDisplayName, operationDisplayName, port);
+            return new DefaultFileLock(canonicalTarget, options, targetDisplayName, operationDisplayName, port, whenContended);
         } catch (Throwable t) {
             lockedFiles.remove(canonicalTarget);
             throw throwAsUncheckedException(t);
         }
-    }
-
-    public void allowContention(FileLock fileLock, Runnable whenContended) {
-        DefaultFileLock internalLock = (DefaultFileLock) fileLock;
-        fileLockContentionHandler.start(internalLock.lockId, whenContended);
     }
 
     private class DefaultFileLock extends AbstractFileAccess implements FileLock {
@@ -118,7 +117,7 @@ public class DefaultFileLockManager implements FileLockManager {
         private int port;
         private final long lockId;
 
-        public DefaultFileLock(File target, LockOptions options, String displayName, String operationDisplayName, int port) throws Throwable {
+        public DefaultFileLock(File target, LockOptions options, String displayName, String operationDisplayName, int port, Runnable whenContended) throws Throwable {
             this.port = port;
             this.lockId = generator.generateId();
             if (options.getMode() == LockMode.None) {
@@ -146,6 +145,9 @@ public class DefaultFileLockManager implements FileLockManager {
             LockStateSerializer stateProtocol = options.isUseCrossVersionImplementation() ? new Version1LockStateSerializer() : new DefaultLockStateSerializer();
             lockFileAccess = new LockFileAccess(lockFile, new LockStateAccess(stateProtocol));
             try {
+                if (whenContended != null) {
+                    fileLockContentionHandler.start(lockId, whenContended);
+                }
                 lockState = lock(options.getMode());
             } catch (Throwable t) {
                 // Also releases any locks

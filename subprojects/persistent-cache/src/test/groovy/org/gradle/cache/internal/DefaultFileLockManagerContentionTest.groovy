@@ -53,8 +53,7 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
         def file = tmpDir.file("lock-file.bin")
         def action = Mock(Runnable)
 
-        def lock = createLock(Exclusive, file)
-        manager.allowContention(lock, action)
+        def lock = createLock(Exclusive, file, manager, action)
 
         when:
         def lock2 = createLock(lockMode, file, manager2)
@@ -85,8 +84,8 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
         lockMode << [Exclusive, Shared]
     }
 
-    FileLock createLock(FileLockManager.LockMode lockMode, File file, FileLockManager lockManager = manager) {
-        def lock = lockManager.lock(file, LockOptionsBuilder.mode(lockMode), "foo", "operation")
+    FileLock createLock(FileLockManager.LockMode lockMode, File file, FileLockManager lockManager = manager, Runnable whenContended = null) {
+        def lock = lockManager.lock(file, LockOptionsBuilder.mode(lockMode), "foo", "operation", whenContended)
         openedLocks << lock
         lock
     }

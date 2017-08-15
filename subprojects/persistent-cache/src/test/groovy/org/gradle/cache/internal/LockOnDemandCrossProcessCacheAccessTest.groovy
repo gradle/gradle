@@ -19,6 +19,7 @@ package org.gradle.cache.internal
 import org.gradle.api.Action
 import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
+import org.gradle.cache.LockOptions
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.internal.Factory
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
@@ -47,8 +48,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         cacheAccess.withFileLock(action)
 
         then:
-        1 * lockManager.lock(file, _, _) >> lock
-        1 * lockManager.allowContention(lock, _)
+        1 * lockManager.lock(file, _, _, _, _) >> lock
 
         then:
         1 * action.create() >> "result"
@@ -63,8 +63,10 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         def contendedAction
 
         given:
-        lockManager.lock(file, _, _) >> lock
-        lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
+        1 * lockManager.lock(file, _, _, _, _) >> {
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+                return lock
+        }
 
         cacheAccess.withFileLock(action)
 
@@ -85,8 +87,10 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         cacheAccess.withFileLock(action)
 
         then:
-        1 * lockManager.lock(file, _, _) >> lock
-        1 * lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
+        1 * lockManager.lock(file, _, _, _, _) >> {
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+                return lock
+        }
         1 * action.create() >> { contendedAction.run(); "result" }
         1 * lock.close()
         0 * _
@@ -97,7 +101,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         def lock = Mock(FileLock)
 
         given:
-        _ * lockManager.lock(file, _, _) >> lock
+        _ * lockManager.lock(file, _, _, _, _) >> lock
         _ * lockManager.allowContention(lock, _)
 
         cacheAccess.withFileLock(action)
@@ -124,8 +128,10 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         e == failure
 
         and:
-        1 * lockManager.lock(file, _, _) >> lock
-        1 * lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
+        1 * lockManager.lock(file, _, _, _, _) >> {
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+            return lock
+        }
 
         then:
         1 * action.create() >> { throw failure }
@@ -151,8 +157,11 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         cacheAccess.withFileLock(action1)
 
         then:
-        1 * lockManager.lock(file, _, _) >> lock
-        1 * lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
+        1 * lockManager.lock(file, _, _, _, _) >> {
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+                return lock
+        }
+
         1 * action1.create() >> { cacheAccess.withFileLock(action2) }
         1 * action2.create() >> "result"
         0 * _
@@ -186,8 +195,10 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         }
 
         then:
-        1 * lockManager.lock(file, _, _) >> lock
-        1 * lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
+        1 * lockManager.lock(file, _, _, _, _) >> {
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+                return lock
+        }
         0 * _
 
         when:
@@ -206,8 +217,10 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         def releaseAction = cacheAccess.acquireFileLock()
 
         then:
-        1 * lockManager.lock(file, _, _) >> lock
-        1 * lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
+        1 * lockManager.lock(file, _, _, _, _) >> {
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+                return lock
+        }
         0 * _
 
         when:
@@ -232,8 +245,10 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         def releaseAction = cacheAccess.acquireFileLock()
 
         then:
-        1 * lockManager.lock(file, _, _) >> lock
-        1 * lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
+        1 * lockManager.lock(file, _, _, _, _) >> {
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+                return lock
+        }
         0 * _
 
         when:
@@ -281,8 +296,10 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         }
 
         then:
-        1 * lockManager.lock(file, _, _) >> lock
-        1 * lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
+        1 * lockManager.lock(file, _, _, _, _) >> {
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+                return lock
+        }
         0 * _
 
         when:
@@ -311,8 +328,10 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         }
 
         then:
-        1 * lockManager.lock(file, _, _) >> lock
-        1 * lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
+        1 * lockManager.lock(file, _, _, _, _) >> {
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+                return lock
+        }
         0 * _
 
         when:
@@ -340,13 +359,15 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         cacheAccess.withFileLock(action)
 
         then:
-        1 * lockManager.lock(file, _, _) >> lock
+        1 * lockManager.lock(file, _, _, _, _) >> {
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+                return lock
+        }
 
         then:
         1 * initAction.requiresInitialization(lock) >> true
         1 * lock.writeFile(_) >> { Runnable r -> r.run() }
         1 * initAction.initialize(lock)
-        1 * lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
 
         then:
         1 * action.create() >> { contendedAction.run() }
@@ -359,13 +380,15 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         def release = cacheAccess.acquireFileLock()
 
         then:
-        1 * lockManager.lock(file, _, _) >> lock
+        1 * lockManager.lock(file, _, _, _, _) >> {
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+                return lock
+        }
 
         then:
         1 * initAction.requiresInitialization(lock) >> true
         1 * lock.writeFile(_) >> { Runnable r -> r.run() }
         1 * initAction.initialize(lock)
-        1 * lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
         0 * _
 
         when:
@@ -403,7 +426,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         e == failure
 
         and:
-        1 * lockManager.lock(file, _, _) >> lock
+        1 * lockManager.lock(file, _, _, _, _) >> lock
 
         then:
         1 * initAction.requiresInitialization(lock) >> true
@@ -427,13 +450,15 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         cacheAccess.withFileLock(action)
 
         then:
-        1 * lockManager.lock(file, _, _) >> lock
+        1 * lockManager.lock(file, _, _, _, _) >> {
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+                return lock
+        }
 
         then:
         1 * onOpen.execute(lock)
 
         then:
-        1 * lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
         1 * action.create() >> "result"
         0 * _
 
@@ -479,13 +504,12 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         cacheAccess.withFileLock(action)
 
         then:
-        1 * lockManager.lock(file, _, _) >> lock
+        1 * lockManager.lock(file, _, _, _, _) >> lock
 
         then:
         1 * onOpen.execute(lock)
 
         then:
-        1 * lockManager.allowContention(lock, _)
         1 * action.create() >> "result"
         0 * _
 
@@ -512,13 +536,15 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         cacheAccess.withFileLock(action)
 
         then:
-        1 * lockManager.lock(file, _, _) >> lock
+        1 * lockManager.lock(file, _, _, _, _) >> {
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+                return lock
+        }
 
         then:
         1 * onOpen.execute(lock)
 
         then:
-        1 * lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
         1 * action.create() >> "result"
         0 * _
 
@@ -554,7 +580,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         def e = thrown(RuntimeException)
         e == failure
 
-        1 * lockManager.lock(file, _, _) >> lock
+        1 * lockManager.lock(file, _, _, _, _) >> lock
 
         then:
         1 * onOpen.execute(lock) >> { throw failure }
@@ -583,13 +609,15 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         cacheAccess.withFileLock(action)
 
         then:
-        1 * lockManager.lock(file, _, _) >> lock
+        1 * lockManager.lock(file, _, _, _, _) >> {
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+                return lock
+        }
 
         then:
         1 * onOpen.execute(lock)
 
         then:
-        1 * lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
         1 * action.create() >> "result"
         0 * _
 
@@ -627,15 +655,17 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         e == failure
 
         then:
-        1 * lockManager.lock(file, _, _) >> { throw failure }
+        1 * lockManager.lock(file, _, _, _, _) >> { throw failure }
         0 * _
 
         when:
         cacheAccess.withFileLock(action)
 
         then:
-        1 * lockManager.lock(file, _, _) >> lock
-        1 * lockManager.allowContention(lock, _) >> { l, callback -> contendedAction = callback }
+        1 * lockManager.lock(file, _, _, _, _) >> {
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+                return lock
+        }
         1 * action.create() >> "result"
         0 * _
 
@@ -655,8 +685,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         cacheAccess.withFileLock(action)
 
         then:
-        1 * lockManager.lock(file, _, _) >> lock
-        1 * lockManager.allowContention(lock, _)
+        1 * lockManager.lock(file, _, _, _, _) >> lock
 
         then:
         1 * action.create() >> {
@@ -702,8 +731,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         e.message == 'Cannot close cache access for <cache> as it is currently in use for 1 operations.'
 
         and:
-        1 * lockManager.lock(file, _, _) >> lock
-        1 * lockManager.allowContention(lock, _)
+        1 * lockManager.lock(file, _, _, _, _) >> lock
         0 * _
 
         when:
@@ -740,8 +768,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         e.message == 'Cannot close cache access for <cache> as it is currently in use for 1 operations.'
 
         and:
-        1 * lockManager.lock(file, _, _) >> lock
-        1 * lockManager.allowContention(lock, _)
+        1 * lockManager.lock(file, _, _, _, _) >> lock
         0 * _
 
         when:
