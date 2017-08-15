@@ -16,10 +16,7 @@
 
 package org.gradle.initialization;
 
-import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.StartParameter;
-import org.gradle.api.Transformer;
-import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -27,11 +24,9 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.util.CollectionUtils;
-import org.gradle.util.Path;
 
-import java.util.Comparator;
-import java.util.Set;
+import static org.gradle.initialization.ConfigureSettingsBuildOperationType.Details;
+import static org.gradle.initialization.ConfigureSettingsBuildOperationType.Result;
 
 public class NotifyingSettingsProcessor implements SettingsProcessor {
     private final SettingsProcessor settingsProcessor;
@@ -48,8 +43,7 @@ public class NotifyingSettingsProcessor implements SettingsProcessor {
             @Override
             public SettingsInternal call(BuildOperationContext context) {
                 SettingsInternal settingsInternal = settingsProcessor.process(gradle, settingsLocation, buildRootClassLoaderScope, startParameter);
-                Path buildPath = settingsInternal.getGradle().getIdentityPath();
-                context.setResult(new OperationResult(convertDescriptors(settingsInternal.getRootProject(), buildPath), buildPath.absolutePath(":")));
+                context.setResult(new Result(){});
                 return settingsInternal;
             }
 
@@ -57,7 +51,7 @@ public class NotifyingSettingsProcessor implements SettingsProcessor {
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName("Configure settings").
                     progressDisplayName("settings").
-                    details(new ConfigureSettingsBuildOperationType.Details(){
+                    details(new Details(){
                         @Override
                         public String getSettingsDir() {
                             return settingsLocation.getSettingsDir().getAbsolutePath();
@@ -71,95 +65,4 @@ public class NotifyingSettingsProcessor implements SettingsProcessor {
             }
         });
     }
-
-    private ConfigureSettingsBuildOperationType.Result.ProjectDescription convertDescriptors(ProjectDescriptor projectDescription, Path path) {
-        return new DefaultProjectDescription(projectDescription.getName(),
-            projectDescription.getPath(),
-            path.getPath(),
-            projectDescription.getProjectDir().getAbsolutePath(),
-            projectDescription.getBuildFile().getAbsolutePath(),
-            ImmutableSortedSet.copyOf(PROJECT_DESCRIPTION_COMPARATOR, convertDescriptors(projectDescription.getChildren(), path)));
-    }
-
-    private Set<ConfigureSettingsBuildOperationType.Result.ProjectDescription> convertDescriptors(Set<ProjectDescriptor> children, final Path parentPath) {
-        return CollectionUtils.collect(children, new Transformer<ConfigureSettingsBuildOperationType.Result.ProjectDescription, org.gradle.api.initialization.ProjectDescriptor>() {
-            @Override
-            public ConfigureSettingsBuildOperationType.Result.ProjectDescription transform(org.gradle.api.initialization.ProjectDescriptor projectDescriptor) {
-                return convertDescriptors(projectDescriptor, parentPath.child(projectDescriptor.getName()));
-            }
-        });
-    }
-
-    private class OperationResult implements ConfigureSettingsBuildOperationType.Result {
-        private final ConfigureSettingsBuildOperationType.Result.ProjectDescription rootProject;
-        private final String buildPath;
-
-        public OperationResult(ConfigureSettingsBuildOperationType.Result.ProjectDescription rootProject, String buildPath) {
-            this.rootProject = rootProject;
-            this.buildPath = buildPath;
-        }
-
-        @Override
-        public ConfigureSettingsBuildOperationType.Result.ProjectDescription getRootProject() {
-            return rootProject;
-        }
-
-        @Override
-        public String getBuildPath() {
-            return buildPath;
-        }
-    }
-
-    private class DefaultProjectDescription implements ConfigureSettingsBuildOperationType.Result.ProjectDescription {
-        final String name;
-        final String path;
-        private final String identityPath;
-        final String projectDir;
-        final String buildFile;
-        final ImmutableSortedSet<ConfigureSettingsBuildOperationType.Result.ProjectDescription> children;
-
-        public DefaultProjectDescription(String name, String path, String identityPath, String projectDir, String buildFile, ImmutableSortedSet<ConfigureSettingsBuildOperationType.Result.ProjectDescription> children){
-            this.name = name;
-            this.path = path;
-            this.identityPath = identityPath;
-            this.projectDir = projectDir;
-            this.buildFile = buildFile;
-            this.children = children;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getPath() {
-            return path;
-        }
-
-        @Override
-        public String getIdentityPath() {
-            return identityPath;
-        }
-
-        public String getProjectDir() {
-            return projectDir;
-        }
-
-        public String getBuildFile() {
-            return buildFile;
-        }
-
-        public Set<ConfigureSettingsBuildOperationType.Result.ProjectDescription> getChildren() {
-            return children;
-        }
-    }
-
-
-    private static final Comparator<ConfigureSettingsBuildOperationType.Result.ProjectDescription> PROJECT_DESCRIPTION_COMPARATOR = new Comparator<ConfigureSettingsBuildOperationType.Result.ProjectDescription>() {
-        @Override
-        public int compare(ConfigureSettingsBuildOperationType.Result.ProjectDescription o1, ConfigureSettingsBuildOperationType.Result.ProjectDescription o2) {
-            return o1.getName().compareTo(o2.getName());
-        }
-    };
-
-
 }

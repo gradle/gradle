@@ -20,6 +20,7 @@ import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.composite.internal.IncludedBuildFactory;
 import org.gradle.internal.composite.CompositeBuildSettingsLoader;
 import org.gradle.internal.composite.CompositeContextBuilder;
+import org.gradle.internal.operations.BuildOperationExecutor;
 
 public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
     private final ISettingsFinder settingsFinder;
@@ -28,15 +29,18 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
     private final BuildLoader buildLoader;
     private final CompositeContextBuilder compositeContextBuilder;
     private final IncludedBuildFactory includedBuildFactory;
+    private final BuildOperationExecutor buildOperationExecutor;
 
     public DefaultSettingsLoaderFactory(ISettingsFinder settingsFinder, SettingsProcessor settingsProcessor, BuildSourceBuilder buildSourceBuilder,
-                                        BuildLoader buildLoader, CompositeContextBuilder compositeContextBuilder, IncludedBuildFactory includedBuildFactory) {
+                                        BuildLoader buildLoader, CompositeContextBuilder compositeContextBuilder, IncludedBuildFactory includedBuildFactory,
+                                        BuildOperationExecutor buildOperationExecutor) {
         this.settingsFinder = settingsFinder;
         this.settingsProcessor = settingsProcessor;
         this.buildSourceBuilder = buildSourceBuilder;
         this.buildLoader = buildLoader;
         this.compositeContextBuilder = compositeContextBuilder;
         this.includedBuildFactory = includedBuildFactory;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
@@ -50,7 +54,8 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
                 ),
                 compositeContextBuilder, includedBuildFactory
             ),
-            buildLoader);
+            buildLoader,
+            buildOperationExecutor);
     }
 
     @Override
@@ -61,6 +66,7 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
                 settingsProcessor,
                 buildSourceBuilder
             ),
-            buildLoader);
+            buildLoader,
+            buildOperationExecutor);
     }
 }

@@ -14,25 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.initialization
 
-import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.UsedByScanPlugin;
+import spock.lang.Specification
 
-public class ConfigureSettingsBuildOperationType implements BuildOperationType<ConfigureSettingsBuildOperationType.Details, ConfigureSettingsBuildOperationType.Result> {
-    @UsedByScanPlugin
-    public interface Details {
-        /**
-         * The absolute path to the settings directory.
-         */
-        String getSettingsDir();
 
-        /**
-         * The absolute path to the settings file.
-         */
-        String getSettingsFile();
-    }
-
-    public interface Result {
+class NotifyingSettingsLoaderTest extends Specification {
+    def "findAndLoadSettings"() {
     }
 }
