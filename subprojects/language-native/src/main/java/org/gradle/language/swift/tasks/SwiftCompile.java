@@ -18,6 +18,8 @@ package org.gradle.language.swift.tasks;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -35,12 +37,16 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec
  */
 @Incubating
 public class SwiftCompile extends AbstractNativeCompileTask {
-    private String moduleName;
+    private final PropertyState<String> moduleName;
+
+    public SwiftCompile() {
+        moduleName = getProject().property(String.class);
+    }
 
     @Override
     protected NativeCompileSpec createCompileSpec() {
         SwiftCompileSpec spec = new DefaultSwiftCompileSpec();
-        spec.setModuleName(moduleName);
+        spec.setModuleName(moduleName.getOrNull());
         return spec;
     }
 
@@ -57,10 +63,14 @@ public class SwiftCompile extends AbstractNativeCompileTask {
     @Optional
     @Input
     public String getModuleName() {
-        return moduleName;
+        return moduleName.getOrNull();
     }
 
     public void setModuleName(String moduleName) {
-        this.moduleName = moduleName;
+        this.moduleName.set(moduleName);
+    }
+
+    public void setModuleName(Provider<String> moduleName) {
+        this.moduleName.set(moduleName);
     }
 }

@@ -25,7 +25,9 @@ import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.util.PatternSet;
@@ -41,9 +43,11 @@ import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
 import java.util.Collections;
+import java.util.concurrent.Callable;
 
 /**
  * <p>A plugin that produces an executable from Swift source.</p>
@@ -67,14 +71,17 @@ public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(SwiftBasePlugin.class);
 
-        DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
+        final DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
+        ProviderFactory providers = project.getProviders();
         ConfigurationContainer configurations = project.getConfigurations();
         TaskContainer tasks = project.getTasks();
 
         // Add the component extension
-        SwiftComponent component = project.getExtensions().create(SwiftComponent.class, "executable", DefaultSwiftComponent.class, fileOperations);
+        SwiftComponent component = project.getExtensions().create(SwiftComponent.class, "executable", DefaultSwiftComponent.class, fileOperations, providers);
+        final PropertyState<String> module = component.getModule();
 
-        // Wire in dependencies
+        // Setup component
+        module.set(GUtil.toCamelCase(project.getName()));
         component.getCompileImportPath().from(configurations.getByName(SwiftBasePlugin.SWIFT_IMPORT_PATH));
 
         // Add a compile task
@@ -84,7 +91,7 @@ public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
 
         compile.setCompilerArgs(Lists.newArrayList("-g"));
         compile.setMacros(Collections.<String, String>emptyMap());
-        compile.setModuleName(project.getName());
+        compile.setModuleName(component.getModule());
 
         compile.setObjectFileDir(buildDirectory.dir("main/objs"));
 
@@ -97,12 +104,16 @@ public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
 
         // Add a link task
         LinkExecutable link = tasks.create("linkMain", LinkExecutable.class);
-        // TODO - need to set basename
         link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
         link.lib(configurations.getByName(CppBasePlugin.NATIVE_LINK));
         link.setLinkerArgs(Collections.<String>emptyList());
-        PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
-        Provider<RegularFile> exeLocation = buildDirectory.file(toolProvider.getExecutableName("exe/" + project.getName()));
+        final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
+        Provider<RegularFile> exeLocation = buildDirectory.file(providers.provider(new Callable<String>() {
+            @Override
+            public String call() {
+                return toolProvider.getExecutableName("exe/" + module.get());
+            }
+        }));
         link.setOutputFile(exeLocation);
         link.setTargetPlatform(currentPlatform);
         link.setToolChain(toolChain);
@@ -111,8 +122,12 @@ public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
         final InstallExecutable install = tasks.create("installMain", InstallExecutable.class);
         install.setPlatform(currentPlatform);
         install.setToolChain(toolChain);
-        // TODO - need to set basename
-        install.setDestinationDir(buildDirectory.dir("install/" + project.getName()));
+        install.setDestinationDir(buildDirectory.dir(providers.provider(new Callable<CharSequence>() {
+            @Override
+            public String call() {
+                return "install/" + module.get();
+            }
+        })));
         install.setExecutable(link.getBinaryFile());
         // TODO - infer this
         install.onlyIf(new Spec<Task>() {

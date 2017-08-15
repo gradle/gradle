@@ -20,7 +20,7 @@ import org.gradle.language.swift.model.SwiftComponent
 import org.gradle.language.swift.tasks.SwiftCompile
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
+import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -28,9 +28,9 @@ class SwiftLibraryPluginTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def projectDir = tmpDir.createDir("project")
-    def project = TestUtil.createRootProject(projectDir)
+    def project = ProjectBuilder.builder().withProjectDir(projectDir).withName("testApp").build()
 
-    def "adds extension with convention for source layout"() {
+    def "adds extension with convention for source layout and module name"() {
         given:
         def src = projectDir.file("src/main/swift/main.swift").createFile()
 
@@ -39,6 +39,7 @@ class SwiftLibraryPluginTest extends Specification {
 
         then:
         project.library instanceof SwiftComponent
+        project.library.module.get() == "TestApp"
         project.library.swiftSource.files == [src] as Set
     }
 
@@ -56,5 +57,18 @@ class SwiftLibraryPluginTest extends Specification {
 
         def link = project.tasks.linkMain
         link instanceof LinkSharedLibrary
+    }
+
+    def "output file names are calculated from module name defined on extension"() {
+        when:
+        project.pluginManager.apply(SwiftLibraryPlugin)
+        project.library.module.set("App")
+
+        then:
+        def compileSwift = project.tasks.compileSwift
+        compileSwift.moduleName == "App"
+
+        def link = project.tasks.linkMain
+        link.binaryFile.get().get().name == "libApp.dylib"
     }
 }

@@ -21,7 +21,7 @@ import org.gradle.language.swift.tasks.SwiftCompile
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
+import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -29,9 +29,9 @@ class SwiftExecutablePluginTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def projectDir = tmpDir.createDir("project")
-    def project = TestUtil.createRootProject(projectDir)
+    def project = ProjectBuilder.builder().withProjectDir(projectDir).withName("testApp").build()
 
-    def "adds extension with convention for source layout"() {
+    def "adds extension with convention for source layout and module name"() {
         given:
         def src = projectDir.file("src/main/swift/main.swift").createFile()
 
@@ -40,6 +40,7 @@ class SwiftExecutablePluginTest extends Specification {
 
         then:
         project.executable instanceof SwiftComponent
+        project.executable.module.get() == "TestApp"
         project.executable.swiftSource.files == [src] as Set
     }
 
@@ -60,5 +61,22 @@ class SwiftExecutablePluginTest extends Specification {
 
         def install = project.tasks.installMain
         install instanceof InstallExecutable
+    }
+
+    def "output file names are calculated from module name defined on extension"() {
+        when:
+        project.pluginManager.apply(SwiftExecutablePlugin)
+        project.executable.module.set("App")
+
+        then:
+        def compileSwift = project.tasks.compileSwift
+        compileSwift.moduleName == "App"
+
+        def link = project.tasks.linkMain
+        link.binaryFile.get().get().name == "App"
+
+        def install = project.tasks.installMain
+        install.installDirectory.get().get().name == "App"
+        install.runScript.name == "App"
     }
 }

@@ -57,7 +57,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         expect:
         succeeds "assemble"
         result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
-        sharedLibrary("build/lib/hello").assertExists()
+        sharedLibrary("build/lib/Hello").assertExists()
     }
 
     def "build logic can change source layout convention"() {
@@ -80,7 +80,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         succeeds "assemble"
         result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
 
-        sharedLibrary("build/lib/hello").assertExists()
+        sharedLibrary("build/lib/Hello").assertExists()
     }
 
     def "build logic can add individual source files"() {
@@ -107,7 +107,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         succeeds "assemble"
         result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
 
-        sharedLibrary("build/lib/hello").assertExists()
+        sharedLibrary("build/lib/Hello").assertExists()
     }
 
     def "build logic can change buildDir"() {
@@ -128,7 +128,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         !file("build").exists()
         file("output/main/objs").assertIsDir()
-        sharedLibrary("output/lib/hello").assertExists()
+        sharedLibrary("output/lib/Hello").assertExists()
     }
 
     def "build logic can change task output locations"() {
@@ -166,8 +166,8 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         expect:
         succeeds "assemble"
         result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
-        sharedLibrary("build/lib/hello").assertExists()
-        file("build/main/objs/hello.swiftmodule").assertExists()
+        sharedLibrary("build/lib/Hello").assertExists()
+        file("build/main/objs/Hello.swiftmodule").assertExists()
     }
 
     def "can compile and link against another library"() {
@@ -192,8 +192,8 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         expect:
         succeeds ":hello:assemble"
         result.assertTasksExecuted(":log:compileSwift", ":log:linkMain", ":hello:compileSwift", ":hello:linkMain", ":hello:assemble")
-        sharedLibrary("hello/build/lib/hello").assertExists()
-        sharedLibrary("log/build/lib/log").assertExists()
+        sharedLibrary("hello/build/lib/Hello").assertExists()
+        sharedLibrary("log/build/lib/Log").assertExists()
     }
 
     def "can change default module name and successfully link against library"() {
@@ -204,14 +204,19 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         buildFile << """
             project(':lib1') {
                 apply plugin: 'swift-library'
+                library {
+                    module.set('Hello')
+                }
                 dependencies {
                     implementation project(':lib2')
                 }
-                tasks.withType(SwiftCompile)*.moduleName = 'hello'
+                tasks.withType(SwiftCompile)*.moduleName = 'Hello'
             }
             project(':lib2') {
                 apply plugin: 'swift-library'
-                tasks.withType(SwiftCompile)*.moduleName = 'log'
+                library {
+                    module.set('Log')
+                }
             }
 """
         app.library.writeToProject(file("lib1"))
@@ -220,7 +225,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         expect:
         succeeds ":lib1:assemble"
         result.assertTasksExecuted(":lib2:compileSwift", ":lib2:linkMain", ":lib1:compileSwift", ":lib1:linkMain", ":lib1:assemble")
-        sharedLibrary("lib1/build/lib/lib1").assertExists()
-        sharedLibrary("lib2/build/lib/lib2").assertExists()
+        sharedLibrary("lib1/build/lib/Hello").assertExists()
+        sharedLibrary("lib2/build/lib/Log").assertExists()
     }
 }

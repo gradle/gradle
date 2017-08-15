@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.provider.PropertyState;
 
 /**
  * Configuration for a Swift library or executable, defining the source files that make up the component.
@@ -30,6 +31,11 @@ import org.gradle.api.file.FileCollection;
  */
 @Incubating
 public interface SwiftComponent {
+    /**
+     * Defines the Swift module for this component. The default value is calculated from the project name.
+     */
+    PropertyState<String> getModule();
+
     /**
      * Defines the source files or directories of this component. You can add files or directories to this collection. When a directory is added, all source files are included for compilation.
      *

@@ -28,6 +28,7 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.util.PatternSet;
@@ -42,9 +43,11 @@ import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
 import java.util.Collections;
+import java.util.concurrent.Callable;
 
 /**
  * <p>A plugin that produces a shared library from Swift source.</p>
@@ -73,9 +76,11 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
         ObjectFactory objectFactory = project.getObjects();
 
-        SwiftComponent component = project.getExtensions().create(SwiftComponent.class, "library", DefaultSwiftComponent.class, fileOperations);
+        SwiftComponent component = project.getExtensions().create(SwiftComponent.class, "library", DefaultSwiftComponent.class, fileOperations, project.getProviders());
+        final PropertyState<String> module = component.getModule();
 
-        // Wire in dependencies
+        // Setup component
+        module.set(GUtil.toCamelCase(project.getName()));
         component.getCompileImportPath().from(configurations.getByName(SwiftBasePlugin.SWIFT_IMPORT_PATH));
 
         // TODO - extract some common code to setup the compile task and conventions
@@ -86,7 +91,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
 
         compile.setCompilerArgs(Lists.newArrayList("-g"));
         compile.setMacros(Collections.<String, String>emptyMap());
-        compile.setModuleName(project.getName());
+        compile.setModuleName(module);
 
         compile.setObjectFileDir(buildDirectory.dir("main/objs"));
 
@@ -103,8 +108,13 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
         link.lib(configurations.getByName(CppBasePlugin.NATIVE_LINK));
         link.setLinkerArgs(Collections.<String>emptyList());
-        // TODO - need to set basename and soname
-        Provider<RegularFile> runtimeFile = buildDirectory.file(platformToolChain.getSharedLibraryName("lib/" + project.getName()));
+        // TODO - need to set soname
+        Provider<RegularFile> runtimeFile = buildDirectory.file(project.getProviders().provider(new Callable<String>() {
+            @Override
+            public String call() {
+                return platformToolChain.getSharedLibraryName("lib/" + module.get());
+            }
+        }));
         link.setOutputFile(runtimeFile);
         link.setTargetPlatform(currentPlatform);
         link.setToolChain(toolChain);
