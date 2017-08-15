@@ -23,11 +23,16 @@ class SwiftXcTestRenderer implements TestSuiteRenderer {
     String render(TestSuite testSuite) {
         return """
 import XCTest
+${renderImports(testSuite.imports)}
 
 class ${testSuite.name}: XCTestCase {
     ${render(testSuite.testCases)}
 }
 """
+    }
+
+    private static String renderImports(List<String> imports) {
+        return imports.collect { "import $it" }.join("\n")
     }
 
     String render(List<TestCase> testCases) {
@@ -44,7 +49,14 @@ func ${testCase.name}() {
 """
     }
 
-    String renderAssertion(TestCase.Result result) {
+    private static String renderTestCaseContent(TestCase testCase) {
+        if (testCase.content) {
+            return testCase.content
+        }
+        return renderAssertion(testCase.expectedResult)
+    }
+
+    private static String renderAssertion(TestCase.Result result) {
         if (result == TestCase.Result.PASS) {
             return "XCTAssert(true)"
         }

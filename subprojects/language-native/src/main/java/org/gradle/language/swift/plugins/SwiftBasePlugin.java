@@ -97,7 +97,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
         testImplementation.setCanBeResolved(false);
 
         Configuration testImportPath = project.getConfigurations().create(SWIFT_TEST_IMPORT_PATH);
-        testImportPath.extendsFrom(implementation);
+        testImportPath.extendsFrom(testImplementation);
         testImportPath.setCanBeConsumed(false);
         testImportPath.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.SWIFT_API));
 

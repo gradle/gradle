@@ -75,6 +75,8 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
         project.getPluginManager().apply(SwiftBasePlugin.class);
 
+        // TODO - Add dependency on main component when Swift plugins are applied
+
         final DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
         Directory projectDirectory = project.getLayout().getProjectDirectory();
         ConfigurationContainer configurations = project.getConfigurations();

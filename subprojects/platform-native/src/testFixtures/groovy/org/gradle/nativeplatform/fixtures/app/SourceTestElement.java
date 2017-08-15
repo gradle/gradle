@@ -18,7 +18,9 @@ package org.gradle.nativeplatform.fixtures.app;
 
 import org.gradle.integtests.fixtures.SourceFile;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public abstract class SourceTestElement extends SourceElement implements TestElement {
@@ -69,6 +71,10 @@ public abstract class SourceTestElement extends SourceElement implements TestEle
     public abstract List<TestElement.TestSuite> getTestSuites();
 
     static TestSuite newTestSuite(final String name, final List<TestCase> testCases) {
+        return newTestSuite(name, testCases, Collections.<String>emptyList());
+    }
+
+    static TestSuite newTestSuite(final String name, final List<TestCase> testCases, final List<String> imports) {
         return new TestSuite() {
             @Override
             public List<TestCase> getTestCases() {
@@ -79,10 +85,19 @@ public abstract class SourceTestElement extends SourceElement implements TestEle
             public String getName() {
                 return name;
             }
+
+            @Override
+            public List<String> getImports() {
+                return imports;
+            }
         };
     }
 
-    static TestCase newTestCase(final String name, final TestCase.Result result) {
+    static TestCase newTestCase(String name, TestCase.Result result) {
+        return newTestCase(name, result, null);
+    }
+
+    static TestCase newTestCase(final String name, final TestCase.Result result, @Nullable final String content) {
         return new TestCase() {
             @Override
             public Result getExpectedResult() {
@@ -92,6 +107,11 @@ public abstract class SourceTestElement extends SourceElement implements TestEle
             @Override
             public String getName() {
                 return name;
+            }
+
+            @Override
+            public String getContent() {
+                return content;
             }
         };
     }

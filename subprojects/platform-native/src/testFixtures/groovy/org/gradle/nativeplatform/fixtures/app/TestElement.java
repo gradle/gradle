@@ -29,6 +29,7 @@ public interface TestElement {
 
     interface TestSuite extends Named {
         List<TestCase> getTestCases();
+        List<String> getImports();
     }
 
     interface TestCase extends Named {
@@ -37,5 +38,6 @@ public interface TestElement {
         }
 
         Result getExpectedResult();
+        String getContent();
     }
 }

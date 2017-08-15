@@ -17,14 +17,15 @@
 package org.gradle.nativeplatform.test.xctest
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.nativeplatform.fixtures.app.SwiftXcTestTestApp
 import org.gradle.nativeplatform.fixtures.app.TestElement
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 
-import static org.gradle.nativeplatform.fixtures.app.SourceTestElement.newTestSuite
 import static org.gradle.nativeplatform.fixtures.app.SourceTestElement.newTestCase
+import static org.gradle.nativeplatform.fixtures.app.SourceTestElement.newTestSuite
 
 @Requires([TestPrecondition.SWIFT_SUPPORT, TestPrecondition.MAC_OS_X])
 class XCTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -173,6 +174,37 @@ apply plugin: 'xctest'
 
         then:
         skipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+    }
+
+    def "xctest component can specify a dependency on another library"() {
+        def lib = new SwiftLib()
+        def testApp = new SwiftXcTestTestApp([
+            newTestSuite("PassingTestSuite", [
+                newTestCase("testPass", TestElement.TestCase.Result.PASS, "XCTAssert(sum(a: 40, b: 2) == 42)")
+            ], ["Greeter"])
+        ])
+
+        given:
+        settingsFile << """
+include 'Greeter'
+"""
+        buildFile << """
+project(':Greeter') {
+    apply plugin: 'swift-library'
+}
+
+dependencies {
+    testImplementation project(':Greeter')
+}
+"""
+        lib.writeToProject(file('Greeter'))
+        testApp.writeToProject(testDirectory)
+
+        when:
+        succeeds("test")
+
+        then:
+        executedAndNotSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
     }
 
     def "assemble task doesn't build or run any of the tests"() {
