@@ -23,14 +23,14 @@ import java.util.concurrent.TimeUnit
 
 class DefaultTimerTest extends Specification {
 
-    private static final long TEST_BASE_TIME = 641353121231L;
+    private static final long START_NANOS = 641353121231L
 
-    private TimeSource timeProvider = Mock(TimeSource);
+    private TimeSource timeProvider = Mock(TimeSource)
     private DefaultTimer clock;
 
     void setup() {
-        1 * timeProvider.nanoTime() >> TEST_BASE_TIME;
-        clock = new DefaultTimer(timeProvider);
+        1 * timeProvider.nanoTime() >> START_NANOS
+        clock = new DefaultTimer(timeProvider)
     }
 
     def testOnlySecondsTwoDigits() throws Exception {
@@ -74,11 +74,11 @@ class DefaultTimerTest extends Specification {
     }
 
     private void setDtMs(final long deltaT) {
-        1 * timeProvider.nanoTime() >> TEST_BASE_TIME + TimeUnit.NANOSECONDS.convert(deltaT, TimeUnit.MILLISECONDS);
+        1 * timeProvider.nanoTime() >> START_NANOS + TimeUnit.MILLISECONDS.toNanos(deltaT)
     }
 
     private void setDtHrsMinsSecsMillis(int hours, int minutes, int seconds, int millis) {
-        long dt = (hours * 3600 * 1000) + (minutes * 60 * 1000) + (seconds * 1000) + millis;
+        long dt = (hours * 3600 * 1000) + (minutes * 60 * 1000) + (seconds * 1000) + millis
         setDtMs(dt)
     }
 }

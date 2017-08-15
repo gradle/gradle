@@ -23,29 +23,30 @@ import java.util.concurrent.TimeUnit
 
 class ReliableTimeProviderTest extends Specification {
 
-    private static final long TEST_BASE_TIME = 641353121231L;
+    private static final long START_MILLIS = 641353121231L
+    private static final long START_NANOS = 222222222222222222L
 
-    private TimeSource timeSource = Mock(TimeSource);
+    private TimeSource timeSource = Mock(TimeSource)
     private ReliableTimeProvider timeProvider
 
     void setup() {
-        1 * timeSource.currentTimeMillis() >> TEST_BASE_TIME
-        1 * timeSource.nanoTime() >> TEST_BASE_TIME;
+        1 * timeSource.currentTimeMillis() >> START_MILLIS
+        1 * timeSource.nanoTime() >> START_NANOS
         timeProvider = new ReliableTimeProvider(timeSource)
     }
 
-    def testCurrentTime() throws Exception {
+    def "provides current time based on nanoTime delta"() {
         when:
-        setDtMs(delta);
+        setDtMs(delta)
 
         then:
-        timeProvider.currentTime == TEST_BASE_TIME + delta
+        timeProvider.currentTime == START_MILLIS + delta
 
         where:
         delta << [0, 100, -100]
     }
 
     private void setDtMs(final long deltaT) {
-        1 * timeSource.nanoTime() >> TEST_BASE_TIME + TimeUnit.NANOSECONDS.convert(deltaT, TimeUnit.MILLISECONDS);
+        1 * timeSource.nanoTime() >> START_NANOS + TimeUnit.MILLISECONDS.toNanos(deltaT)
     }
 }
