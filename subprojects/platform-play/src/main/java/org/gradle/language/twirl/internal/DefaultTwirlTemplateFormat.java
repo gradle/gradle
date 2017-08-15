@@ -16,6 +16,7 @@
 
 package org.gradle.language.twirl.internal;
 
+import com.google.common.base.Preconditions;
 import org.gradle.language.twirl.TwirlTemplateFormat;
 
 import java.io.Serializable;
@@ -27,7 +28,11 @@ public class DefaultTwirlTemplateFormat implements TwirlTemplateFormat, Serializ
     private final Collection<String> imports;
 
     public DefaultTwirlTemplateFormat(String extension, String formatType, Collection<String> imports) {
-        this.extension = "." + extension;
+        Preconditions.checkNotNull(extension, "Custom template extension cannot be null.");
+        Preconditions.checkArgument(!extension.startsWith("."), "Custom template extension should not start with a dot.");
+        Preconditions.checkNotNull(formatType, "Custom template format type cannot be null.");
+
+        this.extension = extension;
         this.formatType = formatType;
         this.imports = imports;
     }

@@ -270,6 +270,42 @@ Binaries
 
     }
 
+    @Unroll
+    def "has reasonable error if Twirl template is configured incorrectly with (#template)"() {
+        buildFile << """
+            model {
+                components {
+                    play {
+                        sources {                        
+                            withType(TwirlSourceSet) {
+                                addUserTemplateFormat($template)
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        fails("components")
+        then:
+        result.error.contains(errorMessage)
+
+        where:
+        template                      | errorMessage
+        "null, 'CustomFormat'"        | "Custom template extension cannot be null."
+        "'.ext', 'CustomFormat'"      | "Custom template extension should not start with a dot."
+        "'ext', null"                 | "Custom template format type cannot be null."
+    }
+
+    def "has reasonable error if Twirl template cannot be found"() {
+        twirlTemplate("test.scala.custom") << "@(username: String) Custom template, @username!"
+        when:
+        fails("compilePlayBinaryScala")
+        then:
+        result.error.contains("Twirl compiler could not find a matching template for 'test.scala.custom'.")
+    }
+
     def withTemplateSource(File templateFile) {
         templateFile << """@(message: String)
 

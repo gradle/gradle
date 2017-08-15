@@ -23,6 +23,24 @@ import java.util.List;
 
 /**
  * Represents a source set containing twirl templates
+ *
+ * <pre class='autoTested'>
+ *     apply plugin: 'play'
+ *
+ *     model {
+ *       components {
+ *         play {
+ *           sources {
+ *             withType(TwirlSourceSet) {
+ *               // Use template format views.formats.csv.CsvFormat for all files named *.scala.csv
+ *               // Additionally, include views.formats.csv._ package imports in generated sources.
+ *               addUserTemplateFormat("csv", "views.formats.csv.CsvFormat", "views.formats.csv._")
+ *             }
+ *           }
+ *         }
+ *       }
+ *     }
+ * </pre>
  */
 @Incubating
 public interface TwirlSourceSet extends LanguageSourceSet {
