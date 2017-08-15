@@ -30,6 +30,7 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.protocol.HttpClientContext;
@@ -76,6 +77,8 @@ import java.util.Collections;
 
 public class HttpClientConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientConfigurer.class);
+    private final int connectionTimeout = 10000;
+    private final int socketTimeout = 30000;
     private static final int MAX_HTTP_CONNECTIONS = 20;
 
     private final HttpSettings httpSettings;
@@ -92,6 +95,7 @@ public class HttpClientConfigurer {
         configureProxy(builder, credentialsProvider, httpSettings);
         configureUserAgent(builder);
         configureCookieSpecRegistry(builder);
+        configureRequestConfig(builder);
         builder.setDefaultCredentialsProvider(credentialsProvider);
         builder.setMaxConnTotal(MAX_HTTP_CONNECTIONS);
         builder.setMaxConnPerRoute(MAX_HTTP_CONNECTIONS);
@@ -195,6 +199,14 @@ public class HttpClientConfigurer {
         );
     }
 
+    private void configureRequestConfig(HttpClientBuilder builder) {
+        RequestConfig config = RequestConfig.custom()
+            .setConnectTimeout(connectionTimeout)
+            .setSocketTimeout(socketTimeout)
+            .build();
+        builder.setDefaultRequestConfig(config);
+    }
+
     private PasswordCredentials getPasswordCredentials(Authentication authentication) {
         org.gradle.api.credentials.Credentials credentials = ((AuthenticationInternal) authentication).getCredentials();
         if (!(credentials instanceof PasswordCredentials)) {
@@ -214,6 +226,14 @@ public class HttpClientConfigurer {
         } else {
             throw new IllegalArgumentException(String.format("Authentication scheme of '%s' is not supported.", authentication.getClass().getSimpleName()));
         }
+    }
+
+    public int getConnectionTimeout() {
+        return connectionTimeout;
+    }
+
+    public int getSocketTimeout() {
+        return socketTimeout;
     }
 
     static class PreemptiveAuth implements HttpRequestInterceptor {
