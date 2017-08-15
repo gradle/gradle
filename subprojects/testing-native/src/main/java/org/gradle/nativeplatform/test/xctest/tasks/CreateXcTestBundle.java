@@ -28,9 +28,10 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.nativeplatform.test.xctest.internal.SwiftStdlibToolLocator;
 import org.gradle.process.ExecSpec;
 
-import java.io.ByteArrayOutputStream;
+import javax.inject.Inject;
 import java.io.File;
 
 /**
@@ -43,11 +44,14 @@ public class CreateXcTestBundle extends DefaultTask {
     private final RegularFileVar informationFile;
     private final RegularFileVar executableFile;
     private final DirectoryVar outputDir;
+    private final SwiftStdlibToolLocator swiftStdlibToolLocator;
 
-    public CreateXcTestBundle() {
+    @Inject
+    public CreateXcTestBundle(SwiftStdlibToolLocator swiftStdlibToolLocator) {
         this.informationFile = newInputFile();
         this.executableFile = newInputFile();
         this.outputDir = newOutputDirectory();
+        this.swiftStdlibToolLocator = swiftStdlibToolLocator;
 
     }
 
@@ -77,7 +81,7 @@ public class CreateXcTestBundle extends DefaultTask {
         getProject().exec(new Action<ExecSpec>() {
             @Override
             public void execute(ExecSpec execSpec) {
-                execSpec.executable(findSwiftStdlibTool());
+                execSpec.executable(swiftStdlibToolLocator.find());
                 execSpec.args(
                     "--copy",
                     "--scan-executable", getExecutableFile().getAbsolutePath(),
@@ -127,18 +131,5 @@ public class CreateXcTestBundle extends DefaultTask {
 
     public void setInformationFile(Provider<? extends RegularFile> informationFile) {
         this.informationFile.set(informationFile);
-    }
-
-    private File findSwiftStdlibTool() {
-        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        getProject().exec(new Action<ExecSpec>() {
-            @Override
-            public void execute(ExecSpec execSpec) {
-                execSpec.commandLine("xcrun", "--find", "swift-stdlib-tool");
-                execSpec.setStandardOutput(outputStream);
-            }
-        }).assertNormalExitValue();
-
-        return new File(outputStream.toString().replace("\n", ""));
     }
 }

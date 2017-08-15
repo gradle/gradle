@@ -21,6 +21,7 @@ import org.gradle.nativeplatform.fixtures.app.SwiftXcTestTestApp
 import org.gradle.nativeplatform.fixtures.app.TestElement
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 
 import static org.gradle.nativeplatform.fixtures.app.SourceTestElement.newTestSuite
 import static org.gradle.nativeplatform.fixtures.app.SourceTestElement.newTestCase
@@ -40,7 +41,9 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        executed(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":test")
+        executed(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        skipped(":createXcTestBundle", ":xcTest")
+
     }
 
     def "test task fail when test cases fail"() {
@@ -57,7 +60,7 @@ apply plugin: 'xctest'
         fails("test")
 
         then:
-        executedAndNotSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":test")
+        executedAndNotSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest")
         testApp.expectedSummaryOutputPattern.matcher(output).find()
     }
 
@@ -75,10 +78,11 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        executedAndNotSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":test")
+        executedAndNotSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
         testApp.expectedSummaryOutputPattern.matcher(output).find()
     }
 
+    @Ignore("https://github.com/gradle/gradle-native/issues/94")
     def "doesn't execute removed test suite and case"() {
         def oldTestApp = new SwiftXcTestTestApp([
             newTestSuite("FooTestSuite", [
@@ -103,7 +107,7 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        executedAndNotSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":test")
+        executedAndNotSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
         oldTestApp.expectedSummaryOutputPattern.matcher(output).find()
 
         when:
@@ -112,7 +116,7 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        executedAndNotSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":test")
+        executedAndNotSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
         newTestApp.expectedSummaryOutputPattern.matcher(output).find()
     }
 
@@ -140,7 +144,7 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        executedAndNotSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":test")
+        executedAndNotSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
         oldTestApp.expectedSummaryOutputPattern.matcher(output).find()
 
         when:
@@ -149,7 +153,7 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        executedAndNotSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":test")
+        executedAndNotSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
         newTestApp.expectedSummaryOutputPattern.matcher(output).find()
     }
 
@@ -168,6 +172,23 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        skipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":test")
+        skipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+    }
+
+    def "assemble task doesn't build or run any of the tests"() {
+        def testApp = new SwiftXcTestTestApp([
+            newTestSuite("PassingTestSuite", [
+                newTestCase("testPass", TestElement.TestCase.Result.PASS)
+            ])
+        ])
+
+        given:
+        testApp.writeToProject(testDirectory)
+
+        when:
+        succeeds("assemble")
+
+        then:
+        notExecuted(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
     }
 }

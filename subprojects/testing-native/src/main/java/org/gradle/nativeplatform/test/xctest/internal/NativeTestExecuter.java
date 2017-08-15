@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,14 +41,11 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.process.internal.DefaultExecHandleBuilder;
-import org.gradle.process.internal.ExecAction;
-import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayDeque;
 import java.util.Arrays;
@@ -80,33 +77,14 @@ public class NativeTestExecuter implements TestExecuter {
         ObjectFactory objectFactory = getObjectFactory();
         File executable = ((DirectoryVar)testTask.getExtensions().getExtraProperties().get("testBundleDir")).getAsFile().get();
         File workingDir = ((DirectoryVar)testTask.getExtensions().getExtraProperties().get("workingDir")).getAsFile().get();
-        XcTestFinder xcTestFinder = objectFactory.newInstance(XcTestFinder.class);
-        TestClassProcessor processor = objectFactory.newInstance(NativeTestClassProcessor.class, executable, workingDir, getExecHandleBuilder(), getIdGenerator(), xcTestFinder);
+        MacOSXCTestLocator xcTestLocator = objectFactory.newInstance(MacOSXCTestLocator.class);
+        TestClassProcessor processor = objectFactory.newInstance(NativeTestClassProcessor.class, executable, workingDir, getExecHandleBuilder(), getIdGenerator(), xcTestLocator);
 
         Runnable detector = new NativeTestDetector(processor);
 
         Object testTaskOperationId = getBuildOperationExcecutor().getCurrentOperation().getParentId();
 
         new TestMainAction(detector, processor, testResultProcessor, new TrueTimeProvider(), testTaskOperationId, testTask.getPath(), "Gradle Test Run " + testTask.getPath()).run();
-    }
-
-    static class XcTestFinder {
-        private final ExecActionFactory execActionFactory;
-
-        @Inject
-        public XcTestFinder(ExecActionFactory execActionFactory) {
-            this.execActionFactory = execActionFactory;
-        }
-
-        File find() {
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            ExecAction execAction = execActionFactory.newExecAction();
-            execAction.commandLine("xcrun", "--find", "xctest");
-            execAction.setStandardOutput(outputStream);
-            execAction.execute().assertNormalExitValue();
-
-            return new File(outputStream.toString().replace("\n", ""));
-        }
     }
 
     static class NativeTestDetector implements Runnable {
@@ -132,12 +110,12 @@ public class NativeTestExecuter implements TestExecuter {
         private final File bundle;
 
         @Inject
-        public NativeTestClassProcessor(TimeProvider timeProvider, File executable, File workingDir, ExecHandleBuilder execHandleBuilder, IdGenerator<?> idGenerator, XcTestFinder xcTestFinder) {
+        public NativeTestClassProcessor(TimeProvider timeProvider, File executable, File workingDir, ExecHandleBuilder execHandleBuilder, IdGenerator<?> idGenerator, MacOSXCTestLocator xcTestLocator) {
             this.execHandleBuilder = execHandleBuilder;
             this.idGenerator = idGenerator;
             this.timeProvider = timeProvider;
             this.bundle = executable;
-            execHandleBuilder.executable(xcTestFinder.find());
+            execHandleBuilder.executable(xcTestLocator.find());
             execHandleBuilder.setWorkingDir(workingDir);
         }
 
