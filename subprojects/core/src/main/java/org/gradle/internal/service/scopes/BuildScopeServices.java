@@ -316,7 +316,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                     PluginsProjectConfigureActions.of(
                         BuildSrcProjectConfigurationAction.class,
                         cachingServiceLocator))),
-            buildLoader, compositeContextBuilder, includedBuildFactory
+            buildLoader, compositeContextBuilder, includedBuildFactory, buildOperationExecutor
         );
     }
 
