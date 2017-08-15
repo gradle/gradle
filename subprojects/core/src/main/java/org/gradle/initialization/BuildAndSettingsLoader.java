@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,17 +19,19 @@ package org.gradle.initialization;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 
-public class NotifyingSettingsLoader implements SettingsLoader {
+public class BuildAndSettingsLoader implements SettingsLoader {
     private final SettingsLoader settingsLoader;
+    private final BuildLoader buildLoader;
 
-    public NotifyingSettingsLoader(SettingsLoader settingsLoader) {
+    public BuildAndSettingsLoader(SettingsLoader settingsLoader, BuildLoader buildLoader) {
         this.settingsLoader = settingsLoader;
+        this.buildLoader = buildLoader;
     }
 
     @Override
     public SettingsInternal findAndLoadSettings(final GradleInternal gradle) {
-        final SettingsInternal settings = settingsLoader.findAndLoadSettings(gradle);
-        gradle.getBuildListenerBroadcaster().settingsEvaluated(settings);
+        SettingsInternal settings = settingsLoader.findAndLoadSettings(gradle);
+        buildLoader.load(settings.getRootProject(), settings.getDefaultProject(), gradle, settings.getRootClassLoaderScope());
         return settings;
     }
 }

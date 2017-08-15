@@ -45,28 +45,35 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
 
     @Override
     public SettingsLoader forTopLevelBuild() {
-        return new NotifyingSettingsLoader(
-            new CompositeBuildSettingsLoader(
-                new DefaultSettingsLoader(
-                    settingsFinder,
-                    settingsProcessor,
-                    buildSourceBuilder
-                ),
-                compositeContextBuilder, includedBuildFactory
-            ),
-            buildLoader,
-            buildOperationExecutor);
+        return buildAndSettingsLoader(compositeBuildSettingsLoader());
     }
 
     @Override
     public SettingsLoader forNestedBuild() {
-        return new NotifyingSettingsLoader(
-            new DefaultSettingsLoader(
-                settingsFinder,
-                settingsProcessor,
-                buildSourceBuilder
-            ),
-            buildLoader,
-            buildOperationExecutor);
+        return buildAndSettingsLoader(defaultSettingsLoader());
     }
+
+    private SettingsLoader compositeBuildSettingsLoader() {
+        return new CompositeBuildSettingsLoader(
+            defaultSettingsLoader(),
+            compositeContextBuilder, includedBuildFactory
+        );
+    }
+
+    private SettingsLoader defaultSettingsLoader() {
+        return new DefaultSettingsLoader(
+            settingsFinder,
+            settingsProcessor,
+            buildSourceBuilder
+        );
+    }
+
+
+    private SettingsLoader buildAndSettingsLoader(SettingsLoader settingsLoader) {
+        return new BuildAndSettingsLoader(
+            new NotifyingSettingsLoader(settingsLoader),
+            new NotifyingBuildLoader(buildLoader, buildOperationExecutor)
+        );
+    }
+
 }
