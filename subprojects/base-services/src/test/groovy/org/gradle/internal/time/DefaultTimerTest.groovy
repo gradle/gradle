@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,44 +21,64 @@ import spock.lang.Specification
 
 import java.util.concurrent.TimeUnit
 
-class DefaultEventTimerTest extends Specification {
+class DefaultTimerTest extends Specification {
 
     private static final long TEST_BASE_TIME = 641353121231L;
 
     private TimeSource timeProvider = Mock(TimeSource);
-    private DefaultEventTimer clock;
+    private DefaultTimer clock;
 
     void setup() {
-        1 * timeProvider.currentTimeMillis() >> TEST_BASE_TIME
         1 * timeProvider.nanoTime() >> TEST_BASE_TIME;
-        clock = new DefaultEventTimer(timeProvider);
+        clock = new DefaultTimer(timeProvider);
     }
 
-    def testStartTime() throws Exception {
-        expect:
-        clock.startTime == TEST_BASE_TIME
-    }
-
-    def testReset() throws Exception {
+    def testOnlySecondsTwoDigits() throws Exception {
         when:
-        1 * timeProvider.currentTimeMillis() >> TEST_BASE_TIME + 1
-        1 * timeProvider.nanoTime() >> TEST_BASE_TIME;
-        clock.reset()
+        setDtMs(51243);
 
         then:
-        clock.startTime == TEST_BASE_TIME + 1
+        clock.getElapsed() == "51.243 secs"
     }
 
-    def testElapsed() throws Exception {
+    def testOnlySecondsEvenMs() {
         when:
-        setDtMs(100)
+        setDtMs(4000);
 
         then:
-        clock.startTime == TEST_BASE_TIME
-        clock.elapsedMillis == 100
+        clock.getElapsed() == "4.0 secs"
+    }
+
+    def testMinutesAndSeconds() {
+        when:
+        setDtHrsMinsSecsMillis(0, 32, 40, 322);
+
+        then:
+        clock.getElapsed() == "32 mins 40.322 secs"
+    }
+
+    def testHoursMinutesAndSeconds() {
+        when:
+        setDtHrsMinsSecsMillis(3, 2, 5, 111);
+
+        then:
+        clock.getElapsed() == "3 hrs 2 mins 5.111 secs"
+    }
+
+    def testHoursZeroMinutes() {
+        when:
+        setDtHrsMinsSecsMillis(1, 0, 32, 0);
+
+        then:
+        clock.getElapsed() == "1 hrs 0 mins 32.0 secs"
     }
 
     private void setDtMs(final long deltaT) {
         1 * timeProvider.nanoTime() >> TEST_BASE_TIME + TimeUnit.NANOSECONDS.convert(deltaT, TimeUnit.MILLISECONDS);
+    }
+
+    private void setDtHrsMinsSecsMillis(int hours, int minutes, int seconds, int millis) {
+        long dt = (hours * 3600 * 1000) + (minutes * 60 * 1000) + (seconds * 1000) + millis;
+        setDtMs(dt)
     }
 }
