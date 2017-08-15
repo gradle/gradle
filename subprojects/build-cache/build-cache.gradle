@@ -26,6 +26,12 @@ dependencies {
     implementation project(":logging")
 
     implementation libraries.commons_io
+
+    jmh libraries.ant
+    jmh libraries.commons_compress
+    jmh "io.airlift:aircompressor:0.8"
+    jmh "org.iq80.snappy:snappy:0.4"
+    jmh "org.kamranzafar:jtar:2.3"
 }
 
 useTestFixtures()
