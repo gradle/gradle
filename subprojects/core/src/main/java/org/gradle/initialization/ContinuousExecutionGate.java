@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.run;
+package org.gradle.initialization;
 
-import org.gradle.internal.concurrent.Stoppable;
+import javax.annotation.Nonnull;
 
-public interface PlayRunWorkerServerProtocol extends Stoppable {
-    void currentStatus(Boolean hasChanged, Throwable throwable);
+public interface ContinuousExecutionGate {
+    @Nonnull
+    GateKeeper createGateKeeper();
+
+    void waitForOpen();
+
+    interface GateKeeper {
+        void open();
+        void close();
+    }
 }

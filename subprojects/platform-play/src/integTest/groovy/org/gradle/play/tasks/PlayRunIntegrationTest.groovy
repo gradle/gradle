@@ -16,9 +16,9 @@
 
 package org.gradle.play.tasks
 
+import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrationTest
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
-import org.gradle.play.integtest.fixtures.PlayApp
 
 class PlayRunIntegrationTest extends PlayMultiVersionRunApplicationIntegrationTest {
     PlayApp playApp = new BasicPlayApp()

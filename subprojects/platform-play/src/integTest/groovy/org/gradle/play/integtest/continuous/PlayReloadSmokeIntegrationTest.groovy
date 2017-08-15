@@ -26,7 +26,7 @@ class PlayReloadSmokeIntegrationTest extends PlayReloadIntegrationTest {
         appIsRunningAndDeployed()
 
         when:
-        addNewRoute()
+        addNewRoute('hello')
 
         then:
         succeeds()
@@ -147,7 +147,7 @@ task otherTask {
         appIsRunningAndDeployed()
 
         when:
-        addNewRoute()
+        addNewRoute('hello')
 
         then:
         fails()

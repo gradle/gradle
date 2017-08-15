@@ -40,7 +40,7 @@ abstract class PlayReloadIntegrationTest extends AbstractMultiVersionPlayReloadI
         }
     }
 
-    protected void addNewRoute(String route="hello") {
+    protected void addNewRoute(String route) {
         file("conf/routes") << "\nGET     /${route}                   controllers.Application.${route}"
         file("app/controllers/Application.scala").with {
             text = text.replaceFirst(/(?s)\}\s*$/, """

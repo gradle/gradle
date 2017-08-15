@@ -16,12 +16,16 @@
 
 package org.gradle.deployment.internal;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.BuildResult;
-import org.gradle.StartParameter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.deployment.Deployment;
+import org.gradle.deployment.DeploymentHandle;
+import org.gradle.initialization.ContinuousExecutionGate;
+import org.gradle.initialization.DefaultContinuousExecutionGate;
 import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
@@ -32,39 +36,47 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingChangesListener, Stoppable {
+public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, PendingChangesListener, Stoppable {
     private static final Logger LOGGER = Logging.getLogger(DefaultDeploymentRegistry.class);
+    // TODO: Wire this into a command-line option (like --no-eager-rebuild)
+    public static final String EAGER_SYS_PROP = "org.gradle.internal.continuous.eager";
 
     private final Lock lock = new ReentrantLock();
-    private final Map<String, DeploymentHandleWrapper> handles = Maps.newHashMap();
+    private final Map<String, RegisteredDeployment> deployments = Maps.newHashMap();
     private final PendingChangesManager pendingChangesManager;
     private final PendingChanges pendingChanges;
     private final BuildOperationExecutor buildOperationExecutor;
     private final ObjectFactory objectFactory;
+    private final boolean eagerBuild;
+    private final ContinuousExecutionGate continuousExecutionGate = new DefaultContinuousExecutionGate();
     private boolean stopped;
 
-    public DefaultDeploymentRegistry(StartParameter startParameter, PendingChangesManager pendingChangesManager, BuildOperationExecutor buildOperationExecutor, ObjectFactory objectFactory) {
+    public DefaultDeploymentRegistry(PendingChangesManager pendingChangesManager, BuildOperationExecutor buildOperationExecutor, ObjectFactory objectFactory) {
         this.pendingChangesManager = pendingChangesManager;
         this.buildOperationExecutor = buildOperationExecutor;
         this.objectFactory = objectFactory;
+        this.eagerBuild = Boolean.valueOf(System.getProperty(EAGER_SYS_PROP, "true"));
         this.pendingChanges = new PendingChanges();
-        // TODO: Detangle pending changes handling and continuous build
-        if (startParameter.isContinuous()) {
-            pendingChanges.changesMade();
-        }
         pendingChangesManager.addListener(this);
     }
 
     @Override
-    public <T extends DeploymentHandle> T start(final String name, final Class<T> handleType, final Object... params) {
+    public ContinuousExecutionGate getExecutionGate() {
+        return continuousExecutionGate;
+    }
+
+    @Override
+    public <T extends DeploymentHandle> T start(final String name, final ChangeBehavior changeBehavior, final Class<T> handleType, final Object... params) {
         lock.lock();
         try {
             failIfStopped();
-            if (!handles.containsKey(name)) {
+            if (!deployments.containsKey(name)) {
                 return buildOperationExecutor.call(new CallableBuildOperation<T>() {
                     @Override
                     public BuildOperationDescriptor.Builder description() {
@@ -73,13 +85,14 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
 
                     @Override
                     public T call(BuildOperationContext context) {
-                        T delegate = objectFactory.newInstance(handleType, params);
-                        DeploymentHandleWrapper handle = new DeploymentHandleWrapper(name, delegate);
+                        T handle = objectFactory.newInstance(handleType, params);
+                        RegisteredDeployment deployment = RegisteredDeployment.create(name, changeBehavior, eagerBuild, continuousExecutionGate, handle);
+                        handle.start(deployment.getDeployment());
                         if (pendingChanges.hasRemainingChanges()) {
-                            handle.outOfDate();
+                            deployment.outOfDate();
                         }
-                        handles.put(name, handle);
-                        return delegate;
+                        deployments.put(name, deployment);
+                        return handle;
                     }
                 });
             } else {
@@ -95,11 +108,27 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
         lock.lock();
         try {
             failIfStopped();
-            if (handles.containsKey(name)) {
-                return Cast.cast(handleType, handles.get(name).getDelegate());
+            if (deployments.containsKey(name)) {
+                return Cast.cast(handleType, deployments.get(name).getHandle());
             } else {
                 return null;
             }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public Collection<Deployment> getRunningDeployments() {
+        lock.lock();
+        try {
+            List<Deployment> runningDeployments = Lists.newArrayList();
+            for (RegisteredDeployment deployment : deployments.values()) {
+                if (deployment.getHandle().isRunning()) {
+                    runningDeployments.add(deployment.getDeployment());
+                }
+            }
+            return runningDeployments;
         } finally {
             lock.unlock();
         }
@@ -110,8 +139,8 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
         lock.lock();
         try {
             pendingChanges.changesMade();
-            for (DeploymentHandle handle : handles.values()) {
-                handle.outOfDate();
+            for (RegisteredDeployment deployment : deployments.values()) {
+                deployment.outOfDate();
             }
         } finally {
             lock.unlock();
@@ -123,9 +152,9 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
         try {
             pendingChanges.changesIncorporated();
             if (!pendingChanges.hasRemainingChanges()) {
-                for (DeploymentHandle handle : handles.values()) {
-                    Throwable failure = buildResult.getFailure();
-                    handle.upToDate(failure);
+                Throwable failure = buildResult.getFailure();
+                for (RegisteredDeployment deployment : deployments.values()) {
+                    deployment.upToDate(failure);
                 }
             }
         } finally {
@@ -138,12 +167,12 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
     public void stop() {
         lock.lock();
         try {
-            LOGGER.debug("Stopping {} deployment handles", handles.size());
-            CompositeStoppable.stoppable(handles.values()).stop();
+            LOGGER.debug("Stopping {} deployment handles", deployments.size());
+            CompositeStoppable.stoppable(deployments.values()).stop();
         } finally {
             LOGGER.debug("Stopped deployment handles");
             stopped = true;
-            handles.clear();
+            deployments.clear();
             lock.unlock();
         }
         pendingChangesManager.removeListener(this);
@@ -156,7 +185,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry, PendingCha
     }
 
     private static class PendingChanges {
-        private int pendingChanges;
+        private int pendingChanges = 1;
 
         void changesMade() {
             pendingChanges++;
