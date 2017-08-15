@@ -94,7 +94,7 @@ data class CIBuildModel (
             GradleSubproject("modelGroovy"),
             GradleSubproject("native"),
             GradleSubproject("osgi"),
-            GradleSubproject("persistentCache", functionalTests = false),
+            GradleSubproject("persistentCache"),
             GradleSubproject("platformBase"),
             GradleSubproject("platformJvm"),
             GradleSubproject("platformNative"),
