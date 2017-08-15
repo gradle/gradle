@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.internal.time;
 
-public interface Timer {
+/**
+ * A timer with a designated start instant.
+ */
+public interface EventTimer extends Timer {
     /**
-     * @return A human-consumable description of the elapsed time.
+     * The instant that the timer was started, in ms since Epoch.
      */
-    String getElapsed();
-
-    /**
-     * Return the elapsed time in ms. Returned value is always >= 0.
-     * @return The elapsed time, in ms.
-     */
-    long getElapsedMillis();
-
-    /**
-     * Restart this timer. Sets elapsed time to zero.
-     */
-    void reset();
+    long getStartTime();
 }

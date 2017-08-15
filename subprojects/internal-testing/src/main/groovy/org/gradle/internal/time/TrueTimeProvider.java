@@ -16,27 +16,9 @@
 
 package org.gradle.internal.time;
 
-import java.util.Date;
-import java.util.concurrent.TimeUnit;
-
-class CountdownClock extends Clock implements CountdownTimer {
-    private final long timeoutMillis;
-
-    CountdownClock(long timeout, TimeUnit unit) {
-        super();
-        this.timeoutMillis = unit.toMillis(timeout);
-    }
-
+public class TrueTimeProvider implements TimeProvider {
     @Override
-    public boolean hasExpired() {
-        if (timeoutMillis <= 0) {
-            return false;
-        }
-        return getElapsedMillis() > timeoutMillis;
-    }
-
-    @Override
-    public Date getExpiryTime() {
-        return new Date(getStartTime() + timeoutMillis);
+    public long getCurrentTime() {
+        return System.currentTimeMillis();
     }
 }

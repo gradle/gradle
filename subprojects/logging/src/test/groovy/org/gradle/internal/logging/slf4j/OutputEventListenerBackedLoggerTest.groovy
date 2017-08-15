@@ -44,10 +44,6 @@ class OutputEventListenerBackedLoggerTest extends Specification {
             return now
         }
 
-        @Override
-        long getCurrentTimeForDuration() {
-            return now
-        }
     }
     final OutputEventListenerBackedLoggerContext context = new OutputEventListenerBackedLoggerContext(System.out, System.err, timeProvider)
 

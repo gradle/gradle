@@ -16,16 +16,26 @@
 
 package org.gradle.internal.time;
 
+import com.google.common.base.Preconditions;
+
 import java.util.concurrent.TimeUnit;
 
-public class TrueTimeProvider implements TimeProvider {
-    @Override
-    public long getCurrentTime() {
-        return System.currentTimeMillis();
+class DefaultCountdownTimer extends DefaultTimer implements CountdownTimer {
+    private final long timeoutMillis;
+
+    DefaultCountdownTimer(TimeSource timeSource, long timeout, TimeUnit unit) {
+        super(timeSource);
+        Preconditions.checkArgument(timeout > 0);
+        this.timeoutMillis = unit.toMillis(timeout);
     }
 
     @Override
-    public long getCurrentTimeForDuration() {
-        return TimeUnit.MILLISECONDS.convert(System.nanoTime(), TimeUnit.NANOSECONDS);
+    public boolean hasExpired() {
+        return getRemainingMillis() <= 0;
+    }
+
+    @Override
+    public long getRemainingMillis() {
+        return Math.max(timeoutMillis - getElapsedMillis(), 0);
     }
 }

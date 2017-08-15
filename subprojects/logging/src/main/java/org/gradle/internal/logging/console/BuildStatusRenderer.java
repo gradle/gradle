@@ -83,7 +83,7 @@ public class BuildStatusRenderer implements OutputEventListener {
         listener.onOutput(event);
 
         if (event instanceof UpdateNowEvent || event instanceof EndOutputEvent) {
-            renderNow(timeProvider.getCurrentTimeForDuration());
+            renderNow(timeProvider.getCurrentTime());
         }
     }
 
@@ -99,7 +99,7 @@ public class BuildStatusRenderer implements OutputEventListener {
     }
 
     private void buildStarted(ProgressStartEvent startEvent) {
-        buildStartTimestamp = timeProvider.getCurrentTimeForDuration();
+        buildStartTimestamp = timeProvider.getCurrentTime();
     }
 
     private void phaseStarted(ProgressStartEvent progressStartEvent) {

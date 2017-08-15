@@ -47,7 +47,6 @@ import org.gradle.internal.logging.text.StreamingStyledTextOutput;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
 import org.gradle.internal.time.TimeProvider;
-import org.gradle.internal.time.TrueTimeProvider;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -73,11 +72,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private StreamBackedStandardOutputListener stdErrListener;
     private OutputEventListener console;
 
-    public OutputEventRenderer() {
-        this(new TrueTimeProvider());
-    }
-
-    OutputEventRenderer(TimeProvider timeProvider) {
+    public OutputEventRenderer(TimeProvider timeProvider) {
         this.timeProvider = timeProvider;
         OutputEventListener stdOutChain = new LazyListener(new Factory<OutputEventListener>() {
             @Override

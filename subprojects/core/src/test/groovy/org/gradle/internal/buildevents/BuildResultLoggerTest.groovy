@@ -20,15 +20,15 @@ import org.gradle.BuildResult
 import org.gradle.internal.logging.format.DurationFormatter
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
-import org.gradle.internal.time.Clock
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 import spock.lang.Subject
+import org.gradle.internal.time.Timer;
 
 @Subject(BuildResultLogger)
 class BuildResultLoggerTest extends Specification {
     private StyledTextOutputFactory textOutputFactory = new TestStyledTextOutputFactory()
-    private Clock clock = Mock(Clock)
+    private Timer clock = Mock(Timer)
     private DurationFormatter durationFormatter = Mock(DurationFormatter)
     private BuildResultLogger subject = new BuildResultLogger(textOutputFactory, clock, durationFormatter)
 

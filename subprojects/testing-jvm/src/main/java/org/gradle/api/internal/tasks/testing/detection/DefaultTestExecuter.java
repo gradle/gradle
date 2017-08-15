@@ -33,7 +33,7 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.time.TrueTimeProvider;
+import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
@@ -53,14 +53,18 @@ public class DefaultTestExecuter implements TestExecuter {
     private final WorkerLeaseRegistry workerLeaseRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
     private final int maxWorkerCount;
+    private final TimeProvider timeProvider;
 
-    public DefaultTestExecuter(WorkerProcessFactory workerFactory, ActorFactory actorFactory, ModuleRegistry moduleRegistry, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, int maxWorkerCount) {
+    public DefaultTestExecuter(WorkerProcessFactory workerFactory, ActorFactory actorFactory, ModuleRegistry moduleRegistry,
+                               WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, int maxWorkerCount,
+                               TimeProvider timeProvider) {
         this.workerFactory = workerFactory;
         this.actorFactory = actorFactory;
         this.moduleRegistry = moduleRegistry;
         this.workerLeaseRegistry = workerLeaseRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
         this.maxWorkerCount = maxWorkerCount;
+        this.timeProvider = timeProvider;
     }
 
     @Override
@@ -96,7 +100,7 @@ public class DefaultTestExecuter implements TestExecuter {
 
         final Object testTaskOperationId = buildOperationExecutor.getCurrentOperation().getParentId();
 
-        new TestMainAction(detector, processor, testResultProcessor, new TrueTimeProvider(), testTaskOperationId, testTask.getPath(), "Gradle Test Run " + testTask.getIdentityPath()).run();
+        new TestMainAction(detector, processor, testResultProcessor, timeProvider, testTaskOperationId, testTask.getPath(), "Gradle Test Run " + testTask.getIdentityPath()).run();
     }
 
     private int getMaxParallelForks(Test testTask) {

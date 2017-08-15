@@ -23,6 +23,7 @@ import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.time.TimeProvider;
 import org.gradle.tooling.BuildCancelledException;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
@@ -42,7 +43,12 @@ import java.util.concurrent.CancellationException;
 import static org.gradle.internal.FileUtils.hasExtension;
 
 public class DistributionFactory {
+    private final TimeProvider timeProvider;
     private File distributionBaseDir;
+
+    public DistributionFactory(TimeProvider timeProvider) {
+        this.timeProvider = timeProvider;
+    }
 
     public void setDistributionBaseDir(File distributionBaseDir) {
         this.distributionBaseDir = distributionBaseDir;
@@ -55,7 +61,7 @@ public class DistributionFactory {
         BuildLayout layout = new BuildLayoutFactory().getLayoutFor(projectDir, searchUpwards);
         WrapperExecutor wrapper = WrapperExecutor.forProjectDirectory(layout.getRootDirectory());
         if (wrapper.getDistribution() != null) {
-            return new ZippedDistribution(wrapper.getConfiguration(), distributionBaseDir);
+            return new ZippedDistribution(wrapper.getConfiguration(), distributionBaseDir, timeProvider);
         }
         return getDownloadedDistribution(GradleVersion.current().getVersion());
     }
@@ -81,7 +87,7 @@ public class DistributionFactory {
     public Distribution getDistribution(URI gradleDistribution) {
         WrapperConfiguration configuration = new WrapperConfiguration();
         configuration.setDistribution(gradleDistribution);
-        return new ZippedDistribution(configuration, distributionBaseDir);
+        return new ZippedDistribution(configuration, distributionBaseDir, timeProvider);
     }
 
     /**
@@ -100,10 +106,12 @@ public class DistributionFactory {
         private InstalledDistribution installedDistribution;
         private final WrapperConfiguration wrapperConfiguration;
         private final File distributionBaseDir;
+        private final TimeProvider timeProvider;
 
-        private ZippedDistribution(WrapperConfiguration wrapperConfiguration, File distributionBaseDir) {
+        private ZippedDistribution(WrapperConfiguration wrapperConfiguration, File distributionBaseDir, TimeProvider timeProvider) {
             this.wrapperConfiguration = wrapperConfiguration;
             this.distributionBaseDir = distributionBaseDir;
+            this.timeProvider = timeProvider;
         }
 
         public String getDisplayName() {
@@ -112,7 +120,7 @@ public class DistributionFactory {
 
         public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, final InternalBuildProgressListener progressListener, final File userHomeDir, BuildCancellationToken cancellationToken) {
             if (installedDistribution == null) {
-                final DistributionInstaller installer = new DistributionInstaller(progressLoggerFactory, progressListener);
+                final DistributionInstaller installer = new DistributionInstaller(progressLoggerFactory, progressListener, timeProvider);
                 File installDir;
                 try {
                     cancellationToken.addCallback(new Runnable() {

@@ -20,11 +20,9 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.time.CountdownTimer;
-import org.gradle.internal.time.TimeProvider;
-import org.gradle.internal.time.Timers;
-import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.time.CountdownTimer;
+import org.gradle.internal.time.Timers;
 import org.gradle.launcher.daemon.context.DaemonConnectDetails;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
@@ -55,7 +53,6 @@ public class DaemonStopClient {
     private final DaemonConnector connector;
     private final IdGenerator<?> idGenerator;
     private final StopDispatcher stopDispatcher;
-    private final TimeProvider timeProvider = new TrueTimeProvider();
 
     public DaemonStopClient(DaemonConnector connector, IdGenerator<?> idGenerator) {
         this.connector = connector;

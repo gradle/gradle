@@ -34,8 +34,8 @@ import org.gradle.internal.logging.source.JavaUtilLoggingSystem;
 import org.gradle.internal.logging.source.NoOpLoggingSystem;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.time.ReliableTimeProvider;
 import org.gradle.internal.time.TimeProvider;
-import org.gradle.internal.time.TrueTimeProvider;
 
 /**
  * A {@link org.gradle.internal.service.ServiceRegistry} implementation that provides the logging services. To use this:
@@ -110,7 +110,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     }
 
     protected TimeProvider createTimeProvider() {
-        return new TrueTimeProvider();
+        return new ReliableTimeProvider();
     }
 
     protected StyledTextOutputFactory createStyledTextOutputFactory() {
@@ -142,8 +142,8 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
                 stderr);
     }
 
-    protected OutputEventRenderer createOutputEventRenderer() {
-        return new OutputEventRenderer();
+    protected OutputEventRenderer createOutputEventRenderer(TimeProvider timeProvider) {
+        return new OutputEventRenderer(timeProvider);
     }
 
     private static class CommandLineLogging extends LoggingServiceRegistry {
