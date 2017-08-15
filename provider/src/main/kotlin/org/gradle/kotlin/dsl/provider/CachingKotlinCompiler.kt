@@ -32,14 +32,15 @@ import org.gradle.kotlin.dsl.support.KotlinPluginsBlock
 import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
 import org.gradle.kotlin.dsl.support.messageCollectorFor
 
-import org.jetbrains.kotlin.com.intellij.openapi.project.Project
-
 import org.jetbrains.kotlin.script.KotlinScriptDefinition
 
 import java.io.File
 
 import kotlin.reflect.KClass
-import kotlin.script.dependencies.KotlinScriptExternalDependencies
+import kotlin.script.dependencies.Environment
+import kotlin.script.dependencies.ScriptContents
+import kotlin.script.experimental.dependencies.DependenciesResolver
+import kotlin.script.experimental.dependencies.ScriptDependencies
 
 
 internal
@@ -190,19 +191,21 @@ class CachingKotlinCompiler(
 
     private
     fun scriptDefinitionFromTemplate(template: KClass<out Any>) =
-
         object : KotlinScriptDefinition(template) {
-
-            override fun <TF : Any> getDependenciesFor(
-                file: TF,
-                project: Project,
-                previousDependencies: KotlinScriptExternalDependencies?): KotlinScriptExternalDependencies? =
-
-                object : KotlinScriptExternalDependencies {
-                    override val imports: Iterable<String>
-                        get() = implicitImports.list
-                }
+            override val dependencyResolver = Resolver
         }
+
+    private
+    val Resolver by lazy {
+        object : DependenciesResolver {
+            override fun resolve(
+                scriptContents: ScriptContents,
+                environment: Environment): DependenciesResolver.ResolveResult =
+
+                DependenciesResolver.ResolveResult.Success(
+                    ScriptDependencies(imports = implicitImports.list), emptyList())
+        }
+    }
 
     private
     fun <T> withProgressLoggingFor(description: String, action: () -> T): T {

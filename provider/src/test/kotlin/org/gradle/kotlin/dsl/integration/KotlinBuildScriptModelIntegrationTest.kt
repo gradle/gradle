@@ -230,7 +230,7 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
             subProjectScript,
             hasItems(
                 equalTo("kotlin-gradle-plugin-$embeddedKotlinVersion-sources.jar"),
-                matching("commons-io-[0-9.]+-sources\\.jar")))
+                matching("annotations-[0-9.]+-sources\\.jar")))
     }
 
     private
