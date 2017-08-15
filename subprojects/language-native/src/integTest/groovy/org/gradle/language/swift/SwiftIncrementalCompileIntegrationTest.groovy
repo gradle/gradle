@@ -42,7 +42,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         then:
         result.assertTasksExecuted(":compileSwift", ":linkMain", ":installMain", ":assemble")
         result.assertTasksNotSkipped(":compileSwift", ":linkMain", ":installMain", ":assemble")
-        executable("build/exe/app").exec().out == app.app.expectedOutput
+        executable("build/exe/App").exec().out == app.app.expectedOutput
 
         when:
         app.alternateApp.files.first().writeToDir(file('src/main'))
@@ -51,7 +51,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         then:
         result.assertTasksExecuted(":compileSwift", ":linkMain", ":installMain", ":assemble")
         result.assertTasksNotSkipped(":compileSwift", ":linkMain", ":installMain", ":assemble")
-        executable("build/exe/app").exec().out == app.alternateApp.expectedOutput
+        executable("build/exe/App").exec().out == app.alternateApp.expectedOutput
     }
 
     def "rebuilds application when a single source file in library changes"() {
@@ -79,7 +79,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         then:
         result.assertTasksExecuted(":greeter:compileSwift", ":greeter:linkMain", ":app:compileSwift", ":app:linkMain", ":app:installMain", ":app:assemble")
         result.assertTasksNotSkipped(":greeter:compileSwift", ":greeter:linkMain", ":app:compileSwift", ":app:linkMain", ":app:installMain", ":app:assemble")
-        installation("app/build/install/app").exec().out == app.expectedOutput
+        installation("app/build/install/App").exec().out == app.expectedOutput
 
         when:
         app.alternateLibrary.files.first().writeToDir(file('greeter/src/main/'))
@@ -88,6 +88,6 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         then:
         result.assertTasksExecuted(":greeter:compileSwift", ":greeter:linkMain", ":app:compileSwift", ":app:linkMain", ":app:installMain", ":app:assemble")
         result.assertTasksNotSkipped(":greeter:compileSwift", ":greeter:linkMain", ":app:linkMain", ":app:installMain", ":app:assemble")
-        installation("app/build/install/app").exec().out == app.alternateLibraryOutput
+        installation("app/build/install/App").exec().out == app.alternateLibraryOutput
     }
 }

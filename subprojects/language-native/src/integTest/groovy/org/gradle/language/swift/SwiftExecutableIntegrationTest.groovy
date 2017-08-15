@@ -239,7 +239,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         executable("app/build/exe/App").assertExists()
         sharedLibrary("greeter/build/lib/Greeter").assertExists()
         installation("app/build/install/App").exec().out == app.expectedOutput
-        sharedLibrary("app/build/install/app/lib/Greeter").file.assertExists()
+        sharedLibrary("app/build/install/App/lib/Greeter").assertExists()
     }
 
     def "can compile and link against library with API dependencies"() {
@@ -275,8 +275,8 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         sharedLibrary("hello/build/lib/Hello").assertExists()
         sharedLibrary("log/build/lib/Log").assertExists()
         executable("app/build/exe/App").exec().out == app.expectedOutput
-        sharedLibrary("app/build/install/app/lib/Hello").file.assertExists()
-        sharedLibrary("app/build/install/app/lib/Log").file.assertExists()
+        sharedLibrary("app/build/install/App/lib/Hello").assertExists()
+        sharedLibrary("app/build/install/App/lib/Log").assertExists()
     }
 
     def "honors changes to library buildDir"() {
