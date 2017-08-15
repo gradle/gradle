@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.operations.trace.BuildOperationRecord
 
-class NotifySettingsProcessorIntegrationTest extends AbstractIntegrationSpec {
+class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
     final buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
@@ -105,7 +105,7 @@ class NotifySettingsProcessorIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private List<BuildOperationRecord> operations() {
-        buildOperations.all(ConfigureSettingsBuildOperationType)
+        buildOperations.all(EvaluateSettingsBuildOperationType)
     }
 
 }
