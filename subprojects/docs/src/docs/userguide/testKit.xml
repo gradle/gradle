@@ -333,7 +333,7 @@
             </itemizedlist>
         </para>
         <para>
-            The system property approach can be used when it is desirable to enable debugging support without making an adhoc change to the runner configuration.
+            The system property approach can be used when it is desirable to enable debugging support without making an ad hoc change to the runner configuration.
             Most IDEs offer the capability to set JVM system properties for test execution, and such a feature can be used to set this system property.
         </para>
     </section>
@@ -347,6 +347,65 @@
         </para>
         <sample id="testKitFunctionalTestSpockBuildCache" dir="testKit/gradleRunner/testKitFunctionalTestSpockBuildCache/src/test/groovy/org/gradle/sample" title="Testing cacheable tasks">
             <sourcefile file="BuildLogicFunctionalTest.groovy" snippet="functional-test-build-cache"/>
+        </sample>
+    </section>
+    <section id="sub:test-kit-fixtures">
+        <title>Reducing boiler plate code with fixtures</title>
+        <para>
+            TestKit is a test framework-agnostic library. Users can decide to pick and choice from the tooling they are most familiar with. As seen in earlier paragraphs of this section, some repetitive boiler plate code is required in most functional test classes. For example, a test needs to create an instance of <literal>GradleRunner</literal> and configure it or needs to create typical files like <literal>build.gradle</literal> and populate them. Gradle 4.2 and higher, the TestKit library provides a suite of test fixtures that makes it much easier to get started.
+        </para>
+        <para>
+            The following table lists the fixtures that can be used in a functional test. All fixtures implement the methods provided by the interface <apilink class="org.gradle.testkit.runner.fixtures.FunctionalTestSupport"/>.
+        </para>
+        <table>
+            <title>Available fixtures</title>
+            <thead>
+                <tr>
+                    <td>Test Tooling</td>
+                    <td>Fixture Class Name</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <link linkend="http://junit.org/junit4/">JUnit 4</link>
+                </td>
+                <td>
+                    <apilink class="org.gradle.testkit.runner.fixtures.JUnit4FunctionalTest"/>
+                </td>
+                <td>Tests based on JUnit 4.x</td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend="http://testng.org/">TestNG</link>
+                </td>
+                <td><apilink class="org.gradle.testkit.runner.fixtures.TestNGFunctionalTest"/></td>
+                <td>Tests based on TestNG</td>
+            </tr>
+            <tr>
+                <td>
+                    Groovy
+                </td>
+                <td>
+                    <literal>org.gradle.testkit.runner.fixtures.FunctionalTestSupportTrait</literal>
+                </td>
+                <td>Framework-agnostic tests written in Groovy</td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend="http://spockframework.org/">Spock framework</link>
+                </td>
+                <td>
+                    <literal>org.gradle.testkit.runner.fixtures.SpockFunctionalTest</literal>
+                </td>
+                <td>Tests based on Spock framework</td>
+            </tr>
+        </table>
+        <para>
+            As a result, the JUnit-based functional test shown in section <link linkend="sec:functional_testing_with_the_gradle_runner">Functional testing with the Gradle runner</link> now looks much more readable and requires far less setup logic. Additional samples for the fixtures listed above can be found in the Gradle distribution.
+        </para>
+        <sample id="testKitFunctionalTestJunitFixture" dir="testKit/gradleRunner/fixtures/junitQuickstart/src/test/java/org/gradle/sample" title="Using the JUnit fixture">
+            <sourcefile file="BuildLogicFunctionalTest.java" snippet="functional-test-junit-fixture"/>
         </sample>
     </section>
 </chapter>

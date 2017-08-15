@@ -1,0 +1,14 @@
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile gradleTestKit()
+    testCompile 'org.testng:testng:6.9.9'
+}
+
+test {
+    useTestNG()
+}

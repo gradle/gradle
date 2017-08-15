@@ -2,6 +2,9 @@ dependencies {
     compile project(':core')
     compile project(':toolingApi')
     compile libraries.commons_io
+    compileOnly libraries.junit
+    compileOnly libraries.testng
+    compileOnly libraries.spock
     runtime project(':native')
 }
 
