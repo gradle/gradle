@@ -22,38 +22,81 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.composite.internal.IncludedBuildInternal;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.adapter.ViewBuilder;
 import org.gradle.tooling.internal.gradle.GradleBuildIdentity;
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.BuildResult;
-import org.gradle.tooling.internal.protocol.InternalBuildController;
+import org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
+import org.gradle.tooling.provider.model.ToolingParameterizedModelBuilder;
 import org.gradle.tooling.provider.model.UnknownModelException;
 
-class DefaultBuildController implements InternalBuildController {
+@SuppressWarnings("deprecation")
+class DefaultBuildController implements org.gradle.tooling.internal.protocol.InternalBuildController, InternalBuildControllerVersion2 {
     private final GradleInternal gradle;
 
     public DefaultBuildController(GradleInternal gradle) {
         this.gradle = gradle;
     }
 
+    /**
+     * This is used by consumers 1.8-rc-1 to 4.1
+     */
+    @Deprecated
     public BuildResult<?> getBuildModel() throws BuildExceptionVersion1 {
         return new ProviderBuildResult<Object>(gradle);
     }
 
+    /**
+     * This is used by consumers 1.8-rc-1 to 4.1
+     */
+    @Deprecated
     public BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier) throws BuildExceptionVersion1, InternalUnsupportedModelException {
+        return getModel(target, modelIdentifier, null);
+    }
+
+    /**
+     * This is used by consumers 4.2 and later
+     */
+    public BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier, Object parameter)
+        throws BuildExceptionVersion1, InternalUnsupportedModelException {
         BuildCancellationToken cancellationToken = gradle.getServices().get(BuildCancellationToken.class);
         if (cancellationToken.isCancellationRequested()) {
             throw new BuildCancelledException(String.format("Could not build '%s' model. Build cancelled.", modelIdentifier.getName()));
         }
         ProjectInternal project = getTargetProject(target);
         ToolingModelBuilder builder = getToolingModelBuilder(project, modelIdentifier);
-        Object model = builder.buildAll(modelIdentifier.getName(), project);
+        String modelName = modelIdentifier.getName();
+
+        Object model;
+        if (parameter == null) {
+            model = builder.buildAll(modelName, project);
+        } else if (builder instanceof ToolingParameterizedModelBuilder<?>) {
+            model = getParameterizedModel(project, modelName, (ToolingParameterizedModelBuilder<?>) builder, parameter);
+        } else {
+            throw (InternalUnsupportedModelException) (new InternalUnsupportedModelException()).initCause(
+                new UnknownModelException(String.format("No parameterized builders are available to build a model of type '%s'.", modelName)));
+        }
+
         return new ProviderBuildResult<Object>(model);
+    }
+
+    private <T> Object getParameterizedModel(ProjectInternal project,
+                                             String modelName,
+                                             ToolingParameterizedModelBuilder<T> builder,
+                                             Object parameter)
+        throws InternalUnsupportedModelException {
+        Class<T> expectedParameterType = builder.getParameterType();
+
+        ViewBuilder<T> viewBuilder = gradle.getServices().get(ProtocolToModelAdapter.class).builder(expectedParameterType);
+        T internalParameter = viewBuilder.build(parameter);
+        return builder.buildAll(modelName, internalParameter, project);
     }
 
     private ProjectInternal getTargetProject(Object target) {

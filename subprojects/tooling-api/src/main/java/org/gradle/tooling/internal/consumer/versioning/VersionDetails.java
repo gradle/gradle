@@ -36,6 +36,9 @@ public abstract class VersionDetails implements Serializable {
     }
 
     public static VersionDetails from(GradleVersion version) {
+        if (version.getBaseVersion().compareTo(GradleVersion.version("4.2")) >= 0) {
+            return new R42VersionDetails(version.getVersion());
+        }
         if (version.getBaseVersion().compareTo(GradleVersion.version("3.5")) >= 0) {
             return new R35VersionDetails(version.getVersion());
         }
@@ -83,6 +86,10 @@ public abstract class VersionDetails implements Serializable {
     }
 
     public boolean supportsRunTasksBeforeExecutingAction() {
+        return false;
+    }
+
+    public boolean supportsParameterizedToolingModels() {
         return false;
     }
 
@@ -167,6 +174,17 @@ public abstract class VersionDetails implements Serializable {
 
         @Override
         public boolean supportsRunTasksBeforeExecutingAction() {
+            return true;
+        }
+    }
+
+    private static class R42VersionDetails extends R35VersionDetails {
+        public R42VersionDetails(String version) {
+            super(version);
+        }
+
+        @Override
+        public boolean supportsParameterizedToolingModels() {
             return true;
         }
     }

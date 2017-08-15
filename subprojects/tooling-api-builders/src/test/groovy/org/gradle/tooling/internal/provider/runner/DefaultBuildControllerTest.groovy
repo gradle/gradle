@@ -21,19 +21,24 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
+import org.gradle.tooling.internal.adapter.ViewBuilder
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
 import org.gradle.tooling.internal.protocol.ModelIdentifier
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
+import org.gradle.tooling.provider.model.ToolingParameterizedModelBuilder
 import org.gradle.tooling.provider.model.UnknownModelException
 import spock.lang.Specification
 
 class DefaultBuildControllerTest extends Specification {
     def cancellationToken = Stub(BuildCancellationToken)
+    def adapter = Stub(ProtocolToModelAdapter)
     def gradle = Stub(GradleInternal) {
         getServices() >> Stub(ServiceRegistry) {
             get(BuildCancellationToken) >> cancellationToken
+            get(ProtocolToModelAdapter) >> adapter
         }
     }
     def registry = Stub(ToolingModelBuilderRegistry)
@@ -46,6 +51,7 @@ class DefaultBuildControllerTest extends Specification {
         getName() >> 'some.model'
     }
     def modelBuilder = Stub(ToolingModelBuilder)
+    def parameterizedModelBuilder = Stub(ToolingParameterizedModelBuilder)
     def controller = new DefaultBuildController(gradle)
 
     def "adapts model not found exception to protocol exception"() {
@@ -110,5 +116,59 @@ class DefaultBuildControllerTest extends Specification {
 
         then:
         thrown(BuildCancelledException)
+    }
+
+    def "uses non parameterized builder when parameter is null"() {
+        def model = new Object()
+
+        given:
+        _ * gradle.defaultProject >> project
+        _ * registry.getBuilder("some.model") >> modelBuilder
+        _ * modelBuilder.buildAll("some.model", project) >> model
+
+        when:
+        def result = controller.getModel(null, modelId, null)
+
+        then:
+        result.getModel() == model
+    }
+
+    def "uses parameterized builder when parameter is not null"() {
+        def model = new Object()
+        def wrongModel = new Object()
+        def parameterType = Object.class
+        def viewBuilder = Stub(ViewBuilder)
+        def parameter = new Object()
+        def internalParameter = new Object()
+
+        given:
+        _ * gradle.defaultProject >> project
+        _ * registry.getBuilder("some.model") >> parameterizedModelBuilder
+        _ * parameterizedModelBuilder.getParameterType() >> parameterType
+        _ * adapter.builder(parameterType) >> viewBuilder
+        _ * viewBuilder.build(parameter) >> internalParameter
+        _ * parameterizedModelBuilder.buildAll("some.model", internalParameter, project) >> model
+        _ * parameterizedModelBuilder.buildAll("some.model", project) >> wrongModel
+
+        when:
+        def result = controller.getModel(null, modelId, parameter)
+
+        then:
+        result.getModel() == model
+    }
+
+    def "throws an exception when parameter used but no parameterized builder"() {
+        def model = new Object()
+
+        given:
+        _ * gradle.defaultProject >> project
+        _ * registry.getBuilder("some.model") >> modelBuilder
+        _ * modelBuilder.buildAll("some.model", project) >> model
+
+        when:
+        def result = controller.getModel(null, modelId, new Object())
+
+        then:
+        thrown(InternalUnsupportedModelException)
     }
 }

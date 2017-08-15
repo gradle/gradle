@@ -22,10 +22,11 @@ package org.gradle.tooling.internal.protocol;
  * <ul>
  * <li>Implementations must be thread-safe.
  * <li>Implementations should implement {@link org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection}. This is used by all consumer versions from 2.6-rc-1.
- * <li>Implementations should implement {@link InternalCancellableConnection}. This is used by all consumer versions from 2.1-rc-1.
+ * <li>Implementations should implement {@link InternalCancellableConnectionVersion2}. This is used by all consumer versions from 4.2.
  * <li>Implementations should implement {@link ConfigurableConnection}. This is used by all consumer versions from 1.2-rc-1.
  * <li>Implementations should implement {@link StoppableConnection}. This is used by all consumer versions from 2.2-rc-1.
  * <li>Implementations should provide a zero-args constructor. This is used by all consumer versions from 1.0-milestone-3.
+ * <li>For backwards compatibility, implementations should implement {@link InternalCancellableConnection}. This is used by all consumer versions from 2.1-rc-1 to 4.1.
  * <li>For backwards compatibility, implementations should implement {@link InternalBuildActionExecutor}. This is used by all consumer versions from 1.8-rc-1 to 2.0.
  * <li>For backwards compatibility, implementations should implement {@link ModelBuilder}. This is used by all consumer versions from 1.6-rc-1 to 2.0.
  * <li>For backwards compatibility, implementations should implement {@link BuildActionRunner}. This is used by consumer versions from 1.2-rc-1 to 1.5.
