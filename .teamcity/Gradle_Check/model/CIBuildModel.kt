@@ -67,6 +67,7 @@ data class CIBuildModel (
             GradleSubproject("codeQuality"),
             GradleSubproject("compositeBuilds"),
             GradleSubproject("core", crossVersionTests = true),
+            GradleSubproject("coreApi"),
             GradleSubproject("dependencyManagement", crossVersionTests = true),
             GradleSubproject("diagnostics"),
             GradleSubproject("ear"),
