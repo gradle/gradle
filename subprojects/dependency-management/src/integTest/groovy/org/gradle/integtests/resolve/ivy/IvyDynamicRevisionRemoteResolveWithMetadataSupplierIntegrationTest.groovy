@@ -461,10 +461,6 @@ group:projectB:2.2;integration
         !output.contains('Parsing status file call count: 2')
 
         when: "resolving the same dependencies"
-        // the following 2 HEAD requests document the current behavior, not necessarily what
-        // we want in the end. There are 2 HEAD requests because the file was cached in a previous
-        // build, and we're getting the resource twice (once for each module) in this build
-        server.expectHead("/repo/status.txt", statusFile)
         server.expectHead("/repo/status.txt", statusFile)
 
         checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
