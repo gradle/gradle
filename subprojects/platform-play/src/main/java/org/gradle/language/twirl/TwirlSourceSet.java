@@ -19,6 +19,8 @@ package org.gradle.language.twirl;
 import org.gradle.api.Incubating;
 import org.gradle.language.base.LanguageSourceSet;
 
+import java.util.List;
+
 /**
  * Represents a source set containing twirl templates
  */
@@ -34,4 +36,23 @@ public interface TwirlSourceSet extends LanguageSourceSet {
      */
     void setDefaultImports(TwirlImports defaultImports);
 
+
+    /**
+     * Returns the custom template formats configured for this source set.
+     */
+    List<TwirlTemplateFormat> getUserTemplateFormats();
+
+    /**
+     * Sets the custom template formats for this source set.
+     */
+    void setUserTemplateFormats(List<TwirlTemplateFormat> userTemplateFormats);
+
+    /**
+     * Adds a custom template format.
+     *
+     * @param extension file extension this template applies to (e.g., {@code html}).
+     * @param templateType fully-qualified type for this template format.
+     * @param imports additional imports to add for the custom template format.
+     */
+    void addUserTemplateFormat(final String extension, String templateType, String... imports);
 }

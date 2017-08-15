@@ -90,9 +90,13 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         when:
         buildFile << """
             model {
-                tasks {
-                    withType(TwirlCompile) {
-                        addUserTemplateFormat("unused", "views.formats.unused.UnusedFormat")
+                components {
+                    play {
+                        sources {                        
+                            withType(TwirlSourceSet) {
+                                addUserTemplateFormat("unused", "views.formats.unused.UnusedFormat")
+                            }
+                        }
                     }
                 }
             }
@@ -389,9 +393,13 @@ Binaries
     private void addCsvFormat() {
         buildFile << """
             model {
-                tasks {
-                    withType(TwirlCompile) {
-                        addUserTemplateFormat("csv", "views.formats.csv.CsvFormat", "views.formats.csv._")
+                components {
+                    play {
+                        sources {                        
+                            withType(TwirlSourceSet) {
+                                addUserTemplateFormat("csv", "views.formats.csv.CsvFormat", "views.formats.csv._")
+                            }
+                        }
                     }
                 }
             }
