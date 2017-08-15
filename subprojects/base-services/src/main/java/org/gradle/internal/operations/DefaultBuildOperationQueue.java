@@ -16,7 +16,6 @@
 
 package org.gradle.internal.operations;
 
-import com.google.common.collect.Sets;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -25,9 +24,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedList;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -35,25 +33,24 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     private enum QueueState {
         Working, Finishing, Cancelled, Done
     }
-    private enum WorkerState {
-        NOT_STARTED, STARTED
-    }
 
     private final WorkerLeaseService workerLeases;
     private final WorkerLeaseRegistry.WorkerLease parentWorkerLease;
-    private final ExecutorService executor;
+    private final Executor executor;
     private final QueueWorker<T> queueWorker;
     private String logLocation;
 
     // Lock protects the following state, using an intentionally simple locking strategy
     private final ReentrantLock lock = new ReentrantLock();
     private final Condition workAvailable = lock.newCondition();
+    private final Condition workDone = lock.newCondition();
     private QueueState queueState = QueueState.Working;
-    private Set<SubmittedWorker> workers = Sets.newConcurrentHashSet();
+    private int workerCount;
+    private int pendingCount;
     private final Deque<T> workQueue = new LinkedList<T>();
     private final LinkedList<Throwable> failures = new LinkedList<Throwable>();
 
-    DefaultBuildOperationQueue(WorkerLeaseService workerLeases, ExecutorService executor, QueueWorker<T> queueWorker) {
+    DefaultBuildOperationQueue(WorkerLeaseService workerLeases, Executor executor, QueueWorker<T> queueWorker) {
         this.workerLeases = workerLeases;
         this.parentWorkerLease = workerLeases.getWorkerLease();
         this.executor = executor;
@@ -71,11 +68,11 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
                 return;
             }
             workQueue.add(operation);
+            pendingCount++;
             workAvailable.signalAll();
-            if (workers.size() == 0 || workers.size() < workerLeases.getMaxWorkerCount()) {
+            if (workerCount == 0 || workerCount < workerLeases.getMaxWorkerCount()) {
                 // TODO This could be more efficient, so that we only start a worker when there are none idle _and_ there is a worker lease available
-                WorkerRunnable worker = new WorkerRunnable();
-                workers.add(new SubmittedWorker(worker, executor.submit(worker)));
+                executor.execute(new WorkerRunnable());
             }
         } finally {
             lock.unlock();
@@ -90,6 +87,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
                 return;
             }
             queueState = QueueState.Cancelled;
+            pendingCount = pendingCount - workQueue.size();
             workQueue.clear();
             workAvailable.signalAll();
         } finally {
@@ -117,20 +115,17 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             addFailure(t);
         }
 
-        // Wait for any work still running in other threads
-        while (workers.size() > 0) {
-            for (SubmittedWorker worker : workers) {
-                if (worker.isRunning()) {
-                    worker.waitForCompletion();
-                } else {
-                    worker.cancel();
-                }
-                workers.remove(worker);
-            }
-        }
-
         lock.lock();
         try {
+            // Wait for any work still running in other threads
+            while (pendingCount > 0) {
+                try {
+                    workDone.await();
+                } catch (InterruptedException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+
             queueState = QueueState.Done;
             if (!failures.isEmpty()) {
                 throw new MultipleBuildOperationFailures(getFailureMessage(failures), failures, logLocation);
@@ -161,46 +156,14 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         return "Multiple build operations failed.";
     }
 
-    private class SubmittedWorker {
-        private final WorkerRunnable worker;
-        private final Future<?> future;
-
-        SubmittedWorker(WorkerRunnable worker, Future<?> future) {
-            this.worker = worker;
-            this.future = future;
-        }
-
-        void cancel() {
-            future.cancel(false);
-        }
-
-        boolean isRunning() {
-            return worker.getWorkerState() == WorkerState.STARTED;
-        }
-
-        void waitForCompletion() {
-            try {
-                future.get();
-            } catch (Exception e) {
-                addFailure(e);
-            }
-        }
-    }
-
     private class WorkerRunnable implements Runnable {
-        WorkerState workerState = WorkerState.NOT_STARTED;
-
         @Override
         public void run() {
-            workerState = WorkerState.STARTED;
             T operation;
             while ((operation = waitForNextOperation()) != null) {
                 runBatch(operation);
             }
-        }
-
-        WorkerState getWorkerState() {
-            return workerState;
+            shutDown();
         }
 
         private T waitForNextOperation() {
@@ -220,16 +183,24 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         }
 
         private void runBatch(final T firstOperation) {
-            workerLeases.withLocks(Collections.singleton(parentWorkerLease.createChild()), new Runnable() {
-                @Override
-                public void run() {
-                    T operation = firstOperation;
-                    while (operation != null) {
-                        runOperation(operation);
-                        operation = getNextOperation();
+            // We need to update pending count outside of withLocks() so that we don't have a race
+            // condition where the pending count is 0, but a child worker lease is still held when
+            // the parent lease is released.
+            operationsFinished(
+                workerLeases.withLocks(Collections.singleton(parentWorkerLease.createChild()), new Callable<Integer>() {
+                    @Override
+                    public Integer call() throws Exception {
+                        int operationCount = 0;
+                        T operation = firstOperation;
+                        while (operation != null) {
+                            runOperation(operation);
+                            operationCount++;
+                            operation = getNextOperation();
+                        }
+                        return operationCount;
                     }
-                }
-            });
+                })
+            );
         }
 
         private T getNextOperation() {
@@ -241,12 +212,30 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             }
         }
 
-
         private void runOperation(T operation) {
             try {
                 queueWorker.execute(operation);
             } catch (Throwable t) {
                 addFailure(t);
+            }
+        }
+
+        private void operationsFinished(int count) {
+            lock.lock();
+            try {
+                pendingCount = pendingCount - count;
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        private void shutDown() {
+            lock.lock();
+            try {
+                workerCount--;
+                workDone.signalAll();
+            } finally {
+                lock.unlock();
             }
         }
     }
