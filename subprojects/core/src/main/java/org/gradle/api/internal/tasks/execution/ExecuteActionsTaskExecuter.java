@@ -75,6 +75,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                     state.getDidWork() ? TaskExecutionOutcome.EXECUTED : TaskExecutionOutcome.UP_TO_DATE
                 );
             }
+            context.getTaskArtifactState().snapshotAfterTask(failure);
         } finally {
             state.setExecuting(false);
             listener.afterActions(task);

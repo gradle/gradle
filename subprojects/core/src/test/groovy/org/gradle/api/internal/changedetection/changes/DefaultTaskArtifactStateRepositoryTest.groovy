@@ -370,7 +370,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         state.isUpToDate([])
         fileSystemMirror.beforeTaskOutputsGenerated()
         outputDirFile.createFile()
-        state.afterTask(null)
+        state.snapshotAfterTask(null)
 
         then:
         !state.upToDate
@@ -389,7 +389,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         when:
         fileSystemMirror.beforeTaskOutputsGenerated()
         outputDirFile2.createFile()
-        state.afterTask(null)
+        state.snapshotAfterTask(null)
 
         then:
         // Task should be out-of-date
@@ -503,7 +503,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         task.execute()
         fileSystemMirror.beforeTaskOutputsGenerated()
         otherFile.write("new content")
-        state.afterTask(null)
+        state.snapshotAfterTask(null)
         otherFile.delete()
 
         then:
@@ -519,7 +519,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         outputDirFile.delete()
         TaskArtifactState state = repository.getStateFor(task)
         state.isUpToDate([])
-        state.afterTask(null)
+        state.snapshotAfterTask(null)
 
         when:
         outputDirFile.write("ignore me")
@@ -647,7 +647,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
             // reset state
             fileSystemMirror.beforeTaskOutputsGenerated()
             task.execute()
-            state.afterTask(null)
+            state.snapshotAfterTask(null)
         }
         // reset state
         fileSystemMirror.beforeTaskOutputsGenerated()
