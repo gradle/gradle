@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift.plugins
 
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.model.SwiftComponent
 import org.gradle.language.swift.tasks.SwiftCompile
 import org.gradle.nativeplatform.tasks.InstallExecutable
@@ -73,10 +74,10 @@ class SwiftExecutablePluginTest extends Specification {
         compileSwift.moduleName == "App"
 
         def link = project.tasks.linkMain
-        link.binaryFile.get().get().name == "App"
+        link.binaryFile.get().get().name == OperatingSystem.current().getExecutableName("App")
 
         def install = project.tasks.installMain
         install.installDirectory.get().get().name == "App"
-        install.runScript.name == "App"
+        install.runScript.name == OperatingSystem.current().getScriptName("App")
     }
 }
