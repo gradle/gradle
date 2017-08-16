@@ -53,12 +53,12 @@ public class TaskUpToDateState {
         TaskStateChanges inputPropertiesState = new InputPropertiesTaskStateChanges(lastExecution, thisExecution, task);
 
         // Capture outputs state
-        OutputFilesTaskStateChanges uncachedOutputChanges = new OutputFilesTaskStateChanges(lastExecution, thisExecution, task, fileCollectionSnapshotterRegistry, inputNormalizationStrategy);
+        OutputFilesTaskStateChanges uncachedOutputChanges = new OutputFilesTaskStateChanges(lastExecution, thisExecution, task);
         TaskStateChanges outputFileChanges = caching(uncachedOutputChanges);
         this.outputFileChanges = uncachedOutputChanges;
 
         // Capture inputs state
-        InputFilesTaskStateChanges directInputFileChanges = new InputFilesTaskStateChanges(lastExecution, thisExecution, task, fileCollectionSnapshotterRegistry, inputNormalizationStrategy);
+        InputFilesTaskStateChanges directInputFileChanges = new InputFilesTaskStateChanges(lastExecution, thisExecution, task);
         TaskStateChanges inputFileChanges = caching(directInputFileChanges);
         this.inputFileChanges = new ErrorHandlingTaskStateChanges(task, inputFileChanges);
 

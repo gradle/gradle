@@ -16,10 +16,12 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.hash.HashCode;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
@@ -32,6 +34,7 @@ import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.serialize.AbstractSerializer;
@@ -45,6 +48,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
@@ -79,9 +83,12 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         this.taskHistoryCache = cacheAccess.createCache("taskHistory", String.class, serializer, 10000, false);
     }
 
+    @Override
     public History getHistory(final TaskInternal task) {
+        final InputNormalizationStrategy normalizationStrategy = ((InputNormalizationHandlerInternal) task.getProject().getNormalization()).buildFinalStrategy();
+
         final LazyTaskExecution previousExecution = loadPreviousExecution(task);
-        final LazyTaskExecution currentExecution = createExecution(task, previousExecution);
+        final LazyTaskExecution currentExecution = createExecution(task, previousExecution, normalizationStrategy);
 
         return new History() {
             @Override
@@ -96,7 +103,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
             @Override
             public void updateCurrentExecution() {
-                CacheBackedTaskHistoryRepository.this.updateExecution(task, currentExecution);
+                CacheBackedTaskHistoryRepository.this.updateExecutionAfterTask(task, previousExecution, currentExecution, normalizationStrategy);
             }
 
             @Override
@@ -146,7 +153,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         };
     }
 
-    private LazyTaskExecution createExecution(TaskInternal task, TaskExecution previousExecution) {
+    private LazyTaskExecution createExecution(TaskInternal task, TaskExecution previousExecution, InputNormalizationStrategy normalizationStrategy) {
         Class<? extends TaskInternal> taskClass = task.getClass();
         List<ContextAwareTaskAction> taskActions = task.getTaskActions();
         ImplementationSnapshot taskImplementation = new ImplementationSnapshot(taskClass.getName(), classLoaderHierarchyHasher.getClassLoaderHash(taskClass.getClassLoader()));
@@ -165,8 +172,6 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
         LazyTaskExecution execution = new LazyTaskExecution(snapshotRepository, buildInvocationScopeId.getId(), taskImplementation, taskActionImplementations, inputProperties, outputPropertyNames, declaredOutputFilePaths);
 
-        InputNormalizationStrategy normalizationStrategy = ((InputNormalizationHandlerInternal) task.getProject().getNormalization()).buildFinalStrategy();
-
         ImmutableSortedMap<String, FileCollectionSnapshot> inputFiles = snapshotTaskFiles(task, "Input",  normalizationStrategy, task.getInputs().getFileProperties());
         execution.setInputFilesSnapshot(inputFiles);
 
@@ -179,8 +184,86 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         return execution;
     }
 
-    private void updateExecution(TaskInternal task, LazyTaskExecution currentExecution) {
+    private void updateExecutionAfterTask(TaskInternal task, final TaskExecution previousExecution, LazyTaskExecution currentExecution, InputNormalizationStrategy normalizationStrategy) {
         currentExecution.setSuccessful(task.getState().getFailure() == null);
+
+        final ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesAfter = snapshotTaskFiles(task, "Output", normalizationStrategy, task.getOutputs().getFileProperties());
+
+        ImmutableSortedMap<String, FileCollectionSnapshot> results;
+        if (currentExecution.getDetectedOverlappingOutputs() == null) {
+            results = outputFilesAfter;
+        } else {
+            results = ImmutableSortedMap.copyOfSorted(Maps.transformEntries(currentExecution.getOutputFilesSnapshot(), new Maps.EntryTransformer<String, FileCollectionSnapshot, FileCollectionSnapshot>() {
+                @Override
+                public FileCollectionSnapshot transformEntry(String propertyName, FileCollectionSnapshot beforeExecution) {
+                    FileCollectionSnapshot afterExecution = outputFilesAfter.get(propertyName);
+                    FileCollectionSnapshot afterPreviousExecution = getSnapshotAfterPreviousExecution(previousExecution, propertyName);
+                    return filterOutputSnapshot(afterPreviousExecution, beforeExecution, afterExecution);
+                }
+            }));
+        }
+        currentExecution.setOutputFilesSnapshot(results);
+    }
+
+    /**
+     * Returns a new snapshot that filters out entries that should not be considered outputs of the task.
+     */
+    private static FileCollectionSnapshot filterOutputSnapshot(
+        FileCollectionSnapshot afterPreviousExecution,
+        FileCollectionSnapshot beforeExecution,
+        FileCollectionSnapshot afterExecution
+    ) {
+        FileCollectionSnapshot filesSnapshot;
+        Map<String, NormalizedFileSnapshot> afterSnapshots = afterExecution.getSnapshots();
+        if (!beforeExecution.getSnapshots().isEmpty() && !afterSnapshots.isEmpty()) {
+            Map<String, NormalizedFileSnapshot> beforeSnapshots = beforeExecution.getSnapshots();
+            Map<String, NormalizedFileSnapshot> afterPreviousSnapshots = afterPreviousExecution != null ? afterPreviousExecution.getSnapshots() : new HashMap<String, NormalizedFileSnapshot>();
+            int newEntryCount = 0;
+            ImmutableMap.Builder<String, NormalizedFileSnapshot> outputEntries = ImmutableMap.builder();
+
+            for (Map.Entry<String, NormalizedFileSnapshot> entry : afterSnapshots.entrySet()) {
+                final String path = entry.getKey();
+                NormalizedFileSnapshot fileSnapshot = entry.getValue();
+                if (isOutputEntry(path, fileSnapshot, beforeSnapshots, afterPreviousSnapshots)) {
+                    outputEntries.put(entry.getKey(), fileSnapshot);
+                    newEntryCount++;
+                }
+            }
+            // Are all files snapshot after execution accounted for as new entries?
+            if (newEntryCount == afterSnapshots.size()) {
+                filesSnapshot = afterExecution;
+            } else {
+                filesSnapshot = new DefaultFileCollectionSnapshot(outputEntries.build(), TaskFilePropertyCompareStrategy.UNORDERED, true);
+            }
+        } else {
+            filesSnapshot = afterExecution;
+        }
+        return filesSnapshot;
+    }
+
+    /**
+     * Decide whether an entry should be considered to be part of the output. Entries that are considered outputs are:
+     * <ul>
+     *     <li>an entry that did not exist before the execution, but exists after the execution</li>
+     *     <li>an entry that did exist before the execution, and has been changed during the execution</li>
+     *     <li>an entry that did wasn't changed during the execution, but was already considered an output during the previous execution</li>
+     * </ul>
+     */
+    private static boolean isOutputEntry(String path, NormalizedFileSnapshot fileSnapshot, Map<String, NormalizedFileSnapshot> beforeSnapshots, Map<String, NormalizedFileSnapshot> afterPreviousSnapshots) {
+        if (fileSnapshot.getSnapshot().getType() == FileType.Missing) {
+            return false;
+        }
+        NormalizedFileSnapshot beforeSnapshot = beforeSnapshots.get(path);
+        // Was it created during execution?
+        if (beforeSnapshot == null) {
+            return true;
+        }
+        // Was it updated during execution?
+        if (!fileSnapshot.getSnapshot().isContentAndMetadataUpToDate(beforeSnapshot.getSnapshot())) {
+            return true;
+        }
+        // Did we already consider it as an output after the previous execution?
+        return afterPreviousSnapshots.containsKey(path);
     }
 
     private static ImmutableList<ImplementationSnapshot> collectActionImplementations(Collection<ContextAwareTaskAction> taskActions, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
