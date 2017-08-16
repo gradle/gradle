@@ -38,7 +38,7 @@ class TaskUpToDateStateTest extends AbstractTaskStateChangesTest {
         def mockInputFileSnapshotterRegistry = Mock(FileCollectionSnapshotterRegistry)
 
         when:
-        new TaskUpToDateState(stubTask, stubHistory, mockInputFileSnapshotterRegistry, fileCollectionFactory, classLoaderHierarchyHasher, new ValueSnapshotter(classLoaderHierarchyHasher))
+        new TaskUpToDateState(stubTask, stubHistory, mockInputFileSnapshotterRegistry, fileCollectionFactory, new ValueSnapshotter(classLoaderHierarchyHasher))
 
         then:
         noExceptionThrown()

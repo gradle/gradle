@@ -27,13 +27,19 @@ import org.gradle.internal.id.UniqueId;
  */
 public abstract class TaskExecution {
     private boolean successful;
-    private UniqueId buildInvocationId;
-    private ImplementationSnapshot taskImplementation;
-    private ImmutableList<ImplementationSnapshot> taskActionImplementations;
+    private final UniqueId buildInvocationId;
+    private final ImplementationSnapshot taskImplementation;
+    private final ImmutableList<ImplementationSnapshot> taskActionImplementations;
     private ImmutableSortedMap<String, ValueSnapshot> inputProperties;
     private Iterable<String> outputPropertyNamesForCacheKey;
     private ImmutableSet<String> declaredOutputFilePaths;
     private OverlappingOutputs detectedOverlappingOutputs;
+
+    public TaskExecution(UniqueId buildInvocationId, ImplementationSnapshot taskImplementation, ImmutableList<ImplementationSnapshot> taskActionImplementations) {
+        this.buildInvocationId = buildInvocationId;
+        this.taskImplementation = taskImplementation;
+        this.taskActionImplementations = taskActionImplementations;
+    }
 
     public boolean isSuccessful() {
         return successful;
@@ -45,10 +51,6 @@ public abstract class TaskExecution {
 
     public UniqueId getBuildInvocationId() {
         return buildInvocationId;
-    }
-
-    public void setBuildInvocationId(UniqueId buildInvocationId) {
-        this.buildInvocationId = buildInvocationId;
     }
 
     /**
@@ -82,16 +84,8 @@ public abstract class TaskExecution {
         return taskImplementation;
     }
 
-    public void setTaskImplementation(ImplementationSnapshot taskImplementation) {
-        this.taskImplementation = taskImplementation;
-    }
-
     public ImmutableList<ImplementationSnapshot> getTaskActionImplementations() {
         return taskActionImplementations;
-    }
-
-    public void setTaskActionImplementations(ImmutableList<ImplementationSnapshot> taskActionImplementations) {
-        this.taskActionImplementations = taskActionImplementations;
     }
 
     public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {

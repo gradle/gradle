@@ -26,28 +26,43 @@ import com.google.common.hash.HashCode;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(CacheBackedTaskHistoryRepository.class);
+
     private final FileSnapshotRepository snapshotRepository;
     private final PersistentIndexedCache<String, TaskExecutionSnapshot> taskHistoryCache;
     private final StringInterner stringInterner;
+    private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final BuildInvocationScopeId buildInvocationScopeId;
 
-    public CacheBackedTaskHistoryRepository(TaskHistoryStore cacheAccess, FileSnapshotRepository snapshotRepository, StringInterner stringInterner, BuildInvocationScopeId buildInvocationScopeId) {
+    public CacheBackedTaskHistoryRepository(
+        TaskHistoryStore cacheAccess,
+        FileSnapshotRepository snapshotRepository,
+        StringInterner stringInterner,
+        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+        BuildInvocationScopeId buildInvocationScopeId) {
         this.snapshotRepository = snapshotRepository;
         this.stringInterner = stringInterner;
+        this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.buildInvocationScopeId = buildInvocationScopeId;
         LazyTaskExecution.TaskExecutionSnapshotSerializer serializer = new LazyTaskExecution.TaskExecutionSnapshotSerializer(stringInterner);
         this.taskHistoryCache = cacheAccess.createCache("taskHistory", String.class, serializer, 10000, false);
@@ -55,9 +70,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     public History getHistory(final TaskInternal task) {
         final LazyTaskExecution previousExecution = loadPreviousExecution(task);
-        final LazyTaskExecution currentExecution = new LazyTaskExecution(buildInvocationScopeId.getId(), snapshotRepository);
-        currentExecution.setOutputPropertyNamesForCacheKey(getOutputPropertyNamesForCacheKey(task));
-        currentExecution.setDeclaredOutputFilePaths(getDeclaredOutputFilePaths(task));
+        final LazyTaskExecution currentExecution = createExecution(task);
 
         return new History() {
             public TaskExecution getPreviousExecution() {
@@ -114,6 +127,36 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         };
     }
 
+    private LazyTaskExecution createExecution(TaskInternal task) {
+        Class<? extends TaskInternal> taskClass = task.getClass();
+        List<ContextAwareTaskAction> taskActions = task.getTaskActions();
+        ImplementationSnapshot taskImplementation = new ImplementationSnapshot(taskClass.getName(), classLoaderHierarchyHasher.getClassLoaderHash(taskClass.getClassLoader()));
+        ImmutableList<ImplementationSnapshot> taskActionImplementations = collectActionImplementations(taskActions, classLoaderHierarchyHasher);
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Implementation for {}: {}", task, taskImplementation);
+            LOGGER.debug("Action implementations for {}: {}", task, taskActionImplementations);
+        }
+
+        LazyTaskExecution currentExecution = new LazyTaskExecution(snapshotRepository, buildInvocationScopeId.getId(), taskImplementation, taskActionImplementations);
+        currentExecution.setOutputPropertyNamesForCacheKey(getOutputPropertyNamesForCacheKey(task));
+        currentExecution.setDeclaredOutputFilePaths(getDeclaredOutputFilePaths(task));
+        return currentExecution;
+    }
+
+    private static ImmutableList<ImplementationSnapshot> collectActionImplementations(Collection<ContextAwareTaskAction> taskActions, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+        if (taskActions.isEmpty()) {
+            return ImmutableList.of();
+        }
+        ImmutableList.Builder<ImplementationSnapshot> actionImpls = ImmutableList.builder();
+        for (ContextAwareTaskAction taskAction : taskActions) {
+            String typeName = taskAction.getActionClassName();
+            HashCode classLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(taskAction.getClassLoader());
+            actionImpls.add(new ImplementationSnapshot(typeName, classLoaderHash));
+        }
+        return actionImpls.build();
+    }
+
     private LazyTaskExecution loadPreviousExecution(TaskInternal task) {
         TaskExecutionSnapshot taskExecutionSnapshot = taskHistoryCache.get(task.getPath());
         if (taskExecutionSnapshot != null) {
@@ -166,25 +209,28 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
          * Creates a mutable copy of the given snapshot.
          */
         LazyTaskExecution(TaskExecutionSnapshot taskExecutionSnapshot, FileSnapshotRepository snapshotRepository) {
-            this(snapshotRepository);
+            this(
+                snapshotRepository,
+                taskExecutionSnapshot.getBuildInvocationId(),
+                taskExecutionSnapshot.getTaskImplementation(),
+                taskExecutionSnapshot.getTaskActionsImplementations()
+            );
             setSuccessful(taskExecutionSnapshot.isSuccessful());
-            setBuildInvocationId(taskExecutionSnapshot.getBuildInvocationId());
-            setTaskImplementation(taskExecutionSnapshot.getTaskImplementation());
-            setTaskActionImplementations(taskExecutionSnapshot.getTaskActionsImplementations());
             setInputProperties(taskExecutionSnapshot.getInputProperties());
             setOutputPropertyNamesForCacheKey(taskExecutionSnapshot.getCacheableOutputProperties());
             setDeclaredOutputFilePaths(taskExecutionSnapshot.getDeclaredOutputFilePaths());
-            inputFilesSnapshotIds = taskExecutionSnapshot.getInputFilesSnapshotIds();
-            outputFilesSnapshotIds = taskExecutionSnapshot.getOutputFilesSnapshotIds();
-            discoveredFilesSnapshotId = taskExecutionSnapshot.getDiscoveredFilesSnapshotId();
+            this.inputFilesSnapshotIds = taskExecutionSnapshot.getInputFilesSnapshotIds();
+            this.outputFilesSnapshotIds = taskExecutionSnapshot.getOutputFilesSnapshotIds();
+            this.discoveredFilesSnapshotId = taskExecutionSnapshot.getDiscoveredFilesSnapshotId();
         }
 
-        LazyTaskExecution(UniqueId buildInvocationId, FileSnapshotRepository snapshotRepository) {
-            this(snapshotRepository);
-            setBuildInvocationId(buildInvocationId);
-        }
-
-        private LazyTaskExecution(FileSnapshotRepository snapshotRepository) {
+        public LazyTaskExecution(
+            FileSnapshotRepository snapshotRepository,
+            UniqueId buildInvocationId,
+            ImplementationSnapshot taskImplementation,
+            ImmutableList<ImplementationSnapshot> taskActionsImplementations
+        ) {
+            super(buildInvocationId, taskImplementation, taskActionsImplementations);
             this.snapshotRepository = snapshotRepository;
         }
 
