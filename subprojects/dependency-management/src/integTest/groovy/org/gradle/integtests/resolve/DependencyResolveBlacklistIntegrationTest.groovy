@@ -64,7 +64,6 @@ class DependencyResolveBlacklistIntegrationTest extends AbstractHttpDependencyRe
 
         when:
         module.pom.expectGet()
-        module.artifact.expectGetMissing()
         fails('resolve')
 
         then:
