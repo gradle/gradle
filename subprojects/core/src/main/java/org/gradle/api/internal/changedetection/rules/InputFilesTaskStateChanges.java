@@ -28,9 +28,7 @@ import java.util.Iterator;
 
 public class InputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
     public InputFilesTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current, TaskInternal task, FileCollectionSnapshotterRegistry snapshotterRegistry, InputNormalizationStrategy normalizationStrategy) {
-        super(task.getName(), previous, current, snapshotterRegistry, "Input", task.getInputs().getFileProperties(), normalizationStrategy);
-        // Inputs are considered to be unchanged during task execution
-        current.setInputFilesSnapshot(getCurrent());
+        super(task.getName(), previous, current, snapshotterRegistry, "Input", task.getInputs().getFileProperties(), normalizationStrategy, current.getInputFilesSnapshot());
     }
 
     @Override

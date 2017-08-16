@@ -47,7 +47,7 @@ abstract public class AbstractNamedFileSnapshotTaskStateChanges implements TaskS
     private final InputNormalizationStrategy normalizationStrategy;
     protected ImmutableSortedMap<String, FileCollectionSnapshot> currentSnapshots;
 
-    protected AbstractNamedFileSnapshotTaskStateChanges(String taskName, TaskExecution previous, TaskExecution current, FileCollectionSnapshotterRegistry snapshotterRegistry, String title, ImmutableSortedSet<? extends TaskFilePropertySpec> fileProperties, InputNormalizationStrategy normalizationStrategy) {
+    protected AbstractNamedFileSnapshotTaskStateChanges(String taskName, TaskExecution previous, TaskExecution current, FileCollectionSnapshotterRegistry snapshotterRegistry, String title, ImmutableSortedSet<? extends TaskFilePropertySpec> fileProperties, InputNormalizationStrategy normalizationStrategy, ImmutableSortedMap<String, FileCollectionSnapshot> currentSnapshots) {
         this.taskName = taskName;
         this.previous = previous;
         this.current = current;
@@ -55,7 +55,7 @@ abstract public class AbstractNamedFileSnapshotTaskStateChanges implements TaskS
         this.title = title;
         this.fileProperties = fileProperties;
         this.normalizationStrategy = normalizationStrategy;
-        this.currentSnapshots = buildSnapshots(taskName, snapshotterRegistry, title, fileProperties);
+        this.currentSnapshots = currentSnapshots;
     }
 
     protected String getTaskName() {

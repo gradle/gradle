@@ -156,7 +156,14 @@ public class TaskExecutionServices {
         return new DefaultFileCollectionSnapshotterRegistry(snapshotters.build());
     }
 
-    TaskHistoryRepository createTaskHistoryRepository(TaskHistoryStore cacheAccess, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry, StringInterner stringInterner, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ValueSnapshotter valueSnapshotter, BuildInvocationScopeId buildInvocationScopeId) {
+    TaskHistoryRepository createTaskHistoryRepository(
+        TaskHistoryStore cacheAccess,
+        FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry,
+        StringInterner stringInterner,
+        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+        ValueSnapshotter valueSnapshotter,
+        FileCollectionSnapshotterRegistry snapshotterRegistry,
+        BuildInvocationScopeId buildInvocationScopeId) {
         SerializerRegistry serializerRegistry = new DefaultSerializerRegistry();
         for (FileCollectionSnapshotter snapshotter : fileCollectionSnapshotterRegistry.getAllSnapshotters()) {
             snapshotter.registerSerializers(serializerRegistry);
@@ -171,6 +178,7 @@ public class TaskExecutionServices {
             stringInterner,
             classLoaderHierarchyHasher,
             valueSnapshotter,
+            snapshotterRegistry,
             buildInvocationScopeId
         );
     }
