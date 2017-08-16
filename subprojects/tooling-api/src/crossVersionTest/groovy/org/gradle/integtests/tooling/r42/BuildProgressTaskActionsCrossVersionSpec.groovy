@@ -22,6 +22,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.Requires
+import spock.lang.Ignore
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 import static org.gradle.util.TestPrecondition.NOT_WINDOWS
@@ -37,6 +38,7 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
         settingsFile << "rootProject.name = 'root'"
     }
 
+    @Ignore("need to generate some stale outputs to see the clean stale outputs operation")
     //This is not a task action, but it is logged on the same level as the actions
     def "clean stale output action has an informative name"() {
         given:
@@ -46,8 +48,8 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
         runCustomTask()
 
         then:
-        def op = events.operation('Clean stale outputs')
-        op.parent.children.size() == 2
+        def task = events.operation("Task :custom")
+        task.child('Clean stale outputs')
     }
 
     //This is the current behavior. Snapshoting might become not-a-task-action in the future.
@@ -60,8 +62,8 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
         runCustomTask()
 
         then:
-        def op = events.operation('Snapshot task inputs for :custom')
-        op.parent.children.size() == 3
+        def task = events.operation("Task :custom")
+        task.child('Snapshot task inputs for :custom')
     }
 
     //This is the current behavior. Validating input might become not-a-task-action in the future.
@@ -86,8 +88,8 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
         runCustomTask()
 
         then:
-        def op = events.operation('Validate task inputs for :custom')
-        op.parent.children.size() == 4
+        def task = events.operation("Task :custom")
+        task.child('Validate task inputs for :custom')
     }
 
     //This is the current behavior. The behavior of creating each output directory in a separate action might change in the future.
@@ -112,10 +114,9 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
         runCustomTask()
 
         then:
-        def op1 = events.operation('Create customOut1 output directory for :custom')
-        def op2 = events.operation('Create customOut2 output directory for :custom')
-        op1.parent == op2.parent
-        op1.parent.children.size() == 5
+        def task = events.operation("Task :custom")
+        task.child('Create customOut1 output directory for :custom')
+        task.child('Create customOut2 output directory for :custom')
     }
 
     def "task actions implemented in annotated methods are named after the method"() {
@@ -132,8 +133,8 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
         runCustomTask()
 
         then:
-        def op = events.operation('Execute doSomethingAmazing for :custom')
-        op.parent.children.size() == 2
+        def task = events.operation("Task :custom")
+        task.child('Execute doSomethingAmazing for :custom')
     }
 
     def "task actions defined in doFirst and doLast blocks of Groovy build scripts have informative names"() {
@@ -149,10 +150,9 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
         runCustomTask()
 
         then:
-        def op1 = events.operation('Execute doFirst {} action for :custom')
-        def op2 = events.operation('Execute doLast {} action for :custom')
-        op1.parent == op2.parent
-        op1.parent.children.size() == 3
+        def task = events.operation("Task :custom")
+        task.child('Execute doFirst {} action for :custom')
+        task.child('Execute doLast {} action for :custom')
     }
 
     @Requires([KOTLIN_SCRIPT, NOT_WINDOWS])
@@ -169,10 +169,9 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
         runCustomTask()
 
         then:
-        def op1 = events.operation('Execute doFirst {} action for :custom')
-        def op2 = events.operation('Execute doLast {} action for :custom')
-        op1.parent == op2.parent
-        op1.parent.children.size() == 3
+        def task = events.operation("Task :custom")
+        task.child('Execute doFirst {} action for :custom')
+        task.child('Execute doLast {} action for :custom')
     }
 
     def "task actions defined in doFirst and doLast blocks of Groovy build scripts can be named"() {
@@ -188,10 +187,9 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
         runCustomTask()
 
         then:
-        def op1 = events.operation('Execute A first step for :custom')
-        def op2 = events.operation('Execute One last thing... for :custom')
-        op1.parent == op2.parent
-        op1.parent.children.size() == 3
+        def task = events.operation("Task :custom")
+        task.child('Execute A first step for :custom')
+        task.child('Execute One last thing... for :custom')
     }
 
     @Requires([KOTLIN_SCRIPT, NOT_WINDOWS])
@@ -208,10 +206,9 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
         runCustomTask()
 
         then:
-        def op1 = events.operation('Execute A first step for :custom')
-        def op2 = events.operation('Execute One last thing... for :custom')
-        op1.parent == op2.parent
-        op1.parent.children.size() == 3
+        def task = events.operation("Task :custom")
+        task.child('Execute A first step for :custom')
+        task.child('Execute One last thing... for :custom')
     }
 
     private runCustomTask() {
