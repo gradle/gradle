@@ -84,15 +84,23 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         final LazyTaskExecution currentExecution = createExecution(task, previousExecution);
 
         return new History() {
+            @Override
             public TaskExecution getPreviousExecution() {
                 return previousExecution;
             }
 
+            @Override
             public TaskExecution getCurrentExecution() {
                 return currentExecution;
             }
 
-            public void update() {
+            @Override
+            public void updateCurrentExecution() {
+                CacheBackedTaskHistoryRepository.this.updateExecution(task, currentExecution);
+            }
+
+            @Override
+            public void persist() {
                 storeSnapshots(currentExecution);
                 if (previousExecution != null) {
                     removeUnnecessarySnapshots(previousExecution);
@@ -169,6 +177,10 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         execution.setDetectedOverlappingOutputs(overlappingOutputs);
 
         return execution;
+    }
+
+    private void updateExecution(TaskInternal task, LazyTaskExecution currentExecution) {
+        currentExecution.setSuccessful(task.getState().getFailure() == null);
     }
 
     private static ImmutableList<ImplementationSnapshot> collectActionImplementations(Collection<ContextAwareTaskAction> taskActions, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {

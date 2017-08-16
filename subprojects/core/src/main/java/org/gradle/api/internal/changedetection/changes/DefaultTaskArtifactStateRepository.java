@@ -171,11 +171,12 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             if (taskInputs != null) {
                 taskState.newInputs(taskInputs.getDiscoveredInputs());
             }
+            history.updateCurrentExecution();
             taskState.getAllTaskChanges().snapshotAfterTask();
 
             // Only store new taskState if there was no failure, or some output files have been changed
             if (failure == null || taskState.hasAnyOutputFileChanges()) {
-                history.update();
+                history.persist();
                 taskOutputFilesRepository.recordOutputs(history.getCurrentExecution());
             }
         }
