@@ -39,7 +39,6 @@ import org.gradle.internal.io.LineBufferingOutputStream;
 import org.gradle.internal.io.TextStream;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.time.TimeProvider;
-import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.process.internal.DefaultExecHandleBuilder;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
@@ -72,6 +71,11 @@ public class NativeTestExecuter implements TestExecuter {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    public TimeProvider getTimeProvider() {
+        throw new UnsupportedOperationException();
+    }
+
     @Override
     public void execute(Test testTask, TestResultProcessor testResultProcessor) {
         ObjectFactory objectFactory = getObjectFactory();
@@ -83,7 +87,7 @@ public class NativeTestExecuter implements TestExecuter {
 
         Object testTaskOperationId = getBuildOperationExcecutor().getCurrentOperation().getParentId();
 
-        new TestMainAction(detector, processor, testResultProcessor, new TrueTimeProvider(), testTaskOperationId, testTask.getPath(), "Gradle Test Run " + testTask.getPath()).run();
+        new TestMainAction(detector, processor, testResultProcessor, getTimeProvider(), testTaskOperationId, testTask.getPath(), "Gradle Test Run " + testTask.getPath()).run();
     }
 
     static class NativeTestDetector implements Runnable {
