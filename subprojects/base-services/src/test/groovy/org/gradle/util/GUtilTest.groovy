@@ -239,4 +239,64 @@ public class GUtilTest extends spock.lang.Specification {
         out.size() == 0
     }
 
+    def "can convert strings to enums using the enum value names"() {
+        expect:
+        TestEnum.ENUM1 == toEnum(TestEnum, "ENUM1")
+        TestEnum.ENUM1 == toEnum(TestEnum, "enum1")
+        TestEnum.ENUM1 == toEnum(TestEnum, "EnUm1")
+        TestEnum.ENUM2 == toEnum(TestEnum, "enum2")
+        TestEnum.ENUM3 == toEnum(TestEnum, "enum3")
+        TestEnum.ENUM_4_1 == toEnum(TestEnum, "enum_4_1")
+        TestEnum.STANDARD_OUT == toEnum(TestEnum, "Standard_Out")
+        TestEnum.STANDARD_OUT == toEnum(TestEnum, "standardOut")
+    }
+
+    def "converts enum constants to themselves"() {
+        expect:
+        TestEnum.ENUM1 == toEnum(TestEnum, TestEnum.ENUM1)
+    }
+
+    def "fails when trying to convert incompatible types to enums"() {
+        when:
+        toEnum(TestEnum, 2)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Cannot convert value '2' of type 'java.lang.Integer' to enum type 'org.gradle.util.GUtilTest\$TestEnum'"
+
+    }
+
+    def "can convert multiple strings to an enum set"() {
+        expect:
+        [TestEnum.ENUM1, TestEnum.ENUM2, TestEnum.ENUM3] as Set == toEnumSet(TestEnum, "Enum1", "EnUm2", TestEnum.ENUM3)
+    }
+
+    def "reports available enum values for non convertible strings"() {
+        when:
+        toEnum(TestEnum, value)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Cannot convert string value '$value' to an enum value of type 'org.gradle.util.GUtilTest\$TestEnum' (valid case insensitive values: ENUM1, ENUM2, ENUM3, ENUM_4_1, STANDARD_OUT)"
+
+        where:
+        value      | _
+        "notKnown" | _
+        "3"        | _
+        "3"        | _
+    }
+
+    static enum TestEnum {
+        ENUM1,
+        ENUM2,
+        ENUM3(){
+            @Override
+            String toString() {
+                return "3"
+            }
+        },
+        ENUM_4_1,
+        STANDARD_OUT
+    }
+
 }

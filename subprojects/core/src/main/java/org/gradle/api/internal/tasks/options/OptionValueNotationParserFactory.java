@@ -31,7 +31,8 @@ public class OptionValueNotationParserFactory {
         } else if (targetType.isAssignableFrom(String.class) || targetType == java.util.List.class) {
             return Cast.uncheckedCast(new NoDescriptionValuesJustReturningParser());
         } else if (targetType.isEnum()) {
-            NotationConverter<CharSequence, T> converter = Cast.uncheckedCast(new EnumFromCharSequenceNotationParser<Enum>(targetType.asSubclass(Enum.class)));
+            @SuppressWarnings({"rawtypes", "unchecked"})
+            NotationConverter<CharSequence, T> converter = new EnumFromCharSequenceNotationParser(targetType.asSubclass(Enum.class));
             return new NotationConverterToNotationParserAdapter<CharSequence, T>(converter);
         }
 

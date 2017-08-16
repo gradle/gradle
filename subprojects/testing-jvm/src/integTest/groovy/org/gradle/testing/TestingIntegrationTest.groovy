@@ -460,4 +460,27 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         output.contains("FirstTest > test PASSED")
         !output.contains("SecondTest > test PASSED")
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/2661")
+    def "test logging can be configured on turkish locale"() {
+        given:
+        buildFile << """
+            apply plugin:'java'
+            test {
+                testLogging {
+                    events "passed", "skipped", "failed"
+                }
+            }
+        """
+        when:
+        executer
+            .requireDaemon()
+            .requireIsolatedDaemons()
+            .withBuildJvmOpts("-Duser.language=tr", "-Duser.country=TR")
+            .withTasks("help")
+            .run()
+
+        then:
+        noExceptionThrown()
+    }
 }
