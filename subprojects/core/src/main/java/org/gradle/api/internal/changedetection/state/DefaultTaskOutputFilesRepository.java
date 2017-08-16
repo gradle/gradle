@@ -59,8 +59,8 @@ public class DefaultTaskOutputFilesRepository implements TaskOutputFilesReposito
     }
 
     @Override
-    public void recordOutputs(TaskExecution taskExecution) {
-        for (String outputFilePath : taskExecution.getDeclaredOutputFilePaths()) {
+    public void recordOutputs(Iterable<String> outputFilePaths) {
+        for (String outputFilePath : outputFilePaths) {
             FileSnapshot fileSnapshot = fileSystemMirror.getFile(outputFilePath);
             File outputFile = new File(outputFilePath);
             boolean exists = fileSnapshot == null ? outputFile.exists() : fileSnapshot.getType() != FileType.Missing;

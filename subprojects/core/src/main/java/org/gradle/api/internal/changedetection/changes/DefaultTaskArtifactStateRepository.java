@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.changes;
 
 import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskExecutionHistory;
@@ -159,10 +160,11 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             TaskHistoryRepository.History history = this.history;
             history.updateCurrentExecution(taskInputs);
 
-            // Only store new taskState if there was no failure, or some output files have been changed
+            // Only persist task history if there was no failure, or some output files have been changed
             if (failure == null || taskState.hasAnyOutputFileChanges()) {
                 history.persist();
-                taskOutputFilesRepository.recordOutputs(history.getCurrentExecution());
+                ImmutableSet<String> outputFilePaths = history.getCurrentExecution().getDeclaredOutputFilePaths();
+                taskOutputFilesRepository.recordOutputs(outputFilePaths);
             }
         }
 
