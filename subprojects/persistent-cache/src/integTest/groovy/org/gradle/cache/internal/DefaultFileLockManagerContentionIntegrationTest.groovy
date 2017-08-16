@@ -178,6 +178,80 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         assertConfirmationCount(build, prevReceivingSocket)
     }
 
+    // This test simulates a long running Zic compiler setup by running code similar to ZincScalaCompilerFactory through the worker API.
+    def "If many workers wait for the same exclusive lock, a worker does not time out because several others get the lock before"() {
+        given:
+        buildFile << """
+            import org.gradle.cache.CacheRepository
+            import org.gradle.cache.PersistentCache
+            import org.gradle.cache.FileLockManager
+            import org.gradle.cache.internal.filelock.LockOptionsBuilder
+            import org.gradle.cache.internal.CacheRepositoryServices;
+            import org.gradle.internal.nativeintegration.services.NativeServices;
+            import org.gradle.internal.service.DefaultServiceRegistry;
+            import org.gradle.internal.service.scopes.GlobalScopeServices;
+
+            task doWorkInWorker(type: WorkerTask)
+            
+            class WorkerTask extends DefaultTask {
+                @javax.inject.Inject
+                WorkerExecutor getWorkerExecutor() { throw new UnsupportedOperationException() }
+                
+                @TaskAction
+                void doWork() {
+                    (1..8).each {
+                        workerExecutor.submit(ToolSetupRunnable) { WorkerConfiguration config ->
+                            config.isolationMode = IsolationMode.PROCESS
+                        }
+                    }
+                }
+            }
+
+            class ToolSetupRunnable implements Runnable {
+                void run() {
+                    CacheRepository cacheRepository = ZincCompilerServices.getInstance(new File("home")).get(CacheRepository.class);
+                    println "Waiting for lock..."
+                    final PersistentCache zincCache = cacheRepository.cache("zinc-0.3.15")
+                            .withDisplayName("Zinc 0.3.15 compiler cache")
+                            .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive))
+                            .open();
+                    println "Starting work..."
+                    try {
+                        Thread.sleep(10000) //setup an external tool which can take some time
+                    } finally {
+                        zincCache.close();
+                    }
+                }
+            }
+            
+            class ZincCompilerServices extends DefaultServiceRegistry {
+                private static ZincCompilerServices instance;
+        
+                private ZincCompilerServices(File gradleUserHome) {
+                    super(NativeServices.getInstance());
+        
+                    addProvider(new GlobalScopeServices(true));
+                    addProvider(new CacheRepositoryServices(gradleUserHome, null));
+                }
+        
+                public static ZincCompilerServices getInstance(File gradleUserHome) {
+                    if (instance == null) {
+                        NativeServices.initialize(gradleUserHome);
+                        instance = new ZincCompilerServices(gradleUserHome);
+                    }
+                    return instance;
+                }
+            }
+        """
+
+        when:
+        executer.withArguments()
+
+        then:
+        succeeds "doWorkInWorker"
+    }
+
+
     def assertConfirmationCount(GradleHandle build, DatagramSocket socket = receivingSocket) {
         (build.standardOutput =~ "Gradle process at port ${socket.localPort} confirmed unlock request").count == addressFactory.communicationAddresses.size()
     }

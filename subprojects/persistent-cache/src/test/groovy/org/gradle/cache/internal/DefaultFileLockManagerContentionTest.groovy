@@ -84,6 +84,36 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
         lockMode << [Exclusive, Shared]
     }
 
+    def "lock manage resets the timeout if the lock owner changes"() {
+        given:
+        FileLockContentionHandler contentionHandler3 = Mock(FileLockContentionHandler)
+        FileLockManager manager3 = new DefaultFileLockManager(Stub(ProcessMetaDataProvider), 2000, contentionHandler3, new LongIdGenerator())
+
+        int port1 = contentionHandler.communicator.socket.localPort
+        int port2 = contentionHandler2.communicator.socket.localPort
+
+        def file = tmpDir.file("lock-file.bin")
+        FileLock lock1 = createLock(Exclusive, file, manager)
+        FileLock lock2
+
+        when:
+        createLock(Exclusive, file, manager3)
+
+        then:
+        1 * contentionHandler3.maybePingOwner(port1, _, _, _) >> { int port, long lockId, String displayName, long timeElapsed ->
+            assert timeElapsed < 20
+            lock1.close()
+            lock2 = createLock(Exclusive, file, manager2)
+            Thread.sleep(50)
+            return false
+        }
+        1 * contentionHandler3.maybePingOwner(port2, _, _, _)  >> { int port, long lockId, String displayName, long timeElapsed ->
+            assert timeElapsed < 20
+            lock2.close()
+            return false
+        }
+    }
+
     FileLock createLock(FileLockManager.LockMode lockMode, File file, FileLockManager lockManager = manager, Runnable whenContended = null) {
         def lock = lockManager.lock(file, LockOptionsBuilder.mode(lockMode), "foo", "operation", whenContended)
         openedLocks << lock
