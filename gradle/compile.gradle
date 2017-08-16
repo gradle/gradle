@@ -40,7 +40,12 @@ tasks.withType(JavaCompile) {
     // We need to ignore the path warning since the launcher.jar references
     // core.jar and base-services.jar in its Manifest - and these are not present
     // while compiling.
-    options.compilerArgs = ['-Xlint:-options', '-Xlint:-path']
+    options.compilerArgs = [
+        '-Xlint:-options',
+        '-Xlint:-path',
+        '-Xlint:-classfile',
+        '-parameters' // https://github.com/gradle/kotlin-dsl/issues/464
+    ]
     options.incremental = true
     inputs.property('javaInstallation') {
         javaInstallationForCompilation.displayName
@@ -48,7 +53,12 @@ tasks.withType(JavaCompile) {
 }
 tasks.withType(GroovyCompile) {
     options.encoding = 'utf-8'
-    options.compilerArgs = ['-Xlint:-options', '-Xlint:-path']
+    options.compilerArgs = [
+        '-Xlint:-options',
+        '-Xlint:-path',
+        '-Xlint:-classfile',
+        '-parameters' // https://github.com/gradle/kotlin-dsl/issues/464
+    ]
     groovyOptions.encoding = 'utf-8'
     inputs.property('javaInstallation') {
         currentJavaInstallation.displayName
