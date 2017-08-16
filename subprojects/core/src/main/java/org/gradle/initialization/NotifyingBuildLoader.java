@@ -19,9 +19,8 @@ package org.gradle.initialization;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.Project;
 import org.gradle.api.Transformer;
-import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -42,19 +41,19 @@ public class NotifyingBuildLoader implements BuildLoader {
     }
 
     @Override
-    public void load(final ProjectDescriptor rootProjectDescriptor, final ProjectDescriptor defaultProject, final GradleInternal gradle, final ClassLoaderScope classLoaderScope) {
+    public void load(final SettingsInternal settings, final GradleInternal gradle) {
         try {
             buildOperationExecutor.call(new CallableBuildOperation<Void>() {
                 @Override
                 public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName("Loading Build").
-                        progressDisplayName("Loading Build").
+                    return BuildOperationDescriptor.displayName("Load Build Structure").
+                        progressDisplayName("loading").
                         details(new BuildStructureOperationDetails());
                 }
 
                 @Override
                 public Void call(BuildOperationContext context) {
-                    buildLoader.load(rootProjectDescriptor, defaultProject, gradle, classLoaderScope);
+                    buildLoader.load(settings, gradle);
                     context.setResult(createOperationResult(gradle));
                     return null;
                 }
