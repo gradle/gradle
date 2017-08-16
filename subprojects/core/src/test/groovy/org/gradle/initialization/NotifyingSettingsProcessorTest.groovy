@@ -17,7 +17,6 @@
 package org.gradle.initialization
 
 import org.gradle.StartParameter
-import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
@@ -36,10 +35,7 @@ class NotifyingSettingsProcessorTest extends Specification {
     def classLoaderScope = Mock(ClassLoaderScope)
     def startParameter = Mock(StartParameter)
     def settingsInternal = Mock(SettingsInternal)
-    def subProjectDescriptor = Mock(ProjectDescriptor)
     def rootDir = new File("root")
-    def subDir = new File("root")
-    def subBuildScriptFile = new File(subDir, "sub.gradle")
 
     def "delegates to decorated settings processor"() {
         given:
@@ -64,8 +60,8 @@ class NotifyingSettingsProcessorTest extends Specification {
 
         and:
         buildOperationExecutor.operations.size() == 1
-        buildOperationExecutor.operations.get(0).displayName == "Configure settings"
-        buildOperationExecutor.operations.get(0).name == "Configure settings"
+        buildOperationExecutor.operations.get(0).displayName == "Evaluate settings"
+        buildOperationExecutor.operations.get(0).name == "Evaluate settings"
 
         buildOperationExecutor.operations.get(0).operationType == BuildOperationCategory.UNCATEGORIZED
         buildOperationExecutor.operations.get(0).details.settingsDir == rootDir.absolutePath
