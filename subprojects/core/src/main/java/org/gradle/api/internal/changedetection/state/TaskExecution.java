@@ -26,24 +26,28 @@ import org.gradle.internal.id.UniqueId;
  * The state for a single task execution.
  */
 public abstract class TaskExecution {
-    private boolean successful;
     private final UniqueId buildInvocationId;
     private final ImplementationSnapshot taskImplementation;
     private final ImmutableList<ImplementationSnapshot> taskActionImplementations;
     private final ImmutableSortedMap<String, ValueSnapshot> inputProperties;
-    private Iterable<String> outputPropertyNamesForCacheKey;
-    private ImmutableSet<String> declaredOutputFilePaths;
+    private final ImmutableSortedSet<String> outputPropertyNamesForCacheKey;
+    private final ImmutableSet<String> declaredOutputFilePaths;
+    private boolean successful;
     private OverlappingOutputs detectedOverlappingOutputs;
 
     public TaskExecution(
         UniqueId buildInvocationId,
         ImplementationSnapshot taskImplementation,
         ImmutableList<ImplementationSnapshot> taskActionImplementations,
-        ImmutableSortedMap<String, ValueSnapshot> inputProperties) {
+        ImmutableSortedMap<String, ValueSnapshot> inputProperties,
+        ImmutableSortedSet<String> outputPropertyNames,
+        ImmutableSet<String> declaredOutputFilePaths) {
         this.buildInvocationId = buildInvocationId;
         this.taskImplementation = taskImplementation;
         this.taskActionImplementations = taskActionImplementations;
         this.inputProperties = inputProperties;
+        this.outputPropertyNamesForCacheKey = outputPropertyNames;
+        this.declaredOutputFilePaths = declaredOutputFilePaths;
     }
 
     public boolean isSuccessful() {
@@ -68,10 +72,6 @@ public abstract class TaskExecution {
         return ImmutableSortedSet.copyOf(outputPropertyNamesForCacheKey);
     }
 
-    public void setOutputPropertyNamesForCacheKey(Iterable<String> outputPropertyNames) {
-        this.outputPropertyNamesForCacheKey = outputPropertyNames;
-    }
-
     /**
      * Returns the absolute path of every declared output file and directory.
      * The returned set includes potentially missing files as well, and does
@@ -79,10 +79,6 @@ public abstract class TaskExecution {
      */
     public ImmutableSet<String> getDeclaredOutputFilePaths() {
         return declaredOutputFilePaths;
-    }
-
-    public void setDeclaredOutputFilePaths(ImmutableSet<String> declaredOutputFilePaths) {
-        this.declaredOutputFilePaths = declaredOutputFilePaths;
     }
 
     public ImplementationSnapshot getTaskImplementation() {

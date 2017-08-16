@@ -15,13 +15,11 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskInternal;
@@ -145,10 +143,10 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = previousExecution == null ? ImmutableSortedMap.<String, ValueSnapshot>of() : previousExecution.getInputProperties();
         ImmutableSortedMap<String, ValueSnapshot> inputProperties = snapshotTaskInputs(task, previousInputProperties);
 
-        LazyTaskExecution currentExecution = new LazyTaskExecution(snapshotRepository, buildInvocationScopeId.getId(), taskImplementation, taskActionImplementations, inputProperties);
-        currentExecution.setOutputPropertyNamesForCacheKey(getOutputPropertyNamesForCacheKey(task));
-        currentExecution.setDeclaredOutputFilePaths(getDeclaredOutputFilePaths(task));
-        return currentExecution;
+        ImmutableSortedSet<String> outputPropertyNames = getOutputPropertyNamesForCacheKey(task);
+        ImmutableSet<String> declaredOutputFilePaths = getDeclaredOutputFilePaths(task);
+
+        return new LazyTaskExecution(snapshotRepository, buildInvocationScopeId.getId(), taskImplementation, taskActionImplementations, inputProperties, outputPropertyNames, declaredOutputFilePaths);
     }
 
     private static ImmutableList<ImplementationSnapshot> collectActionImplementations(Collection<ContextAwareTaskAction> taskActions, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
@@ -198,26 +196,18 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         }
     }
 
-    private Iterable<String> getOutputPropertyNamesForCacheKey(TaskInternal task) {
-        // Find all output properties that go into the cache key
-        Iterable<TaskOutputFilePropertySpec> outputPropertiesForCacheKey =
-            Iterables.filter(task.getOutputs().getFileProperties(), new Predicate<TaskOutputFilePropertySpec>() {
-                @Override
-                public boolean apply(TaskOutputFilePropertySpec propertySpec) {
-                    if (propertySpec instanceof CacheableTaskOutputFilePropertySpec) {
-                        CacheableTaskOutputFilePropertySpec cacheablePropertySpec = (CacheableTaskOutputFilePropertySpec) propertySpec;
-                        return cacheablePropertySpec.getOutputFile() != null;
-                    }
-                    return false;
+    private static ImmutableSortedSet<String> getOutputPropertyNamesForCacheKey(TaskInternal task) {
+        ImmutableSortedSet<TaskOutputFilePropertySpec> fileProperties = task.getOutputs().getFileProperties();
+        List<String> outputPropertyNames = Lists.newArrayListWithCapacity(fileProperties.size());
+        for (TaskOutputFilePropertySpec propertySpec : fileProperties) {
+            if (propertySpec instanceof CacheableTaskOutputFilePropertySpec) {
+                CacheableTaskOutputFilePropertySpec cacheablePropertySpec = (CacheableTaskOutputFilePropertySpec) propertySpec;
+                if (cacheablePropertySpec.getOutputFile() != null) {
+                    outputPropertyNames.add(propertySpec.getPropertyName());
                 }
-            });
-        // Extract the output property names
-        return Iterables.transform(outputPropertiesForCacheKey, new Function<TaskOutputFilePropertySpec, String>() {
-            @Override
-            public String apply(TaskOutputFilePropertySpec propertySpec) {
-                return propertySpec.getPropertyName();
             }
-        });
+        }
+        return ImmutableSortedSet.copyOf(outputPropertyNames);
     }
 
     private ImmutableSet<String> getDeclaredOutputFilePaths(TaskInternal task) {
@@ -246,11 +236,11 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 taskExecutionSnapshot.getBuildInvocationId(),
                 taskExecutionSnapshot.getTaskImplementation(),
                 taskExecutionSnapshot.getTaskActionsImplementations(),
-                taskExecutionSnapshot.getInputProperties()
+                taskExecutionSnapshot.getInputProperties(),
+                taskExecutionSnapshot.getCacheableOutputProperties(),
+                taskExecutionSnapshot.getDeclaredOutputFilePaths()
             );
             setSuccessful(taskExecutionSnapshot.isSuccessful());
-            setOutputPropertyNamesForCacheKey(taskExecutionSnapshot.getCacheableOutputProperties());
-            setDeclaredOutputFilePaths(taskExecutionSnapshot.getDeclaredOutputFilePaths());
             this.inputFilesSnapshotIds = taskExecutionSnapshot.getInputFilesSnapshotIds();
             this.outputFilesSnapshotIds = taskExecutionSnapshot.getOutputFilesSnapshotIds();
             this.discoveredFilesSnapshotId = taskExecutionSnapshot.getDiscoveredFilesSnapshotId();
@@ -261,9 +251,11 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             UniqueId buildInvocationId,
             ImplementationSnapshot taskImplementation,
             ImmutableList<ImplementationSnapshot> taskActionsImplementations,
-            ImmutableSortedMap<String, ValueSnapshot> inputProperties
+            ImmutableSortedMap<String, ValueSnapshot> inputProperties,
+            ImmutableSortedSet<String> outputPropertyNames,
+            ImmutableSet<String> declaredOutputFilePaths
         ) {
-            super(buildInvocationId, taskImplementation, taskActionsImplementations, inputProperties);
+            super(buildInvocationId, taskImplementation, taskActionsImplementations, inputProperties, outputPropertyNames, declaredOutputFilePaths);
             this.snapshotRepository = snapshotRepository;
         }
 
