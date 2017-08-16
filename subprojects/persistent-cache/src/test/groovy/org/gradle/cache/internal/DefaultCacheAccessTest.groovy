@@ -85,7 +85,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         access.open()
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _ as Runnable) >> lock
         1 * initializationAction.requiresInitialization(lock) >> false
         _ * lock.state
         0 * _._
@@ -150,7 +150,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         access.open()
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _ as Runnable) >> lock
         1 * initializationAction.requiresInitialization(lock) >> true
         1 * lock.writeFile(_) >> { Runnable r -> r.run() }
         1 * initializationAction.initialize(lock)
@@ -166,7 +166,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         access.open()
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _ as Runnable) >> lock
         1 * initializationAction.requiresInitialization(lock) >> { throw failure }
         1 * lock.close()
         0 * _._
@@ -271,7 +271,11 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
     @Unroll
     def "cannot be opened more than once for mode #lockMode"() {
-        lockManager.lock(lockFile, _, "<display-name>") >> lock
+        if (lockMode == Shared) {
+            lockManager.lock(lockFile, _, "<display-name>") >> lock
+        } else {
+            lockManager.lock(lockFile, _, "<display-name>", "", _ as Runnable) >> lock
+        }
         def access = newAccess(lockMode)
 
         when:
@@ -478,7 +482,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         def access = newAccess(mode)
 
         given:
-        lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
+        lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _ as Runnable) >> lock
 
         when:
         access.open()
@@ -500,11 +504,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         access.useCache { access.fileAccess.updateFile(runnable)}
 
         then:
-        if (mode == None) {
-            1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _ as Runnable) >> lock
-        } else {
-            1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
-        }
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _ as Runnable) >> lock
         1 * lock.updateFile(runnable)
 
         where:
