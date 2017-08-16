@@ -34,8 +34,10 @@ import java.util.concurrent.CountDownLatch
 
 class DependencyResolveBlacklistIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
+    private static final String GROUP_ID = 'group'
+
     @Rule
-    RequestTimeoutHttpServer server = new RequestTimeoutHttpServer()
+    RequestTimeoutHttpServer requestTimeoutServer = new RequestTimeoutHttpServer()
 
     MavenHttpRepository requestTimeoutMavenRepo
     MavenHttpRepository resolvableMavenRepo
@@ -46,8 +48,8 @@ class DependencyResolveBlacklistIntegrationTest extends AbstractHttpDependencyRe
         requestTimeoutMavenRepo = requestTimeoutMavenHttpServer()
         resolvableMavenRepo = mavenHttpRepo
         resolvableMavenRepo.server.start()
-        moduleInRequestTimeoutRepo = requestTimeoutMavenRepo.module('group', 'a', '1.0').publish()
-        moduleInResolvableRepo = resolvableMavenRepo.module('group', 'a', '1.0').publish()
+        moduleInRequestTimeoutRepo = requestTimeoutMavenRepo.module(GROUP_ID, 'a', '1.0').publish()
+        moduleInResolvableRepo = resolvableMavenRepo.module(GROUP_ID, 'a', '1.0').publish()
     }
 
     def "fails single buildscript dependency resolution if HTTP connection exceeds timeout"() {
@@ -66,14 +68,14 @@ class DependencyResolveBlacklistIntegrationTest extends AbstractHttpDependencyRe
         fails('resolve')
 
         then:
-        assertDependencyReadTimeout()
+        assertDependencyReadTimeout(moduleInRequestTimeoutRepo)
     }
 
     def "fails single application dependency resolution if HTTP connection exceeds timeout"() {
         given:
         buildFile << """
             ${mavenRepository(requestTimeoutMavenRepo)}
-            ${customConfigDependencyAssigment()}
+            ${customConfigDependencyAssignment(moduleInResolvableRepo)}
             ${configSyncTask()}
         """
 
@@ -82,7 +84,31 @@ class DependencyResolveBlacklistIntegrationTest extends AbstractHttpDependencyRe
         fails('resolve')
 
         then:
-        assertDependencyReadTimeout()
+        assertDependencyReadTimeout(moduleInRequestTimeoutRepo)
+        !file('libs').isDirectory()
+    }
+
+    def "fails concurrent application dependency resolution if HTTP connection exceeds timeout"() {
+        MavenHttpModule moduleB = requestTimeoutMavenRepo.module(GROUP_ID, 'b', '2.0').publish()
+        MavenHttpModule moduleC = requestTimeoutMavenRepo.module(GROUP_ID, 'c', '3.0').publish()
+
+        given:
+        buildFile << """
+            ${mavenRepository(requestTimeoutMavenRepo)}
+            ${customConfigDependencyAssignment(moduleInResolvableRepo, moduleB, moduleC)}
+            ${configSyncTask()}
+        """
+
+        when:
+        moduleInRequestTimeoutRepo.pom.expectGet()
+        moduleB.pom.expectGet()
+        moduleC.pom.expectGet()
+        fails('resolve', '--max-workers=3')
+
+        then:
+        assertDependencyReadTimeout(moduleInRequestTimeoutRepo)
+        assertDependencyReadTimeout(moduleB)
+        assertDependencyReadTimeout(moduleC)
         !file('libs').isDirectory()
     }
 
@@ -92,7 +118,7 @@ class DependencyResolveBlacklistIntegrationTest extends AbstractHttpDependencyRe
         buildFile << """
             ${mavenRepository(requestTimeoutMavenRepo)}
             ${mavenRepository(resolvableMavenRepo)}
-            ${customConfigDependencyAssigment()}
+            ${customConfigDependencyAssignment(moduleInResolvableRepo)}
             ${configSyncTask()}
         """
 
@@ -104,14 +130,14 @@ class DependencyResolveBlacklistIntegrationTest extends AbstractHttpDependencyRe
         //succeeds('resolve')
 
         then:
-        assertDependencyReadTimeout()
+        assertDependencyReadTimeout(moduleInRequestTimeoutRepo)
         !file('libs').isDirectory()
         //file('libs').assertHasDescendants('a-1.0.jar')
     }
 
     MavenHttpRepository requestTimeoutMavenHttpServer() {
-        server.start()
-        new MavenHttpRepository(server, '/request-timeout-maven', maven(file('request_timeout_maven_repo')))
+        requestTimeoutServer.start()
+        new MavenHttpRepository(requestTimeoutServer, '/request-timeout-maven', maven(file('request_timeout_maven_repo')))
     }
 
     static class RequestTimeoutHttpServer extends HttpServer {
@@ -142,14 +168,14 @@ class DependencyResolveBlacklistIntegrationTest extends AbstractHttpDependencyRe
         """
     }
 
-    private String customConfigDependencyAssigment() {
+    private String customConfigDependencyAssignment(MavenHttpModule... modules) {
         """
             configurations {
                 deps
             }
             
             dependencies {
-                deps '${mavenModuleCoordinates(moduleInResolvableRepo)}'
+                deps ${modules.collect { "'${mavenModuleCoordinates(it)}'" }.join(', ')}
             }
         """
     }
@@ -167,8 +193,8 @@ class DependencyResolveBlacklistIntegrationTest extends AbstractHttpDependencyRe
         "$module.groupId:$module.artifactId:$module.version"
     }
 
-    private void assertDependencyReadTimeout() {
-        failure.assertHasCause('Could not download a.jar (group:a:1.0)')
+    private void assertDependencyReadTimeout(MavenModule module) {
+        failure.assertHasCause("Could not download ${module.artifactId}.jar (${mavenModuleCoordinates(module)})")
         failure.assertHasCause('Read timed out')
     }
 }
