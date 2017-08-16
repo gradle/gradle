@@ -34,6 +34,10 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.testing.internal.util.Specification
 import org.gradle.util.Path
 
+import static org.gradle.caching.internal.controller.BuildCacheControllerFactory.BuildCacheMode.DISABLED
+import static org.gradle.caching.internal.controller.BuildCacheControllerFactory.BuildCacheMode.ENABLED
+import static org.gradle.caching.internal.controller.BuildCacheControllerFactory.RemoteAccessMode.ONLINE
+
 class BuildCacheControllerFactoryTest extends Specification {
 
     def buildCacheEnabled = true
@@ -54,8 +58,8 @@ class BuildCacheControllerFactoryTest extends Specification {
             Path.path("test"),
             null,
             config,
-            buildCacheEnabled,
-            false,
+            buildCacheEnabled ? ENABLED : DISABLED,
+            ONLINE,
             false,
             DirectInstantiator.INSTANCE
         )

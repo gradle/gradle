@@ -48,20 +48,28 @@ public final class BuildCacheControllerFactory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheControllerFactory.class);
 
+    public enum BuildCacheMode {
+        ENABLED, DISABLED
+    }
+
+    public enum RemoteAccessMode {
+        ONLINE, OFFLINE
+    }
+
     public static BuildCacheController create(
         final BuildOperationExecutor buildOperationExecutor,
         final Path buildIdentityPath,
         final File gradleUserHomeDir,
         final BuildCacheConfigurationInternal buildCacheConfiguration,
-        final boolean buildCacheEnabled,
-        final boolean offline,
+        final BuildCacheMode buildCacheState,
+        final RemoteAccessMode remoteAccessMode,
         final boolean logStackTraces,
         final Instantiator instantiator
     ) {
         return buildOperationExecutor.call(new CallableBuildOperation<BuildCacheController>() {
             @Override
             public BuildCacheController call(BuildOperationContext context) {
-                if (!buildCacheEnabled) {
+                if (buildCacheState == BuildCacheMode.DISABLED) {
                     context.setResult(ResultImpl.disabled());
                     return NoOpBuildCacheController.INSTANCE;
                 }
@@ -72,7 +80,7 @@ public final class BuildCacheControllerFactory {
                 boolean localEnabled = local != null && local.isEnabled();
                 boolean remoteEnabled = remote != null && remote.isEnabled();
 
-                if (remoteEnabled && offline) {
+                if (remoteEnabled && remoteAccessMode == RemoteAccessMode.OFFLINE) {
                     remoteEnabled = false;
                     LOGGER.warn("Remote build cache is disabled when running with --offline.");
                 }
@@ -88,7 +96,7 @@ public final class BuildCacheControllerFactory {
                 context.setResult(new ResultImpl(
                     true,
                     local != null && local.isEnabled(),
-                    remote != null && remote.isEnabled() && !offline,
+                    remote != null && remote.isEnabled() && remoteAccessMode == RemoteAccessMode.ONLINE,
                     localDescribedService == null ? null : localDescribedService.description,
                     remoteDescribedService == null ? null : remoteDescribedService.description
                 ));

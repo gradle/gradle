@@ -49,6 +49,7 @@ import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -224,7 +225,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     /**
      * The hierarchy separator for project and task path names.
      */
-    String PATH_SEPARATOR = ":";
+    String PATH_SEPARATOR = Path.SEPARATOR;
 
     /**
      * The default build directory name.
