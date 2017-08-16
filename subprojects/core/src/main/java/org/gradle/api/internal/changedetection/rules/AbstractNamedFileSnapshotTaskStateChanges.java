@@ -27,6 +27,7 @@ import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.DiffUtil;
 
+import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -44,9 +45,16 @@ abstract public class AbstractNamedFileSnapshotTaskStateChanges implements TaskS
         this.title = title;
     }
 
-    protected abstract ImmutableSortedMap<String, FileCollectionSnapshot> getPrevious();
+    @Nullable
+    private ImmutableSortedMap<String, FileCollectionSnapshot> getPrevious() {
+        return previous == null ? null : getSnapshot(previous);
+    }
 
-    protected abstract ImmutableSortedMap<String, FileCollectionSnapshot> getCurrent();
+    private ImmutableSortedMap<String, FileCollectionSnapshot> getCurrent() {
+        return getSnapshot(current);
+    }
+
+    protected abstract ImmutableSortedMap<String, FileCollectionSnapshot> getSnapshot(TaskExecution execution);
 
     protected Iterator<TaskStateChange> getFileChanges(final boolean includeAdded) {
         if (getPrevious() == null) {

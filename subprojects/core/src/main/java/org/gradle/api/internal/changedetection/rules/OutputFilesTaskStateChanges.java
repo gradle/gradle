@@ -31,13 +31,8 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
     }
 
     @Override
-    protected ImmutableSortedMap<String, FileCollectionSnapshot> getCurrent() {
-        return current.getOutputFilesSnapshot();
-    }
-
-    @Override
-    public ImmutableSortedMap<String, FileCollectionSnapshot> getPrevious() {
-        return previous == null ? null : previous.getOutputFilesSnapshot();
+    protected ImmutableSortedMap<String, FileCollectionSnapshot> getSnapshot(TaskExecution execution) {
+        return execution.getOutputFilesSnapshot();
     }
 
     @Override
@@ -45,7 +40,7 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
         return getFileChanges(false);
     }
 
-    public Iterator<TaskStateChange> iteratorIncludingAdded() {
-        return getFileChanges(true);
+    public boolean hasAnyChanges() {
+        return getFileChanges(true).hasNext();
     }
 }

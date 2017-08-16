@@ -70,7 +70,7 @@ public class TaskUpToDateState {
      * Returns if any output files have been changed, added or removed.
      */
     public boolean hasAnyOutputFileChanges() {
-        return outputFileChanges.iteratorIncludingAdded().hasNext();
+        return outputFileChanges.hasAnyChanges();
     }
 
     /**
