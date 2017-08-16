@@ -46,7 +46,7 @@ public class NotifyingBuildLoader implements BuildLoader {
             buildOperationExecutor.call(new CallableBuildOperation<Void>() {
                 @Override
                 public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName("Load Build Structure").
+                    return BuildOperationDescriptor.displayName("Load projects").
                         progressDisplayName("loading").
                         details(new BuildStructureOperationDetails());
                 }
@@ -65,11 +65,11 @@ public class NotifyingBuildLoader implements BuildLoader {
 
     private BuildStructureOperationResult createOperationResult(GradleInternal gradle) {
         String buildPath = gradle.getIdentityPath().toString();
-        LoadBuildStructureBuildOperationType.Result.Project rootProject = convert(gradle.getRootProject());
+        LoadProjectsBuildOperationType.Result.Project rootProject = convert(gradle.getRootProject());
         return new BuildStructureOperationResult(rootProject, buildPath);
     }
 
-    private LoadBuildStructureBuildOperationType.Result.Project convert(org.gradle.api.Project project) {
+    private LoadProjectsBuildOperationType.Result.Project convert(org.gradle.api.Project project) {
         return new BuildStructureOperationProject(
             project.getName(),
             project.getPath(),
@@ -79,20 +79,20 @@ public class NotifyingBuildLoader implements BuildLoader {
             convert(project.getSubprojects()));
     }
 
-    private Set<LoadBuildStructureBuildOperationType.Result.Project> convert(Set<org.gradle.api.Project> children) {
-        Set<LoadBuildStructureBuildOperationType.Result.Project> childProjects = CollectionUtils.collect(children, new Transformer<LoadBuildStructureBuildOperationType.Result.Project, Project>() {
+    private Set<LoadProjectsBuildOperationType.Result.Project> convert(Set<org.gradle.api.Project> children) {
+        Set<LoadProjectsBuildOperationType.Result.Project> childProjects = CollectionUtils.collect(children, new Transformer<LoadProjectsBuildOperationType.Result.Project, Project>() {
             @Override
-            public LoadBuildStructureBuildOperationType.Result.Project transform(Project project) {
+            public LoadProjectsBuildOperationType.Result.Project transform(Project project) {
                 return convert(project);
             }
         });
         return ImmutableSortedSet.copyOf(PROJECT_DESCRIPTION_COMPARATOR, childProjects);
     }
 
-    private static class BuildStructureOperationDetails implements LoadBuildStructureBuildOperationType.Details {
+    private static class BuildStructureOperationDetails implements LoadProjectsBuildOperationType.Details {
     }
 
-    private static class BuildStructureOperationResult implements LoadBuildStructureBuildOperationType.Result {
+    private static class BuildStructureOperationResult implements LoadProjectsBuildOperationType.Result {
         private final Project rootProject;
         private final String buildPath;
 
@@ -112,15 +112,15 @@ public class NotifyingBuildLoader implements BuildLoader {
         }
     }
 
-    private static class BuildStructureOperationProject implements LoadBuildStructureBuildOperationType.Result.Project {
+    private static class BuildStructureOperationProject implements LoadProjectsBuildOperationType.Result.Project {
         private final String name;
         private final String path;
         private final String identityPath;
         private final String projectDir;
         private final String buildFile;
-        final Set<LoadBuildStructureBuildOperationType.Result.Project> children;
+        final Set<LoadProjectsBuildOperationType.Result.Project> children;
 
-        public BuildStructureOperationProject(String name, String path, String identityPath, String projectDir, String buildFile, Set<LoadBuildStructureBuildOperationType.Result.Project> children){
+        public BuildStructureOperationProject(String name, String path, String identityPath, String projectDir, String buildFile, Set<LoadProjectsBuildOperationType.Result.Project> children){
             this.name = name;
             this.path = path;
             this.identityPath = identityPath;
@@ -155,14 +155,14 @@ public class NotifyingBuildLoader implements BuildLoader {
         }
 
         @Override
-        public Set<LoadBuildStructureBuildOperationType.Result.Project> getChildren() {
+        public Set<LoadProjectsBuildOperationType.Result.Project> getChildren() {
             return children;
         }
     }
 
-    private static final Comparator<LoadBuildStructureBuildOperationType.Result.Project> PROJECT_DESCRIPTION_COMPARATOR = new Comparator<LoadBuildStructureBuildOperationType.Result.Project>() {
+    private static final Comparator<LoadProjectsBuildOperationType.Result.Project> PROJECT_DESCRIPTION_COMPARATOR = new Comparator<LoadProjectsBuildOperationType.Result.Project>() {
         @Override
-        public int compare(LoadBuildStructureBuildOperationType.Result.Project o1, LoadBuildStructureBuildOperationType.Result.Project o2) {
+        public int compare(LoadProjectsBuildOperationType.Result.Project o1, LoadProjectsBuildOperationType.Result.Project o2) {
             return o1.getName().compareTo(o2.getName());
         }
     };
