@@ -77,8 +77,7 @@ public class NativeTestExecuter implements TestExecuter {
         ObjectFactory objectFactory = getObjectFactory();
         File executable = ((DirectoryVar)testTask.getExtensions().getExtraProperties().get("testBundleDir")).getAsFile().get();
         File workingDir = ((DirectoryVar)testTask.getExtensions().getExtraProperties().get("workingDir")).getAsFile().get();
-        MacOSXCTestLocator xcTestLocator = objectFactory.newInstance(MacOSXCTestLocator.class);
-        TestClassProcessor processor = objectFactory.newInstance(NativeTestClassProcessor.class, executable, workingDir, getExecHandleBuilder(), getIdGenerator(), xcTestLocator);
+        TestClassProcessor processor = objectFactory.newInstance(NativeTestClassProcessor.class, executable, workingDir, getExecHandleBuilder(), getIdGenerator());
 
         Runnable detector = new NativeTestDetector(processor);
 
@@ -110,7 +109,7 @@ public class NativeTestExecuter implements TestExecuter {
         private final File bundle;
 
         @Inject
-        public NativeTestClassProcessor(TimeProvider timeProvider, File executable, File workingDir, ExecHandleBuilder execHandleBuilder, IdGenerator<?> idGenerator, MacOSXCTestLocator xcTestLocator) {
+        public NativeTestClassProcessor(TimeProvider timeProvider, MacOSXCTestLocator xcTestLocator, File executable, File workingDir, ExecHandleBuilder execHandleBuilder, IdGenerator<?> idGenerator) {
             this.execHandleBuilder = execHandleBuilder;
             this.idGenerator = idGenerator;
             this.timeProvider = timeProvider;

@@ -204,7 +204,8 @@ dependencies {
         succeeds("test")
 
         then:
-        executedAndNotSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        executedAndNotSkipped(":Greeter:compileSwift", ":compileTestSwift", ":Greeter:linkMain",
+            ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
     }
 
     def "assemble task doesn't build or run any of the tests"() {
@@ -221,6 +222,6 @@ dependencies {
         succeeds("assemble")
 
         then:
-        notExecuted(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        skipped(":assemble")
     }
 }
