@@ -95,8 +95,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
      * Lock to guard all mutable state
      */
     private final Lock lock;
-
-    private final Condition condition;
+    private final Condition stateChanged;
 
     private final ManagedExecutor executor;
 
@@ -129,7 +128,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         this.timeoutMillis = timeoutMillis;
         this.daemon = daemon;
         this.lock = new ReentrantLock();
-        this.condition = lock.newCondition();
+        this.stateChanged = lock.newCondition();
         this.state = ExecHandleState.INIT;
         executor = executorFactory.create(format("Run %s", displayName));
         processLauncher = NativeServices.getInstance().get(ProcessLauncher.class);
@@ -177,7 +176,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         try {
             LOGGER.debug("Changing state to: {}", state);
             this.state = state;
-            this.condition.signalAll();
+            this.stateChanged.signalAll();
         } finally {
             lock.unlock();
         }
@@ -193,21 +192,19 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     }
 
     private void setEndStateInfo(ExecHandleState newState, int exitValue, Throwable failureCause) {
-        if (execResult != null) {
-            System.out.println(String.format("Overwriting process end state: %s, %s, %s, %s", newState, exitValue, failureCause == null, getDisplayName()));
-            System.out.println("                          was: " + execResult.displayName);
-        }
-
         ShutdownHookActionRegister.removeAction(shutdownHookAction);
 
         ExecHandleState currentState;
-        ExecResultImpl result;
         lock.lock();
         try {
             currentState = this.state;
             setState(newState);
-            execResult = new ExecResultImpl(exitValue, execExceptionFor(failureCause, currentState), displayName);
-            result = execResult;
+            ExecResultImpl newResult = new ExecResultImpl(exitValue, execExceptionFor(failureCause, currentState), displayName);
+            if (execResult != null) {
+                String message = "Attempted to overwrite exec result: " + execResult + " -> " + newResult;
+                throw execExceptionFor(new RuntimeException(message), currentState);
+            }
+            this.execResult = newResult;
         } finally {
             lock.unlock();
         }
@@ -215,7 +212,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         LOGGER.debug("Process '{}' finished with exit value {} (state: {})", displayName, exitValue, newState);
 
         if (currentState != ExecHandleState.DETACHED && newState != ExecHandleState.DETACHED) {
-            broadcast.getSource().executionFinished(this, result);
+            broadcast.getSource().executionFinished(this, execResult);
         }
         executor.requestStop();
     }
@@ -252,7 +249,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
             while (stateIn(ExecHandleState.STARTING)) {
                 LOGGER.debug("Waiting until process started: {}.", displayName);
                 try {
-                    condition.await();
+                    stateChanged.await();
                 } catch (InterruptedException e) {
                     //ok, wrapping up
                 }
@@ -291,7 +288,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         try {
             while (!stateIn(ExecHandleState.SUCCEEDED, ExecHandleState.ABORTED, ExecHandleState.FAILED, ExecHandleState.DETACHED)) {
                 try {
-                    condition.await();
+                    stateChanged.await();
                 } catch (InterruptedException e) {
                     //ok, wrapping up...
                     throw UncheckedException.throwAsUncheckedException(e);
