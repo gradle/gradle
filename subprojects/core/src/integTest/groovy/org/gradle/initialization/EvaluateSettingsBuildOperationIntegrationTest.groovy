@@ -31,9 +31,7 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
         succeeds('help')
 
         then:
-        operations().size() == 1
-        operations()[0].details.settingsDir == settingsFile.parentFile.absolutePath
-        operations()[0].details.settingsFile == settingsFile.absolutePath
+        verifySettings(operation(), settingsFile)
     }
 
     def "settings with master folder are exposed"() {
@@ -51,8 +49,7 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
         succeeds('help')
 
         then:
-        operations()[0].details.settingsDir == customSettingsFile.parentFile.absolutePath
-        operations()[0].details.settingsFile == customSettingsFile.absolutePath
+        verifySettings(operation(), customSettingsFile)
     }
 
     def "settings set via cmdline flag are exposed"() {
@@ -69,8 +66,7 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
         succeeds('help')
 
         then:
-        operations()[0].details.settingsDir == customSettingsDir.absolutePath
-        operations()[0].details.settingsFile == customSettingsFile.absolutePath
+        verifySettings(operation(), customSettingsFile)
     }
 
     def "composite participants expose their settings details"() {
@@ -97,15 +93,22 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
 
         then:
         operations().size() == 2
-        operations()[0].details.settingsDir == nestedSettingsFile.parentFile.absolutePath
-        operations()[0].details.settingsFile == nestedSettingsFile.absolutePath
-
-        operations()[1].details.settingsDir == settingsFile.parentFile.absolutePath
-        operations()[1].details.settingsFile == settingsFile.absolutePath
+        verifySettings(operations()[0], nestedSettingsFile)
+        verifySettings(operations()[1], settingsFile)
     }
 
     private List<BuildOperationRecord> operations() {
         buildOperations.all(EvaluateSettingsBuildOperationType)
+    }
+
+    private BuildOperationRecord operation() {
+        assert operations().size() == 1
+        operations()[0]
+    }
+
+    private void verifySettings(BuildOperationRecord operation, File settingsFile) {
+        assert operation.details.settingsDir == settingsFile.parentFile.absolutePath
+        assert operation.details.settingsFile == settingsFile.absolutePath
     }
 
 }
