@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.ValueSnapshot;
-import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;
@@ -48,7 +47,7 @@ class InputPropertiesTaskStateChanges extends SimpleTaskStateChanges {
             if (previousSnapshot == null) {
                 added.add(propertyName);
             } else {
-                if (currentSnapshot.equals(previousSnapshot)) {
+                if (!currentSnapshot.equals(previousSnapshot)) {
                     changed.add(propertyName);
                 }
             }
