@@ -35,9 +35,9 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.progress.BuildOperationState;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.internal.progress.BuildOperationState;
 import org.gradle.internal.work.AsyncWorkTracker;
 
 import java.util.ArrayList;
@@ -84,12 +84,11 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private GradleException executeActions(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         LOGGER.debug("Executing actions for {}.", task);
         final List<ContextAwareTaskAction> actions = new ArrayList<ContextAwareTaskAction>(task.getTaskActions());
-        int actionNumber = 1;
         for (ContextAwareTaskAction action : actions) {
             state.setDidWork(true);
             task.getStandardOutputCapture().start();
             try {
-                executeAction("Execute task action " + actionNumber + "/" + actions.size() + " for " + task.getPath(), task, action, context);
+                executeAction(action.getDisplayName(), task, action, context);
             } catch (StopActionException e) {
                 // Ignore
                 LOGGER.debug("Action stopped by some action with message: {}", e.getMessage());
@@ -101,17 +100,16 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             } finally {
                 task.getStandardOutputCapture().stop();
             }
-            actionNumber++;
         }
         return null;
     }
 
-    private void executeAction(final String displayName, final TaskInternal task, final ContextAwareTaskAction action, TaskExecutionContext context) {
+    private void executeAction(final String actionDisplayName, final TaskInternal task, final ContextAwareTaskAction action, TaskExecutionContext context) {
         action.contextualise(context);
         buildOperationExecutor.run(new RunnableBuildOperation() {
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName(displayName);
+                return BuildOperationDescriptor.displayName(actionDisplayName + " for " + task.getPath()).name(actionDisplayName);
             }
 
             @Override

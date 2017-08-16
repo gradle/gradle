@@ -20,6 +20,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.gradle.api.Action;
+import org.gradle.api.Describable;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
@@ -118,7 +119,7 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
         };
     }
 
-    private static class StandardTaskAction implements ClassLoaderAwareTaskAction {
+    private static class StandardTaskAction implements ClassLoaderAwareTaskAction, Describable {
         private final Class<? extends Task> type;
         private final Method method;
 
@@ -149,6 +150,11 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
         @Override
         public String getActionClassName() {
             return type.getName();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "Execute " + method.getName();
         }
     }
 

@@ -17,6 +17,7 @@ dependencies {
     testFixturesCompile project(':internalIntegTesting')
 
     integTestRuntime project(":toolingApiBuilders")
+    integTestRuntime rootProject.configurations.testRuntime.allDependencies
 
     // Need these to be loaded into the crossVersionTestRuntime, so that the modules are available on the classpath and the services can be registered
     // I think this is only really required for the TAPI tests in embedded mode, where we use `GradleConnector.useClasspathDistribution()`.
@@ -26,6 +27,7 @@ dependencies {
     crossVersionTestRuntime project(":ivy")
     crossVersionTestRuntime project(":maven")
     crossVersionTestRuntime project(":compositeBuilds")
+    crossVersionTestRuntime rootProject.configurations.testRuntime.allDependencies
 }
 
 useTestFixtures()
