@@ -335,7 +335,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (requireDaemon) {
             executer.requireDaemon();
         }
-        if(searchUpwards){
+        if (searchUpwards) {
             executer.withSearchUpwards();
         }
 
