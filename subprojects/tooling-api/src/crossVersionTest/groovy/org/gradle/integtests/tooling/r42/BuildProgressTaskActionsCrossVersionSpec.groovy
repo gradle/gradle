@@ -22,7 +22,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.Requires
-import spock.lang.Ignore
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 import static org.gradle.util.TestPrecondition.NOT_WINDOWS
@@ -38,11 +37,18 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
         settingsFile << "rootProject.name = 'root'"
     }
 
-    @Ignore("need to generate some stale outputs to see the clean stale outputs operation")
     //This is not a task action, but it is logged on the same level as the actions
     def "clean stale output action has an informative name"() {
         given:
-        buildFile << "task custom { doLast {} }"
+        buildFile << """              
+            apply plugin: 'base'
+    
+            task custom {
+                outputs.dir 'build/outputs'
+                doLast {} }
+        """.stripIndent()
+
+        file('build/outputs/some-stale-file').text = "Stale file"
 
         when:
         runCustomTask()
