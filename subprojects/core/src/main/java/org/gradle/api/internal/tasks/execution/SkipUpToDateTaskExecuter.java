@@ -48,7 +48,6 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
         LOGGER.debug("Determining if {} is up-to-date", task);
         Timer clock = Timers.startTimer();
         TaskArtifactState taskArtifactState = context.getTaskArtifactState();
-        taskArtifactState.ensureSnapshotBeforeTask();
 
         List<String> messages = new ArrayList<String>(TaskUpToDateState.MAX_OUT_OF_DATE_MESSAGES);
         if (taskArtifactState.isUpToDate(messages)) {

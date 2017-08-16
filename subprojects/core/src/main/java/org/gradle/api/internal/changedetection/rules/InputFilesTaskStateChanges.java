@@ -43,9 +43,4 @@ public class InputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSta
     public Iterator<TaskStateChange> iterator() {
         return getFileChanges(true);
     }
-
-    @Override
-    public void snapshotAfterTask() {
-        // Inputs have already been saved in constructor
-    }
 }

@@ -48,8 +48,4 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
     public Iterator<TaskStateChange> iteratorIncludingAdded() {
         return getFileChanges(true);
     }
-
-    @Override
-    public void snapshotAfterTask() {
-    }
 }

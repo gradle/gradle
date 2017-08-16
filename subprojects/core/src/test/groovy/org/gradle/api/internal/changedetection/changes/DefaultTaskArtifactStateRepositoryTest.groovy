@@ -106,8 +106,9 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
             classLoaderHierarchyHasher,
             new ValueSnapshotter(classLoaderHierarchyHasher),
             snapshotterRegistry,
+            TestFiles.fileCollectionFactory(),
             buildScopeId)
-        repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, DirectInstantiator.INSTANCE, snapshotterRegistry, TestFiles.fileCollectionFactory(), taskOutputFilesRepository)
+        repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, DirectInstantiator.INSTANCE, taskOutputFilesRepository)
     }
 
     def "artifacts are not up to date when cache is empty"() {
