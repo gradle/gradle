@@ -32,8 +32,8 @@ public abstract class TaskExecution {
     private final ImmutableSortedMap<String, ValueSnapshot> inputProperties;
     private final ImmutableSortedSet<String> outputPropertyNamesForCacheKey;
     private final ImmutableSet<String> declaredOutputFilePaths;
+    private final OverlappingOutputs detectedOverlappingOutputs;
     private boolean successful;
-    private OverlappingOutputs detectedOverlappingOutputs;
 
     public TaskExecution(
         UniqueId buildInvocationId,
@@ -42,7 +42,8 @@ public abstract class TaskExecution {
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
         ImmutableSortedSet<String> outputPropertyNames,
         ImmutableSet<String> declaredOutputFilePaths,
-        boolean successful) {
+        boolean successful,
+        OverlappingOutputs detectedOverlappingOutputs) {
         this.buildInvocationId = buildInvocationId;
         this.taskImplementation = taskImplementation;
         this.taskActionImplementations = taskActionImplementations;
@@ -50,6 +51,7 @@ public abstract class TaskExecution {
         this.outputPropertyNamesForCacheKey = outputPropertyNames;
         this.declaredOutputFilePaths = declaredOutputFilePaths;
         this.successful = successful;
+        this.detectedOverlappingOutputs = detectedOverlappingOutputs;
     }
 
     public boolean isSuccessful() {
@@ -104,17 +106,11 @@ public abstract class TaskExecution {
 
     public abstract ImmutableSortedMap<String, FileCollectionSnapshot> getInputFilesSnapshot();
 
-    public abstract void setInputFilesSnapshot(ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot);
-
     public abstract FileCollectionSnapshot getDiscoveredInputFilesSnapshot();
 
     public abstract void setDiscoveredInputFilesSnapshot(FileCollectionSnapshot inputFilesSnapshot);
 
     public OverlappingOutputs getDetectedOverlappingOutputs() {
         return detectedOverlappingOutputs;
-    }
-
-    public void setDetectedOverlappingOutputs(OverlappingOutputs detectedOverlappingOutputs) {
-        this.detectedOverlappingOutputs = detectedOverlappingOutputs;
     }
 }

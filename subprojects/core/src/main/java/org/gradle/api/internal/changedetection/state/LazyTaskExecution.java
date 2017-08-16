@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
+import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.internal.id.UniqueId;
 
 import java.util.Map;
@@ -46,10 +47,11 @@ public class LazyTaskExecution extends TaskExecution {
             taskExecutionSnapshot.getCacheableOutputProperties(),
             taskExecutionSnapshot.getDeclaredOutputFilePaths(),
             taskExecutionSnapshot.isSuccessful(),
-            taskExecutionSnapshot.getInputFilesSnapshotIds(),
-            taskExecutionSnapshot.getDiscoveredFilesSnapshotId(),
-            taskExecutionSnapshot.getOutputFilesSnapshotIds()
+            null
         );
+        this.inputFilesSnapshotIds = taskExecutionSnapshot.getInputFilesSnapshotIds();
+        this.discoveredFilesSnapshotId = taskExecutionSnapshot.getDiscoveredFilesSnapshotId();
+        this.outputFilesSnapshotIds = taskExecutionSnapshot.getOutputFilesSnapshotIds();
     }
 
     public LazyTaskExecution(
@@ -59,7 +61,11 @@ public class LazyTaskExecution extends TaskExecution {
         ImmutableList<ImplementationSnapshot> taskActionsImplementations,
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
         ImmutableSortedSet<String> outputPropertyNames,
-        ImmutableSet<String> declaredOutputFilePaths
+        ImmutableSet<String> declaredOutputFilePaths,
+        ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot,
+        FileCollectionSnapshot discoveredFilesSnapshot,
+        ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot,
+        OverlappingOutputs detectedOverlappingOutputs
     ) {
         this(
             snapshotRepository,
@@ -70,38 +76,35 @@ public class LazyTaskExecution extends TaskExecution {
             outputPropertyNames,
             declaredOutputFilePaths,
             false,
-            null,
-            null,
-            null
+            detectedOverlappingOutputs
         );
+        this.inputFilesSnapshot = inputFilesSnapshot;
+        this.discoveredFilesSnapshot = discoveredFilesSnapshot;
+        this.outputFilesSnapshot = outputFilesSnapshot;
     }
 
     private LazyTaskExecution(
         FileSnapshotRepository snapshotRepository,
         UniqueId buildInvocationId,
         ImplementationSnapshot taskImplementation,
-        ImmutableList<ImplementationSnapshot> taskActionsImplementations,
+        ImmutableList<ImplementationSnapshot> taskActionImplementations,
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
         ImmutableSortedSet<String> outputPropertyNames,
         ImmutableSet<String> declaredOutputFilePaths,
         boolean successful,
-        ImmutableSortedMap<String, Long> inputFilesSnapshotIds,
-        Long discoveredFilesSnapshotId,
-        ImmutableSortedMap<String, Long> outputFilesSnapshotIds
+        OverlappingOutputs detectedOverlappingOutputs
     ) {
         super(
             buildInvocationId,
             taskImplementation,
-            taskActionsImplementations,
+            taskActionImplementations,
             inputProperties,
             outputPropertyNames,
             declaredOutputFilePaths,
-            successful
+            successful,
+            detectedOverlappingOutputs
         );
         this.snapshotRepository = snapshotRepository;
-        this.inputFilesSnapshotIds = inputFilesSnapshotIds;
-        this.discoveredFilesSnapshotId = discoveredFilesSnapshotId;
-        this.outputFilesSnapshotIds = outputFilesSnapshotIds;
     }
 
     @Override
@@ -114,12 +117,6 @@ public class LazyTaskExecution extends TaskExecution {
             inputFilesSnapshot = builder.build();
         }
         return inputFilesSnapshot;
-    }
-
-    @Override
-    public void setInputFilesSnapshot(ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot) {
-        this.inputFilesSnapshot = inputFilesSnapshot;
-        this.inputFilesSnapshotIds = null;
     }
 
     @Override

@@ -148,16 +148,9 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         ImmutableSortedSet<String> outputPropertyNames = getOutputPropertyNamesForCacheKey(task);
         ImmutableSet<String> declaredOutputFilePaths = getDeclaredOutputFilePaths(task, stringInterner);
 
-        LazyTaskExecution execution = new LazyTaskExecution(snapshotRepository, buildInvocationScopeId.getId(), taskImplementation, taskActionImplementations, inputProperties, outputPropertyNames, declaredOutputFilePaths);
-
         ImmutableSortedMap<String, FileCollectionSnapshot> inputFiles = snapshotTaskFiles(task, "Input",  normalizationStrategy, task.getInputs().getFileProperties(), snapshotterRegistry);
-        execution.setInputFilesSnapshot(inputFiles);
 
         ImmutableSortedMap<String, FileCollectionSnapshot> outputFiles = snapshotTaskFiles(task, "Output",  normalizationStrategy, task.getOutputs().getFileProperties(), snapshotterRegistry);
-        execution.setOutputFilesSnapshot(outputFiles);
-
-        OverlappingOutputs overlappingOutputs = detectOverlappingOutputs(outputFiles, previousExecution);
-        execution.setDetectedOverlappingOutputs(overlappingOutputs);
 
         FileCollectionSnapshot previousDiscoveredInputs = previousExecution == null ? null : previousExecution.getDiscoveredInputFilesSnapshot();
         FileCollectionSnapshot discoveredInputs;
@@ -166,9 +159,22 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         } else {
             discoveredInputs = FileCollectionSnapshot.EMPTY;
         }
-        execution.setDiscoveredInputFilesSnapshot(discoveredInputs);
 
-        return execution;
+        OverlappingOutputs overlappingOutputs = detectOverlappingOutputs(outputFiles, previousExecution);
+
+        return new LazyTaskExecution(
+            snapshotRepository,
+            buildInvocationScopeId.getId(),
+            taskImplementation,
+            taskActionImplementations,
+            inputProperties,
+            outputPropertyNames,
+            declaredOutputFilePaths,
+            inputFiles,
+            discoveredInputs,
+            outputFiles,
+            overlappingOutputs
+        );
     }
 
     private void updateExecution(final TaskExecution previousExecution, LazyTaskExecution currentExecution, TaskInternal task, IncrementalTaskInputsInternal taskInputs, InputNormalizationStrategy normalizationStrategy) {
