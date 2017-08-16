@@ -126,7 +126,7 @@
                     <td>twirlTemplates</td>
                     <td><apilink class="org.gradle.language.twirl.TwirlSourceSet"/></td>
                     <td>app</td>
-                    <td>**/*.html</td>
+                    <td>**/*.scala.*</td>
                 </tr>
                 <tr>
                     <td>javaScript</td>
@@ -287,10 +287,10 @@
                     <literal>compilePlayBinaryPlayTwirlTemplates</literal>
                 </td>
                 <td>
-                    Twirl HTML templates
+                    Twirl templates
                 </td>
                 <td><apilink class="org.gradle.play.tasks.TwirlCompile"/></td>
-                <td>Compiles HTML templates with the Twirl compiler.</td>
+                <td>Compiles Twirl templates with the Twirl compiler. Gradle supports all of the built-in Twirl template formats (HTML, XML, TXT and JavaScript). Twirl templates need to match the pattern <literal>*.scala.*</literal>.</td>
             </tr>
             <tr>
                 <td>
@@ -438,6 +438,12 @@
             <sample id="configureRoutesCompiler" dir="play/play-2.4" title="Configuring routes style">
                 <sourcefile file="build.gradle" snippet="play-injected-routes-compiler"/>
             </sample>
+        </section>
+        <section id="sec:configuring_a_custom_twirl_template_format">
+            <title>Configuring a custom Twirl template format</title>
+            <para>
+                A custom Twirl template format can be configured independently for each Twirl source set. See the <apilink class="org.gradle.language.twirl.TwirlSourceSet"/> for an example.
+            </para>
         </section>
         <section id="sec:injecting_a_custom_asset_pipeline">
             <title>Injecting a custom asset pipeline</title>

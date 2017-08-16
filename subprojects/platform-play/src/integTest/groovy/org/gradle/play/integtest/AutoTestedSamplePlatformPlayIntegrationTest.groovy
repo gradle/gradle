@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.twirl;
+package org.gradle.play.integtest
 
-import org.gradle.api.internal.file.RelativeFile;
-import org.gradle.language.twirl.TwirlImports;
-import org.gradle.language.twirl.TwirlTemplateFormat;
-import org.gradle.play.internal.spec.PlayCompileSpec;
+import org.gradle.integtests.fixtures.AbstractAutoTestedSamplesTest
+import org.junit.Test
 
-import java.io.Serializable;
-import java.util.Collection;
-
-public interface TwirlCompileSpec extends PlayCompileSpec, Serializable {
-    Iterable<RelativeFile> getSources();
-
-    TwirlImports getDefaultImports();
-
-    Collection<TwirlTemplateFormat> getUserTemplateFormats();
+class AutoTestedSamplePlatformPlayIntegrationTest extends AbstractAutoTestedSamplesTest {
+    @Test
+    void runSamples() {
+        runSamplesFrom("subprojects/platform-play/src/main")
+    }
 }

@@ -73,6 +73,14 @@ TODO Placeholder
 
 TODO Placeholder
 
+#### Support for built-in Twirl template types
+
+Gradle now supports built-in Twirl templates for HTML, JavaScript, TXT and XML.
+
+#### Support for custom Twirl template formats
+
+A [`TwirlSourceSet`](dsl/org.gradle.language.twirl.TwirlSourceSet.html) can now be configured to use user-defined template formats.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

@@ -71,7 +71,7 @@ public abstract class AbstractClasspathSnapshotBuilder extends FileCollectionSna
 
     @Override
     public void visitFileSnapshot(RegularFileSnapshot file) {
-        if (FileUtils.isJar(file.getName())) {
+        if (FileUtils.hasExtensionIgnoresCase(file.getName(), ".jar")) {
             visitJar(file);
         } else {
             visitNonJar(file);
