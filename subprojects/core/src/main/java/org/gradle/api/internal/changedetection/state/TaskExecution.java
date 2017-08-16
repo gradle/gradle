@@ -41,13 +41,15 @@ public abstract class TaskExecution {
         ImmutableList<ImplementationSnapshot> taskActionImplementations,
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
         ImmutableSortedSet<String> outputPropertyNames,
-        ImmutableSet<String> declaredOutputFilePaths) {
+        ImmutableSet<String> declaredOutputFilePaths,
+        boolean successful) {
         this.buildInvocationId = buildInvocationId;
         this.taskImplementation = taskImplementation;
         this.taskActionImplementations = taskActionImplementations;
         this.inputProperties = inputProperties;
         this.outputPropertyNamesForCacheKey = outputPropertyNames;
         this.declaredOutputFilePaths = declaredOutputFilePaths;
+        this.successful = successful;
     }
 
     public boolean isSuccessful() {

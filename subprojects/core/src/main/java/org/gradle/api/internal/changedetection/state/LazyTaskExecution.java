@@ -36,7 +36,7 @@ public class LazyTaskExecution extends TaskExecution {
     /**
      * Creates a mutable copy of the given snapshot.
      */
-    LazyTaskExecution(TaskExecutionSnapshot taskExecutionSnapshot, FileSnapshotRepository snapshotRepository) {
+    public LazyTaskExecution(FileSnapshotRepository snapshotRepository, TaskExecutionSnapshot taskExecutionSnapshot) {
         this(
             snapshotRepository,
             taskExecutionSnapshot.getBuildInvocationId(),
@@ -44,12 +44,12 @@ public class LazyTaskExecution extends TaskExecution {
             taskExecutionSnapshot.getTaskActionsImplementations(),
             taskExecutionSnapshot.getInputProperties(),
             taskExecutionSnapshot.getCacheableOutputProperties(),
-            taskExecutionSnapshot.getDeclaredOutputFilePaths()
+            taskExecutionSnapshot.getDeclaredOutputFilePaths(),
+            taskExecutionSnapshot.isSuccessful(),
+            taskExecutionSnapshot.getInputFilesSnapshotIds(),
+            taskExecutionSnapshot.getDiscoveredFilesSnapshotId(),
+            taskExecutionSnapshot.getOutputFilesSnapshotIds()
         );
-        setSuccessful(taskExecutionSnapshot.isSuccessful());
-        this.setInputFilesSnapshotIds(taskExecutionSnapshot.getInputFilesSnapshotIds());
-        this.setOutputFilesSnapshotIds(taskExecutionSnapshot.getOutputFilesSnapshotIds());
-        this.setDiscoveredFilesSnapshotId(taskExecutionSnapshot.getDiscoveredFilesSnapshotId());
     }
 
     public LazyTaskExecution(
@@ -61,16 +61,55 @@ public class LazyTaskExecution extends TaskExecution {
         ImmutableSortedSet<String> outputPropertyNames,
         ImmutableSet<String> declaredOutputFilePaths
     ) {
-        super(buildInvocationId, taskImplementation, taskActionsImplementations, inputProperties, outputPropertyNames, declaredOutputFilePaths);
+        this(
+            snapshotRepository,
+            buildInvocationId,
+            taskImplementation,
+            taskActionsImplementations,
+            inputProperties,
+            outputPropertyNames,
+            declaredOutputFilePaths,
+            false,
+            null,
+            null,
+            null
+        );
+    }
+
+    private LazyTaskExecution(
+        FileSnapshotRepository snapshotRepository,
+        UniqueId buildInvocationId,
+        ImplementationSnapshot taskImplementation,
+        ImmutableList<ImplementationSnapshot> taskActionsImplementations,
+        ImmutableSortedMap<String, ValueSnapshot> inputProperties,
+        ImmutableSortedSet<String> outputPropertyNames,
+        ImmutableSet<String> declaredOutputFilePaths,
+        boolean successful,
+        ImmutableSortedMap<String, Long> inputFilesSnapshotIds,
+        Long discoveredFilesSnapshotId,
+        ImmutableSortedMap<String, Long> outputFilesSnapshotIds
+    ) {
+        super(
+            buildInvocationId,
+            taskImplementation,
+            taskActionsImplementations,
+            inputProperties,
+            outputPropertyNames,
+            declaredOutputFilePaths,
+            successful
+        );
         this.snapshotRepository = snapshotRepository;
+        this.inputFilesSnapshotIds = inputFilesSnapshotIds;
+        this.discoveredFilesSnapshotId = discoveredFilesSnapshotId;
+        this.outputFilesSnapshotIds = outputFilesSnapshotIds;
     }
 
     @Override
     public ImmutableSortedMap<String, FileCollectionSnapshot> getInputFilesSnapshot() {
         if (inputFilesSnapshot == null) {
             ImmutableSortedMap.Builder<String, FileCollectionSnapshot> builder = ImmutableSortedMap.naturalOrder();
-            for (Map.Entry<String, Long> entry : getInputFilesSnapshotIds().entrySet()) {
-                builder.put(entry.getKey(), getSnapshotRepository().get(entry.getValue()));
+            for (Map.Entry<String, Long> entry : inputFilesSnapshotIds.entrySet()) {
+                builder.put(entry.getKey(), snapshotRepository.get(entry.getValue()));
             }
             inputFilesSnapshot = builder.build();
         }
@@ -80,30 +119,30 @@ public class LazyTaskExecution extends TaskExecution {
     @Override
     public void setInputFilesSnapshot(ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot) {
         this.inputFilesSnapshot = inputFilesSnapshot;
-        this.setInputFilesSnapshotIds(null);
+        this.inputFilesSnapshotIds = null;
     }
 
     @Override
     public FileCollectionSnapshot getDiscoveredInputFilesSnapshot() {
-        if (getDiscoveredFilesSnapshot() == null) {
-            setDiscoveredFilesSnapshot(getSnapshotRepository().get(getDiscoveredFilesSnapshotId()));
+        if (discoveredFilesSnapshot == null) {
+            discoveredFilesSnapshot = snapshotRepository.get(discoveredFilesSnapshotId);
         }
-        return getDiscoveredFilesSnapshot();
+        return discoveredFilesSnapshot;
     }
 
     @Override
     public void setDiscoveredInputFilesSnapshot(FileCollectionSnapshot discoveredFilesSnapshot) {
-        this.setDiscoveredFilesSnapshot(discoveredFilesSnapshot);
-        this.setDiscoveredFilesSnapshotId(null);
+        this.discoveredFilesSnapshot = discoveredFilesSnapshot;
+        this.discoveredFilesSnapshotId = null;
     }
 
     @Override
     public ImmutableSortedMap<String, FileCollectionSnapshot> getOutputFilesSnapshot() {
         if (outputFilesSnapshot == null) {
             ImmutableSortedMap.Builder<String, FileCollectionSnapshot> builder = ImmutableSortedMap.naturalOrder();
-            for (Map.Entry<String, Long> entry : getOutputFilesSnapshotIds().entrySet()) {
+            for (Map.Entry<String, Long> entry : outputFilesSnapshotIds.entrySet()) {
                 String propertyName = entry.getKey();
-                builder.put(propertyName, getSnapshotRepository().get(entry.getValue()));
+                builder.put(propertyName, snapshotRepository.get(entry.getValue()));
             }
             outputFilesSnapshot = builder.build();
         }
@@ -113,7 +152,7 @@ public class LazyTaskExecution extends TaskExecution {
     @Override
     public void setOutputFilesSnapshot(ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot) {
         this.outputFilesSnapshot = outputFilesSnapshot;
-        setOutputFilesSnapshotIds(null);
+        this.outputFilesSnapshotIds = null;
     }
 
     public TaskExecutionSnapshot snapshot() {
@@ -125,46 +164,45 @@ public class LazyTaskExecution extends TaskExecution {
             getOutputPropertyNamesForCacheKey(),
             getDeclaredOutputFilePaths(),
             getInputProperties(),
-            getInputFilesSnapshotIds(),
-            getDiscoveredFilesSnapshotId(),
-            getOutputFilesSnapshotIds()
+            inputFilesSnapshotIds,
+            discoveredFilesSnapshotId,
+            outputFilesSnapshotIds
         );
     }
 
-    public ImmutableSortedMap<String, Long> getInputFilesSnapshotIds() {
-        return inputFilesSnapshotIds;
+    public void storeSnapshots() {
+        if (inputFilesSnapshotIds == null && inputFilesSnapshot != null) {
+            ImmutableSortedMap.Builder<String, Long> builder = ImmutableSortedMap.naturalOrder();
+            for (Map.Entry<String, FileCollectionSnapshot> entry : inputFilesSnapshot.entrySet()) {
+                builder.put(entry.getKey(), snapshotRepository.add(entry.getValue()));
+            }
+            inputFilesSnapshotIds = builder.build();
+        }
+        if (outputFilesSnapshotIds == null && outputFilesSnapshot != null) {
+            ImmutableSortedMap.Builder<String, Long> builder = ImmutableSortedMap.naturalOrder();
+            for (Map.Entry<String, FileCollectionSnapshot> entry : outputFilesSnapshot.entrySet()) {
+                builder.put(entry.getKey(), snapshotRepository.add(entry.getValue()));
+            }
+            outputFilesSnapshotIds = builder.build();
+        }
+        if (discoveredFilesSnapshotId == null && discoveredFilesSnapshot != null) {
+            discoveredFilesSnapshotId = snapshotRepository.add(discoveredFilesSnapshot);
+        }
     }
 
-    public void setInputFilesSnapshotIds(ImmutableSortedMap<String, Long> inputFilesSnapshotIds) {
-        this.inputFilesSnapshotIds = inputFilesSnapshotIds;
+    public void removeUnnecessarySnapshots() {
+        if (inputFilesSnapshotIds != null) {
+            for (Long id : inputFilesSnapshotIds.values()) {
+                snapshotRepository.remove(id);
+            }
+        }
+        if (outputFilesSnapshotIds != null) {
+            for (Long id : outputFilesSnapshotIds.values()) {
+                snapshotRepository.remove(id);
+            }
+        }
+        if (discoveredFilesSnapshotId != null) {
+            snapshotRepository.remove(discoveredFilesSnapshotId);
+        }
     }
-
-    public ImmutableSortedMap<String, Long> getOutputFilesSnapshotIds() {
-        return outputFilesSnapshotIds;
-    }
-
-    public void setOutputFilesSnapshotIds(ImmutableSortedMap<String, Long> outputFilesSnapshotIds) {
-        this.outputFilesSnapshotIds = outputFilesSnapshotIds;
-    }
-
-    public Long getDiscoveredFilesSnapshotId() {
-        return discoveredFilesSnapshotId;
-    }
-
-    public void setDiscoveredFilesSnapshotId(Long discoveredFilesSnapshotId) {
-        this.discoveredFilesSnapshotId = discoveredFilesSnapshotId;
-    }
-
-    public FileSnapshotRepository getSnapshotRepository() {
-        return snapshotRepository;
-    }
-
-    public FileCollectionSnapshot getDiscoveredFilesSnapshot() {
-        return discoveredFilesSnapshot;
-    }
-
-    public void setDiscoveredFilesSnapshot(FileCollectionSnapshot discoveredFilesSnapshot) {
-        this.discoveredFilesSnapshot = discoveredFilesSnapshot;
-    }
-
 }
