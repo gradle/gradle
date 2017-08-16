@@ -34,11 +34,11 @@
     </part>
     <part>
         <title>Working with existing builds</title>
-        <xi:include href='installation.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/installation.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/commandLineTutorial.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/console.xml'/>
-        <xi:include href='gradleWrapper.xml'/>
-        <xi:include href='gradleDaemon.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/gradleWrapper.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/gradleDaemon.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/artifactDependenciesTutorial.xml'/>
         <xi:include href='introMultiProjectBuilds.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/continuousBuild.xml'/>
@@ -82,7 +82,7 @@
         <xi:include href='../../../build/asciidoc/userguide/customPlugins.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/javaGradlePlugin.xml' />
         <xi:include href='organizeBuildLogic.xml'/>
-        <xi:include href='initscripts.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/initscripts.xml'/>
         <xi:include href='testKit.xml' />
     </part>
     <part>
@@ -108,7 +108,7 @@
         <xi:include href='jacocoPlugin.xml'/>
         <xi:include href='osgi.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/eclipsePlugin.xml'/>
-        <xi:include href='ideaPlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/ideaPlugin.xml'/>
     </part>
     <part>
         <title>The Software model</title>
