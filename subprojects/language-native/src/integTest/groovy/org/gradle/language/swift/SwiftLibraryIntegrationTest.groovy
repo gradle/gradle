@@ -210,7 +210,6 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
                 dependencies {
                     implementation project(':lib2')
                 }
-                tasks.withType(SwiftCompile)*.moduleName = 'Hello'
             }
             project(':lib2') {
                 apply plugin: 'swift-library'
