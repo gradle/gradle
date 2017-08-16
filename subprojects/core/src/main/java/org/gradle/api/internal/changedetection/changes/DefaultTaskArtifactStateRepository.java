@@ -155,13 +155,10 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         @Override
         public void snapshotAfterTask(Throwable failure) {
-            TaskUpToDateState taskState = getStates();
-
-            TaskHistoryRepository.History history = this.history;
             history.updateCurrentExecution(taskInputs);
 
             // Only persist task history if there was no failure, or some output files have been changed
-            if (failure == null || taskState.hasAnyOutputFileChanges()) {
+            if (failure == null || getStates().hasAnyOutputFileChanges()) {
                 history.persist();
                 ImmutableSet<String> outputFilePaths = history.getCurrentExecution().getDeclaredOutputFilePaths();
                 taskOutputFilesRepository.recordOutputs(outputFilePaths);
@@ -170,9 +167,10 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         private TaskUpToDateState getStates() {
             if (states == null) {
+                TaskExecution previousExecution = history.getPreviousExecution();
                 // Calculate initial state - note this is potentially expensive
-                TaskHistoryRepository.History history = this.history;
-                states = new TaskUpToDateState(history.getPreviousExecution(), history.getCurrentExecution(), task);
+                TaskExecution currentExecution = history.getCurrentExecution();
+                states = new TaskUpToDateState(previousExecution, currentExecution, task);
             }
             return states;
         }
