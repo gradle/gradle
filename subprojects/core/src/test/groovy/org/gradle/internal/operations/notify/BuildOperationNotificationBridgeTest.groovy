@@ -264,7 +264,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
             "progress",
             "Details",
             BuildOperationCategory.UNCATEGORIZED)
-        return new BuildOperationRecorder.RecordedBuildOperation(operationDescriptor, buildOperationEvent)
+        return new BuildOperationRecorder.RecordedBuildOperation(operationDescriptor, buildOperationEvent, org.gradle.internal.operations.recorder.BuildOperationRecorder.RecordedBuildOperation.OperationEventType.START)
     }
 
     void register(BuildOperationNotificationListener listener, List<BuildOperationRecorder.RecordedBuildOperation> recordedBuildOps = []) {

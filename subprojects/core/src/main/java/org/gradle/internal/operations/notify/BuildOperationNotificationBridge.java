@@ -71,7 +71,7 @@ class BuildOperationNotificationBridge implements BuildOperationNotificationList
             for (BuildOperationRecorder.RecordedBuildOperation storedEvent : recordedBuildOperations) {
                 BuildOperationDescriptor buildOperationDescriptor = storedEvent.buildOperation;
                 Object event = storedEvent.event;
-                if (event instanceof OperationStartEvent) {
+                if (storedEvent.eventType == BuildOperationRecorder.RecordedBuildOperation.OperationEventType.START) {
                     operationListener.started(buildOperationDescriptor, (OperationStartEvent) event);
                 } else {
                     operationListener.finished(buildOperationDescriptor, (OperationFinishEvent) event);

@@ -38,12 +38,12 @@ public class BuildOperationRecorder implements Stoppable {
         this.listener = new BuildOperationListener() {
             @Override
             public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-                recordedEvents.add(new RecordedBuildOperation(buildOperation, startEvent));
+                recordedEvents.add(new RecordedBuildOperation(buildOperation, startEvent, RecordedBuildOperation.OperationEventType.START));
             }
 
             @Override
             public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-                recordedEvents.add(new RecordedBuildOperation(buildOperation, finishEvent));
+                recordedEvents.add(new RecordedBuildOperation(buildOperation, finishEvent, RecordedBuildOperation.OperationEventType.FINISHED));
             }
         };
         this.listenerManager.addListener(listener);
@@ -63,10 +63,17 @@ public class BuildOperationRecorder implements Stoppable {
     public static class RecordedBuildOperation {
         public final BuildOperationDescriptor buildOperation;
         public final Object event;
+        public final OperationEventType eventType;
 
-        public RecordedBuildOperation(BuildOperationDescriptor buildOperation, Object event) {
+        public RecordedBuildOperation(BuildOperationDescriptor buildOperation, Object event, OperationEventType eventType) {
             this.buildOperation = buildOperation;
             this.event = event;
+            this.eventType = eventType;
+        }
+
+        public enum OperationEventType {
+            START,
+            FINISHED
         }
     }
 }
