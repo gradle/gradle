@@ -64,7 +64,7 @@ The IDEA plugin adds the tasks shown below to a project. Notice that the `clean`
 
 | `idea`
 | `ideaProject`, `ideaModule`, `ideaWorkspace`
-| `-`
+| -
 | Generates all IDEA configuration files
 
 | `cleanIdea`
@@ -73,32 +73,32 @@ The IDEA plugin adds the tasks shown below to a project. Notice that the `clean`
 | Removes all IDEA configuration files
 
 | `cleanIdeaProject`
-| `-`
+| -
 | api:org.gradle.api.tasks.Delete[]
 | Removes the IDEA project file
 
 | `cleanIdeaModule`
-| `-`
+| -
 | api:org.gradle.api.tasks.Delete[]
 | Removes the IDEA module file
 
 | `cleanIdeaWorkspace`
-| `-`
+| -
 | api:org.gradle.api.tasks.Delete[]
 | Removes the IDEA workspace file
 
 | `ideaProject`
-| `-`
+| -
 | api:org.gradle.plugins.ide.idea.GenerateIdeaProject[]
 | Generates the `.ipr` file. This task is only added to the root project.
 
 | `ideaModule`
-| `-`
+| -
 | api:org.gradle.plugins.ide.idea.GenerateIdeaModule[]
 | Generates the `.iml` file
 
 | `ideaWorkspace`
-| `-`
+| -
 | api:org.gradle.plugins.ide.idea.GenerateIdeaWorkspace[]
 | Generates the `.iws` file. This task is only added to the root project.
 |===
@@ -173,9 +173,9 @@ The plugin provides objects modeling the sections of the metadata files that are
 [cols="a,a,a,a", options="header"]
 |===
 | Model
-| `beforeMerged { arg -&gt; }` argument type
-| `whenMerged { arg -&gt; }` argument type
-| `withXml { arg -&gt; }` argument type
+| `beforeMerged { arg -> }` argument type
+| `whenMerged { arg -> }` argument type
+| `withXml { arg -> }` argument type
 
 | api:org.gradle.plugins.ide.idea.model.IdeaProject[]
 | api:org.gradle.plugins.ide.idea.model.Project[]

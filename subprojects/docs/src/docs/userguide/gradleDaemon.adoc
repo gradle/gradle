@@ -41,11 +41,9 @@ To get a list of running Gradle Daemons and their statuses use the `--status` co
 Sample output:
 [source]
 ----
-
       PID VERSION                 STATUS
     28411 3.0                     IDLE
     34247 3.0                     BUSY
-
 ----
 
 
@@ -58,14 +56,12 @@ Currently, a given Gradle version can only connect to daemons of the same versio
 The Gradle Daemon is enabled by default, and we recommend always enabling it for developers’ machines. There are several ways to disable the Daemon, but the most common one is to add the line
 [source]
 ----
-
         org.gradle.daemon=false
-
 ----
 
 to the file `«USER_HOME»/.gradle/gradle.properties`, where `«USER_HOME»` is your home directory. That’s typically one of the following, depending on your platform:
 
-* `C:\Users\<username>` (Windows Vista &amp; 7+)
+* `C:\Users\<username>` (Windows Vista & 7+)
 * `/Users/<username>` (Mac OS X)
 * `/home/<username>` (Linux)
 
@@ -113,17 +109,13 @@ Both approaches have the same effect. Which one to use is up to personal prefere
 On Windows, this command will disable the Daemon for the current user:
 [source]
 ----
-
                     (if not exist "%USERPROFILE%/.gradle" mkdir "%USERPROFILE%/.gradle") && (echo. >> "%USERPROFILE%/.gradle/gradle.properties" && echo org.gradle.daemon=false >> "%USERPROFILE%/.gradle/gradle.properties")
-
 ----
 
 On UNIX-like operating systems, the following Bash shell command will disable the Daemon for the current user:
 [source]
 ----
-
                     mkdir -p ~/.gradle && echo "org.gradle.daemon=false" >> ~/.gradle/gradle.properties
-
 ----
 
 Once the Daemon is disabled for a build environment in this way, a Gradle Daemon will not be started unless explicitly requested using the `--daemon` option.
@@ -200,7 +192,7 @@ It is recommended that the Daemon is used in all developer environments. It is r
 The Daemon enables faster builds, which is particularly important when a human is sitting in front of the build. For CI builds, stability and predictability is of utmost importance. Using a fresh runtime (i.e. process) for each build is more reliable as the runtime is _completely_ isolated from previous builds.
 
 [[sec:tools_and_ides]]
-=== Tools &amp; IDEs
+=== Tools & IDEs
 
 The Gradle Tooling API (see <<embedding>>), that is used by IDEs and other tools to integrate with Gradle, _always_ use the Gradle Daemon to execute builds. If you are executing Gradle builds from within you're IDE you are using the Gradle Daemon and do not need to enable it for your environment.
 

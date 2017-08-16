@@ -25,8 +25,8 @@ The Gradle Wrapper (henceforth referred to as the “Wrapper”) solves both the
 
 If a Gradle project has set up the Wrapper (and we recommend all projects do so), you can execute the build using one of the following commands from the root of the project:
 
-* `./gradlew &lt;task&gt;` (on Unix-like platforms such as Linux and Mac OS X)
-* `gradlew &lt;task&gt;` (on Windows using the gradlew.bat batch file)
+* `./gradlew <task>` (on Unix-like platforms such as Linux and Mac OS X)
+* `gradlew <task>` (on Windows using the gradlew.bat batch file)
 
 Each Wrapper is tied to a specific version of Gradle, so when you first run one of the commands above for a given Gradle version, it will download the corresponding Gradle distribution and use it to execute the build.
 
@@ -59,29 +59,29 @@ You install the Wrapper into your project by running the `wrapper` task. (This t
 
 ++++
 <sample id="wrapperCommandLine" dir="userguide/wrapper/simple" title="Running the Wrapper task">
-            <output args="wrapper --gradle-version 2.0"/>
-        </sample>
+    <output args="wrapper --gradle-version 2.0"/>
+</sample>
 ++++
 
 The Wrapper can be further customized by adding and configuring a api:org.gradle.api.tasks.wrapper.Wrapper[] task in your build script, and then executing it.
 
 ++++
 <sample id="wrapperSimple" dir="userguide/wrapper/simple" title="Wrapper task">
-            <sourcefile file="build.gradle"/>
-        </sample>
+    <sourcefile file="build.gradle"/>
+</sample>
 ++++
 
 After such an execution you find the following new or updated files in your project directory (in case the default configuration of the Wrapper task is used).
 
 ++++
 <sample id="wrapperSimple" dir="userguide/wrapper/simple" title="Wrapper generated files">
-            <layout after="wrapper">
-                gradlew
-                gradlew.bat
-                gradle/wrapper/gradle-wrapper.jar
-                gradle/wrapper/gradle-wrapper.properties
-            </layout>
-        </sample>
+    <layout after="wrapper">
+        gradlew
+        gradlew.bat
+        gradle/wrapper/gradle-wrapper.jar
+        gradle/wrapper/gradle-wrapper.properties
+    </layout>
+</sample>
 ++++
 
 All of these files _should_ be submitted to your version control system. This only needs to be done once. After these files have been added to the project, the project should then be built with the added `gradlew` command. The `gradlew` command can be used _exactly_ the same way as the `gradle` command.
