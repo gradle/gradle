@@ -105,7 +105,6 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         buildSettings(xcodeProject("hello/hello.xcodeproj").projectFile).SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("log/build/main/objs"))
     }
 
-
     def "create xcode project Swift executable inside composite build"() {
         given:
         settingsFile.text = """

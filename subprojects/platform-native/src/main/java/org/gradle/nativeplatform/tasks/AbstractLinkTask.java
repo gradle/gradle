@@ -197,9 +197,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
         if (getSource().isEmpty()) {
             setDidWork(false);
             return;
-
         }
-
 
         LinkerSpec spec = createLinkerSpec();
         spec.setTargetPlatform(getTargetPlatform());
