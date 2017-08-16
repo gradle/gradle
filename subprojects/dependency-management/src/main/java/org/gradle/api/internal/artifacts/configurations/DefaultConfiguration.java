@@ -35,7 +35,7 @@ import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
-import org.gradle.api.artifacts.failures.ResolutionFailure;
+import org.gradle.api.artifacts.ResolutionFailure;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.ResolveException;

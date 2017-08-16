@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.failures;
+package org.gradle.api.internal.artifacts.failures;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 
-@Incubating
-public interface AttemptedLocationVisitor extends ResolutionFailureVisitor {
-    void visitAttemptedLocation(String location);
+public class OpaqueComponentResolutionFailure extends AbstractResolutionFailure<ComponentIdentifier> {
+    protected OpaqueComponentResolutionFailure(Throwable problem) {
+        super(problem, null);
+    }
 }

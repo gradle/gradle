@@ -927,6 +927,9 @@ project(':c') {
     artifacts { compile jar1 }
 }
 
+import org.gradle.internal.component.external.model.*
+import org.gradle.internal.component.local.model.*
+
 task resolveLenient {
     def lenientView = configurations.compile.incoming.artifactView({lenient(true)})
     inputs.files lenientView.files
@@ -937,28 +940,22 @@ task resolveLenient {
         assert lenientView.artifacts.artifactFiles.collect { it.name } == resolvedFiles
         assert lenientView.artifacts.failures.size() == 3
         assert lenientView.artifacts.resolutionFailures.size() == 3
-        println lenientView.artifacts.resolutionFailures.id
-        def visitor = new AttemptedLocationVisitor() {
-            void visitProjectComponent(ProjectComponentIdentifier id) {
-                assert id.projectPath == ':a'
-            }
-            void visitModuleComponent(ModuleComponentIdentifier id) {
-                assert (id.module in ['missing-module', 'b'])
-            }
-            void visitComponentArtifact(ComponentArtifactIdentifier id) {
-                throw new AssertionError("Unexpected component artifact failure")
-            }
-            
-            void visitProblem(Throwable t) {
-                //t.printStackTrace()
-            }
-            
-            void visitAttemptedLocation(String location) {
-                assert location.endsWith('/repo/org/missing-module/1.0/missing-module-1.0.pom') ||
-                       location.endsWith('/repo/org/missing-module/1.0/missing-module-1.0.jar')
-            }
+        def ids = lenientView.artifacts.resolutionFailures.id
+        assert ids.find { id ->
+            id instanceof DefaultModuleComponentIdentifier && id.module == 'missing-module'
         }
-        lenientView.artifacts.resolutionFailures*.visit(visitor)
+        assert ids.find { id ->
+            id instanceof DefaultModuleComponentIdentifier && id.module == 'b'
+        }
+        assert ids.find { id ->
+            id instanceof DefaultProjectComponentIdentifier && id.projectPath == ':a'
+        }
+        assert lenientView.artifacts.resolutionFailures.find { failure ->
+            failure.id instanceof DefaultModuleComponentIdentifier && failure.id.module == 'missing-module'
+        }.attemptedLocations.every { location ->
+            location.endsWith('/repo/org/missing-module/1.0/missing-module-1.0.pom') ||
+            location.endsWith('/repo/org/missing-module/1.0/missing-module-1.0.jar')
+        }
     }
 }
 """

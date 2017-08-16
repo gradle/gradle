@@ -16,20 +16,27 @@
 
 package org.gradle.api.internal.artifacts.failures;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.artifacts.failures.ResolutionFailure;
-import org.gradle.api.artifacts.failures.ResolutionFailureVisitor;
+import org.gradle.api.artifacts.ResolutionFailure;
 import org.gradle.internal.Cast;
+import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 
-public abstract class AbstractResolutionFailure<T> implements ResolutionFailure<T> {
+import javax.annotation.Nullable;
+import java.util.List;
+
+public abstract class AbstractResolutionFailure<T extends ComponentIdentifier> implements ResolutionFailure<T> {
     protected final T id;
     protected final Throwable problem;
+    private final List<String> attemptedLocations;
 
     protected AbstractResolutionFailure(Throwable problem, T id) {
         this.problem = problem;
         this.id = id;
+        this.attemptedLocations = extractAttemptedLocations(problem);
     }
 
     @Override
@@ -42,13 +49,13 @@ public abstract class AbstractResolutionFailure<T> implements ResolutionFailure<
         return problem;
     }
 
+    @Nullable
     @Override
-    public void visit(ResolutionFailureVisitor visitor) {
-        visitor.visitProblem(problem);
-        ResolutionFailureVisitorSupport.extractAttemptedLocations(visitor, problem);
+    public List<String> getAttemptedLocations() {
+        return attemptedLocations;
     }
 
-    public static <T> ResolutionFailure<T> of(T id, Throwable err) {
+    public static <T extends ComponentIdentifier> ResolutionFailure<T> of(ComponentIdentifier id, Throwable err) {
         if (id instanceof ModuleComponentIdentifier) {
             return Cast.uncheckedCast(new DefaultModuleComponentResolutionFailure((ModuleComponentIdentifier) id, err));
         } else if (id instanceof ProjectComponentIdentifier) {
@@ -56,11 +63,17 @@ public abstract class AbstractResolutionFailure<T> implements ResolutionFailure<
         } else if (id instanceof ComponentArtifactIdentifier) {
             return Cast.uncheckedCast(new DefaultComponentArtifactResolutionFailure((ComponentArtifactIdentifier) id, err));
         } else if (id==null) {
-            return Cast.uncheckedCast(new UnknownComponentResolutionFailure(err));
+            return Cast.uncheckedCast(new OpaqueComponentResolutionFailure(err));
         } else {
             throw new UnsupportedOperationException("Unsupported identifier type:" + id.getClass());
         }
     }
 
+    private static ImmutableList<String> extractAttemptedLocations(Throwable problem) {
+        if (problem instanceof ModuleVersionNotFoundException) {
+            return ImmutableList.copyOf(((ModuleVersionNotFoundException) problem).getAttemptedLocations());
+        }
+        return null;
+    }
 
 }

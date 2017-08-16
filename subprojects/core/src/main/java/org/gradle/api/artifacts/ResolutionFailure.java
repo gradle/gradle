@@ -14,22 +14,38 @@
  * limitations under the License.
  */
 
-package org.gradle.api.artifacts.failures;
+package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * Describes a resolution failure, giving access to context about the failure, when available.
  * @param <T> the component id type
  */
 @Incubating
-public interface ResolutionFailure<T> {
+public interface ResolutionFailure<T extends ComponentIdentifier> {
+    /**
+     * Identifies the component that couldn't be resolved, or triggerred the resolution failure.
+     * @return The component id on which the failure occurred, if applicable.
+     */
     @Nullable
     T getComponentId();
 
-    Throwable getProblem();
+    /**
+     * Returns the list of locations that were tried, or null if it doesn't apply.
+     * @return the list of attempted locations
+     */
+    @Nullable
+    List<String> getAttemptedLocations();
 
-    void visit(ResolutionFailureVisitor visitor);
+    /**
+     * The underlying exception, to be typically displayed to the advanced user.
+     *
+     * @return the problem, as an exception that might be inspected for further details.
+     */
+    Throwable getProblem();
 }

@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.io.Files;
 import org.gradle.api.Buildable;
 import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.failures.ResolutionFailure;
+import org.gradle.api.artifacts.ResolutionFailure;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;

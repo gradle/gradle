@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.failures;
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.artifacts.failures.ResolutionFailureVisitor;
 
 public class DefaultProjectComponentResolutionFailure extends AbstractResolutionFailure<ProjectComponentIdentifier> {
 
@@ -25,9 +24,4 @@ public class DefaultProjectComponentResolutionFailure extends AbstractResolution
         super(problem, projectComponentIdentifier);
     }
 
-    @Override
-    public void visit(ResolutionFailureVisitor visitor) {
-        visitor.visitProjectComponent(id);
-        super.visit(visitor);
-    }
 }

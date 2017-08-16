@@ -16,7 +16,7 @@
 
 package org.gradle.jvm.internal;
 
-import org.gradle.api.artifacts.failures.ResolutionFailure;
+import org.gradle.api.artifacts.ResolutionFailure;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;

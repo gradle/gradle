@@ -17,17 +17,18 @@
 package org.gradle.api.internal.artifacts.failures;
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.artifacts.failures.ResolutionFailureVisitor;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 
-public class DefaultComponentArtifactResolutionFailure extends AbstractResolutionFailure<ComponentArtifactIdentifier> {
+public class DefaultComponentArtifactResolutionFailure extends AbstractResolutionFailure<ComponentIdentifier> {
 
-    protected DefaultComponentArtifactResolutionFailure(ComponentArtifactIdentifier selector, Throwable problem) {
-        super(problem, selector);
+    private final ComponentArtifactIdentifier artifactId;
+
+    protected DefaultComponentArtifactResolutionFailure(ComponentArtifactIdentifier artifactId, Throwable problem) {
+        super(problem, artifactId.getComponentIdentifier());
+        this.artifactId = artifactId;
     }
 
-    @Override
-    public void visit(ResolutionFailureVisitor visitor) {
-        visitor.visitComponentArtifact(id);
-        super.visit(visitor);
+    public ComponentArtifactIdentifier getArtifactId() {
+        return artifactId;
     }
 }
