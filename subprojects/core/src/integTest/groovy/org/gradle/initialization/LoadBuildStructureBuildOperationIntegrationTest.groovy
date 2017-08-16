@@ -176,6 +176,6 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
         operation().result
     }
     private List<BuildOperationRecord> operations() {
-        buildOperations.all(LoadBuildStructureBuildOperationType)
+        buildOperations.all(LoadProjectsBuildOperationType)
     }
 }

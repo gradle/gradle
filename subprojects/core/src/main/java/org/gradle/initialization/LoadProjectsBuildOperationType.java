@@ -27,7 +27,7 @@ import java.util.Set;
  *
  * @since 4.2
  */
-public final class LoadBuildStructureBuildOperationType implements BuildOperationType<LoadBuildStructureBuildOperationType.Details, LoadBuildStructureBuildOperationType.Result> {
+public final class LoadProjectsBuildOperationType implements BuildOperationType<LoadProjectsBuildOperationType.Details, LoadProjectsBuildOperationType.Result> {
 
     @UsedByScanPlugin
     public interface Details {
