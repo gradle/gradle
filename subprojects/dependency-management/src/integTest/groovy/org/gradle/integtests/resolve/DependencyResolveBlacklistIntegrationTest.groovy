@@ -41,12 +41,30 @@ class DependencyResolveBlacklistIntegrationTest extends AbstractHttpDependencyRe
         module = repo.module('group', 'a', '1.0').publish()
     }
 
-    def "fails dependency resolution if HTTP connection exceeds timeout"() {
+    def "fails buildscript dependency resolution if HTTP connection exceeds timeout"() {
+        buildFile << """
+            buildscript {
+                ${mavenRepository()}
+
+                dependencies {
+                    classpath "$module.groupId:$module.artifactId:$module.version"
+                }
+            }
+        """
+
+        when:
+        module.pom.expectGet()
+        fails('resolve')
+
+        then:
+        failure.assertHasCause('Could not download a.jar (group:a:1.0)')
+        failure.assertHasCause('Read timed out')
+    }
+
+    def "fails regular dependency resolution if HTTP connection exceeds timeout"() {
         given:
         buildFile << """
-            repositories {
-                maven { url "${repo.uri}"}
-            }
+            ${mavenRepository()}
             
             configurations {
                 deps
@@ -94,5 +112,13 @@ class DependencyResolveBlacklistIntegrationTest extends AbstractHttpDependencyRe
             latch.countDown()
             super.after()
         }
+    }
+
+    private String mavenRepository() {
+        """
+            repositories {
+                maven { url "${repo.uri}"}
+            }
+        """
     }
 }
