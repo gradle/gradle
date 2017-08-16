@@ -213,9 +213,7 @@ assert repositories.empty
     def "can reference script level configure method from named container configure closure when that closure would fail with MME if applied to a new element"() {
         buildFile << """
 configurations {
-    repositories {
-        mavenCentral()
-    }
+    ${mavenCentralRepository()}
     someConf {
         allprojects { }
     }

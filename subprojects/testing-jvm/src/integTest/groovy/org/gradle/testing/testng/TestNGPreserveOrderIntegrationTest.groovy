@@ -26,7 +26,7 @@ public class TestNGPreserveOrderIntegrationTest extends MultiVersionIntegrationS
     def "run tests using preserveOrder"() {
         buildFile << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies { testCompile 'org.testng:testng:$version' }
             test {
                 useTestNG { preserveOrder true }

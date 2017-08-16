@@ -190,9 +190,7 @@ class AndroidDexingSoakTest extends DaemonIntegrationSpec {
 
         buildFile << """
             buildscript {
-                repositories {
-                    jcenter()
-                }
+                ${jcenterRepository()}
 
 
                 dependencies {
@@ -228,9 +226,7 @@ class AndroidDexingSoakTest extends DaemonIntegrationSpec {
                 dexOptions.preDexLibraries=false
             }
 
-            repositories {
-                jcenter()
-            }
+            ${jcenterRepository()}
         """
     }
 

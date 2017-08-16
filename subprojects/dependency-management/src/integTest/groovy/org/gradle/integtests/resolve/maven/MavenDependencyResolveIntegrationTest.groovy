@@ -166,9 +166,7 @@ dependencies {
 
         given:
         buildFile << """
-repositories {
-    mavenCentral()
-}
+${mavenCentralRepository()}
 
 configurations {
     compile

@@ -16,18 +16,13 @@
 
 package org.gradle.internal.typeconversion;
 
-import com.google.common.base.Joiner;
-import org.gradle.api.Transformer;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-public class EnumFromCharSequenceNotationParser<T extends Enum> implements NotationConverter<CharSequence, T> {
+public class EnumFromCharSequenceNotationParser<T extends Enum<T>> implements NotationConverter<CharSequence, T> {
     private final Class<? extends T> type;
 
     public EnumFromCharSequenceNotationParser(Class<? extends T> enumType) {
@@ -37,26 +32,11 @@ public class EnumFromCharSequenceNotationParser<T extends Enum> implements Notat
 
     @Override
     public void convert(CharSequence notation, NotationConvertResult<? super T> result) throws TypeConversionException {
-        final String enumString = notation.toString();
-        List<? extends T> enumConstants = Arrays.asList(type.getEnumConstants());
-        T match = CollectionUtils.findFirst(enumConstants, new Spec<T>() {
-            public boolean isSatisfiedBy(T enumValue) {
-                return enumValue.name().equalsIgnoreCase(enumString);
-            }
-        });
-        if (match == null) {
-            throw new TypeConversionException(
-                    String.format("Cannot convert string value '%s' to an enum value of type '%s' (valid case insensitive values: %s)",
-                            enumString, type.getName(), Joiner.on(", ").join(CollectionUtils.collect(Arrays.asList(type.getEnumConstants()), new Transformer<String, T>() {
-                                @Override
-                                public String transform(T t) {
-                                    return t.name();
-                                }
-                            }))
-                    )
-            );
+        try {
+            result.converted(GUtil.toEnum(type, notation));
+        } catch (IllegalArgumentException e) {
+            throw new TypeConversionException(e.getMessage(), e);
         }
-        result.converted(match);
     }
 
     @Override

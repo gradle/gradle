@@ -39,9 +39,7 @@ class PmdRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest
             apply plugin: "java"
             apply plugin: "pmd"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             task pmd(type: Pmd) {
                 source "$sourceDir"

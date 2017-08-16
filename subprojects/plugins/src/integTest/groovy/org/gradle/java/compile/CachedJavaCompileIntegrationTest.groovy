@@ -33,9 +33,7 @@ class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationT
 
             mainClassName = "Hello"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 compile 'org.codehaus.groovy:groovy-all:2.4.10'

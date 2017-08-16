@@ -72,9 +72,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         buildFile << buildscript() << """
             apply plugin: 'com.android.application'
 
-            repositories {
-                jcenter()
-            }
+           ${jcenterRepository()}
 
             android.defaultConfig.applicationId "org.gradle.android.myapplication"
         """.stripIndent() << androidPluginConfiguration() << activityDependency()
@@ -136,9 +134,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
 
         file('build.gradle') << buildscript() << """
             subprojects {
-                repositories {
-                    jcenter()
-                }
+                ${jcenterRepository()}
             }
         """
 
@@ -178,9 +174,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
     private String buildscript() {
         """
             buildscript {
-                repositories {
-                    jcenter()
-                }
+                ${jcenterRepository()}
 
 
                 dependencies {

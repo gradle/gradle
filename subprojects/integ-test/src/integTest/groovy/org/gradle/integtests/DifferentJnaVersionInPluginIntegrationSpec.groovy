@@ -26,9 +26,7 @@ class DifferentJnaVersionInPluginIntegrationSpec extends AbstractIntegrationSpec
                 id 'java'
             }
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
             dependencies {
                 compile gradleApi()
                 compile 'net.java.dev.jna:jna:4.1.0'

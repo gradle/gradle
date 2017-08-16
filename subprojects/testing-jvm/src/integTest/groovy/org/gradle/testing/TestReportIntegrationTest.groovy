@@ -419,7 +419,7 @@ public class SubClassTests extends SuperClassTests {
     String getJunitSetup() {
         """
         apply plugin: 'java'
-        repositories { mavenCentral() }
+        ${mavenCentralRepository()}
         dependencies { testCompile 'junit:junit:4.12' }
         """
     }

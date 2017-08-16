@@ -33,9 +33,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
             apply plugin: "java"
             apply plugin: "pmd"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             pmd {
                 toolVersion = '$version'

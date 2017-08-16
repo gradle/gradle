@@ -138,7 +138,6 @@ project(':consumer') {
 
         where:
         usage                                          | _
-        "Usage.FOR_COMPILE"                            | _
         "objects.named(Usage, Usage.JAVA_API)"         | _
         "objects.named(Usage, Usage.JAVA_API_CLASSES)" | _
     }
@@ -181,7 +180,6 @@ project(':consumer') {
 
         where:
         usage                                           | _
-        "Usage.FOR_RUNTIME"                             | _
         "objects.named(Usage, Usage.JAVA_RUNTIME)"      | _
         "objects.named(Usage, Usage.JAVA_RUNTIME_JARS)" | _
     }
@@ -189,8 +187,8 @@ project(':consumer') {
     def "provides runtime JAR variant using artifactType"() {
         buildFile << """
             project(':consumer') {
-                configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, Usage.FOR_RUNTIME)
-                configurations.consume.attributes.attribute(artifactType, JavaPlugin.JAR_TYPE)
+                configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                configurations.consume.attributes.attribute(artifactType, ArtifactTypeDefinition.JAR_TYPE)
             }
 """
         when:

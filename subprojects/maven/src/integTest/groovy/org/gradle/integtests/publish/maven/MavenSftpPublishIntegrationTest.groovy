@@ -48,9 +48,7 @@ class MavenSftpPublishIntegrationTest extends AbstractMavenPublishIntegTest {
             apply plugin: 'maven'
             version = '1.0'
             group = 'org.group.name'
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
             configurations {
                 deployerJars
             }

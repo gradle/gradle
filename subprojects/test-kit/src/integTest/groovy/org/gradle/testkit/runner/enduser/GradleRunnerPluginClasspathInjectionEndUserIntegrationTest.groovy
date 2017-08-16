@@ -46,9 +46,7 @@ class GradleRunnerPluginClasspathInjectionEndUserIntegrationTest extends BaseTes
                 testCompile files(createClasspathManifest)
             }
 
-            repositories {
-                jcenter()
-            }
+            ${jcenterRepository()}
         """
     }
 

@@ -405,7 +405,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         def gradleBaseServicesClass = Action
         buildScript """
             apply plugin: 'groovy'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
         """
 
         when:
@@ -426,7 +426,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         def gradleBaseServicesClass = Action
         buildScript """
             apply plugin: 'groovy'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies {
                 compile 'org.codehaus.groovy:groovy:2.4.3:grooid'
             }
@@ -446,7 +446,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         given:
         buildFile << """
             apply plugin: "groovy"
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             compileGroovy.options.failOnError = false
         """.stripIndent()
 
@@ -461,7 +461,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         given:
         buildFile << """
             apply plugin: "groovy"
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             compileGroovy.groovyOptions.failOnError = false
         """.stripIndent()
 
@@ -476,7 +476,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         given:
         buildFile << """
             apply plugin: "groovy"
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             compileGroovy.options.failOnError = false
         """.stripIndent()
 
@@ -492,7 +492,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         given:
         buildFile << """
             apply plugin: "groovy"
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             compileGroovy.groovyOptions.failOnError = false
         """.stripIndent()
 
@@ -685,7 +685,7 @@ ${compilerConfiguration()}
     def writeAnnotationProcessingBuild(String java, String groovy) {
         buildFile << """
             apply plugin: "groovy"
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             compileGroovy {
                 groovyOptions.with {
                     stubDir = file("\$buildDir/classes/stub")

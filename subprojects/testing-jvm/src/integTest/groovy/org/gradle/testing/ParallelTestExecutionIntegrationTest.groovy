@@ -32,7 +32,7 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << 'rootProject.name = "root"'
         buildFile << """
             plugins { id "java" }
-            repositories { jcenter() }
+            ${jcenterRepository()}
             dependencies {
                 testCompile localGroovy()
                 testCompile "junit:junit:4.12"
@@ -110,7 +110,7 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
         ["a", "b"].collect { file(it) }.each { TestFile build ->
             build.file("build.gradle") << """
                 plugins { id "java" }
-                repositories { jcenter() }
+                ${jcenterRepository()}
                 dependencies {
                     testCompile localGroovy()
                     testCompile "junit:junit:4.12"

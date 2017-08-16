@@ -31,7 +31,7 @@ class ToolingApiEclipseModelClasspathAttributesCrossVersionSpec extends ToolingA
         buildFile <<
         """apply plugin: 'java'
            apply plugin: 'eclipse'
-           repositories { jcenter() }
+           ${jcenterRepository()}
            dependencies { compile 'com.google.guava:guava:18.0' }
            eclipse {
                classpath {

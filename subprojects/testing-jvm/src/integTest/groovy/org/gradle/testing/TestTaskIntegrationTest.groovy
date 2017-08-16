@@ -106,7 +106,7 @@ class TestTaskIntegrationTest extends AbstractIntegrationSpec {
         and:
         buildFile << """
             apply plugin: 'java'
-            repositories { jcenter() }
+            ${jcenterRepository()}
             dependencies { testCompile 'junit:junit:4.12' }
             test {
                 maxParallelForks = $maxParallelForks
@@ -132,7 +132,7 @@ class TestTaskIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             allprojects {
                 apply plugin: 'java'
-                repositories { jcenter() }
+                ${jcenterRepository()}
             }
             dependencies { 
                 testCompile 'junit:junit:4.12'
@@ -173,7 +173,7 @@ class TestTaskIntegrationTest extends AbstractIntegrationSpec {
     def "re-runs tests when resources are renamed"() {
         buildFile << """
             apply plugin: 'java'
-            repositories { jcenter() }
+            ${jcenterRepository()}
 
             dependencies { 
                 testCompile 'junit:junit:4.12' 
@@ -210,7 +210,7 @@ class TestTaskIntegrationTest extends AbstractIntegrationSpec {
     def "emits deprecation warning when using testClassesDir"() {
         buildFile << """
             apply plugin: 'java'
-            repositories { jcenter() }
+            ${jcenterRepository()}
 
             dependencies { 
                 testCompile 'junit:junit:4.12' 
@@ -250,12 +250,10 @@ class TestTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private static String java9Build() {
-        '''
+        """
             apply plugin: 'java'
 
-            repositories {
-                jcenter()
-            }
+            ${jcenterRepository()}
 
             dependencies {
                 testCompile 'junit:junit:4.12'
@@ -263,7 +261,7 @@ class TestTaskIntegrationTest extends AbstractIntegrationSpec {
 
             sourceCompatibility = 1.9
             targetCompatibility = 1.9
-        '''
+        """
     }
 
     private int classFormat(TestFile path) {

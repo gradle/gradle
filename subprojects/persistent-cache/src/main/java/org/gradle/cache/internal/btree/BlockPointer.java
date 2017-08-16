@@ -27,7 +27,7 @@ public class BlockPointer implements Comparable<BlockPointer> {
 
     public static BlockPointer pos(long pos) {
         if (pos < -1) {
-            throw new IllegalArgumentException("pos must be >= -1");
+            throw new CorruptedCacheException("block pointer must be >= -1, but was" + pos);
         }
         if (pos == -1) {
             return NULL;

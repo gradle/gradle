@@ -30,9 +30,7 @@ class IvyPublishWarIntegTest extends AbstractIvyPublishIntegTest {
             group = 'org.gradle.test'
             version = '1.9'
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 compile "commons-collections:commons-collections:3.2.2"

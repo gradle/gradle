@@ -1189,9 +1189,7 @@ task generate(type: TransformerTask) {
 
     def "produces a sensible error when a task output causes dependency resolution"() {
         buildFile << """
-            repositories {
-                jcenter()
-            }
+            ${jcenterRepository()}
             
             configurations {
                 foo
