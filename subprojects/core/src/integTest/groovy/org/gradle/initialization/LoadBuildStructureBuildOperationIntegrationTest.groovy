@@ -42,34 +42,14 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
         succeeds('help')
 
         then:
-        operation().result.buildPath == ":"
-        operation().result.rootProject.name == "root"
-        operation().result.rootProject.path == ":"
-        operation().result.rootProject.identityPath == ":"
-        operation().result.rootProject.projectDir == buildFile.parentFile.absolutePath
-        operation().result.rootProject.buildFile == file("root.gradle").absolutePath
+        opResult.buildPath == ":"
+        opResult.rootProject.path == ":"
 
-        project(":b").name == "b"
-        project(":b").path == ":b"
-        project(":b").identityPath == ":b"
-        project(":b").projectDir == new File(testDirectory, "b").absolutePath
-        project(":b").buildFile == new File(testDirectory, "b/build.gradle").absolutePath
-
-        project(":a").name == "a"
-        project(":a").path == ":a"
-        project(":a").projectDir == new File(testDirectory, "a").absolutePath
-        project(":a").buildFile == new File(testDirectory, "a/build.gradle").absolutePath
-
-        project(":a:c").name == "c"
-        project(":a:c").path == ":a:c"
-        project(":a:c").projectDir == new File(testDirectory, "a/c").absolutePath
-        project(":a:c").buildFile == new File(testDirectory, "a/c/build.gradle").absolutePath
-
-        project(":a:c:d").name == "d"
-        project(":a:c:d").path == ":a:c:d"
-        project(":a:c:d").identityPath == ":a:c:d"
-        project(":a:c:d").projectDir == new File(testDirectory, "d").absolutePath
-        project(":a:c:d").buildFile == new File(testDirectory, "d/d.gradle").absolutePath
+        verifyProject(opResult.rootProject, 'root', ':', testDirectory, 'root.gradle')
+        verifyProject(project(':a'), 'a')
+        verifyProject(project(':b'), 'b')
+        verifyProject(project(':a:c'), 'c', ':a:c', testDirectory.file('a/c'))
+        verifyProject(project(':a:c:d'), 'd', ':a:c:d', testDirectory.file('d'), 'd.gradle')
     }
 
     def "settings with master folder are exposed correctly"() {
@@ -96,11 +76,10 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
         operation().result.rootProject.projectDir == customSettingsFile.parentFile.absolutePath
         operation().result.rootProject.buildFile == customSettingsFile.parentFile.file("root.gradle").absolutePath
 
-        project(":a").name == "a"
-        project(":a").path == ":a"
-        project(":a").identityPath == ":a"
-        project(":a").projectDir == new File(testDirectory, "a").absolutePath
-        project(":a").buildFile == new File(testDirectory, "a/build.gradle").absolutePath
+        opResult.buildPath == ":"
+        opResult.rootProject.path == ":"
+        verifyProject(opResult.rootProject, 'root', ':', customSettingsFile.parentFile, 'root.gradle')
+        verifyProject(project(':a'), 'a')
     }
 
     def "settings set via cmdline flag are exposed correctly"() {
@@ -125,11 +104,10 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
         operation().result.rootProject.projectDir == customSettingsDir.absolutePath
         operation().result.rootProject.buildFile == customSettingsDir.file("root.gradle").absolutePath
 
-        project(":a").name == "a"
-        project(":a").path == ":a"
-        project(":a").identityPath == ":a"
-        project(":a").projectDir == new File(customSettingsDir, "a").absolutePath
-        project(":a").buildFile == new File(customSettingsDir, "a/build.gradle").absolutePath
+        opResult.buildPath == ":"
+        opResult.rootProject.path == ":"
+        verifyProject(opResult.rootProject, 'root', ':', customSettingsDir, 'root.gradle')
+        verifyProject(project(':a'), 'a', ':a', customSettingsDir.file('a'))
     }
 
     def "composite participants expose their project structure"() {
@@ -155,33 +133,26 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
         when:
         succeeds('help')
 
-        def nestedBuildOperation = operations()[0]
-        def rootBuildOperation = operations()[1]
+
         then:
+        def rootBuildOperation = operations()[1]
         rootBuildOperation.result.buildPath == ":"
-        rootBuildOperation.result.rootProject.name == "root"
         rootBuildOperation.result.rootProject.path == ":"
-        rootBuildOperation.result.rootProject.projectDir == settingsFile.parentFile.absolutePath
-        rootBuildOperation.result.rootProject.buildFile == settingsFile.parentFile.file("root.gradle").absolutePath
+        verifyProject(rootBuildOperation.result.rootProject, 'root', ':', testDirectory, 'root.gradle')
+        verifyProject(project(":a", rootBuildOperation), 'a')
 
-        project(":a", rootBuildOperation).name == "a"
-        project(":a", rootBuildOperation).path == ":a"
-        project(":a", rootBuildOperation).identityPath == ":a"
-        project(":a", rootBuildOperation).projectDir == new File(settingsFile.parentFile, "a").absolutePath
-        project(":a", rootBuildOperation).buildFile == new File(settingsFile.parentFile, "a/build.gradle").absolutePath
-
+        def nestedBuildOperation = operations()[0]
         nestedBuildOperation.result.buildPath == ":nested"
-        nestedBuildOperation.result.rootProject.name == "nested"
         nestedBuildOperation.result.rootProject.path == ":"
-        nestedBuildOperation.result.rootProject.identityPath == ":nested"
-        nestedBuildOperation.result.rootProject.projectDir == settingsFile.parentFile.file("nested").absolutePath
-        nestedBuildOperation.result.rootProject.buildFile == settingsFile.parentFile.file("nested/build.gradle").absolutePath
+        verifyProject(nestedBuildOperation.result.rootProject, 'nested', ':nested', testDirectory.file('nested'))
+        verifyProject(project(":b", nestedBuildOperation), 'b', ':nested:b', testDirectory.file('nested/b'))
+    }
 
-        project(":b", nestedBuildOperation).name == "b"
-        project(":b", nestedBuildOperation).path == ":b"
-        project(":b", nestedBuildOperation).identityPath == ":nested:b"
-        project(":b", nestedBuildOperation).projectDir == new File(settingsFile.parentFile, "nested/b").absolutePath
-        project(":b", nestedBuildOperation).buildFile == new File(settingsFile.parentFile, "nested/b/build.gradle").absolutePath
+    private void verifyProject(def project, String name, String identityPath = null, File projectDir = testDirectory.file(name), String buildFileName = 'build.gradle') {
+        assert project.name == name
+        assert project.identityPath == identityPath ?: project.path
+        assert project.projectDir == projectDir.absolutePath
+        assert project.buildFile == new File(projectDir, buildFileName).absolutePath
     }
 
     def project(String path, BuildOperationRecord operation = operation(), Map parent = null) {
@@ -199,6 +170,10 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
         def operationRecords = operations()
         assert operationRecords.size() == 1
         operationRecords.iterator().next()
+    }
+
+    private getOpResult() {
+        operation().result
     }
     private List<BuildOperationRecord> operations() {
         buildOperations.all(LoadBuildStructureBuildOperationType)
