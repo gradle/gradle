@@ -16,20 +16,15 @@
 
 package org.gradle.play.integtest.fixtures
 
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+
 
 class Repositories {
     public static final String PLAY_REPOSITORIES = """
         repositories {
-            jcenter()
-            maven {
-                name "typesafe-maven-release"
-                url "https://repo.typesafe.com/typesafe/maven-releases"
-            }
-            ivy {
-                name "typesafe-ivy-release"
-                url "https://repo.typesafe.com/typesafe/ivy-releases"
-                layout "ivy"
-            }
+            ${RepoScriptBlockUtil.jcenterRepositoryDefinition()}
+            ${RepoScriptBlockUtil.typesafeMavenRepositoryDefinition()}
+            ${RepoScriptBlockUtil.typesafeIvyRepositoryDefinition()}
         }
     """
 

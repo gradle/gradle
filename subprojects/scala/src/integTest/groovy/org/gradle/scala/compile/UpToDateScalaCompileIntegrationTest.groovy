@@ -92,9 +92,7 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         return """
             apply plugin: 'scala'
                         
-            repositories {
-                jcenter()
-            }
+            ${jcenterRepository()}
 
             dependencies {
                 zinc "com.typesafe.zinc:zinc:${zincVersion}"

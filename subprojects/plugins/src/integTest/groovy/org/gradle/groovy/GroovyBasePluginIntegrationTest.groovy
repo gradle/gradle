@@ -26,9 +26,7 @@ sourceSets {
     custom
 }
 
-repositories {
-    mavenCentral()
-}
+${mavenCentralRepository()}
 
 dependencies {
     customCompile "$dependency"
@@ -64,9 +62,7 @@ sourceSets {
     custom
 }
 
-repositories {
-    mavenCentral()
-}
+${mavenCentralRepository()}
 
 dependencies {
     customCompile "org.codehaus.groovy:groovy-all:2.4.10"
@@ -97,9 +93,7 @@ task verify {
                 main {}
             }
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 compile "com.google.guava:guava:11.0.2"

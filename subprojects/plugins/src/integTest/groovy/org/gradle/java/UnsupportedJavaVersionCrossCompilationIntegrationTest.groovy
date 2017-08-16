@@ -44,7 +44,7 @@ class UnsupportedJavaVersionCrossCompilationIntegrationTest extends MultiVersion
 apply plugin: 'java'
 sourceCompatibility = ${version}
 targetCompatibility = ${version}
-repositories { mavenCentral() }
+${mavenCentralRepository()}
 tasks.withType(JavaCompile) {
     options.with {
         fork = true

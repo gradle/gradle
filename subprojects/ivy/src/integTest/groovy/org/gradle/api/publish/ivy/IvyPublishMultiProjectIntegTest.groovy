@@ -179,9 +179,7 @@ allprojects {
 project(':project1') {
     apply plugin: 'java'
 
-    repositories {
-        jcenter()
-    }
+    ${jcenterRepository()}
 
     dependencies {
         compile 'commons-logging:commons-logging:1.2'

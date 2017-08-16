@@ -44,7 +44,7 @@ apply plugin: 'java'
 apply plugin: 'maven'
 group = 'group'
 version = '1.0'
-repositories { mavenCentral() }
+${mavenCentralRepository()}
 configurations { custom }
 dependencies {
     custom 'commons-collections:commons-collections:3.2.2'

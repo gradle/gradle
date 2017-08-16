@@ -27,7 +27,7 @@ public class JUnit3FilteringIntegrationTest extends MultiVersionIntegrationSpec 
     void "filters tests implemented using 3.x test cases"() {
         buildFile << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies { testCompile 'junit:junit:${version}' }
         """
 

@@ -29,9 +29,7 @@ class AntlrPluginIntegrationTest extends WellBehavedPluginTest {
             apply plugin: "java"
             apply plugin: "antlr"
 
-            repositories() {
-                jcenter()
-            }
+            ${jcenterRepository()}
         """
         and:
 

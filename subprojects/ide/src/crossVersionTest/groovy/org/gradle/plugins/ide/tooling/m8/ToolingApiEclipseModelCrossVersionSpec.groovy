@@ -24,7 +24,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 apply plugin: 'java'
 
 gradle.projectsEvaluated {
-    repositories { mavenCentral() }
+    ${mavenCentralRepository()}
 }
 dependencies {
     compile 'commons-lang:commons-lang:2.5'

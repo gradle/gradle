@@ -186,16 +186,14 @@ compileJava.options.compilerArgs.addAll(['--release', '7'])
     }
 
     def buildScript() {
-        '''
+        """
 apply plugin: "java"
-repositories {
-    mavenCentral()
-}
+${mavenCentralRepository()}
 
 dependencies {
     compile "org.codehaus.groovy:groovy:2.4.10"
 }
-'''
+"""
     }
 
     abstract compilerConfiguration()

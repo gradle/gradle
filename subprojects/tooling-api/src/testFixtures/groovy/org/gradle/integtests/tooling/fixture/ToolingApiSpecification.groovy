@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.fixture
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.RetryRuleUtil
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
@@ -242,5 +243,13 @@ abstract class ToolingApiSpecification extends Specification {
 
     protected static GradleVersion getTargetVersion() {
         GradleVersion.version(targetDist.version.baseVersion.version)
+    }
+
+    protected static String jcenterRepository() {
+        RepoScriptBlockUtil.jcenterRepository()
+    }
+
+    protected static String mavenCentralRepository() {
+        RepoScriptBlockUtil.mavenCentralRepository()
     }
 }

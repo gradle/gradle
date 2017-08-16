@@ -59,7 +59,7 @@ public class TestNGSuiteIntegrationTest extends MultiVersionIntegrationSpec {
     def "methodMissing propagates failures"() {
         buildFile << """
     apply plugin: 'java'
-    repositories { mavenCentral() }
+    ${mavenCentralRepository()}
     dependencies {
         testCompile 'org.testng:testng:$version'
     }
@@ -89,7 +89,7 @@ public class TestNGSuiteIntegrationTest extends MultiVersionIntegrationSpec {
     def "can specify test suite by string"() {
         buildFile << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies {
                 testCompile 'org.testng:testng:$version'
             }

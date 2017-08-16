@@ -28,9 +28,7 @@ class TestNGConsoleLoggingIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: "groovy"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 compile "org.codehaus.groovy:groovy:2.4.10"
@@ -119,9 +117,7 @@ Gradle suite FAILED
         buildFile.text = """
             apply plugin: "groovy"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 compile "org.codehaus.groovy:groovy:2.4.10"

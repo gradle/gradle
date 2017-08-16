@@ -30,9 +30,7 @@ class PmdPluginSubtypeParamIntegrationTest extends AbstractPmdPluginVersionInteg
             apply plugin: 'java'
             apply plugin: 'pmd'
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 compile "${calculateDefaultDependencyNotation()}"

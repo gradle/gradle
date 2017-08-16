@@ -30,7 +30,7 @@ class JUnitLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationSp
     def setup() {
         buildFile << """
             apply plugin: "java"
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies { testCompile 'junit:junit:$version' }
             test {
                 reports.junitXml.outputPerTestCase = true

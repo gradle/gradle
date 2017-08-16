@@ -129,7 +129,7 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
     def goodCode() {
         buildFile << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies { testCompile 'junit:junit:4.12' }
             compileTestJava.options.fork = true
         """

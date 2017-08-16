@@ -45,9 +45,7 @@ subprojects {
     apply plugin: "java"
     apply plugin: "checkstyle"
 
-    repositories {
-        mavenCentral()
-    }
+    ${mavenCentralRepository()}
 
     checkstyle {
         toolVersion = '$version'

@@ -174,7 +174,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         buildFile << """
             allprojects { 
                 apply plugin: 'java'
-                repositories { mavenCentral() }
+                ${mavenCentralRepository()}
                 dependencies { testCompile 'junit:junit:4.12' }
             }
 """
@@ -395,7 +395,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         buildFile << """
             allprojects { 
                 apply plugin: 'java'
-                repositories { mavenCentral() }
+                ${mavenCentralRepository()}
                 dependencies { testCompile 'junit:junit:4.12' }
             }
 """
@@ -413,7 +413,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         file("buildSrc/build.gradle") << """
             allprojects {   
                 apply plugin: 'java'
-                repositories { mavenCentral() }
+                ${mavenCentralRepository()}
                 dependencies { testCompile 'junit:junit:4.12' }
             }
             dependencies {

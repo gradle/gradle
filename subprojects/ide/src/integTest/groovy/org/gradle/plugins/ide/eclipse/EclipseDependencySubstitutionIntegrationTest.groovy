@@ -92,9 +92,7 @@ project(":project2") {
 }
 
 project(":project2") {
-    repositories {
-        mavenCentral()
-    }
+    ${mavenCentralRepository()}
 
     dependencies {
         compile project(":project1")

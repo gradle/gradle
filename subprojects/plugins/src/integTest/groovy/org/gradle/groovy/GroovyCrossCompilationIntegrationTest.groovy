@@ -44,7 +44,7 @@ class GroovyCrossCompilationIntegrationTest extends MultiVersionIntegrationSpec 
 apply plugin: 'groovy'
 sourceCompatibility = ${MultiVersionIntegrationSpec.version}
 targetCompatibility = ${MultiVersionIntegrationSpec.version}
-repositories { mavenCentral() }
+${mavenCentralRepository()}
 
 dependencies {
     compile 'org.codehaus.groovy:groovy-all:2.4.10'

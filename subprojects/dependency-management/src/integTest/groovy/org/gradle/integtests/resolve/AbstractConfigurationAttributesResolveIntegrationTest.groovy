@@ -1529,7 +1529,7 @@ All of them match the consumer attributes:
             }
 
             project(':a') {
-                repositories { jcenter() }
+                ${jcenterRepository()}
 
                 configurations {
                     _compileFreeDebug.attributes { $freeDebug }
@@ -1563,7 +1563,7 @@ All of them match the consumer attributes:
                 }
             }
             project(':c') {
-                repositories { jcenter() }
+                ${jcenterRepository()}
                 configurations {
                     foo.attributes { $freeDebug }
                     bar.attributes { $freeRelease }

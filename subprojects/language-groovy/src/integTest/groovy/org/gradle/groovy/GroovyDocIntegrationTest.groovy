@@ -31,9 +31,7 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
         buildFile << """
             apply plugin: "groovy"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 compile "org.codehaus.groovy:${module}:${version}"
@@ -69,9 +67,7 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
         buildFile << """
             apply plugin: "groovy"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 compile "org.codehaus.groovy:${module}:${version}"
@@ -119,9 +115,7 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
         buildScript """
             apply plugin: "groovy"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 compile "org.codehaus.groovy:groovy:${version}"

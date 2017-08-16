@@ -370,4 +370,12 @@ class AbstractIntegrationSpec extends Specification {
         assertHasResult()
         result.assertOutputContains(string.trim())
     }
+
+    static String jcenterRepository() {
+        RepoScriptBlockUtil.jcenterRepository()
+    }
+
+    static String mavenCentralRepository() {
+        RepoScriptBlockUtil.mavenCentralRepository()
+    }
 }
