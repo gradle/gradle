@@ -21,6 +21,8 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
@@ -35,9 +37,10 @@ public class DefaultCppComponent extends DefaultNativeComponent implements CppCo
     private final ConfigurableFileCollection privateHeaders;
     private final FileCollection privateHeadersWithConvention;
     private final ConfigurableFileCollection compileIncludePath;
+    private final PropertyState<String> baseName;
 
     @Inject
-    public DefaultCppComponent(FileOperations fileOperations) {
+    public DefaultCppComponent(FileOperations fileOperations, ProviderFactory providerFactory) {
         super(fileOperations);
         this.fileOperations = fileOperations;
         cppSource = createSourceView("src/main/cpp", Arrays.asList("cpp", "c++"));
@@ -45,7 +48,7 @@ public class DefaultCppComponent extends DefaultNativeComponent implements CppCo
         privateHeadersWithConvention = createDirView(privateHeaders, "src/main/headers");
         compileIncludePath = fileOperations.files();
         compileIncludePath.from(privateHeadersWithConvention);
-
+        baseName = providerFactory.property(String.class);
     }
 
     protected FileCollection createDirView(final ConfigurableFileCollection dirs, final String conventionLocation) {
@@ -58,6 +61,11 @@ public class DefaultCppComponent extends DefaultNativeComponent implements CppCo
                 return dirs;
             }
         });
+    }
+
+    @Override
+    public PropertyState<String> getBaseName() {
+        return baseName;
     }
 
     @Override

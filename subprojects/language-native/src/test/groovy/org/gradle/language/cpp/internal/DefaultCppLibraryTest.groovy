@@ -17,6 +17,7 @@
 package org.gradle.language.cpp.internal
 
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -25,7 +26,7 @@ import spock.lang.Specification
 class DefaultCppLibraryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def library = new DefaultCppLibrary(TestFiles.fileOperations(tmpDir.testDirectory))
+    def library = new DefaultCppLibrary(TestFiles.fileOperations(tmpDir.testDirectory), new DefaultProviderFactory())
 
     def "uses convention for public headers when nothing specified"() {
         def d = tmpDir.file("src/main/public")

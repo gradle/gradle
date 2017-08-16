@@ -20,14 +20,18 @@ import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.cpp.CppLibrary;
+
+import javax.inject.Inject;
 
 public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary {
     private final ConfigurableFileCollection publicHeaders;
     private final FileCollection publicHeadersWithConvention;
 
-    public DefaultCppLibrary(FileOperations fileOperations) {
-        super(fileOperations);
+    @Inject
+    public DefaultCppLibrary(FileOperations fileOperations, ProviderFactory providerFactory) {
+        super(fileOperations, providerFactory);
         publicHeaders = fileOperations.files();
         publicHeadersWithConvention = createDirView(publicHeaders, "src/main/public");
         getCompileIncludePath().setFrom(publicHeadersWithConvention, getPrivateHeaderDirs());

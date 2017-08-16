@@ -21,10 +21,9 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.DirectoryVar;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.util.PatternSet;
@@ -42,6 +41,7 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 import java.util.Collections;
+import java.util.concurrent.Callable;
 
 /**
  * <p>A plugin that produces a native executable from C++ source.</p>
@@ -67,10 +67,12 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
 
         DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
         ConfigurationContainer configurations = project.getConfigurations();
+        ProviderFactory providers = project.getProviders();
         TaskContainer tasks = project.getTasks();
 
         // Add the component extension
-        CppComponent component = project.getExtensions().create(CppComponent.class, "executable", DefaultCppComponent.class, fileOperations);
+        final CppComponent component = project.getExtensions().create(CppComponent.class, "executable", DefaultCppComponent.class, fileOperations, providers);
+        component.getBaseName().set(project.getName());
 
         // Wire in dependencies
         component.getCompileIncludePath().from(configurations.getByName(CppBasePlugin.CPP_INCLUDE_PATH));
@@ -93,22 +95,29 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
 
         // Add a link task
         LinkExecutable link = tasks.create("linkMain", LinkExecutable.class);
-        // TODO - need to set basename
         link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
         link.lib(configurations.getByName(CppBasePlugin.NATIVE_LINK));
         link.setLinkerArgs(Collections.<String>emptyList());
-        PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
-        Provider<RegularFile> exeLocation = buildDirectory.file(toolProvider.getExecutableName("exe/" + project.getName()));
-        link.setOutputFile(exeLocation);
+        final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
+        link.setOutputFile(buildDirectory.file(providers.provider(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                return toolProvider.getExecutableName("exe/" + component.getBaseName().get());
+            }
+        })));
         link.setTargetPlatform(currentPlatform);
         link.setToolChain(toolChain);
 
         // Add an install task
         final InstallExecutable install = tasks.create("installMain", InstallExecutable.class);
-        // TODO - need to set basename
         install.setPlatform(currentPlatform);
         install.setToolChain(toolChain);
-        install.setDestinationDir(buildDirectory.dir("install/" + project.getName()));
+        install.setDestinationDir(buildDirectory.dir(providers.provider(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                return "install/" + component.getBaseName().get();
+            }
+        })));
         install.setExecutable(link.getBinaryFile());
         // TODO - infer this
         install.onlyIf(new Spec<Task>() {

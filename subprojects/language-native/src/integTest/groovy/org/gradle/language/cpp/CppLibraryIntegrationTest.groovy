@@ -211,4 +211,36 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         sharedLibrary("lib2/build/lib/lib2").assertExists()
     }
 
+    def "can change default base name and successfully link against library"() {
+        settingsFile << "include 'lib1', 'lib2'"
+        def app = new CppAppWithLibraries()
+
+        given:
+        buildFile << """
+            project(':lib1') {
+                apply plugin: 'cpp-library'
+                library {
+                    baseName.set('hello')
+                }
+                dependencies {
+                    implementation project(':lib2')
+                }
+            }
+            project(':lib2') {
+                apply plugin: 'cpp-library'
+                library {
+                    baseName.set('log')
+                }
+            }
+"""
+        app.greeterLib.writeToProject(file("lib1"))
+        app.loggerLib.writeToProject(file("lib2"))
+
+        expect:
+        succeeds ":lib1:assemble"
+        result.assertTasksExecuted(":lib2:compileCpp", ":lib2:linkMain", ":lib1:compileCpp", ":lib1:linkMain", ":lib1:assemble")
+        sharedLibrary("lib1/build/lib/hello").assertExists()
+        sharedLibrary("lib2/build/lib/log").assertExists()
+    }
+
 }

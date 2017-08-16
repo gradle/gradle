@@ -16,11 +16,12 @@
 
 package org.gradle.language.cpp.plugins
 
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.cpp.CppLibrary
 import org.gradle.language.cpp.tasks.CppCompile
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
+import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -28,9 +29,9 @@ class CppLibraryPluginTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def projectDir = tmpDir.createDir("project")
-    def project = TestUtil.createRootProject(projectDir)
+    def project = ProjectBuilder.builder().withProjectDir(projectDir).withName("testLib").build()
 
-    def "adds extension with convention for source layout"() {
+    def "adds extension with convention for source layout and base name"() {
         given:
         def src = projectDir.file("src/main/cpp/main.cpp").createFile()
         def publicHeaders = projectDir.file("src/main/public").createDir()
@@ -40,6 +41,7 @@ class CppLibraryPluginTest extends Specification {
 
         then:
         project.library instanceof CppLibrary
+        project.library.baseName.get() == "testLib"
         project.library.cppSource.files == [src] as Set
         project.library.publicHeaderDirs.files == [publicHeaders] as Set
     }
@@ -58,9 +60,21 @@ class CppLibraryPluginTest extends Specification {
         compileCpp instanceof CppCompile
         compileCpp.includes.files as List == [publicHeaders, privateHeaders]
         compileCpp.source.files as List == [src]
+        compileCpp.objectFileDirectory.get().get() == projectDir.file("build/main/objs")
 
         def link = project.tasks.linkMain
         link instanceof LinkSharedLibrary
+        link.binaryFile.get().get() == projectDir.file("build/lib/" + OperatingSystem.current().getSharedLibraryName("testLib"))
+    }
+
+    def "output locations are calculated using base name defined on extension"() {
+        when:
+        project.pluginManager.apply(CppLibraryPlugin)
+        project.library.baseName.set("test_lib")
+
+        then:
+        def link = project.tasks.linkMain
+        link.binaryFile.get().get() == projectDir.file("build/lib/" + OperatingSystem.current().getSharedLibraryName("test_lib"))
     }
 
     def "output locations reflects changes to buildDir"() {

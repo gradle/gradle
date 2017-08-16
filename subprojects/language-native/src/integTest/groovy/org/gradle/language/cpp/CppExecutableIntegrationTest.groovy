@@ -179,6 +179,27 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         installation("output/install/app").exec().out == app.expectedOutput
     }
 
+    def "build logic can define the base name"() {
+        def app = new CppApp()
+
+        given:
+        app.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-executable'
+            executable.baseName.set('test_app')
+         """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileCpp", ":linkMain", ":installMain", ":assemble")
+
+        file("build/main/objs").assertIsDir()
+        executable("build/exe/test_app").assertExists()
+        installation("build/install/test_app").exec().out == app.expectedOutput
+    }
+
     def "build logic can change task output locations"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new CppApp()

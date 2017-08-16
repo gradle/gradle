@@ -17,6 +17,7 @@
 package org.gradle.language.cpp.internal
 
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -24,7 +25,7 @@ import spock.lang.Specification
 class DefaultCppComponentTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def component = new DefaultCppComponent(TestFiles.fileOperations(tmpDir.testDirectory))
+    def component = new DefaultCppComponent(TestFiles.fileOperations(tmpDir.testDirectory), new DefaultProviderFactory())
 
     def "has no source files by default"() {
         expect:
