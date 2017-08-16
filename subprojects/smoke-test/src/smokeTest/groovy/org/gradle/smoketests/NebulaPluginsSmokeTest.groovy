@@ -91,7 +91,7 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
         then:
         result.output.contains("parentheses are unnecessary for dependencies")
         result.output.contains("warning   dependency-parentheses")
-        result.output.contains("build.gradle:17")
+        result.output.contains("build.gradle:15")
         result.output.contains("testCompile('junit:junit:4.7')")
         buildFile.text.contains("testCompile('junit:junit:4.7')")
 
