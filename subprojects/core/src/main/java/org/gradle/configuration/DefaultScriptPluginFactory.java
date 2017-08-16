@@ -90,7 +90,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       PluginRepositoryRegistry pluginRepositoryRegistry,
                                       PluginRepositoryFactory pluginRepositoryFactory,
                                       ProviderFactory providerFactory,
-                                      TextResourceLoader textResourceLoader, FileHasher fileHasher) {
+                                      TextResourceLoader textResourceLoader,
+                                      FileHasher fileHasher) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.loggingManagerFactory = loggingManagerFactory;
         this.instantiator = instantiator;

@@ -112,7 +112,7 @@ public class MapFileTreeTest {
     }
 
     @Test
-    public void doesNotOverwriteFileWhenGeneratedContentRemainsTheSame() {
+    public void doesNotOverwriteFileWhenGeneratedContentRemainsTheSame() throws InterruptedException {
         Action<OutputStream> action = getAction();
         tree.add("path/file.txt", action);
 
@@ -123,12 +123,8 @@ public class MapFileTreeTest {
         file.assertContents(equalTo("content"));
         TestFile.Snapshot snapshot = file.snapshot();
 
-        try {
-            // make sure file modification time would change if file would get written
-            Thread.sleep(1000L);
-        } catch (InterruptedException e) {
-            // ignore
-        }
+        // make sure file modification time would change if file would get written
+        Thread.sleep(1000L);
 
         assertVisits(tree, toList("path/file.txt"), toList("path"));
         file.assertContents(equalTo("content"));

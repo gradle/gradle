@@ -15,12 +15,16 @@
 */
 
 task zip(type: Zip) {
-    from 'build.gradle'
+    (1..10000).each { suffix ->
+        from ('build.gradle') {
+            into "folder$suffix"
+        }
+    }
 }
 
 task visitZip(dependsOn: zip) {
     doLast {
-        (1..10000).each {
+        (1..4).each {
             zipTree(zip.archivePath).each {
                 logger.info it.path
             }
@@ -29,13 +33,28 @@ task visitZip(dependsOn: zip) {
 }
 
 task tar(type: Tar) {
-    from 'build.gradle'
+    with zip
 }
 
 task visitTar(dependsOn: tar) {
     doLast {
-        (1..10000).each {
+        (1..4).each {
             tarTree(tar.archivePath).each {
+                logger.info it.path
+            }
+        }
+    }
+}
+
+task tarGz(type: Tar) {
+    with zip
+    compression = 'gzip'
+}
+
+task visitTarGz(dependsOn: tarGz) {
+    doLast {
+        (1..4).each {
+            tarTree(tarGz.archivePath).each {
                 logger.info it.path
             }
         }

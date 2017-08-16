@@ -42,4 +42,16 @@ class ArchiveTreePerformanceTest extends AbstractCrossVersionPerformanceTest {
         then:
         result.assertCurrentVersionHasNotRegressed()
     }
+
+    def "visiting gzip tar trees"() {
+        given:
+        runner.testProject = "archivePerformanceProject"
+        runner.tasksToRun = ['visitTarGz']
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+    }
 }
