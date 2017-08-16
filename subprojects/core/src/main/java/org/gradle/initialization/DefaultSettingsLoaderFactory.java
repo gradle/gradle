@@ -16,41 +16,35 @@
 
 package org.gradle.initialization;
 
-import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.composite.internal.IncludedBuildFactory;
+import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.internal.composite.CompositeBuildSettingsLoader;
 import org.gradle.internal.composite.CompositeContextBuilder;
-import org.gradle.internal.operations.BuildOperationExecutor;
 
 public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
     private final ISettingsFinder settingsFinder;
     private final SettingsProcessor settingsProcessor;
     private final BuildSourceBuilder buildSourceBuilder;
-    private final BuildLoader buildLoader;
     private final CompositeContextBuilder compositeContextBuilder;
     private final IncludedBuildFactory includedBuildFactory;
-    private final BuildOperationExecutor buildOperationExecutor;
 
     public DefaultSettingsLoaderFactory(ISettingsFinder settingsFinder, SettingsProcessor settingsProcessor, BuildSourceBuilder buildSourceBuilder,
-                                        BuildLoader buildLoader, CompositeContextBuilder compositeContextBuilder, IncludedBuildFactory includedBuildFactory,
-                                        BuildOperationExecutor buildOperationExecutor) {
+                                        CompositeContextBuilder compositeContextBuilder, IncludedBuildFactory includedBuildFactory) {
         this.settingsFinder = settingsFinder;
         this.settingsProcessor = settingsProcessor;
         this.buildSourceBuilder = buildSourceBuilder;
-        this.buildLoader = buildLoader;
         this.compositeContextBuilder = compositeContextBuilder;
         this.includedBuildFactory = includedBuildFactory;
-        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
     public SettingsLoader forTopLevelBuild() {
-        return buildAndSettingsLoader(compositeBuildSettingsLoader());
+        return notifyingSettingsLoader(compositeBuildSettingsLoader());
     }
 
     @Override
     public SettingsLoader forNestedBuild() {
-        return buildAndSettingsLoader(defaultSettingsLoader());
+        return notifyingSettingsLoader(defaultSettingsLoader());
     }
 
     private SettingsLoader compositeBuildSettingsLoader() {
@@ -69,11 +63,8 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
     }
 
 
-    private SettingsLoader buildAndSettingsLoader(SettingsLoader settingsLoader) {
-        return new BuildAndSettingsLoader(
-            new NotifyingSettingsLoader(settingsLoader),
-            new NotifyingBuildLoader(buildLoader, buildOperationExecutor)
-        );
+    private SettingsLoader notifyingSettingsLoader(SettingsLoader settingsLoader) {
+        return new NotifyingSettingsLoader(settingsLoader);
     }
 
 }
