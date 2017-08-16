@@ -31,7 +31,6 @@ class NonMacOSXCTestPluginIntegrationTest extends AbstractIntegrationSpec {
         fails("tasks")
 
         then:
-        def ex = thrown(UnsupportedOperationException)
-        ex.message == "'xctest' plugin is only supported on macOS at this stage."
+        failureHasCause "'xctest' plugin is only supported on macOS at this stage."
     }
 }
