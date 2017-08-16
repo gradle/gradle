@@ -22,30 +22,17 @@ class RepoScriptBlockUtil {
     }
 
     static String jcenterRepository() {
-        return """
-            repositories {
-                ${jcenterRepositoryDefinition()}
-            }
-        """
+        return "repositories { ${jcenterRepositoryDefinition()} }"
     }
 
     static String mavenCentralRepository() {
-        return """
-            repositories {
-                ${mavenCentralRepositoryDefinition()}
-            }
-        """
+        return "repositories { ${mavenCentralRepositoryDefinition()} }"
     }
 
     static String jcenterRepositoryDefinition() {
         String repoUrl = System.getProperty('org.gradle.integtest.mirrors.jcenter')
         if (repoUrl) {
-            return """
-                maven {
-                    name "jcenter-remote"
-                    url "${repoUrl}"
-                }
-            """
+            return "maven { name 'jcenter-remote'; url '${repoUrl}' }"
         } else {
             return 'jcenter()'
         }
@@ -54,12 +41,7 @@ class RepoScriptBlockUtil {
     static String mavenCentralRepositoryDefinition() {
         String repoUrl = System.getProperty('org.gradle.integtest.mirrors.mavencentral')
         if (repoUrl) {
-            return """
-                maven {
-                    name "repo1-remote"
-                    url "${repoUrl}"
-                }
-            """
+            return "maven { name 'repo1-remote'; url '${repoUrl}' }"
         } else {
             return 'mavenCentral()'
         }
@@ -70,15 +52,15 @@ class RepoScriptBlockUtil {
         if (repoUrl) {
             return """
                 maven {
-                    name "typesafe-maven-release-remote'"
-                    url "${repoUrl}"
+                    name 'typesafe-maven-release-remote'
+                    url '${repoUrl}'
                 }
             """
         } else {
             return """
                 maven {
-                    name "typesafe-maven-release"
-                    url "https://repo.typesafe.com/typesafe/maven-releases"
+                    name 'typesafe-maven-release'
+                    url 'https://repo.typesafe.com/typesafe/maven-releases'
                 }
             """
         }
@@ -89,17 +71,17 @@ class RepoScriptBlockUtil {
         if (repoUrl) {
             return """
                 ivy {
-                    name "typesafe-ivy-release-remote"
-                    url "${repoUrl}"
-                    layout "ivy"
+                    name 'typesafe-ivy-release-remote'
+                    url '${repoUrl}'
+                    layout 'ivy'
                 }
             """
         } else {
             return """
                 ivy {
-                    name "typesafe-ivy-release"
-                    url "https://repo.typesafe.com/typesafe/ivy-releases"
-                    layout "ivy"
+                    name 'typesafe-ivy-release'
+                    url 'https://repo.typesafe.com/typesafe/ivy-releases'
+                    layout 'ivy'
                 }
             """
         }
