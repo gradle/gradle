@@ -71,8 +71,8 @@ class BuildOperationNotificationBridgeTest extends Specification {
 
     def "passes recorded events to listeners registering"() {
         when:
-        register(listener, [recordedBuildOperation(new OperationStartEvent(0)),
-                            recordedBuildOperation(new OperationFinishEvent(1, 2, null, null))])
+        register(listener, [recordedBuildOperation(new OperationStartEvent(0), BuildOperationRecorder.RecordedBuildOperation.OperationEventType.START),
+                            recordedBuildOperation(new OperationFinishEvent(1, 2, null, null), BuildOperationRecorder.RecordedBuildOperation.OperationEventType.FINISHED)])
 
         then:
         1 * listener.started(_)
@@ -256,7 +256,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
 
     }
 
-    BuildOperationRecorder.RecordedBuildOperation recordedBuildOperation(Object buildOperationEvent) {
+    BuildOperationRecorder.RecordedBuildOperation recordedBuildOperation(Object buildOperationEvent, org.gradle.internal.operations.recorder.BuildOperationRecorder.RecordedBuildOperation.OperationEventType eventType) {
         def operationDescriptor = new BuildOperationDescriptor(1,
             null,
             "name",
@@ -264,11 +264,11 @@ class BuildOperationNotificationBridgeTest extends Specification {
             "progress",
             "Details",
             BuildOperationCategory.UNCATEGORIZED)
-        return new BuildOperationRecorder.RecordedBuildOperation(operationDescriptor, buildOperationEvent, org.gradle.internal.operations.recorder.BuildOperationRecorder.RecordedBuildOperation.OperationEventType.START)
+        return new BuildOperationRecorder.RecordedBuildOperation(operationDescriptor, buildOperationEvent, eventType)
     }
 
     void register(BuildOperationNotificationListener listener, List<BuildOperationRecorder.RecordedBuildOperation> recordedBuildOps = []) {
-        _ * recorder.getRecordedEvents() >> recordedBuildOps
+        _ * recorder.retrieveEventsAndStop() >> recordedBuildOps
         if (bridge == null) {
             bridge = new BuildOperationNotificationBridge(listenerManager, recorder, gradle)
         }

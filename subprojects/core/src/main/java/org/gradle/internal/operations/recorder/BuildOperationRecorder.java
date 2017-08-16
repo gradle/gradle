@@ -49,9 +49,10 @@ public class BuildOperationRecorder implements Stoppable {
         this.listenerManager.addListener(listener);
     }
 
-    public List<RecordedBuildOperation> getRecordedEvents() {
+    public List<RecordedBuildOperation> retrieveEventsAndStop() {
         List<RecordedBuildOperation> returnEvents = recordedEvents;
         recordedEvents = new ArrayList<RecordedBuildOperation>();
+        stop();
         return returnEvents;
     }
 

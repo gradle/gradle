@@ -67,7 +67,7 @@ class BuildOperationNotificationBridge implements BuildOperationNotificationList
         if (operationListener == null) {
             operationListener = new Listener(notificationListener);
             buildOperationListenerManager.addListener(operationListener);
-            List<BuildOperationRecorder.RecordedBuildOperation> recordedBuildOperations = buildOperationRecorder.getRecordedEvents();
+            List<BuildOperationRecorder.RecordedBuildOperation> recordedBuildOperations = buildOperationRecorder.retrieveEventsAndStop();
             for (BuildOperationRecorder.RecordedBuildOperation storedEvent : recordedBuildOperations) {
                 BuildOperationDescriptor buildOperationDescriptor = storedEvent.buildOperation;
                 Object event = storedEvent.event;
@@ -80,7 +80,7 @@ class BuildOperationNotificationBridge implements BuildOperationNotificationList
             buildOperationRecorder.stop();
             buildOperationRecorder = null;
         } else {
-            throw new IllegalStateException("listener is already registered");
+            throw new IllegalStateException("listener is already registered (implementation class " + notificationListener.getClass().getName() + ")");
         }
     }
 
