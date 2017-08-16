@@ -29,7 +29,7 @@ class SwiftLibraryPluginTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def projectDir = tmpDir.createDir("project")
-    def project = ProjectBuilder.builder().withProjectDir(projectDir).withName("testApp").build()
+    def project = ProjectBuilder.builder().withProjectDir(projectDir).withName("testLib").build()
 
     def "adds extension with convention for source layout and module name"() {
         given:
@@ -40,7 +40,7 @@ class SwiftLibraryPluginTest extends Specification {
 
         then:
         project.library instanceof SwiftComponent
-        project.library.module.get() == "TestApp"
+        project.library.module.get() == "TestLib"
         project.library.swiftSource.files == [src] as Set
     }
 
@@ -55,21 +55,23 @@ class SwiftLibraryPluginTest extends Specification {
         def compileSwift = project.tasks.compileSwift
         compileSwift instanceof SwiftCompile
         compileSwift.source.files == [src] as Set
+        compileSwift.objectFileDirectory.get().get() == projectDir.file("build/main/objs")
 
         def link = project.tasks.linkMain
         link instanceof LinkSharedLibrary
+        link.binaryFile.get().get() == projectDir.file("build/lib/" + OperatingSystem.current().getSharedLibraryName("TestLib"))
     }
 
     def "output file names are calculated from module name defined on extension"() {
         when:
         project.pluginManager.apply(SwiftLibraryPlugin)
-        project.library.module.set("App")
+        project.library.module.set("Lib")
 
         then:
         def compileSwift = project.tasks.compileSwift
-        compileSwift.moduleName == "App"
+        compileSwift.moduleName == "Lib"
 
         def link = project.tasks.linkMain
-        link.binaryFile.get().get().name == OperatingSystem.current().getSharedLibraryName("App")
+        link.binaryFile.get().get() == projectDir.file("build/lib/" + OperatingSystem.current().getSharedLibraryName("Lib"))
     }
 }
