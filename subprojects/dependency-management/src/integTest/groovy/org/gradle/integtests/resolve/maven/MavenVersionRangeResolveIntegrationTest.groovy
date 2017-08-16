@@ -58,4 +58,43 @@ dependencies {
             }
         }
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/1898")
+    def "can resolve parent pom with version range"() {
+        given:
+        settingsFile << "rootProject.name = 'test' "
+        buildFile << """
+repositories {
+    maven {
+        url "${mavenRepo.uri}"
+    }
+}
+
+configurations { compile }
+
+dependencies {
+    compile group: "org.test", name: "child", version: "1.0"
+}
+"""
+        and:
+        mavenRepo.module('org.test', 'child', '1.0').parent('org.test', 'parent', '[2.0,3.0)').publish()
+        mavenRepo.module('org.test', 'parent', '2.0').dependsOn('org.test', 'dep', '2.0').publishPom()
+        mavenRepo.module('org.test', 'parent', '2.1').dependsOn('org.test', 'dep', '2.1').publishPom()
+        mavenRepo.module('org.test', 'dep', '2.1').publish()
+
+        def resolve = new ResolveTestFixture(buildFile)
+        resolve.prepare()
+
+        when:
+        succeeds 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org.test:child:1.0", "org.test:child:1.0") {
+                    edge("org.test:dep:2.1", "org.test:dep:2.1")
+                }
+            }
+        }
+    }
 }
