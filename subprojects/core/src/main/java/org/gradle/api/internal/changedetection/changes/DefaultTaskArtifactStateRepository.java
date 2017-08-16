@@ -32,7 +32,6 @@ import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
-import org.gradle.internal.Factory;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -56,26 +55,20 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     }
 
     public TaskArtifactState getStateFor(final TaskInternal task) {
-        return new TaskArtifactStateImpl(task, new Factory<TaskHistoryRepository.History>() {
-            @Override
-            public TaskHistoryRepository.History create() {
-                return taskHistoryRepository.getHistory(task);
-            }
-        });
+        return new TaskArtifactStateImpl(task, taskHistoryRepository.getHistory(task));
     }
 
     private class TaskArtifactStateImpl implements TaskArtifactState, TaskExecutionHistory {
         private final TaskInternal task;
-        private final Factory<TaskHistoryRepository.History> historyLoader;
+        private final TaskHistoryRepository.History history;
         private boolean upToDate;
         private boolean outputsRemoved;
-        private TaskHistoryRepository.History history;
         private TaskUpToDateState states;
         private IncrementalTaskInputsInternal taskInputs;
 
-        public TaskArtifactStateImpl(TaskInternal task, Factory<TaskHistoryRepository.History> historyLoader) {
+        public TaskArtifactStateImpl(TaskInternal task, TaskHistoryRepository.History history) {
             this.task = task;
-            this.historyLoader = historyLoader;
+            this.history = history;
         }
 
         @Override
@@ -111,17 +104,17 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         @Override
         public OverlappingOutputs getOverlappingOutputs() {
-            return getHistory().getCurrentExecution().getDetectedOverlappingOutputs();
+            return history.getCurrentExecution().getDetectedOverlappingOutputs();
         }
 
         @Override
         public TaskOutputCachingBuildCacheKey calculateCacheKey() {
-            return TaskCacheKeyCalculator.calculate(task, getHistory().getCurrentExecution());
+            return TaskCacheKeyCalculator.calculate(task, history.getCurrentExecution());
         }
 
         @Override
         public Set<File> getOutputFiles() {
-            TaskExecution previousExecution = getHistory().getPreviousExecution();
+            TaskExecution previousExecution = history.getPreviousExecution();
             if (previousExecution == null || previousExecution.getOutputFilesSnapshot() == null) {
                 return Collections.emptySet();
             }
@@ -141,7 +134,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         @Nullable
         @Override
         public UniqueId getOriginBuildInvocationId() {
-            TaskExecution previousExecution = getHistory().getPreviousExecution();
+            TaskExecution previousExecution = history.getPreviousExecution();
             if (previousExecution == null) {
                 return null;
             } else {
@@ -158,7 +151,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         public void snapshotAfterTask(Throwable failure) {
             TaskUpToDateState taskState = getStates();
 
-            TaskHistoryRepository.History history = getHistory();
+            TaskHistoryRepository.History history = this.history;
             history.updateCurrentExecution(taskInputs);
 
             // Only store new taskState if there was no failure, or some output files have been changed
@@ -171,17 +164,10 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         private TaskUpToDateState getStates() {
             if (states == null) {
                 // Calculate initial state - note this is potentially expensive
-                TaskHistoryRepository.History history = getHistory();
+                TaskHistoryRepository.History history = this.history;
                 states = new TaskUpToDateState(history.getPreviousExecution(), history.getCurrentExecution(), task);
             }
             return states;
-        }
-
-        private TaskHistoryRepository.History getHistory() {
-            if (history == null) {
-                history = historyLoader.create();
-            }
-            return history;
         }
     }
 }

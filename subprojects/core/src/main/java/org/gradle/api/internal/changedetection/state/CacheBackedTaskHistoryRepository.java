@@ -97,27 +97,36 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     public History getHistory(final TaskInternal task) {
         final InputNormalizationStrategy normalizationStrategy = ((InputNormalizationHandlerInternal) task.getProject().getNormalization()).buildFinalStrategy();
 
-        final LazyTaskExecution previousExecution = loadPreviousExecution(task);
-        final LazyTaskExecution currentExecution = createExecution(task, previousExecution, normalizationStrategy);
-
         return new History() {
+            private LazyTaskExecution previousExecution;
+            private LazyTaskExecution currentExecution;
+
             @Override
-            public TaskExecution getPreviousExecution() {
+            public LazyTaskExecution getPreviousExecution() {
+                if (previousExecution == null) {
+                    previousExecution = loadPreviousExecution(task);
+                }
                 return previousExecution;
             }
 
             @Override
-            public TaskExecution getCurrentExecution() {
+            public LazyTaskExecution getCurrentExecution() {
+                if (currentExecution == null) {
+                    currentExecution = createExecution(task, getPreviousExecution(), normalizationStrategy);
+                }
                 return currentExecution;
             }
 
             @Override
             public void updateCurrentExecution(IncrementalTaskInputsInternal taskInputs) {
-                CacheBackedTaskHistoryRepository.this.updateExecutionAfterTask(task, taskInputs, previousExecution, currentExecution, normalizationStrategy);
+                CacheBackedTaskHistoryRepository.this.updateExecutionAfterTask(getPreviousExecution(), getCurrentExecution(), task, taskInputs, normalizationStrategy);
             }
 
             @Override
             public void persist() {
+                LazyTaskExecution currentExecution = getCurrentExecution();
+                LazyTaskExecution previousExecution = getPreviousExecution();
+
                 storeSnapshots(currentExecution);
                 if (previousExecution != null) {
                     removeUnnecessarySnapshots(previousExecution);
@@ -203,7 +212,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         return execution;
     }
 
-    private void updateExecutionAfterTask(TaskInternal task, IncrementalTaskInputsInternal taskInputs, final TaskExecution previousExecution, LazyTaskExecution currentExecution, InputNormalizationStrategy normalizationStrategy) {
+    private void updateExecutionAfterTask(final TaskExecution previousExecution, LazyTaskExecution currentExecution, TaskInternal task, IncrementalTaskInputsInternal taskInputs, InputNormalizationStrategy normalizationStrategy) {
         currentExecution.setSuccessful(task.getState().getFailure() == null);
 
         final ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesAfter = snapshotTaskFiles(task, "Output", normalizationStrategy, task.getOutputs().getFileProperties(), snapshotterRegistry);
