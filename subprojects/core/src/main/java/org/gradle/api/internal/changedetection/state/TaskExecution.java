@@ -30,15 +30,20 @@ public abstract class TaskExecution {
     private final UniqueId buildInvocationId;
     private final ImplementationSnapshot taskImplementation;
     private final ImmutableList<ImplementationSnapshot> taskActionImplementations;
-    private ImmutableSortedMap<String, ValueSnapshot> inputProperties;
+    private final ImmutableSortedMap<String, ValueSnapshot> inputProperties;
     private Iterable<String> outputPropertyNamesForCacheKey;
     private ImmutableSet<String> declaredOutputFilePaths;
     private OverlappingOutputs detectedOverlappingOutputs;
 
-    public TaskExecution(UniqueId buildInvocationId, ImplementationSnapshot taskImplementation, ImmutableList<ImplementationSnapshot> taskActionImplementations) {
+    public TaskExecution(
+        UniqueId buildInvocationId,
+        ImplementationSnapshot taskImplementation,
+        ImmutableList<ImplementationSnapshot> taskActionImplementations,
+        ImmutableSortedMap<String, ValueSnapshot> inputProperties) {
         this.buildInvocationId = buildInvocationId;
         this.taskImplementation = taskImplementation;
         this.taskActionImplementations = taskActionImplementations;
+        this.inputProperties = inputProperties;
     }
 
     public boolean isSuccessful() {
@@ -90,10 +95,6 @@ public abstract class TaskExecution {
 
     public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
         return inputProperties;
-    }
-
-    public void setInputProperties(ImmutableSortedMap<String, ValueSnapshot> inputProperties) {
-        this.inputProperties = inputProperties;
     }
 
     /**

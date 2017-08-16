@@ -156,7 +156,7 @@ public class TaskExecutionServices {
         return new DefaultFileCollectionSnapshotterRegistry(snapshotters.build());
     }
 
-    TaskHistoryRepository createTaskHistoryRepository(TaskHistoryStore cacheAccess, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry, StringInterner stringInterner, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, BuildInvocationScopeId buildInvocationScopeId) {
+    TaskHistoryRepository createTaskHistoryRepository(TaskHistoryStore cacheAccess, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry, StringInterner stringInterner, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ValueSnapshotter valueSnapshotter, BuildInvocationScopeId buildInvocationScopeId) {
         SerializerRegistry serializerRegistry = new DefaultSerializerRegistry();
         for (FileCollectionSnapshotter snapshotter : fileCollectionSnapshotterRegistry.getAllSnapshotters()) {
             snapshotter.registerSerializers(serializerRegistry);
@@ -170,9 +170,9 @@ public class TaskExecutionServices {
             ),
             stringInterner,
             classLoaderHierarchyHasher,
+            valueSnapshotter,
             buildInvocationScopeId
         );
-
     }
 
     TaskOutputFilesRepository createTaskOutputFilesRepository(CacheRepository cacheRepository, Gradle gradle, FileSystemMirror fileSystemMirror, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
@@ -186,7 +186,7 @@ public class TaskExecutionServices {
         return new DefaultTaskOutputFilesRepository(cacheAccess, fileSystemMirror, inMemoryCacheDecoratorFactory);
     }
 
-    TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, StartParameter startParameter, FileCollectionFactory fileCollectionFactory, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry, TaskHistoryRepository taskHistoryRepository, TaskOutputFilesRepository taskOutputsRepository, ValueSnapshotter valueSnapshotter) {
+    TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, StartParameter startParameter, FileCollectionFactory fileCollectionFactory, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry, TaskHistoryRepository taskHistoryRepository, TaskOutputFilesRepository taskOutputsRepository) {
 
         return new ShortCircuitTaskArtifactStateRepository(
             startParameter,
@@ -196,7 +196,6 @@ public class TaskExecutionServices {
                 instantiator,
                 fileCollectionSnapshotterRegistry,
                 fileCollectionFactory,
-                valueSnapshotter,
                 taskOutputsRepository
             )
         );

@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.hash.HashCode;
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
@@ -52,6 +53,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     private final PersistentIndexedCache<String, TaskExecutionSnapshot> taskHistoryCache;
     private final StringInterner stringInterner;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
+    private final ValueSnapshotter valueSnapshotter;
     private final BuildInvocationScopeId buildInvocationScopeId;
 
     public CacheBackedTaskHistoryRepository(
@@ -59,10 +61,12 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         FileSnapshotRepository snapshotRepository,
         StringInterner stringInterner,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+        ValueSnapshotter valueSnapshotter,
         BuildInvocationScopeId buildInvocationScopeId) {
         this.snapshotRepository = snapshotRepository;
         this.stringInterner = stringInterner;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
+        this.valueSnapshotter = valueSnapshotter;
         this.buildInvocationScopeId = buildInvocationScopeId;
         LazyTaskExecution.TaskExecutionSnapshotSerializer serializer = new LazyTaskExecution.TaskExecutionSnapshotSerializer(stringInterner);
         this.taskHistoryCache = cacheAccess.createCache("taskHistory", String.class, serializer, 10000, false);
@@ -70,7 +74,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     public History getHistory(final TaskInternal task) {
         final LazyTaskExecution previousExecution = loadPreviousExecution(task);
-        final LazyTaskExecution currentExecution = createExecution(task);
+        final LazyTaskExecution currentExecution = createExecution(task, previousExecution);
 
         return new History() {
             public TaskExecution getPreviousExecution() {
@@ -127,7 +131,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         };
     }
 
-    private LazyTaskExecution createExecution(TaskInternal task) {
+    private LazyTaskExecution createExecution(TaskInternal task, TaskExecution previousExecution) {
         Class<? extends TaskInternal> taskClass = task.getClass();
         List<ContextAwareTaskAction> taskActions = task.getTaskActions();
         ImplementationSnapshot taskImplementation = new ImplementationSnapshot(taskClass.getName(), classLoaderHierarchyHasher.getClassLoaderHash(taskClass.getClassLoader()));
@@ -138,7 +142,10 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             LOGGER.debug("Action implementations for {}: {}", task, taskActionImplementations);
         }
 
-        LazyTaskExecution currentExecution = new LazyTaskExecution(snapshotRepository, buildInvocationScopeId.getId(), taskImplementation, taskActionImplementations);
+        ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = previousExecution == null ? ImmutableSortedMap.<String, ValueSnapshot>of() : previousExecution.getInputProperties();
+        ImmutableSortedMap<String, ValueSnapshot> inputProperties = snapshotTaskInputs(task, previousInputProperties);
+
+        LazyTaskExecution currentExecution = new LazyTaskExecution(snapshotRepository, buildInvocationScopeId.getId(), taskImplementation, taskActionImplementations, inputProperties);
         currentExecution.setOutputPropertyNamesForCacheKey(getOutputPropertyNamesForCacheKey(task));
         currentExecution.setDeclaredOutputFilePaths(getDeclaredOutputFilePaths(task));
         return currentExecution;
@@ -155,6 +162,31 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             actionImpls.add(new ImplementationSnapshot(typeName, classLoaderHash));
         }
         return actionImpls.build();
+    }
+
+    private ImmutableSortedMap<String, ValueSnapshot> snapshotTaskInputs(TaskInternal task, ImmutableSortedMap<String, ValueSnapshot> previousInputProperties) {
+        ImmutableSortedMap.Builder<String, ValueSnapshot> builder = ImmutableSortedMap.naturalOrder();
+        for (Map.Entry<String, Object> entry : task.getInputs().getProperties().entrySet()) {
+            String propertyName = entry.getKey();
+            Object value = entry.getValue();
+            try {
+                ValueSnapshot previousSnapshot = previousInputProperties.get(propertyName);
+                if (previousSnapshot == null) {
+                    builder.put(propertyName, valueSnapshotter.snapshot(value));
+                } else {
+                    ValueSnapshot newSnapshot = valueSnapshotter.snapshot(value, previousSnapshot);
+                    if (newSnapshot == previousSnapshot) {
+                        builder.put(propertyName, previousSnapshot);
+                    } else {
+                        builder.put(propertyName, valueSnapshotter.snapshot(value));
+                    }
+                }
+            } catch (Exception e) {
+                throw new GradleException(String.format("Unable to store input properties for %s. Property '%s' with value '%s' cannot be serialized.", task, propertyName, value), e);
+            }
+        }
+
+        return builder.build();
     }
 
     private LazyTaskExecution loadPreviousExecution(TaskInternal task) {
@@ -213,10 +245,10 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 snapshotRepository,
                 taskExecutionSnapshot.getBuildInvocationId(),
                 taskExecutionSnapshot.getTaskImplementation(),
-                taskExecutionSnapshot.getTaskActionsImplementations()
+                taskExecutionSnapshot.getTaskActionsImplementations(),
+                taskExecutionSnapshot.getInputProperties()
             );
             setSuccessful(taskExecutionSnapshot.isSuccessful());
-            setInputProperties(taskExecutionSnapshot.getInputProperties());
             setOutputPropertyNamesForCacheKey(taskExecutionSnapshot.getCacheableOutputProperties());
             setDeclaredOutputFilePaths(taskExecutionSnapshot.getDeclaredOutputFilePaths());
             this.inputFilesSnapshotIds = taskExecutionSnapshot.getInputFilesSnapshotIds();
@@ -228,9 +260,10 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             FileSnapshotRepository snapshotRepository,
             UniqueId buildInvocationId,
             ImplementationSnapshot taskImplementation,
-            ImmutableList<ImplementationSnapshot> taskActionsImplementations
+            ImmutableList<ImplementationSnapshot> taskActionsImplementations,
+            ImmutableSortedMap<String, ValueSnapshot> inputProperties
         ) {
-            super(buildInvocationId, taskImplementation, taskActionsImplementations);
+            super(buildInvocationId, taskImplementation, taskActionsImplementations, inputProperties);
             this.snapshotRepository = snapshotRepository;
         }
 

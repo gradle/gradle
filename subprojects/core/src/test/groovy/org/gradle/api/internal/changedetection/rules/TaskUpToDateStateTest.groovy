@@ -21,16 +21,13 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
-import org.gradle.api.internal.changedetection.state.ValueSnapshotter
 import org.gradle.api.internal.file.FileCollectionFactory
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import spock.lang.Subject
 
 @Subject(TaskUpToDateState)
 class TaskUpToDateStateTest extends AbstractTaskStateChangesTest {
 
     def "constructor invokes snapshots" () {
-        def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
         def stubHistory = Stub(TaskHistoryRepository.History)
         def fileCollectionFactory = Mock(FileCollectionFactory)
         def stubSnapshot = Stub(FileCollectionSnapshot)
@@ -38,7 +35,7 @@ class TaskUpToDateStateTest extends AbstractTaskStateChangesTest {
         def mockInputFileSnapshotterRegistry = Mock(FileCollectionSnapshotterRegistry)
 
         when:
-        new TaskUpToDateState(stubTask, stubHistory, mockInputFileSnapshotterRegistry, fileCollectionFactory, new ValueSnapshotter(classLoaderHierarchyHasher))
+        new TaskUpToDateState(stubTask, stubHistory, mockInputFileSnapshotterRegistry, fileCollectionFactory)
 
         then:
         noExceptionThrown()

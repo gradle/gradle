@@ -30,7 +30,6 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRe
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
-import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
@@ -50,18 +49,16 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     private final FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry;
     private final Instantiator instantiator;
     private final FileCollectionFactory fileCollectionFactory;
-    private final ValueSnapshotter valueSnapshotter;
     private final TaskOutputFilesRepository taskOutputFilesRepository;
 
     public DefaultTaskArtifactStateRepository(TaskHistoryRepository taskHistoryRepository, Instantiator instantiator,
                                               FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry,
                                               FileCollectionFactory fileCollectionFactory,
-                                              ValueSnapshotter valueSnapshotter, TaskOutputFilesRepository taskOutputFilesRepository) {
+                                              TaskOutputFilesRepository taskOutputFilesRepository) {
         this.taskHistoryRepository = taskHistoryRepository;
         this.instantiator = instantiator;
         this.fileCollectionSnapshotterRegistry = fileCollectionSnapshotterRegistry;
         this.fileCollectionFactory = fileCollectionFactory;
-        this.valueSnapshotter = valueSnapshotter;
         this.taskOutputFilesRepository = taskOutputFilesRepository;
     }
 
@@ -186,7 +183,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         private TaskUpToDateState getStates() {
             if (states == null) {
                 // Calculate initial state - note this is potentially expensive
-                states = new TaskUpToDateState(task, history, fileCollectionSnapshotterRegistry, fileCollectionFactory, valueSnapshotter);
+                states = new TaskUpToDateState(task, history, fileCollectionSnapshotterRegistry, fileCollectionFactory);
             }
             return states;
         }
