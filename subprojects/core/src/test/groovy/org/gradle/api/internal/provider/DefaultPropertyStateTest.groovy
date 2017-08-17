@@ -44,7 +44,7 @@ class DefaultPropertyStateTest extends Specification {
         null  | false
     }
 
-    def "throws exception if null value is retrieved for non-null get method"() {
+    def "fails when get method is called when the property has no value"() {
         when:
         PropertyState<Boolean> propertyState = createBooleanPropertyState()
         propertyState.get()
@@ -83,6 +83,19 @@ class DefaultPropertyStateTest extends Specification {
         then:
         propertyState.isPresent()
         propertyState.getOrNull()
+    }
+
+    def "fails when value is set using incompatible type"() {
+        when:
+        PropertyState<Boolean> propertyState = createBooleanPropertyState()
+        propertyState.set(12)
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "Cannot set the value of a property of type class java.lang.Boolean using an instance of type class java.lang.Integer."
+
+        and:
+        !propertyState.present
     }
 
     def "can set value of external provider"() {
@@ -140,7 +153,7 @@ class DefaultPropertyStateTest extends Specification {
     }
 
     private PropertyState<Boolean> createBooleanPropertyState() {
-        new DefaultPropertyState<Boolean>()
+        new DefaultPropertyState<Boolean>(Boolean)
     }
 
     private PropertyState<Boolean> createBooleanPropertyState(Boolean value) {

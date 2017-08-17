@@ -119,4 +119,33 @@ assert tasks.t.prop.get() == "changed"
         expect:
         succeeds()
     }
+
+    def "reports failure to set property value using incompatible type"() {
+        given:
+        buildFile << """
+class SomeExtension {
+    final PropertyState<String> prop
+    
+    @javax.inject.Inject
+    SomeExtension(ProviderFactory providers) {
+        prop = providers.property(String)
+    }
+}
+
+extensions.create('custom', SomeExtension, providers)
+
+task wrongValueType {
+    doLast {
+        custom.prop = 123
+    }
+}
+"""
+
+        when:
+        fails("wrongValueType")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':wrongValueType'.")
+        failure.assertHasCause("Cannot set the value of a property of type class java.lang.String using an instance of type class java.lang.Integer.")
+    }
 }

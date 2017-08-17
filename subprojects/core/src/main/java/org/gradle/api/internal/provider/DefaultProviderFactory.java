@@ -30,32 +30,32 @@ public class DefaultProviderFactory implements ProviderFactory {
             throw new InvalidUserDataException("Value cannot be null");
         }
 
-        return new DefaultProvider(value);
+        return new DefaultProvider<T>(value);
     }
 
     @Override
-    public <T> PropertyState<T> property(Class<T> clazz) {
-        if (clazz == null) {
+    public <T> PropertyState<T> property(Class<T> type) {
+        if (type == null) {
             throw new InvalidUserDataException("Class cannot be null");
         }
 
-        PropertyState<T> propertyState = new DefaultPropertyState<T>();
+        PropertyState<T> propertyState = new DefaultPropertyState<T>(type);
 
-        if (clazz == Boolean.class) {
+        if (type == Boolean.class) {
             ((PropertyState<Boolean>) propertyState).set(Boolean.FALSE);
-        } else if (clazz == Byte.class) {
+        } else if (type == Byte.class) {
             ((PropertyState<Byte>) propertyState).set(Byte.valueOf((byte) 0));
-        } else if (clazz == Short.class) {
+        } else if (type == Short.class) {
             ((PropertyState<Short>) propertyState).set(Short.valueOf((short) 0));
-        } else if (clazz == Integer.class) {
+        } else if (type == Integer.class) {
             ((PropertyState<Integer>) propertyState).set(Integer.valueOf(0));
-        } else if (clazz == Long.class) {
+        } else if (type == Long.class) {
             ((PropertyState<Long>) propertyState).set(Long.valueOf(0));
-        } else if (clazz == Float.class) {
+        } else if (type == Float.class) {
             ((PropertyState<Float>) propertyState).set(Float.valueOf(0));
-        } else if (clazz == Double.class) {
+        } else if (type == Double.class) {
             ((PropertyState<Double>) propertyState).set(Double.valueOf(0));
-        } else if (clazz == Character.class) {
+        } else if (type == Character.class) {
             ((PropertyState<Character>) propertyState).set(new Character('\0'));
         }
 

@@ -21,8 +21,6 @@ import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
-import java.util.concurrent.Callable;
-
 import static org.gradle.api.internal.provider.AbstractProvider.NON_NULL_VALUE_EXCEPTION_MESSAGE;
 
 public class DefaultPropertyState<T> implements PropertyState<T> {
@@ -43,16 +41,28 @@ public class DefaultPropertyState<T> implements PropertyState<T> {
         }
     };
 
+    private final Class<?> type;
     private Provider<? extends T> provider = Cast.uncheckedCast(NULL_PROVIDER);
+
+    public DefaultPropertyState(Class<?> type) {
+        this.type = type;
+    }
 
     @Override
     public void set(final T value) {
-        this.provider = new DefaultProvider<T>(new Callable<T>() {
+        if (value == null) {
+            this.provider = Cast.uncheckedCast(NULL_PROVIDER);
+            return;
+        }
+        if (!type.isInstance(value)) {
+            throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using an instance of type %s.", type, value.getClass()));
+        }
+        this.provider = new AbstractProvider<T>() {
             @Override
-            public T call() throws Exception {
+            public T getOrNull() {
                 return value;
             }
-        });
+        };
     }
 
     @Override
