@@ -52,8 +52,8 @@ import static org.gradle.caching.internal.controller.BuildCacheControllerFactory
 
 public class BuildCacheTaskServices {
 
-    TaskOutputPacker createTaskResultPacker(FileSystem fileSystem, FileSystemMirror fileSystemMirror, FileHasher fileHasher, StringInterner stringInterner) {
-        return new GZipTaskOutputPacker(new TarTaskOutputPacker(fileSystem, fileSystemMirror, fileHasher, stringInterner));
+    TaskOutputPacker createTaskResultPacker(FileSystem fileSystem, FileHasher fileHasher, StringInterner stringInterner) {
+        return new GZipTaskOutputPacker(new TarTaskOutputPacker(fileSystem, fileHasher, stringInterner));
     }
 
     TaskOutputOriginFactory createTaskOutputOriginFactory(

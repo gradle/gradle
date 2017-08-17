@@ -39,7 +39,6 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DirectoryFileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSnapshot;
-import org.gradle.api.internal.changedetection.state.FileSystemMirror;
 import org.gradle.api.internal.changedetection.state.MissingFileSnapshot;
 import org.gradle.api.internal.changedetection.state.RegularFileSnapshot;
 import org.gradle.api.internal.file.collections.DefaultDirectoryWalkerFactory;
@@ -90,14 +89,12 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
 
     private final DefaultDirectoryWalkerFactory directoryWalkerFactory;
     private final FileSystem fileSystem;
-    private final FileSystemMirror fileSystemMirror;
     private final FileHasher fileHasher;
     private final StringInterner stringInterner;
 
-    public TarTaskOutputPacker(FileSystem fileSystem, FileSystemMirror fileSystemMirror, FileHasher fileHasher, StringInterner stringInterner) {
+    public TarTaskOutputPacker(FileSystem fileSystem, FileHasher fileHasher, StringInterner stringInterner) {
         this.directoryWalkerFactory = new DefaultDirectoryWalkerFactory(JavaVersion.current(), fileSystem);
         this.fileSystem = fileSystem;
-        this.fileSystemMirror = fileSystemMirror;
         this.fileHasher = fileHasher;
         this.stringInterner = stringInterner;
     }
