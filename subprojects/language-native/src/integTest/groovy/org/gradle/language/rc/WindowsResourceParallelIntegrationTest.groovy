@@ -31,6 +31,12 @@ class WindowsResourceParallelIntegrationTest extends AbstractNativeSoftwareModel
         given:
         withComponentsForAppAndSharedLib()
         withTaskThatRunsParallelWith("compileMainLibSharedLibraryMainLibRc")
+        buildFile << """
+            // prevent windows resource and cpp compile tasks from running in parallel
+            // this is because we don't want the cpp compile tasks to accidentally use 
+            // the decorated tool provider we set up for testing the parallelism
+            tasks.withType(CppCompile) { mustRunAfter tasks.withType(WindowsResourceCompile) }
+        """
 
         when:
         succeeds("assemble", "parallelTask")

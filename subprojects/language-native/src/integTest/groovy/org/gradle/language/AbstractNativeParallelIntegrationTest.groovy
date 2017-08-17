@@ -21,12 +21,19 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.junit.Rule
 
 abstract class AbstractNativeParallelIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+    @Rule BlockingHttpServer server = new BlockingHttpServer()
     BuildOperationsFixture buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def setup() {
         executer.withArgument("--max-workers=4")
+    }
+
+    def cleanup() {
+        server.stop()
     }
 
     void assertTaskIsParallel(String taskName) {
@@ -38,28 +45,108 @@ abstract class AbstractNativeParallelIntegrationTest extends AbstractInstalledTo
         })
 
         assert task != null
-        assert buildOperations.getOperationsConcurrentWith(ExecuteTaskBuildOperationType, task).size() > 0
+        def concurrentTasks = buildOperations.getOperationsConcurrentWith(ExecuteTaskBuildOperationType, task)
+        assert concurrentTasks.find { it.displayName == "Task :parallelTask" }
     }
 
     def withTaskThatRunsParallelWith(String taskName) {
-        buildFile << """
-            import java.util.concurrent.CountDownLatch
-            import org.gradle.internal.work.WorkerLeaseService
+        server.start()
+        server.expectConcurrent("operationsStarted", "parallelTaskStarted")
+        server.expectConcurrent("operationsFinished", "parallelTaskFinished")
 
-            def taskFinished = new CountDownLatch(1)
-            gradle.taskGraph.afterTask { task ->
-                if (task.name == "${taskName}") {
-                    taskFinished.countDown()
+        buildFile << """
+            ${callbackToolChain}
+            
+            def beforeOperations = { ${server.callFromBuild("operationsStarted")} }
+            def afterOperations = { ${server.callFromBuild("operationsFinished")} }
+
+            tasks.matching { it.name == '${taskName}' }.all {
+                doFirst {
+                    setToolChain(new CallbackToolChain(toolChain, beforeOperations, afterOperations))
+                }
+                doLast {
+                    toolChain.undecorateToolProviders()
                 }
             }
             
             task parallelTask {
                 dependsOn { tasks.${taskName}.taskDependencies }
                 doLast { 
-                    services.get(WorkerLeaseService).withoutProjectLock {
-                        taskFinished.await() 
-                    }
+                    ${server.callFromBuild("parallelTaskStarted")}
+                    println "parallel task"
+                    ${server.callFromBuild("parallelTaskFinished")}
                 }
+            }
+        """
+    }
+
+    String getCallbackToolChain() {
+        return """
+            import java.lang.reflect.Field
+            import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
+            import org.gradle.nativeplatform.toolchain.internal.*
+            import org.gradle.internal.operations.*
+            import org.gradle.internal.progress.*
+            
+            class CallbackToolChain implements NativeToolChainInternal { 
+                @Delegate
+                final NativeToolChainInternal delegate
+                
+                final Closure beforeCallback
+                final Closure afterCallback
+                BuildOperationExecutor originalBuildExecutor
+                def decorated = []
+        
+                CallbackToolChain(NativeToolChainInternal delegate, Closure beforeCallback, Closure afterCallback) {
+                    this.delegate = delegate
+                    this.beforeCallback = beforeCallback
+                    this.afterCallback = afterCallback
+                }
+        
+                @Override
+                PlatformToolProvider select(NativePlatformInternal targetPlatform) {
+                    def toolProvider = delegate.select(targetPlatform)
+                    if (! decorated.contains(toolProvider)) {
+                        Field buildOperationExecutor = AbstractPlatformToolProvider.class.getDeclaredField("buildOperationExecutor")
+                        buildOperationExecutor.setAccessible(true)
+                        originalBuildExecutor = buildOperationExecutor.get(toolProvider)
+                        buildOperationExecutor.set(toolProvider, new CallbackBuildOperationExecutor(originalBuildExecutor, beforeCallback, afterCallback))
+                        decorated << toolProvider
+                    }
+                    return toolProvider   
+                }
+                
+                void undecorateToolProviders() {
+                    decorated.each { toolProvider ->
+                        Field buildOperationExecutor = AbstractPlatformToolProvider.class.getDeclaredField("buildOperationExecutor")
+                        buildOperationExecutor.setAccessible(true)
+                        buildOperationExecutor.set(toolProvider, originalBuildExecutor)
+                    }
+                    decorated = []
+                }
+            }
+        
+            class CallbackBuildOperationExecutor implements BuildOperationExecutor {
+                @Delegate
+                final BuildOperationExecutor delegate
+                
+                final Closure beforeCallback
+                final Closure afterCallback
+        
+                CallbackBuildOperationExecutor(BuildOperationExecutor delegate, Closure beforeCallback, Closure afterCallback) {
+                    this.delegate = delegate
+                    this.beforeCallback = beforeCallback
+                    this.afterCallback = afterCallback
+                }
+        
+                public <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction) {
+                    beforeCallback.call()
+                    try {
+                        delegate.runAll(worker, schedulingAction);
+                    } finally {
+                        afterCallback.call()
+                    }
+                }        
             }
         """
     }
