@@ -28,8 +28,10 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BuildT
     """.trimIndent()
     val masterReleaseFiler = model.masterAndReleaseBranches.joinToString(prefix = "+:", separator = "\n+:")
 
-    features {
-        publishBuildStatusToGithub()
+    if (model.publishStatusToGitHub) {
+        features {
+            publishBuildStatusToGithub()
+        }
     }
 
     if (stage.trigger == Trigger.eachCommit) {

@@ -39,6 +39,7 @@ val buildModel = CIBuildModel(
         masterAndReleaseBranches = listOf("master"),
         tagBuilds = false,
         buildCacheActive = false,
+        publishStatusToGitHub = false,
         stages = listOf(
                 Stage("Quick Feedback", "Checks and functional tests (embedded executer)",
                         trigger = Trigger.eachCommit,

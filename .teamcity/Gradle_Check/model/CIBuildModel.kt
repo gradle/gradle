@@ -12,6 +12,7 @@ data class CIBuildModel (
         val rootProjectName: String = "Check",
         val tagBuilds: Boolean = true,
         val buildCacheActive: Boolean = true,
+        val publishStatusToGitHub: Boolean = true,
         val masterAndReleaseBranches: List<String> = listOf("master", "release"),
         val stages: List<Stage> = listOf(
             Stage("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer)",
