@@ -17,7 +17,7 @@ class RootProject(model: CIBuildModel) : Project({
         versionedSettings {
             id = "PROJECT_EXT_3"
             mode = VersionedSettings.Mode.ENABLED
-            buildSettingsMode = VersionedSettings.BuildSettingsMode.PREFER_SETTINGS_FROM_VCS
+            buildSettingsMode = VersionedSettings.BuildSettingsMode.PREFER_CURRENT_SETTINGS
             rootExtId = "Gradle_Branches_VersionedSettings"
             showChanges = false
             settingsFormat = VersionedSettings.Format.KOTLIN
