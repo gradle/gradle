@@ -32,7 +32,7 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import java.util.concurrent.CountDownLatch
 
-class DependencyResolveBlacklistIntegrationTest extends AbstractHttpDependencyResolutionTest {
+class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     private static final String GROUP_ID = 'group'
 
