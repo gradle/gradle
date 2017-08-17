@@ -86,7 +86,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BuildT
 
     dependencies {
         if (prevStage != null) {
-            dependency("${model.projectPrefix}Stage_${prevStage.name.replace(" ","")}_Trigger") {
+            dependency("${model.projectPrefix}Stage_${prevStage.name.replace(" ","").replace("-","")}_Trigger") {
                 snapshot {
                     onDependencyFailure = FailureAction.ADD_PROBLEM
                 }
