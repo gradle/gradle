@@ -225,7 +225,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     /**
      * The hierarchy separator for project and task path names.
      */
-    String PATH_SEPARATOR = Path.SEPARATOR;
+    String PATH_SEPARATOR = ":";
 
     /**
      * The default build directory name.
