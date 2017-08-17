@@ -32,6 +32,7 @@ public interface FileHasher {
 
     /**
      * Returns the hash of the given input stream while copying the data to the output stream.
+     * The method will not close either stream.
      */
     HashCode hashCopy(InputStream inputStream, OutputStream outputStream) throws IOException;
 

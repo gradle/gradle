@@ -330,16 +330,21 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             outputFile = new File(propertyRoot, childPath);
         }
 
-        String path = stringInterner.intern(outputFile.getAbsolutePath());
+        String internedPath = stringInterner.intern(outputFile.getAbsolutePath());
         RelativePath relativePath = root ? RelativePath.EMPTY_ROOT : RelativePath.parse(!isDirEntry, childPath);
         if (isDirEntry) {
             FileUtils.forceMkdir(outputFile);
-            fileSnapshots.put(propertyName, new DirectoryFileSnapshot(path, relativePath, root));
+            fileSnapshots.put(propertyName, new DirectoryFileSnapshot(internedPath, relativePath, root));
         } else {
-            FileOutputStream output = new FileOutputStream(outputFile);
-            HashCode hash = fileHasher.hashCopy(input, output);
+            OutputStream output = new FileOutputStream(outputFile);
+            HashCode hash;
+            try {
+                hash = fileHasher.hashCopy(input, output);
+            } finally {
+                IOUtils.closeQuietly(output);
+            }
             FileHashSnapshot contentSnapshot = new FileHashSnapshot(hash, outputFile.lastModified());
-            fileSnapshots.put(propertyName, new RegularFileSnapshot(path, relativePath, root, contentSnapshot));
+            fileSnapshots.put(propertyName, new RegularFileSnapshot(internedPath, relativePath, root, contentSnapshot));
         }
 
         fileSystem.chmod(outputFile, entry.getMode() & FILE_PERMISSION_MASK);
