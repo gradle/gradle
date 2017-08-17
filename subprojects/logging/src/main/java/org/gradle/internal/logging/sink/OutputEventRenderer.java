@@ -25,7 +25,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.logging.config.LoggingRouter;
 import org.gradle.internal.logging.console.AnsiConsole;
-import org.gradle.internal.logging.console.BuildLogLevelFilterRenderer;
 import org.gradle.internal.logging.console.BuildStatusRenderer;
 import org.gradle.internal.logging.console.ColorMap;
 import org.gradle.internal.logging.console.Console;
@@ -87,18 +86,29 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         // log level filtering -> buffer/grouping -> header generator -> log event generator -> styled text rendering
         //                                                            \> batching -> header filtering -> console rendering
 
-        this.commonOutputChain = new BuildLogLevelFilterRenderer(new OperationGroupingOutputEventListener(
+        this.commonOutputChain = new OperationGroupingOutputEventListener(
                 new HeaderPrependingOutputEventGroupListener(formatters.getSource(), new PrettyPrefixedLogHeaderFormatter()),
-                timeProvider));
+                timeProvider);
+
+        final Spec<LogGroupHeaderEvent> renderTaskHeadersSpec = new Spec<LogGroupHeaderEvent>() {
+            public boolean isSatisfiedBy(LogGroupHeaderEvent element) {
+                return element.getBuildOperationCategory() == BuildOperationCategory.TASK || element.isGroupHasLogs();
+            }
+        };
+
+        final Spec<LogGroupHeaderEvent> omitAllHeadersSpec = new Spec<LogGroupHeaderEvent>() {
+            public boolean isSatisfiedBy(LogGroupHeaderEvent element) {
+                return false;
+            }
+        };
 
         OutputEventListener stdOutChain = new LazyListener(new Factory<OutputEventListener>() {
             @Override
             public OutputEventListener create() {
-                return onNonError(new LogHeaderFilterOutputEventListener(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), new Spec<LogGroupHeaderEvent>() {
-                    public boolean isSatisfiedBy(LogGroupHeaderEvent element) {
-                        return element.getBuildOperationCategory() == BuildOperationCategory.TASK || element.isGroupHasLogs();
-                    }
-                }));
+                return onNonError(
+                    new LogHeaderFilterOutputEventListener(
+                        new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())),
+                        renderTaskHeadersSpec));
             }
         });
         formatters.add(stdOutChain);
@@ -109,11 +119,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                 return onError(
                     new LogHeaderFilterOutputEventListener(
                         new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource())),
-                        new Spec<LogGroupHeaderEvent>() {
-                            public boolean isSatisfiedBy(LogGroupHeaderEvent element) {
-                                return false;
-                            }
-                        }));
+                        omitAllHeadersSpec));
             }
         });
         formatters.add(stdErrChain);

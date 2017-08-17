@@ -153,7 +153,7 @@ model {
         succeeds "components"
 
         then:
-        output.contains """:components
+        output.contains """> Task :components
 
 ------------------------------------------------------------
 Root project
@@ -163,6 +163,7 @@ SampleComponent 'sampleLib'
 ---------------------------
 
 Note: currently not all plugins register their components, so some components may not be visible here.
+
 
 BUILD SUCCESSFUL"""
     }

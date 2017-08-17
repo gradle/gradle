@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
@@ -34,7 +34,9 @@ class SamplesRepositoriesIntegrationTest extends AbstractIntegrationTest {
         // code snippets from this build script in the user's guide.
         File projectDir = sample.dir
         String output = executer.inDirectory(projectDir).withQuietLogging().withTasks('lookup').run().output
-        assertThat(output, equalTo("""localRepository
+        assertThat(output, equalTo("""
+> Task :lookup
+localRepository
 localRepository
 """))
     }

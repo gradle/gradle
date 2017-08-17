@@ -18,7 +18,6 @@ package org.gradle.internal.logging.sink
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.events.EndOutputEvent
-import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.LogGroupHeaderEvent
 import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.logging.events.OutputEventGroup
@@ -53,7 +52,7 @@ class HeaderPrependingOutputEventGroupListenerTest extends OutputSpecification {
 
         then:
         1 * logHeaderFormatter.format(LOG_HEADER, DESCRIPTION, SHORT_DESCRIPTION, STATUS) >> { spans }
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header $DESCRIPTION</Normal>".toString() })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] <Normal>Header $DESCRIPTION</Normal>".toString() })
         1 * downstreamListener.onOutput(warningMessage)
         0 * _
 
@@ -62,7 +61,7 @@ class HeaderPrependingOutputEventGroupListenerTest extends OutputSpecification {
 
         then:
         1 * logHeaderFormatter.format(LOG_HEADER, DESCRIPTION, SHORT_DESCRIPTION, STATUS) >> { spans }
-        1 * downstreamListener.onOutput({ it.toString() == "[null] [category] <Normal>Header $DESCRIPTION</Normal>".toString() })
+        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] <Normal>Header $DESCRIPTION</Normal>".toString() })
         0 * _
     }
 
@@ -138,22 +137,5 @@ class HeaderPrependingOutputEventGroupListenerTest extends OutputSpecification {
         1 * downstreamListener.onOutput(completeEvent)
         1 * downstreamListener.onOutput(endOutputEvent)
         0 * _
-    }
-
-    def testIsNewOutputGroup() {
-        given:
-        def buildOpId = new OperationIdentifier(1)
-
-        expect:
-        !listener.isNewOutputGroup(new EndOutputEvent(), null)
-        !listener.isNewOutputGroup(new EndOutputEvent(), buildOpId)
-        !listener.isNewOutputGroup(new LogEvent(tenAm, CATEGORY, LogLevel.LIFECYCLE, "MESSAGE", null, null), null)
-        !listener.isNewOutputGroup(new LogEvent(tenAm, CATEGORY, LogLevel.LIFECYCLE, "MESSAGE", null, buildOpId), buildOpId)
-        !listener.isNewOutputGroup(new LogEvent(tenAm, CATEGORY, LogLevel.LIFECYCLE, "MESSAGE", null, buildOpId), buildOpId)
-        !listener.isNewOutputGroup(new LogEvent(tenAm, CATEGORY, LogLevel.LIFECYCLE, "MESSAGE", null, buildOpId), new OperationIdentifier(1))
-
-        listener.isNewOutputGroup(new LogEvent(tenAm, CATEGORY, LogLevel.LIFECYCLE, "MESSAGE", null, buildOpId), new OperationIdentifier(2))
-        listener.isNewOutputGroup(new LogEvent(tenAm, CATEGORY, LogLevel.LIFECYCLE, "MESSAGE", null, buildOpId), null)
-        listener.isNewOutputGroup(new LogEvent(tenAm, CATEGORY, LogLevel.LIFECYCLE, "MESSAGE", null, null), buildOpId)
     }
 }

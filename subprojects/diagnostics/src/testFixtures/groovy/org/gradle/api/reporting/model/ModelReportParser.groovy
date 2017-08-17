@@ -148,6 +148,6 @@ class ModelReportParser {
         if (successMarker == 0) {
             return []
         }
-        nodeLines.subList(0, successMarker - 1)
+        nodeLines.subList(0, successMarker - 2)
     }
 }

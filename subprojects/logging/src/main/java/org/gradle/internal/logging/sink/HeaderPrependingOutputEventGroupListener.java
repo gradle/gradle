@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.logging.sink;
 
+import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.LogGroupHeaderEvent;
 import org.gradle.internal.logging.events.OutputEvent;
@@ -25,12 +26,13 @@ import org.gradle.internal.logging.events.RenderableOutputEvent;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.format.LogHeaderFormatter;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class HeaderPrependingOutputEventGroupListener implements OutputEventGroupListener {
     private final OutputEventListener listener;
     private final LogHeaderFormatter logHeaderFormatter;
-    private Object lastRenderedBuildOpId;
+    @Nullable private Object lastRenderedGroupBuildOpId;
 
     public HeaderPrependingOutputEventGroupListener(OutputEventListener listener, LogHeaderFormatter logHeaderFormatter) {
         this.listener = listener;
@@ -39,10 +41,11 @@ public class HeaderPrependingOutputEventGroupListener implements OutputEventGrou
 
     @Override
     public void onOutput(OutputEvent event) {
-        if (isNewOutputGroup(event, lastRenderedBuildOpId)) {
-            RenderableOutputEvent renderableOutputEvent = (RenderableOutputEvent) event;
-            listener.onOutput(spacerLine(renderableOutputEvent.getTimestamp(), renderableOutputEvent.getCategory()));
-            lastRenderedBuildOpId = renderableOutputEvent.getBuildOperationId();
+        if (event instanceof RenderableOutputEvent && lastRenderedGroupBuildOpId != null) {
+            // Render a spacer line to separate this output from previously rendered group
+            RenderableOutputEvent evt = (RenderableOutputEvent) event;
+            listener.onOutput(new LogEvent(evt.getTimestamp(), evt.getCategory(), evt.getLogLevel(), "", null));
+            lastRenderedGroupBuildOpId = null;
         }
         listener.onOutput(event);
     }
@@ -50,37 +53,24 @@ public class HeaderPrependingOutputEventGroupListener implements OutputEventGrou
     @Override
     public void onOutput(OutputEventGroup eventGroup) {
         List<RenderableOutputEvent> renderableEvents = eventGroup.getLogs();
-        if (!eventGroup.getBuildOperationId().equals(lastRenderedBuildOpId)) {
+        if (!eventGroup.getBuildOperationId().equals(lastRenderedGroupBuildOpId)) {
+            // TODO(EW): seems like we must check log level before determining emptiness
             listener.onOutput(header(eventGroup, !renderableEvents.isEmpty()));
         }
         for (RenderableOutputEvent event : renderableEvents) {
             listener.onOutput(event);
         }
-        lastRenderedBuildOpId = eventGroup.getBuildOperationId();
+        lastRenderedGroupBuildOpId = eventGroup.getBuildOperationId();
     }
 
     private StyledTextOutputEvent header(OutputEventGroup group, boolean hasLogs) {
         return new LogGroupHeaderEvent(
             group.getTimestamp(),
             group.getCategory(),
-            null,
+            LogLevel.LIFECYCLE,
             group.getBuildOperationId(),
             logHeaderFormatter.format(group.getLoggingHeader(), group.getDescription(), group.getShortDescription(), group.getStatus()),
             group.getBuildOperationCategory(),
             hasLogs);
-    }
-
-    private boolean isNewOutputGroup(OutputEvent event, Object lastBuildOpId) {
-        if (event instanceof RenderableOutputEvent) {
-            Object currentBuildOpId = ((RenderableOutputEvent) event).getBuildOperationId();
-            return currentBuildOpId != lastBuildOpId
-                && (currentBuildOpId == null || lastBuildOpId == null || !currentBuildOpId.equals(lastBuildOpId));
-        } else {
-            return false;
-        }
-    }
-
-    private static LogEvent spacerLine(long timestamp, String category) {
-        return new LogEvent(timestamp, category, null, "", null);
     }
 }

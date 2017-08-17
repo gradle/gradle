@@ -91,7 +91,8 @@ class GradleRunnerBuildFailureIntegrationTest extends BaseGradleRunnerIntegratio
 
         then:
         def t = thrown UnexpectedBuildSuccess
-        def expectedOutput = """Task :helloWorld
+        def expectedOutput = """
+> Task :helloWorld
 Hello world!
 
 
@@ -143,7 +144,8 @@ Output:"""
 
         then:
         UnexpectedBuildFailure t = thrown(UnexpectedBuildFailure)
-        String expectedOutput = """Task :helloWorld FAILED
+        String expectedOutput = """
+> Task :helloWorld FAILED
 
 FAILURE: Build failed with an exception.
 

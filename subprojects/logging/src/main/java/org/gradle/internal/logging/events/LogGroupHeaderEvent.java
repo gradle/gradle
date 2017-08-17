@@ -24,12 +24,6 @@ public class LogGroupHeaderEvent extends StyledTextOutputEvent {
     private final BuildOperationCategory buildOperationCategory;
     private final boolean groupHasLogs;
 
-    public LogGroupHeaderEvent(long timestamp, String category, LogLevel logLevel, Object buildOperationIdentifier, String text, BuildOperationCategory buildOperationCategory, boolean groupHasLogs) {
-        super(timestamp, category, logLevel, buildOperationIdentifier, text);
-        this.buildOperationCategory = buildOperationCategory;
-        this.groupHasLogs = groupHasLogs;
-    }
-
     public LogGroupHeaderEvent(long timestamp, String category, LogLevel logLevel, Object buildOperationIdentifier, List<Span> spans, BuildOperationCategory buildOperationCategory, boolean groupHasLogs) {
         super(timestamp, category, logLevel, buildOperationIdentifier, spans);
         this.buildOperationCategory = buildOperationCategory;
