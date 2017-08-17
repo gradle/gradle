@@ -24,6 +24,7 @@ import java.util.List;
 public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implements JavaCompileSpec {
     private MinimalJavaCompileOptions compileOptions;
     private List<File> annotationProcessorPath;
+    private boolean allAnnotationProcessorsAreIncremental;
 
     @Override
     public MinimalJavaCompileOptions getCompileOptions() {
@@ -47,5 +48,10 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     @Override
     public File getIncrementalAnnotationProcessorWorkingDir() {
         return new File(getWorkingDir(), "incap");
+    }
+
+    @Override
+    public boolean annotationProcessingCanBeIncremental() {
+        return allAnnotationProcessorsAreIncremental;
     }
 }
