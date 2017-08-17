@@ -42,8 +42,8 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        executed(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
-        skipped(":createXcTestBundle", ":xcTest")
+        result.assertTasksExecutedInOrder(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
 
     }
 
@@ -173,7 +173,8 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        skipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        executed(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
     }
 
     def "xctest component can specify a dependency on another library"() {
@@ -222,6 +223,7 @@ dependencies {
         succeeds("assemble")
 
         then:
-        skipped(":assemble")
+        result.assertTasksExecutedInOrder(":assemble")
+        result.assertTasksSkipped(":assemble")
     }
 }

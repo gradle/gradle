@@ -25,7 +25,7 @@ import java.util.List;
 
 public abstract class AbstractLocator {
     private final ExecActionFactory execActionFactory;
-    private volatile File cachedLocation;
+    private File cachedLocation;
 
     protected AbstractLocator(ExecActionFactory execActionFactory) {
         this.execActionFactory = execActionFactory;
@@ -34,24 +34,19 @@ public abstract class AbstractLocator {
     protected abstract List<String> getXcrunFlags();
 
     public File find() {
-        File result = cachedLocation;
-        if (result == null) {
-            synchronized (this) {
-                result = cachedLocation;
-                if (result == null) {
-                    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                    ExecAction execAction = execActionFactory.newExecAction();
-                    execAction.executable("xcrun");
-                    execAction.workingDir(System.getProperty("user.dir"));
-                    execAction.args(getXcrunFlags());
-                    execAction.setStandardOutput(outputStream);
-                    execAction.execute().assertNormalExitValue();
+        synchronized (this) {
+            if (cachedLocation == null) {
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                ExecAction execAction = execActionFactory.newExecAction();
+                execAction.executable("xcrun");
+                execAction.workingDir(System.getProperty("user.dir"));
+                execAction.args(getXcrunFlags());
+                execAction.setStandardOutput(outputStream);
+                execAction.execute().assertNormalExitValue();
 
-                    cachedLocation = result = new File(outputStream.toString().replace("\n", ""));
-                }
+                cachedLocation = new File(outputStream.toString().replace("\n", ""));
             }
+            return cachedLocation;
         }
-
-        return result;
     }
 }

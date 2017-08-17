@@ -45,7 +45,7 @@ apply plugin: 'swift-library'
         succeeds("test")
 
         then:
-        skipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
     }
 
     // TODO - Integrate automatically with the Swift library
@@ -82,7 +82,7 @@ apply plugin: 'swift-executable'
         succeeds("test")
 
         then:
-        skipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
     }
 
     // TODO - Integrate automatically with the Swift executable
