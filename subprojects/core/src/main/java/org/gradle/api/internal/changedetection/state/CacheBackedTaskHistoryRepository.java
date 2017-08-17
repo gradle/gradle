@@ -299,12 +299,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 if (previousSnapshot == null) {
                     builder.put(propertyName, valueSnapshotter.snapshot(value));
                 } else {
-                    ValueSnapshot newSnapshot = valueSnapshotter.snapshot(value, previousSnapshot);
-                    if (newSnapshot == previousSnapshot) {
-                        builder.put(propertyName, previousSnapshot);
-                    } else {
-                        builder.put(propertyName, valueSnapshotter.snapshot(value));
-                    }
+                    builder.put(propertyName, valueSnapshotter.snapshot(value, previousSnapshot));
                 }
             } catch (Exception e) {
                 throw new GradleException(String.format("Unable to store input properties for %s. Property '%s' with value '%s' cannot be serialized.", task, propertyName, value), e);

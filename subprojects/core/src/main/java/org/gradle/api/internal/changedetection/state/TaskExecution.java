@@ -33,7 +33,7 @@ public abstract class TaskExecution {
     private final ImmutableSortedSet<String> outputPropertyNamesForCacheKey;
     private final ImmutableSet<String> declaredOutputFilePaths;
     private final OverlappingOutputs detectedOverlappingOutputs;
-    private boolean successful;
+    private Boolean successful;
 
     public TaskExecution(
         UniqueId buildInvocationId,
@@ -42,7 +42,7 @@ public abstract class TaskExecution {
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
         ImmutableSortedSet<String> outputPropertyNames,
         ImmutableSet<String> declaredOutputFilePaths,
-        boolean successful,
+        Boolean successful,
         OverlappingOutputs detectedOverlappingOutputs) {
         this.buildInvocationId = buildInvocationId;
         this.taskImplementation = taskImplementation;
@@ -54,11 +54,11 @@ public abstract class TaskExecution {
         this.detectedOverlappingOutputs = detectedOverlappingOutputs;
     }
 
-    public boolean isSuccessful() {
+    public Boolean isSuccessful() {
         return successful;
     }
 
-    public void setSuccessful(boolean successful) {
+    public void setSuccessful(Boolean successful) {
         this.successful = successful;
     }
 
@@ -97,9 +97,6 @@ public abstract class TaskExecution {
         return inputProperties;
     }
 
-    /**
-     * @return May return null.
-     */
     public abstract ImmutableSortedMap<String, FileCollectionSnapshot> getOutputFilesSnapshot();
 
     public abstract void setOutputFilesSnapshot(ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot);
