@@ -51,6 +51,9 @@ public class JUnitOptions extends TestFrameworkOptions {
         return includeCategories;
     }
 
+    /**
+     * The set of categories to run.
+     */
     @Incubating
     public void setIncludeCategories(Set<String> includeCategories) {
         this.includeCategories = includeCategories;
@@ -64,6 +67,9 @@ public class JUnitOptions extends TestFrameworkOptions {
         return excludeCategories;
     }
 
+    /**
+     * The set of categories to exclude.
+     */
     public void setExcludeCategories(Set<String> excludeCategories) {
         this.excludeCategories = excludeCategories;
     }
