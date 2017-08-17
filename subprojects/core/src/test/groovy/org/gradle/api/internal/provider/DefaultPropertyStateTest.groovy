@@ -92,7 +92,7 @@ class DefaultPropertyStateTest extends Specification {
 
         then:
         IllegalArgumentException e = thrown()
-        e.message == "Cannot set the value of a property of type class java.lang.Boolean using an instance of type class java.lang.Integer."
+        e.message == "Cannot set the value of a property of type java.lang.Boolean using an instance of type java.lang.Integer."
 
         and:
         !propertyState.present

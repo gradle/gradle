@@ -55,7 +55,7 @@ public class DefaultPropertyState<T> implements PropertyState<T> {
             return;
         }
         if (!type.isInstance(value)) {
-            throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using an instance of type %s.", type, value.getClass()));
+            throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using an instance of type %s.", type.getName(), value.getClass().getName()));
         }
         this.provider = new AbstractProvider<T>() {
             @Override

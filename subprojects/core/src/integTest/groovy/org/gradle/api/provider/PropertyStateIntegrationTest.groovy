@@ -146,6 +146,6 @@ task wrongValueType {
 
         then:
         failure.assertHasDescription("Execution failed for task ':wrongValueType'.")
-        failure.assertHasCause("Cannot set the value of a property of type class java.lang.String using an instance of type class java.lang.Integer.")
+        failure.assertHasCause("Cannot set the value of a property of type java.lang.String using an instance of type java.lang.Integer.")
     }
 }
