@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,8 @@
  * limitations under the License.
  */
 
-dependencies {
-    compile project(':core')
-    compile project(':platformNative')
-    compile project(':languageNative')
-    compile project(':testingBase')
-    compile project(':testingJvm')
-
-    integTestRuntime project(':ideNative')
-}
-
-useTestFixtures()
-useTestFixtures(project: ':platformNative')
-useTestFixtures(project: ':diagnostics')
-useTestFixtures(project: ":platformBase")
-
-useClassycle()
-strictCompile()
+/**
+ * Plugins for XCTest testing.
+ */
+@org.gradle.api.Incubating
+package org.gradle.nativeplatform.test.xctest.plugins;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-dependencies {
-    compile project(':core')
-    compile project(':platformNative')
-    compile project(':languageNative')
-    compile project(':testingBase')
-    compile project(':testingJvm')
+package org.gradle.nativeplatform.test.xctest.internal;
 
-    integTestRuntime project(':ideNative')
+import org.gradle.process.internal.ExecActionFactory;
+
+import javax.inject.Inject;
+import java.util.Arrays;
+import java.util.List;
+
+public class MacOSSdkPlatformPathLocator extends AbstractLocator {
+    @Inject
+    public MacOSSdkPlatformPathLocator(ExecActionFactory execActionFactory) {
+        super(execActionFactory);
+    }
+
+    @Override
+    protected List<String> getXcrunFlags() {
+        return Arrays.asList("--show-sdk-platform-path");
+    }
 }
-
-useTestFixtures()
-useTestFixtures(project: ':platformNative')
-useTestFixtures(project: ':diagnostics')
-useTestFixtures(project: ":platformBase")
-
-useClassycle()
-strictCompile()

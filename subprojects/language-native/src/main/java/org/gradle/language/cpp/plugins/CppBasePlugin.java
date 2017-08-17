@@ -51,6 +51,20 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
      */
     public static final String NATIVE_RUNTIME = "nativeRuntime";
 
+    /**
+     * The name of the native test link files configuration.
+     *
+     * @since 4.2
+     */
+    public static final String NATIVE_TEST_LINK = "nativeTestLink";
+
+    /**
+     * The name of the native test runtime files configuration.
+     *
+     * @since 4.2
+     */
+    public static final String NATIVE_TEST_RUNTIME = "nativeTestRuntime";
+
     @Override
     public void apply(ProjectInternal project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
