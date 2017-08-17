@@ -33,7 +33,7 @@ import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.internal.file.copy.FileCopier;
 import org.gradle.api.internal.file.delete.Deleter;
-import org.gradle.api.internal.hash.FileHasher;
+import org.gradle.internal.hash.FileHasher;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.resources.ReadableResource;

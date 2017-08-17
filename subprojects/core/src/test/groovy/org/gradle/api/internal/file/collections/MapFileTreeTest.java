@@ -121,10 +121,8 @@ public class MapFileTreeTest {
         TestFile file = rootDir.file("path/file.txt");
 
         file.assertContents(equalTo("content"));
+        file.makeOlder();
         TestFile.Snapshot snapshot = file.snapshot();
-
-        // make sure file modification time would change if file would get written
-        Thread.sleep(1000L);
 
         assertVisits(tree, toList("path/file.txt"), toList("path"));
         file.assertContents(equalTo("content"));

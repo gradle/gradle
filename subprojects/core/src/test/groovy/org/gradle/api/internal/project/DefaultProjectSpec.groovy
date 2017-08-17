@@ -29,7 +29,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
-import org.gradle.api.internal.hash.FileHasher
+import org.gradle.internal.hash.FileHasher
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.internal.tasks.TaskResolver

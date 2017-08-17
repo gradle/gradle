@@ -17,7 +17,8 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.hash.DefaultFileHasher;
+import org.gradle.internal.hash.DefaultFileContentHasherFactory;
+import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Factory;
@@ -72,7 +73,7 @@ public class TestFiles {
     }
 
     public static DefaultFileHasher fileHasher() {
-        return new DefaultFileHasher();
+        return new DefaultFileHasher(new DefaultFileContentHasherFactory());
     }
 
     public static FileCollectionFactory fileCollectionFactory() {

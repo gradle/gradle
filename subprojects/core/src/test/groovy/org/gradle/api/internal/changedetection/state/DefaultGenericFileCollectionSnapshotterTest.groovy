@@ -22,7 +22,7 @@ import org.gradle.api.internal.changedetection.rules.ChangeType
 import org.gradle.api.internal.changedetection.rules.FileChange
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.api.internal.hash.TestFileHasher
+import org.gradle.internal.hash.TestFileHasher
 import org.gradle.normalization.internal.InputNormalizationStrategy
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

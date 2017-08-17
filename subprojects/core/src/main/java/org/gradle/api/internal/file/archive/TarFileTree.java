@@ -30,7 +30,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.internal.file.collections.SingletonFileTree;
-import org.gradle.api.internal.hash.FileHasher;
+import org.gradle.internal.hash.FileHasher;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.internal.IoActions;

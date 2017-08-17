@@ -130,8 +130,8 @@ public class ZipFileTreeTest {
 
         assertVisits(tree, toList("file1.txt"), new ArrayList<String>());
         TestFile content = expandDir.listFiles()[0].listFiles()[0];
+        content.makeOlder();
         TestFile.Snapshot snapshot = content.snapshot();
-        Thread.sleep(1000);
         assertVisits(tree, toList("file1.txt"), new ArrayList<String>());
         content.assertHasNotChangedSince(snapshot);
     }
