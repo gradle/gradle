@@ -16,7 +16,6 @@
 
 package org.gradle.internal.logging.sink;
 
-import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.OperationIdentifier;
@@ -55,9 +54,6 @@ public class OperationGroupingOutputEventListener implements OutputEventListener
     private final Object lock = new Object();
 
     // Maintain a hierarchy of all build operation ids — heads up: this is a *forest*, not just 1 tree
-    // FIXME(ew): fix deadlock occurring in gradle-js-plugin during compileGroovy task
-    // FIXME(EW): Seems like log messages during configuration are no longer being grouped under a header
-    // FIXME(ew): duplicate logging for some things
     private final Map<Object, Object> buildOpIdHierarchy = new HashMap<Object, Object>();
     private final Map<Object, OutputEventGroup> operationsInProgress = new LinkedHashMap<Object, OutputEventGroup>();
     private final Map<Object, List<RenderableOutputEvent>> logBuffers = new LinkedHashMap<Object, List<RenderableOutputEvent>>();
@@ -92,10 +88,6 @@ public class OperationGroupingOutputEventListener implements OutputEventListener
         }
     }
 
-    private void debugLog(String message) {
-        listener.onOutput(new LogEvent(timeProvider.getCurrentTime(), "OperationGroupingOutputEventListener", LogLevel.QUIET, message, null));
-    }
-
     private void onStart(ProgressStartEvent startEvent) {
         Object buildOpId = startEvent.getBuildOperationId();
         boolean isGrouped = isGroupedOperation(startEvent.getBuildOperationCategory());
@@ -113,6 +105,7 @@ public class OperationGroupingOutputEventListener implements OutputEventListener
         // Preserve logging of headers for progress operations started outside of the build operation executor as was done in Gradle 3.x
         // Basically, if we see an operation with a logging header and it's not grouped, just log it
         if (GUtil.isTrue(startEvent.getLoggingHeader()) && !startEvent.getLoggingHeader().equals(startEvent.getShortDescription()) && (buildOpId == null || !isGrouped)) {
+            // FIXME(ew): this is causing duplicate logging. See RuntimeShadedJarCreator
             listener.onOutput(new LogEvent(startEvent.getTimestamp(), startEvent.getCategory(), startEvent.getLogLevel(), startEvent.getLoggingHeader(), null, startEvent.getBuildOperationId()));
         }
 
