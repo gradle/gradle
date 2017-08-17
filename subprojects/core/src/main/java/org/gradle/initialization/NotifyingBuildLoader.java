@@ -17,8 +17,6 @@
 package org.gradle.initialization;
 
 import com.google.common.collect.ImmutableSortedSet;
-import org.gradle.api.Project;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -26,7 +24,6 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.util.CollectionUtils;
 
 import java.util.Comparator;
 import java.util.Set;
@@ -80,13 +77,11 @@ public class NotifyingBuildLoader implements BuildLoader {
     }
 
     private Set<LoadProjectsBuildOperationType.Result.Project> convert(Set<org.gradle.api.Project> children) {
-        Set<LoadProjectsBuildOperationType.Result.Project> childProjects = CollectionUtils.collect(children, new Transformer<LoadProjectsBuildOperationType.Result.Project, Project>() {
-            @Override
-            public LoadProjectsBuildOperationType.Result.Project transform(Project project) {
-                return convert(project);
-            }
-        });
-        return ImmutableSortedSet.copyOf(PROJECT_DESCRIPTION_COMPARATOR, childProjects);
+        ImmutableSortedSet.Builder<LoadProjectsBuildOperationType.Result.Project> builder = new ImmutableSortedSet.Builder<LoadProjectsBuildOperationType.Result.Project>(PROJECT_COMPARATOR);
+        for (org.gradle.api.Project child : children) {
+            builder.add(convert(child));
+        }
+        return builder.build();
     }
 
     private static class BuildStructureOperationDetails implements LoadProjectsBuildOperationType.Details {
@@ -160,11 +155,10 @@ public class NotifyingBuildLoader implements BuildLoader {
         }
     }
 
-    private static final Comparator<LoadProjectsBuildOperationType.Result.Project> PROJECT_DESCRIPTION_COMPARATOR = new Comparator<LoadProjectsBuildOperationType.Result.Project>() {
+    private static final Comparator<LoadProjectsBuildOperationType.Result.Project> PROJECT_COMPARATOR = new Comparator<LoadProjectsBuildOperationType.Result.Project>() {
         @Override
         public int compare(LoadProjectsBuildOperationType.Result.Project o1, LoadProjectsBuildOperationType.Result.Project o2) {
             return o1.getName().compareTo(o2.getName());
         }
     };
-
 }
