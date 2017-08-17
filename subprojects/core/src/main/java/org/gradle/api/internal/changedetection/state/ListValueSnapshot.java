@@ -83,8 +83,11 @@ public class ListValueSnapshot implements ValueSnapshot, Isolatable<List> {
         ValueSnapshot[] newElements = new ValueSnapshot[list.size()];
         System.arraycopy(elements, 0, newElements, 0, pos);
         if (pos < list.size()) {
-            newElements[pos] = newElement;
-            for (int i = pos + 1; i < list.size(); i++) {
+            if (newElement != null) {
+                newElements[pos] = newElement;
+                pos++;
+            }
+            for (int i = pos; i < list.size(); i++) {
                 newElements[i] = strategy.snapshot(list.get(i));
             }
         }

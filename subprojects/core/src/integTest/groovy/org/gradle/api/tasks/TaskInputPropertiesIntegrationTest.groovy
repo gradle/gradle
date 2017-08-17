@@ -458,8 +458,7 @@ task someTask(type: SomeTask) {
         "java.math.BigDecimal"           | "12.3"                          | "-45.432"
         "java.math.BigInteger"           | "12"                            | "-45"
         "java.util.List<String>"         | "['value1', 'value2']"          | "['value1']"
-        // TODO: LPTR: Throws an NPE - fix it
-//        "java.util.List<String>"         | "[]"                            | "['value1', null, false, 123, 12.4, ['abc'], [true] as Set]"
+        "java.util.List<String>"         | "[]"                            | "['value1', null, false, 123, 12.4, ['abc'], [true] as Set]"
         "String[]"                       | "new String[0]"                 | "['abc'] as String[]"
         "Object[]"                       | "[123, 'abc'] as Object[]"      | "['abc'] as String[]"
         "java.util.Collection<String>"   | "['value1', 'value2']"          | "['value1'] as SortedSet"

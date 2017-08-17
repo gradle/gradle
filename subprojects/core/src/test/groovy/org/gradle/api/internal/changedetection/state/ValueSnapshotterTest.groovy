@@ -108,6 +108,16 @@ class ValueSnapshotterTest extends Specification {
         snapshot2 != snapshot1
     }
 
+    def "creates snapshot for list from empty list"() {
+        def snapshot1 = snapshotter.snapshot([])
+        def snapshot2 = snapshotter.snapshot(["123"], snapshot1)
+
+        expect:
+        snapshot2 instanceof ListValueSnapshot
+        snapshot2 == snapshotter.snapshot(["123"])
+        snapshot2 != snapshot1
+    }
+
     def "creates snapshot for set"() {
         expect:
         def snapshot1 = snapshotter.snapshot([] as Set)
