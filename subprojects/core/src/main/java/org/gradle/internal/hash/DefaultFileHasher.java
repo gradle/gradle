@@ -17,14 +17,17 @@ package org.gradle.internal.hash;
 
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hasher;
+import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.internal.file.FileMetadataSnapshot;
+import org.gradle.internal.io.NullOutputStream;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -39,7 +42,7 @@ public class DefaultFileHasher implements FileHasher {
     @Override
     public HashCode hash(InputStream inputStream) {
         try {
-            return doHash(inputStream);
+            return doHash(inputStream, NullOutputStream.INSTANCE);
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to create MD5 hash for file content.", e);
         }
@@ -49,30 +52,36 @@ public class DefaultFileHasher implements FileHasher {
     public HashCode hash(File file) {
         try {
             InputStream inputStream = new FileInputStream(file);
-            return doHash(inputStream);
+            try {
+                return doHash(inputStream, NullOutputStream.INSTANCE);
+            } finally {
+                IOUtils.closeQuietly(inputStream);
+            }
         } catch (IOException e) {
             throw new UncheckedIOException(String.format("Failed to create MD5 hash for file '%s'.", file), e);
         }
     }
 
-    private HashCode doHash(InputStream inputStream) throws IOException {
+    @Override
+    public HashCode hashCopy(InputStream inputStream, OutputStream outputStream) throws IOException {
+        return doHash(inputStream, outputStream);
+    }
+
+    private HashCode doHash(InputStream inputStream, OutputStream outputStream) throws IOException {
+        byte[] buffer = takeBuffer();
         try {
-            byte[] buffer = takeBuffer();
-            try {
-                Hasher hasher = hasherFactory.create();
-                while (true) {
-                    int nread = inputStream.read(buffer);
-                    if (nread < 0) {
-                        break;
-                    }
-                    hasher.putBytes(buffer, 0, nread);
+            Hasher hasher = hasherFactory.create();
+            while (true) {
+                int nread = inputStream.read(buffer);
+                if (nread < 0) {
+                    break;
                 }
-                return hasher.hash();
-            } finally {
-                returnBuffer(buffer);
+                outputStream.write(buffer, 0, nread);
+                hasher.putBytes(buffer, 0, nread);
             }
+            return hasher.hash();
         } finally {
-            inputStream.close();
+            returnBuffer(buffer);
         }
     }
 

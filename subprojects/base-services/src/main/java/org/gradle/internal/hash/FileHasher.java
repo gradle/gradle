@@ -20,13 +20,20 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.internal.file.FileMetadataSnapshot;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 public interface FileHasher {
     /**
      * Returns the hash of the given input stream.
      */
     HashCode hash(InputStream inputStream);
+
+    /**
+     * Returns the hash of the given input stream while copying the data to the output stream.
+     */
+    HashCode hashCopy(InputStream inputStream, OutputStream outputStream) throws IOException;
 
     /**
      * Returns the hash of the current content of the given file. The provided file must exist and be a file (rather than, say, a directory).

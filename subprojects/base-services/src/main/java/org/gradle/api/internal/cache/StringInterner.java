@@ -19,6 +19,8 @@ package org.gradle.api.internal.cache;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 
+import javax.annotation.Nullable;
+
 public class StringInterner implements Interner<String> {
     private final Interner<String> interner;
 
@@ -27,7 +29,7 @@ public class StringInterner implements Interner<String> {
     }
 
     @Override
-    public String intern(String sample) {
+    public String intern(@Nullable String sample) {
         if (sample == null) {
             return null;
         }

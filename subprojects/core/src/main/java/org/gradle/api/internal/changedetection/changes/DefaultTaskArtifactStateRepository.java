@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.changes;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskExecutionHistory;
@@ -154,9 +155,20 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public void snapshotAfterTask(Throwable failure) {
+        public void snapshotAfterTaskExecution(Throwable failure) {
+            TaskHistoryRepository.History history = this.history;
             history.updateCurrentExecution(taskInputs);
+            snapshotAfterOutputsWereGenerated(history, failure);
+        }
 
+        @Override
+        public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot) {
+            TaskHistoryRepository.History history = this.history;
+            history.updateCurrentExecutionWithOutputs(taskInputs, newOutputSnapshot);
+            snapshotAfterOutputsWereGenerated(history, null);
+        }
+
+        private void snapshotAfterOutputsWereGenerated(TaskHistoryRepository.History history, Throwable failure) {
             // Only persist task history if there was no failure, or some output files have been changed
             if (failure == null || getStates().hasAnyOutputFileChanges()) {
                 history.persist();

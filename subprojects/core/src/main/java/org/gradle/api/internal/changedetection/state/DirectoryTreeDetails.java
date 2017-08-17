@@ -41,4 +41,9 @@ public class DirectoryTreeDetails implements FileTreeSnapshot {
     public List<FileSnapshot> getDescendants() {
         return elements;
     }
+
+    @Override
+    public String toString() {
+        return path + " (" + elements.size() + " descendants)";
+    }
 }

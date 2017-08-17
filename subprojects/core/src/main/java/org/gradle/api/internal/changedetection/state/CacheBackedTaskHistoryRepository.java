@@ -118,6 +118,11 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             }
 
             @Override
+            public void updateCurrentExecutionWithOutputs(IncrementalTaskInputsInternal taskInputs, ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot) {
+                CacheBackedTaskHistoryRepository.this.updateExecution(getPreviousExecution(), getCurrentExecution(), task, taskInputs, newOutputSnapshot, normalizationStrategy);
+            }
+
+            @Override
             public void persist() {
                 LazyTaskExecution currentExecution = getCurrentExecution();
                 LazyTaskExecution previousExecution = getPreviousExecution();
@@ -177,16 +182,14 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         );
     }
 
-    private void updateExecution(final TaskExecution previousExecution, LazyTaskExecution currentExecution, TaskInternal task, IncrementalTaskInputsInternal taskInputs, InputNormalizationStrategy normalizationStrategy) {
-        currentExecution.setSuccessful(task.getState().getFailure() == null);
-
+    private void updateExecution(final LazyTaskExecution previousExecution, LazyTaskExecution currentExecution, TaskInternal task, IncrementalTaskInputsInternal taskInputs, InputNormalizationStrategy normalizationStrategy) {
         final ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesAfter = snapshotTaskFiles(task, "Output", normalizationStrategy, task.getOutputs().getFileProperties(), snapshotterRegistry);
 
-        ImmutableSortedMap<String, FileCollectionSnapshot> results;
+        ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot;
         if (currentExecution.getDetectedOverlappingOutputs() == null) {
-            results = outputFilesAfter;
+            newOutputSnapshot = outputFilesAfter;
         } else {
-            results = ImmutableSortedMap.copyOfSorted(Maps.transformEntries(currentExecution.getOutputFilesSnapshot(), new Maps.EntryTransformer<String, FileCollectionSnapshot, FileCollectionSnapshot>() {
+            newOutputSnapshot = ImmutableSortedMap.copyOfSorted(Maps.transformEntries(currentExecution.getOutputFilesSnapshot(), new Maps.EntryTransformer<String, FileCollectionSnapshot, FileCollectionSnapshot>() {
                 @Override
                 public FileCollectionSnapshot transformEntry(String propertyName, FileCollectionSnapshot beforeExecution) {
                     FileCollectionSnapshot afterExecution = outputFilesAfter.get(propertyName);
@@ -195,7 +198,13 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 }
             }));
         }
-        currentExecution.setOutputFilesSnapshot(results);
+        updateExecution(previousExecution, currentExecution, task, taskInputs, newOutputSnapshot, normalizationStrategy);
+    }
+
+    private void updateExecution(LazyTaskExecution previousExecution, LazyTaskExecution currentExecution, TaskInternal task, IncrementalTaskInputsInternal taskInputs, ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot, InputNormalizationStrategy normalizationStrategy) {
+        currentExecution.setSuccessful(task.getState().getFailure() == null);
+
+        currentExecution.setOutputFilesSnapshot(newOutputSnapshot);
 
         FileCollectionSnapshot discoveredFilesSnapshot;
         if (taskInputs != null) {

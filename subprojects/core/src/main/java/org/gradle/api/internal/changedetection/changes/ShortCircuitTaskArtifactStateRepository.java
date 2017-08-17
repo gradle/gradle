@@ -15,11 +15,13 @@
  */
 package org.gradle.api.internal.changedetection.changes;
 
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.id.UniqueId;
@@ -116,9 +118,13 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         }
 
         @Override
-        public void snapshotAfterTask(Throwable failure) {
-            delegate.snapshotAfterTask(failure);
+        public void snapshotAfterTaskExecution(Throwable failure) {
+            delegate.snapshotAfterTaskExecution(failure);
+        }
+
+        @Override
+        public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot) {
+            delegate.snapshotAfterLoadedFromCache(newOutputSnapshot);
         }
     }
-
 }

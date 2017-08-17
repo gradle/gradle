@@ -18,7 +18,10 @@ package org.gradle.caching.internal.tasks;
 
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Maps;
+import com.google.common.hash.HashCode;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
@@ -32,6 +35,13 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.state.DirectoryFileSnapshot;
+import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
+import org.gradle.api.internal.changedetection.state.FileSnapshot;
+import org.gradle.api.internal.changedetection.state.FileSystemMirror;
+import org.gradle.api.internal.changedetection.state.MissingFileSnapshot;
+import org.gradle.api.internal.changedetection.state.RegularFileSnapshot;
 import org.gradle.api.internal.file.collections.DefaultDirectoryWalkerFactory;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType;
@@ -41,6 +51,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter;
+import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 
 import java.io.BufferedOutputStream;
@@ -79,10 +90,16 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
 
     private final DefaultDirectoryWalkerFactory directoryWalkerFactory;
     private final FileSystem fileSystem;
+    private final FileSystemMirror fileSystemMirror;
+    private final FileHasher fileHasher;
+    private final StringInterner stringInterner;
 
-    public TarTaskOutputPacker(FileSystem fileSystem) {
+    public TarTaskOutputPacker(FileSystem fileSystem, FileSystemMirror fileSystemMirror, FileHasher fileHasher, StringInterner stringInterner) {
         this.directoryWalkerFactory = new DefaultDirectoryWalkerFactory(JavaVersion.current(), fileSystem);
         this.fileSystem = fileSystem;
+        this.fileSystemMirror = fileSystemMirror;
+        this.fileHasher = fileHasher;
+        this.stringInterner = stringInterner;
     }
 
     @Override
@@ -240,13 +257,14 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
                 return propertySpec.getPropertyName();
             }
         });
-        TarArchiveEntry entry;
+        TarArchiveEntry tarEntry;
         TaskOutputOriginMetadata originMetadata = null;
+        ImmutableListMultimap.Builder<String, FileSnapshot> propertyFileSnapshots = ImmutableListMultimap.builder();
 
         long entries = 0;
-        while ((entry = tarInput.getNextTarEntry()) != null) {
+        while ((tarEntry = tarInput.getNextTarEntry()) != null) {
             ++entries;
-            String name = entry.getName();
+            String name = tarEntry.getName();
 
             if (name.equals(METADATA_PATH)) {
                 // handle origin metadata
@@ -266,25 +284,27 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
 
                 boolean outputMissing = matcher.group(1) != null;
                 String childPath = matcher.group(3);
-                unpackPropertyEntry(propertySpec, tarInput, entry, childPath, outputMissing);
+                unpackPropertyEntry(propertySpec, tarInput, tarEntry, childPath, outputMissing, propertyFileSnapshots);
             }
         }
         if (originMetadata == null) {
             throw new IllegalStateException("Cached result format error, no origin metadata was found.");
         }
 
-        return new UnpackResult(originMetadata, entries);
+        return new UnpackResult(originMetadata, entries, propertyFileSnapshots.build());
     }
 
-    private void unpackPropertyEntry(ResolvedTaskOutputFilePropertySpec propertySpec, InputStream input, TarArchiveEntry entry, String childPath, boolean missing) throws IOException {
+    private void unpackPropertyEntry(ResolvedTaskOutputFilePropertySpec propertySpec, InputStream input, TarArchiveEntry entry, String childPath, boolean missing, ImmutableMultimap.Builder<String, FileSnapshot> fileSnapshots) throws IOException {
         File propertyRoot = propertySpec.getOutputFile();
+        String propertyName = propertySpec.getPropertyName();
         if (propertyRoot == null) {
-            throw new IllegalStateException("Optional property should have a value: " + propertySpec.getPropertyName());
+            throw new IllegalStateException("Optional property should have a value: " + propertyName);
         }
 
         File outputFile;
         boolean isDirEntry = entry.isDirectory();
-        if (Strings.isNullOrEmpty(childPath)) {
+        boolean root = Strings.isNullOrEmpty(childPath);
+        if (root) {
             // We are handling the root of the property here
             if (missing) {
                 if (!makeDirectory(propertyRoot.getParentFile())) {
@@ -293,17 +313,18 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
                         FileUtils.forceDelete(propertyRoot);
                     }
                 }
+                fileSnapshots.put(propertyName, new MissingFileSnapshot(propertyRoot.getAbsolutePath(), RelativePath.EMPTY_ROOT));
                 return;
             }
 
             OutputType outputType = propertySpec.getOutputType();
             if (isDirEntry) {
                 if (outputType != OutputType.DIRECTORY) {
-                    throw new IllegalStateException("Property should be an output directory property: " + propertySpec.getPropertyName());
+                    throw new IllegalStateException("Property should be an output directory property: " + propertyName);
                 }
             } else {
                 if (outputType == OutputType.DIRECTORY) {
-                    throw new IllegalStateException("Property should be an output file property: " + propertySpec.getPropertyName());
+                    throw new IllegalStateException("Property should be an output file property: " + propertyName);
                 }
             }
             ensureDirectoryForProperty(outputType, propertyRoot);
@@ -312,15 +333,16 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             outputFile = new File(propertyRoot, childPath);
         }
 
+        String path = stringInterner.intern(outputFile.getAbsolutePath());
+        RelativePath relativePath = root ? RelativePath.EMPTY_ROOT : RelativePath.parse(!isDirEntry, childPath);
         if (isDirEntry) {
             FileUtils.forceMkdir(outputFile);
+            fileSnapshots.put(propertyName, new DirectoryFileSnapshot(path, relativePath, root));
         } else {
             FileOutputStream output = new FileOutputStream(outputFile);
-            try {
-                IOUtils.copyLarge(input, output, COPY_BUFFERS.get());
-            } finally {
-                IOUtils.closeQuietly(output);
-            }
+            HashCode hash = fileHasher.hashCopy(input, output);
+            FileHashSnapshot contentSnapshot = new FileHashSnapshot(hash, outputFile.lastModified());
+            fileSnapshots.put(propertyName, new RegularFileSnapshot(path, relativePath, root, contentSnapshot));
         }
 
         fileSystem.chmod(outputFile, entry.getMode() & FILE_PERMISSION_MASK);

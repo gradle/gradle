@@ -23,13 +23,13 @@ import org.gradle.internal.file.FileType;
 /**
  * Snapshot for a regular file.
  */
-class RegularFileSnapshot implements FileSnapshot {
+public class RegularFileSnapshot implements FileSnapshot {
     private final String path;
     private final RelativePath relativePath;
     private final boolean root;
     private final FileContentSnapshot content;
 
-    RegularFileSnapshot(String path, RelativePath relativePath, boolean root, FileContentSnapshot content) {
+    public RegularFileSnapshot(String path, RelativePath relativePath, boolean root, FileContentSnapshot content) {
         this.path = path;
         this.relativePath = relativePath;
         this.root = root;

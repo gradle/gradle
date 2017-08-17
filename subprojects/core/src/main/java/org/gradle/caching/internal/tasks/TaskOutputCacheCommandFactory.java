@@ -16,12 +16,25 @@
 
 package org.gradle.caching.internal.tasks;
 
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Maps;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
+import org.gradle.api.internal.changedetection.state.DirectoryTreeDetails;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotBuilder;
+import org.gradle.api.internal.changedetection.state.FileSnapshot;
+import org.gradle.api.internal.changedetection.state.FileSystemMirror;
+import org.gradle.api.internal.changedetection.state.OutputPathNormalizationStrategy;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -36,7 +49,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.SortedSet;
+
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.UNORDERED;
 
 public class TaskOutputCacheCommandFactory {
 
@@ -44,10 +60,14 @@ public class TaskOutputCacheCommandFactory {
 
     private final TaskOutputPacker packer;
     private final TaskOutputOriginFactory taskOutputOriginFactory;
+    private final FileSystemMirror fileSystemMirror;
+    private final StringInterner stringInterner;
 
-    public TaskOutputCacheCommandFactory(TaskOutputPacker packer, TaskOutputOriginFactory taskOutputOriginFactory) {
+    public TaskOutputCacheCommandFactory(TaskOutputPacker packer, TaskOutputOriginFactory taskOutputOriginFactory, FileSystemMirror fileSystemMirror, StringInterner stringInterner) {
         this.packer = packer;
         this.taskOutputOriginFactory = taskOutputOriginFactory;
+        this.fileSystemMirror = fileSystemMirror;
+        this.stringInterner = stringInterner;
     }
 
     public BuildCacheLoadCommand<TaskOutputOriginMetadata> createLoad(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskArtifactState taskArtifactState, Timer clock) {
@@ -87,6 +107,7 @@ public class TaskOutputCacheCommandFactory {
             final TaskOutputPacker.UnpackResult unpackResult;
             try {
                 unpackResult = packer.unpack(outputProperties, input, taskOutputOriginFactory.createReader(task));
+                updateSnapshots(unpackResult.getSnapshots());
             } catch (Exception e) {
                 LOGGER.warn("Cleaning outputs for {} after failed load from cache.", task);
                 try {
@@ -103,14 +124,45 @@ public class TaskOutputCacheCommandFactory {
             return new BuildCacheLoadCommand.Result<TaskOutputOriginMetadata>() {
                 @Override
                 public long getArtifactEntryCount() {
-                    return unpackResult.entries;
+                    return unpackResult.getEntries();
                 }
 
                 @Override
                 public TaskOutputOriginMetadata getMetadata() {
-                    return unpackResult.originMetadata;
+                    return unpackResult.getOriginMetadata();
                 }
             };
+        }
+
+        private void updateSnapshots(ImmutableListMultimap<String, FileSnapshot> propertiesFileSnapshots) {
+            ImmutableMap<String, ResolvedTaskOutputFilePropertySpec> propertySpecsMap = Maps.uniqueIndex(outputProperties, new Function<TaskOutputFilePropertySpec, String>() {
+                @Override
+                public String apply(TaskOutputFilePropertySpec propertySpec) {
+                    return propertySpec.getPropertyName();
+                }
+            });
+            ImmutableSortedMap.Builder<String, FileCollectionSnapshot> propertySnapshotsBuilder = ImmutableSortedMap.naturalOrder();
+            for (String propertyName : propertiesFileSnapshots.keySet()) {
+                ResolvedTaskOutputFilePropertySpec property = propertySpecsMap.get(propertyName);
+                List<FileSnapshot> fileSnapshots = propertiesFileSnapshots.get(propertyName);
+                FileCollectionSnapshotBuilder builder = new FileCollectionSnapshotBuilder(UNORDERED, OutputPathNormalizationStrategy.getInstance(), stringInterner);
+                builder.visitFileTreeSnapshot(fileSnapshots);
+
+                propertySnapshotsBuilder.put(propertyName, builder.build());
+
+                if (fileSnapshots.size() == 1) {
+                    FileSnapshot singleSnapshot = fileSnapshots.get(0);
+                    switch (singleSnapshot.getType()) {
+                        case Missing:
+                            continue;
+                        case RegularFile:
+                            fileSystemMirror.putFile(singleSnapshot);
+                            continue;
+                    }
+                }
+                fileSystemMirror.putDirectory(new DirectoryTreeDetails(property.getOutputFile().getAbsolutePath(), fileSnapshots));
+            }
+            taskArtifactState.snapshotAfterLoadedFromCache(propertySnapshotsBuilder.build());
         }
 
         private void cleanupOutputsAfterUnpackFailure() {
@@ -157,7 +209,7 @@ public class TaskOutputCacheCommandFactory {
             return new BuildCacheStoreCommand.Result() {
                 @Override
                 public long getArtifactEntryCount() {
-                    return packResult.entries;
+                    return packResult.getEntries();
                 }
             };
         }

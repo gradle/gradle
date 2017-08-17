@@ -21,6 +21,8 @@ import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.state.FileSystemMirror;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.caching.internal.controller.BuildCacheController;
@@ -29,6 +31,7 @@ import org.gradle.caching.internal.controller.BuildCacheControllerFactory.BuildC
 import org.gradle.caching.internal.controller.BuildCacheControllerFactory.RemoteAccessMode;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.os.OperatingSystem;
@@ -49,10 +52,8 @@ import static org.gradle.caching.internal.controller.BuildCacheControllerFactory
 
 public class BuildCacheTaskServices {
 
-    TaskOutputPacker createTaskResultPacker(
-        FileSystem fileSystem
-    ) {
-        return new GZipTaskOutputPacker(new TarTaskOutputPacker(fileSystem));
+    TaskOutputPacker createTaskResultPacker(FileSystem fileSystem, FileSystemMirror fileSystemMirror, FileHasher fileHasher, StringInterner stringInterner) {
+        return new GZipTaskOutputPacker(new TarTaskOutputPacker(fileSystem, fileSystemMirror, fileHasher, stringInterner));
     }
 
     TaskOutputOriginFactory createTaskOutputOriginFactory(
@@ -67,9 +68,11 @@ public class BuildCacheTaskServices {
 
     TaskOutputCacheCommandFactory createTaskOutputCacheCommandFactory(
         TaskOutputPacker taskOutputPacker,
-        TaskOutputOriginFactory taskOutputOriginFactory
+        TaskOutputOriginFactory taskOutputOriginFactory,
+        FileSystemMirror fileSystemMirror,
+        StringInterner stringInterner
     ) {
-        return new TaskOutputCacheCommandFactory(taskOutputPacker, taskOutputOriginFactory);
+        return new TaskOutputCacheCommandFactory(taskOutputPacker, taskOutputOriginFactory, fileSystemMirror, stringInterner);
     }
 
     // TODO: Should live in BuildCacheServices

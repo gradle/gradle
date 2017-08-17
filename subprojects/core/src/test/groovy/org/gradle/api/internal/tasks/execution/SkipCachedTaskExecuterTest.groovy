@@ -82,7 +82,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * taskState.setOutcome(TaskExecutionOutcome.FROM_CACHE)
         1 * taskContext.setOriginBuildInvocationId(originId)
-        1 * taskArtifactState.snapshotAfterTask(null)
+        1 * taskArtifactState.snapshotAfterTaskExecution(null)
         0 * _
     }
 

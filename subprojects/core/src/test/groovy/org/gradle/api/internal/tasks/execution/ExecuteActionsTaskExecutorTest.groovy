@@ -85,7 +85,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         1 * publicListener.beforeActions(task)
 
         then:
-        1 * taskArtifactState.snapshotAfterTask(null)
+        1 * taskArtifactState.snapshotAfterTaskExecution(null)
 
         then:
         1 * publicListener.afterActions(task)
@@ -139,7 +139,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * taskArtifactState.snapshotAfterTask(null)
+        1 * taskArtifactState.snapshotAfterTaskExecution(null)
         then:
         1 * publicListener.afterActions(task)
         noMoreInteractions()
@@ -183,7 +183,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * taskArtifactState.snapshotAfterTask(null)
+        1 * taskArtifactState.snapshotAfterTaskExecution(null)
         then:
         1 * publicListener.afterActions(task)
         noMoreInteractions()
@@ -217,7 +217,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * taskArtifactState.snapshotAfterTask({ it instanceof TaskExecutionException })
+        1 * taskArtifactState.snapshotAfterTaskExecution({ it instanceof TaskExecutionException })
         then:
         1 * publicListener.afterActions(task)
 
@@ -261,7 +261,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * taskArtifactState.snapshotAfterTask(null)
+        1 * taskArtifactState.snapshotAfterTaskExecution(null)
         then:
         1 * publicListener.afterActions(task)
         state.didWork
@@ -313,7 +313,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * taskArtifactState.snapshotAfterTask(null)
+        1 * taskArtifactState.snapshotAfterTaskExecution(null)
         then:
         1 * publicListener.afterActions(task)
 
@@ -352,7 +352,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * taskArtifactState.snapshotAfterTask({ it instanceof TaskExecutionException })
+        1 * taskArtifactState.snapshotAfterTaskExecution({ it instanceof TaskExecutionException })
         then:
         1 * publicListener.afterActions(task)
 
@@ -399,7 +399,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * taskArtifactState.snapshotAfterTask({ it instanceof TaskExecutionException })
+        1 * taskArtifactState.snapshotAfterTaskExecution({ it instanceof TaskExecutionException })
         then:
         1 * publicListener.afterActions(task)
 
@@ -445,7 +445,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * taskArtifactState.snapshotAfterTask({ it instanceof TaskExecutionException})
+        1 * taskArtifactState.snapshotAfterTaskExecution({ it instanceof TaskExecutionException})
         then:
         1 * publicListener.afterActions(task)
 
