@@ -21,8 +21,8 @@ import com.google.common.base.Preconditions;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.time.ReliableTimeProvider;
 import org.gradle.internal.time.TimeProvider;
-import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.launcher.daemon.context.DaemonConnectDetails;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DefaultDaemonContext;
@@ -50,7 +50,7 @@ public class DaemonInfo implements Serializable, DaemonConnectDetails {
     private long lastBusy;
 
     public DaemonInfo(Address address, DaemonContext context, byte[] token, State state) {
-        this(address, context, token, state, new TrueTimeProvider());
+        this(address, context, token, state, new ReliableTimeProvider());
     }
 
     @VisibleForTesting
@@ -69,7 +69,7 @@ public class DaemonInfo implements Serializable, DaemonConnectDetails {
         this.token = token;
         this.state = state;
         this.lastBusy = lastBusy;
-        this.timeProvider = new TrueTimeProvider();
+        this.timeProvider = new ReliableTimeProvider();
     }
 
     public DaemonInfo setState(State state) {

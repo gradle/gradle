@@ -30,9 +30,7 @@ class CompositeBuildClassloadingIntegrationTest extends AbstractCompositeBuildIn
         given:
         file('gradle-user-home/init.gradle') << """
             initscript {
-                repositories {
-                    mavenCentral()
-                }
+                ${mavenCentralRepository()}
 
                 File searchDir = gradle.startParameter.projectDir ?: gradle.startParameter.currentDir
                 def version = new File(searchDir, 'version.txt').text

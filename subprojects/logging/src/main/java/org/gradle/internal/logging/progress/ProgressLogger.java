@@ -145,6 +145,7 @@ public interface ProgressLogger {
      * Logs the completion of the operation, with a final status. This is generally logged along with the description.
      *
      * @param status The final status message. Can be null or empty.
+     * @param failed Did the task fail?
      */
-    void completed(String status);
+    void completed(String status, boolean failed);
 }

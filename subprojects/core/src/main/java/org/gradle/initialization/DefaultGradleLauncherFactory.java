@@ -99,7 +99,10 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         }
         BuildTreeScopeServices buildTreeScopeServices = (BuildTreeScopeServices) parentRegistry;
 
-        DefaultGradleLauncher launcher = doNewInstance(startParameter, null, requestContext.getCancellationToken(), requestContext, requestContext.getEventConsumer(), buildTreeScopeServices, ImmutableList.of(new Stoppable() {
+        DefaultGradleLauncher launcher = doNewInstance(startParameter, null,
+            requestContext.getCancellationToken(),
+            requestContext, requestContext.getEventConsumer(), buildTreeScopeServices,
+            ImmutableList.of(new Stoppable() {
             @Override
             public void stop() {
                 rootBuild = null;
@@ -119,7 +122,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     }
 
     private DefaultGradleLauncher doNewInstance(StartParameter startParameter, GradleLauncher parent,
-                                                BuildCancellationToken cancellationToken, BuildRequestMetaData requestMetaData, BuildEventConsumer buildEventConsumer,
+                                                BuildCancellationToken cancellationToken,
+                                                BuildRequestMetaData requestMetaData, BuildEventConsumer buildEventConsumer,
                                                 final BuildTreeScopeServices buildTreeScopeServices, List<?> servicesToStop) {
         BuildScopeServices serviceRegistry = new BuildScopeServices(buildTreeScopeServices);
         serviceRegistry.add(BuildRequestMetaData.class, requestMetaData);

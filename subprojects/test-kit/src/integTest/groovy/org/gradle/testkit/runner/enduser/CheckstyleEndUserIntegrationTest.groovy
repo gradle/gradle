@@ -30,9 +30,7 @@ class CheckstyleEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest
                 id "org.gradle.java-gradle-plugin"
                 id "org.gradle.groovy"
             }
-            repositories {
-                jcenter()
-            }
+            ${jcenterRepository()}
             dependencies {
                 testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
                     exclude module: 'groovy-all'
@@ -56,9 +54,7 @@ class Test extends Specification {
 apply plugin: 'java'
 apply plugin: 'checkstyle'
 
-repositories {
-    mavenCentral()
-}
+${mavenCentralRepository()}
 
 dependencies {
     testCompile 'junit:junit:4.11'

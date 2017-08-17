@@ -207,9 +207,7 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
 
     private static String guavaDependency(String version) {
         """
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
             dependencies {
                 compile "com.google.guava:guava:$version"
             }

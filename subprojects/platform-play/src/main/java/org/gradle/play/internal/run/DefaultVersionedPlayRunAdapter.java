@@ -43,7 +43,6 @@ import java.net.URLClassLoader;
 import java.util.HashMap;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.jar.JarFile;
 
@@ -52,10 +51,8 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
     private static final String PLAY_EXCEPTION_CLASSNAME = "play.api.PlayException";
     private static final Logger LOGGER = Logging.getLogger(DefaultVersionedPlayRunAdapter.class);
 
-    private final AtomicBoolean blockReload = new AtomicBoolean();
     private final AtomicReference<ClassLoader> currentClassloader = new AtomicReference<ClassLoader>();
     private final Queue<SoftReference<Closeable>> loadersToClose = new ConcurrentLinkedQueue<SoftReference<Closeable>>();
-    private volatile Throwable buildFailure;
 
     protected abstract Class<?> getBuildLinkClass(ClassLoader classLoader) throws ClassNotFoundException;
 
@@ -64,7 +61,7 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
     protected abstract Class<?> getBuildDocHandlerClass(ClassLoader docsClassLoader) throws ClassNotFoundException;
 
     @Override
-    public Object getBuildLink(final ClassLoader classLoader, final File projectPath, final File applicationJar, final Iterable<File> changingClasspath, final File assetsJar, final Iterable<File> assetsDirs) throws ClassNotFoundException {
+    public Object getBuildLink(final ClassLoader classLoader, final Reloader reloader, final File projectPath, final File applicationJar, final Iterable<File> changingClasspath, final File assetsJar, final Iterable<File> assetsDirs) throws ClassNotFoundException {
         final ClassLoader assetsClassLoader = createAssetsClassLoader(assetsJar, assetsDirs, classLoader);
         final Class<? extends Throwable> playExceptionClass = Cast.uncheckedCast(classLoader.loadClass(PLAY_EXCEPTION_CLASSNAME));
 
@@ -73,27 +70,20 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
                 if (method.getName().equals("projectPath")) {
                     return projectPath;
                 } else if (method.getName().equals("reload")) {
-
-                    synchronized (blockReload) {
-                        LOGGER.debug("waiting for blockReload to clear {} ", blockReload.get());
-                        while (blockReload.get()) {
-                            blockReload.wait();
-                        }
-                        LOGGER.debug("blockReload cleared {} ", blockReload.get());
-                    }
+                    Reloader.Result result = reloader.requireUpToDate();
 
                     // We can't close replaced loaders immediately, because their classes may be used during shutdown,
                     // after the return of the reload() call that caused the loader to be swapped out.
                     // We have no way of knowing when the loader is actually done with, so we use the request after the request
                     // that triggered the reload as the trigger point to close the replaced loader.
                     closeOldLoaders();
-                    if (buildFailure == null) {
+                    if (result.changed) {
                         ClassPath classpath = new DefaultClassPath(applicationJar).plus(new DefaultClassPath(changingClasspath));
                         URLClassLoader currentClassLoader = new URLClassLoader(classpath.getAsURLArray(), assetsClassLoader);
                         storeClassLoader(currentClassLoader);
                         return currentClassLoader;
                     } else {
-                        Throwable failure = buildFailure;
+                        Throwable failure = result.failure;
                         if (failure == null) {
                             return null;
                         } else {
@@ -138,27 +128,6 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
             }
             ref.clear();
             ref = loadersToClose.poll();
-        }
-    }
-
-
-    @Override
-    public void outOfDate() {
-        synchronized (blockReload) {
-            blockReload.set(true);
-            blockReload.notifyAll();
-            LOGGER.debug("notify outOfDate");
-        }
-    }
-
-    @Override
-    public void upToDate(Throwable throwable) {
-        buildFailure = throwable;
-
-        synchronized (blockReload) {
-            blockReload.set(false);
-            blockReload.notifyAll();
-            LOGGER.debug("notify upToDate");
         }
     }
 

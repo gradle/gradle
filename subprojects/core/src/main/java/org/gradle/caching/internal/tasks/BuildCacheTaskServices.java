@@ -17,12 +17,16 @@
 package org.gradle.caching.internal.tasks;
 
 import org.gradle.BuildResult;
+import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.BuildCacheControllerFactory;
+import org.gradle.caching.internal.controller.BuildCacheControllerFactory.BuildCacheMode;
+import org.gradle.caching.internal.controller.BuildCacheControllerFactory.RemoteAccessMode;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
@@ -33,8 +37,15 @@ import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.Path;
+import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
+
+import static org.gradle.caching.internal.controller.BuildCacheControllerFactory.BuildCacheMode.DISABLED;
+import static org.gradle.caching.internal.controller.BuildCacheControllerFactory.BuildCacheMode.ENABLED;
+import static org.gradle.caching.internal.controller.BuildCacheControllerFactory.RemoteAccessMode.OFFLINE;
+import static org.gradle.caching.internal.controller.BuildCacheControllerFactory.RemoteAccessMode.ONLINE;
 
 public class BuildCacheTaskServices {
 
@@ -72,10 +83,25 @@ public class BuildCacheTaskServices {
         InstantiatorFactory instantiatorFactory,
         GradleInternal gradle
     ) {
+        StartParameter startParameter = gradle.getStartParameter();
+        Path buildIdentityPath = gradle.getIdentityPath();
+        File gradleUserHomeDir = gradle.getGradleUserHomeDir();
+        BuildCacheMode buildCacheMode = startParameter.isBuildCacheEnabled() ? ENABLED : DISABLED;
+        RemoteAccessMode remoteAccessMode = startParameter.isOffline() ? OFFLINE : ONLINE;
+        boolean logStackTraces = startParameter.getShowStacktrace() != ShowStacktrace.INTERNAL_EXCEPTIONS;
+
+        if (buildCacheMode == ENABLED) {
+            SingleMessageLogger.incubatingFeatureUsed("Build cache");
+        }
+
         final BuildCacheController controller = BuildCacheControllerFactory.create(
             buildOperationExecutor,
-            gradle,
+            buildIdentityPath,
+            gradleUserHomeDir,
             buildCacheConfiguration,
+            buildCacheMode,
+            remoteAccessMode,
+            logStackTraces,
             instantiatorFactory.inject(serviceRegistry)
         );
 

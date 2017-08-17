@@ -24,6 +24,7 @@ import groovy.util.ObservableList;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
+import org.gradle.api.Describable;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
@@ -400,13 +401,18 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public Task doFirst(final Action<? super Task> action) {
+        return doFirst("doFirst {} action", action);
+    }
+
+    @Override
+    public Task doFirst(final String actionName, final Action<? super Task> action) {
         hasCustomActions = true;
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
         taskMutator.mutate("Task.doFirst(Action)", new Runnable() {
             public void run() {
-                getTaskActions().add(0, wrap(action));
+                getTaskActions().add(0, wrap(action, actionName));
             }
         });
         return this;
@@ -414,13 +420,18 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public Task doLast(final Action<? super Task> action) {
+        return doLast("doLast {} action", action);
+    }
+
+    @Override
+    public Task doLast(final String actionName, final Action<? super Task> action) {
         hasCustomActions = true;
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
         taskMutator.mutate("Task.doLast(Action)", new Runnable() {
             public void run() {
-                getTaskActions().add(wrap(action));
+                getTaskActions().add(wrap(action, actionName));
             }
         });
         return this;
@@ -561,7 +572,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
         taskMutator.mutate("Task.doFirst(Closure)", new Runnable() {
             public void run() {
-                getTaskActions().add(0, convertClosureToAction(action));
+                getTaskActions().add(0, convertClosureToAction(action, "doFirst {} action"));
             }
         });
         return this;
@@ -575,7 +586,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
         taskMutator.mutate("Task.doLast(Closure)", new Runnable() {
             public void run() {
-                getTaskActions().add(convertClosureToAction(action));
+                getTaskActions().add(convertClosureToAction(action, "doLast {} action"));
             }
         });
         return this;
@@ -591,7 +602,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
         taskMutator.mutate("Task.leftShift(Closure)", new Runnable() {
             public void run() {
-                getTaskActions().add(taskMutator.leftShift(convertClosureToAction(action)));
+                getTaskActions().add(taskMutator.leftShift(convertClosureToAction(action, "doLast {} action")));
             }
         });
         return this;
@@ -632,15 +643,19 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return validators;
     }
 
-    private ContextAwareTaskAction convertClosureToAction(Closure actionClosure) {
-        return new ClosureTaskAction(actionClosure);
+    private ContextAwareTaskAction convertClosureToAction(Closure actionClosure, String actionName) {
+        return new ClosureTaskAction(actionClosure, actionName);
     }
 
     private ContextAwareTaskAction wrap(final Action<? super Task> action) {
+        return wrap(action, "unnamed action");
+    }
+
+    private ContextAwareTaskAction wrap(final Action<? super Task> action, String actionName) {
         if (action instanceof ContextAwareTaskAction) {
             return (ContextAwareTaskAction) action;
         }
-        return new TaskActionWrapper(action);
+        return new TaskActionWrapper(action, actionName);
     }
 
     private static class TaskInfo {
@@ -657,9 +672,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private static class ClosureTaskAction implements ContextAwareTaskAction {
         private final Closure closure;
+        private final String actionName;
 
-        private ClosureTaskAction(Closure closure) {
+        private ClosureTaskAction(Closure closure, String actionName) {
             this.closure = closure;
+            this.actionName = actionName;
         }
 
         @Override
@@ -702,13 +719,25 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         public String getActionClassName() {
             return AbstractTask.getActionClassName(closure);
         }
+
+        @Override
+        public String getDisplayName() {
+            return "Execute " + actionName;
+        }
     }
 
     private static class TaskActionWrapper implements ContextAwareTaskAction {
         private final Action<? super Task> action;
+        private final String maybeActionName;
 
-        public TaskActionWrapper(Action<? super Task> action) {
+        /**
+         * The <i>action name</i> is used to construct a human readable name for
+         * the actions to be used in progress logging. It is only used if
+         * the wrapped action does not already implement {@link Describable}.
+         */
+        public TaskActionWrapper(Action<? super Task> action, String maybeActionName) {
             this.action = action;
+            this.maybeActionName = maybeActionName;
         }
 
         @Override
@@ -775,6 +804,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         @Override
         public int hashCode() {
             return action != null ? action.hashCode() : 0;
+        }
+
+        @Override
+        public String getDisplayName() {
+            if (action instanceof Describable) {
+                return ((Describable) action).getDisplayName();
+            }
+            return "Execute " + maybeActionName;
         }
     }
 

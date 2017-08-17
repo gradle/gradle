@@ -43,14 +43,6 @@ abstract class BaseGradleImplDepsIntegrationTest extends AbstractIntegrationSpec
         """
     }
 
-    static String jcenterRepository() {
-        """
-            repositories {
-                jcenter()
-            }
-        """
-    }
-
     static String gradleApiDependency() {
         """
             dependencies {

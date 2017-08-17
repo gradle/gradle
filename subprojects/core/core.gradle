@@ -36,6 +36,7 @@ dependencies {
     api project(":native")
     api project(":persistentCache")
     api project(":buildCache")
+    api project(":coreApi")
 
     api project(":processServices")
     api project(":jvmServices")
@@ -75,13 +76,10 @@ dependencies {
     integTestImplementation project(":internalIntegTesting")
 
     integTestRuntimeOnly project(":plugins")
-
-    jmh "io.airlift:aircompressor:0.8"
-    jmh "org.iq80.snappy:snappy:0.4"
-    jmh "org.kamranzafar:jtar:2.3"
 }
 
 useTestFixtures()
+useTestFixtures(project: ":coreApi")
 useTestFixtures(project: ":messaging")
 useTestFixtures(project: ":modelCore")
 useTestFixtures(project: ":logging")
@@ -89,10 +87,6 @@ useTestFixtures(project: ":baseServices")
 
 test {
     forkEvery = 200
-}
-
-jmh {
-    include = ['TaskOutputPackagingTarBenchmark']
 }
 
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')

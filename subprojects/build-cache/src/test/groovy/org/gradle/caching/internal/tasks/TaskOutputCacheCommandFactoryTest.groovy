@@ -23,11 +23,11 @@ import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata
-import org.gradle.internal.time.Clock
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.internal.util.Specification
 import org.junit.Rule
+import org.gradle.internal.time.Timer;
 
 import static org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType.FILE
 
@@ -41,7 +41,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
     def task = Mock(TaskInternal)
     def taskOutputsGenerationListener = Mock(TaskOutputsGenerationListener)
     def taskArtifactState = Mock(TaskArtifactState)
-    def clock = Stub(Clock)
+    def timer = Stub(Timer)
 
     def originMetadata = Mock(TaskOutputOriginMetadata)
 
@@ -50,7 +50,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
     def "load unpacks metadata"() {
         def input = Mock(InputStream)
         def outputProperties = prop("output")
-        def load = commandFactory.createLoad(key, outputProperties, task, taskOutputsGenerationListener, taskArtifactState, clock)
+        def load = commandFactory.createLoad(key, outputProperties, task, taskOutputsGenerationListener, taskArtifactState, timer)
 
         when:
         def result = load.load(input)
@@ -72,7 +72,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         def input = Mock(InputStream)
         def outputFile = temporaryFolder.file("output.txt")
         def outputProperties = prop("output", FILE, outputFile)
-        def command = commandFactory.createLoad(key, outputProperties, task, taskOutputsGenerationListener, taskArtifactState, clock)
+        def command = commandFactory.createLoad(key, outputProperties, task, taskOutputsGenerationListener, taskArtifactState, timer)
 
         when:
         command.load(input)
@@ -101,7 +101,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
     def "unrecoverable error during cleanup of failed unpacking is reported"() {
         def input = Mock(InputStream)
         def outputProperties = Mock(SortedSet)
-        def command = commandFactory.createLoad(key, outputProperties, task, taskOutputsGenerationListener, taskArtifactState, clock)
+        def command = commandFactory.createLoad(key, outputProperties, task, taskOutputsGenerationListener, taskArtifactState, timer)
 
         when:
         command.load(input)
@@ -127,7 +127,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
     def "store invokes packer"() {
         def output = Mock(OutputStream)
         def outputProperties = prop("output")
-        def command = commandFactory.createStore(key, outputProperties, task, clock)
+        def command = commandFactory.createStore(key, outputProperties, task, timer)
 
         when:
         def result = command.store(output)

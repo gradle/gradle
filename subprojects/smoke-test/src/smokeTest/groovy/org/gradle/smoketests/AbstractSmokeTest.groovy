@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.apache.commons.io.FileUtils
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
@@ -70,5 +71,13 @@ abstract class AbstractSmokeTest extends Specification {
             text = text.replaceAll("\\\$${var}".toString(), value)
         }
         buildFile.text = text
+    }
+
+    protected static String jcenterRepository() {
+        RepoScriptBlockUtil.jcenterRepository()
+    }
+
+    protected static String mavenCentralRepository() {
+        RepoScriptBlockUtil.mavenCentralRepository()
     }
 }

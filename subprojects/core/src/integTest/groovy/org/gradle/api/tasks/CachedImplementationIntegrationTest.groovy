@@ -29,9 +29,7 @@ class CachedImplementationIntegrationTest extends AbstractIntegrationSpec {
         """
 
         file("buildSrc/build.gradle") << """
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 compile "commons-codec:commons-codec:1.10"

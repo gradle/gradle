@@ -28,6 +28,7 @@ public class ProgressCompleteEventSerializer implements Serializer<ProgressCompl
         encoder.writeSmallLong(event.getProgressOperationId().getId());
         encoder.writeLong(event.getTimestamp());
         encoder.writeString(event.getStatus());
+        encoder.writeBoolean(event.isFailed());
     }
 
     @Override
@@ -35,6 +36,7 @@ public class ProgressCompleteEventSerializer implements Serializer<ProgressCompl
         OperationIdentifier id = new OperationIdentifier(decoder.readSmallLong());
         long timestamp = decoder.readLong();
         String status = decoder.readString();
-        return new ProgressCompleteEvent(id, timestamp, status);
+        boolean failed = decoder.readBoolean();
+        return new ProgressCompleteEvent(id, timestamp, status, failed);
     }
 }

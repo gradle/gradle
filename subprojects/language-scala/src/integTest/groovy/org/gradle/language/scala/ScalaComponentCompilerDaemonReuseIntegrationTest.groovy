@@ -33,9 +33,7 @@ class ScalaComponentCompilerDaemonReuseIntegrationTest extends AbstractComponent
             apply plugin: "jvm-component"
             apply plugin: "scala-lang"
             
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
             
             model {
                 components {

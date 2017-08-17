@@ -19,12 +19,16 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.api.Action;
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.deployment.Deployment;
+import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.execution.CancellableOperationManager;
 import org.gradle.execution.DefaultCancellableOperationManager;
 import org.gradle.execution.PassThruCancellableOperationManager;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestContext;
+import org.gradle.initialization.ContinuousExecutionGate;
 import org.gradle.initialization.ReportedException;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.DefaultFileWatcherEventListener;
@@ -42,6 +46,12 @@ import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.util.DisconnectableInputStream;
 import org.gradle.util.SingleMessageLogger;
+
+import java.util.Collection;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 
 public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
@@ -62,17 +72,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
     }
 
     @Override
-    public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
-        if (actionParameters.isContinuous()) {
-            return executeMultipleBuilds(action, requestContext, actionParameters, contextServices);
-        } else {
-            return delegate.execute(action, requestContext, actionParameters, contextServices);
-        }
-    }
-
-    private Object executeMultipleBuilds(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters, final ServiceRegistry buildSessionScopeServices) {
-        SingleMessageLogger.incubatingFeatureUsed("Continuous build");
-
+    public Object execute(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         BuildCancellationToken cancellationToken = requestContext.getCancellationToken();
 
         final CancellableOperationManager cancellableOperationManager;
@@ -86,6 +86,64 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
             cancellableOperationManager = new PassThruCancellableOperationManager(cancellationToken);
         }
 
+        if (actionParameters.isContinuous()) {
+            return executeMultipleBuilds(action, requestContext, actionParameters, contextServices, cancellableOperationManager);
+        } else {
+            try {
+                return delegate.execute(action, requestContext, actionParameters, contextServices);
+            } finally {
+                waitForDeployments(actionParameters, contextServices, cancellableOperationManager);
+            }
+        }
+    }
+
+    private void waitForDeployments(final BuildActionParameters actionParameters, ServiceRegistry contextServices, CancellableOperationManager cancellableOperationManager) {
+        final Lock lock = new ReentrantLock();
+        final Condition cancelled = lock.newCondition();
+        final Runnable cancellationHandler = new Runnable() {
+            @Override
+            public void run() {
+                lock.lock();
+                try {
+                    cancelled.signalAll();
+                } finally {
+                    lock.unlock();
+                }
+            }
+        };
+        final DeploymentRegistryInternal deploymentRegistry = contextServices.get(DeploymentRegistryInternal.class);
+        final Collection<Deployment> runningDeployments = deploymentRegistry.getRunningDeployments();
+        if (!runningDeployments.isEmpty()) {
+            cancellableOperationManager.monitorInput(new Action<BuildCancellationToken>() {
+                @Override
+                public void execute(BuildCancellationToken cancellationToken) {
+                    // TODO: extract this in a similar way to the "waiter" used for watching for filesystem changes
+                    cancellationToken.addCallback(cancellationHandler);
+                    logger.println().println("Build started " + runningDeployments.size() + " deployment(s)..." + determineExitHint(actionParameters));
+                    lock.lock();
+                    try {
+                        while (!cancellationToken.isCancellationRequested() && !deploymentRegistry.getRunningDeployments().isEmpty()) {
+                            // periodically check if the deployments have stopped on their own
+                            cancelled.await(5000, TimeUnit.MILLISECONDS);
+                        }
+                    } catch (InterruptedException e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    } finally {
+                        lock.unlock();
+                        cancellationToken.removeCallback(cancellationHandler);
+                    }
+                }
+            });
+        }
+    }
+
+    private Object executeMultipleBuilds(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters, final ServiceRegistry buildSessionScopeServices, CancellableOperationManager cancellableOperationManager) {
+        SingleMessageLogger.incubatingFeatureUsed("Continuous build");
+
+        BuildCancellationToken cancellationToken = requestContext.getCancellationToken();
+        DeploymentRegistryInternal deploymentRegistry = buildSessionScopeServices.get(DeploymentRegistryInternal.class);
+        ContinuousExecutionGate continuousExecutionGate = deploymentRegistry.getExecutionGate();
+
         Object lastResult = null;
         int counter = 0;
         while (!cancellationToken.isCancellationRequested()) {
@@ -96,7 +154,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
             }
 
             PendingChangesListener pendingChangesListener = buildSessionScopeServices.get(ListenerManager.class).getBroadcaster(PendingChangesListener.class);
-            final FileSystemChangeWaiter waiter = changeWaiterFactory.createChangeWaiter(new SingleFirePendingChangesListener(pendingChangesListener), cancellationToken);
+            final FileSystemChangeWaiter waiter = changeWaiterFactory.createChangeWaiter(new SingleFirePendingChangesListener(pendingChangesListener), cancellationToken, continuousExecutionGate);
             try {
                 try {
                     lastResult = executeBuildAndAccumulateInputs(action, requestContext, actionParameters, waiter, buildSessionScopeServices);

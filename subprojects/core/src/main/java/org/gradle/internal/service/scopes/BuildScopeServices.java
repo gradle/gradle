@@ -145,7 +145,6 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.TimeProvider;
-import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
@@ -172,10 +171,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 }
             }
         });
-    }
-
-    protected TimeProvider createTimeProvider() {
-        return new TrueTimeProvider();
     }
 
     protected ProjectRegistry<ProjectInternal> createProjectRegistry() {

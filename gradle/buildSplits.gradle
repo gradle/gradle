@@ -88,6 +88,7 @@ def buckets = [
     ],
 
     "7": [
+        ":coreApi",
         ":core",
         ":persistentCache",
         ":languageScala",

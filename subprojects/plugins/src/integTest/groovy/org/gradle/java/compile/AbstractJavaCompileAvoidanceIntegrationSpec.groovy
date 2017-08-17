@@ -1023,9 +1023,7 @@ public class ToolImpl {
     def "detects changes in compile classpath"() {
         given:
         buildFile << """
-            repositories {
-               jcenter()
-            }
+            ${jcenterRepository()}
             
             dependencies {
                if (project.hasProperty('useCommons')) {
@@ -1075,9 +1073,7 @@ public class ToolImpl {
             """
         }
         buildFile << """
-            repositories {
-               jcenter()
-            }
+            ${jcenterRepository()}
             
             dependencies {
                switch (project.getProperty('order') as int) {

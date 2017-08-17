@@ -21,6 +21,7 @@ ext.publicApiIncludes = [
     'org/gradle/buildinit/**',
     'org/gradle/caching/**',
     'org/gradle/concurrent/**',
+    'org/gradle/deployment/**',
     'org/gradle/external/javadoc/**',
     'org/gradle/ide/**',
     'org/gradle/includedbuild/**',

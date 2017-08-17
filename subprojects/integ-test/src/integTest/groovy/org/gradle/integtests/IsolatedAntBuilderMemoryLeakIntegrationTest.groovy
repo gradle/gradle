@@ -29,9 +29,7 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
         buildFile << """
 
             allprojects {
-                repositories {
-                    jcenter()
-                }
+                ${jcenterRepository()}
             }
 
             allprojects {

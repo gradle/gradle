@@ -82,7 +82,7 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
 
     public void reset() {
         setLevel(DEFAULT_LOG_LEVEL);
-        OutputEventRenderer renderer = new OutputEventRenderer();
+        OutputEventRenderer renderer = new OutputEventRenderer(timeProvider);
         renderer.addStandardOutputListener(defaultOutputStream);
         renderer.addStandardErrorListener(defaultErrorStream);
         setOutputEventListener(renderer);

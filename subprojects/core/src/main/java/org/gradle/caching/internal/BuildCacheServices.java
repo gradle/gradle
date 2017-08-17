@@ -21,11 +21,15 @@ import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration;
 import org.gradle.caching.local.DirectoryBuildCache;
+import org.gradle.caching.local.internal.DirectoryBuildCacheFileStoreFactory;
 import org.gradle.caching.local.internal.DirectoryBuildCacheServiceFactory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resource.local.DefaultPathKeyFileStore;
+import org.gradle.internal.resource.local.PathKeyFileStore;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -42,6 +46,15 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
                 List<BuildCacheServiceRegistration> allBuildCacheServiceFactories
             ) {
                 return instantiator.newInstance(DefaultBuildCacheConfiguration.class, instantiator, allBuildCacheServiceFactories);
+            }
+
+            DirectoryBuildCacheFileStoreFactory createDirectoryBuildCacheFileStoreFactory() {
+                return new DirectoryBuildCacheFileStoreFactory() {
+                    @Override
+                    public PathKeyFileStore createFileStore(File baseDir) {
+                        return new DefaultPathKeyFileStore(baseDir);
+                    }
+                };
             }
 
             BuildCacheServiceRegistration createDirectoryBuildCacheServiceRegistration() {

@@ -148,7 +148,7 @@ public abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
         getTask().actions = [action2]
 
         then:
-        [new AbstractTask.TaskActionWrapper(action2)] ==  getTask().actions
+        [new AbstractTask.TaskActionWrapper(action2, "doLast(Action)")] ==  getTask().actions
     }
 
     def testAddActionWithNull() {

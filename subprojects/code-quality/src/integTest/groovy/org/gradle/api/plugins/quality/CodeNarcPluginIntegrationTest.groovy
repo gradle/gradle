@@ -208,9 +208,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
             apply plugin: "groovy"
             apply plugin: "codenarc"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 compile localGroovy()

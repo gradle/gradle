@@ -22,13 +22,12 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.internal.tasks.GeneratedSubclasses;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.api.reflect.ObjectInstantiationException;
 import org.junit.Test;
 import spock.lang.Issue;
 

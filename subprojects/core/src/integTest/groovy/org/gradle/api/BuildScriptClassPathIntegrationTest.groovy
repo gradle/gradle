@@ -25,7 +25,7 @@ class BuildScriptClassPathIntegrationTest extends AbstractIntegrationSpec {
     def "script can use xerces without affecting that used for dependency resolution"() {
         buildFile << """
 buildscript {
-    repositories { jcenter() }
+    ${jcenterRepository()}
     dependencies {
         classpath 'xerces:xercesImpl:2.9.1'
     }
@@ -34,9 +34,7 @@ plugins {
     id 'java'
 }
 
-repositories {
-    jcenter()
-}
+${jcenterRepository()}
 
 dependencies {
     compile "com.google.guava:guava:19.0"

@@ -208,7 +208,7 @@ Source sets
         includes: **/*.scala
     Twirl template source 'play:twirlTemplates'
         srcDir: app
-        includes: **/*.html
+        includes: **/*.scala.*
 
 Binaries
 """

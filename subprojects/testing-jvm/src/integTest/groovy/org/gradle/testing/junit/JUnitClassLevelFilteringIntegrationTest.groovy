@@ -27,7 +27,7 @@ public class JUnitClassLevelFilteringIntegrationTest extends MultiVersionIntegra
     def "runs all tests for class instead of method when runner is not filterable"() {
         buildFile << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies { testCompile 'junit:junit:${version}' }
             test { useJUnit() }
         """

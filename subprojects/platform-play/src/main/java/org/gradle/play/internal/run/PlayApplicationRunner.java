@@ -16,7 +16,7 @@
 
 package org.gradle.play.internal.run;
 
-import org.gradle.api.GradleException;
+import org.gradle.deployment.Deployment;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
@@ -33,20 +33,16 @@ public class PlayApplicationRunner {
         this.adapter = adapter;
     }
 
-    public PlayApplicationRunnerToken start(PlayRunSpec spec) {
+    public PlayApplication start(PlayRunSpec spec, Deployment deployment) {
         WorkerProcess process = createWorkerProcess(spec.getProjectPath(), workerFactory, spec, adapter);
         process.start();
 
-        PlayWorkerClient clientCallBack = new PlayWorkerClient();
-        process.getConnection().addIncoming(PlayRunWorkerClientProtocol.class, clientCallBack);
         PlayRunWorkerServerProtocol workerServer = process.getConnection().addOutgoing(PlayRunWorkerServerProtocol.class);
+        PlayApplication playApplication = new PlayApplication(deployment, workerServer, process);
+        process.getConnection().addIncoming(PlayRunWorkerClientProtocol.class, playApplication);
         process.getConnection().connect();
-        PlayAppLifecycleUpdate result = clientCallBack.waitForRunning();
-        if (result.isRunning()) {
-            return new PlayApplicationRunnerToken(workerServer, clientCallBack, process, result.getAddress());
-        } else {
-            throw new GradleException("Unable to start Play application.", result.getException());
-        }
+        playApplication.waitForRunning();
+        return playApplication;
     }
 
     private static WorkerProcess createWorkerProcess(File workingDir, WorkerProcessFactory workerFactory, PlayRunSpec spec, VersionedPlayRunAdapter adapter) {

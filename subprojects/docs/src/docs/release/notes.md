@@ -10,10 +10,6 @@ Add-->
 ### Example new and noteworthy
 -->
 
-### Support for Play 2.6
-
-TODO Placeholder
-
 ### Support for Google Cloud Storage backed repositories
 
 It is now possible to consume dependencies from, and publish to, [Google Cloud Storage](https://cloud.google.com/storage/) buckets when using [`MavenArtifactRepository`](dsl/org.gradle.api.artifacts.repositories.MavenArtifactRepository.html) or [`IvyArtifactRepository`](dsl/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html).
@@ -62,6 +58,28 @@ Script plugins are applied to Gradle settings or projects via the `apply from: '
 
 - HTTP script plugins are cached for [`--offline`](userguide/dependency_management.html#sub:cache_offline) use.
 - Download of HTTP script plugins honours [proxy authentication settings](userguide/build_environment.html#sec:accessing_the_web_via_a_proxy).
+
+### Naming task actions defined with doFirst {} and doLast {}
+
+Task actions that are defined in build scripts can now be named using `doFirst("First things first") {}` or `doLast("One last thing") {}`. Gradle uses the names for logging, which allows the user, for example, to see the order in which actions are executed in the task execution views of IDEs. The action names will also be utilised in build scans in the future. This feature is supported in both Kotlin and Groovy build scripts.
+
+### Improved Play support
+
+#### Support for Play 2.6
+
+TODO Placeholder
+
+#### Only trigger a rebuild when someone reloads the Play app
+
+TODO Placeholder
+
+#### Support for built-in Twirl template types
+
+Gradle now supports built-in Twirl templates for HTML, JavaScript, TXT and XML.
+
+#### Support for custom Twirl template formats
+
+A [`TwirlSourceSet`](dsl/org.gradle.language.twirl.TwirlSourceSet.html) can now be configured to use user-defined template formats.
 
 ## Promoted features
 

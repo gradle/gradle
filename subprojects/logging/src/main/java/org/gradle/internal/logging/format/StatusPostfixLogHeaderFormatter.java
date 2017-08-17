@@ -25,7 +25,7 @@ import java.util.List;
 
 public class StatusPostfixLogHeaderFormatter implements LogHeaderFormatter {
     @Override
-    public List<StyledTextOutputEvent.Span> format(@Nullable String header, String description, @Nullable String shortDescription, @Nullable String status) {
+    public List<StyledTextOutputEvent.Span> format(@Nullable String header, String description, @Nullable String shortDescription, @Nullable String status, boolean failed) {
         String message;
         if (header != null) {
             message = header;

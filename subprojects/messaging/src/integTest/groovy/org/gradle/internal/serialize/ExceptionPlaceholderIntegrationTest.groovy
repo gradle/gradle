@@ -24,18 +24,16 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://github.com/gradle/gradle/issues/1618")
     def "internal exception should not be thrown"() {
         given:
-        buildFile << '''
+        buildFile << """
             apply plugin: 'java'
 
-            repositories {
-                jcenter()
-            }
+            ${jcenterRepository()}
 
             dependencies {
                 testCompile 'junit:junit:4.12'
                 testCompile 'org.mockito:mockito-core:2.3.7'
             }
-        '''
+        """
 
         file('src/test/java/example/Issue1618Test.java') << '''
             package example;
@@ -52,7 +50,7 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
     
-                @Test(expected = RuntimeException.class)
+                @Test
                 public void thisTestShouldBeMarkedAsFailed() {
                     RuntimeException mockedException = mock(RuntimeException.class);
                     Bugger bugger = mock(Bugger.class);
@@ -63,6 +61,6 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         expect:
-        succeeds('test')
+        fails('test')
     }
 }

@@ -45,6 +45,7 @@ import java.util.Map;
 public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ResolveBuildCacheKeyExecuter.class);
+    private static final String BUILD_OPERATION_NAME = "Snapshot task inputs";
 
     private final TaskExecuter delegate;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -88,7 +89,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor
-                    .displayName("Snapshot task inputs for " + task.getIdentityPath())
+                    .displayName(BUILD_OPERATION_NAME + " for " + task.getIdentityPath()).name(BUILD_OPERATION_NAME)
                     .details(OperationDetailsImpl.INSTANCE);
             }
         });

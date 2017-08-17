@@ -29,7 +29,7 @@ import java.io.Closeable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.gradle.internal.time.Clock.prettyTime;
+import static org.gradle.internal.time.DefaultEventTimer.prettyTime;
 
 public class CachedStoreFactory<T> implements Closeable {
 

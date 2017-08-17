@@ -16,12 +16,16 @@
 
 package org.gradle.api.internal.tasks.testing.logging;
 
-import org.gradle.api.tasks.testing.logging.*;
-import org.gradle.util.GUtil;
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat;
+import org.gradle.api.tasks.testing.logging.TestLogEvent;
+import org.gradle.api.tasks.testing.logging.TestLogging;
+import org.gradle.api.tasks.testing.logging.TestStackTraceFilter;
 
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Set;
+
+import static org.gradle.util.GUtil.toEnum;
+import static org.gradle.util.GUtil.toEnumSet;
 
 public class DefaultTestLogging implements TestLogging {
     private Set<TestLogEvent> events = EnumSet.noneOf(TestLogEvent.class);
@@ -164,26 +168,4 @@ public class DefaultTestLogging implements TestLogging {
         return this;
     }
 
-    private <T extends Enum<T>> T toEnum(Class<T> enumType, Object value) {
-        if (enumType.isInstance(value)) {
-            return enumType.cast(value);
-        }
-        if (value instanceof CharSequence) {
-            return Enum.valueOf(enumType, GUtil.toConstant(value.toString()));
-        }
-        throw new IllegalArgumentException(String.format("Cannot convert value '%s' of type '%s' to enum type '%s'",
-                value, value.getClass(), enumType));
-    }
-
-    private <T extends Enum<T>> EnumSet<T> toEnumSet(Class<T> enumType, Object[] values) {
-        return toEnumSet(enumType, Arrays.asList(values));
-    }
-
-    private <T extends Enum<T>> EnumSet<T> toEnumSet(Class<T> enumType, Iterable<?> values) {
-        EnumSet<T> result = EnumSet.noneOf(enumType);
-        for (Object value : values) {
-            result.add(toEnum(enumType, value));
-        }
-        return result;
-    }
 }

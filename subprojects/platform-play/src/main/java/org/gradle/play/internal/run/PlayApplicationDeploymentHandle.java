@@ -16,47 +16,42 @@
 
 package org.gradle.play.internal.run;
 
-import org.gradle.deployment.internal.DeploymentHandle;
+import org.gradle.deployment.Deployment;
+import org.gradle.deployment.DeploymentHandle;
 
 import javax.inject.Inject;
 import java.net.InetSocketAddress;
 
 public class PlayApplicationDeploymentHandle implements DeploymentHandle {
-    private PlayApplicationRunnerToken runnerToken;
+    private final PlayRunSpec spec;
+    private final PlayApplicationRunner playApplicationRunner;
+    private PlayApplication playApplication;
 
     @Inject
     public PlayApplicationDeploymentHandle(PlayRunSpec spec, PlayApplicationRunner playApplicationRunner) {
-        this(playApplicationRunner.start(spec));
-    }
-
-    protected PlayApplicationDeploymentHandle(PlayApplicationRunnerToken runnerToken) {
-        this.runnerToken = runnerToken;
+        this.spec = spec;
+        this.playApplicationRunner = playApplicationRunner;
     }
 
     @Override
     public boolean isRunning() {
-        return runnerToken != null && runnerToken.isRunning();
+        return playApplication != null && playApplication.isRunning();
     }
 
     @Override
-    public void outOfDate() {
-        runnerToken.outOfDate();
-    }
-
-    @Override
-    public void upToDate(Throwable failure) {
-        runnerToken.upToDate(failure);
+    public void start(Deployment deployment) {
+        playApplication = playApplicationRunner.start(spec, deployment);
     }
 
     public InetSocketAddress getPlayAppAddress() {
         if (isRunning()) {
-            return runnerToken.getPlayAppAddress();
+            return playApplication.getPlayAppAddress();
         }
         return null;
     }
 
     @Override
     public void stop() {
-        runnerToken.stop();
+        playApplication.stop();
     }
 }

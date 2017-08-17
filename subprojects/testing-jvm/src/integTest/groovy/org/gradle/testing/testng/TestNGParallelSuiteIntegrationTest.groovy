@@ -30,7 +30,7 @@ public class TestNGParallelSuiteIntegrationTest extends MultiVersionIntegrationS
     def "runs with multiple parallel threads"() {
         buildFile << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies {
                 testCompile 'org.testng:testng:$version'
             }

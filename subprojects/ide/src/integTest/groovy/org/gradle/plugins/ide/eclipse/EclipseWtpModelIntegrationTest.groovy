@@ -444,7 +444,7 @@ project(':contrib') {
               apply plugin: 'eclipse-wtp'
             }
 
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
 
             dependencies {
               compile 'commons-io:commons-io:1.4'
@@ -483,7 +483,7 @@ project(':contrib') {
             apply plugin: 'war'
             apply plugin: 'eclipse-wtp'
 
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
 
             dependencies {
               compile 'commons-io:commons-io:1.4'
@@ -521,9 +521,7 @@ project(':contrib') {
         """apply plugin: 'java'
            apply plugin: 'eclipse-wtp'
 
-           repositories {
-               mavenCentral()
-           }
+           ${mavenCentralRepository()}
 
            dependencies {
                runtime 'commons-io:commons-io:1.4'

@@ -16,9 +16,9 @@
 
 package org.gradle.api.execution.internal;
 
+import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.GeneratedSubclasses;
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType;
 
 public class ExecuteTaskBuildOperationDetails implements ExecuteTaskBuildOperationType.Details {

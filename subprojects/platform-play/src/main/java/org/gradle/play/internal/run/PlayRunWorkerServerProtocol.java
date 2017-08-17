@@ -19,6 +19,5 @@ package org.gradle.play.internal.run;
 import org.gradle.internal.concurrent.Stoppable;
 
 public interface PlayRunWorkerServerProtocol extends Stoppable {
-    void upToDate(Throwable throwable);
-    void outOfDate();
+    void currentStatus(Boolean hasChanged, Throwable throwable);
 }

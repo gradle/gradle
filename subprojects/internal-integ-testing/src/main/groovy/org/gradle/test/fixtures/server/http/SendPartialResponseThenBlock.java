@@ -18,7 +18,8 @@ package org.gradle.test.fixtures.server.http;
 
 import com.sun.net.httpserver.HttpExchange;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.time.TrueTimeProvider;
+import org.gradle.internal.time.ReliableTimeProvider;
+import org.gradle.internal.time.TimeProvider;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -33,7 +34,7 @@ class SendPartialResponseThenBlock implements BlockingHttpServer.BlockingRequest
     private final Condition condition;
     private boolean requestStarted;
     private boolean released;
-    private final TrueTimeProvider timeProvider = new TrueTimeProvider();
+    private final TimeProvider timeProvider = new ReliableTimeProvider();
     private WaitPrecondition precondition;
     private long mostRecentEvent;
     private AssertionError failure;
@@ -69,7 +70,7 @@ class SendPartialResponseThenBlock implements BlockingHttpServer.BlockingRequest
         exchange.getResponseBody().flush();
         lock.lock();
         try {
-            long now = timeProvider.getCurrentTimeForDuration();
+            long now = timeProvider.getCurrentTime();
             if (mostRecentEvent < now) {
                 mostRecentEvent = now;
             }
@@ -77,7 +78,7 @@ class SendPartialResponseThenBlock implements BlockingHttpServer.BlockingRequest
             requestStarted = true;
             condition.signalAll();
             while (!released && failure == null) {
-                long waitMs = mostRecentEvent + timeoutMs - timeProvider.getCurrentTimeForDuration();
+                long waitMs = mostRecentEvent + timeoutMs - timeProvider.getCurrentTime();
                 if (waitMs < 0) {
                     System.out.println(String.format("[%d] timeout waiting to be released after sending some content", requestId));
                     failure = new AssertionError("Timeout waiting to be released after sending some content.");
@@ -108,13 +109,13 @@ class SendPartialResponseThenBlock implements BlockingHttpServer.BlockingRequest
                 throw new IllegalStateException("Response has already been released.");
             }
 
-            long now = timeProvider.getCurrentTimeForDuration();
+            long now = timeProvider.getCurrentTime();
             if (mostRecentEvent < now) {
                 mostRecentEvent = now;
             }
 
             while (!requestStarted && failure == null) {
-                long waitMs = mostRecentEvent + timeoutMs - timeProvider.getCurrentTimeForDuration();
+                long waitMs = mostRecentEvent + timeoutMs - timeProvider.getCurrentTime();
                 if (waitMs < 0) {
                     failure = new AssertionError("Timeout waiting request to block.");
                     condition.signalAll();

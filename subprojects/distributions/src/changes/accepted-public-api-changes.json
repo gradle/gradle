@@ -94,6 +94,22 @@
             "changes": [
                 "Method return type has changed"
             ]
+        },
+        {
+            "type": "org.gradle.api.attributes.Usage",
+            "member": "Field FOR_RUNTIME",
+            "acceptation": "Part of API cleanup, validated with Google team",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.attributes.Usage",
+            "member": "Field FOR_COMPILE",
+            "acceptation": "Part of API cleanup, validated with Google team",
+            "changes": [
+                "Field has been removed"
+            ]
         }
     ]
 }

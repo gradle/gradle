@@ -24,6 +24,7 @@ import org.gradle.cache.internal.VersionStrategy
 import org.gradle.caching.BuildCacheServiceFactory
 import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.resource.local.PathKeyFileStore
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
@@ -36,7 +37,8 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
     def cacheRepository = Mock(CacheRepository)
     def cacheScopeMapping = Mock(CacheScopeMapping)
     def resolver = Mock(FileResolver)
-    def factory = new DirectoryBuildCacheServiceFactory(cacheRepository, cacheScopeMapping, resolver, new TestBuildOperationExecutor())
+    def fileStoreFactory = Mock(DirectoryBuildCacheFileStoreFactory)
+    def factory = new DirectoryBuildCacheServiceFactory(cacheRepository, cacheScopeMapping, resolver, new TestBuildOperationExecutor(), fileStoreFactory)
     def cacheBuilder = Stub(CacheBuilder)
     def config = Mock(DirectoryBuildCache)
     def buildCacheDescriber = new NoopBuildCacheDescriber()
@@ -53,6 +55,7 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         1 * config.getDirectory() >> null
         1 * config.getTargetSizeInMB() >> 1000
         1 * cacheScopeMapping.getBaseDirectory(null, "build-cache-1", VersionStrategy.SharedCache) >> cacheDir
+        1 * fileStoreFactory.createFileStore(cacheDir) >> Mock(PathKeyFileStore)
         1 * cacheRepository.cache(cacheDir) >> cacheBuilder
         0 * _
     }
@@ -67,6 +70,7 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         1 * config.getDirectory() >> cacheDir
         1 * config.getTargetSizeInMB() >> 1000
         1 * resolver.resolve(cacheDir) >> cacheDir
+        1 * fileStoreFactory.createFileStore(cacheDir) >> Mock(PathKeyFileStore)
         1 * cacheRepository.cache(cacheDir) >> cacheBuilder
         0 * _
     }

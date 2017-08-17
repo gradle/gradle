@@ -51,7 +51,7 @@ class TaskExecutionLoggerTest extends Specification {
 
         then:
         1 * state.skipMessage >> null
-        1 * progressLogger.completed(null)
+        1 * progressLogger.completed(null, false)
     }
 
     def "logs skipped task execution"() {
@@ -64,11 +64,11 @@ class TaskExecutionLoggerTest extends Specification {
         }
 
         when:
-        executionLogger.afterExecute(task, state);
+        executionLogger.afterExecute(task, state)
 
         then:
         1 * state.skipMessage >> "skipped"
-        1 * progressLogger.completed("skipped")
+        1 * progressLogger.completed("skipped", false)
     }
 
     def startLogTaskExecution(def path) {

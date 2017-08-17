@@ -28,7 +28,7 @@ class TestNGSuiteInitialisationIntegrationTest extends AbstractIntegrationSpec {
     def "reports suite fatal failure"() {
         buildFile << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies {
                 testCompile "org.testng:testng:6.3.1"
             }

@@ -49,7 +49,7 @@ class ConsoleFunctionalTest extends Specification {
         renderer.addConsole(console, true, true, metaData)
         _ * metaData.getRows() >> 10
         _ * metaData.getCols() >> 36
-        _ * timeProvider.getCurrentTimeForDuration() >> { currentTimeMs }
+        _ * timeProvider.getCurrentTime() >> { currentTimeMs }
     }
 
     def "renders initial state"() {
@@ -363,7 +363,7 @@ class ConsoleFunctionalTest extends Specification {
 
     ProgressCompleteEvent completeEvent(Long id, status = 'STATUS') {
         long timestamp = timeProvider.currentTime
-        new ProgressCompleteEvent(new OperationIdentifier(id), timestamp, status)
+        new ProgressCompleteEvent(new OperationIdentifier(id), timestamp, status, false)
     }
 
     private ConsoleStub.TestableRedrawableLabel getStatusBar() {

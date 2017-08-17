@@ -37,9 +37,7 @@ class GradleRunnerMiscEndUserIntegationTest extends BaseTestKitEndUserIntegratio
                 }
             }
 
-            repositories {
-                jcenter()
-            }
+            ${jcenterRepository()}
 
             test.testLogging.exceptionFormat = 'full'
         """
