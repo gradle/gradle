@@ -44,24 +44,6 @@ val m2CleanScriptWindows = """
     )
 """.trimIndent()
 
-fun subProjectCheckLinux(subProject: String) : String {
-    val subProjectFolder = subProject.replace(Regex("([A-Z])"), { "-" + it.groups[1]!!.value.toLowerCase()})
-    return """
-        if [ ! -d "subprojects/$subProjectFolder/" ]; then
-            echo "##teamcity[buildStatus status='SUCCESS' text='Ignored: Subproject $subProject does not exist on this branch']"
-        fi
-    """.trimIndent()
-}
-
-fun subProjectCheckWindows(subProject: String) : String {
-    val subProjectFolder = subProject.replace(Regex("([A-Z])"), { "-" + it.groups[1]!!.value.toLowerCase()})
-    return """
-        IF NOT EXIST subprojects\$subProjectFolder\ (
-            echo ##teamcity[buildStatus status='SUCCESS' text='Ignored: Subproject $subProject does not exist on this branch']
-        )
-    """.trimIndent()
-}
-
 fun applyDefaultSettings(buildType: BuildType, runsOnWindows: Boolean = false, timeout: Int = 30, vcsRoot: String = "Gradle_Branches_GradlePersonalBranches") {
     buildType.artifactRules = """
         build/report-* => .
@@ -134,13 +116,6 @@ fun applyDefaults(model: CIBuildModel, buildType: BuildType, gradleTasks: String
             tasks = "verifyTestFilesCleanup"
             gradleParams = gradleParameterString
             useGradleWrapper = true
-        }
-        if (!subProject.isEmpty()) {
-            script {
-                name = "LET_BUILDS_FOR_MISSING_SUBPROJECTS_SUCCEED"
-                executionMode = BuildStep.ExecutionMode.RUN_ON_FAILURE
-                scriptContent = if (runsOnWindows) subProjectCheckWindows(subProject) else subProjectCheckLinux(subProject)
-            }
         }
         if (model.tagBuilds) {
             gradle {
