@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.collect.Sets;
 import org.apache.tools.zip.ZipFile;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
@@ -38,15 +39,19 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class AnnotationProcessorDetector {
     private final FileCollectionFactory fileCollectionFactory;
     private final FileContentCache<Boolean> cache;
+    private final FileContentCache<Map<String, String>> infoCache;
 
     public AnnotationProcessorDetector(FileCollectionFactory fileCollectionFactory, FileContentCacheFactory cacheFactory) {
         this.fileCollectionFactory = fileCollectionFactory;
+        // TODO:  Merge these caches?  The first seems obsolete now.
         cache = cacheFactory.newCache("annotation-processors", 20000, new AnnotationServiceLocator(), BaseSerializerFactory.BOOLEAN_SERIALIZER);
+        infoCache = cacheFactory.newCache("annotation-processors-info", 20000, new AnnotationProcessorScanner(), BaseSerializerFactory.NO_NULL_STRING_MAP_SERIALIZER);
     }
 
     /**
@@ -102,6 +107,25 @@ public class AnnotationProcessorDetector {
         });
     }
 
+    // TODO(stevey) -- this needs to be called from either JavaCompile or from IncrementalCompilerDecorator.
+    // TODO:  I have no idea whether this method works or is even approximately correct.
+    public Set<AnnotationProcessorInfo> getAnnotationProcessorInfo(final CompileOptions compileOptions, final FileCollection compileClasspath) {
+
+        FileCollection effectiveAnnotationProcessorPath = getEffectiveAnnotationProcessorClasspath(compileOptions, compileClasspath);
+
+        Set<AnnotationProcessorInfo> result = Sets.newHashSet();
+        for (File file : effectiveAnnotationProcessorPath) {
+            Map<String, String> props = infoCache.get(file);
+            if (props != null) {
+                AnnotationProcessorInfo info = new AnnotationProcessorInfo(props);
+                if (info.isProcessor()) {
+                    result.add(info);
+                }
+            }
+        }
+        return result;
+    }
+
     private static boolean checkExplicitProcessorOption(CompileOptions compileOptions) {
         boolean hasExplicitProcessor = false;
         int pos = compileOptions.getCompilerArgs().indexOf("-processor");
@@ -137,4 +161,5 @@ public class AnnotationProcessorDetector {
             return false;
         }
     }
+
 }
