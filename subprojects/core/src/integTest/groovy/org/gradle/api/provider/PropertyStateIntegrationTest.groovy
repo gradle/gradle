@@ -82,4 +82,41 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
         projectUnderTest.assertDefaultOutputFileDoesNotExist()
         projectUnderTest.assertCustomOutputFileContent()
     }
+
+    def "can set property value from DSL using a value or a provider"() {
+        given:
+        buildFile << """
+class SomeExtension {
+    final PropertyState<String> prop
+    
+    @javax.inject.Inject
+    SomeExtension(ProviderFactory providers) {
+        prop = providers.property(String)
+    }
+}
+
+class SomeTask extends DefaultTask {
+    final PropertyState<String> prop = project.providers.property(String)
+}
+
+extensions.create('custom', SomeExtension, providers)
+custom.prop = "value"
+assert custom.prop.get() == "value"
+
+custom.prop = providers.provider { "new value" }
+assert custom.prop.get() == "new value"
+
+tasks.create('t', SomeTask)
+tasks.t.prop = custom.prop
+assert tasks.t.prop.get() == "new value"
+
+custom.prop = "changed"
+assert custom.prop.get() == "changed"
+assert tasks.t.prop.get() == "changed"
+
+"""
+
+        expect:
+        succeeds()
+    }
 }
