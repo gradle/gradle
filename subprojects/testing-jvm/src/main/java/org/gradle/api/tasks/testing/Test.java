@@ -75,6 +75,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
+import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -1149,7 +1150,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * Specifies that JUnit should be used to execute the tests. <p> To configure JUnit specific options, see {@link #useJUnit(groovy.lang.Closure)}.
      */
     public void useJUnit() {
-        useJUnit(Actions.<TestFrameworkOptions>doNothing());
+        useJUnit(Actions.<JUnitOptions>doNothing());
     }
 
     /**
@@ -1159,7 +1160,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param testFrameworkConfigure A closure used to configure the JUnit options.
      */
     public void useJUnit(Closure testFrameworkConfigure) {
-        useJUnit(configureUsing(testFrameworkConfigure));
+        useJUnit(ConfigureUtil.<JUnitOptions>configureUsing(testFrameworkConfigure));
     }
 
     /**
@@ -1169,8 +1170,13 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param testFrameworkConfigure An action used to configure the JUnit options.
      * @since 3.5
      */
-    public void useJUnit(Action<? super TestFrameworkOptions> testFrameworkConfigure) {
-        useTestFramework(new JUnitTestFramework(this, filter), testFrameworkConfigure);
+    public void useJUnit(final Action<JUnitOptions> testFrameworkConfigure) {
+        useTestFramework(new JUnitTestFramework(this, filter), new Action<TestFrameworkOptions>() {
+            @Override
+            public void execute(final TestFrameworkOptions testFrameworkOptions) {
+                testFrameworkConfigure.execute((JUnitOptions) testFrameworkOptions);
+            }
+        });
     }
 
     /**
