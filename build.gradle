@@ -34,30 +34,30 @@ buildTypes {
 
     // Used by the first phase of the build pipeline, running only last version on multiversion - tests
     quickTest {
-        tasks "runtimeTests", "runtimeIntegTests", "runtimeCrossVersionTests"
+        tasks "test", "integTest", "crossVersionTests"
     }
 
     // Used for builds to run all tests, but not necessarily on all platforms
     fullTest {
-        tasks "runtimeTests", "runtimeForkingIntegTests", "runtimeForkingCrossVersionTests"
+        tasks "test", "forkingIntegTests", "forkingCrossVersionTest"
         projectProperties useIncomingDistributions: true, testAllVersions: true
     }
 
     // Used for builds to test the code on certain platforms
     platformTest {
-        tasks "runtimeTests", "runtimeForkingIntegTests", "runtimeForkingCrossVersionTests"
+        tasks "test", "forkingIntegTests", "forkingCrossVersionTest"
         projectProperties useIncomingDistributions: true, testAllVersions: true, testAllPlatforms: true
     }
 
     // Tests not using the daemon mode
     noDaemonTest {
-        tasks "runtimeNoDaemonIntegTests"
+        tasks "noDaemonIntegTest"
         projectProperties useIncomingDistributions: true
     }
 
     // Run the integration tests using the parallel executer
     parallelTest {
-        tasks "runtimeParallelIntegTests"
+        tasks "parallelIntegTest"
         projectProperties useIncomingDistributions: true
     }
 
@@ -134,8 +134,6 @@ buildTypes {
     }
 }
 
-apply from: "gradle/testGroupings.gradle"
-apply from: 'gradle/buildSplits.gradle'
 ext {
     jvm = org.gradle.internal.jvm.Jvm.current()
     javaVersion = JavaVersion.current()
