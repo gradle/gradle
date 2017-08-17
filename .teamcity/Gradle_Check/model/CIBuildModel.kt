@@ -14,12 +14,14 @@ data class CIBuildModel (
         val buildCacheActive: Boolean = true,
         val masterAndReleaseBranches: List<String> = listOf("master", "release"),
         val stages: List<Stage> = listOf(
-            Stage("Quick Feedback", "Run checks and functional tests (embedded executer)",
+            Stage("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer)",
                     specificBuilds = listOf(
                             SpecificBuild.SanityCheck,
                             SpecificBuild.BuildDistributions),
                     functionalTests = listOf(
-                            TestCoverage(TestType.quick, OS.linux, JvmVersion.java8),
+                            TestCoverage(TestType.quick, OS.linux, JvmVersion.java8))),
+            Stage("Quick Feedback", "Run checks and functional tests (embedded executer)",
+                    functionalTests = listOf(
                             TestCoverage(TestType.quick, OS.windows, JvmVersion.java7))),
             Stage("Branch Build Accept", "Run performance and functional tests (against distribution)",
                     specificBuilds = listOf(
