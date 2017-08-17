@@ -48,7 +48,6 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
         LOGGER.debug("Determining if {} is up-to-date", task);
         Timer clock = Timers.startTimer();
         TaskArtifactState taskArtifactState = context.getTaskArtifactState();
-        taskArtifactState.ensureSnapshotBeforeTask();
 
         List<String> messages = new ArrayList<String>(TaskUpToDateState.MAX_OUT_OF_DATE_MESSAGES);
         if (taskArtifactState.isUpToDate(messages)) {
@@ -61,7 +60,6 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
         logOutOfDateMessages(messages, task, clock.getElapsed());
 
         executer.execute(task, state, context);
-        taskArtifactState.afterTask(state.getFailure());
     }
 
     private void logOutOfDateMessages(List<String> messages, TaskInternal task, String took) {

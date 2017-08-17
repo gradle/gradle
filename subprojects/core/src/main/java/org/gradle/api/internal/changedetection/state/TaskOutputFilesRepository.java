@@ -21,5 +21,5 @@ import java.io.File;
 public interface TaskOutputFilesRepository {
     boolean isGeneratedByGradle(File file);
 
-    void recordOutputs(TaskExecution taskExecution);
+    void recordOutputs(Iterable<String> outputFilePaths);
 }

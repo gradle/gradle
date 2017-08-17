@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,41 +14,35 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules
+package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.UncheckedIOException
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry
-import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter
-import org.gradle.api.internal.changedetection.state.TaskExecution
+import org.gradle.api.internal.changedetection.rules.AbstractTaskStateChangesTest
 import org.gradle.normalization.internal.InputNormalizationStrategy
 import spock.lang.Issue
-import spock.lang.Subject
 
-@Subject(InputFilesTaskStateChanges)
-class InputFilesTaskStateChangesTest extends AbstractTaskStateChangesTest {
-    def normalizationStrategy = InputNormalizationStrategy.NOT_CONFIGURED
+import static org.gradle.api.internal.changedetection.state.InputPathNormalizationStrategy.ABSOLUTE
+
+class CacheBackedTaskHistoryRepositoryTest extends AbstractTaskStateChangesTest {
+    static final NORMALIZATION_STRATEGY = InputNormalizationStrategy.NOT_CONFIGURED
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2967")
-    def "constructor adds context when input snapshot throws UncheckedIOException" () {
+    def "adds context when input snapshot throws UncheckedIOException" () {
         setup:
         def cause = new UncheckedIOException("thrown from stub")
         def mockInputFileSnapshotter = Mock(FileCollectionSnapshotter)
         def mockInputFileSnapshotterRegistry = Mock(FileCollectionSnapshotterRegistry)
 
         when:
-        new InputFilesTaskStateChanges(Mock(TaskExecution), Mock(TaskExecution), stubTask, mockInputFileSnapshotterRegistry, normalizationStrategy)
+        CacheBackedTaskHistoryRepository.snapshotTaskFiles(stubTask, "Input", NORMALIZATION_STRATEGY, fileProperties(prop: "a"), mockInputFileSnapshotterRegistry)
 
         then:
         1 * mockInputFileSnapshotterRegistry.getSnapshotter(GenericFileCollectionSnapshotter) >> mockInputFileSnapshotter
-        1 * mockInputs.getFileProperties() >> fileProperties(prop: "a")
-        1 * mockInputFileSnapshotter.snapshot(_, _, _) >> { throw cause }
+        1 * mockInputFileSnapshotter.snapshot(_, ABSOLUTE, NORMALIZATION_STRATEGY) >> { throw cause }
         0 * _
 
         def e = thrown(UncheckedIOException)
-        e.message.contains(stubTask.getName())
-        e.message.contains("up-to-date")
-        e.message.contains("input")
+        e.message == "Failed to capture snapshot of input files for $stubTask property 'prop' during up-to-date check."
         e.cause == cause
     }
 }

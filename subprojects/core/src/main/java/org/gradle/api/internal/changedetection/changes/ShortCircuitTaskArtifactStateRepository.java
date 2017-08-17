@@ -73,6 +73,8 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
 
         @Override
         public boolean isUpToDate(Collection<String> messages) {
+            // Ensure that we snapshot the task's inputs
+            delegate.ensureSnapshotBeforeTask();
             messages.add(reason);
             return false;
         }
@@ -114,8 +116,8 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         }
 
         @Override
-        public void afterTask(Throwable failure) {
-            delegate.afterTask(failure);
+        public void snapshotAfterTask(Throwable failure) {
+            delegate.snapshotAfterTask(failure);
         }
     }
 
