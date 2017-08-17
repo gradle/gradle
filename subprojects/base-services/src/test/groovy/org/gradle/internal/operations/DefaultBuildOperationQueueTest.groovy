@@ -140,28 +140,6 @@ class DefaultBuildOperationQueueTest extends Specification {
                 [1, 4, 10]].combinations()
     }
 
-    def "all failures reported in order for a single threaded executor"() {
-        given:
-        setupQueue(1)
-        operationQueue.add(Stub(TestBuildOperation) {
-            run(_) >> { throw new RuntimeException("first") }
-        })
-        operationQueue.add(Stub(TestBuildOperation) {
-            run(_) >> { throw new RuntimeException("second") }
-        })
-        operationQueue.add(Stub(TestBuildOperation) {
-            run(_) >> { throw new RuntimeException("third") }
-        })
-
-        when:
-        operationQueue.waitForCompletion()
-
-        then:
-        // assumes we don't fail early
-        MultipleBuildOperationFailures e = thrown()
-        e.getCauses()*.message == [ 'first', 'second', 'third' ]
-    }
-
     def "when log location is set value is propagated in exceptions"() {
         given:
         setupQueue(1)
