@@ -107,6 +107,58 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         result.assertTasksNotSkipped(":compilePlayBinaryPlayTwirlTemplates", ":compilePlayBinaryScala")
     }
 
+    def "can specify additional imports for a Twirl template"() {
+        given:
+        withTwirlTemplate()
+        buildFile << """
+            model {
+                components {
+                    play {
+                        sources {
+                            twirlTemplates {
+                                additionalImports = [ 'my.pkg._' ]
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        file("app/my/pkg/MyClass.scala") << """
+            package my.pkg
+            
+            object MyClass;
+        """
+
+        when:
+        succeeds("compilePlayBinaryScala")
+        then:
+        def generatedFile = destinationDir.file("html/index.template.scala")
+        generatedFile.assertIsFile()
+        generatedFile.assertContents(containsString("import my.pkg._;"))
+
+        // Changing the imports causes TwirlCompile to be out-of-date
+        when:
+        buildFile << """
+            model {
+                components {
+                    play {
+                        sources {
+                            twirlTemplates {
+                                additionalImports = [ 'my.pkg._', 'my.pkg.MyClass' ]
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        and:
+        succeeds("compilePlayBinaryScala")
+        then:
+        result.assertTasksNotSkipped(":compilePlayBinaryPlayTwirlTemplates", ":compilePlayBinaryScala")
+        generatedFile.assertContents(containsString("import my.pkg._;"))
+        generatedFile.assertContents(containsString("import my.pkg.MyClass;"))
+    }
+
     def "runs compiler incrementally"() {
         when:
         withTwirlTemplate("input1.scala.html")
