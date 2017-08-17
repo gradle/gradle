@@ -162,7 +162,7 @@ class DefaultProjectSpec extends Specification {
         def directoryFileTreeFactory = Mock(DefaultDirectoryFileTreeFactory)
         def fileOperations = instantiator.newInstance(DefaultFileOperations, fileResolver, taskResolver, tempFileProvider, instantiator, fileLookup, directoryFileTreeFactory)
 
-        return Spy(DefaultProject, constructorArgs: [name, parent, new File("project"), Stub(ScriptSource), build, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope)]) {
+        return Spy(DefaultProject, constructorArgs: [name, parent, new File("project"), new File("build file"), Stub(ScriptSource), build, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope)]) {
             getFileOperations() >> fileOperations
         }
     }
