@@ -10,7 +10,7 @@ import model.Stage
 import model.TestType
 
 class StageProject(model: CIBuildModel, stage: Stage) : Project({
-    this.uuid = "${model.projectPrefix}Stage_${stage.name.replace(" ", "")}"
+    this.uuid = "${model.projectPrefix}Stage_${stage.name.replace(" ", "").replace("-","")}"
     this.extId = uuid
     this.name = stage.name
     this.description = stage.description
