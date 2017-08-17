@@ -23,6 +23,7 @@ import org.gradle.play.internal.spec.PlayCompileSpec;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.List;
 
 public interface TwirlCompileSpec extends PlayCompileSpec, Serializable {
     Iterable<RelativeFile> getSources();
@@ -30,4 +31,6 @@ public interface TwirlCompileSpec extends PlayCompileSpec, Serializable {
     TwirlImports getDefaultImports();
 
     Collection<TwirlTemplateFormat> getUserTemplateFormats();
+
+    List<String> getAdditionalImports();
 }

@@ -28,8 +28,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
-class TwirlCompilerAdapterV10X implements VersionedTwirlCompilerAdapter {
+class TwirlCompilerAdapterV10X extends VersionedTwirlCompilerAdapter {
     private static final Iterable<String> SHARED_PACKAGES = Arrays.asList("play.twirl.compiler", "scala.io"); //scala.io is for Codec which is a parameter to twirl
 
     // Based on https://github.com/playframework/playframework/blob/2.4.0/framework/src/build-link/src/main/java/play/TemplateImports.java
@@ -82,13 +83,19 @@ class TwirlCompilerAdapterV10X implements VersionedTwirlCompilerAdapter {
     }
 
     @Override
-    public Object[] createCompileParameters(ClassLoader cl, final File file, File sourceDirectory, File destinationDirectory, TwirlImports defaultImports, TwirlTemplateFormat templateFormat) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    public Object[] createCompileParameters(ClassLoader cl, final File file, File sourceDirectory, File destinationDirectory, TwirlImports defaultImports, TwirlTemplateFormat templateFormat, List<String> additionalImports) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        final Collection<String> defaultTwirlImports;
+        if (defaultImports == TwirlImports.JAVA) {
+            defaultTwirlImports = DEFAULT_JAVA_IMPORTS;
+        } else {
+            defaultTwirlImports = DEFAULT_SCALA_IMPORTS;
+        }
         return new Object[] {
                 file,
                 sourceDirectory,
                 destinationDirectory,
                 templateFormat.getFormatType(),
-                getDefaultImportsFor(defaultImports, templateFormat),
+                getImportsFor(templateFormat, defaultTwirlImports, additionalImports),
                 ScalaCodecMapper.create(cl, "UTF-8"),
                 isInclusiveDots(),
                 isUseOldParser()
@@ -121,23 +128,5 @@ class TwirlCompilerAdapterV10X implements VersionedTwirlCompilerAdapter {
             new DefaultTwirlTemplateFormat("xml", "play.twirl.api.XmlFormat", Collections.singleton("views.xml._")),
             new DefaultTwirlTemplateFormat("js", "play.twirl.api.JavaScriptFormat", Collections.singleton("views.js._"))
         );
-    }
-
-    private String getDefaultImportsFor(TwirlImports defaultImports, TwirlTemplateFormat templateFormat) {
-        StringBuilder sb = new StringBuilder();
-        if (defaultImports == TwirlImports.JAVA) {
-            addImports(sb, DEFAULT_JAVA_IMPORTS);
-        } else {
-            addImports(sb, DEFAULT_SCALA_IMPORTS);
-        }
-        addImports(sb, templateFormat.getTemplateImports());
-
-        return sb.toString();
-    }
-
-    private void addImports(StringBuilder sb, Collection<String> imports) {
-        for(String importPackage : imports) {
-            sb.append("import ").append(importPackage).append(";\n");
-        }
     }
 }

@@ -35,6 +35,9 @@
             <tr>
                 <td>userTemplateFormats</td>
             </tr>
+            <tr>
+                <td>additionalImports</td>
+            </tr>
         </table>
     </section>
     <section>

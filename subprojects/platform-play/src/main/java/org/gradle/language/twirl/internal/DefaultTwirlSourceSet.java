@@ -31,6 +31,7 @@ import java.util.List;
 public class DefaultTwirlSourceSet extends BaseLanguageSourceSet implements TwirlSourceSet {
     private TwirlImports defaultImports = TwirlImports.SCALA;
     private List<TwirlTemplateFormat> userTemplateFormats = Lists.newArrayList();
+    private List<String> additionalImports = Lists.newArrayList();
 
     @Override
     protected String getLanguageName() {
@@ -60,5 +61,15 @@ public class DefaultTwirlSourceSet extends BaseLanguageSourceSet implements Twir
     @Override
     public void addUserTemplateFormat(final String extension, String templateType, String... imports) {
         userTemplateFormats.add(new DefaultTwirlTemplateFormat(extension, templateType, Arrays.asList(imports)));
+    }
+
+    @Override
+    public List<String> getAdditionalImports() {
+        return additionalImports;
+    }
+
+    @Override
+    public void setAdditionalImports(List<String> additionalImports) {
+        this.additionalImports = additionalImports;
     }
 }
