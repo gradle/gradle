@@ -25,7 +25,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.logging.config.LoggingRouter;
 import org.gradle.internal.logging.console.AnsiConsole;
-import org.gradle.internal.logging.console.BuildLogLevelFilterRenderer;
 import org.gradle.internal.logging.console.BuildStatusRenderer;
 import org.gradle.internal.logging.console.ColorMap;
 import org.gradle.internal.logging.console.Console;
@@ -77,19 +76,15 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private OutputEventListener console;
     private OutputEventListener commonOutputChain;
 
-    public OutputEventRenderer() {
-        this(new TrueTimeProvider());
-    }
-
     public OutputEventRenderer(TimeProvider timeProvider) {
         this.timeProvider = timeProvider;
         // common output chain
         // log level filtering -> buffer/grouping -> header generator -> log event generator -> styled text rendering
         //                                                            \> batching -> header filtering -> console rendering
 
-        this.commonOutputChain = new BuildLogLevelFilterRenderer(new OperationGroupingOutputEventListener(
+        this.commonOutputChain = new OperationGroupingOutputEventListener(
                 new HeaderPrependingOutputEventGroupListener(formatters.getSource(), new PrettyPrefixedLogHeaderFormatter()),
-                timeProvider));
+                timeProvider);
 
         final Spec<LogGroupHeaderEvent> renderTaskHeadersSpec = new Spec<LogGroupHeaderEvent>() {
             public boolean isSatisfiedBy(LogGroupHeaderEvent element) {

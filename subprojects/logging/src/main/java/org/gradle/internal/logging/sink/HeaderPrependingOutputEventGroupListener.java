@@ -69,7 +69,7 @@ public class HeaderPrependingOutputEventGroupListener implements OutputEventGrou
             group.getCategory(),
             LogLevel.LIFECYCLE,
             group.getBuildOperationId(),
-            logHeaderFormatter.format(group.getLoggingHeader(), group.getDescription(), group.getShortDescription(), group.getStatus()),
+            logHeaderFormatter.format(group.getLoggingHeader(), group.getDescription(), group.getShortDescription(), group.getStatus(), group.isFailed()),
             group.getBuildOperationCategory(),
             hasLogs);
     }

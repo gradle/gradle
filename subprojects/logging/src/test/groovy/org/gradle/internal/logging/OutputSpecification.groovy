@@ -116,8 +116,8 @@ abstract class OutputSpecification extends Specification {
         new ProgressCompleteEvent(new OperationIdentifier(id), tenAm, status, false)
     }
 
-    OutputEventGroup group(ProgressStartEvent event, List<RenderableOutputEvent> logs, String status) {
-        new OutputEventGroup(event.getTimestamp(), event.getCategory(), event.getLoggingHeader(), event.getDescription(), event.getShortDescription(), status, logs, event.getBuildOperationId(), event.getBuildOperationCategory())
+    OutputEventGroup group(ProgressStartEvent event, List<RenderableOutputEvent> logs, String status, boolean failed) {
+        new OutputEventGroup(event.getTimestamp(), event.getCategory(), event.getLoggingHeader(), event.getDescription(), event.getShortDescription(), status, failed, logs, event.getBuildOperationId(), event.getBuildOperationCategory())
     }
 
     UpdateNowEvent updateNow() {

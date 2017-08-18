@@ -64,7 +64,7 @@ class OperationGroupingOutputEventListenerTest extends OutputSpecification {
         given:
         def taskStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :foo", ":foo", null, null, 0, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
         def warningMessage = event('Warning: some deprecation or something', LogLevel.WARN, taskStartEvent.buildOperationId)
-        def taskCompleteEvent = new ProgressCompleteEvent(taskStartEvent.progressOperationId, tenAm, "STATUS")
+        def taskCompleteEvent = new ProgressCompleteEvent(taskStartEvent.progressOperationId, tenAm, "STATUS", false)
 
         when:
         listener.onOutput(taskStartEvent)
@@ -78,7 +78,7 @@ class OperationGroupingOutputEventListenerTest extends OutputSpecification {
         listener.onOutput(taskCompleteEvent)
 
         then:
-        1 * downstreamListener.onOutput({ it.toString() == group(taskStartEvent, [warningMessage], taskCompleteEvent.status).toString() })
+        1 * downstreamListener.onOutput({ it.toString() == group(taskStartEvent, [warningMessage], taskCompleteEvent.status, false).toString() })
         1 * downstreamListener.onOutput(taskCompleteEvent)
         0 * downstreamListener._
     }
@@ -88,8 +88,8 @@ class OperationGroupingOutputEventListenerTest extends OutputSpecification {
         def taskStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), tenAm, CATEGORY, "Execute :foo", ":foo", null, null, 0, new OperationIdentifier(2L), null, BuildOperationCategory.TASK)
         def subtaskStartEvent = new ProgressStartEvent(new OperationIdentifier(-4L), new OperationIdentifier(-5L), tenAm, CATEGORY, ":foo subtask", "subtask", null, null, 0, new OperationIdentifier(3L), taskStartEvent.buildOperationId, BuildOperationCategory.UNCATEGORIZED)
         def warningMessage = event('Child task log message', LogLevel.WARN, subtaskStartEvent.buildOperationId)
-        def subTaskCompleteEvent = new ProgressCompleteEvent(subtaskStartEvent.progressOperationId, tenAm, 'subtask complete')
-        def taskCompleteEvent = new ProgressCompleteEvent(taskStartEvent.progressOperationId, tenAm, 'UP-TO-DATE')
+        def subTaskCompleteEvent = new ProgressCompleteEvent(subtaskStartEvent.progressOperationId, tenAm, 'subtask complete', false)
+        def taskCompleteEvent = new ProgressCompleteEvent(taskStartEvent.progressOperationId, tenAm, 'UP-TO-DATE', false)
 
         when:
         listener.onOutput(taskStartEvent)
@@ -107,7 +107,7 @@ class OperationGroupingOutputEventListenerTest extends OutputSpecification {
         listener.onOutput(taskCompleteEvent)
 
         then:
-        1 * downstreamListener.onOutput({ it.toString() == group(taskStartEvent, [warningMessage], taskCompleteEvent.status).toString() })
+        1 * downstreamListener.onOutput({ it.toString() == group(taskStartEvent, [warningMessage], taskCompleteEvent.status, false).toString() })
         1 * downstreamListener.onOutput(taskCompleteEvent)
         0 * downstreamListener._
     }
@@ -125,7 +125,7 @@ class OperationGroupingOutputEventListenerTest extends OutputSpecification {
 
         then:
         1 * downstreamListener.onOutput(taskStartEvent)
-        1 * downstreamListener.onOutput({ it.toString() == group(taskStartEvent, [warningMessage], "").toString() })
+        1 * downstreamListener.onOutput({ it.toString() == group(taskStartEvent, [warningMessage], "STOPPED", false).toString() })
         1 * downstreamListener.onOutput(endBuildEvent)
         0 * downstreamListener._
     }
@@ -136,8 +136,8 @@ class OperationGroupingOutputEventListenerTest extends OutputSpecification {
         def taskBStartEvent = new ProgressStartEvent(new OperationIdentifier(-5L), new OperationIdentifier(-6L), tenAm, CATEGORY, "Execute :b", ":b", null, null, 0, new OperationIdentifier(3L), null, BuildOperationCategory.TASK)
         def taskAOutput = event('message for task a', LogLevel.WARN, taskAStartEvent.buildOperationId)
         def taskBOutput = event('message for task b', LogLevel.WARN, taskBStartEvent.buildOperationId)
-        def taskBCompleteEvent = new ProgressCompleteEvent(taskBStartEvent.progressOperationId, tenAm, null)
-        def taskACompleteEvent = new ProgressCompleteEvent(taskAStartEvent.progressOperationId, tenAm, 'UP-TO-DATE')
+        def taskBCompleteEvent = new ProgressCompleteEvent(taskBStartEvent.progressOperationId, tenAm, null, false)
+        def taskACompleteEvent = new ProgressCompleteEvent(taskAStartEvent.progressOperationId, tenAm, 'UP-TO-DATE', false)
 
         when:
         listener.onOutput(taskAStartEvent)
@@ -155,9 +155,9 @@ class OperationGroupingOutputEventListenerTest extends OutputSpecification {
         listener.onOutput(taskACompleteEvent)
 
         then:
-        1 * downstreamListener.onOutput({ it.toString() == group(taskBStartEvent, [taskBOutput], taskBCompleteEvent.status).toString() })
+        1 * downstreamListener.onOutput({ it.toString() == group(taskBStartEvent, [taskBOutput], taskBCompleteEvent.status, false).toString() })
         1 * downstreamListener.onOutput(taskBCompleteEvent)
-        1 * downstreamListener.onOutput({ it.toString() == group(taskAStartEvent, [taskAOutput], taskACompleteEvent.status).toString() })
+        1 * downstreamListener.onOutput({ it.toString() == group(taskAStartEvent, [taskAOutput], taskACompleteEvent.status, false).toString() })
         1 * downstreamListener.onOutput(taskACompleteEvent)
         0 * downstreamListener._
     }

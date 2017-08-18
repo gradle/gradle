@@ -26,17 +26,19 @@ public class OutputEventGroup {
     private final String description;
     private final String shortDescription;
     private final String status;
+    private final boolean failed;
     private final List<RenderableOutputEvent> logs;
     private final Object buildOperationId;
     private final BuildOperationCategory buildOperationCategory;
 
-    public OutputEventGroup(long timestamp, String category, String loggingHeader, String description, String shortDescription, String status, List<RenderableOutputEvent> logs, Object buildOperationId, BuildOperationCategory buildOperationCategory) {
+    public OutputEventGroup(long timestamp, String category, String loggingHeader, String description, String shortDescription, String status, boolean failed, List<RenderableOutputEvent> logs, Object buildOperationId, BuildOperationCategory buildOperationCategory) {
         this.timestamp = timestamp;
         this.category = category;
         this.loggingHeader = loggingHeader;
         this.description = description;
         this.shortDescription = shortDescription;
         this.status = status;
+        this.failed = failed;
         this.logs = logs;
         this.buildOperationId = buildOperationId;
         this.buildOperationCategory = buildOperationCategory;
@@ -64,6 +66,10 @@ public class OutputEventGroup {
 
     public String getStatus() {
         return status;
+    }
+
+    public boolean isFailed() {
+        return failed;
     }
 
     public List<RenderableOutputEvent> getLogs() {

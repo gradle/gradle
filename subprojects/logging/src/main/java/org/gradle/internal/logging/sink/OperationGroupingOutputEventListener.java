@@ -143,14 +143,14 @@ public class OperationGroupingOutputEventListener implements OutputEventListener
             buildOpIdHierarchy.remove(buildOpId);
             OutputEventGroup eventGroup = operationsInProgress.remove(buildOpId);
             if (eventGroup != null) {
-                flushGroup(eventGroup, logBuffers.remove(buildOpId), completeEvent.getStatus());
+                flushGroup(eventGroup, logBuffers.remove(buildOpId), completeEvent.getStatus(), completeEvent.isFailed());
             }
         }
 
         listener.onOutput(completeEvent);
     }
 
-    private void flushGroup(OutputEventGroup eventGroup, List<RenderableOutputEvent> logs, String status) {
+    private void flushGroup(OutputEventGroup eventGroup, List<RenderableOutputEvent> logs, String status, boolean failed) {
         listener.onOutput(new OutputEventGroup(
             timeProvider.getCurrentTime(),
             eventGroup.getCategory(),
@@ -158,6 +158,7 @@ public class OperationGroupingOutputEventListener implements OutputEventListener
             eventGroup.getDescription(),
             eventGroup.getShortDescription(),
             status,
+            failed,
             logs,
             eventGroup.getBuildOperationId(),
             eventGroup.getBuildOperationCategory()
@@ -172,6 +173,7 @@ public class OperationGroupingOutputEventListener implements OutputEventListener
             startEvent.getDescription(),
             startEvent.getShortDescription(),
             "",
+            false,
             new ArrayList<RenderableOutputEvent>(),
             startEvent.getBuildOperationId(),
             startEvent.getBuildOperationCategory()
@@ -180,7 +182,7 @@ public class OperationGroupingOutputEventListener implements OutputEventListener
 
     private void onEnd(EndOutputEvent event) {
         for (OutputEventGroup group : operationsInProgress.values()) {
-            flushGroup(group, logBuffers.get(group.getBuildOperationId()), "");
+            flushGroup(group, logBuffers.get(group.getBuildOperationId()), "STOPPED", true);
         }
         listener.onOutput(event);
         buildOpIdHierarchy.clear();
@@ -204,7 +206,7 @@ public class OperationGroupingOutputEventListener implements OutputEventListener
             Object buildOpId = operation.getBuildOperationId();
             List<RenderableOutputEvent> logs = logBuffers.get(buildOpId);
             if (!logs.isEmpty()) {
-                flushGroup(operation, logs, "");
+                flushGroup(operation, logs, operation.getStatus(), operation.isFailed());
                 logBuffers.put(buildOpId, new ArrayList<RenderableOutputEvent>());
             }
         }
