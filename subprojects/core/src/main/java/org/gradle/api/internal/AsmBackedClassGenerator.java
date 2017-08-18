@@ -405,7 +405,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public void addPropertyStateSetters(PropertyMetaData property) throws Exception {
+        public void addPropertyStateSetters(PropertyMetaData property, Method getter) throws Exception {
 
             // GENERATE public void set<Name>(Object p) {
             //    if (p instanceof Provider) {
@@ -419,7 +419,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "set" + StringUtils.capitalize(property.getName()), RETURN_VOID_FROM_OBJECT, null, EMPTY_STRINGS);
             methodVisitor.visitCode();
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
-            methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), "get" + StringUtils.capitalize(property.getName()), RETURN_PROPERTY_STATE, false);
+            methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), getter.getName(), Type.getMethodDescriptor(getter), false);
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
             methodVisitor.visitTypeInsn(Opcodes.INSTANCEOF, PROVIDER_TYPE.getInternalName());
             methodVisitor.visitJumpInsn(Opcodes.IFNE, isProvider);

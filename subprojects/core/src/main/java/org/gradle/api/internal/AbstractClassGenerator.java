@@ -146,7 +146,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                 }
 
                 if (!property.getters.isEmpty() && PropertyState.class.isAssignableFrom(property.getType())) {
-                    builder.addPropertyStateSetters(property);
+                    builder.addPropertyStateSetters(property, property.getters.get(0));
                     continue;
                 }
 
@@ -466,7 +466,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
 
         void addActionMethod(Method method) throws Exception;
 
-        void addPropertyStateSetters(PropertyMetaData property) throws Exception;
+        void addPropertyStateSetters(PropertyMetaData property, Method getter) throws Exception;
 
         void generateServiceRegistrySupportMethods() throws Exception;
 
