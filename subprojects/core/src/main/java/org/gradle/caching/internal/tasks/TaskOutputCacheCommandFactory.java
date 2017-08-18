@@ -43,6 +43,7 @@ import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.time.Timer;
 
 import java.io.File;
@@ -152,15 +153,13 @@ public class TaskOutputCacheCommandFactory {
 
                 if (fileSnapshots.size() == 1) {
                     FileSnapshot singleSnapshot = fileSnapshots.get(0);
-                    switch (singleSnapshot.getType()) {
-                        case Missing:
-                            continue;
-                        case RegularFile:
-                            fileSystemMirror.putFile(singleSnapshot);
-                            continue;
+                    if (singleSnapshot.getType() != FileType.RegularFile) {
+                        throw new IllegalStateException(String.format("Only a regular file should be produced by unpacking property '%s', but saw a %s", propertyName, singleSnapshot.getType()));
                     }
+                    fileSystemMirror.putFile(singleSnapshot);
+                } else {
+                    fileSystemMirror.putDirectory(new DirectoryTreeDetails(property.getOutputFile().getAbsolutePath(), fileSnapshots));
                 }
-                fileSystemMirror.putDirectory(new DirectoryTreeDetails(property.getOutputFile().getAbsolutePath(), fileSnapshots));
             }
             taskArtifactState.snapshotAfterLoadedFromCache(propertySnapshotsBuilder.build());
         }

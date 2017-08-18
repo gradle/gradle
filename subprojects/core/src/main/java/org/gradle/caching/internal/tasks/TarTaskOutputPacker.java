@@ -39,7 +39,6 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DirectoryFileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSnapshot;
-import org.gradle.api.internal.changedetection.state.MissingFileSnapshot;
 import org.gradle.api.internal.changedetection.state.RegularFileSnapshot;
 import org.gradle.api.internal.file.collections.DefaultDirectoryWalkerFactory;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
@@ -310,7 +309,6 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
                         FileUtils.forceDelete(propertyRoot);
                     }
                 }
-                fileSnapshots.put(propertyName, new MissingFileSnapshot(propertyRoot.getAbsolutePath(), RelativePath.EMPTY_ROOT));
                 return;
             }
 
@@ -334,7 +332,9 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         RelativePath relativePath = root ? RelativePath.EMPTY_ROOT : RelativePath.parse(!isDirEntry, childPath);
         if (isDirEntry) {
             FileUtils.forceMkdir(outputFile);
-            fileSnapshots.put(propertyName, new DirectoryFileSnapshot(internedPath, relativePath, root));
+            if (!root) {
+                fileSnapshots.put(propertyName, new DirectoryFileSnapshot(internedPath, relativePath, false));
+            }
         } else {
             OutputStream output = new FileOutputStream(outputFile);
             HashCode hash;
