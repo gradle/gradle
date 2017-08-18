@@ -53,7 +53,7 @@ public interface MavenRepositoryHandlerConvention {
      * @param configureAction The action to use to configure the repository.
      * @return The added repository
      * @see #mavenDeployer()
-     * @since 4.1
+     * @since 4.2
      */
     GroovyMavenDeployer mavenDeployer(Action<? super GroovyMavenDeployer> configureAction);
 
@@ -94,7 +94,7 @@ public interface MavenRepositoryHandlerConvention {
      * @param configureAction The action to use to configure the repository.
      * @return The added repository
      *
-     * @since 4.1
+     * @since 4.2
      */
     GroovyMavenDeployer mavenDeployer(Map<String, ?> args, Action<? super GroovyMavenDeployer> configureAction);
 
@@ -122,7 +122,7 @@ public interface MavenRepositoryHandlerConvention {
      * @return The added repository
      * @see #mavenInstaller(Map, Action)
      *
-     * @since 4.1
+     * @since 4.2
      */
     MavenResolver mavenInstaller(Action<? super MavenResolver> configureAction);
 
@@ -163,7 +163,7 @@ public interface MavenRepositoryHandlerConvention {
      * @param configureAction The action to use to configure the repository.
      * @return The added repository
      *
-     * @since 4.1
+     * @since 4.2
      */
     MavenResolver mavenInstaller(Map<String, ?> args, Action<? super MavenResolver> configureAction);
 }

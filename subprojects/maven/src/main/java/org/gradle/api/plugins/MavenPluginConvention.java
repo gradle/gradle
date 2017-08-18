@@ -115,7 +115,7 @@ public class MavenPluginConvention implements MavenPomMetaInfoProvider {
      *
      * @param configureAction The action to use to configure the POM instance.
      * @return The POM instance.
-     * @since 4.1
+     * @since 4.2
      */
     public MavenPom pom(Action<? super MavenPom> configureAction) {
         MavenPom pom = pom();

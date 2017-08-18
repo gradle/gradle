@@ -65,7 +65,7 @@ public interface MavenPom {
      * @return this
      *
      * @see #project(Closure)
-     * @since 4.1
+     * @since 4.2
      */
     MavenPom project(Action<? super GroovyObject> pom);
 

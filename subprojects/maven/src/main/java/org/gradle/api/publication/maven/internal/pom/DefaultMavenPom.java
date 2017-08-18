@@ -134,6 +134,7 @@ public class DefaultMavenPom implements MavenPom {
         return this;
     }
 
+    @Override
     public DefaultMavenPom project(final Action<? super GroovyObject> action) {
         return project(new Closure(this, this) {
             @SuppressWarnings("unused")

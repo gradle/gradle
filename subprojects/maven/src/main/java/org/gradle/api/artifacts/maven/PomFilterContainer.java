@@ -131,7 +131,7 @@ public interface PomFilterContainer {
      * @return The POM object associated with the given name.
      * @see PomFilterContainer#pom(String)
      *
-     * @since 4.1
+     * @since 4.2
      */
     MavenPom pom(String name, Action<? super MavenPom> configureAction);
 
@@ -141,7 +141,7 @@ public interface PomFilterContainer {
      * @return The default POM.
      * @see PomFilterContainer#getPom()
      *
-     * @since 4.1
+     * @since 4.2
      */
     MavenPom pom(Action<? super MavenPom> configureAction);
 
