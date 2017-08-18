@@ -53,9 +53,7 @@ class BuildOperationNotificationBridge implements BuildOperationNotificationList
                 project.afterEvaluate(new Action<Project>() {
                     @Override
                     public void execute(Project project) {
-                        if (BuildOperationNotificationBridge.this.buildOperationRecorder != null) {
-                            BuildOperationNotificationBridge.this.buildOperationRecorder.stop();
-                        }
+                        BuildOperationNotificationBridge.this.buildOperationRecorder.discardEventsAndStop();
                     }
                 });
             }
@@ -66,19 +64,17 @@ class BuildOperationNotificationBridge implements BuildOperationNotificationList
     public void registerBuildScopeListener(BuildOperationNotificationListener notificationListener) {
         if (operationListener == null) {
             operationListener = new Listener(notificationListener);
-            buildOperationListenerManager.addListener(operationListener);
             List<BuildOperationRecorder.RecordedBuildOperation> recordedBuildOperations = buildOperationRecorder.retrieveEventsAndStop();
             for (BuildOperationRecorder.RecordedBuildOperation storedEvent : recordedBuildOperations) {
                 BuildOperationDescriptor buildOperationDescriptor = storedEvent.buildOperation;
                 Object event = storedEvent.event;
                 if (storedEvent.eventType == BuildOperationRecorder.RecordedBuildOperation.OperationEventType.START) {
                     operationListener.started(buildOperationDescriptor, (OperationStartEvent) event);
-                } else {
+                }else if (storedEvent.eventType == BuildOperationRecorder.RecordedBuildOperation.OperationEventType.FINISHED) {
                     operationListener.finished(buildOperationDescriptor, (OperationFinishEvent) event);
                 }
             }
-            buildOperationRecorder.stop();
-            buildOperationRecorder = null;
+            buildOperationListenerManager.addListener(operationListener);
         } else {
             throw new IllegalStateException("listener is already registered (implementation class " + notificationListener.getClass().getName() + ")");
         }

@@ -22,16 +22,21 @@ import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.BuildOperationListenerManager;
 import org.gradle.internal.progress.OperationFinishEvent;
 import org.gradle.internal.progress.OperationStartEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class BuildOperationRecorder implements Stoppable {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(BuildOperationRecorder.class);
+
     private final BuildOperationListenerManager listenerManager;
     private final BuildOperationListener listener;
 
     private List<RecordedBuildOperation> recordedEvents = new ArrayList<RecordedBuildOperation>();
+    private boolean stopped = false;
 
     public BuildOperationRecorder(BuildOperationListenerManager listenerManager) {
         this.listenerManager = listenerManager;
@@ -56,8 +61,18 @@ public class BuildOperationRecorder implements Stoppable {
         return returnEvents;
     }
 
+    public void discardEventsAndStop() {
+        if(!stopped){
+            int discardedEventCount = recordedEvents.size();
+            recordedEvents.clear();
+            LOGGER.debug(Integer.toString(discardedEventCount) + " build operation events discarded.");
+            stop();
+        }
+    }
+
     @Override
     public void stop() {
+        stopped = true;
         listenerManager.removeListener(listener);
     }
 
