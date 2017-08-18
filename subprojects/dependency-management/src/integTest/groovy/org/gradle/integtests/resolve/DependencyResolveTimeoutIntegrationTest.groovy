@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.test.fixtures.maven.MavenRepository
 import org.gradle.test.fixtures.server.http.MavenHttpModule
@@ -25,10 +26,12 @@ class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyReso
 
     private static final String GROUP_ID = 'group'
     private static final String VERSION = '1.0'
+    TestFile downloadedLibsDir
     MavenHttpModule moduleA
 
     def setup() {
-        moduleA = mavenHttpRepo.module(GROUP_ID, 'a', VERSION).publish()
+        moduleA = publishMavenModule('a')
+        downloadedLibsDir = file('build/libs')
     }
 
     def "fails single build script dependency resolution if HTTP connection exceeds timeout"() {
@@ -44,7 +47,7 @@ class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyReso
 
         when:
         moduleA.pom.expectGetBlocking()
-        fails('resolve')
+        fails('help')
 
         then:
         assertDependencyReadTimeout(moduleA)
@@ -64,13 +67,13 @@ class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         assertDependencyReadTimeout(moduleA)
-        !file('libs').isDirectory()
+        !downloadedLibsDir.isDirectory()
     }
 
     def "fails concurrent application dependency resolution if HTTP connection exceeds timeout"() {
         given:
-        MavenHttpModule moduleB = mavenHttpRepo.module(GROUP_ID, 'b', VERSION).publish()
-        MavenHttpModule moduleC = mavenHttpRepo.module(GROUP_ID, 'c', VERSION).publish()
+        MavenHttpModule moduleB = publishMavenModule('b')
+        MavenHttpModule moduleC = publishMavenModule('c')
 
         buildFile << """
             ${mavenRepository(mavenHttpRepo)}
@@ -88,13 +91,13 @@ class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyReso
         assertDependencyReadTimeout(moduleA)
         assertDependencyReadTimeout(moduleB)
         assertDependencyReadTimeout(moduleC)
-        !file('libs').isDirectory()
+        !downloadedLibsDir.isDirectory()
     }
 
     def "skips subsequent dependency resolution if HTTP connection exceeds timeout"() {
         given:
-        MavenHttpModule moduleB = mavenHttpRepo.module(GROUP_ID, 'b', VERSION).publish()
-        MavenHttpModule moduleC = mavenHttpRepo.module(GROUP_ID, 'c', VERSION).publish()
+        MavenHttpModule moduleB = publishMavenModule('b')
+        MavenHttpModule moduleC = publishMavenModule('c')
 
         buildFile << """
             ${mavenRepository(mavenHttpRepo)}
@@ -110,7 +113,37 @@ class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyReso
         assertDependencyReadTimeout(moduleA)
         assertDependencySkipped(moduleB)
         assertDependencySkipped(moduleC)
-        !file('libs').isDirectory()
+        !downloadedLibsDir.isDirectory()
+    }
+
+    def "skipped repositories are only recorded for the time of a single build execution"() {
+        given:
+        MavenHttpModule moduleB = publishMavenModule('b')
+
+        buildFile << """
+            ${mavenRepository(mavenHttpRepo)}
+            ${customConfigDependencyAssignment(moduleA, moduleB)}
+            ${configSyncTask()}
+        """
+
+        when:
+        moduleA.pom.expectGetBlocking()
+        fails('resolve', '--max-workers=1')
+
+        then:
+        assertDependencyReadTimeout(moduleA)
+        assertDependencySkipped(moduleB)
+        !downloadedLibsDir.isDirectory()
+
+        when:
+        moduleA.pom.expectGet()
+        moduleA.artifact.expectGet()
+        moduleB.pom.expectGet()
+        moduleB.artifact.expectGet()
+        succeeds('resolve', '--max-workers=1')
+
+        then:
+        downloadedLibsDir.assertContainsDescendants('a-1.0.jar', 'b-1.0.jar')
     }
 
     private String mavenRepository(MavenRepository repo) {
@@ -156,11 +189,15 @@ class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyReso
    > Skipped due to earlier error""")
     }
 
-    private String mavenModuleCoordinates(MavenModule module) {
+    private String mavenModuleCoordinates(MavenHttpModule module) {
         "$module.groupId:$module.artifactId:$module.version"
     }
 
-    private String mavenModuleRepositoryPath(MavenModule module) {
+    private String mavenModuleRepositoryPath(MavenHttpModule module) {
         "$module.groupId/$module.artifactId/$module.artifactId-$module.version"
+    }
+
+    private MavenHttpModule publishMavenModule(String artifactId) {
+        mavenHttpRepo.module(GROUP_ID, artifactId, VERSION).publish()
     }
 }

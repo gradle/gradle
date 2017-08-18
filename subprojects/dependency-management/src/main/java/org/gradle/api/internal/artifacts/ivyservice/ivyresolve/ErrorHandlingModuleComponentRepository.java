@@ -41,13 +41,11 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
     private final static String BLACKLISTED_REPOSITORY_ERROR_MESSAGE = "Skipped due to earlier error";
 
     private final ModuleComponentRepository delegate;
-    private final RepositoryBlacklister repositoryBlacklister;
     private final ErrorHandlingModuleComponentRepositoryAccess local;
     private final ErrorHandlingModuleComponentRepositoryAccess remote;
 
-    public ErrorHandlingModuleComponentRepository(ModuleComponentRepository delegate) {
+    public ErrorHandlingModuleComponentRepository(ModuleComponentRepository delegate, RepositoryBlacklister repositoryBlacklister) {
         this.delegate = delegate;
-        repositoryBlacklister = new ConnectionInterruptionRepositoryBlacklister();
         local = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getLocalAccess(), getId(), repositoryBlacklister);
         remote = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getRemoteAccess(), getId(), repositoryBlacklister);
     }
