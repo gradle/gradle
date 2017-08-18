@@ -156,14 +156,12 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         @Override
         public void snapshotAfterTaskExecution(Throwable failure) {
-            TaskHistoryRepository.History history = this.history;
             history.updateCurrentExecution(taskInputs);
             snapshotAfterOutputsWereGenerated(history, failure);
         }
 
         @Override
         public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot) {
-            TaskHistoryRepository.History history = this.history;
             history.updateCurrentExecutionWithOutputs(taskInputs, newOutputSnapshot);
             snapshotAfterOutputsWereGenerated(history, null);
         }
