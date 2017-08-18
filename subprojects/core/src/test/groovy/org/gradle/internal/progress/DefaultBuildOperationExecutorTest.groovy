@@ -651,10 +651,6 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         def e = thrown(ResourceDeadlockException)
     }
 
-    def "Writes exception to "() {
-
-    }
-
     def runnableBuildOperation(String name, Closure cl) {
         new RunnableBuildOperation() {
             void run(BuildOperationContext context) {

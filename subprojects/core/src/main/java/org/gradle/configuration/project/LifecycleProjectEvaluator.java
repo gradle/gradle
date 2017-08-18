@@ -78,11 +78,11 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
             if (state.hasFailure()) {
                 // Just log this failure, and pass the existing failure out in the project state
                 boolean logStackTraces = project.getGradle().getStartParameter().getShowStacktrace() != ShowStacktrace.INTERNAL_EXCEPTIONS;
-                String infoMessage = "Failed to notify ProjectEvaluationListener.afterEvaluate(), but primary configuration failure takes precedence.";
+                String infoMessage = "Project evaluation failed including an error in afterEvaluate {}.";
                 if (logStackTraces) {
                     LOGGER.error(infoMessage, e);
                 } else {
-                    LOGGER.error(infoMessage + "\n> {}", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
+                    LOGGER.error(infoMessage + " Run with --stacktrace for details of the afterEvaluate {} error.");
                 }
                 return;
             }
