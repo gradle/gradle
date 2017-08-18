@@ -35,5 +35,6 @@ dependencies {
 }
 
 useTestFixtures()
+useTestFixtures(project: ":baseServices")
 useClassycle()
 strictCompile()
