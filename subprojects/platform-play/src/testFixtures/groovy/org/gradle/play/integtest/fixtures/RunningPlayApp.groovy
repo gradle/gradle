@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.file.TestFile
 import static org.gradle.integtests.fixtures.UrlValidator.*
 
 class RunningPlayApp {
-    private static final int UNASSIGNED = -1
+    static final int UNASSIGNED = -1
     int httpPort = UNASSIGNED
     final TestFile testDirectory
     Closure output
@@ -56,13 +56,16 @@ class RunningPlayApp {
             throw new IllegalStateException("Attempted to parse the http port from the build output, but initialize() was not called first!")
         }
 
-        def matcher = output.call() =~ 'play - Listening for HTTP on .*:([0-9]+)'
+        httpPort = regexParseHttpPort(output.call(), occurrence)
+        return httpPort
+    }
+
+    static int regexParseHttpPort(output, int occurrence) {
+        def matcher = output =~ /Running Play App \(:.*\) at http:\/\/.*:([0-9]+)\//
         if (matcher.count >= occurrence + 1) {
-            httpPort = matcher[occurrence][1] as int
-            return httpPort
-        } else {
-            return UNASSIGNED
+            return matcher[occurrence][1] as int
         }
+        return UNASSIGNED
     }
 
     void requireHttpPort(int occurence) {
