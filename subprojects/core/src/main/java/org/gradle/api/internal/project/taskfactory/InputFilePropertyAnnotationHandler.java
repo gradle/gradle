@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
@@ -45,6 +46,9 @@ public class InputFilePropertyAnnotationHandler extends AbstractInputPropertyAnn
         Object unpacked = DeferredUtil.unpack(value);
         if (unpacked instanceof Path) {
             return ((Path) unpacked).toFile();
+        }
+        if (unpacked instanceof FileSystemLocation) {
+            return ((FileSystemLocation) unpacked).getAsFile();
         }
         return (File) unpacked;
     }
