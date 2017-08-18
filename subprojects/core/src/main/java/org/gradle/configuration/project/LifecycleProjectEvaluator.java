@@ -19,6 +19,7 @@ import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateInternal;
+import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
@@ -76,7 +77,13 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         } catch (Exception e) {
             if (state.hasFailure()) {
                 // Just log this failure, and pass the existing failure out in the project state
-                LOGGER.error("Failed to notify ProjectEvaluationListener.afterEvaluate(), but primary configuration failure takes precedence.", e);
+                boolean logStackTraces = project.getGradle().getStartParameter().getShowStacktrace() != ShowStacktrace.INTERNAL_EXCEPTIONS;
+                String infoMessage = "Failed to notify ProjectEvaluationListener.afterEvaluate(), but primary configuration failure takes precedence.";
+                if (logStackTraces) {
+                    LOGGER.error(infoMessage, e);
+                } else {
+                    LOGGER.error(infoMessage + "\n> {}", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
+                }
                 return;
             }
             addConfigurationFailure(project, state, e);
