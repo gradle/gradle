@@ -38,8 +38,7 @@ class DefaultProjectLayoutTest extends Specification {
         def layout = new DefaultProjectLayout(projectDir, TestFiles.resolver(projectDir))
 
         expect:
-        layout.projectDirectory.get() == projectDir
-        layout.projectDirectory.present
+        layout.projectDirectory.getAsFile() == projectDir
     }
 
     def "can resolve directory relative to project directory"() {
@@ -49,20 +48,19 @@ class DefaultProjectLayoutTest extends Specification {
 
         expect:
         def dir = layout.projectDirectory.dir("sub-dir")
-        dir.present
-        dir.get() == projectDir.file("sub-dir")
+        dir.getAsFile() == projectDir.file("sub-dir")
 
         def provider = layout.projectDirectory.dir(pathProvider)
         provider.present
 
         def dir1 = provider.get()
-        dir1.get() == projectDir.file("a")
+        dir1.getAsFile() == projectDir.file("a")
 
         def dir2 = provider.get()
-        dir2.get() == projectDir.file("b")
+        dir2.getAsFile() == projectDir.file("b")
 
-        dir1.get() == projectDir.file("a")
-        dir2.get() == projectDir.file("b")
+        dir1.getAsFile() == projectDir.file("a")
+        dir2.getAsFile() == projectDir.file("b")
     }
 
     def "can resolve regular file relative to project directory"() {
@@ -72,20 +70,19 @@ class DefaultProjectLayoutTest extends Specification {
 
         expect:
         def file = layout.projectDirectory.file("child")
-        file.present
-        file.get() == projectDir.file("child")
+        file.getAsFile() == projectDir.file("child")
 
         def provider = layout.projectDirectory.file(pathProvider)
         provider.present
 
         def file1 = provider.get()
-        file1.get() == projectDir.file("a")
+        file1.getAsFile() == projectDir.file("a")
 
         def file2 = provider.get()
-        file2.get() == projectDir.file("b")
+        file2.getAsFile() == projectDir.file("b")
 
-        file1.get() == projectDir.file("a")
-        file2.get() == projectDir.file("b")
+        file1.getAsFile() == projectDir.file("a")
+        file2.getAsFile() == projectDir.file("b")
     }
 
     def "directory is not present when path provider is not present"() {
@@ -139,19 +136,19 @@ class DefaultProjectLayoutTest extends Specification {
 
         dirVar.set(otherDir)
         dirVar.present
-        dirVar.get().get() == otherDir
+        dirVar.get().getAsFile() == otherDir
         fileProvider.present
         fileProvider.get() == otherDir
 
         dirVar.set(layout.projectDirectory.dir("../other-dir"))
         dirVar.present
-        dirVar.get().get() == otherDir
+        dirVar.get().getAsFile() == otherDir
         fileProvider.present
         fileProvider.get() == otherDir
 
         dirVar.set(layout.projectDirectory.dir(pathProvider))
         dirVar.present
-        dirVar.get().get() == otherDir
+        dirVar.get().getAsFile() == otherDir
         fileProvider.present
         fileProvider.get() == otherDir
 
@@ -178,19 +175,19 @@ class DefaultProjectLayoutTest extends Specification {
 
         fileVar.set(otherFile)
         fileVar.present
-        fileVar.get().get() == otherFile
+        fileVar.get().getAsFile() == otherFile
         fileProvider.present
         fileProvider.get() == otherFile
 
         fileVar.set(layout.projectDirectory.file("../some-file"))
         fileVar.present
-        fileVar.get().get() == otherFile
+        fileVar.get().getAsFile() == otherFile
         fileProvider.present
         fileProvider.get() == otherFile
 
         fileVar.set(layout.projectDirectory.file(pathProvider))
         fileVar.present
-        fileVar.get().get() == otherFile
+        fileVar.get().getAsFile() == otherFile
         fileProvider.present
         fileProvider.get() == otherFile
 
@@ -210,7 +207,7 @@ class DefaultProjectLayoutTest extends Specification {
 
         dirVar.set(new File("sub-dir"))
         dirVar.present
-        dirVar.get().get() == otherDir
+        dirVar.get().getAsFile() == otherDir
         fileProvider.present
         fileProvider.get() == otherDir
     }
@@ -224,7 +221,7 @@ class DefaultProjectLayoutTest extends Specification {
 
         fileVar.set(new File("some-file"))
         fileVar.present
-        fileVar.get().get() == otherFile
+        fileVar.get().getAsFile() == otherFile
         fileProvider.present
         fileProvider.get() == otherFile
     }
@@ -248,12 +245,12 @@ class DefaultProjectLayoutTest extends Specification {
 
         dirVar.set(dir1)
         calculated1.present
-        calculated1.get().get() == dir1.file("c1")
+        calculated1.get().getAsFile() == dir1.file("c1")
 
         dirVar.set(dirProvider)
         calculated1.present
-        calculated1.get().get() == projectDir.file("d1/c1")
-        calculated1.get().get() == projectDir.file("d2/c1")
+        calculated1.get().getAsFile() == projectDir.file("d1/c1")
+        calculated1.get().getAsFile() == projectDir.file("d2/c1")
 
         dirVar.set((File) null)
         !calculated1.present
@@ -265,8 +262,8 @@ class DefaultProjectLayoutTest extends Specification {
 
         dirVar.set(dir1)
         calculated2.present
-        calculated2.get().get() == dir1.file("c1")
-        calculated2.get().get() == dir1.file("c2")
+        calculated2.get().getAsFile() == dir1.file("c1")
+        calculated2.get().getAsFile() == dir1.file("c2")
     }
 
     def "can resolve regular file relative to calculated directory"() {
@@ -288,12 +285,12 @@ class DefaultProjectLayoutTest extends Specification {
 
         dirVar.set(dir1)
         calculated1.present
-        calculated1.get().get() == dir1.file("c1")
+        calculated1.get().getAsFile() == dir1.file("c1")
 
         dirVar.set(dirProvider)
         calculated1.present
-        calculated1.get().get() == projectDir.file("d1/c1")
-        calculated1.get().get() == projectDir.file("d2/c1")
+        calculated1.get().getAsFile() == projectDir.file("d1/c1")
+        calculated1.get().getAsFile() == projectDir.file("d2/c1")
 
         dirVar.set((File) null)
         !calculated1.present
@@ -305,8 +302,8 @@ class DefaultProjectLayoutTest extends Specification {
 
         dirVar.set(dir1)
         calculated2.present
-        calculated2.get().get() == dir1.file("c1")
-        calculated2.get().get() == dir1.file("c2")
+        calculated2.get().getAsFile() == dir1.file("c1")
+        calculated2.get().getAsFile() == dir1.file("c2")
     }
 
     def "can view directory var as a file tree"() {
@@ -412,7 +409,7 @@ class DefaultProjectLayoutTest extends Specification {
         fileProvider.get() == projectDir.file("build")
 
         def dir1 = buildDirectory.get()
-        dir1.get() == projectDir.file("build")
+        dir1.getAsFile() == projectDir.file("build")
 
         layout.setBuildDirectory("other")
         buildDirectory.present
@@ -420,7 +417,7 @@ class DefaultProjectLayoutTest extends Specification {
         fileProvider.get() == projectDir.file("other")
 
         def dir2 = buildDirectory.get()
-        dir2.get() == projectDir.file("other")
+        dir2.getAsFile() == projectDir.file("other")
 
         layout.setBuildDirectory("../target")
         buildDirectory.present
@@ -428,11 +425,11 @@ class DefaultProjectLayoutTest extends Specification {
         fileProvider.get() == tmpDir.file("target")
 
         def dir3 = buildDirectory.get()
-        dir3.get() == tmpDir.file("target")
+        dir3.getAsFile() == tmpDir.file("target")
 
-        dir1.get() == projectDir.file("build")
-        dir2.get() == projectDir.file("other")
-        dir3.get() == tmpDir.file("target")
+        dir1.getAsFile() == projectDir.file("build")
+        dir2.getAsFile() == projectDir.file("other")
+        dir3.getAsFile() == tmpDir.file("target")
     }
 
     def "can set the build directory location using an absolute File"() {
@@ -445,7 +442,7 @@ class DefaultProjectLayoutTest extends Specification {
         buildDirectory.set(dir)
         buildDirectory.present
         fileProvider.present
-        buildDirectory.get().get() == dir
+        buildDirectory.get().getAsFile() == dir
         fileProvider.get() == dir
     }
 
@@ -457,7 +454,7 @@ class DefaultProjectLayoutTest extends Specification {
         buildDirectory.set(new File("other"))
         buildDirectory.present
         fileProvider.present
-        buildDirectory.get().get() == projectDir.file("other")
+        buildDirectory.get().getAsFile() == projectDir.file("other")
         fileProvider.get() == projectDir.file("other")
     }
 
@@ -469,19 +466,19 @@ class DefaultProjectLayoutTest extends Specification {
         expect:
         def dir = layout.buildDirectory.dir("sub-dir")
         dir.present
-        dir.get().get() == projectDir.file("build/sub-dir")
+        dir.get().getAsFile() == projectDir.file("build/sub-dir")
 
         def provider = layout.buildDirectory.dir(pathProvider)
         provider.present
 
         def dir1 = provider.get()
-        dir1.get() == projectDir.file("build/a")
+        dir1.getAsFile() == projectDir.file("build/a")
 
         def dir2 = provider.get()
-        dir2.get() == projectDir.file("build/b")
+        dir2.getAsFile() == projectDir.file("build/b")
 
-        dir1.get() == projectDir.file("build/a")
-        dir2.get() == projectDir.file("build/b")
+        dir1.getAsFile() == projectDir.file("build/a")
+        dir2.getAsFile() == projectDir.file("build/b")
     }
 
     def "can resolve regular file relative to build directory"() {
@@ -492,19 +489,19 @@ class DefaultProjectLayoutTest extends Specification {
         expect:
         def file = layout.buildDirectory.file("child")
         file.present
-        file.get().get() == projectDir.file("build/child")
+        file.get().getAsFile() == projectDir.file("build/child")
 
         def provider = layout.buildDirectory.file(pathProvider)
         provider.present
 
         def file1 = provider.get()
-        file1.get() == projectDir.file("build/a")
+        file1.getAsFile() == projectDir.file("build/a")
 
         def file2 = provider.get()
-        file2.get() == projectDir.file("build/b")
+        file2.getAsFile() == projectDir.file("build/b")
 
-        file1.get() == projectDir.file("build/a")
-        file2.get() == projectDir.file("build/b")
+        file1.getAsFile() == projectDir.file("build/a")
+        file2.getAsFile() == projectDir.file("build/b")
     }
 
     def "can wrap File provider"() {
@@ -519,8 +516,8 @@ class DefaultProjectLayoutTest extends Specification {
         def provider = layout.file(fileProvider)
         provider.present
 
-        provider.get().get() == file1
-        provider.get().get() == file2
+        provider.get().getAsFile() == file1
+        provider.get().getAsFile() == file2
     }
 
     def "resolves relative files given by File provider"() {
@@ -535,7 +532,7 @@ class DefaultProjectLayoutTest extends Specification {
         def provider = layout.file(fileProvider)
         provider.present
 
-        provider.get().get() == file1
-        provider.get().get() == file2
+        provider.get().getAsFile() == file1
+        provider.get().getAsFile() == file2
     }
 }

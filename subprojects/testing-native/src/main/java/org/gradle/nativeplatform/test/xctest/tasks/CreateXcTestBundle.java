@@ -85,10 +85,10 @@ public class CreateXcTestBundle extends DefaultTask {
                 execSpec.args(
                     "--copy",
                     "--scan-executable", getExecutableFile().getAbsolutePath(),
-                    "--destination", outputDir.dir("Contents/Frameworks").get().get().getAbsolutePath(),
+                    "--destination", outputDir.dir("Contents/Frameworks").get().getAsFile().getAbsolutePath(),
                     "--platform", "macosx",
-                    "--resource-destination", outputDir.dir("Contents/Resources").get().get().getAbsolutePath(),
-                    "--scan-folder", outputDir.dir("Contents/Frameworks").get().get().getAbsolutePath()
+                    "--resource-destination", outputDir.dir("Contents/Resources").get().getAsFile().getAbsolutePath(),
+                    "--scan-folder", outputDir.dir("Contents/Frameworks").get().getAsFile().getAbsolutePath()
                 );
             }
         }).assertNormalExitValue();

@@ -20,6 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryVar;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
@@ -105,7 +106,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         buildDir.resolveAndSet(value);
     }
 
-    private static class FixedDirectory extends AbstractProvider<File> implements Directory {
+    private static class FixedDirectory implements Directory, FileSystemLocation {
         private final File value;
         private final FileResolver fileResolver;
 
@@ -120,7 +121,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         }
 
         @Override
-        public File getOrNull() {
+        public File getAsFile() {
             return value;
         }
 
@@ -151,7 +152,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         }
     }
 
-    private static class FixedFile extends AbstractProvider<File> implements RegularFile {
+    private static class FixedFile implements RegularFile, FileSystemLocation {
         private final File file;
 
         FixedFile(File file) {
@@ -164,12 +165,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         }
 
         @Override
-        public boolean isPresent() {
-            return true;
-        }
-
-        @Override
-        public File getOrNull() {
+        public File getAsFile() {
             return file;
         }
     }
@@ -361,14 +357,14 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         }
     }
 
-    private static class ToFileProvider extends AbstractMappingProvider<File, Provider<File>> {
-        ToFileProvider(Provider<? extends Provider<File>> provider) {
+    private static class ToFileProvider extends AbstractMappingProvider<File, FileSystemLocation> {
+        ToFileProvider(Provider<? extends FileSystemLocation> provider) {
             super(provider);
         }
 
         @Override
-        protected File map(Provider<File> provider) {
-            return provider.get();
+        protected File map(FileSystemLocation provider) {
+            return provider.getAsFile();
         }
     }
 }

@@ -140,8 +140,9 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         xcTest.setBinResultsDir(project.file("build/results/test/bin"));
         xcTest.setTestBundleDir(testBundleDir);
         xcTest.setWorkingDir(buildDirectory.dir("bundle"));
-        xcTest.getReports().getHtml().setDestination(buildDirectory.dir("reports/test").get());
-        xcTest.getReports().getJunitXml().setDestination(buildDirectory.dir("reports/test/xml").get());
+        // TODO - should respect changes to reports dir
+        xcTest.getReports().getHtml().setDestination(buildDirectory.dir("reports/test").get().getAsFile());
+        xcTest.getReports().getJunitXml().setDestination(buildDirectory.dir("reports/test/xml").get().getAsFile());
         xcTest.onlyIf(new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task element) {

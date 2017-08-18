@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.file
 
+import org.gradle.api.file.Directory
+import org.gradle.api.file.RegularFile
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -38,7 +40,7 @@ class FileOrUriNotationConverterTest extends Specification {
         testFile == object
     }
 
-    def "with Path returns the File it represent"() {
+    def "with Path returns the File it represents"() {
         setup:
         def testPath = folder.createFile("test1").toPath()
         when:
@@ -46,6 +48,28 @@ class FileOrUriNotationConverterTest extends Specification {
         then:
         object instanceof File
         testPath.toFile() == object
+    }
+
+    def "with RegularFile returns the File it represents"() {
+        setup:
+        def testFile = folder.createFile("test1")
+        def notation = Stub(RegularFile)
+        notation.asFile >> testFile
+        when:
+        def object = parse(notation)
+        then:
+        object == testFile
+    }
+
+    def "with Directory returns the File it represents"() {
+        setup:
+        def testFile = folder.createFile("test1")
+        def notation = Stub(Directory)
+        notation.asFile >> testFile
+        when:
+        def object = parse(notation)
+        then:
+        object == testFile
     }
 
     def "with file path as String"() {
@@ -119,6 +143,8 @@ The following types/formats are supported:
   - A String or CharSequence URI, for example 'file:/usr/include'.
   - A File instance.
   - A Path instance.
+  - A Directory instance.
+  - A RegularFile instance.
   - A URI or URL instance.""")
     }
 
