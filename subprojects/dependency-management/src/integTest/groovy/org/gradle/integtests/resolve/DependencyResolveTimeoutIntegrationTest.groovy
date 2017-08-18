@@ -118,30 +118,6 @@ class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyReso
         !downloadedLibsDir.isDirectory()
     }
 
-    def "only fails resolution up first encounter of HTTP connection timeout"() {
-        given:
-        MavenHttpModule moduleB = publishMavenModule(mavenHttpRepo, 'b')
-        MavenHttpModule moduleC = publishMavenModule(mavenHttpRepo, 'c')
-        MavenHttpModule moduleD = publishMavenModule(mavenHttpRepo, 'd')
-
-        buildFile << """
-            ${mavenRepository(mavenHttpRepo)}
-            ${customConfigDependencyAssignment(moduleA, moduleB, moduleC, moduleD)}
-            ${configSyncTask()}
-        """
-
-        when:
-        moduleA.pom.expectGet()
-        moduleB.pom.expectGet()
-        moduleC.pom.expectGetBlocking()
-        fails('resolve', '--max-workers=1')
-
-        then:
-        assertDependencyReadTimeout(moduleC)
-        assertDependencySkipped(moduleD)
-        !downloadedLibsDir.isDirectory()
-    }
-
     def "skipped repositories are only recorded for the time of a single build execution"() {
         given:
         MavenHttpModule moduleB = publishMavenModule(mavenHttpRepo, 'b')
