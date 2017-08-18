@@ -131,7 +131,8 @@ We would like to thank the following community members for making contributions 
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
--->
+ -->
+ - [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Use correct signature for Test::useJunit (#2675)
  - [Marcin Erdmann](https://github.com/erdi) - Add compilationClasspath property to CodeNarc task (#2325)
  - [Bo Zhang](https://github.com/blindpirate) - Add an option to FindBugs for toggling logging of analysis progress (#2181)
  - [Josué Lima](https://github.com/josuelima) - Fix typo on S3 AwsImAuthentication log message (#2349)
