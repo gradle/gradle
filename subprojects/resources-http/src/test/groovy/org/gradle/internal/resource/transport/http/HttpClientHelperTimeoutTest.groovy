@@ -31,8 +31,7 @@ import java.util.concurrent.CountDownLatch
 
 class HttpClientHelperTimeoutTest extends Specification {
 
-    @Rule
-    TestHttpServer httpServer = new TestHttpServer()
+    @Rule BlockingHttpServer httpServer = new BlockingHttpServer()
     @Subject HttpClientHelper client = new HttpClientHelper(httpSettings)
 
     def "throws exception if socket timeout is reached"() {
@@ -45,7 +44,7 @@ class HttpClientHelperTimeoutTest extends Specification {
         e.cause.message == 'Read timed out'
     }
 
-    static class TestHttpServer extends ExternalResource {
+    static class BlockingHttpServer extends ExternalResource {
         private final Server server = new Server(0)
         private final CountDownLatch latch = new CountDownLatch(1)
 
@@ -53,7 +52,11 @@ class HttpClientHelperTimeoutTest extends Specification {
         protected void before() {
             server.addHandler(new AbstractHandler() {
                 void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
-                    latch.await()
+                    try {
+                        latch.await()
+                    } catch (InterruptedException e) {
+                        // ignore
+                    }
                 }
             })
             server.start()
@@ -61,7 +64,6 @@ class HttpClientHelperTimeoutTest extends Specification {
 
         @Override
         protected void after() {
-            latch.countDown()
             server.stop()
         }
 

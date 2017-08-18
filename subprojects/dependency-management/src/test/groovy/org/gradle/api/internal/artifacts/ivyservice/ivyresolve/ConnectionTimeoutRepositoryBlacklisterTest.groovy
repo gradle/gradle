@@ -17,10 +17,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import spock.lang.Specification
+import spock.lang.Subject
 
 class ConnectionTimeoutRepositoryBlacklisterTest extends Specification {
 
-    RepositoryBlacklister blacklister = new ConnectionInterruptionRepositoryBlacklister()
+    @Subject RepositoryBlacklister blacklister = new ConnectionInterruptionRepositoryBlacklister()
 
     def "initializes with no blacklisted repositories"() {
         expect:
