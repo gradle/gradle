@@ -16,10 +16,13 @@
 
 package org.gradle.performance.experiment.buildcache
 
+import groovy.transform.Canonical
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.fixture.BuildExperimentSpec
+import org.gradle.performance.measure.Amount
+import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
@@ -100,13 +103,56 @@ class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPe
             }
         }
 
+        def results = runner.run()
+
         then:
-        runner.run()
+
+        def buildResults = [:].withDefault { String key ->
+            results.buildResult(results.builds.find { it.displayName.contains(key) })
+        }
+
+        def fullyCached = buildResults['fully cached']
+        def alwaysMissPullOnly = buildResults['always-miss']
+        def pushOnly = buildResults['push-only']
+        def fullyUpToDate = buildResults['fully up-to-date']
+        def nonCached = buildResults['non-cached']
+
+        Overhead.of('checking remote cache', alwaysMissPullOnly, nonCached).assertWithinPerc(1)
+        Overhead.of('pushing to cache', pushOnly, nonCached).assertWithinPerc(15)
+        Overhead.of('fetching from cache', fullyCached, fullyUpToDate).assertWithinPerc(5)
 
         where:
         testProject                   | tasks
         LARGE_MONOLITHIC_JAVA_PROJECT | "assemble"
         LARGE_JAVA_MULTI_PROJECT      | "assemble"
+    }
+
+    @Canonical
+    private static class Overhead {
+        String label
+        MeasuredOperationList baseline
+        MeasuredOperationList series
+
+        static Overhead of(String label, MeasuredOperationList baseline, MeasuredOperationList series) {
+            new Overhead(label, baseline, series)
+        }
+
+        Amount overhead() {
+            timeOf(series) - timeOf(baseline)
+        }
+
+        private Amount timeOf(MeasuredOperationList measurement) {
+            measurement.totalTime.average
+        }
+
+        void assertWithinPerc(double maxPerc) {
+            def baseUnits = baseline.totalTime.average.units
+            double maxOverhead = timeOf(baseline).value * maxPerc / 100d
+            double overhead = overhead().toUnits(baseUnits).value
+            double overheadPc = overhead/timeOf(baseline).value * 100d
+//            assert overhead<maxOverhead:"Max overhead for $label (${overheadPc.round(1)}%) exceeds ${maxPerc.round(1)}% : ${this.overhead()}"
+            println "Max overhead for $label (${overheadPc.round(1)}%) exceeds ${maxPerc.round(1)}% : ${this.overhead()}"
+        }
     }
 
 }
