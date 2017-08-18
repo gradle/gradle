@@ -17,14 +17,13 @@
 package org.gradle.language.cacheable;
 
 import org.apache.commons.io.IOUtils;
+import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,8 +36,7 @@ public class PreprocessedCFileParser {
         this.includePattern = Pattern.compile(INCLUDE_IMPORT_PATTERN, Pattern.CASE_INSENSITIVE);
     }
 
-    public Set<String> parseFile(File file) {
-        Set<String> includedFiles = new HashSet<String>();
+    public void parseFile(File file, Action<String> includeAction) {
         try {
             BufferedReader bf = new BufferedReader(new BufferedReader(new FileReader(file)));
 
@@ -49,7 +47,7 @@ public class PreprocessedCFileParser {
 
                     if (m.matches()) {
                         String includedFile = m.group(1);
-                        includedFiles.add(includedFile);
+                        includeAction.execute(includedFile);
                     }
                 }
             } finally {
@@ -58,8 +56,6 @@ public class PreprocessedCFileParser {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-
-        return includedFiles;
     }
 
 }

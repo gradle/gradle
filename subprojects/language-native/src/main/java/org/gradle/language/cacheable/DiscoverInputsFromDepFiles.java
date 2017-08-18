@@ -35,7 +35,7 @@ import java.io.InputStreamReader;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class PreprocessWithDepFiles extends AbstractNativeTask {
+public class DiscoverInputsFromDepFiles extends AbstractNativeTask {
     private File dependencyFile;
 
     @OutputFile

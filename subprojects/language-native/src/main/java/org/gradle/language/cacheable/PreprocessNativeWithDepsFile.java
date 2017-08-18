@@ -23,16 +23,13 @@ import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInte
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
-import org.gradle.internal.UncheckedException;
 import org.gradle.process.ExecSpec;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class PreprocessNative extends AbstractNativeTask {
+public class PreprocessNativeWithDepsFile extends AbstractNativeTask {
     private File preprocessedSourcesDir;
-    private final PreprocessedCFileParser parser = new PreprocessedCFileParser();
 
     @OutputDirectory
     public File getPreprocessedSourcesDir() {
@@ -45,6 +42,7 @@ public class PreprocessNative extends AbstractNativeTask {
 
     @TaskAction
     public void preprocess(IncrementalTaskInputs incrementalTaskInputs) {
+        final File discoveredDependenciesDir = getTemporaryDir();
         final ConcurrentHashMap<String, Boolean> seenIncludes = new ConcurrentHashMap<String, Boolean>();
         final ConcurrentHashMap<String, Boolean> discoveredInputFiles = new ConcurrentHashMap<String, Boolean>();
         final IncrementalTaskInputsInternal inputs = (IncrementalTaskInputsInternal) incrementalTaskInputs;
@@ -59,39 +57,24 @@ public class PreprocessNative extends AbstractNativeTask {
                 String extension = name.endsWith(".cpp") ? "cpp" : "c";
                 String base = name.replaceAll("\\.c(pp)?", "");
                 String preprocessedName = base + (extension.equals("cpp") ? ".ii" : ".i");
+                String depName = base + ".d";
                 final File preprocessedFile = fileVisitDetails.getRelativePath().getParent().append(true, preprocessedName).getFile(getPreprocessedSourcesDir());
+                final File depFile = fileVisitDetails.getRelativePath().getParent().append(true, depName).getFile(discoveredDependenciesDir);
                 preprocessedFile.getParentFile().mkdirs();
+                depFile.getParentFile().mkdirs();
                 getProject().exec(new Action<ExecSpec>() {
                     @Override
                     public void execute(ExecSpec execSpec) {
                         configureExec(execSpec);
-                        execSpec.args("-E",
+                        execSpec.args("-E", "-MD",
                             "-I", headersFile,
+                            "-MF", depFile.getAbsolutePath(),
                             "-o", preprocessedFile.getAbsolutePath(),
                             fileVisitDetails.getFile().getAbsolutePath()
                         );
                     }
                 });
-                discoverIncludes(inputs, preprocessedFile, seenIncludes, discoveredInputFiles);
-            }
-        });
-    }
-
-    private void discoverIncludes(final IncrementalTaskInputsInternal inputs, File preprocessedFile, final ConcurrentHashMap<String, Boolean> seenIncludes, final ConcurrentHashMap<String, Boolean> discoveredInputFiles) {
-        parser.parseFile(preprocessedFile, new Action<String>() {
-            @Override
-            public void execute(String foundInclude) {
-                if (seenIncludes.putIfAbsent(foundInclude, Boolean.TRUE) == null) {
-                    try {
-                        File canonicalFile = new File(foundInclude).getCanonicalFile();
-                        if (discoveredInputFiles.putIfAbsent(canonicalFile.getAbsolutePath(), Boolean.TRUE) == null) {
-                            inputs.newInput(canonicalFile);
-                        }
-                    } catch (IOException e) {
-                        throw UncheckedException.throwAsUncheckedException(e);
-                    }
-                }
-
+                DiscoverInputsFromDepFiles.addDiscoveredInputs(inputs, depFile, seenIncludes, discoveredInputFiles);
             }
         });
     }
