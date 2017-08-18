@@ -35,6 +35,7 @@ import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.exceptions.LocationAwareException;
@@ -83,6 +84,10 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         this.pluginResolutionStrategy = pluginResolutionStrategy;
         this.cachedClasspathTransformer = cachedClasspathTransformer;
         this.projectRegistry = projectRegistry;
+    }
+
+    public void applyPlugins(PluginRequests requests, ScriptHandlerInternal scriptHandler, PluginManagerInternal target, ClassLoaderScope classLoaderScope) {
+        applyPlugins(new StringScriptSource("<unknown>", ""), requests, scriptHandler, target, classLoaderScope);
     }
 
     public void applyPlugins(final ScriptSource requestingScriptSource, final PluginRequests requests, final ScriptHandlerInternal scriptHandler, @Nullable final PluginManagerInternal target, ClassLoaderScope classLoaderScope) {

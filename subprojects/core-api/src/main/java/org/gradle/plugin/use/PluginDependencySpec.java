@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,64 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.plugin.use;
 
 import org.gradle.api.Incubating;
 
+import javax.annotation.Nullable;
+
 /**
- * A mutable specification of a dependency on a plugin.
+ * A mutable specification of a dependency on a binary plugin.
  *
+ * Can be used to specify the version of the plugin to use and disable plugin application.
+ * <p>
  * See {@link PluginDependenciesSpec} for more information about declaring plugin dependencies.
+ * </p>
  */
 @Incubating
-public interface PluginDependencySpec {
+public interface PluginDependencySpec extends PluginDependency {
+
+    /**
+     * Specify the version of the plugin to depend on.
+     *
+     * <pre>
+     * plugins {
+     *     id "org.company.myplugin" version "1.0"
+     * }
+     * </pre>
+     * By default, dependencies have no (i.e. {@code null}) version.
+     * <p>
+     * Core plugins must not include a version number specification. Community plugins must include a version number specification.
+     * </p>
+     *
+     * @param version the version string ({@code null} for no specified version, which is the default)
+     * @return this
+     */
+    PluginDependencySpec version(@Nullable String version);
+
+    /**
+     * Specifies whether the plugin should be applied to the current project.
+     *
+     * Otherwise it is only put on the project's classpath.
+     * <p>
+     * This is useful when reusing classes from a plugin or to apply a plugin to sub-projects:
+     * </p>
+     *
+     * <pre>
+     * plugins {
+     *     id "org.company.myplugin" version "1.0" apply false
+     * }
+     *
+     * subprojects {
+     *     if (someCondition) {
+     *         apply plugin: "org.company.myplugin"
+     *     }
+     * }
+     * </pre>
+     *
+     * @param apply whether to apply the plugin to the current project or not. Defaults to true
+     * @return this
+     */
+    PluginDependencySpec apply(boolean apply);
+
 }

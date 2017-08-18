@@ -47,8 +47,8 @@ import org.gradle.api.Incubating;
  * </p>
  * <ul>
  * <li>Only {@link #id(String)} method calls may be top level statements</li>
- * <li>{@link #id(String)} calls may only be followed by a {@link BinaryPluginDependencySpec#version(String)} and/or {@link BinaryPluginDependencySpec#apply(boolean)} method call on the returned object</li>
- * <li>{@link #id(String)}, {@link BinaryPluginDependencySpec#version(String)} and {@link BinaryPluginDependencySpec#apply(boolean)} methods must be called with a literal argument (i.e. not a variable)</li>
+ * <li>{@link #id(String)} calls may only be followed by a {@link PluginDependencySpec#version(String)} and/or {@link PluginDependencySpec#apply(boolean)} method call on the returned object</li>
+ * <li>{@link #id(String)}, {@link PluginDependencySpec#version(String)} and {@link PluginDependencySpec#apply(boolean)} methods must be called with a literal argument (i.e. not a variable)</li>
  * <li>The <code>plugins {}</code> script block must follow any <code>buildscript {}</code> script block, but must precede all other logic in the script</li>
  * </ul>
  *
@@ -120,7 +120,7 @@ public interface PluginDependenciesSpec {
      * @param id the id of the plugin to depend on
      * @return a mutable plugin dependency specification that can be used to further refine the dependency
      */
-    BinaryPluginDependencySpec id(String id);
+    PluginDependencySpec id(String id);
 
     /**
      * Specify a path or URL to a script plugin.

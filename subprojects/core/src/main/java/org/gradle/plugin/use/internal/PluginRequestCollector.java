@@ -25,7 +25,7 @@ import org.gradle.plugin.management.internal.DefaultPluginRequests;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
-import org.gradle.plugin.use.BinaryPluginDependencySpec;
+import org.gradle.plugin.use.PluginDependencySpec;
 import org.gradle.plugin.use.PluginDependenciesSpec;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.ScriptPluginDependencySpec;
@@ -50,7 +50,7 @@ public class PluginRequestCollector {
         this.scriptSource = scriptSource;
     }
 
-    private static class DependencySpecImpl implements BinaryPluginDependencySpec, ScriptPluginDependencySpec {
+    private static class DependencySpecImpl implements PluginDependencySpec, ScriptPluginDependencySpec {
         private final PluginId id;
         private String version;
         private String script;
@@ -65,13 +65,13 @@ public class PluginRequestCollector {
         }
 
         @Override
-        public BinaryPluginDependencySpec version(String version) {
+        public PluginDependencySpec version(String version) {
             this.version = version;
             return this;
         }
 
         @Override
-        public BinaryPluginDependencySpec apply(boolean apply) {
+        public PluginDependencySpec apply(boolean apply) {
             this.apply = apply;
             return this;
         }
@@ -81,7 +81,7 @@ public class PluginRequestCollector {
 
     public PluginDependenciesSpec createSpec(final int lineNumber) {
         return new PluginDependenciesSpec() {
-            public BinaryPluginDependencySpec id(String id) {
+            public PluginDependencySpec id(String id) {
                 return add(new DependencySpecImpl(id, lineNumber, null));
             }
 

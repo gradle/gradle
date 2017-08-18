@@ -223,10 +223,10 @@
                 <td>org.gradle.plugin.use.PluginDependenciesSpec</td>
             </tr>
             <tr>
-                <td>org.gradle.plugin.use.PluginDependencySpec</td>
+                <td>org.gradle.plugin.use.PluginDependency</td>
             </tr>
             <tr>
-                <td>org.gradle.plugin.use.BinaryPluginDependencySpec</td>
+                <td>org.gradle.plugin.use.PluginDependencySpec</td>
             </tr>
             <tr>
                 <td>org.gradle.plugin.use.ScriptPluginDependencySpec</td>
