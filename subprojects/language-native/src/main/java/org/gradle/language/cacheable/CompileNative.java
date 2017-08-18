@@ -16,38 +16,44 @@
 
 package org.gradle.language.cacheable;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 import org.gradle.api.Action;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.process.ExecSpec;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.util.Collection;
 
-public class CompileNative extends SourceTask {
+public class CompileNative extends AbstractNativeTask {
 
-    private File gccExecutable;
     private File outputDir;
+    private File dependencyFile;
 
-    public List<String> getCompilerOptions() {
-        return compilerOptions;
+    @Optional
+    @InputFiles
+    public Collection<String> getDependencies() throws IOException {
+        File dependencyFile = getDependencyFile();
+        return dependencyFile == null ? null :
+            dependencyFile.isFile() ? Files.readLines(dependencyFile, Charsets.UTF_8) : null;
     }
 
-    private List<String> compilerOptions = new ArrayList<String>();
-
-    @Input
-    public File getGccExecutable() {
-        return gccExecutable;
+    @Internal
+    public File getDependencyFile() {
+        return dependencyFile;
     }
 
-    public void setGccExecutable(File gccExecutable) {
-        this.gccExecutable = gccExecutable;
+    public void setDependencyFile(File dependencyFile) {
+        this.dependencyFile = dependencyFile;
     }
+
 
     @OutputDirectory
     public File getOutputDir() {
@@ -64,23 +70,26 @@ public class CompileNative extends SourceTask {
             @Override
             public void visitFile(final FileVisitDetails fileVisitDetails) {
                 String name = fileVisitDetails.getName();
-                String outputName = name.replaceAll("\\.i(i)?", ".o");
+                if (!(name.endsWith(".c") || name.endsWith(".cpp") || name.endsWith(".i") || name.endsWith(".ii"))) {
+                    return;
+                }
+                String outputName = name.replaceAll("\\.i(i)?", ".o").replaceAll("\\.c(pp)?", ".o");
                 final File outputFile = fileVisitDetails.getRelativePath().getParent().append(true, outputName).getFile(getOutputDir());
-                assert outputFile.getParentFile().mkdirs();
+                final File headersFile = getProject().file("src/main/headers");
+                assert outputFile.getParentFile().isDirectory() || outputFile.getParentFile().mkdirs();
                 getProject().exec(new Action<ExecSpec>() {
                     @Override
                     public void execute(ExecSpec execSpec) {
-                        execSpec.setExecutable(getGccExecutable());
-                        execSpec.args("-m64", "-c",
+                        configureExec(execSpec);
+                        execSpec.args("-c",
                             "-o", outputFile.getAbsolutePath(),
+                            "-I", headersFile,
                             fileVisitDetails.getFile().getAbsolutePath()
                         );
-                        execSpec.args(compilerOptions);
                     }
                 });
             }
         });
 
     }
-
 }

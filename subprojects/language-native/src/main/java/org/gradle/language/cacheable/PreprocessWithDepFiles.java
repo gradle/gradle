@@ -16,35 +16,42 @@
 
 package org.gradle.language.cacheable;
 
+import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
-import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.internal.UncheckedException;
 import org.gradle.process.ExecSpec;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class PreprocessNative extends AbstractNativeTask {
-    private File preprocessedSourcesDir;
+public class PreprocessWithDepFiles extends AbstractNativeTask {
+    private File dependencyFile;
 
-    @OutputDirectory
-    public File getPreprocessedSourcesDir() {
-        return preprocessedSourcesDir;
+    @OutputFile
+    public File getDependencyFile() {
+        return dependencyFile;
     }
 
-    public void setPreprocessedSourcesDir(File preprocessedSourcesDir) {
-        this.preprocessedSourcesDir = preprocessedSourcesDir;
+    public void setDependencyFile(File dependencyFile) {
+        this.dependencyFile = dependencyFile;
     }
 
     @TaskAction
-    public void preprocess(IncrementalTaskInputs incrementalTaskInputs) {
+    public void preprocess(IncrementalTaskInputs incrementalTaskInputs) throws IOException {
         final File discoveredDependenciesDir = getTemporaryDir();
         final ConcurrentHashMap<String, Boolean> seenIncludes = new ConcurrentHashMap<String, Boolean>();
-        final ConcurrentHashMap<String, Boolean> discoveredInputFiles = new ConcurrentHashMap<String, Boolean>();
+        final ConcurrentHashMap<String, Boolean> discoveredIncludeFiles = new ConcurrentHashMap<String, Boolean>();
         final IncrementalTaskInputsInternal inputs = (IncrementalTaskInputsInternal) incrementalTaskInputs;
         final File headersFile = getProject().file("src/main/headers");
         getSource().visit(new EmptyFileVisitor() {
@@ -54,29 +61,49 @@ public class PreprocessNative extends AbstractNativeTask {
                 if (!(name.endsWith(".cpp") || name.endsWith(".c"))) {
                     return;
                 }
-                String extension = name.endsWith(".cpp") ? "cpp" : "c";
                 String base = name.replaceAll("\\.c(pp)?", "");
-                String preprocessedName = base + (extension.equals("cpp") ? ".ii" : ".i");
                 String depName = base + ".d";
-                final File preprocessedFile = fileVisitDetails.getRelativePath().getParent().append(true, preprocessedName).getFile(getPreprocessedSourcesDir());
                 final File depFile = fileVisitDetails.getRelativePath().getParent().append(true, depName).getFile(discoveredDependenciesDir);
-                preprocessedFile.getParentFile().mkdirs();
                 depFile.getParentFile().mkdirs();
                 getProject().exec(new Action<ExecSpec>() {
                     @Override
                     public void execute(ExecSpec execSpec) {
                         configureExec(execSpec);
-                        execSpec.args("-E", "-MD",
+                        execSpec.args("-M",
                             "-I", headersFile,
-                            "-MF", depFile.getAbsolutePath(),
-                            "-o", preprocessedFile.getAbsolutePath(),
+                            "-o", depFile.getAbsolutePath(),
                             fileVisitDetails.getFile().getAbsolutePath()
                         );
                     }
                 });
-                PreprocessWithDepFiles.addDiscoveredInputs(inputs, depFile, seenIncludes, discoveredInputFiles);
+                addDiscoveredInputs(inputs, depFile, seenIncludes, discoveredIncludeFiles);
             }
         });
+        DependenciesFile.write(discoveredIncludeFiles.keySet(), getDependencyFile());
+    }
+
+
+    public static void addDiscoveredInputs(final IncrementalTaskInputsInternal taskInputsInternal, File depFile, final ConcurrentHashMap<String, Boolean> seenIncludes, final ConcurrentHashMap<String, Boolean> discoveredIncludeFiles) {
+        try {
+            BufferedReader depFileReader = new BufferedReader(new InputStreamReader(new FileInputStream(depFile)));
+            try {
+                Collection<String> dependencies = DepFile.parseDepfile(depFileReader);
+                for (String dependency : dependencies) {
+                    if (seenIncludes.putIfAbsent(dependency, Boolean.TRUE) == null) {
+                        File canonicalFile = new File(dependency).getCanonicalFile();
+                        if (discoveredIncludeFiles.putIfAbsent(canonicalFile.getAbsolutePath(), Boolean.TRUE) == null) {
+                            taskInputsInternal.newInput(canonicalFile);
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            } finally {
+                IOUtils.closeQuietly(depFileReader);
+            }
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
 }

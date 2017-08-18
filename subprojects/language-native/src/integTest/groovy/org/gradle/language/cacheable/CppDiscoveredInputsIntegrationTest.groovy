@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class CppDiscoveredInputsIntegrationTest extends AbstractIntegrationSpec {
 
-    def "preprocessing and compilation are separated"() {
+    def setup() {
         file("src/main/cpp/main.cpp") << """
             #include <iostream>
             #include "greeting.hpp"
@@ -41,7 +41,9 @@ class CppDiscoveredInputsIntegrationTest extends AbstractIntegrationSpec {
             
             #endif
         """.stripIndent()
+    }
 
+    def "preprocessing and compilation are separated"() {
         buildFile << """ 
             import org.gradle.language.cacheable.*
             
@@ -65,6 +67,63 @@ class CppDiscoveredInputsIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(":preprocess")
         executedAndNotSkipped(":compile")
         file("build/preprocessed/main.ii").exists()
+        file("build/compiled/main.o").exists()
+    }
+
+    def "discover inputs via parser"() {
+        buildFile << """ 
+            import org.gradle.language.cacheable.*
+            
+            task discoverInputs(type: DiscoverInputsForCompilation) {
+                source = file('src/main/cpp')
+                dependencyFile = new File(buildDir, 'discoveredInputs.out')
+            }
+            
+            task compile(type: CompileNative) {
+                source = file('src/main/cpp')
+                dependsOn(discoverInputs)
+                dependencyFile = discoverInputs.dependencyFile
+                outputDir = new File(buildDir, 'compiled')
+                gccExecutable = new File("/usr/bin/clang++")
+            }
+        """.stripIndent()
+
+        when:
+        succeeds("compile")
+
+        then:
+        executedAndNotSkipped(":discoverInputs")
+        executedAndNotSkipped(":compile")
+        println file("build/discoveredInputs.out").text
+        file("build/compiled/main.o").exists()
+    }
+
+    def "discover inputs via dependency file"() {
+        buildFile << """ 
+            import org.gradle.language.cacheable.*
+            
+            task discoverInputs(type: PreprocessWithDepFiles) {
+                source = file('src/main/cpp')
+                dependencyFile = new File(buildDir, 'discoveredInputs.out')
+                gccExecutable = new File("/usr/bin/clang++")
+            }
+            
+            task compile(type: CompileNative) {
+                source = file('src/main/cpp')
+                dependsOn(discoverInputs)
+                dependencyFile = discoverInputs.dependencyFile
+                outputDir = new File(buildDir, 'compiled')
+                gccExecutable = new File("/usr/bin/clang++")
+            }
+        """.stripIndent()
+
+        when:
+        succeeds("compile")
+
+        then:
+        executedAndNotSkipped(":discoverInputs")
+        executedAndNotSkipped(":compile")
+        println file("build/discoveredInputs.out").text
         file("build/compiled/main.o").exists()
     }
 }
