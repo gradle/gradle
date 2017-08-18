@@ -31,6 +31,7 @@ import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.state.CollectingFileCollectionSnapshotBuilder;
 import org.gradle.api.internal.changedetection.state.DirectoryTreeDetails;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
+import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSystemMirror;
 import org.gradle.api.internal.changedetection.state.MissingFileSnapshot;
@@ -53,6 +54,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedSet;
 
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.UNORDERED;
@@ -83,8 +85,8 @@ public class TaskOutputCacheCommandFactory {
         return new LoadCommand(cacheKey, outputProperties, task, taskOutputsGenerationListener, taskArtifactState, clock);
     }
 
-    public BuildCacheStoreCommand createStore(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, Timer clock) {
-        return new StoreCommand(cacheKey, outputProperties, task, clock);
+    public BuildCacheStoreCommand createStore(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, Map<String, Map<String, FileContentSnapshot>> outputSnapshots, TaskInternal task, Timer clock) {
+        return new StoreCommand(cacheKey, outputProperties, outputSnapshots, task, clock);
     }
 
     private class LoadCommand implements BuildCacheLoadCommand<TaskOutputOriginMetadata> {
@@ -169,12 +171,12 @@ public class TaskOutputCacheCommandFactory {
                             }
                             fileSystemMirror.putFile(singleSnapshot);
                         } else {
-                            fileSystemMirror.putFile(new MissingFileSnapshot(outputFile.getAbsolutePath(), RelativePath.EMPTY_ROOT));
+                            fileSystemMirror.putFile(new MissingFileSnapshot(internedAbsolutePath(outputFile), RelativePath.EMPTY_ROOT));
                         }
                         break;
                     case DIRECTORY:
                         Collection<FileSnapshot> descendants = Collections2.filter(fileSnapshots, EXCLUDE_ROOT_SNAPSHOTS);
-                        fileSystemMirror.putDirectory(new DirectoryTreeDetails(outputFile.getAbsolutePath(), descendants));
+                        fileSystemMirror.putDirectory(new DirectoryTreeDetails(internedAbsolutePath(outputFile), descendants));
                         break;
                     default:
                         throw new AssertionError();
@@ -201,17 +203,23 @@ public class TaskOutputCacheCommandFactory {
         }
     }
 
+    private String internedAbsolutePath(File outputFile) {
+        return stringInterner.intern(outputFile.getAbsolutePath());
+    }
+
     private class StoreCommand implements BuildCacheStoreCommand {
 
         private final TaskOutputCachingBuildCacheKey cacheKey;
-        private final TaskInternal task;
         private final SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties;
+        private final Map<String, Map<String, FileContentSnapshot>> outputSnapshots;
+        private final TaskInternal task;
         private final Timer clock;
 
-        private StoreCommand(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, Timer clock) {
+        private StoreCommand(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, Map<String, Map<String, FileContentSnapshot>> outputSnapshots, TaskInternal task, Timer clock) {
             this.cacheKey = cacheKey;
-            this.task = task;
             this.outputProperties = outputProperties;
+            this.outputSnapshots = outputSnapshots;
+            this.task = task;
             this.clock = clock;
         }
 
@@ -223,7 +231,7 @@ public class TaskOutputCacheCommandFactory {
         @Override
         public BuildCacheStoreCommand.Result store(OutputStream output) throws IOException {
             LOGGER.info("Packing {}", task);
-            final TaskOutputPacker.PackResult packResult = packer.pack(outputProperties, output, taskOutputOriginFactory.createWriter(task, clock.getElapsedMillis()));
+            final TaskOutputPacker.PackResult packResult = packer.pack(outputProperties, outputSnapshots, output, taskOutputOriginFactory.createWriter(task, clock.getElapsedMillis()));
             return new BuildCacheStoreCommand.Result() {
                 @Override
                 public long getArtifactEntryCount() {

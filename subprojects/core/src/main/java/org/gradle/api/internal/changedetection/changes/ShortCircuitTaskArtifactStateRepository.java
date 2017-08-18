@@ -22,6 +22,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
+import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.id.UniqueId;
@@ -29,6 +30,7 @@ import org.gradle.internal.reflect.Instantiator;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Map;
 
 public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStateRepository {
 
@@ -99,6 +101,11 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         @Override
         public TaskExecutionHistory getExecutionHistory() {
             return delegate.getExecutionHistory();
+        }
+
+        @Override
+        public Map<String, Map<String, FileContentSnapshot>> getOutputContentSnapshots() {
+            return delegate.getOutputContentSnapshots();
         }
 
         @Nullable
