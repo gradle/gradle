@@ -1171,7 +1171,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param testFrameworkConfigure An action used to configure the JUnit options.
      * @since 3.5
      */
-    public void useJUnit(final Action<? super JUnitOptions> testFrameworkConfigure) {
+    public void useJUnit(Action<? super JUnitOptions> testFrameworkConfigure) {
         useTestFramework(new JUnitTestFramework(this, filter), testFrameworkConfigure);
     }
 
