@@ -18,13 +18,23 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.provider.Provider;
 
+import javax.annotation.Nullable;
+
 public abstract class AbstractCombiningProvider<OUT, BASE, IN> extends AbstractProvider<OUT> {
+    private final Class<OUT> type;
     private final Provider<? extends BASE> base;
     private final Provider<? extends IN> provider;
 
-    public AbstractCombiningProvider(Provider<? extends BASE> base, Provider<? extends IN> provider) {
+    public AbstractCombiningProvider(Class<OUT> type, Provider<? extends BASE> base, Provider<? extends IN> provider) {
+        this.type = type;
         this.base = base;
         this.provider = provider;
+    }
+
+    @Nullable
+    @Override
+    public Class<OUT> getType() {
+        return type;
     }
 
     @Override

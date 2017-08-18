@@ -19,13 +19,21 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
+import javax.annotation.Nullable;
+
 import static org.gradle.api.internal.provider.AbstractProvider.NON_NULL_VALUE_EXCEPTION_MESSAGE;
 
 public class Providers {
-    private static final Provider<Object> NULL_PROVIDER = new Provider<Object>() {
+    private static final Provider<Object> NULL_PROVIDER = new ProviderInternal<Object>() {
         @Override
         public Object get() {
             throw new IllegalStateException(NON_NULL_VALUE_EXCEPTION_MESSAGE);
+        }
+
+        @Nullable
+        @Override
+        public Class<Object> getType() {
+            return null;
         }
 
         @Override
@@ -55,6 +63,12 @@ public class Providers {
 
     public static <T> Provider<T> of(final T value) {
         return new AbstractProvider<T>() {
+            @Nullable
+            @Override
+            public Class<T> getType() {
+                return Cast.uncheckedCast(value.getClass());
+            }
+
             @Override
             public T getOrNull() {
                 return value;

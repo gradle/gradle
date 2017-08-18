@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.internal.UncheckedException;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
 
 public class DefaultProvider<T> extends AbstractProvider<T> {
@@ -25,6 +26,13 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
 
     public DefaultProvider(Callable<T> value) {
         this.value = value;
+    }
+
+    @Nullable
+    @Override
+    public Class<T> getType() {
+        // We could do a better job of figuring this out
+        return null;
     }
 
     @Override

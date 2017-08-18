@@ -75,6 +75,12 @@ task useFileType {
         custom.prop = layout.projectDirectory.file("build.gradle")
     }
 }
+
+task useFileProvider {
+    doLast {
+        custom.prop = layout.buildDirectory.file("build.gradle")
+    }
+}
 """
 
         when:
@@ -90,6 +96,13 @@ task useFileType {
         then:
         failure.assertHasDescription("Execution failed for task ':useFileType'.")
         failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using an instance of type org.gradle.api.internal.file.DefaultProjectLayout\$FixedFile.")
+
+        when:
+        fails("useFileProvider")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':useFileProvider'.")
+        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using a provider of type org.gradle.api.file.RegularFile.")
     }
 
     def "can attach a calculated file to task property"() {
@@ -148,6 +161,12 @@ task useDirType {
         custom.prop = layout.projectDirectory.dir("src")
     }
 }
+
+task useDirProvider {
+    doLast {
+        custom.prop = layout.buildDirectory
+    }
+}
 """
 
         when:
@@ -163,6 +182,13 @@ task useDirType {
         then:
         failure.assertHasDescription("Execution failed for task ':useDirType'.")
         failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.RegularFile using an instance of type org.gradle.api.internal.file.DefaultProjectLayout\$FixedDirectory.")
+
+        when:
+        fails("useDirProvider")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':useDirProvider'.")
+        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.RegularFile using a provider of type org.gradle.api.file.Directory.")
     }
 
     def "can wire the output of a task as input to another task"() {

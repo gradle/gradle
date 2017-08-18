@@ -20,33 +20,12 @@ import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
 
-public abstract class AbstractMappingProvider<OUT, IN> extends AbstractProvider<OUT> {
-    private final Class<OUT> type;
-    private final Provider<? extends IN> provider;
-
-    public AbstractMappingProvider(Class<OUT> type, Provider<? extends IN> provider) {
-        this.type = type;
-        this.provider = provider;
-    }
-
+public interface ProviderInternal<T> extends Provider<T> {
+    /**
+     * Return the upper bound on the type of all values that this provider may produce, if known.
+     *
+     * This could probably move to the public API.
+     */
     @Nullable
-    @Override
-    public Class<OUT> getType() {
-        return type;
-    }
-
-    @Override
-    public boolean isPresent() {
-        return provider.isPresent();
-    }
-
-    @Override
-    public OUT getOrNull() {
-        if (provider.isPresent()) {
-            return map(provider.get());
-        }
-        return null;
-    }
-
-    protected abstract OUT map(IN v);
+    Class<T> getType();
 }

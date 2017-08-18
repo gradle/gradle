@@ -36,6 +36,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
@@ -91,7 +92,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
     @Override
     public Provider<RegularFile> file(Provider<File> provider) {
-        return new AbstractMappingProvider<RegularFile, File>(provider) {
+        return new AbstractMappingProvider<RegularFile, File>(RegularFile.class, provider) {
             @Override
             protected RegularFile map(File file) {
                 return new FixedFile(projectDir.fileResolver.resolve(file));
@@ -174,7 +175,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         private final PathToFileResolver resolver;
 
         ResolvingFile(PathToFileResolver resolver, Provider<? extends CharSequence> path) {
-            super(path);
+            super(RegularFile.class, path);
             this.resolver = resolver;
         }
 
@@ -238,6 +239,12 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
             this.resolver = resolver;
             this.valueProvider = valueProvider;
             this.valueFactory = resolver.resolveLater(value);
+        }
+
+        @Nullable
+        @Override
+        public Class<Directory> getType() {
+            return Directory.class;
         }
 
         @Override
@@ -304,7 +311,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
         @Override
         public Provider<Directory> dir(final String path) {
-            return new AbstractMappingProvider<Directory, Directory>(this) {
+            return new AbstractMappingProvider<Directory, Directory>(Directory.class, this) {
                 @Override
                 protected Directory map(Directory dir) {
                     return dir.dir(path);
@@ -314,7 +321,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
         @Override
         public Provider<Directory> dir(final Provider<? extends CharSequence> path) {
-            return new AbstractCombiningProvider<Directory, Directory, CharSequence>(this, path) {
+            return new AbstractCombiningProvider<Directory, Directory, CharSequence>(Directory.class, this, path) {
                 @Override
                 protected Directory map(Directory b, CharSequence v) {
                     return b.dir(v.toString());
@@ -324,7 +331,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
         @Override
         public Provider<RegularFile> file(final String path) {
-            return new AbstractMappingProvider<RegularFile, Directory>(this) {
+            return new AbstractMappingProvider<RegularFile, Directory>(RegularFile.class, this) {
                 @Override
                 protected RegularFile map(Directory dir) {
                     return dir.file(path);
@@ -334,7 +341,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
         @Override
         public Provider<RegularFile> file(final Provider<? extends CharSequence> path) {
-            return new AbstractCombiningProvider<RegularFile, Directory, CharSequence>(this, path) {
+            return new AbstractCombiningProvider<RegularFile, Directory, CharSequence>(RegularFile.class, this, path) {
                 @Override
                 protected RegularFile map(Directory b, CharSequence v) {
                     return b.file(v.toString());
@@ -359,7 +366,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
     private static class ToFileProvider extends AbstractMappingProvider<File, FileSystemLocation> {
         ToFileProvider(Provider<? extends FileSystemLocation> provider) {
-            super(provider);
+            super(File.class, provider);
         }
 
         @Override

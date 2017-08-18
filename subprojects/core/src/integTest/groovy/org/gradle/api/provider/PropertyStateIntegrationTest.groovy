@@ -139,6 +139,19 @@ task wrongValueType {
         custom.prop = 123
     }
 }
+
+task wrongPropertyStateType {
+    doLast {
+        custom.prop = providers.property(Integer)
+    }
+}
+
+task wrongRuntimeType {
+    doLast {
+        custom.prop = providers.provider { 123 }
+        custom.prop.get()
+    }
+}
 """
 
         when:
@@ -147,5 +160,19 @@ task wrongValueType {
         then:
         failure.assertHasDescription("Execution failed for task ':wrongValueType'.")
         failure.assertHasCause("Cannot set the value of a property of type java.lang.String using an instance of type java.lang.Integer.")
+
+        when:
+        fails("wrongPropertyStateType")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':wrongPropertyStateType'.")
+        failure.assertHasCause("Cannot set the value of a property of type java.lang.String using a provider of type java.lang.Integer.")
+
+        when:
+        fails("wrongRuntimeType")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':wrongRuntimeType'.")
+        failure.assertHasCause("Cannot get the value of a property of type java.lang.String as the provider associated with this property returned a value of type java.lang.Integer.")
     }
 }

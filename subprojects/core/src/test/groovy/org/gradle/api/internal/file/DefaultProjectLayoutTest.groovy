@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.file
 
+import org.gradle.api.file.Directory
+import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.provider.Provider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -227,10 +229,11 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "can resolve directory relative to calculated directory"() {
-        def dirProvider = Stub(Provider)
-        def pathProvider = Stub(Provider)
+        def dirProvider = Stub(ProviderInternal)
+        def pathProvider = Stub(ProviderInternal)
         def dir1 = projectDir.file("dir1")
 
+        _ * dirProvider.type >> Directory
         _ * dirProvider.get() >>> [layout.projectDirectory.dir("d1"), layout.projectDirectory.dir("d2")]
         _ * dirProvider.present >> true
         _ * pathProvider.get() >>> ["c1", "c2"]
@@ -267,10 +270,11 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "can resolve regular file relative to calculated directory"() {
-        def dirProvider = Stub(Provider)
+        def dirProvider = Stub(ProviderInternal)
         def pathProvider = Stub(Provider)
         def dir1 = projectDir.file("dir1")
 
+        _ * dirProvider.type >> Directory
         _ * dirProvider.get() >>> [layout.projectDirectory.dir("d1"), layout.projectDirectory.dir("d2")]
         _ * dirProvider.present >> true
         _ * pathProvider.get() >>> ["c1", "c2"]

@@ -29,8 +29,8 @@ class DefaultPropertyStateTest extends Specification {
     def "can compare string representation with other instance returning value #value"() {
         given:
         boolean immutablePropertyStateValue1 = true
-        PropertyState<Boolean> propertyState1 = createBooleanPropertyState(immutablePropertyStateValue1)
-        PropertyState<Boolean> propertyState2 = createBooleanPropertyState(value)
+        def propertyState1 = createBooleanPropertyState(immutablePropertyStateValue1)
+        def propertyState2 = createBooleanPropertyState(value)
 
         expect:
         (propertyState1.toString() == propertyState2.toString()) == stringRepresentation
@@ -45,8 +45,9 @@ class DefaultPropertyStateTest extends Specification {
     }
 
     def "fails when get method is called when the property has no value"() {
+        def propertyState = new DefaultPropertyState<Boolean>(Boolean)
+
         when:
-        PropertyState<Boolean> propertyState = createBooleanPropertyState()
         propertyState.get()
 
         then:
@@ -54,7 +55,7 @@ class DefaultPropertyStateTest extends Specification {
         t.message == NON_NULL_VALUE_EXCEPTION_MESSAGE
 
         when:
-        propertyState = createBooleanPropertyState(null)
+        propertyState.set(null)
         propertyState.get()
 
         then:
@@ -62,16 +63,15 @@ class DefaultPropertyStateTest extends Specification {
         t.message == NON_NULL_VALUE_EXCEPTION_MESSAGE
 
         when:
-        propertyState = createBooleanPropertyState(true)
-        def value = propertyState.get()
+        propertyState.set(true)
 
         then:
-        value
+        propertyState.get()
     }
 
     def "returns value or null for get or null method"() {
         when:
-        PropertyState<Boolean> propertyState = createBooleanPropertyState()
+        def propertyState = new DefaultPropertyState<Boolean>(Boolean)
 
         then:
         !propertyState.isPresent()
@@ -86,8 +86,9 @@ class DefaultPropertyStateTest extends Specification {
     }
 
     def "fails when value is set using incompatible type"() {
+        def propertyState = new DefaultPropertyState<Boolean>(Boolean)
+
         when:
-        PropertyState<Boolean> propertyState = createBooleanPropertyState()
         propertyState.set(12)
 
         then:
@@ -98,66 +99,123 @@ class DefaultPropertyStateTest extends Specification {
         !propertyState.present
     }
 
-    def "can set value of external provider"() {
-        def provider = Mock(Provider)
-
-        given:
-        PropertyState<Boolean> propertyState = createBooleanPropertyState()
+    def "fails when value set using provider whose type is known to be incompatible"() {
+        def propertyState = new DefaultPropertyState<Boolean>(Boolean)
+        def other = new DefaultPropertyState<Number>(Number)
 
         when:
-        Boolean value = propertyState.getOrNull()
+        propertyState.set(other)
 
         then:
-        value == null
+        IllegalArgumentException e = thrown()
+        e.message == "Cannot set the value of a property of type java.lang.Boolean using a provider of type java.lang.Number."
+
+        and:
+        !propertyState.present
+    }
+
+    def "can set value to a provider whose type is not known"() {
+        def provider = Mock(ProviderInternal)
+
+        given:
+        provider.getOrNull() >>> [true, false, true]
+
+        def propertyState = new DefaultPropertyState<Boolean>(Boolean)
 
         when:
         propertyState.set(provider)
-        value = propertyState.getOrNull()
 
         then:
-        1 * provider.getOrNull() >> true
-        value == true
+        propertyState.get()
+        !propertyState.get()
+        propertyState.get()
+    }
+
+    def "can set value to a provider whose type is compatible"() {
+        def provider = Mock(ProviderInternal)
+
+        given:
+        provider.getType() >> Integer
+        provider.get() >>> [1, 2, 3]
+
+        def propertyState = new DefaultPropertyState<Number>(Number)
+
+        when:
+        propertyState.set(provider)
+
+        then:
+        propertyState.get() == 1
+        propertyState.get() == 2
+        propertyState.get() == 3
+    }
+
+    def "fails when provider produces an incompatible value"() {
+        def provider = Mock(ProviderInternal)
+
+        given:
+        provider.get() >> 12
+        provider.getOrNull() >> 12
+
+        def propertyState = new DefaultPropertyState<Boolean>(Boolean)
+        propertyState.set(provider)
+
+        when:
+        propertyState.get()
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == 'Cannot get the value of a property of type java.lang.Boolean as the provider associated with this property returned a value of type java.lang.Integer.'
+
+        when:
+        propertyState.getOrNull()
+
+        then:
+        def e2 = thrown(IllegalArgumentException)
+        e2.message == 'Cannot get the value of a property of type java.lang.Boolean as the provider associated with this property returned a value of type java.lang.Integer.'
     }
 
     def "does not allow a null provider"() {
         given:
-        PropertyState<Boolean> propertyState = createBooleanPropertyState()
+        def propertyState = new DefaultPropertyState<Boolean>(Boolean)
+
         when:
         propertyState.set((Provider)null)
+
         then:
-        thrown(NullPointerException)
+        def e = thrown(IllegalArgumentException)
+        e.message == 'Cannot set the value of a property using a null provider.'
     }
 
     def "get only calls provider once"() {
         given:
-        def provider = Mock(Provider)
-        PropertyState<Boolean> propertyState = createBooleanPropertyState()
+        def provider = Mock(ProviderInternal)
+        def propertyState = new DefaultPropertyState<Boolean>(Boolean)
         propertyState.set(provider)
+
         when:
         propertyState.get()
+
         then:
-        1 * provider.get() >> true
+        1 * provider.getOrNull() >> true
         0 * _
     }
 
     def "getOrNull only calls provider once"() {
         given:
-        def provider = Mock(Provider)
-        PropertyState<Boolean> propertyState = createBooleanPropertyState()
+        def provider = Mock(ProviderInternal)
+        def propertyState = new DefaultPropertyState<Boolean>(Boolean)
         propertyState.set(provider)
+
         when:
         propertyState.getOrNull()
+
         then:
         1 * provider.getOrNull() >> true
         0 * _
     }
 
-    private PropertyState<Boolean> createBooleanPropertyState() {
-        new DefaultPropertyState<Boolean>(Boolean)
-    }
-
     private PropertyState<Boolean> createBooleanPropertyState(Boolean value) {
-        PropertyState<Boolean> propertyState = createBooleanPropertyState()
+        PropertyState<Boolean> propertyState = new DefaultPropertyState<Boolean>(Boolean)
         propertyState.set(value)
         propertyState
     }

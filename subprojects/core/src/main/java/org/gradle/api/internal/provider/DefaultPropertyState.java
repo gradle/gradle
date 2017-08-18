@@ -16,16 +16,24 @@
 
 package org.gradle.api.internal.provider;
 
-import com.google.common.base.Preconditions;
 import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.Cast;
 
-public class DefaultPropertyState<T> implements PropertyState<T> {
-    private final Class<?> type;
+import javax.annotation.Nullable;
+
+public class DefaultPropertyState<T> implements PropertyState<T>, ProviderInternal<T> {
+    private final Class<T> type;
     private Provider<? extends T> provider = Providers.notDefined();
 
-    public DefaultPropertyState(Class<?> type) {
+    public DefaultPropertyState(Class<T> type) {
         this.type = type;
+    }
+
+    @Nullable
+    @Override
+    public Class<T> getType() {
+        return type;
     }
 
     @Override
@@ -45,8 +53,33 @@ public class DefaultPropertyState<T> implements PropertyState<T> {
     }
 
     @Override
-    public void set(Provider<? extends T> provider) {
-        this.provider = Preconditions.checkNotNull(provider);
+    public void set(final Provider<? extends T> provider) {
+        if (provider == null) {
+            throw new IllegalArgumentException("Cannot set the value of a property using a null provider.");
+        }
+        ProviderInternal<T> p = Cast.uncheckedCast(provider);
+        if (p.getType() != null && !type.isAssignableFrom(p.getType())) {
+            throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using a provider of type %s.", type.getName(), p.getType().getName()));
+        } else if (p.getType() == null) {
+            p = new AbstractProvider<T>() {
+                @Nullable
+                @Override
+                public Class<T> getType() {
+                    return null;
+                }
+
+                @Override
+                public T getOrNull() {
+                    T value = provider.getOrNull();
+                    if (value == null || type.isInstance(value)) {
+                        return value;
+                    }
+                    throw new IllegalArgumentException(String.format("Cannot get the value of a property of type %s as the provider associated with this property returned a value of type %s.", type.getName(), value.getClass().getName()));
+                }
+            };
+        }
+
+        this.provider = p;
     }
 
     @Override
