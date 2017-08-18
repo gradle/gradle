@@ -18,9 +18,11 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.test.fixtures.maven.MavenRepository
 import org.gradle.test.fixtures.server.http.MavenHttpModule
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
 
 class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
@@ -30,7 +32,7 @@ class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyReso
     MavenHttpModule moduleA
 
     def setup() {
-        moduleA = publishMavenModule('a')
+        moduleA = publishMavenModule(mavenHttpRepo, 'a')
         downloadedLibsDir = file('build/libs')
     }
 
@@ -72,8 +74,8 @@ class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyReso
 
     def "fails concurrent application dependency resolution if HTTP connection exceeds timeout"() {
         given:
-        MavenHttpModule moduleB = publishMavenModule('b')
-        MavenHttpModule moduleC = publishMavenModule('c')
+        MavenHttpModule moduleB = publishMavenModule(mavenHttpRepo, 'b')
+        MavenHttpModule moduleC = publishMavenModule(mavenHttpRepo, 'c')
 
         buildFile << """
             ${mavenRepository(mavenHttpRepo)}
@@ -96,8 +98,8 @@ class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyReso
 
     def "skips subsequent dependency resolution if HTTP connection exceeds timeout"() {
         given:
-        MavenHttpModule moduleB = publishMavenModule('b')
-        MavenHttpModule moduleC = publishMavenModule('c')
+        MavenHttpModule moduleB = publishMavenModule(mavenHttpRepo, 'b')
+        MavenHttpModule moduleC = publishMavenModule(mavenHttpRepo, 'c')
 
         buildFile << """
             ${mavenRepository(mavenHttpRepo)}
@@ -116,9 +118,33 @@ class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyReso
         !downloadedLibsDir.isDirectory()
     }
 
+    def "only fails resolution up first encounter of HTTP connection timeout"() {
+        given:
+        MavenHttpModule moduleB = publishMavenModule(mavenHttpRepo, 'b')
+        MavenHttpModule moduleC = publishMavenModule(mavenHttpRepo, 'c')
+        MavenHttpModule moduleD = publishMavenModule(mavenHttpRepo, 'd')
+
+        buildFile << """
+            ${mavenRepository(mavenHttpRepo)}
+            ${customConfigDependencyAssignment(moduleA, moduleB, moduleC, moduleD)}
+            ${configSyncTask()}
+        """
+
+        when:
+        moduleA.pom.expectGet()
+        moduleB.pom.expectGet()
+        moduleC.pom.expectGetBlocking()
+        fails('resolve', '--max-workers=1')
+
+        then:
+        assertDependencyReadTimeout(moduleC)
+        assertDependencySkipped(moduleD)
+        !downloadedLibsDir.isDirectory()
+    }
+
     def "skipped repositories are only recorded for the time of a single build execution"() {
         given:
-        MavenHttpModule moduleB = publishMavenModule('b')
+        MavenHttpModule moduleB = publishMavenModule(mavenHttpRepo, 'b')
 
         buildFile << """
             ${mavenRepository(mavenHttpRepo)}
@@ -144,6 +170,28 @@ class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         downloadedLibsDir.assertContainsDescendants('a-1.0.jar', 'b-1.0.jar')
+    }
+
+    def "tries dependency resolution from secondary repository if HTTP connection exceeds timeout"() {
+        given:
+        MavenHttpRepository backupMavenHttpRepo = new MavenHttpRepository(server, '/repo-2', new MavenFileRepository(file('maven-repo-2')))
+        MavenHttpModule moduleABackup = publishMavenModule(backupMavenHttpRepo, 'a')
+
+        buildFile << """
+            ${mavenRepository(mavenHttpRepo)}
+            ${mavenRepository(backupMavenHttpRepo)}
+            ${customConfigDependencyAssignment(moduleA)}
+            ${configSyncTask()}
+        """
+
+        when:
+        moduleA.pom.expectGetBlocking()
+        moduleABackup.pom.expectGet()
+        moduleABackup.artifact.expectGet()
+        succeeds('resolve')
+
+        then:
+        downloadedLibsDir.assertHasDescendants('a-1.0.jar')
     }
 
     private String mavenRepository(MavenRepository repo) {
@@ -197,7 +245,7 @@ class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyReso
         "$module.groupId/$module.artifactId/$module.artifactId-$module.version"
     }
 
-    private MavenHttpModule publishMavenModule(String artifactId) {
+    private MavenHttpModule publishMavenModule(MavenHttpRepository mavenHttpRepo, String artifactId) {
         mavenHttpRepo.module(GROUP_ID, artifactId, VERSION).publish()
     }
 }
