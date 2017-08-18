@@ -75,10 +75,12 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
+import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.Actions;
+import org.gradle.internal.Cast;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -1131,7 +1133,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         return useTestFramework(testFramework, null);
     }
 
-    private TestFramework useTestFramework(TestFramework testFramework, Action<? super TestFrameworkOptions> testFrameworkConfigure) {
+    private <T extends TestFrameworkOptions> TestFramework useTestFramework(TestFramework testFramework, Action<? super T> testFrameworkConfigure) {
         if (testFramework == null) {
             throw new IllegalArgumentException("testFramework is null!");
         }
@@ -1139,7 +1141,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         this.testFramework = testFramework;
 
         if (testFrameworkConfigure != null) {
-            testFrameworkConfigure.execute(this.testFramework.getOptions());
+            testFrameworkConfigure.execute(Cast.<T>uncheckedCast(this.testFramework.getOptions()));
         }
 
         return this.testFramework;
@@ -1149,7 +1151,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * Specifies that JUnit should be used to execute the tests. <p> To configure JUnit specific options, see {@link #useJUnit(groovy.lang.Closure)}.
      */
     public void useJUnit() {
-        useJUnit(Actions.<TestFrameworkOptions>doNothing());
+        useJUnit(Actions.<JUnitOptions>doNothing());
     }
 
     /**
@@ -1159,7 +1161,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param testFrameworkConfigure A closure used to configure the JUnit options.
      */
     public void useJUnit(Closure testFrameworkConfigure) {
-        useJUnit(configureUsing(testFrameworkConfigure));
+        useJUnit(ConfigureUtil.<JUnitOptions>configureUsing(testFrameworkConfigure));
     }
 
     /**
@@ -1169,7 +1171,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param testFrameworkConfigure An action used to configure the JUnit options.
      * @since 3.5
      */
-    public void useJUnit(Action<? super TestFrameworkOptions> testFrameworkConfigure) {
+    public void useJUnit(final Action<? super JUnitOptions> testFrameworkConfigure) {
         useTestFramework(new JUnitTestFramework(this, filter), testFrameworkConfigure);
     }
 
