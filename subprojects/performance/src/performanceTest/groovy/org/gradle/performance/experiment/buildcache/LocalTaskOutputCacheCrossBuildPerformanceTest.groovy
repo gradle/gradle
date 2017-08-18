@@ -117,9 +117,9 @@ class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPe
         def fullyUpToDate = buildResults['fully up-to-date']
         def nonCached = buildResults['non-cached']
 
-        Overhead.of('checking remote cache', alwaysMissPullOnly, nonCached).assertWithinPerc(1)
-        Overhead.of('pushing to cache', pushOnly, nonCached).assertWithinPerc(15)
-        Overhead.of('fetching from cache', fullyCached, fullyUpToDate).assertWithinPerc(5)
+        Overhead.of('checking remote cache', nonCached, alwaysMissPullOnly).assertWithinPerc(1)
+        Overhead.of('pushing to cache', nonCached, pushOnly).assertWithinPerc(15)
+        Overhead.of('fetching from cache', fullyUpToDate, fullyCached).assertWithinPerc(5)
 
         where:
         testProject                   | tasks
