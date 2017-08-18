@@ -50,6 +50,35 @@ class FileProvidersIntegrationTest extends AbstractIntegrationSpec {
         outputContains("task output dir: " + testDirectory.file("output/some-dir/other-child"))
     }
 
+    def "reports failure to set directory property value using incompatible type"() {
+        given:
+        buildFile << """
+class SomeExtension {
+    final PropertyState<Directory> prop
+    
+    @javax.inject.Inject
+    SomeExtension(ProjectLayout layout) {
+        prop = layout.newDirectoryVar()
+    }
+}
+
+extensions.create('custom', SomeExtension, layout)
+
+task useIntType {
+    doLast {
+        custom.prop = 123
+    }
+}
+"""
+
+        when:
+        fails("useIntType")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':useIntType'.")
+        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using an instance of type java.lang.Integer.")
+    }
+
     def "can attach a calculated file to task property"() {
         buildFile << """
             class SomeTask extends DefaultTask {
@@ -79,6 +108,35 @@ class FileProvidersIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("output file before: " + testDirectory.file("build/child"))
         outputContains("task output file: " + testDirectory.file("output/some-dir/other-child"))
+    }
+
+    def "reports failure to set regular file property value using incompatible type"() {
+        given:
+        buildFile << """
+class SomeExtension {
+    final PropertyState<RegularFile> prop
+    
+    @javax.inject.Inject
+    SomeExtension(ProjectLayout layout) {
+        prop = layout.newFileVar()
+    }
+}
+
+extensions.create('custom', SomeExtension, layout)
+
+task useIntType {
+    doLast {
+        custom.prop = 123
+    }
+}
+"""
+
+        when:
+        fails("useIntType")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':useIntType'.")
+        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.RegularFile using an instance of type java.lang.Integer.")
     }
 
     def "can wire the output of a task as input to another task"() {

@@ -42,21 +42,21 @@ public class DefaultProviderFactory implements ProviderFactory {
         PropertyState<T> propertyState = new DefaultPropertyState<T>(type);
 
         if (type == Boolean.class) {
-            ((PropertyState<Boolean>) propertyState).set(Boolean.FALSE);
+            ((PropertyState<Boolean>) propertyState).set(Providers.FALSE);
         } else if (type == Byte.class) {
-            ((PropertyState<Byte>) propertyState).set(Byte.valueOf((byte) 0));
+            ((PropertyState<Byte>) propertyState).set(Providers.BYTE_ZERO);
         } else if (type == Short.class) {
-            ((PropertyState<Short>) propertyState).set(Short.valueOf((short) 0));
+            ((PropertyState<Short>) propertyState).set(Providers.SHORT_ZERO);
         } else if (type == Integer.class) {
-            ((PropertyState<Integer>) propertyState).set(Integer.valueOf(0));
+            ((PropertyState<Integer>) propertyState).set(Providers.INTEGER_ZERO);
         } else if (type == Long.class) {
-            ((PropertyState<Long>) propertyState).set(Long.valueOf(0));
+            ((PropertyState<Long>) propertyState).set(Providers.LONG_ZERO);
         } else if (type == Float.class) {
-            ((PropertyState<Float>) propertyState).set(Float.valueOf(0));
+            ((PropertyState<Float>) propertyState).set(Providers.FLOAT_ZERO);
         } else if (type == Double.class) {
-            ((PropertyState<Double>) propertyState).set(Double.valueOf(0));
+            ((PropertyState<Double>) propertyState).set(Providers.DOUBLE_ZERO);
         } else if (type == Character.class) {
-            ((PropertyState<Character>) propertyState).set(new Character('\0'));
+            ((PropertyState<Character>) propertyState).set(Providers.CHAR_ZERO);
         }
 
         return propertyState;

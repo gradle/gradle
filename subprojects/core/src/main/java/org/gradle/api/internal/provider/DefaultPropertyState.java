@@ -19,30 +19,10 @@ package org.gradle.api.internal.provider;
 import com.google.common.base.Preconditions;
 import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.Cast;
-
-import static org.gradle.api.internal.provider.AbstractProvider.NON_NULL_VALUE_EXCEPTION_MESSAGE;
 
 public class DefaultPropertyState<T> implements PropertyState<T> {
-    private static final Provider<Object> NULL_PROVIDER = new Provider<Object>() {
-        @Override
-        public Object get() {
-            throw new IllegalStateException(NON_NULL_VALUE_EXCEPTION_MESSAGE);
-        }
-
-        @Override
-        public Object getOrNull() {
-            return null;
-        }
-
-        @Override
-        public boolean isPresent() {
-            return false;
-        }
-    };
-
     private final Class<?> type;
-    private Provider<? extends T> provider = Cast.uncheckedCast(NULL_PROVIDER);
+    private Provider<? extends T> provider = Providers.notDefined();
 
     public DefaultPropertyState(Class<?> type) {
         this.type = type;
@@ -51,18 +31,17 @@ public class DefaultPropertyState<T> implements PropertyState<T> {
     @Override
     public void set(final T value) {
         if (value == null) {
-            this.provider = Cast.uncheckedCast(NULL_PROVIDER);
+            this.provider = Providers.notDefined();
             return;
         }
         if (!type.isInstance(value)) {
             throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using an instance of type %s.", type.getName(), value.getClass().getName()));
         }
-        this.provider = new AbstractProvider<T>() {
-            @Override
-            public T getOrNull() {
-                return value;
-            }
-        };
+        this.provider = Providers.of(value);
+    }
+
+    protected Provider<? extends T> getProvider() {
+        return provider;
     }
 
     @Override

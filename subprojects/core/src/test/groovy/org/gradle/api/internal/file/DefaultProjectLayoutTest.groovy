@@ -374,6 +374,34 @@ class DefaultProjectLayoutTest extends Specification {
         e5.message == 'No value has been specified for this provider.'
     }
 
+    def "cannot set the value of a directory var using incompatible type"() {
+        def var = layout.newDirectoryVar()
+
+        when:
+        var.set(123)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Cannot set the value of a property of type org.gradle.api.file.Directory using an instance of type java.lang.Integer."
+
+        and:
+        !var.present
+    }
+
+    def "cannot set the value of a regular file var using incompatible type"() {
+        def var = layout.newFileVar()
+
+        when:
+        var.set(123)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Cannot set the value of a property of type org.gradle.api.file.RegularFile using an instance of type java.lang.Integer."
+
+        and:
+        !var.present
+    }
+
     def "can query and mutate the build directory using resolveable type"() {
         expect:
         def buildDirectory = layout.buildDirectory
@@ -431,14 +459,6 @@ class DefaultProjectLayoutTest extends Specification {
         fileProvider.present
         buildDirectory.get().get() == projectDir.file("other")
         fileProvider.get() == projectDir.file("other")
-    }
-
-    def "can set the build directory location using a directory instance"() {
-
-    }
-
-    def "can set the build directory location using a directory provider"() {
-
     }
 
     def "can resolve directory relative to build directory"() {
