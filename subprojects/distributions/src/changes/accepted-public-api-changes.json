@@ -110,6 +110,22 @@
             "changes": [
                 "Field has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.file.Directory",
+            "member": "Implemented interface org.gradle.api.provider.Provider",
+            "acceptation": "API inspection is broken, it shouldn't have complained about this change",
+            "changes": [
+                "Interface has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.RegularFile",
+            "member": "Implemented interface org.gradle.api.provider.Provider",
+            "acceptation": "API inspection is broken, it shouldn't have complained about this change",
+            "changes": [
+                "Interface has been removed"
+            ]
         }
     ]
 }
