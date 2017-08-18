@@ -17,10 +17,10 @@
 package org.gradle.caching.internal.tasks
 
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.hash.TestFileHasher
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter
+import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
