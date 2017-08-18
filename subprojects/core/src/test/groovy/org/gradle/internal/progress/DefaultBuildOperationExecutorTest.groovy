@@ -134,7 +134,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         1 * buildOperation.run(_) >> { throw failure }
 
         then:
-        1 * progressLogger.completed(null, false)
+        1 * progressLogger.completed(null, true)
 
         then:
         1 * timeProvider.currentTime >> 124L
@@ -649,6 +649,10 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         then:
         1 * resourceLockCoordinator.current >> Stub(ResourceLockState)
         def e = thrown(ResourceDeadlockException)
+    }
+
+    def "Writes exception to "() {
+
     }
 
     def runnableBuildOperation(String name, Closure cl) {
