@@ -245,6 +245,11 @@ task largeNativeBuildPrebuilt(type: GradleBuild) {
     tasks = ['build']
 }
 
+task archivePerformanceProject(type: Copy) {
+    into "build/$name"
+    from "src/templates/$name"
+}
+
 tasks.withType(JvmProjectGeneratorTask) {
     if (project.hasProperty("springDmPluginVersion")) {
         templateArgs['springDmPluginVersion'] = springDmPluginVersion

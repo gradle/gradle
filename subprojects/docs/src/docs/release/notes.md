@@ -18,7 +18,7 @@ It is now possible to consume dependencies from, and publish to, [Google Cloud S
         maven {
             url "gcs://someGcsBucket/maven2"
         }
-    
+
         ivy {
             url "gcs://someGcsBucket/ivy"
         }
@@ -50,7 +50,7 @@ Only files within `buildDir`, paths registered as targets for the `clean` task a
 
 ### CLI abbreviates long test names
 
-In Gradle 4.1, the Gradle CLI began displaying tests in-progress. We received feedback that long packages and test names caused the test name to be truncated or omitted. This version will abbreviate java packages of long test names to 60 characters to make it highly likely to fit on terminal screens. 
+In Gradle 4.1, the Gradle CLI began displaying tests in-progress. We received feedback that long packages and test names caused the test name to be truncated or omitted. This version will abbreviate java packages of long test names to 60 characters to make it highly likely to fit on terminal screens.
 
 ### Better support for script plugins loaded via HTTP
 
@@ -70,6 +70,10 @@ Task actions that are defined in build scripts can now be named using `doFirst("
 TODO Placeholder
 
 #### Only trigger a rebuild when someone reloads the Play app
+
+### Faster zipTree and tarTree
+
+The `zipTree` and `tarTree` implementations had a major performance issue, unpacking files every time the tree was traversed. This has now been fixed and should speed up builds using these trees a lot.
 
 TODO Placeholder
 
