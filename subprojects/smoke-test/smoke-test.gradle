@@ -16,6 +16,7 @@ configurations {
 
 dependencies {
     smokeTestCompile project(':testKit')
+    smokeTestCompile project(":internalIntegTesting")
     smokeTestCompile libraries.spock
 }
 
