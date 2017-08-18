@@ -85,7 +85,6 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                         if (originMetadata != null) {
                             state.setOutcome(TaskExecutionOutcome.FROM_CACHE);
                             context.setOriginBuildInvocationId(originMetadata.getBuildInvocationId());
-                            taskState.snapshotAfterTaskExecution(null);
                             return;
                         }
                     } catch (UnrecoverableTaskOutputUnpackingException e) {
