@@ -129,5 +129,10 @@ public class TaskMutator {
         public String getActionClassName() {
             return action.getActionClassName();
         }
+
+        @Override
+        public String getDisplayName() {
+            return action.getDisplayName();
+        }
     }
 }

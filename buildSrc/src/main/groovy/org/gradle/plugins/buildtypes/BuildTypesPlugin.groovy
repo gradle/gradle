@@ -29,21 +29,30 @@ class BuildTypesPlugin implements Plugin<Project> {
 
     static void register(BuildType buildType, Project project) {
         def name = buildType.name
-        def tasks = buildType.tasks
-        def projectProperties = buildType.projectProperties
 
         project.task(name) {
             group = "Build Type"
             def abbreviation = name[0] + name[1..-1].replaceAll("[a-z]", "")
             def taskNames = project.gradle.startParameter.taskNames
-            def usedName = taskNames.find { it in [name, abbreviation] }
+            def usedName = taskNames.find { it in [name, abbreviation] || it.endsWith(":$name") || it.endsWith(":$abbreviation")}
             int index = taskNames.indexOf(usedName)
             if (usedName && !((taskNames[index - 1] == '--task') && (taskNames[index - 2] ==~ /h(e(lp?)?)?/))) {
                 buildType.active = true
+                def subproject = ''
+                if (usedName.contains(':')) {
+                    subproject = usedName.substring(0, usedName.lastIndexOf(':') + 1)
+                }
                 project.afterEvaluate {
                     taskNames.remove(index)
-                    buildType.tasks.reverse().each {
-                        taskNames.add(index, it)
+                    if (subproject.empty || project.findProject(subproject)) {
+                        buildType.tasks.reverse().each {
+                            taskNames.add(index, subproject + it)
+                        }
+                    } else {
+                        println "Skipping execution of build type '${buildType.name}'. Project '$subproject' not found in root project '${project.name}'."
+                        if (taskNames.empty) {
+                            taskNames.add('help') //do not trigger the default tasks
+                        }
                     }
                     project.gradle.startParameter.taskNames = taskNames
                 }

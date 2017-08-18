@@ -22,6 +22,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.internal.tasks.ContextAwareTaskAction
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskExecutionException
@@ -473,6 +474,73 @@ class DefaultTaskTest extends AbstractTaskTest {
         then:
         TaskInstantiationException e = thrown()
         e.message.contains("has been instantiated directly which is not supported")
+    }
+
+    def "unnamed task action are named similar by all action definition methods"() {
+        given:
+        Task taskWithActionActions = createTask(DefaultTask)
+        Task taskWithCallableActions = createTask(DefaultTask)
+
+        when:
+        taskWithActionActions.doFirst(Mock(Action))
+        taskWithCallableActions.doFirst {}
+        taskWithActionActions.doLast(Mock(Action))
+        taskWithCallableActions.doLast {}
+
+        then:
+        taskWithActionActions.actions[0].displayName == "Execute doFirst {} action"
+        taskWithActionActions.actions[1].displayName == "Execute doLast {} action"
+        taskWithActionActions.actions[0].displayName == taskWithCallableActions.actions[0].displayName
+        taskWithActionActions.actions[1].displayName == taskWithCallableActions.actions[1].displayName
+    }
+
+    def "named task action are named similar by all action definition methods"() {
+        given:
+        Task taskWithActionActions = createTask(DefaultTask)
+        Task taskWithCallableActions = createTask(DefaultTask)
+
+        when:
+        taskWithActionActions.doFirst("A first step", Mock(Action))
+        taskWithCallableActions.doFirst("A first step") {}
+        taskWithActionActions.doLast("One last thing", Mock(Action))
+        taskWithCallableActions.doLast("One last thing") {}
+
+        then:
+        taskWithActionActions.actions[0].displayName == "Execute A first step"
+        taskWithActionActions.actions[1].displayName == "Execute One last thing"
+        taskWithActionActions.actions[0].displayName == taskWithCallableActions.actions[0].displayName
+        taskWithActionActions.actions[1].displayName == taskWithCallableActions.actions[1].displayName
+    }
+
+    def "describable actions are not renamed"() {
+        setup:
+        def namedAction = Mock(ContextAwareTaskAction)
+        namedAction.displayName >> "I have a name"
+
+        when:
+        task.actions.add(namedAction)
+        task.actions.add(0, namedAction)
+        task.doFirst(namedAction)
+        task.doLast(namedAction)
+        task.appendParallelSafeAction(namedAction)
+        task.prependParallelSafeAction(namedAction)
+
+        then:
+        task.actions[0].displayName == "I have a name"
+        task.actions[1].displayName == "I have a name"
+        task.actions[2].displayName == "I have a name"
+        task.actions[3].displayName == "I have a name"
+        task.actions[4].displayName == "I have a name"
+        task.actions[5].displayName == "I have a name"
+
+    }
+
+    def "unconventionally added actions that are not describable are unnamed"() {
+        when:
+        task.actions.add(Mock(Action))
+
+        then:
+        task.actions[0].displayName == "Execute unnamed action"
     }
 }
 

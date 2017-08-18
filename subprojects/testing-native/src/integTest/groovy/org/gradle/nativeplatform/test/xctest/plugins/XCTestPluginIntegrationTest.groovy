@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
+package org.gradle.nativeplatform.test.xctest.plugins
 
-import java.io.File;
-import java.util.Set;
+import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
-public interface DiscoveredInputsListener {
-    void newInputs(Set<File> files);
+@Requires(TestPrecondition.MAC_OS_X)
+class XCTestPluginIntegrationTest extends WellBehavedPluginTest {
+    @Override
+    String getPluginName() {
+        return "xctest"
+    }
 }

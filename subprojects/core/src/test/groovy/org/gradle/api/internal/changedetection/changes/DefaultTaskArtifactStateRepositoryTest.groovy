@@ -36,7 +36,7 @@ import org.gradle.api.internal.changedetection.state.TaskHistoryStore
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.hash.TestFileHasher
+import org.gradle.internal.hash.TestFileHasher
 import org.gradle.api.tasks.incremental.InputFileDetails
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheScopeMapping
@@ -98,8 +98,17 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         }
         SerializerRegistry serializerRegistry = new DefaultSerializerRegistry()
         fileCollectionSnapshotter.registerSerializers(serializerRegistry)
-        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess, serializerRegistry.build(FileCollectionSnapshot), new RandomLongIdGenerator()), stringInterner, buildScopeId)
-        repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, DirectInstantiator.INSTANCE, new DefaultFileCollectionSnapshotterRegistry([fileCollectionSnapshotter]), TestFiles.fileCollectionFactory(), classLoaderHierarchyHasher, new ValueSnapshotter(classLoaderHierarchyHasher), taskOutputFilesRepository)
+        def snapshotterRegistry = new DefaultFileCollectionSnapshotterRegistry([fileCollectionSnapshotter])
+        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(
+            cacheAccess,
+            new CacheBackedFileSnapshotRepository(cacheAccess, serializerRegistry.build(FileCollectionSnapshot), new RandomLongIdGenerator()),
+            stringInterner,
+            classLoaderHierarchyHasher,
+            new ValueSnapshotter(classLoaderHierarchyHasher),
+            snapshotterRegistry,
+            TestFiles.fileCollectionFactory(),
+            buildScopeId)
+        repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, DirectInstantiator.INSTANCE, taskOutputFilesRepository)
     }
 
     def "artifacts are not up to date when cache is empty"() {
@@ -370,7 +379,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         state.isUpToDate([])
         fileSystemMirror.beforeTaskOutputsGenerated()
         outputDirFile.createFile()
-        state.afterTask(null)
+        state.snapshotAfterTask(null)
 
         then:
         !state.upToDate
@@ -389,7 +398,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         when:
         fileSystemMirror.beforeTaskOutputsGenerated()
         outputDirFile2.createFile()
-        state.afterTask(null)
+        state.snapshotAfterTask(null)
 
         then:
         // Task should be out-of-date
@@ -503,7 +512,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         task.execute()
         fileSystemMirror.beforeTaskOutputsGenerated()
         otherFile.write("new content")
-        state.afterTask(null)
+        state.snapshotAfterTask(null)
         otherFile.delete()
 
         then:
@@ -519,7 +528,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         outputDirFile.delete()
         TaskArtifactState state = repository.getStateFor(task)
         state.isUpToDate([])
-        state.afterTask(null)
+        state.snapshotAfterTask(null)
 
         when:
         outputDirFile.write("ignore me")
@@ -647,7 +656,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
             // reset state
             fileSystemMirror.beforeTaskOutputsGenerated()
             task.execute()
-            state.afterTask(null)
+            state.snapshotAfterTask(null)
         }
         // reset state
         fileSystemMirror.beforeTaskOutputsGenerated()

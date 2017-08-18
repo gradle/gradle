@@ -33,7 +33,7 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         runner.testProject = testProject
         runner.tasksToRun = ['build']
         runner.gradleOpts = ["-Xms1500m", "-Xmx1500m"]
-        runner.targetVersions = ["4.1-20170607235835+0000"]
+        runner.targetVersions = ["4.2-20170817235727+0000"]
         runner.warmUpRuns = 5
         runner.runs = 10
 
@@ -64,7 +64,7 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         runner.gradleOpts = ["-Xms512m", "-Xmx512m"]
         runner.warmUpRuns = iterations - 1
         runner.runs = iterations
-        runner.targetVersions = ["4.1-20170607235835+0000"]
+        runner.targetVersions = ["4.2-20170817235727+0000"]
         if (runner.honestProfiler.enabled) {
             runner.honestProfiler.autoStartStop = false
         }

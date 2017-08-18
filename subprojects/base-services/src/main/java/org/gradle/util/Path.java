@@ -27,7 +27,7 @@ public class Path implements Comparable<Path> {
     public static final Path ROOT = new Path(new String[0], true);
 
     private static final Comparator<String> STRING_COMPARATOR = GUtil.caseInsensitive();
-    private static final String SEPARATOR = ":";
+    public static final String SEPARATOR = ":";
 
     public static Path path(String path) {
         if (Strings.isNullOrEmpty(path)) {

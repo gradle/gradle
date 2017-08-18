@@ -18,7 +18,7 @@ It is now possible to consume dependencies from, and publish to, [Google Cloud S
         maven {
             url "gcs://someGcsBucket/maven2"
         }
-    
+
         ivy {
             url "gcs://someGcsBucket/ivy"
         }
@@ -50,7 +50,7 @@ Only files within `buildDir`, paths registered as targets for the `clean` task a
 
 ### CLI abbreviates long test names
 
-In Gradle 4.1, the Gradle CLI began displaying tests in-progress. We received feedback that long packages and test names caused the test name to be truncated or omitted. This version will abbreviate java packages of long test names to 60 characters to make it highly likely to fit on terminal screens. 
+In Gradle 4.1, the Gradle CLI began displaying tests in-progress. We received feedback that long packages and test names caused the test name to be truncated or omitted. This version will abbreviate java packages of long test names to 60 characters to make it highly likely to fit on terminal screens.
 
 ### Better support for script plugins loaded via HTTP
 
@@ -58,6 +58,10 @@ Script plugins are applied to Gradle settings or projects via the `apply from: '
 
 - HTTP script plugins are cached for [`--offline`](userguide/dependency_management.html#sub:cache_offline) use.
 - Download of HTTP script plugins honours [proxy authentication settings](userguide/build_environment.html#sec:accessing_the_web_via_a_proxy).
+
+### Naming task actions defined with doFirst {} and doLast {}
+
+Task actions that are defined in build scripts can now be named using `doFirst("First things first") {}` or `doLast("One last thing") {}`. Gradle uses the names for logging, which allows the user, for example, to see the order in which actions are executed in the task execution views of IDEs. The action names will also be utilised in build scans in the future. This feature is supported in both Kotlin and Groovy build scripts.
 
 ### Improved Play support
 
@@ -67,7 +71,19 @@ TODO Placeholder
 
 #### Only trigger a rebuild when someone reloads the Play app
 
+### Faster zipTree and tarTree
+
+The `zipTree` and `tarTree` implementations had a major performance issue, unpacking files every time the tree was traversed. This has now been fixed and should speed up builds using these trees a lot.
+
 TODO Placeholder
+
+#### Support for built-in Twirl template types
+
+Gradle now supports built-in Twirl templates for HTML, JavaScript, TXT and XML.
+
+#### Support for custom Twirl template formats
+
+A [`TwirlSourceSet`](dsl/org.gradle.language.twirl.TwirlSourceSet.html) can now be configured to use user-defined template formats.
 
 ## Promoted features
 
@@ -119,7 +135,8 @@ We would like to thank the following community members for making contributions 
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
--->
+ -->
+ - [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Use correct signature for Test::useJunit (#2675)
  - [Marcin Erdmann](https://github.com/erdi) - Add compilationClasspath property to CodeNarc task (#2325)
  - [Bo Zhang](https://github.com/blindpirate) - Add an option to FindBugs for toggling logging of analysis progress (#2181)
  - [Josué Lima](https://github.com/josuelima) - Fix typo on S3 AwsImAuthentication log message (#2349)

@@ -156,7 +156,15 @@ public class TaskExecutionServices {
         return new DefaultFileCollectionSnapshotterRegistry(snapshotters.build());
     }
 
-    TaskHistoryRepository createTaskHistoryRepository(TaskHistoryStore cacheAccess, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry, StringInterner stringInterner, BuildInvocationScopeId buildInvocationScopeId) {
+    TaskHistoryRepository createTaskHistoryRepository(
+        TaskHistoryStore cacheAccess,
+        FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry,
+        StringInterner stringInterner,
+        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+        ValueSnapshotter valueSnapshotter,
+        FileCollectionSnapshotterRegistry snapshotterRegistry,
+        FileCollectionFactory fileCollectionFactory,
+        BuildInvocationScopeId buildInvocationScopeId) {
         SerializerRegistry serializerRegistry = new DefaultSerializerRegistry();
         for (FileCollectionSnapshotter snapshotter : fileCollectionSnapshotterRegistry.getAllSnapshotters()) {
             snapshotter.registerSerializers(serializerRegistry);
@@ -169,9 +177,12 @@ public class TaskExecutionServices {
                 new RandomLongIdGenerator()
             ),
             stringInterner,
+            classLoaderHierarchyHasher,
+            valueSnapshotter,
+            snapshotterRegistry,
+            fileCollectionFactory,
             buildInvocationScopeId
         );
-
     }
 
     TaskOutputFilesRepository createTaskOutputFilesRepository(CacheRepository cacheRepository, Gradle gradle, FileSystemMirror fileSystemMirror, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
@@ -185,7 +196,7 @@ public class TaskExecutionServices {
         return new DefaultTaskOutputFilesRepository(cacheAccess, fileSystemMirror, inMemoryCacheDecoratorFactory);
     }
 
-    TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, StartParameter startParameter, FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, FileCollectionSnapshotterRegistry fileCollectionSnapshotterRegistry, TaskHistoryRepository taskHistoryRepository, TaskOutputFilesRepository taskOutputsRepository, ValueSnapshotter valueSnapshotter) {
+    TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, StartParameter startParameter, TaskHistoryRepository taskHistoryRepository, TaskOutputFilesRepository taskOutputsRepository) {
 
         return new ShortCircuitTaskArtifactStateRepository(
             startParameter,
@@ -193,15 +204,10 @@ public class TaskExecutionServices {
             new DefaultTaskArtifactStateRepository(
                 taskHistoryRepository,
                 instantiator,
-                fileCollectionSnapshotterRegistry,
-                fileCollectionFactory,
-                classLoaderHierarchyHasher,
-                valueSnapshotter,
                 taskOutputsRepository
             )
         );
     }
-
 
     TaskPlanExecutor createTaskExecutorFactory(ParallelismConfigurationManager parallelismConfigurationManager, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
         return new TaskPlanExecutorFactory(parallelismConfigurationManager, executorFactory, workerLeaseService).create();

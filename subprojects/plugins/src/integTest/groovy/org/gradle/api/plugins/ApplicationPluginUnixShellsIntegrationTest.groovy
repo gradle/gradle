@@ -160,16 +160,17 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
     }
 
     ExecutionResult runViaUnixStartScript(String shCommand, String... args) {
+        def path = setUpTestPATH(shCommand);
         TestFile startScriptDir = file('build/install/sample/bin')
         buildFile << """
 task execStartScript(type: Exec) {
     workingDir '$startScriptDir.canonicalPath'
+    environment PATH: "$path"
     commandLine './sample'
     args "${args.join('", "')}"
 }
 """
-        def path = setUpTestPATH(shCommand);
-        return executer.withEnvironmentVars('PATH': path).withTasks('execStartScript').run();
+        return executer.withTasks('execStartScript').run()
     }
 
     private String setUpTestPATH(String shCommand) {

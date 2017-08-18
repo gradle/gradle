@@ -9,6 +9,8 @@ dependencies {
     crossVersionTestCompile project(':ide')
     crossVersionTestCompile project(':codeQuality')
     crossVersionTestCompile project(':signing')
+
+    crossVersionTestRuntime rootProject.configurations.testRuntime.allDependencies
 }
 useTestFixtures(sourceSet: 'integTest', project: ':diagnostics')
 useTestFixtures(sourceSet: 'integTest', project: ':platformNative')

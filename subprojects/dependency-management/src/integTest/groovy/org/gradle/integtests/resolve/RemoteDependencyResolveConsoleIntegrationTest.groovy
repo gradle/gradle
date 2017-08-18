@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -65,9 +66,10 @@ class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyRe
 
         then:
         ConcurrentTestUtil.poll {
-            assert build.standardOutput.contains(workInProgressLine("> :resolve > Resolve dependencies :compile"))
-            assert build.standardOutput.contains(workInProgressLine("> one-1.2.pom"))
-            assert build.standardOutput.contains(workInProgressLine("> two-1.2.pom"))
+            outputContainsProgress(build,
+                "> :resolve > Resolve dependencies :compile",
+                "> one-1.2.pom", "> two-1.2.pom"
+            )
         }
 
         when:
@@ -77,9 +79,10 @@ class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyRe
 
         then:
         ConcurrentTestUtil.poll {
-            assert build.standardOutput.contains(workInProgressLine("> :resolve > Resolve dependencies :compile"))
-            assert build.standardOutput.contains(workInProgressLine("> one-1.2.pom > 1 KB/2 KB downloaded"))
-            assert build.standardOutput.contains(workInProgressLine("> two-1.2.pom > 1 KB/2 KB downloaded"))
+            outputContainsProgress(build,
+                "> :resolve > Resolve dependencies :compile",
+                "> one-1.2.pom > 1 KB/2 KB downloaded", "> one-1.2.pom > 1 KB/2 KB downloaded"
+            )
         }
 
         when:
@@ -89,9 +92,10 @@ class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyRe
 
         then:
         ConcurrentTestUtil.poll {
-            assert build.standardOutput.contains(workInProgressLine("> :resolve > Resolve files of :compile"))
-            assert build.standardOutput.contains(workInProgressLine("> one-1.2.jar"))
-            assert build.standardOutput.contains(workInProgressLine("> two-1.2.jar"))
+            outputContainsProgress(build,
+                "> :resolve > Resolve files of :compile",
+                "> one-1.2.jar", "> two-1.2.jar"
+            )
         }
 
         when:
@@ -101,14 +105,25 @@ class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyRe
 
         then:
         ConcurrentTestUtil.poll {
-            assert build.standardOutput.contains(workInProgressLine("> :resolve > Resolve files of :compile"))
-            assert build.standardOutput.contains(workInProgressLine("> one-1.2.jar > 1 KB/2 KB downloaded"))
-            assert build.standardOutput.contains(workInProgressLine("> two-1.2.jar > 1 KB/2 KB downloaded"))
+            outputContainsProgress(build,
+                "> :resolve > Resolve files of :compile",
+                "> one-1.2.jar > 1 KB/2 KB downloaded", "> two-1.2.jar > 1 KB/2 KB downloaded"
+            )
         }
 
         getM1Jar.release()
         getM2Jar.release()
         build.waitForFinish()
+    }
+
+    void outputContainsProgress(GradleHandle build, String taskProgressLine, String... progressOutputLines) {
+        assert build.standardOutput.contains(workInProgressLine(taskProgressLine)) ||
+            progressOutputLines.any { build.standardOutput.contains(workInProgressLine(taskProgressLine + " " + it)) }
+
+        assert progressOutputLines.every {
+            build.standardOutput.contains(workInProgressLine(it)) ||
+                build.standardOutput.contains(workInProgressLine(taskProgressLine + " " + it))
+        }
     }
 
     byte[] longXml(File file) {

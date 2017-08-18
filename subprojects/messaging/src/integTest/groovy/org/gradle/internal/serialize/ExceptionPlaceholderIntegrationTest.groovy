@@ -50,7 +50,7 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
     
-                @Test(expected = RuntimeException.class)
+                @Test
                 public void thisTestShouldBeMarkedAsFailed() {
                     RuntimeException mockedException = mock(RuntimeException.class);
                     Bugger bugger = mock(Bugger.class);
@@ -61,6 +61,6 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         expect:
-        succeeds('test')
+        fails('test')
     }
 }

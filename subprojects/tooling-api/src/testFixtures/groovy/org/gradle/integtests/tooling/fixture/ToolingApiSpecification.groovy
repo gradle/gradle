@@ -101,6 +101,10 @@ abstract class ToolingApiSpecification extends Specification {
         file("build.gradle")
     }
 
+    TestFile getBuildFileKts() {
+        file("build.gradle.kts")
+    }
+
     TestFile getSettingsFile() {
         file("settings.gradle")
     }

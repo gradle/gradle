@@ -69,6 +69,9 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     MAC_OS_X({
         OperatingSystem.current().macOsX
     }),
+    NOT_MAC_OS_X({
+        !OperatingSystem.current().macOsX
+    }),
     LINUX({
         OperatingSystem.current().linux
     }),

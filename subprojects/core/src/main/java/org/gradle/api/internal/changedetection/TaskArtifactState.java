@@ -59,7 +59,7 @@ public interface TaskArtifactState {
     /**
      * Called on completion of task execution.
      */
-    void afterTask(Throwable failure);
+    void snapshotAfterTask(Throwable failure);
 
     /**
      * Returns the history for this task.
