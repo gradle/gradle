@@ -19,145 +19,98 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.test.fixtures.maven.MavenRepository
-import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
-import org.gradle.test.fixtures.server.http.MavenHttpRepository
-import org.gradle.util.ToBeImplemented
-import org.junit.Rule
-import org.mortbay.jetty.Handler
-import org.mortbay.jetty.handler.AbstractHandler
-
-import javax.servlet.ServletException
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
-import java.util.concurrent.CountDownLatch
 
 class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     private static final String GROUP_ID = 'group'
-
-    @Rule
-    RequestTimeoutHttpServer requestTimeoutServer = new RequestTimeoutHttpServer()
-
-    MavenHttpRepository requestTimeoutMavenRepo
-    MavenHttpRepository resolvableMavenRepo
-    MavenHttpModule moduleInRequestTimeoutRepo
-    MavenHttpModule moduleInResolvableRepo
+    private static final String VERSION = '1.0'
+    MavenHttpModule moduleA
 
     def setup() {
-        requestTimeoutMavenRepo = requestTimeoutMavenHttpServer()
-        resolvableMavenRepo = mavenHttpRepo
-        resolvableMavenRepo.server.start()
-        moduleInRequestTimeoutRepo = requestTimeoutMavenRepo.module(GROUP_ID, 'a', '1.0').publish()
-        moduleInResolvableRepo = resolvableMavenRepo.module(GROUP_ID, 'a', '1.0').publish()
+        moduleA = mavenHttpRepo.module(GROUP_ID, 'a', VERSION).publish()
     }
 
-    def "fails single buildscript dependency resolution if HTTP connection exceeds timeout"() {
+    def "fails single build script dependency resolution if HTTP connection exceeds timeout"() {
         buildFile << """
             buildscript {
-                ${mavenRepository(requestTimeoutMavenRepo)}
+                ${mavenRepository(mavenHttpRepo)}
 
                 dependencies {
-                    classpath '${mavenModuleCoordinates(moduleInRequestTimeoutRepo)}'
+                    classpath '${mavenModuleCoordinates(moduleA)}'
                 }
             }
         """
 
         when:
-        moduleInRequestTimeoutRepo.pom.expectGet()
+        moduleA.pom.expectGetBlocking()
         fails('resolve')
 
         then:
-        assertDependencyReadTimeout(moduleInRequestTimeoutRepo)
+        assertDependencyReadTimeout(moduleA)
     }
 
     def "fails single application dependency resolution if HTTP connection exceeds timeout"() {
         given:
         buildFile << """
-            ${mavenRepository(requestTimeoutMavenRepo)}
-            ${customConfigDependencyAssignment(moduleInResolvableRepo)}
+            ${mavenRepository(mavenHttpRepo)}
+            ${customConfigDependencyAssignment(moduleA)}
             ${configSyncTask()}
         """
 
         when:
-        moduleInRequestTimeoutRepo.pom.expectGet()
+        moduleA.pom.expectGetBlocking()
         fails('resolve')
 
         then:
-        assertDependencyReadTimeout(moduleInRequestTimeoutRepo)
+        assertDependencyReadTimeout(moduleA)
         !file('libs').isDirectory()
     }
 
     def "fails concurrent application dependency resolution if HTTP connection exceeds timeout"() {
-        MavenHttpModule moduleB = requestTimeoutMavenRepo.module(GROUP_ID, 'b', '2.0').publish()
-        MavenHttpModule moduleC = requestTimeoutMavenRepo.module(GROUP_ID, 'c', '3.0').publish()
-
         given:
+        MavenHttpModule moduleB = mavenHttpRepo.module(GROUP_ID, 'b', VERSION).publish()
+        MavenHttpModule moduleC = mavenHttpRepo.module(GROUP_ID, 'c', VERSION).publish()
+
         buildFile << """
-            ${mavenRepository(requestTimeoutMavenRepo)}
-            ${customConfigDependencyAssignment(moduleInResolvableRepo, moduleB, moduleC)}
+            ${mavenRepository(mavenHttpRepo)}
+            ${customConfigDependencyAssignment(moduleA, moduleB, moduleC)}
             ${configSyncTask()}
         """
 
         when:
-        moduleInRequestTimeoutRepo.pom.expectGet()
-        moduleB.pom.expectGet()
-        moduleC.pom.expectGet()
+        moduleA.pom.expectGetBlocking()
+        moduleB.pom.expectGetBlocking()
+        moduleC.pom.expectGetBlocking()
         fails('resolve', '--max-workers=3')
 
         then:
-        assertDependencyReadTimeout(moduleInRequestTimeoutRepo)
+        assertDependencyReadTimeout(moduleA)
         assertDependencyReadTimeout(moduleB)
         assertDependencyReadTimeout(moduleC)
         !file('libs').isDirectory()
     }
 
-    @ToBeImplemented("Should resolve from second repository")
-    def "try from next repository if resolution times out"() {
+    def "skips subsequent dependency resolution if HTTP connection exceeds timeout"() {
         given:
+        MavenHttpModule moduleB = mavenHttpRepo.module(GROUP_ID, 'b', VERSION).publish()
+        MavenHttpModule moduleC = mavenHttpRepo.module(GROUP_ID, 'c', VERSION).publish()
+
         buildFile << """
-            ${mavenRepository(requestTimeoutMavenRepo)}
-            ${mavenRepository(resolvableMavenRepo)}
-            ${customConfigDependencyAssignment(moduleInResolvableRepo)}
+            ${mavenRepository(mavenHttpRepo)}
+            ${customConfigDependencyAssignment(moduleA, moduleB, moduleC)}
             ${configSyncTask()}
         """
 
         when:
-        moduleInRequestTimeoutRepo.pom.expectGet()
-        moduleInResolvableRepo.pom.expectGet()
-        moduleInResolvableRepo.artifact.expectGet()
-        fails('resolve')
-        //succeeds('resolve')
+        moduleA.pom.expectGetBlocking()
+        fails('resolve', '--max-workers=1')
 
         then:
-        assertDependencyReadTimeout(moduleInRequestTimeoutRepo)
+        assertDependencyReadTimeout(moduleA)
+        assertDependencySkipped(moduleB)
+        assertDependencySkipped(moduleC)
         !file('libs').isDirectory()
-        //file('libs').assertHasDescendants('a-1.0.jar')
-    }
-
-    MavenHttpRepository requestTimeoutMavenHttpServer() {
-        requestTimeoutServer.start()
-        new MavenHttpRepository(requestTimeoutServer, '/request-timeout-maven', maven(file('request_timeout_maven_repo')))
-    }
-
-    static class RequestTimeoutHttpServer extends HttpServer {
-        CountDownLatch latch = new CountDownLatch(1)
-
-        @Override
-        Handler getCustomHandler() {
-            return new AbstractHandler() {
-                @Override
-                void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) throws IOException, ServletException {
-                    latch.await()
-                }
-            }
-        }
-
-        @Override
-        void after() {
-            latch.countDown()
-            super.after()
-        }
     }
 
     private String mavenRepository(MavenRepository repo) {
@@ -189,12 +142,25 @@ class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyReso
         """
     }
 
+    private void assertDependencyReadTimeout(MavenModule module) {
+        failure.error.contains("""> Could not resolve ${mavenModuleCoordinates(module)}.
+   > Could not get resource '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.pom'.
+      > Could not GET '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.pom'.
+         > Read timed out""")
+    }
+
+    private void assertDependencySkipped(MavenModule module) {
+        failure.error.contains("""> Could not resolve ${mavenModuleCoordinates(module)}.
+  Required by:
+      project :
+   > Skipped due to earlier error""")
+    }
+
     private String mavenModuleCoordinates(MavenModule module) {
         "$module.groupId:$module.artifactId:$module.version"
     }
 
-    private void assertDependencyReadTimeout(MavenModule module) {
-        failure.assertHasCause("Could not download ${module.artifactId}.jar (${mavenModuleCoordinates(module)})")
-        failure.assertHasCause('Read timed out')
+    private String mavenModuleRepositoryPath(MavenModule module) {
+        "$module.groupId/$module.artifactId/$module.artifactId-$module.version"
     }
 }
