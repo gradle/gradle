@@ -93,12 +93,14 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         final InputNormalizationStrategy normalizationStrategy = ((InputNormalizationHandlerInternal) task.getProject().getNormalization()).buildFinalStrategy();
 
         return new History() {
+            private boolean previousExecutionLoadAttempted;
             private LazyTaskExecution previousExecution;
             private LazyTaskExecution currentExecution;
 
             @Override
             public LazyTaskExecution getPreviousExecution() {
-                if (previousExecution == null) {
+                if (!previousExecutionLoadAttempted) {
+                    previousExecutionLoadAttempted = true;
                     previousExecution = loadPreviousExecution(task);
                 }
                 return previousExecution;
@@ -114,12 +116,12 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
             @Override
             public void updateCurrentExecution(IncrementalTaskInputsInternal taskInputs) {
-                CacheBackedTaskHistoryRepository.this.updateExecution(getPreviousExecution(), getCurrentExecution(), task, taskInputs, normalizationStrategy);
+                updateExecution(getPreviousExecution(), getCurrentExecution(), task, taskInputs, normalizationStrategy);
             }
 
             @Override
             public void updateCurrentExecutionWithOutputs(IncrementalTaskInputsInternal taskInputs, ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot) {
-                CacheBackedTaskHistoryRepository.this.updateExecution(getPreviousExecution(), getCurrentExecution(), task, taskInputs, newOutputSnapshot, normalizationStrategy);
+                updateExecution(getCurrentExecution(), task, taskInputs, newOutputSnapshot, normalizationStrategy);
             }
 
             @Override
@@ -198,10 +200,10 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 }
             }));
         }
-        updateExecution(previousExecution, currentExecution, task, taskInputs, newOutputSnapshot, normalizationStrategy);
+        updateExecution(currentExecution, task, taskInputs, newOutputSnapshot, normalizationStrategy);
     }
 
-    private void updateExecution(LazyTaskExecution previousExecution, LazyTaskExecution currentExecution, TaskInternal task, IncrementalTaskInputsInternal taskInputs, ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot, InputNormalizationStrategy normalizationStrategy) {
+    private void updateExecution(LazyTaskExecution currentExecution, TaskInternal task, IncrementalTaskInputsInternal taskInputs, ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot, InputNormalizationStrategy normalizationStrategy) {
         currentExecution.setSuccessful(task.getState().getFailure() == null);
 
         currentExecution.setOutputFilesSnapshot(newOutputSnapshot);

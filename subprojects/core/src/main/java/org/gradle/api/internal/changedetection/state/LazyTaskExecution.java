@@ -107,11 +107,7 @@ public class LazyTaskExecution extends TaskExecution {
     @Override
     public ImmutableSortedMap<String, FileCollectionSnapshot> getInputFilesSnapshot() {
         if (inputFilesSnapshot == null) {
-            ImmutableSortedMap.Builder<String, FileCollectionSnapshot> builder = ImmutableSortedMap.naturalOrder();
-            for (Map.Entry<String, Long> entry : inputFilesSnapshotIds.entrySet()) {
-                builder.put(entry.getKey(), snapshotRepository.get(entry.getValue()));
-            }
-            inputFilesSnapshot = builder.build();
+            inputFilesSnapshot = loadSnapshot(inputFilesSnapshotIds);
         }
         return inputFilesSnapshot;
     }
@@ -133,14 +129,20 @@ public class LazyTaskExecution extends TaskExecution {
     @Override
     public ImmutableSortedMap<String, FileCollectionSnapshot> getOutputFilesSnapshot() {
         if (outputFilesSnapshot == null) {
-            ImmutableSortedMap.Builder<String, FileCollectionSnapshot> builder = ImmutableSortedMap.naturalOrder();
-            for (Map.Entry<String, Long> entry : outputFilesSnapshotIds.entrySet()) {
-                String propertyName = entry.getKey();
-                builder.put(propertyName, snapshotRepository.get(entry.getValue()));
-            }
-            outputFilesSnapshot = builder.build();
+            outputFilesSnapshot = loadSnapshot(outputFilesSnapshotIds);
         }
         return outputFilesSnapshot;
+    }
+
+    private ImmutableSortedMap<String, FileCollectionSnapshot> loadSnapshot(Map<String, Long> snapshotIds) {
+        ImmutableSortedMap.Builder<String, FileCollectionSnapshot> builder = ImmutableSortedMap.naturalOrder();
+        for (Map.Entry<String, Long> entry : snapshotIds.entrySet()) {
+            String propertyName = entry.getKey();
+            Long snapshotId = entry.getValue();
+            FileCollectionSnapshot fileCollectionSnapshot = snapshotRepository.get(snapshotId);
+            builder.put(propertyName, fileCollectionSnapshot);
+        }
+        return builder.build();
     }
 
     @Override
@@ -176,10 +178,13 @@ public class LazyTaskExecution extends TaskExecution {
         }
     }
 
-    private ImmutableSortedMap<String, Long> storeSnapshot(ImmutableSortedMap<String, FileCollectionSnapshot> snapshot) {
+    private ImmutableSortedMap<String, Long> storeSnapshot(Map<String, FileCollectionSnapshot> snapshot) {
         ImmutableSortedMap.Builder<String, Long> builder = ImmutableSortedMap.naturalOrder();
         for (Map.Entry<String, FileCollectionSnapshot> entry : snapshot.entrySet()) {
-            builder.put(entry.getKey(), snapshotRepository.add(entry.getValue()));
+            String propertyName = entry.getKey();
+            FileCollectionSnapshot fileCollectionSnapshot = entry.getValue();
+            Long snapshotId = snapshotRepository.add(fileCollectionSnapshot);
+            builder.put(propertyName, snapshotId);
         }
         return builder.build();
     }
@@ -187,16 +192,19 @@ public class LazyTaskExecution extends TaskExecution {
     public void removeUnnecessarySnapshots() {
         if (inputFilesSnapshotIds != null) {
             removeUnnecessarySnapshot(inputFilesSnapshotIds);
+            inputFilesSnapshotIds = null;
         }
         if (outputFilesSnapshotIds != null) {
             removeUnnecessarySnapshot(outputFilesSnapshotIds);
+            outputFilesSnapshotIds = null;
         }
         if (discoveredFilesSnapshotId != null) {
             snapshotRepository.remove(discoveredFilesSnapshotId);
+            discoveredFilesSnapshotId = null;
         }
     }
 
-    private void removeUnnecessarySnapshot(ImmutableSortedMap<String, Long> snapshot) {
+    private void removeUnnecessarySnapshot(Map<String, Long> snapshot) {
         for (Long id : snapshot.values()) {
             snapshotRepository.remove(id);
         }
