@@ -27,6 +27,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.ReproducibleDirectoryWalker
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Factory
+import org.gradle.internal.nativeintegration.filesystem.jdk7.PosixJdk7FilePermissionHandler
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
@@ -34,6 +35,7 @@ import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestPrecondition
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -319,4 +321,30 @@ class Jdk7DirectoryWalkerTest extends Specification {
         }
     }
 
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Issue('https://github.com/gradle/gradle/issues/2639')
+    @Ignore
+    def "excluded files' permissions should be ignored"() {
+        given:
+        def rootDir = tmpDir.createDir('root')
+        def unauthorizedDir = rootDir.createDir('unauthorized')
+        def permissionHandler = new PosixJdk7FilePermissionHandler()
+        permissionHandler.chmod(unauthorizedDir, 0222)
+        rootDir.createDir('authorized')
+
+        when:
+        def walkerInstance = new Jdk7DirectoryWalker()
+        def fileTree = new DirectoryFileTree(rootDir, new PatternSet().exclude('unauthorized'), {
+            walkerInstance
+        } as Factory, TestFiles.fileSystem(), false)
+        def visitedDirectories = []
+        def fileVisitor = [visitDir: { visitedDirectories << it }] as FileVisitor
+
+        fileTree.visit(fileVisitor)
+        permissionHandler.chmod(unauthorizedDir, 0666)
+
+        then:
+        visitedDirectories.size() == 1
+        visitedDirectories.first().name == 'authorized'
+    }
 }

@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.junit.Assert.assertTrue
@@ -193,5 +194,30 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         testTargetFile.canWrite()
     }
 
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Issue('https://github.com/gradle/gradle/issues/2639')
+    def "excluded files' permissions should be ignored"() {
+        given:
+        getTestDirectory().createFile('src/unauthorized')
+        getTestDirectory().createFile('src/authorized')
+        getTestDirectory().createDir('dest')
+        file('src/unauthorized').mode = 0222
 
+        and:
+        buildFile << """
+            task copy(type: Copy) {
+                from('src'){
+                    exclude 'unauthorized'
+                }
+                into 'dest'
+            }
+            """
+
+        when:
+        run "copy"
+        file('src/unauthorized').mode = 0666
+
+        then:
+        file('dest').assertHasDescendants('authorized')
+    }
 }
