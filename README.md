@@ -28,7 +28,7 @@ If you're dealing with what you believe to be an issue with Kotlin itself or the
 Staying in Touch
 ----------------
 
-Come chat with us in the #gradle channel of the public [Kotlin Slack](http://kotlinslackin.herokuapp.com/) instance.
+Come chat with us in the #gradle channel of the public [Kotlin Slack](http://slack.kotlinlang.org/) instance.
 
 Limitations
 -----------
