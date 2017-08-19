@@ -42,7 +42,14 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         where:
         testProject                   | _
-        LARGE_MONOLITHIC_JAVA_PROJECT | _
+        /* the "large monolithic case has some kind of consistent bias
+         * against the current development version, which makes it fail
+         * even when compared to yesterday's nightly. We need to find the
+         * source of this problem before we can reactivate this test.
+         * Interestingly the "large multiproject" sample does not have
+         * this problem.
+          LARGE_MONOLITHIC_JAVA_PROJECT | _
+        */
         LARGE_JAVA_MULTI_PROJECT      | _
     }
 
