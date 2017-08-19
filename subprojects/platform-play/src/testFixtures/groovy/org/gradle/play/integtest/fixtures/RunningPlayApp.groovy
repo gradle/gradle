@@ -28,6 +28,7 @@ class RunningPlayApp {
     int httpPort = UNASSIGNED
     final TestFile testDirectory
     Closure output
+    boolean standalone
 
     RunningPlayApp(TestFile testDirectory) {
         this.testDirectory = testDirectory
@@ -56,12 +57,26 @@ class RunningPlayApp {
             throw new IllegalStateException("Attempted to parse the http port from the build output, but initialize() was not called first!")
         }
 
-        httpPort = regexParseHttpPort(output.call(), occurrence)
+        if (standalone) {
+            httpPort = regexParseHttpPortStandalone(output.call(), occurrence)
+        } else {
+            httpPort = regexParseHttpPortFromGradle(output.call(), occurrence)
+        }
         return httpPort
     }
 
-    static int regexParseHttpPort(output, int occurrence) {
-        def matcher = output =~ /Running Play App \(:.*\) at http:\/\/.*:([0-9]+)\//
+
+    static int regexParseHttpPortStandalone(output, int occurrence) {
+        return parseHttpPort(output, /play - Listening for HTTP on .*:([0-9]+)/, occurrence)
+    }
+
+
+    static int regexParseHttpPortFromGradle(output, int occurrence) {
+        return parseHttpPort(output, /Running Play App \(:.*\) at http:\/\/.*:([0-9]+)\//, occurrence)
+    }
+
+    static int parseHttpPort(output, regex, int occurrence) {
+        def matcher = output =~ regex
         if (matcher.count >= occurrence + 1) {
             return matcher[occurrence][1] as int
         }
@@ -82,10 +97,12 @@ class RunningPlayApp {
 
     void initialize(GradleHandle gradle) {
         output = { gradle.standardOutput }
+        standalone = false
     }
 
     void initialize(DistributionTestExecHandle distHandle) {
         output = { distHandle.standardOutput }
+        standalone = true
     }
 
     boolean isInitialized() {

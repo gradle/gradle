@@ -20,18 +20,34 @@ import org.gradle.testing.internal.util.Specification
 import org.gradle.util.CollectionUtils
 
 class RunningPlayAppTest extends Specification {
-    def "can parse HTTP port from output"() {
+    def "can parse HTTP port from output through Gradle"() {
         expect:
-        RunningPlayApp.regexParseHttpPort(output, occurrence) == result
+        RunningPlayApp.regexParseHttpPortFromGradle(output, occurrence) == result
 
         where:
         occurrence | result                    | output
-        0          | 57696                     | playOutput(":runPlayBinary", "57696")
-        1          | 57696                     | CollectionUtils.join('stuff\n', playOutput(":runPlayBinary", "12345"), playOutput(":runPlayBinary", "57696"))
+        0          | 57696                     | playRun(":runPlayBinary", "57696")
+        1          | 57696                     | CollectionUtils.join('stuff\n', playRun(":runPlayBinary", "12345"), playRun(":runPlayBinary", "57696"))
         0          | RunningPlayApp.UNASSIGNED | "no port"
     }
 
-    def playOutput(path, port) {
+    def playRun(path, port) {
         "Running Play App ($path) at http://localhost:$port/"
     }
+
+    def "can parse HTTP port from output standalone"() {
+        expect:
+        RunningPlayApp.regexParseHttpPortStandalone(output, occurrence) == result
+
+        where:
+        occurrence | result                    | output
+        0          | 57696                     | playDistOutput("57696")
+        1          | 57696                     | CollectionUtils.join('stuff\n', playDistOutput("12345"), playDistOutput("57696"))
+        0          | RunningPlayApp.UNASSIGNED | "no port"
+    }
+
+    def playDistOutput(port) {
+        "[info] play - Listening for HTTP on /0:0:0:0:0:0:0:0:$port"
+    }
+
 }
