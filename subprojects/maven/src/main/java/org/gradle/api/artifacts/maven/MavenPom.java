@@ -60,11 +60,23 @@ public interface MavenPom {
 
     /**
      * Provides a builder for the Maven POM for adding or modifying properties of the Maven {@link #getModel()}.
-     * The syntax is exactly the same as used by polyglot Maven.
+     * The syntax is exactly the same as used by polyglot Maven. For example:
+     *
+     * <pre>
+     * pom.project {
+     *    inceptionYear '2008'
+     *    licenses {
+     *       license {
+     *          name 'The Apache Software License, Version 2.0'
+     *          url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+     *          distribution 'repo'
+     *       }
+     *    }
+     * }
+     * </pre>
      *
      * @return this
      *
-     * @see #project(Closure)
      * @since 4.2
      */
     MavenPom project(Action<? super GroovyObject> pom);
