@@ -38,9 +38,15 @@ In this release of Gradle, API methods have been added to allow a plugin author 
 
 #### Declaring the output of a task as a publish artifact
 
-In previous versions of Gradle, it was awkward to declare the output of a task as a publish artifact, in a way that deals with changes to the build directory and other configuration. A publish artifact makes a file or directory available to be referenced by a project dependency or published to a binary repository.
+In previous versions of Gradle, it was not possible to declare the output of a task as a publish artifact in a way that deals with changes to the build directory and other configuration. A publish artifact makes a file or directory available to be referenced by a project dependency or published to a binary repository.
 
 TBD: The publish artifact DSL now accepts `Provider<File>`, `Provider<RegularFile>` and `Provider<Directory>` instances, which allows a plugin author to easily wire up a particular task output as a publish artifact in a way that respects configuration changes.
+
+#### Groovy DSL support for properties of type `PropertyState`
+
+The last several version of Gradle have been steadily adding new features for plugin authors that build on the `Provider<T>` and `PropertyState<T>` types. This version of Gradle adds some DSL conveniences for working with these types.
+
+TBD: The Groovy DSL adds convenience methods to set the value of a property whose type is `PropertyState<T>` using any value of `T` or a `Provider<T>`. This makes the DSL clearer when configuring such a property, including wiring the output of one task in as the input of some other task or setting output locations relative to some configurable value, such as the build directory.  
 
 ### Safer handling of stale output files
 
