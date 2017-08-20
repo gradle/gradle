@@ -56,15 +56,15 @@ class SwiftExecutablePluginTest extends Specification {
         def compileSwift = project.tasks.compileSwift
         compileSwift instanceof SwiftCompile
         compileSwift.source.files == [src] as Set
-        compileSwift.objectFileDirectory.get().get() == projectDir.file("build/main/objs")
+        compileSwift.objectFileDirectory.get().asFile == projectDir.file("build/main/objs")
 
         def link = project.tasks.linkMain
         link instanceof LinkExecutable
-        link.binaryFile.get().get() == projectDir.file("build/exe/" + OperatingSystem.current().getExecutableName("TestApp"))
+        link.binaryFile.get().asFile == projectDir.file("build/exe/" + OperatingSystem.current().getExecutableName("TestApp"))
 
         def install = project.tasks.installMain
         install instanceof InstallExecutable
-        install.installDirectory.get().get() == projectDir.file("build/install/TestApp")
+        install.installDirectory.get().asFile == projectDir.file("build/install/TestApp")
         install.runScript.name == OperatingSystem.current().getScriptName("TestApp")
     }
 
@@ -78,10 +78,10 @@ class SwiftExecutablePluginTest extends Specification {
         compileSwift.moduleName == "App"
 
         def link = project.tasks.linkMain
-        link.binaryFile.get().get() == projectDir.file("build/exe/" + OperatingSystem.current().getExecutableName("App"))
+        link.binaryFile.get().asFile == projectDir.file("build/exe/" + OperatingSystem.current().getExecutableName("App"))
 
         def install = project.tasks.installMain
-        install.installDirectory.get().get() == projectDir.file("build/install/App")
+        install.installDirectory.get().asFile == projectDir.file("build/install/App")
         install.runScript.name == OperatingSystem.current().getScriptName("App")
     }
 }

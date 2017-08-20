@@ -55,11 +55,11 @@ class SwiftLibraryPluginTest extends Specification {
         def compileSwift = project.tasks.compileSwift
         compileSwift instanceof SwiftCompile
         compileSwift.source.files == [src] as Set
-        compileSwift.objectFileDirectory.get().get() == projectDir.file("build/main/objs")
+        compileSwift.objectFileDirectory.get().asFile == projectDir.file("build/main/objs")
 
         def link = project.tasks.linkMain
         link instanceof LinkSharedLibrary
-        link.binaryFile.get().get() == projectDir.file("build/lib/" + OperatingSystem.current().getSharedLibraryName("TestLib"))
+        link.binaryFile.get().asFile == projectDir.file("build/lib/" + OperatingSystem.current().getSharedLibraryName("TestLib"))
     }
 
     def "output file names are calculated from module name defined on extension"() {
@@ -72,6 +72,6 @@ class SwiftLibraryPluginTest extends Specification {
         compileSwift.moduleName == "Lib"
 
         def link = project.tasks.linkMain
-        link.binaryFile.get().get() == projectDir.file("build/lib/" + OperatingSystem.current().getSharedLibraryName("Lib"))
+        link.binaryFile.get().asFile == projectDir.file("build/lib/" + OperatingSystem.current().getSharedLibraryName("Lib"))
     }
 }

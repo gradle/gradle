@@ -57,15 +57,15 @@ class CppExecutablePluginTest extends Specification {
         compileCpp instanceof CppCompile
         compileCpp.includes.files == [project.file("src/main/headers")] as Set
         compileCpp.source.files == [src] as Set
-        compileCpp.objectFileDirectory.get().get() == projectDir.file("build/main/objs")
+        compileCpp.objectFileDirectory.get().asFile == projectDir.file("build/main/objs")
 
         def link = project.tasks.linkMain
         link instanceof LinkExecutable
-        link.binaryFile.get().get() == projectDir.file("build/exe/" + OperatingSystem.current().getExecutableName("testApp"))
+        link.binaryFile.get().asFile == projectDir.file("build/exe/" + OperatingSystem.current().getExecutableName("testApp"))
 
         def install = project.tasks.installMain
         install instanceof InstallExecutable
-        install.installDirectory.get().get() == projectDir.file("build/install/testApp")
+        install.installDirectory.get().asFile == projectDir.file("build/install/testApp")
         install.runScript.name == OperatingSystem.current().getScriptName("testApp")
     }
 
@@ -76,10 +76,10 @@ class CppExecutablePluginTest extends Specification {
 
         then:
         def link = project.tasks.linkMain
-        link.binaryFile.get().get() == projectDir.file("build/exe/" + OperatingSystem.current().getExecutableName("test_app"))
+        link.binaryFile.get().asFile == projectDir.file("build/exe/" + OperatingSystem.current().getExecutableName("test_app"))
 
         def install = project.tasks.installMain
-        install.installDirectory.get().get() == projectDir.file("build/install/test_app")
+        install.installDirectory.get().asFile == projectDir.file("build/install/test_app")
         install.runScript.name == OperatingSystem.current().getScriptName("test_app")
     }
 

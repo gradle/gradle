@@ -60,11 +60,11 @@ class CppLibraryPluginTest extends Specification {
         compileCpp instanceof CppCompile
         compileCpp.includes.files as List == [publicHeaders, privateHeaders]
         compileCpp.source.files as List == [src]
-        compileCpp.objectFileDirectory.get().get() == projectDir.file("build/main/objs")
+        compileCpp.objectFileDirectory.get().asFile == projectDir.file("build/main/objs")
 
         def link = project.tasks.linkMain
         link instanceof LinkSharedLibrary
-        link.binaryFile.get().get() == projectDir.file("build/lib/" + OperatingSystem.current().getSharedLibraryName("testLib"))
+        link.binaryFile.get().asFile == projectDir.file("build/lib/" + OperatingSystem.current().getSharedLibraryName("testLib"))
     }
 
     def "output locations are calculated using base name defined on extension"() {
@@ -74,7 +74,7 @@ class CppLibraryPluginTest extends Specification {
 
         then:
         def link = project.tasks.linkMain
-        link.binaryFile.get().get() == projectDir.file("build/lib/" + OperatingSystem.current().getSharedLibraryName("test_lib"))
+        link.binaryFile.get().asFile == projectDir.file("build/lib/" + OperatingSystem.current().getSharedLibraryName("test_lib"))
     }
 
     def "output locations reflects changes to buildDir"() {
