@@ -24,6 +24,9 @@ import static PrettyCalculator.toMillis
 
 @CompileStatic
 class BaselineVersion implements VersionResults {
+    // Multiply standard error of mean by this factor to reduce the number of a falsely identified regressions.
+    // https://en.wikipedia.org/wiki/Standard_deviation#Rules_for_normally_distributed_data
+    static final BigDecimal NUM_STANDARD_ERRORS_FROM_MEAN = new BigDecimal("3")
     final String version
     final MeasuredOperationList results = new MeasuredOperationList()
 
@@ -59,11 +62,7 @@ class BaselineVersion implements VersionResults {
         results.totalTime && current.totalTime.median - results.totalTime.median > getMaxExecutionTimeRegression(current)
     }
 
-    /*
-      Allows the results to deviate from the baseline by at most 1.5 standard deviations of the mean.
-      This seems to be a good trade-off between strictness and avoiding false positives
-     */
     Amount<Duration> getMaxExecutionTimeRegression(MeasuredOperationList current) {
-        (results.totalTime.standardErrorOfMean + current.totalTime.standardErrorOfMean) / 2 * 1.5
+        (results.totalTime.standardErrorOfMean + current.totalTime.standardErrorOfMean) / 2 * NUM_STANDARD_ERRORS_FROM_MEAN
     }
 }
