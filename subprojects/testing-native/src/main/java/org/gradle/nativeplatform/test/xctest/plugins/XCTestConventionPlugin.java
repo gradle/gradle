@@ -85,11 +85,13 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         // TODO - Reuse logic from Swift*Plugin
         // Add the component extension
         SwiftComponent component = project.getExtensions().create(SwiftComponent.class, "xctest", DefaultSwiftComponent.class, fileOperations);
+        // TODO - should reuse convention from the component
         component.getSource().from(projectDirectory.dir("src/test/swift"));
 
         // Add a compile task
         SwiftCompile compile = tasks.create("compileTestSwift", SwiftCompile.class);
 
+        // TODO - should add to component
         compile.includes(configurations.getByName(SwiftBasePlugin.SWIFT_TEST_IMPORT_PATH));
 
         FileCollection sourceFiles = component.getSwiftSource();
@@ -112,7 +114,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
         // Add a link task
         LinkExecutable link = tasks.create("linkTest", LinkExecutable.class);
-        // TODO - need to set basename
+        // TODO - need to set basename from component
         link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
         link.lib(configurations.getByName(CppBasePlugin.NATIVE_TEST_LINK));
         link.setLinkerArgs(Lists.newArrayList("-Xlinker", "-bundle", "-F" + frameworkDir.getAbsolutePath(), "-framework", "XCTest", "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks", "-Xlinker", "-rpath", "-Xlinker", "@loader_path/../Frameworks"));
@@ -122,10 +124,11 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         link.setTargetPlatform(currentPlatform);
         link.setToolChain(toolChain);
 
-
+        // TODO - need to set basename from component
         Provider<Directory> testBundleDir = buildDirectory.dir("bundle/" + project.getName() + "Test.xctest");
         final CreateXcTestBundle testBundle = tasks.create("createXcTestBundle", CreateXcTestBundle.class);
         testBundle.setExecutableFile(link.getBinaryFile());
+        // TODO - should be defined on the component
         testBundle.setInformationFile(project.file("src/test/resources/Info.plist"));
         testBundle.setOutputDir(testBundleDir);
         testBundle.onlyIf(new Spec<Task>() {
@@ -136,11 +139,14 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         });
 
         final XcTest xcTest = tasks.create("xcTest", XcTest.class);
+        // TODO - should infer this
         xcTest.dependsOn(testBundle);
+        // TODO - should respect changes to build directory
         xcTest.setBinResultsDir(project.file("build/results/test/bin"));
         xcTest.setTestBundleDir(testBundleDir);
         xcTest.setWorkingDir(buildDirectory.dir("bundle"));
         // TODO - should respect changes to reports dir
+        // TODO - should respect changes to build dir
         xcTest.getReports().getHtml().setDestination(buildDirectory.dir("reports/test").get().getAsFile());
         xcTest.getReports().getJunitXml().setDestination(buildDirectory.dir("reports/test/xml").get().getAsFile());
         xcTest.onlyIf(new Spec<Task>() {
@@ -152,5 +158,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
         Task test = tasks.create("test");
         test.dependsOn(xcTest);
+
+        // TODO - check should depend on test
     }
 }
