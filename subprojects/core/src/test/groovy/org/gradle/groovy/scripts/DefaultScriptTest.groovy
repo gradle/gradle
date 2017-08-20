@@ -29,6 +29,7 @@ import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.logging.StandardOutputCapture
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.resource.TextResourceLoader
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.JUnit4GroovyMockery
@@ -67,6 +68,8 @@ class DefaultScriptTest {
             will(returnValue(context.mock(StreamHasher)))
             allowing(serviceRegistryMock).get(FileHasher)
             will(returnValue(context.mock(FileHasher)))
+            allowing(serviceRegistryMock).get(TextResourceLoader)
+            will(returnValue(context.mock(TextResourceLoader)))
         }
 
         DefaultScript script = new GroovyShell(createBaseCompilerConfiguration()).parse(testScriptText)

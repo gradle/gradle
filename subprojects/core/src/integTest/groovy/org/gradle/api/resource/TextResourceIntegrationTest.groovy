@@ -18,12 +18,17 @@ package org.gradle.api.resource
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
+import spock.lang.Issue
 
 @TestReproducibleArchives
 class TextResourceIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     TestResources resource = new TestResources(temporaryFolder)
+
+    @Rule
+    public final HttpServer server = new HttpServer()
 
     def "string backed text resource"() {
         when:
@@ -85,4 +90,34 @@ class TextResourceIntegrationTest extends AbstractIntegrationSpec {
         then:
         skippedTasks == [":generateConfigFile", ":generateConfigZip", ":archiveEntryText"] as Set
     }
+
+    @Issue("gradle/gradle#2663")
+    def "uri backed text resource"() {
+
+        given:
+        def resourceFile = file("web-file.txt")
+        server.expectGet("/myConfig.txt", resourceFile)
+        server.expectHead("/myConfig.txt", resourceFile)
+        server.start()
+
+        buildFile << """
+            task uriText(type: MyTask) {
+                config = resources.text.fromUri("http://localhost:$server.port/myConfig.txt".toURI())
+                output = project.file("output.txt")
+            }
+"""
+        when:
+        run("uriText")
+
+        then:
+        executedTasks == [":uriText"]
+        file("output.txt").text == "my config\n"
+
+        when:
+        run("uriText")
+
+        then:
+        skippedTasks == [":uriText"] as Set
+    }
+
 }

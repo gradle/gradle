@@ -17,8 +17,14 @@
 package org.gradle.api.resource
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.server.http.HttpServer
+import org.junit.Rule
+import spock.lang.Issue
 
 class BrokenTextResourceIntegrationTest extends AbstractIntegrationSpec {
+    @Rule
+    public final HttpServer server = new HttpServer()
+
     def setup() {
         buildFile << """
 class TextTask extends DefaultTask {
@@ -71,5 +77,19 @@ task text(type: TextTask)
         expect:
         fails("text")
         failure.assertHasCause("Expected entry 'config.txt' in archive file collection to contain exactly one file, however, it contains no files.")
+    }
+
+    @Issue("gradle/gradle#2663")
+    def "reports read of missing uri resource"() {
+        given:
+        server.expectGetMissing("/myConfig.txt")
+        server.start()
+        buildFile << """
+            text.text = resources.text.fromUri("http://localhost:$server.port/myConfig.txt".toURI())
+"""
+
+        expect:
+        fails("text")
+        failure.assertHasCause("Could not read 'http://localhost:$server.port/myConfig.txt' as it does not exist.")
     }
 }

@@ -37,6 +37,7 @@ import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.resource.TextResourceLoader
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.registry.ModelRegistry
@@ -164,7 +165,8 @@ class DefaultProjectSpec extends Specification {
         def directoryFileTreeFactory = Mock(DefaultDirectoryFileTreeFactory)
         def streamHasher = Mock(StreamHasher)
         def fileHasher = Mock(FileHasher)
-        def fileOperations = instantiator.newInstance(DefaultFileOperations, fileResolver, taskResolver, tempFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher)
+        def textResourceLoader = Mock(TextResourceLoader)
+        def fileOperations = instantiator.newInstance(DefaultFileOperations, fileResolver, taskResolver, tempFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, textResourceLoader)
 
         return Spy(DefaultProject, constructorArgs: [name, parent, new File("project"), new File("build file"), Stub(ScriptSource), build, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope)]) {
             getFileOperations() >> fileOperations
