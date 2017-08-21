@@ -46,7 +46,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class OperationGroupingOutputEventListener implements OutputEventListener {
 
-    private static final long LONG_RUNNING_TASK_OUTPUT_FLUSH_PERIOD = TimeUnit.SECONDS.toMillis(5);
+    private static final long LONG_RUNNING_TASK_OUTPUT_FLUSH_PERIOD = TimeUnit.SECONDS.toMillis(50);
     private final OutputEventGroupListener listener;
     private final TimeProvider timeProvider;
     private final ScheduledExecutorService executorService;
@@ -185,6 +185,7 @@ public class OperationGroupingOutputEventListener implements OutputEventListener
             flushGroup(group, logBuffers.get(group.getBuildOperationId()), "STOPPED", true);
         }
         listener.onOutput(event);
+        executorService.shutdown();
         buildOpIdHierarchy.clear();
         logBuffers.clear();
         progressToBuildOpIdMap.clear();

@@ -82,6 +82,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         // log level filtering -> buffer/grouping -> header generator -> log event generator -> styled text rendering
         //                                                            \> batching -> header filtering -> console rendering
 
+        // TODO(ew): figure out a way to filter
         this.commonOutputChain = new OperationGroupingOutputEventListener(
                 new HeaderPrependingOutputEventGroupListener(formatters.getSource(), new PrettyPrefixedLogHeaderFormatter()),
                 timeProvider);

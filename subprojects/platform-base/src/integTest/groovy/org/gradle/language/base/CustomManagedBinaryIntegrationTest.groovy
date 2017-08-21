@@ -100,7 +100,8 @@ model {
         when:
         succeeds "components"
         then:
-        output.contains """:components
+        output.contains """
+> Task :components
 
 ------------------------------------------------------------
 Root project
@@ -114,6 +115,7 @@ SampleBinary 'sampleBinary'
     build using task: :sampleBinary
 
 Note: currently not all plugins register their components, so some components may not be visible here.
+
 
 BUILD SUCCESSFUL"""
     }
