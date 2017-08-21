@@ -93,6 +93,7 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
     def "test execution is cached with different gradle user home"() {
         when:
         withBuildCache().succeeds "test", "jacocoTestReport"
+        def snapshot = reportFile.snapshot()
         then:
         nonSkippedTasks.containsAll ":test", ":jacocoTestReport"
         reportFile.assertIsFile()
@@ -107,6 +108,7 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
         withBuildCache().succeeds "jacocoTestReport"
         then:
         skippedTasks.containsAll ":test", ":jacocoTestReport"
+        reportFile.assertContentsHaveNotChangedSince(snapshot)
     }
 
     def "test is cached when jacoco is disabled"() {
