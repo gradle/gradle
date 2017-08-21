@@ -18,6 +18,9 @@ package org.gradle.internal.scan.config;
 import com.google.common.collect.Lists;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.plugin.management.internal.DefaultPluginRequest;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
@@ -33,13 +36,17 @@ import java.util.List;
  * Automatically adds a plugin request for the build scan plugin when `--scan` is detected.
  *
  * - Plugin request is only added for the root project.
+ * - No request is added if the project has already requested the build scan plugin, via `plugins` or `buildscript`.
  * - The plugin request is inserted before any other plugin requests.
  * - A fixed version of the build scan plugin is requested.
  */
 public class BuildScanPluginAutoApply implements PluginRequestsTransformer {
-    private final StartParameter startParameter;
     private static final PluginId BUILD_SCAN_PLUGIN_ID = DefaultPluginId.of("com.gradle.build-scan");
     private static final String BUILD_SCAN_PLUGIN_VERSION = "1.9";
+    private static final String BUILD_SCAN_PLUGIN_GROUP = "com.gradle";
+    private static final String BUILD_SCAN_PLUGIN_NAME = "build-scan-plugin";
+
+    private final StartParameter startParameter;
 
     public BuildScanPluginAutoApply(StartParameter startParameter) {
         this.startParameter = startParameter;
@@ -52,6 +59,10 @@ public class BuildScanPluginAutoApply implements PluginRequestsTransformer {
         }
 
         if (!isRootProject(pluginTarget)) {
+            return requests;
+        }
+
+        if (isPluginAlreadyRequested(requests, (Project) pluginTarget)) {
             return requests;
         }
 
@@ -69,5 +80,23 @@ public class BuildScanPluginAutoApply implements PluginRequestsTransformer {
 
         Project project = (Project) pluginTarget;
         return project == project.getRootProject();
+    }
+
+    private boolean isPluginAlreadyRequested(PluginRequests requests, Project project) {
+        for (PluginRequestInternal request : requests) {
+            if (BUILD_SCAN_PLUGIN_ID.equals(request.getId())) {
+                // Build scan plugin already requested in `plugins`
+                return true;
+            }
+        }
+
+        Configuration classpathConfiguration = project.getBuildscript().getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
+        for (Dependency dependency : classpathConfiguration.getDependencies()) {
+            // Build scan plugin already included as `classpath` dependency
+            if (BUILD_SCAN_PLUGIN_GROUP.equals(dependency.getGroup()) && BUILD_SCAN_PLUGIN_NAME.equals(dependency.getName())) {
+                return true;
+            }
+        }
+        return false;
     }
 }
