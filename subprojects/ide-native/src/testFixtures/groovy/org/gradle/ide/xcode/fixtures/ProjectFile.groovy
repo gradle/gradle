@@ -124,6 +124,10 @@ class ProjectFile {
             super(id, object)
         }
 
+        List<PBXObject> getChildren() {
+            return getProperty("children")
+        }
+
         def assertHasChildren(List<String> entries) {
             def children = getProperty("children")
             assert children.size() == entries.size()

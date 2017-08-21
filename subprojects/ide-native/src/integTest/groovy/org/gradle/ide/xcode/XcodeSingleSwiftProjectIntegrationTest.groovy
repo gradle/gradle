@@ -17,7 +17,6 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 
@@ -43,7 +42,7 @@ apply plugin: 'swift-executable'
         project.assertTargetsAreTools()
         project.targets.every { it.productName == 'App' }
         project.targets[0].name == 'App Executable'
-        project.targets[0].productReference.path == file("build/exe/App").absolutePath
+        project.targets[0].productReference.path == exe("build/exe/App").absolutePath
         project.targets[1].name == '[INDEXING ONLY] App Executable'
 
         assertProjectHasEqualsNumberOfGradleAndIndexTargets(project.targets)
@@ -69,7 +68,7 @@ apply plugin: 'swift-library'
         project.assertTargetsAreDynamicLibraries()
         project.targets.every { it.productName == "App" }
         project.targets[0].name == 'App SharedLibrary'
-        project.targets[0].productReference.path == file(OperatingSystem.current().getSharedLibraryName("build/lib/App")).absolutePath
+        project.targets[0].productReference.path == sharedLib("build/lib/App").absolutePath
         project.targets[1].name == '[INDEXING ONLY] App SharedLibrary'
 
         assertProjectHasEqualsNumberOfGradleAndIndexTargets(project.targets)

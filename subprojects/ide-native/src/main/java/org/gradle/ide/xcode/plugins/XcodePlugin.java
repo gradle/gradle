@@ -17,6 +17,7 @@
 package org.gradle.ide.xcode.plugins;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
@@ -232,8 +233,11 @@ public class XcodePlugin extends IdePlugin {
         xcode.getProject().getSources().from(headers);
 
         // TODO - Reuse the logic from `cpp-executable` or `cpp-library` to find the link task path
-        Task linkTask = project.getTasks().getByName("linkMain");
-        XcodeTarget target = newTarget(project.getName() + " " + toString(productType), project.getName(), productType, toGradleCommand(project.getRootProject()), linkTask.getPath(), project.file("build/exe/" + project.getName()), sources);
+        // TODO - should use the _install_ task for an executable
+        AbstractLinkTask linkTask = (AbstractLinkTask) project.getTasks().getByName("linkMain");
+        String targetName = StringUtils.capitalize(project.getName());
+        // TODO - respect changes to link task output
+        XcodeTarget target = newTarget(targetName + " " + toString(productType), targetName, productType, toGradleCommand(project.getRootProject()), linkTask.getPath(), linkTask.getOutputFile(), sources);
         target.getHeaderSearchPaths().from(component.getCompileIncludePath());
         xcode.getProject().setTarget(target);
 

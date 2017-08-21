@@ -17,6 +17,8 @@
 package org.gradle.ide.xcode.fixtures
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.CollectionUtils
 
 class AbstractXcodeIntegrationSpec extends AbstractIntegrationSpec {
@@ -33,6 +35,14 @@ rootProject.name = "${rootProjectName}"
 
     protected String getRootProjectName() {
         'app'
+    }
+
+    protected TestFile exe(String str) {
+        file(OperatingSystem.current().getExecutableName(str))
+    }
+
+    protected TestFile sharedLib(String str) {
+        file(OperatingSystem.current().getSharedLibraryName(str))
     }
 
     protected XcodeProjectPackage xcodeProject(String path) {
@@ -60,7 +70,7 @@ rootProject.name = "${rootProjectName}"
         }
     }
 
-    private static def buildSettings(def project) {
-        CollectionUtils.single(project.targets.find(indexTargets()).buildConfigurationList.buildConfigurations).buildSettings
+    protected def buildSettings(def project) {
+        return CollectionUtils.single(project.targets.find(indexTargets()).buildConfigurationList.buildConfigurations).buildSettings
     }
 }
