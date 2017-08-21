@@ -16,26 +16,30 @@
 
 package org.gradle.api.tasks.testing;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.reporting.DirectoryReport;
-import org.gradle.api.tasks.Input;
+import org.gradle.api.reporting.Report;
+import org.gradle.api.reporting.ReportContainer;
+import org.gradle.api.tasks.Nested;
 
 /**
- * The JUnit XML files, commonly used to communicate results to CI servers.
+ * The reports produced by the {@link Test} task.
  */
-public interface JUnitXmlReport extends DirectoryReport {
+public interface TestTaskReports extends ReportContainer<Report> {
 
     /**
-     * Should the output be associated with individual test cases instead of at the suite level.
+     * A HTML report indicate the result of the test execution.
+     *
+     * @return The HTML report
      */
-    @Incubating
-    @Input
-    boolean isOutputPerTestCase();
+    @Nested
+    DirectoryReport getHtml();
 
     /**
-     * Should the output be associated with individual test cases instead of at the suite level.
+     * The test result in “JUnit XML” format.
+     *
+     * @return The test result in “JUnit XML” format
      */
-    @Incubating
-    void setOutputPerTestCase(boolean outputPerTestCase);
+    @Nested
+    JUnitXmlReport getJunitXml();
 
 }

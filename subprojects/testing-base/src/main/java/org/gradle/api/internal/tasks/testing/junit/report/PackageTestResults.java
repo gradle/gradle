@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * The test results for a given package.
+ * The test result for a given package.
  */
 public class PackageTestResults extends CompositeTestResults {
     private static final String DEFAULT_PACKAGE = "default-package";

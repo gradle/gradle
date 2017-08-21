@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.test.xctest.internal;
 
-import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.DefaultTestMethodDescriptor;
@@ -30,7 +29,6 @@ import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.detection.TestExecuter;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.IdGenerator;
@@ -39,6 +37,7 @@ import org.gradle.internal.io.LineBufferingOutputStream;
 import org.gradle.internal.io.TextStream;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.time.TimeProvider;
+import org.gradle.nativeplatform.test.xctest.tasks.XcTest;
 import org.gradle.process.internal.DefaultExecHandleBuilder;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
@@ -52,7 +51,7 @@ import java.util.Deque;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class NativeTestExecuter implements TestExecuter {
+public class NativeTestExecuter implements TestExecuter<XcTest> {
     public ExecHandleBuilder getExecHandleBuilder() {
         return new DefaultExecHandleBuilder();
     }
@@ -77,10 +76,10 @@ public class NativeTestExecuter implements TestExecuter {
     }
 
     @Override
-    public void execute(Test testTask, TestResultProcessor testResultProcessor) {
+    public void execute(XcTest testTask, TestResultProcessor testResultProcessor) {
         ObjectFactory objectFactory = getObjectFactory();
-        File executable = ((DirectoryVar)testTask.getExtensions().getExtraProperties().get("testBundleDir")).getAsFile().get();
-        File workingDir = ((DirectoryVar)testTask.getExtensions().getExtraProperties().get("workingDir")).getAsFile().get();
+        File executable = testTask.getTestBundleDir();
+        File workingDir = testTask.getWorkingDir();
         TestClassProcessor processor = objectFactory.newInstance(NativeTestClassProcessor.class, executable, workingDir, getExecHandleBuilder(), getIdGenerator());
 
         Runnable detector = new NativeTestDetector(processor);

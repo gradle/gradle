@@ -28,6 +28,7 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.util.PatternSet;
@@ -78,13 +79,14 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         // TODO - Add dependency on main component when Swift plugins are applied
 
         final DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
+        ProviderFactory providers = project.getProviders();
         Directory projectDirectory = project.getLayout().getProjectDirectory();
         ConfigurationContainer configurations = project.getConfigurations();
         TaskContainer tasks = project.getTasks();
 
         // TODO - Reuse logic from Swift*Plugin
         // Add the component extension
-        SwiftComponent component = project.getExtensions().create(SwiftComponent.class, "xctest", DefaultSwiftComponent.class, fileOperations);
+        SwiftComponent component = project.getExtensions().create(SwiftComponent.class, "xctest", DefaultSwiftComponent.class, fileOperations, providers);
         // TODO - should reuse convention from the component
         component.getSource().from(projectDirectory.dir("src/test/swift"));
 
@@ -125,7 +127,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         link.setToolChain(toolChain);
 
         // TODO - need to set basename from component
-        Provider<Directory> testBundleDir = buildDirectory.dir("bundle/" + project.getName() + "Test.xctest");
+        Provider<RegularFile> testBundleDir = buildDirectory.file("bundle/" + project.getName() + "Test.xctest");
         final CreateXcTestBundle testBundle = tasks.create("createXcTestBundle", CreateXcTestBundle.class);
         testBundle.setExecutableFile(link.getBinaryFile());
         // TODO - should be defined on the component
@@ -142,7 +144,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         // TODO - should infer this
         xcTest.dependsOn(testBundle);
         // TODO - should respect changes to build directory
-        xcTest.setBinResultsDir(project.file("build/results/test/bin"));
+        xcTest.setBinResultsDir(buildDirectory.dir("results/test/bin"));
         xcTest.setTestBundleDir(testBundleDir);
         xcTest.setWorkingDir(buildDirectory.dir("bundle"));
         // TODO - should respect changes to reports dir

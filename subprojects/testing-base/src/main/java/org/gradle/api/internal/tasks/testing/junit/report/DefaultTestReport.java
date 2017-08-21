@@ -55,7 +55,7 @@ public class DefaultTestReport implements TestReporter {
         Timer clock = Timers.startTimer();
         AllTestResults model = loadModelFromProvider(resultsProvider);
         generateFiles(model, resultsProvider, reportDir);
-        LOG.info("Finished generating test html results ({}) into: {}", clock.getElapsed(), reportDir);
+        LOG.info("Finished generating test html result ({}) into: {}", clock.getElapsed(), reportDir);
     }
 
     private AllTestResults loadModelFromProvider(TestResultsProvider resultsProvider) {

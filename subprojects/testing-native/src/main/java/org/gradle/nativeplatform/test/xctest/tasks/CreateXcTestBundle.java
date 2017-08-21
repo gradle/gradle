@@ -20,8 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
-import org.gradle.api.file.Directory;
-import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileVar;
 import org.gradle.api.provider.Provider;
@@ -43,14 +41,14 @@ import java.io.File;
 public class CreateXcTestBundle extends DefaultTask {
     private final RegularFileVar informationFile;
     private final RegularFileVar executableFile;
-    private final DirectoryVar outputDir;
+    private final RegularFileVar outputDir;
     private final SwiftStdlibToolLocator swiftStdlibToolLocator;
 
     @Inject
     public CreateXcTestBundle(SwiftStdlibToolLocator swiftStdlibToolLocator) {
         this.informationFile = newInputFile();
         this.executableFile = newInputFile();
-        this.outputDir = newOutputDirectory();
+        this.outputDir = newOutputFile();
         this.swiftStdlibToolLocator = swiftStdlibToolLocator;
 
     }
@@ -85,10 +83,10 @@ public class CreateXcTestBundle extends DefaultTask {
                 execSpec.args(
                     "--copy",
                     "--scan-executable", getExecutableFile().getAbsolutePath(),
-                    "--destination", outputDir.dir("Contents/Frameworks").get().getAsFile().getAbsolutePath(),
+                    "--destination", new File(outputDir.getAsFile().get(), "Contents/Frameworks").getAbsolutePath(),
                     "--platform", "macosx",
-                    "--resource-destination", outputDir.dir("Contents/Resources").get().getAsFile().getAbsolutePath(),
-                    "--scan-folder", outputDir.dir("Contents/Frameworks").get().getAsFile().getAbsolutePath()
+                    "--resource-destination", new File(outputDir.getAsFile().get(), "Contents/Resources").getAbsolutePath(),
+                    "--scan-folder", new File(outputDir.getAsFile().get(), "Contents/Frameworks").getAbsolutePath()
                 );
             }
         }).assertNormalExitValue();
@@ -103,7 +101,7 @@ public class CreateXcTestBundle extends DefaultTask {
         this.outputDir.set(outputDir);
     }
 
-    public void setOutputDir(Provider<? extends Directory> outputDir) {
+    public void setOutputDir(Provider<? extends RegularFile> outputDir) {
         this.outputDir.set(outputDir);
     }
 

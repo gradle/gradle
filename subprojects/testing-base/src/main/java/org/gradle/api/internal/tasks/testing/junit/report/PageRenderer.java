@@ -110,7 +110,7 @@ abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRe
 
     @Override
     protected String getPageTitle() {
-        return "Test results - " + getModel().getTitle();
+        return "Test result - " + getModel().getTitle();
     }
 
     @Override

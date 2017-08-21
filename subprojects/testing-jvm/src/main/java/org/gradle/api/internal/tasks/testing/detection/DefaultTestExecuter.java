@@ -43,7 +43,7 @@ import java.util.Set;
 /**
  * The default test class scanner factory.
  */
-public class DefaultTestExecuter implements TestExecuter {
+public class DefaultTestExecuter implements TestExecuter<Test> {
 
     private static final Logger LOGGER = Logging.getLogger(DefaultTestExecuter.class);
 

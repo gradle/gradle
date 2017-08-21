@@ -23,7 +23,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /**
- * Test results for a given class.
+ * Test result for a given class.
  */
 public class ClassTestResults extends CompositeTestResults {
     private final long id;
