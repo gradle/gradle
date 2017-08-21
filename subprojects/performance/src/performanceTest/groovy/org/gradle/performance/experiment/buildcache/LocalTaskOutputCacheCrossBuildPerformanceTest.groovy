@@ -151,7 +151,7 @@ class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPe
             double overhead = overhead().toUnits(baseUnits).value
             double overheadPc = overhead/timeOf(baseline).value * 100d
             assert overhead<maxOverhead:"Max overhead for $label (${overheadPc.round(1)}%) exceeds ${maxPerc.round(1)}% : ${this.overhead()}"
-            println "Max overhead for $label (${overheadPc.round(1)}%) exceeds ${maxPerc.round(1)}% : ${this.overhead()}"
+            println(this.toString())
         }
 
         String toString() {
