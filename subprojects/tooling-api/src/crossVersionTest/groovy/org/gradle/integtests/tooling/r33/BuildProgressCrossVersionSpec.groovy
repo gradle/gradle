@@ -122,8 +122,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         configureA.parent == configureBuild
         configureA.failed
         configureA.failures[0].message == "A problem occurred configuring project ':a'."
-
-        configureBuild.children == [configureRoot, configureA]
     }
 
     @TargetGradleVersion(">=3.3 <4.0")

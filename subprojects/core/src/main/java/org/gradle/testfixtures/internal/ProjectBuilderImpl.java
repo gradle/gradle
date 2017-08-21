@@ -60,6 +60,7 @@ public class ProjectBuilderImpl {
                 name,
                 parentProject,
                 (projectDir != null) ? projectDir.getAbsoluteFile() : new File(parentProject.getProjectDir(), name),
+                null,
                 new StringScriptSource("test build file", null),
                 parentProject.getGradle(),
                 parentProject.getGradle().getServiceRegistryFactory(),

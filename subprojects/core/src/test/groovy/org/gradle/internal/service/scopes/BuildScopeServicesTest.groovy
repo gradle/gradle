@@ -48,7 +48,7 @@ import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.initialization.ClassLoaderRegistry
 import org.gradle.initialization.DefaultGradlePropertiesLoader
 import org.gradle.initialization.IGradlePropertiesLoader
-import org.gradle.initialization.ProjectPropertySettingBuildLoader
+import org.gradle.initialization.NotifyingBuildLoader
 import org.gradle.internal.Factory
 import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
@@ -234,7 +234,7 @@ class BuildScopeServicesTest extends Specification {
         setup:
         expectParentServiceLocated(Instantiator)
         expect:
-        assertThat(registry.get(BuildLoader), instanceOf(ProjectPropertySettingBuildLoader))
+        assertThat(registry.get(BuildLoader), instanceOf(NotifyingBuildLoader))
         assertThat(registry.get(BuildLoader), sameInstance(registry.get(BuildLoader)))
     }
 

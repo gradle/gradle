@@ -109,6 +109,7 @@ import org.gradle.initialization.IGradlePropertiesLoader;
 import org.gradle.initialization.InitScriptHandler;
 import org.gradle.initialization.InstantiatingBuildLoader;
 import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.initialization.NotifyingBuildLoader;
 import org.gradle.initialization.NotifyingSettingsProcessor;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.ProjectPropertySettingBuildLoader;
@@ -205,10 +206,16 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultGradlePropertiesLoader(get(StartParameter.class));
     }
 
-    protected BuildLoader createBuildLoader() {
-        return new ProjectPropertySettingBuildLoader(
-            get(IGradlePropertiesLoader.class),
-            new InstantiatingBuildLoader(get(IProjectFactory.class)));
+    protected BuildLoader createBuildLoader(IGradlePropertiesLoader propertiesLoader, IProjectFactory projectFactory, BuildOperationExecutor buildOperationExecutor) {
+        return new NotifyingBuildLoader(
+            new ProjectPropertySettingBuildLoader(
+                propertiesLoader,
+                new InstantiatingBuildLoader(
+                    projectFactory
+                )
+            ),
+            buildOperationExecutor
+        );
     }
 
     protected ProjectEvaluator createProjectEvaluator(BuildOperationExecutor buildOperationExecutor, CachingServiceLocator cachingServiceLocator, ScriptPluginFactory scriptPluginFactory) {
@@ -298,7 +305,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, NestedBuildFactory nestedBuildFactory,
                                                                 ClassLoaderScopeRegistry classLoaderScopeRegistry, CacheRepository cacheRepository,
-                                                                BuildLoader buildLoader, BuildOperationExecutor buildOperationExecutor,
+                                                                BuildOperationExecutor buildOperationExecutor,
                                                                 CachedClasspathTransformer cachedClasspathTransformer,
                                                                 CachingServiceLocator cachingServiceLocator,
                                                                 CompositeContextBuilder compositeContextBuilder,
@@ -316,7 +323,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                     PluginsProjectConfigureActions.of(
                         BuildSrcProjectConfigurationAction.class,
                         cachingServiceLocator))),
-            buildLoader, compositeContextBuilder, includedBuildFactory
+            compositeContextBuilder, includedBuildFactory
         );
     }
 
