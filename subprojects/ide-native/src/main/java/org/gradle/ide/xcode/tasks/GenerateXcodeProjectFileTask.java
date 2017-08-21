@@ -81,7 +81,8 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
             project.getTargets().add(toGradlePbxTarget(target));
             project.getTargets().add(toIndexPbxTarget(target));
 
-            PBXFileReference fileReference = new PBXFileReference(target.getOutputFile().getName(), target.getOutputFile().getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE);
+            File outputFile = target.getOutputFile().get().getAsFile();
+            PBXFileReference fileReference = new PBXFileReference(outputFile.getName(), outputFile.getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE);
             fileReference.setExplicitFileType(Optional.of(target.getOutputFileType()));
             project.getMainGroup().getOrCreateChildGroupByName(PRODUCTS_GROUP_NAME).getChildren().add(fileReference);
         }
@@ -117,7 +118,8 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         target.setBuildToolPath(xcodeTarget.getGradleCommand());
         target.setBuildArgumentsString(xcodeTarget.getTaskName());
         target.setGlobalID(xcodeTarget.getId());
-        target.setProductReference(new PBXFileReference(xcodeTarget.getOutputFile().getName(), xcodeTarget.getOutputFile().getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE));
+        File outputFile = xcodeTarget.getOutputFile().get().getAsFile();
+        target.setProductReference(new PBXFileReference(outputFile.getName(), outputFile.getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE));
 
         return target;
     }

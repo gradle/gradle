@@ -44,6 +44,8 @@ apply plugin: 'swift-executable'
         project.targets[0].name == 'App Executable'
         project.targets[0].productReference.path == exe("build/exe/App").absolutePath
         project.targets[1].name == '[INDEXING ONLY] App Executable'
+        project.products.children.size() == 1
+        project.products.children[0].path == exe("build/exe/App").absolutePath
 
         assertProjectHasEqualsNumberOfGradleAndIndexTargets(project.targets)
     }
@@ -70,6 +72,8 @@ apply plugin: 'swift-library'
         project.targets[0].name == 'App SharedLibrary'
         project.targets[0].productReference.path == sharedLib("build/lib/App").absolutePath
         project.targets[1].name == '[INDEXING ONLY] App SharedLibrary'
+        project.products.children.size() == 1
+        project.products.children[0].path == sharedLib("build/lib/App").absolutePath
 
         assertProjectHasEqualsNumberOfGradleAndIndexTargets(project.targets)
     }
@@ -165,5 +169,60 @@ library {
         then:
         xcodeProject("${rootProjectName}.xcodeproj").projectFile
             .mainGroup.assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
+    }
+
+    def "honors changes to executable output file locations"() {
+        given:
+        buildFile << """
+apply plugin: 'swift-executable'
+buildDir = 'output'
+executable.module = 'TestApp'
+"""
+
+        def app = new SwiftApp()
+        app.writeToProject(testDirectory)
+
+        when:
+        succeeds("xcode")
+
+        then:
+        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+
+        def project = xcodeProject("app.xcodeproj").projectFile
+        project.targets.size() == 2
+        project.targets.every { it.productName == 'App' }
+        project.targets[0].name == 'App Executable'
+        project.targets[0].productReference.path == exe("output/exe/TestApp").absolutePath
+        project.targets[1].name == '[INDEXING ONLY] App Executable'
+        project.products.children.size() == 1
+        project.products.children[0].path == exe("output/exe/TestApp").absolutePath
+    }
+
+    def "honors changes to library output file locations"() {
+        given:
+        buildFile << """
+apply plugin: 'swift-library'
+buildDir = 'output'
+library.module = 'TestLib'
+"""
+        def lib = new SwiftLib()
+        lib.writeToProject(testDirectory)
+
+        when:
+        succeeds("xcode")
+
+        then:
+        executedAndNotSkipped(":xcodeProject", ":xcodeSchemeAppSharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
+
+        def project = xcodeProject("app.xcodeproj").projectFile
+        project.targets.size() == 2
+        project.targets.every { it.productName == "App" }
+        project.targets[0].name == 'App SharedLibrary'
+        project.targets[0].productReference.path == sharedLib("output/lib/TestLib").absolutePath
+        project.targets[1].name == '[INDEXING ONLY] App SharedLibrary'
+        project.products.children.size() == 1
+        project.products.children[0].path == sharedLib("output/lib/TestLib").absolutePath
+
+        assertProjectHasEqualsNumberOfGradleAndIndexTargets(project.targets)
     }
 }

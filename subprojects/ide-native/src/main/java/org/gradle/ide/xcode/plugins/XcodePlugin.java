@@ -26,11 +26,13 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectLocalComponentProvider;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
@@ -199,9 +201,8 @@ public class XcodePlugin extends IdePlugin {
         // TODO - Reuse the logic from `swift-executable` or `swift-library` to determine the link task path
         // TODO - should use the _install_ task for an executable
         AbstractLinkTask linkTask = (AbstractLinkTask) project.getTasks().getByName("linkMain");
-        // TODO - should reflect changes to link task output
         // TODO - should reflect changes to module name
-        XcodeTarget target = newTarget(component.getModule().get() + " " + toString(productType), component.getModule().get(), productType, toGradleCommand(project.getRootProject()), linkTask.getPath(), linkTask.getOutputFile(), sources);
+        XcodeTarget target = newTarget(component.getModule().get() + " " + toString(productType), component.getModule().get(), productType, toGradleCommand(project.getRootProject()), linkTask.getPath(), linkTask.getBinaryFile(), sources);
         target.getImportPaths().from(component.getCompileImportPath());
         xcode.getProject().setTarget(target);
 
@@ -236,8 +237,7 @@ public class XcodePlugin extends IdePlugin {
         // TODO - should use the _install_ task for an executable
         AbstractLinkTask linkTask = (AbstractLinkTask) project.getTasks().getByName("linkMain");
         String targetName = StringUtils.capitalize(project.getName());
-        // TODO - respect changes to link task output
-        XcodeTarget target = newTarget(targetName + " " + toString(productType), targetName, productType, toGradleCommand(project.getRootProject()), linkTask.getPath(), linkTask.getOutputFile(), sources);
+        XcodeTarget target = newTarget(targetName + " " + toString(productType), targetName, productType, toGradleCommand(project.getRootProject()), linkTask.getPath(), linkTask.getBinaryFile(), sources);
         target.getHeaderSearchPaths().from(component.getCompileIncludePath());
         xcode.getProject().setTarget(target);
 
@@ -264,16 +264,16 @@ public class XcodePlugin extends IdePlugin {
         }
     }
 
-    private XcodeTarget newTarget(String name, String productName, PBXTarget.ProductType productType, String gradleCommand, String taskName, File outputFile, FileCollection sources) {
+    private XcodeTarget newTarget(String name, String productName, PBXTarget.ProductType productType, String gradleCommand, String taskName, Provider<? extends RegularFile> outputFile, FileCollection sources) {
         String id = gidGenerator.generateGid("PBXLegacyTarget", name.hashCode());
         XcodeTarget target = objectFactory.newInstance(XcodeTarget.class, name, id);
-        target.setOutputFile(outputFile);
+        target.getOutputFile().set(outputFile);
         target.setTaskName(taskName);
         target.setGradleCommand(gradleCommand);
         target.setOutputFileType(toFileType(productType));
         target.setProductType(productType);
         target.setProductName(productName);
-        target.setSources(sources);
+        target.getSources().setFrom(sources);
 
         return target;
     }

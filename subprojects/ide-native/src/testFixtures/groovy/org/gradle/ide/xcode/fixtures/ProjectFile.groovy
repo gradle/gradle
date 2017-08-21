@@ -54,6 +54,10 @@ class ProjectFile {
         return rootObject.getProperty("mainGroup")
     }
 
+    PBXGroup getProducts() {
+        return mainGroup.children.find { it.name == 'Products' }
+    }
+
     void assertNoTargets() {
         assert targets.empty
     }
