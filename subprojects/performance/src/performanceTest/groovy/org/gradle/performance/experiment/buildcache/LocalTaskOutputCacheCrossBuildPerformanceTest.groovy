@@ -117,9 +117,9 @@ class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPe
         def fullyUpToDate = buildResults['fully up-to-date']
         def nonCached = buildResults['non-cached']
 
-        Overhead.of('checking remote cache', nonCached, alwaysMissPullOnly).assertWithinPerc(1)
+        Overhead.of('checking remote cache', nonCached, alwaysMissPullOnly).assertWithinPerc(2.5)
         Overhead.of('pushing to cache', nonCached, pushOnly).assertWithinPerc(15)
-        Overhead.of('fetching from cache', fullyUpToDate, fullyCached).assertWithinPerc(5)
+        println Overhead.of('fetching from cache', fullyUpToDate, fullyCached)
 
         where:
         testProject                   | tasks
@@ -150,8 +150,15 @@ class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPe
             double maxOverhead = timeOf(baseline).value * maxPerc / 100d
             double overhead = overhead().toUnits(baseUnits).value
             double overheadPc = overhead/timeOf(baseline).value * 100d
-//            assert overhead<maxOverhead:"Max overhead for $label (${overheadPc.round(1)}%) exceeds ${maxPerc.round(1)}% : ${this.overhead()}"
+            assert overhead<maxOverhead:"Max overhead for $label (${overheadPc.round(1)}%) exceeds ${maxPerc.round(1)}% : ${this.overhead()}"
             println "Max overhead for $label (${overheadPc.round(1)}%) exceeds ${maxPerc.round(1)}% : ${this.overhead()}"
+        }
+
+        String toString() {
+            def baseUnits = baseline.totalTime.average.units
+            double overhead = overhead().toUnits(baseUnits).value
+            double overheadPc = overhead/timeOf(baseline).value * 100d
+            println "Overhead for $label is ${this.overhead()} (${overheadPc.round(1)}%)"
         }
     }
 
