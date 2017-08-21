@@ -54,14 +54,14 @@ public final class LoadProjectsBuildOperationType implements BuildOperationType<
             /**
              * The name of the project.
              *
-             * @see org.gradle.api.initialization.ProjectDescriptor#getName()
+             * @see org.gradle.api.Project#getName()
              */
             String getName();
 
             /**
              * The path of the project.
              *
-             * @see org.gradle.api.initialization.ProjectDescriptor#getPath()
+             * @see org.gradle.api.Project#getPath()
              */
             String getPath();
 
@@ -77,14 +77,14 @@ public final class LoadProjectsBuildOperationType implements BuildOperationType<
             /**
              * The absolute file path of the project directory.
              *
-             * @see org.gradle.api.initialization.ProjectDescriptor#getProjectDir()
+             * @see org.gradle.api.Project#getProjectDir()
              */
             String getProjectDir();
 
             /**
              * The absolute file path of the projects build file.
              *
-             * @see org.gradle.api.initialization.ProjectDescriptor#getBuildFile()
+             * @see org.gradle.api.Project#getBuildFile()
              */
             String getBuildFile();
 
@@ -93,7 +93,7 @@ public final class LoadProjectsBuildOperationType implements BuildOperationType<
              * No null values.
              * Ordered by project name lexicographically.
              *
-             * @see org.gradle.api.initialization.ProjectDescriptor#getChildren()
+             * @see org.gradle.api.Project#getChildProjects()
              */
 
             Set<Project> getChildren();
