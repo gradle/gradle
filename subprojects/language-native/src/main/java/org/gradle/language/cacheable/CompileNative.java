@@ -26,16 +26,25 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.process.ExecSpec;
+import org.gradle.workers.IsolationMode;
+import org.gradle.workers.WorkerConfiguration;
+import org.gradle.workers.WorkerExecutor;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 
 public class CompileNative extends AbstractNativeTask {
 
+    private final WorkerExecutor workerExecutor;
     private File outputDir;
     private File dependencyFile;
+
+    @Inject
+    public CompileNative(WorkerExecutor workerExecutor) {
+        this.workerExecutor = workerExecutor;
+    }
 
     @Optional
     @InputFiles
@@ -75,17 +84,17 @@ public class CompileNative extends AbstractNativeTask {
                 }
                 String outputName = name.replaceAll("\\.i(i)?", ".o").replaceAll("\\.c(pp)?", ".o");
                 final File outputFile = fileVisitDetails.getRelativePath().getParent().append(true, outputName).getFile(getOutputDir());
-                final File headersFile = getProject().file("src/main/headers");
                 assert outputFile.getParentFile().isDirectory() || outputFile.getParentFile().mkdirs();
-                getProject().exec(new Action<ExecSpec>() {
+                workerExecutor.submit(RunCxx.class, new Action<WorkerConfiguration>() {
                     @Override
-                    public void execute(ExecSpec execSpec) {
-                        configureExec(execSpec);
-                        execSpec.args("-c",
-                            "-o", outputFile.getAbsolutePath(),
-                            "-I", headersFile,
-                            fileVisitDetails.getFile().getAbsolutePath()
-                        );
+                    public void execute(WorkerConfiguration workerConfiguration) {
+                        workerConfiguration.setIsolationMode(IsolationMode.NONE);
+                        workerConfiguration.setParams(
+                            new File("."),
+                            getGccExecutable().getAbsolutePath(),
+                            args("-c",
+                                "-o", outputFile.getAbsolutePath(),
+                                fileVisitDetails.getFile().getAbsolutePath()));
                     }
                 });
             }

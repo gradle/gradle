@@ -24,13 +24,19 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.UncheckedException;
-import org.gradle.process.ExecSpec;
+import org.gradle.workers.IsolationMode;
+import org.gradle.workers.WorkerConfiguration;
+import org.gradle.workers.WorkerExecutor;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PreprocessNative extends AbstractNativeTask {
+    private final WorkerExecutor workerExecutor;
     private File preprocessedSourcesDir;
     private final PreprocessedCFileParser parser = new PreprocessedCFileParser();
 
@@ -43,12 +49,17 @@ public class PreprocessNative extends AbstractNativeTask {
         this.preprocessedSourcesDir = preprocessedSourcesDir;
     }
 
+    @Inject
+    public PreprocessNative(WorkerExecutor workerExecutor) {
+        this.workerExecutor = workerExecutor;
+    }
+
     @TaskAction
     public void preprocess(IncrementalTaskInputs incrementalTaskInputs) {
         final ConcurrentHashMap<String, Boolean> seenIncludes = new ConcurrentHashMap<String, Boolean>();
         final ConcurrentHashMap<String, Boolean> discoveredInputFiles = new ConcurrentHashMap<String, Boolean>();
         final IncrementalTaskInputsInternal inputs = (IncrementalTaskInputsInternal) incrementalTaskInputs;
-        final File headersFile = getProject().file("src/main/headers");
+        final Set<File> preprocessedFiles = new HashSet<File>();
         getSource().visit(new EmptyFileVisitor() {
             @Override
             public void visitFile(final FileVisitDetails fileVisitDetails) {
@@ -61,20 +72,25 @@ public class PreprocessNative extends AbstractNativeTask {
                 String preprocessedName = base + (extension.equals("cpp") ? ".ii" : ".i");
                 final File preprocessedFile = fileVisitDetails.getRelativePath().getParent().append(true, preprocessedName).getFile(getPreprocessedSourcesDir());
                 preprocessedFile.getParentFile().mkdirs();
-                getProject().exec(new Action<ExecSpec>() {
+                workerExecutor.submit(RunCxx.class, new Action<WorkerConfiguration>() {
                     @Override
-                    public void execute(ExecSpec execSpec) {
-                        configureExec(execSpec);
-                        execSpec.args("-E",
-                            "-I", headersFile,
-                            "-o", preprocessedFile.getAbsolutePath(),
-                            fileVisitDetails.getFile().getAbsolutePath()
-                        );
+                    public void execute(WorkerConfiguration workerConfiguration) {
+                        workerConfiguration.setIsolationMode(IsolationMode.NONE);
+                        workerConfiguration.setParams(
+                            new File("."),
+                            getGccExecutable().getAbsolutePath(),
+                            args("-E",
+                                "-o", preprocessedFile.getAbsolutePath(),
+                                fileVisitDetails.getFile().getAbsolutePath()));
                     }
                 });
-                discoverIncludes(inputs, preprocessedFile, seenIncludes, discoveredInputFiles);
+                preprocessedFiles.add(preprocessedFile);
             }
         });
+        workerExecutor.await();
+        for (File preprocessedFile : preprocessedFiles) {
+            discoverIncludes(inputs, preprocessedFile, seenIncludes, discoveredInputFiles);
+        }
     }
 
     private void discoverIncludes(final IncrementalTaskInputsInternal inputs, File preprocessedFile, final ConcurrentHashMap<String, Boolean> seenIncludes, final ConcurrentHashMap<String, Boolean> discoveredInputFiles) {

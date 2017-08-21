@@ -19,10 +19,10 @@ package org.gradle.language.cacheable;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.SourceTask;
-import org.gradle.process.ExecSpec;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class AbstractNativeTask extends SourceTask {
@@ -48,13 +48,15 @@ public class AbstractNativeTask extends SourceTask {
         this.includeRoots = includeRoots;
     }
 
-    protected void configureExec(ExecSpec execSpec) {
-        execSpec.setExecutable(getGccExecutable());
-        execSpec.args(getCompilerOptions());
-        execSpec.args("-m64");
+    protected List<String> args(String... additionalArgs) {
+        ArrayList<String> result = new ArrayList<String>();
+        result.addAll(getCompilerOptions());
+        result.add("-m64");
         for (File header : includeRoots) {
-            execSpec.args("-I" + header.getAbsolutePath());
+            result.add("-I" + header.getAbsolutePath());
         }
+        result.addAll(Arrays.asList(additionalArgs));
+        return result;
     }
 
     public List<String> getCompilerOptions() {

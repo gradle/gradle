@@ -25,18 +25,29 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.UncheckedException;
-import org.gradle.process.ExecSpec;
+import org.gradle.workers.IsolationMode;
+import org.gradle.workers.WorkerConfiguration;
+import org.gradle.workers.WorkerExecutor;
 
+import javax.inject.Inject;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DiscoverInputsFromDepFiles extends AbstractNativeTask {
+    private final WorkerExecutor workerExecutor;
     private File dependencyFile;
+
+    @Inject
+    public DiscoverInputsFromDepFiles(WorkerExecutor workerExecutor) {
+        this.workerExecutor = workerExecutor;
+    }
 
     @OutputFile
     public File getDependencyFile() {
@@ -54,6 +65,7 @@ public class DiscoverInputsFromDepFiles extends AbstractNativeTask {
         final ConcurrentHashMap<String, Boolean> discoveredIncludeFiles = new ConcurrentHashMap<String, Boolean>();
         final IncrementalTaskInputsInternal inputs = (IncrementalTaskInputsInternal) incrementalTaskInputs;
         final File headersFile = getProject().file("src/main/headers");
+        final Set<File> depFiles = new HashSet<File>();
         getSource().visit(new EmptyFileVisitor() {
             @Override
             public void visitFile(final FileVisitDetails fileVisitDetails) {
@@ -65,20 +77,25 @@ public class DiscoverInputsFromDepFiles extends AbstractNativeTask {
                 String depName = base + ".d";
                 final File depFile = fileVisitDetails.getRelativePath().getParent().append(true, depName).getFile(discoveredDependenciesDir);
                 depFile.getParentFile().mkdirs();
-                getProject().exec(new Action<ExecSpec>() {
+                workerExecutor.submit(RunCxx.class, new Action<WorkerConfiguration>() {
                     @Override
-                    public void execute(ExecSpec execSpec) {
-                        configureExec(execSpec);
-                        execSpec.args("-M",
-                            "-I", headersFile,
-                            "-o", depFile.getAbsolutePath(),
-                            fileVisitDetails.getFile().getAbsolutePath()
-                        );
+                    public void execute(WorkerConfiguration workerConfiguration) {
+                        workerConfiguration.setIsolationMode(IsolationMode.NONE);
+                        workerConfiguration.setParams(
+                            new File("."),
+                            getGccExecutable().getAbsolutePath(),
+                            args("-M",
+                                "-o", depFile.getAbsolutePath(),
+                                fileVisitDetails.getFile().getAbsolutePath()));
                     }
                 });
-                addDiscoveredInputs(inputs, depFile, seenIncludes, discoveredIncludeFiles);
+                depFiles.add(depFile);
             }
         });
+        workerExecutor.await();
+        for (File depFile : depFiles) {
+            addDiscoveredInputs(inputs, depFile, seenIncludes, discoveredIncludeFiles);
+        }
         DependenciesFile.write(discoveredIncludeFiles.keySet(), getDependencyFile());
     }
 
