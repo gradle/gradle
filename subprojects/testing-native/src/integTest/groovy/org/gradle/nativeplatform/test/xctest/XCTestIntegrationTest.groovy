@@ -182,7 +182,7 @@ apply plugin: 'xctest'
         def testApp = new SwiftXcTestTestApp([
             newTestSuite("PassingTestSuite", [
                 newTestCase("testPass", TestElement.TestCase.Result.PASS, "XCTAssert(sum(a: 40, b: 2) == 42)")
-            ], ["Greeter"])
+            ], [], ["Greeter"])
         ])
 
         given:

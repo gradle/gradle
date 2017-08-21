@@ -45,19 +45,24 @@ apply plugin: 'swift-library'
         succeeds("test")
 
         then:
-        result.assertTasksSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksSkipped(":compileMainSwiftWithTestingEnabled", ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
     }
 
-    // TODO - Integrate automatically with the Swift library
-    def "applying the xctest plugin together with swift-library will not assemble the library by convention"() {
+    def "xctest plugin can test public and internal feature of a Swift library"() {
         def lib = new SwiftLib()
         def test = new SwiftXcTestTestApp([
                 newTestSuite("FooTestSuite", [
-                        newTestCase("testFoo", TestElement.TestCase.Result.PASS)
-                ])
+                        newTestCase("testInternalMultiply", TestElement.TestCase.Result.PASS,
+                            "XCTAssert(multiply(a: 21, b: 2) == ${lib.multiply(21, 2)})"),
+                        newTestCase("testPublicSum", TestElement.TestCase.Result.PASS,
+                            "XCTAssert(sum(a: 40, b: 2) == ${lib.sum(40, 2)})"),
+                ], ["Greeter"])
         ])
 
         given:
+        settingsFile << """
+rootProject.name = 'Greeter'
+"""
         buildFile << """
 apply plugin: 'swift-library'
 """
@@ -82,21 +87,25 @@ apply plugin: 'swift-executable'
         succeeds("test")
 
         then:
-        result.assertTasksSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksSkipped(":compileMainSwiftWithTestingEnabled", ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
     }
 
-    // TODO - Integrate automatically with the Swift executable
-    def "applying the xctest plugin together with swift-executable will not assemble the executable by convention"() {
+    def "xctest plugin can test public and internal feature of a Swift executable"() {
         def app = new SwiftApp()
         def test = new SwiftXcTestTestApp([
             newTestSuite("FooTestSuite", [
-                newTestCase("testFoo", TestElement.TestCase.Result.PASS)
-            ])
+                newTestCase("testInternalMultiply", TestElement.TestCase.Result.PASS,
+                    "XCTAssert(multiply(a: 21, b: 2) == ${app.multiply.multiply(21, 2)})"),
+                newTestCase("testPublicSum", TestElement.TestCase.Result.PASS,
+                    "XCTAssert(sum(a: 40, b: 2) == ${app.sum.sum(40, 2)})"),
+            ], ["App"])
         ])
 
         given:
+        settingsFile << "rootProject.name = 'App'"
         buildFile << """
 apply plugin: 'swift-executable'
+println compileSwift.moduleName
 """
         app.writeToProject(testDirectory)
         test.writeToProject(testDirectory)
@@ -105,7 +114,7 @@ apply plugin: 'swift-executable'
         succeeds("test")
 
         then:
-        executedAndNotSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        executedAndNotSkipped(":compileMainSwiftWithTestingEnabled", ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
 
     }
 }

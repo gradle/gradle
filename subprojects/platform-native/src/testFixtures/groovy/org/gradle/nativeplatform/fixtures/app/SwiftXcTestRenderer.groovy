@@ -23,7 +23,8 @@ class SwiftXcTestRenderer implements TestSuiteRenderer {
     String render(TestSuite testSuite) {
         return """
 import XCTest
-${renderImports(testSuite.imports)}
+${renderTestableImports(testSuite.testableImports)}
+${renderStandardImports(testSuite.standardImports)}
 
 class ${testSuite.name}: XCTestCase {
     ${render(testSuite.testCases)}
@@ -31,7 +32,11 @@ class ${testSuite.name}: XCTestCase {
 """
     }
 
-    private static String renderImports(List<String> imports) {
+    private static String renderTestableImports(List<String> imports) {
+        return imports.collect { "@testable import $it" }.join("\n")
+    }
+
+    private static String renderStandardImports(List<String> imports) {
         return imports.collect { "import $it" }.join("\n")
     }
 
@@ -44,13 +49,13 @@ class ${testSuite.name}: XCTestCase {
     String render(TestCase testCase) {
         return """
 func ${testCase.name}() {
-    ${renderAssertion(testCase.expectedResult)}
+    ${renderTestCaseContent(testCase)}
 }
 """
     }
 
     private static String renderTestCaseContent(TestCase testCase) {
-        if (testCase.content) {
+        if (testCase.content != null) {
             return testCase.content
         }
         return renderAssertion(testCase.expectedResult)

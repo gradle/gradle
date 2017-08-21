@@ -74,7 +74,11 @@ public abstract class SourceTestElement extends SourceElement implements TestEle
         return newTestSuite(name, testCases, Collections.<String>emptyList());
     }
 
-    static TestSuite newTestSuite(final String name, final List<TestCase> testCases, final List<String> imports) {
+    static TestSuite newTestSuite(final String name, final List<TestCase> testCases, final List<String> testableImports) {
+        return newTestSuite(name, testCases, testableImports, Collections.<String>emptyList());
+    }
+
+    static TestSuite newTestSuite(final String name, final List<TestCase> testCases, final List<String> testableImports, final List<String> standardImports) {
         return new TestSuite() {
             @Override
             public List<TestCase> getTestCases() {
@@ -87,8 +91,13 @@ public abstract class SourceTestElement extends SourceElement implements TestEle
             }
 
             @Override
-            public List<String> getImports() {
-                return imports;
+            public List<String> getTestableImports() {
+                return testableImports;
+            }
+
+            @Override
+            public List<String> getStandardImports() {
+                return standardImports;
             }
         };
     }
