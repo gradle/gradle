@@ -62,9 +62,7 @@ class TestTaskJdkRelocationIntegrationTest extends AbstractTaskRelocationIntegra
         file("build.gradle") << """
             apply plugin: "java"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 testCompile "junit:junit:4.12"

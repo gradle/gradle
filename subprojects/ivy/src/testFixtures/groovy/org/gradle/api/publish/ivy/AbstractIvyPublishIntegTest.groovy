@@ -19,6 +19,8 @@ package org.gradle.api.publish.ivy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ivy.IvyFileModule
 
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
+
 class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec {
 
     protected def resolveArtifacts(IvyFileModule module) {
@@ -42,7 +44,7 @@ class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec {
             }
             repositories {
                 ivy { url "${ivyRepo.uri}" }
-                mavenCentral()
+                ${mavenCentralRepositoryDefinition()}
             }
             dependencies {
                 resolve $dependency

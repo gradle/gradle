@@ -33,16 +33,14 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationTest {
     public final TestResources resources = new TestResources(testDirectoryProvider)
 
     @Test
-    public void canHaveSomeSourceAndResourcesInSameDirectoryAndSomeInDifferentDirectories() {
+    void canHaveSomeSourceAndResourcesInSameDirectoryAndSomeInDifferentDirectories() {
         file('settings.gradle') << 'rootProject.name = "sharedSource"'
-        file('build.gradle') << '''
+        file('build.gradle') << """
 apply plugin: 'java'
 apply plugin: 'groovy'
 apply plugin: 'scala'
 
-repositories {
-    mavenCentral()
-}
+${mavenCentralRepository()}
 dependencies {
     compile 'org.codehaus.groovy:groovy-all:2.4.10'
     compile 'org.scala-lang:scala-library:2.11.1'
@@ -52,19 +50,19 @@ sourceSets.each {
     configure(it) {
         resources.srcDir 'src'
         resources.srcDir 'src/resources'
-        resources.include "org/gradle/$name/**"
+        resources.include "org/gradle/\$name/**"
         java.srcDir 'src'
         java.srcDir 'src/java'
-        java.include "org/gradle/$name/**/*.java"
+        java.include "org/gradle/\$name/**/*.java"
         groovy.srcDir 'src'
         groovy.srcDir 'src/groovy'
-        groovy.include "org/gradle/$name/**/*.groovy"
+        groovy.include "org/gradle/\$name/**/*.groovy"
         scala.srcDir 'src'
         scala.srcDir 'src/scala'
-        scala.include "org/gradle/$name/**/*.scala"
+        scala.include "org/gradle/\$name/**/*.scala"
     }
 }
-'''
+"""
         file('src/org/gradle/main/resource.txt') << 'some text'
         file('src/org/gradle/test/resource.txt') << 'some text'
         file('src/resources/org/gradle/main/resource2.txt') << 'some text'
@@ -153,7 +151,7 @@ sourceSets.each {
     }
 
     @Test
-    public void multipleProjectsCanShareTheSameSourceDirectory() {
+    void multipleProjectsCanShareTheSameSourceDirectory() {
         file('settings.gradle') << 'include "a", "b"'
         file('a/build.gradle') << '''
 apply plugin: 'java'
@@ -185,7 +183,7 @@ sourceSets.main.java {
     }
 
     @Test
-    public void canUseANonStandardBuildDir() {
+    void canUseANonStandardBuildDir() {
         executer.expectDeprecationWarning().withTasks('build').run()
 
         file('build').assertDoesNotExist()
@@ -196,7 +194,7 @@ sourceSets.main.java {
     }
 
     @Test
-    public void projectPathsResolvedRelativeToRoot() {
+    void projectPathsResolvedRelativeToRoot() {
         file('relative/a/build.gradle') << """
             task someTask
         """

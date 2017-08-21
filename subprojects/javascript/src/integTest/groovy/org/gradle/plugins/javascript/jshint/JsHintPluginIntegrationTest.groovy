@@ -33,7 +33,7 @@ class JsHintPluginIntegrationTest extends WellBehavedPluginTest {
         applyPlugin()
         addGradlePublicJsRepoScript(buildFile)
         buildFile << """
-            repositories.mavenCentral()
+            ${mavenCentralRepository()}
         """
     }
 

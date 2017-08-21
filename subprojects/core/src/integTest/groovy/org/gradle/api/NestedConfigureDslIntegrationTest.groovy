@@ -24,6 +24,8 @@ import org.gradle.api.tasks.TaskContainer
 import org.gradle.configuration.Help
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
+
 class NestedConfigureDslIntegrationTest extends AbstractIntegrationSpec {
     def "can configure object using configure closure"() {
         buildFile << """
@@ -334,7 +336,7 @@ tasks.configure {
 repositories { r ->
     assert r instanceof ${RepositoryHandler.name}
     assert delegate instanceof ${RepositoryHandler.name}
-    mavenCentral()
+    ${mavenCentralRepositoryDefinition()}
 }
 assert repositories.size() == 1
 """

@@ -64,9 +64,7 @@ sourceSets {
     custom
 }
 
-repositories {
-    mavenCentral()
-}
+${mavenCentralRepository()}
 
 dependencies {
     customCompile "org.scala-lang:scala-library:$version"
@@ -97,9 +95,7 @@ task verify {
                 main {}
             }
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 compile "com.google.guava:guava:11.0.2"

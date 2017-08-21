@@ -30,9 +30,7 @@ class PlayPlatformComponentReportIntegrationTest extends AbstractComponentReport
                 id 'play-application'
             }
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             model {
                 components {

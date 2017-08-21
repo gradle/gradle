@@ -146,9 +146,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         given:
         buildFile << """
             buildscript {
-                repositories {
-                    mavenCentral()
-                }
+                ${mavenCentralRepository()}
                 dependencies {
                     classpath('org.springframework.boot:spring-boot-gradle-plugin:1.5.2.RELEASE')
                 }
@@ -176,11 +174,9 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     @Issue("gradle/gradle#2480")
     def "spring dependency management plugin and BOM"() {
         given:
-        buildFile << '''
-            buildscript {
-                repositories {
-                    mavenCentral()
-                }
+        buildFile << """
+            buildscript {    
+                ${mavenCentralRepository()}
             }
             
             plugins { 
@@ -188,9 +184,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
                 id 'io.spring.dependency-management' version '1.0.0.RELEASE' 
             }
             
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
             
             dependencies {
                 compile('org.springframework.boot:spring-boot-starter')
@@ -207,7 +201,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
                     configurations.testCompile.files
                 }
             }
-        '''
+        """
 
         when:
         runner('resolveDependencies').build()
@@ -226,9 +220,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
                 id "com.bmuschko.tomcat" version "2.2.5"
             }
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 def tomcatVersion = '7.0.59'
@@ -282,9 +274,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
             apply plugin: "org.gosu-lang.gosu"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 compile group: 'org.gosu-lang.gosu', name: 'gosu-core-api', version: '1.14.6'

@@ -57,9 +57,7 @@ class CheckstyleRelocationIntegrationTest extends AbstractTaskRelocationIntegrat
         """
             apply plugin: "checkstyle"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             task checkstyle(type: Checkstyle) {
                 source "$sourceDir"

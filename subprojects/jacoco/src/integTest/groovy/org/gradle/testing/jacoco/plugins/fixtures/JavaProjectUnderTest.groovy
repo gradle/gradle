@@ -18,6 +18,8 @@ package org.gradle.testing.jacoco.plugins.fixtures
 
 import org.gradle.test.fixtures.file.TestFile
 
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepository
+
 class JavaProjectUnderTest {
     private final TestFile projectDir
     private final TestFile buildFile
@@ -36,9 +38,7 @@ class JavaProjectUnderTest {
             apply plugin: 'java'
             apply plugin: 'jacoco'
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 testCompile 'junit:junit:4.12'
