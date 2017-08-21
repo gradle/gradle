@@ -50,8 +50,8 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeSchemeappExecutable", ":app:xcode",
-            ":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeSchemegreeterSharedLibrary", ":greeter:xcode",
+        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeSchemeAppExecutable", ":app:xcode",
+            ":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeSchemeGreeterSharedLibrary", ":greeter:xcode",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         xcodeWorkspace("${rootProjectName}.xcworkspace")
@@ -93,9 +93,9 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeSchemeappExecutable", ":app:xcode",
-            ":log:xcodeProject", ":log:xcodeProjectWorkspaceSettings", ":log:xcodeSchemelogSharedLibrary", ":log:xcode",
-            ":hello:xcodeProject", ":hello:xcodeProjectWorkspaceSettings", ":hello:xcodeSchemehelloSharedLibrary", ":hello:xcode",
+        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeSchemeAppExecutable", ":app:xcode",
+            ":log:xcodeProject", ":log:xcodeProjectWorkspaceSettings", ":log:xcodeSchemeLogSharedLibrary", ":log:xcode",
+            ":hello:xcodeProject", ":hello:xcodeProjectWorkspaceSettings", ":hello:xcodeSchemeHelloSharedLibrary", ":hello:xcode",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         xcodeWorkspace("${rootProjectName}.xcworkspace")
@@ -136,7 +136,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeSchemegreeterSharedLibrary",
+        executedAndNotSkipped(":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeSchemeGreeterSharedLibrary",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         xcodeWorkspace("${rootProjectName}.xcworkspace")

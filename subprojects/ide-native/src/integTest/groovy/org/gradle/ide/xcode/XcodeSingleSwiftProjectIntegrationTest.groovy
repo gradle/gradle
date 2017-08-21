@@ -17,6 +17,7 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 
@@ -34,13 +35,16 @@ apply plugin: 'swift-executable'
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme${rootProjectName}Executable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
-        def project = xcodeProject("${rootProjectName}.xcodeproj").projectFile
+        def project = xcodeProject("app.xcodeproj").projectFile
         project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
         project.targets.size() == 2
         project.assertTargetsAreTools()
-        project.targets.every { it.productName == rootProjectName }
+        project.targets.every { it.productName == 'App' }
+        project.targets[0].name == 'App Executable'
+        project.targets[0].productReference.path == file("build/exe/App").absolutePath
+        project.targets[1].name == '[INDEXING ONLY] App Executable'
 
         assertProjectHasEqualsNumberOfGradleAndIndexTargets(project.targets)
     }
@@ -57,13 +61,16 @@ apply plugin: 'swift-library'
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":xcodeProject", ":xcodeScheme${rootProjectName}SharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
+        executedAndNotSkipped(":xcodeProject", ":xcodeSchemeAppSharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
 
-        def project = xcodeProject("${rootProjectName}.xcodeproj").projectFile
+        def project = xcodeProject("app.xcodeproj").projectFile
         project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
         project.targets.size() == 2
         project.assertTargetsAreDynamicLibraries()
-        project.targets.every { it.productName == rootProjectName }
+        project.targets.every { it.productName == "App" }
+        project.targets[0].name == 'App SharedLibrary'
+        project.targets[0].productReference.path == file(OperatingSystem.current().getSharedLibraryName("build/lib/App")).absolutePath
+        project.targets[1].name == '[INDEXING ONLY] App SharedLibrary'
 
         assertProjectHasEqualsNumberOfGradleAndIndexTargets(project.targets)
     }
