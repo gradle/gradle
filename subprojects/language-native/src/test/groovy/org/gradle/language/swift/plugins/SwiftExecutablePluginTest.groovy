@@ -71,7 +71,7 @@ class SwiftExecutablePluginTest extends Specification {
     def "output file names are calculated from module name defined on extension"() {
         when:
         project.pluginManager.apply(SwiftExecutablePlugin)
-        project.executable.module.set("App")
+        project.executable.module = "App"
 
         then:
         def compileSwift = project.tasks.compileSwift

@@ -177,7 +177,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         and:
         buildFile << """
             apply plugin: 'swift-executable'
-            executable.module.set('TestApp')
+            executable.module = 'TestApp'
          """
 
         expect:
@@ -199,9 +199,9 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         and:
         buildFile << """
             apply plugin: 'swift-executable'
-            compileSwift.objectFileDirectory.set(layout.buildDirectory.dir("object-files"))
-            linkMain.binaryFile.set(layout.buildDirectory.file("exe/some-app.exe"))
-            installMain.installDirectory.set(layout.buildDirectory.dir("some-app"))
+            compileSwift.objectFileDirectory = layout.buildDirectory.dir("object-files")
+            linkMain.binaryFile = layout.buildDirectory.file("exe/some-app.exe")
+            installMain.installDirectory = layout.buildDirectory.dir("some-app")
          """
 
         expect:

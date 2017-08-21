@@ -65,7 +65,7 @@ class SwiftLibraryPluginTest extends Specification {
     def "output file names are calculated from module name defined on extension"() {
         when:
         project.pluginManager.apply(SwiftLibraryPlugin)
-        project.library.module.set("Lib")
+        project.library.module = "Lib"
 
         then:
         def compileSwift = project.tasks.compileSwift

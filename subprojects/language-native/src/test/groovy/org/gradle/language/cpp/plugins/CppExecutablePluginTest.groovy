@@ -72,7 +72,7 @@ class CppExecutablePluginTest extends Specification {
     def "output locations are calculated using base name defined on extension"() {
         when:
         project.pluginManager.apply(CppExecutablePlugin)
-        project.executable.baseName.set("test_app")
+        project.executable.baseName = "test_app"
 
         then:
         def link = project.tasks.linkMain
@@ -87,20 +87,17 @@ class CppExecutablePluginTest extends Specification {
         given:
         project.pluginManager.apply(CppExecutablePlugin)
 
-        expect:
+        when:
+        project.buildDir = "output"
+
+        then:
         def compileCpp = project.tasks.compileCpp
-        compileCpp.objectFileDir == project.file("build/main/objs")
+        compileCpp.objectFileDir == project.file("output/main/objs")
 
         def link = project.tasks.linkMain
-        link.outputFile.parentFile == project.file("build/exe")
+        link.outputFile == projectDir.file("output/exe/" + OperatingSystem.current().getExecutableName("testApp"))
 
         def install = project.tasks.installMain
-        install.destinationDir == project.file("build/install/testApp")
-
-        project.setBuildDir("output")
-
-        compileCpp.objectFileDir == project.file("output/main/objs")
-        link.outputFile.parentFile == project.file("output/exe")
         install.destinationDir == project.file("output/install/testApp")
         install.executable == link.outputFile
 

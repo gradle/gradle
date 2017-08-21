@@ -153,8 +153,8 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         and:
         buildFile << """
             apply plugin: 'cpp-library'
-            compileCpp.objectFileDirectory.set(layout.buildDirectory.dir("object-files"))
-            linkMain.binaryFile.set(layout.buildDirectory.file("some-lib/main.bin"))
+            compileCpp.objectFileDirectory = layout.buildDirectory.dir("object-files")
+            linkMain.binaryFile = layout.buildDirectory.file("some-lib/main.bin")
          """
 
         expect:
@@ -220,7 +220,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
             project(':lib1') {
                 apply plugin: 'cpp-library'
                 library {
-                    baseName.set('hello')
+                    baseName = 'hello'
                 }
                 dependencies {
                     implementation project(':lib2')
@@ -229,7 +229,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
             project(':lib2') {
                 apply plugin: 'cpp-library'
                 library {
-                    baseName.set('log')
+                    baseName = 'log'
                 }
             }
 """

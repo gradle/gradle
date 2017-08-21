@@ -70,7 +70,7 @@ class CppLibraryPluginTest extends Specification {
     def "output locations are calculated using base name defined on extension"() {
         when:
         project.pluginManager.apply(CppLibraryPlugin)
-        project.library.baseName.set("test_lib")
+        project.library.baseName = "test_lib"
 
         then:
         def link = project.tasks.linkMain
@@ -81,16 +81,14 @@ class CppLibraryPluginTest extends Specification {
         given:
         project.pluginManager.apply(CppLibraryPlugin)
 
-        expect:
+        when:
+        project.buildDir = "output"
+
+        then:
         def compileCpp = project.tasks.compileCpp
-        compileCpp.objectFileDir == project.file("build/main/objs")
+        compileCpp.objectFileDir == project.file("output/main/objs")
 
         def link = project.tasks.linkMain
-        link.outputFile.parentFile == project.file("build/lib")
-
-        project.setBuildDir("output")
-
-        compileCpp.objectFileDir == project.file("output/main/objs")
-        link.outputFile.parentFile == project.file("output/lib")
+        link.outputFile == projectDir.file("output/lib/" + OperatingSystem.current().getSharedLibraryName("testLib"))
     }
 }

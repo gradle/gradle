@@ -188,7 +188,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         and:
         buildFile << """
             apply plugin: 'cpp-executable'
-            executable.baseName.set('test_app')
+            executable.baseName = 'test_app'
          """
 
         expect:
@@ -210,9 +210,9 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         and:
         buildFile << """
             apply plugin: 'cpp-executable'
-            compileCpp.objectFileDirectory.set(layout.buildDirectory.dir("object-files"))
-            linkMain.binaryFile.set(layout.buildDirectory.file("exe/some-app.exe"))
-            installMain.installDirectory.set(layout.buildDirectory.dir("some-app"))
+            compileCpp.objectFileDirectory = layout.buildDirectory.dir("object-files")
+            linkMain.binaryFile = layout.buildDirectory.file("exe/some-app.exe")
+            installMain.installDirectory = layout.buildDirectory.dir("some-app")
          """
 
         expect:
