@@ -17,6 +17,7 @@
 package org.gradle.initialization;
 
 import com.google.common.collect.ImmutableSortedSet;
+import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -73,10 +74,10 @@ public class NotifyingBuildLoader implements BuildLoader {
             ((ProjectInternal) project).getIdentityPath().toString(),
             project.getProjectDir().getAbsolutePath(),
             project.getBuildFile().getAbsolutePath(),
-            convert(project.getSubprojects()));
+            convert(project.getChildProjects().values()));
     }
 
-    private Set<LoadProjectsBuildOperationType.Result.Project> convert(Set<org.gradle.api.Project> children) {
+    private Set<LoadProjectsBuildOperationType.Result.Project> convert(Iterable<Project> children) {
         ImmutableSortedSet.Builder<LoadProjectsBuildOperationType.Result.Project> builder = new ImmutableSortedSet.Builder<LoadProjectsBuildOperationType.Result.Project>(PROJECT_COMPARATOR);
         for (org.gradle.api.Project child : children) {
             builder.add(convert(child));
@@ -113,9 +114,9 @@ public class NotifyingBuildLoader implements BuildLoader {
         private final String identityPath;
         private final String projectDir;
         private final String buildFile;
-        final Set<LoadProjectsBuildOperationType.Result.Project> children;
+        private final Set<LoadProjectsBuildOperationType.Result.Project> children;
 
-        public BuildStructureOperationProject(String name, String path, String identityPath, String projectDir, String buildFile, Set<LoadProjectsBuildOperationType.Result.Project> children){
+        public BuildStructureOperationProject(String name, String path, String identityPath, String projectDir, String buildFile, Set<LoadProjectsBuildOperationType.Result.Project> children) {
             this.name = name;
             this.path = path;
             this.identityPath = identityPath;
