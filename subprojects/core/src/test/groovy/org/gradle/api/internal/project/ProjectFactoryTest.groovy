@@ -58,7 +58,7 @@ class ProjectFactoryTest extends Specification {
 
         then:
         result == project
-        1 * instantiator.newInstance(DefaultProject, "name", null, projectDir, { it instanceof TextResourceScriptSource }, gradle, serviceRegistryFactory, rootProjectScope, baseScope) >> project
+        1 * instantiator.newInstance(DefaultProject, "name", null, projectDir, buildFile, { it instanceof TextResourceScriptSource }, gradle, serviceRegistryFactory, rootProjectScope, baseScope) >> project
         1 * projectRegistry.addProject(project)
     }
 
@@ -76,7 +76,7 @@ class ProjectFactoryTest extends Specification {
 
         then:
         result == project
-        1 * instantiator.newInstance(DefaultProject, "name", null, projectDir, { it.resource instanceof EmptyFileTextResource }, gradle, serviceRegistryFactory, rootProjectScope, baseScope) >> project
+        1 * instantiator.newInstance(DefaultProject, "name", null, projectDir, buildFile, { it.resource instanceof EmptyFileTextResource }, gradle, serviceRegistryFactory, rootProjectScope, baseScope) >> project
         1 * projectRegistry.addProject(project)
     }
 
@@ -95,7 +95,7 @@ class ProjectFactoryTest extends Specification {
 
         then:
         result == project
-        1 * instantiator.newInstance(DefaultProject, "name", parent, projectDir, _, gradle, serviceRegistryFactory, rootProjectScope, baseScope) >> project
+        1 * instantiator.newInstance(DefaultProject, "name", parent, projectDir, buildFile, _, gradle, serviceRegistryFactory, rootProjectScope, baseScope) >> project
         1 * parent.addChildProject(project)
         1 * projectRegistry.addProject(project)
     }

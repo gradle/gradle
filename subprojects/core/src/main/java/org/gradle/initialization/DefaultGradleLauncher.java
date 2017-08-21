@@ -46,11 +46,12 @@ import java.util.Set;
 public class DefaultGradleLauncher implements GradleLauncher {
 
     private enum Stage {
-        Load, Configure, TaskGraph, Build, Finished
+        Load, LoadBuild, Configure, TaskGraph, Build, Finished
     }
 
     private final InitScriptHandler initScriptHandler;
     private final SettingsLoader settingsLoader;
+    private final BuildLoader buildLoader;
     private final BuildConfigurer buildConfigurer;
     private final ExceptionAnalyser exceptionAnalyser;
     private final BuildListener buildListener;
@@ -65,7 +66,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private SettingsInternal settings;
     private Stage stage;
 
-    public DefaultGradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsLoader settingsLoader,
+    public DefaultGradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsLoader settingsLoader, BuildLoader buildLoader,
                                  BuildConfigurer buildConfigurer, ExceptionAnalyser exceptionAnalyser,
                                  BuildListener buildListener, ModelConfigurationListener modelConfigurationListener,
                                  BuildCompletionListener buildCompletionListener, BuildOperationExecutor operationExecutor,
@@ -74,6 +75,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsLoader = settingsLoader;
+        this.buildLoader = buildLoader;
         this.buildConfigurer = buildConfigurer;
         this.exceptionAnalyser = exceptionAnalyser;
         this.buildListener = buildListener;
@@ -243,6 +245,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private class ConfigureBuild implements RunnableBuildOperation {
         @Override
         public void run(BuildOperationContext context) {
+            buildLoader.load(settings, gradle);
             buildConfigurer.configure(gradle);
 
             if (!isConfigureOnDemand()) {

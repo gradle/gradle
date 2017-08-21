@@ -153,6 +153,8 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     private final File projectDir;
 
+    private final File buildFile;
+
     private final ProjectInternal parent;
 
     private final String name;
@@ -197,6 +199,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     public DefaultProject(String name,
                           ProjectInternal parent,
                           File projectDir,
+                          File buildFile,
                           ScriptSource buildScriptSource,
                           GradleInternal gradle,
                           ServiceRegistryFactory serviceRegistryFactory,
@@ -207,6 +210,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         assert name != null;
         this.rootProject = parent != null ? parent.getRootProject() : this;
         this.projectDir = projectDir;
+        this.buildFile = buildFile;
         this.parent = parent;
         this.name = name;
         this.state = new ProjectStateInternal();
@@ -350,7 +354,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public File getBuildFile() {
-        return getBuildscript().getSourceFile();
+        return buildFile;
     }
 
     @Override

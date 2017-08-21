@@ -400,7 +400,7 @@ class DefaultGradleSpec extends Specification {
     private ProjectInternal project(String name) {
         def project = Spy(DefaultProject, constructorArgs: [
             name,
-            null, null, Stub(ScriptSource),
+            null, null, null, Stub(ScriptSource),
             gradle, serviceRegistryFactory,
             Stub(ClassLoaderScope), Stub(ClassLoaderScope)
         ])
