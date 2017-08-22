@@ -25,7 +25,9 @@ import spock.lang.Specification
 class DefaultCppComponentTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def component = new DefaultCppComponent("main", TestFiles.fileOperations(tmpDir.testDirectory), new DefaultProviderFactory())
+    def fileOperations = TestFiles.fileOperations(tmpDir.testDirectory)
+    def providerFactory = new DefaultProviderFactory()
+    def component = new DefaultCppComponent("main", fileOperations, providerFactory)
 
     def "has no source files by default"() {
         expect:
@@ -127,5 +129,20 @@ class DefaultCppComponentTest extends Specification {
 
         component.privateHeaders.from(d1)
         component.headerFiles.files == [f1, f2] as Set
+    }
+
+    def "uses component name to determine source directories"() {
+        def f1 = tmpDir.createFile("src/a/cpp/a.cpp")
+        def h1 = tmpDir.createFile("src/a/headers")
+        def f2 = tmpDir.createFile("src/b/cpp/b.cpp")
+        def h2 = tmpDir.createFile("src/b/headers")
+        def c1 = new DefaultCppComponent("a", fileOperations, providerFactory)
+        def c2 = new DefaultCppComponent("b", fileOperations, providerFactory)
+
+        expect:
+        c1.cppSource.files == [f1] as Set
+        c1.privateHeaderDirs.files == [h1] as Set
+        c2.cppSource.files == [f2] as Set
+        c2.privateHeaderDirs.files == [h2] as Set
     }
 }

@@ -45,9 +45,9 @@ public class DefaultCppComponent extends DefaultNativeComponent implements CppCo
         super(fileOperations);
         this.name = name;
         this.fileOperations = fileOperations;
-        cppSource = createSourceView("src/main/cpp", Arrays.asList("cpp", "c++"));
+        cppSource = createSourceView("src/" + name + "/cpp", Arrays.asList("cpp", "c++"));
         privateHeaders = fileOperations.files();
-        privateHeadersWithConvention = createDirView(privateHeaders, "src/main/headers");
+        privateHeadersWithConvention = createDirView(privateHeaders, "src/" + name + "/headers");
         compileIncludePath = fileOperations.files();
         compileIncludePath.from(privateHeadersWithConvention);
         baseName = providerFactory.property(String.class);

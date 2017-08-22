@@ -33,7 +33,7 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     public DefaultCppLibrary(String name, FileOperations fileOperations, ProviderFactory providerFactory) {
         super(name, fileOperations, providerFactory);
         publicHeaders = fileOperations.files();
-        publicHeadersWithConvention = createDirView(publicHeaders, "src/main/public");
+        publicHeadersWithConvention = createDirView(publicHeaders, "src/" + name + "/public");
         getCompileIncludePath().setFrom(publicHeadersWithConvention, getPrivateHeaderDirs());
     }
 

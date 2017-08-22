@@ -23,7 +23,6 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryVar;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -34,8 +33,8 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
-import org.gradle.language.swift.internal.DefaultSwiftComponent;
 import org.gradle.language.swift.SwiftComponent;
+import org.gradle.language.swift.internal.DefaultSwiftComponent;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
@@ -86,23 +85,18 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
         // TODO - Reuse logic from Swift*Plugin
         // TODO - component name and extension name aren't the same
+        // TODO - should use `src/xctext/swift` as the convention?
         // Add the component extension
         SwiftComponent component = project.getExtensions().create(SwiftComponent.class, "xctest", DefaultSwiftComponent.class, "test", fileOperations, providers);
         project.getComponents().add(component);
 
         // Configure the component
-        // TODO - should reuse convention from the component
-        // TODO - should use `src/xctext/swift` as the convention?
-        component.getSource().from(projectDirectory.dir("src/test/swift"));
+        component.getCompileImportPath().from(configurations.getByName(SwiftBasePlugin.SWIFT_TEST_IMPORT_PATH));
 
         // Add a compile task
         SwiftCompile compile = tasks.create("compileTestSwift", SwiftCompile.class);
-
-        // TODO - should add to component
-        compile.includes(configurations.getByName(SwiftBasePlugin.SWIFT_TEST_IMPORT_PATH));
-
-        FileCollection sourceFiles = component.getSwiftSource();
-        compile.source(sourceFiles);
+        compile.source(component.getSwiftSource());
+        compile.includes(component.getCompileImportPath());
 
         File frameworkDir = new File(sdkPlatformPathLocator.find(), "Developer/Library/Frameworks");
 

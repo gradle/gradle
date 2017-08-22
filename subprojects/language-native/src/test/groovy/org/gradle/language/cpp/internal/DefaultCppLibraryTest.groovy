@@ -26,7 +26,9 @@ import spock.lang.Specification
 class DefaultCppLibraryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def library = new DefaultCppLibrary("main", TestFiles.fileOperations(tmpDir.testDirectory), new DefaultProviderFactory())
+    def fileOperations = TestFiles.fileOperations(tmpDir.testDirectory)
+    def providerFactory = new DefaultProviderFactory()
+    def library = new DefaultCppLibrary("main", fileOperations, providerFactory)
 
     def "uses convention for public headers when nothing specified"() {
         def d = tmpDir.file("src/main/public")
@@ -80,5 +82,16 @@ class DefaultCppLibraryTest extends Specification {
 
         library.privateHeaders.from(d1)
         library.headerFiles.files == [f3, f1, f2] as Set
+    }
+
+    def "uses component name to determine header directories"() {
+        def h1 = tmpDir.createFile("src/a/public")
+        def h2 = tmpDir.createFile("src/b/public")
+        def c1 = new DefaultCppLibrary("a", fileOperations, providerFactory)
+        def c2 = new DefaultCppLibrary("b", fileOperations, providerFactory)
+
+        expect:
+        c1.publicHeaderDirs.files == [h1] as Set
+        c2.publicHeaderDirs.files == [h2] as Set
     }
 }

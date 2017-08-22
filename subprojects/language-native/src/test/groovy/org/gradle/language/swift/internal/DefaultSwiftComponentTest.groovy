@@ -25,7 +25,9 @@ import spock.lang.Specification
 class DefaultSwiftComponentTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def component = new DefaultSwiftComponent("main", TestFiles.fileOperations(tmpDir.testDirectory), new DefaultProviderFactory())
+    def fileOperations = TestFiles.fileOperations(tmpDir.testDirectory)
+    def providerFactory = new DefaultProviderFactory()
+    def component = new DefaultSwiftComponent("main", fileOperations, providerFactory)
 
     def "has no source files by default"() {
         expect:
@@ -67,5 +69,16 @@ class DefaultSwiftComponentTest extends Specification {
 
         component.source.from(f1, f4)
         component.swiftSource.files == [f1, f4] as Set
+    }
+
+    def "uses component name to determine source directory"() {
+        def f1 = tmpDir.createFile("src/a/swift/a.swift")
+        def f2 = tmpDir.createFile("src/b/swift/b.swift")
+        def c1 = new DefaultSwiftComponent("a", fileOperations, providerFactory)
+        def c2 = new DefaultSwiftComponent("b", fileOperations, providerFactory)
+
+        expect:
+        c1.swiftSource.files == [f1] as Set
+        c2.swiftSource.files == [f2] as Set
     }
 }

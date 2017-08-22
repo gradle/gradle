@@ -35,7 +35,7 @@ public class DefaultSwiftComponent extends DefaultNativeComponent implements Swi
     public DefaultSwiftComponent(String name, FileOperations fileOperations, ProviderFactory providerFactory) {
         super(fileOperations);
         this.name = name;
-        swiftSource = createSourceView("src/main/swift", Collections.singletonList("swift"));
+        swiftSource = createSourceView("src/"+ name + "/swift", Collections.singletonList("swift"));
         importPath = fileOperations.files();
         module = providerFactory.property(String.class);
     }
