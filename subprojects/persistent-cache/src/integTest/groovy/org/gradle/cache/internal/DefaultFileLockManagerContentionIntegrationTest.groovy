@@ -40,11 +40,16 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
     FileLockContentionHandler receivingFileLockContentionHandler
     DatagramSocket receivingSocket
     FileLock receivingLock
+    Thread socketReceiverThread
 
     def setup() {
         executer.withArguments("-d")
         executer.requireOwnGradleUserHomeDir().withDaemonBaseDir(file("daemonsRequestingLock")).requireDaemon()
         buildFile << ""
+    }
+
+    def cleanup() {
+        socketReceiverThread?.terminate = true
     }
 
     def "the lock holder is not hammered with ping requests for the shared fileHashes lock"() {
@@ -280,10 +285,11 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
 
     def replaceSocketReceiver(Runnable reactOnRequest) {
         receivingFileLockContentionHandler.fileLockRequestListener?.shutdownNow()
-        new Thread() {
+        socketReceiverThread = new Thread() {
+            def terminate = false
             void run() {
                 InetAddress selectedAddress = null
-                while (true) {
+                while (!terminate) {
                     byte[] bytes = new byte[9]
                     DatagramPacket packet = new DatagramPacket(bytes, bytes.length)
                     receivingSocket.receive(packet)
@@ -294,9 +300,9 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
                         reactOnRequest.run()
                     }
                 }
-
             }
-        }.start()
+        }
+        socketReceiverThread.start()
     }
 
     def setupLockOwner(Runnable whenContended = null) {
