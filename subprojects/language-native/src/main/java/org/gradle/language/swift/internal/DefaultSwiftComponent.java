@@ -29,6 +29,7 @@ import java.util.Collections;
 public class DefaultSwiftComponent extends DefaultNativeComponent implements SwiftComponent {
     private final FileCollection swiftSource;
     private final ConfigurableFileCollection importPath;
+    private final ConfigurableFileCollection linkLibraries;
     private final PropertyState<String> module;
     private final String name;
 
@@ -37,6 +38,7 @@ public class DefaultSwiftComponent extends DefaultNativeComponent implements Swi
         this.name = name;
         swiftSource = createSourceView("src/"+ name + "/swift", Collections.singletonList("swift"));
         importPath = fileOperations.files();
+        linkLibraries = fileOperations.files();
         module = providerFactory.property(String.class);
     }
 
@@ -53,6 +55,11 @@ public class DefaultSwiftComponent extends DefaultNativeComponent implements Swi
     @Override
     public FileCollection getSwiftSource() {
         return swiftSource;
+    }
+
+    @Override
+    public ConfigurableFileCollection getLinkLibraries() {
+        return linkLibraries;
     }
 
     @Override

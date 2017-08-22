@@ -85,6 +85,7 @@ public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
         final PropertyState<String> module = component.getModule();
         module.set(GUtil.toCamelCase(project.getName()));
         component.getCompileImportPath().from(configurations.getByName(SwiftBasePlugin.SWIFT_IMPORT_PATH));
+        component.getLinkLibraries().from(configurations.getByName(CppBasePlugin.NATIVE_LINK));
 
         // Configure compile task
         SwiftCompile compile = (SwiftCompile) tasks.getByName("compileSwift");
@@ -101,7 +102,7 @@ public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
         // Add a link task
         LinkExecutable link = tasks.create("linkMain", LinkExecutable.class);
         link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
-        link.lib(configurations.getByName(CppBasePlugin.NATIVE_LINK));
+        link.lib(component.getLinkLibraries());
         link.setLinkerArgs(Collections.<String>emptyList());
         final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
         Provider<RegularFile> exeLocation = buildDirectory.file(providers.provider(new Callable<String>() {

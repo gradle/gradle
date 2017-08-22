@@ -27,6 +27,8 @@ import org.gradle.api.provider.PropertyState;
 /**
  * Configuration for a C++ component, such as a library or executable, defining the source files and private header directories that make up the component. Private headers are those that are visible only to the source files of the component.
  *
+ * <p>A C++ component is composed of some C++ source files that are compiled and then linked into some binary.</p>
+ *
  * <p>An instance of this type is added as a project extension by the C++ plugins.</p>
  *
  * @since 4.2
@@ -81,4 +83,9 @@ public interface CppComponent extends SoftwareComponent {
      * Returns all header files of this component. Includes public and private header files.
      */
     FileTree getHeaderFiles();
+
+    /**
+     * Returns the link libraries to use to link this component. Includes the link libraries of the component's dependencies.
+     */
+    ConfigurableFileCollection getLinkLibraries();
 }

@@ -26,6 +26,8 @@ import org.gradle.api.provider.PropertyState;
 /**
  * Configuration for a Swift component, such as a library or executable, defining the source files that make up the component plus other settings.
  *
+ * <p>Swift component is composed of some Swift source files that are compiled and then linked into some binary.</p>
+ *
  * <p>An instance of this type is added as a project extension by the Swift plugins.</p>
  *
  * @since 4.2
@@ -58,4 +60,9 @@ public interface SwiftComponent extends SoftwareComponent {
      * Returns the import directories to use to compile this component. Includes the import directories of the component's dependencies.
      */
     ConfigurableFileCollection getCompileImportPath();
+
+    /**
+     * Returns the link libraries to use to link this component. Includes the link libraries of the component's dependencies.
+     */
+    ConfigurableFileCollection getLinkLibraries();
 }

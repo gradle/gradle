@@ -86,6 +86,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         // Configure the component
         component.getBaseName().set(project.getName());
         component.getCompileIncludePath().from(configurations.getByName(CppBasePlugin.CPP_INCLUDE_PATH));
+        component.getLinkLibraries().from(configurations.getByName(CppBasePlugin.NATIVE_LINK));
 
         // Configure the compile task
         CppCompile compile = (CppCompile) tasks.getByName("compileCpp");
@@ -103,7 +104,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         // Add a link task
         final LinkSharedLibrary link = tasks.create("linkMain", LinkSharedLibrary.class);
         link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
-        link.lib(configurations.getByName(CppBasePlugin.NATIVE_LINK));
+        link.lib(component.getLinkLibraries());
         link.setLinkerArgs(Collections.<String>emptyList());
         // TODO - need to set soname
         Provider<RegularFile> linkFile = buildDirectory.file(providers.provider(new Callable<String>() {

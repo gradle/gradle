@@ -91,6 +91,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
         // Configure the component
         component.getCompileImportPath().from(configurations.getByName(SwiftBasePlugin.SWIFT_TEST_IMPORT_PATH));
+        component.getLinkLibraries().from(configurations.getByName(CppBasePlugin.NATIVE_TEST_LINK));
 
         // Configure compile task
         SwiftCompile compile = (SwiftCompile) tasks.getByName("compileTestSwift");
@@ -110,7 +111,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         LinkExecutable link = tasks.create("linkTest", LinkExecutable.class);
         // TODO - need to set basename from component
         link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
-        link.lib(configurations.getByName(CppBasePlugin.NATIVE_TEST_LINK));
+        link.lib(component.getLinkLibraries());
         link.setLinkerArgs(Lists.newArrayList("-Xlinker", "-bundle", "-F" + frameworkDir.getAbsolutePath(), "-framework", "XCTest", "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks", "-Xlinker", "-rpath", "-Xlinker", "@loader_path/../Frameworks"));
         PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
         Provider<RegularFile> exeLocation = buildDirectory.file(toolProvider.getExecutableName("exe/" + project.getName() + "Test"));

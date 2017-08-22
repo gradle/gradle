@@ -38,6 +38,7 @@ public class DefaultCppComponent extends DefaultNativeComponent implements CppCo
     private final ConfigurableFileCollection privateHeaders;
     private final FileCollection privateHeadersWithConvention;
     private final ConfigurableFileCollection compileIncludePath;
+    private final ConfigurableFileCollection linkLibraries;
     private final PropertyState<String> baseName;
 
     @Inject
@@ -51,6 +52,7 @@ public class DefaultCppComponent extends DefaultNativeComponent implements CppCo
         compileIncludePath = fileOperations.files();
         compileIncludePath.from(privateHeadersWithConvention);
         baseName = providerFactory.property(String.class);
+        linkLibraries = fileOperations.files();
     }
 
     @Override
@@ -98,6 +100,11 @@ public class DefaultCppComponent extends DefaultNativeComponent implements CppCo
     @Override
     public ConfigurableFileCollection getCompileIncludePath() {
         return compileIncludePath;
+    }
+
+    @Override
+    public ConfigurableFileCollection getLinkLibraries() {
+        return linkLibraries;
     }
 
     @Override

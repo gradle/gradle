@@ -78,6 +78,7 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         // Configure the component
         component.getBaseName().set(project.getName());
         component.getCompileIncludePath().from(configurations.getByName(CppBasePlugin.CPP_INCLUDE_PATH));
+        component.getLinkLibraries().from(configurations.getByName(CppBasePlugin.NATIVE_LINK));
 
         // Configure the compile task
         CppCompile compile = (CppCompile) tasks.getByName("compileCpp");
@@ -93,7 +94,7 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         // Add a link task
         LinkExecutable link = tasks.create("linkMain", LinkExecutable.class);
         link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
-        link.lib(configurations.getByName(CppBasePlugin.NATIVE_LINK));
+        link.lib(component.getLinkLibraries());
         link.setLinkerArgs(Collections.<String>emptyList());
         final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
         link.setOutputFile(buildDirectory.file(providers.provider(new Callable<String>() {
