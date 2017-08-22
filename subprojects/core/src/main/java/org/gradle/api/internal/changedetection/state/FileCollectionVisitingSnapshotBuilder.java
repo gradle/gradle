@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import java.util.List;
+import java.util.Collection;
 
 /**
  * Used to build a {@link FileCollectionSnapshot} by collecting normalized file snapshots.
@@ -29,7 +29,7 @@ public class FileCollectionVisitingSnapshotBuilder implements FileVisitingSnapsh
     }
 
     @Override
-    public void visitFileTreeSnapshot(List<FileSnapshot> descendants) {
+    public void visitFileTreeSnapshot(Collection<FileSnapshot> descendants) {
         for (FileSnapshot fileSnapshot : descendants) {
             builder.collectFileSnapshot(fileSnapshot);
         }

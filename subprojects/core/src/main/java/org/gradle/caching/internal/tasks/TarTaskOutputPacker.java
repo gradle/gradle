@@ -332,9 +332,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         RelativePath relativePath = root ? RelativePath.EMPTY_ROOT : RelativePath.parse(!isDirEntry, childPath);
         if (isDirEntry) {
             FileUtils.forceMkdir(outputFile);
-            if (!root) {
-                fileSnapshots.put(propertyName, new DirectoryFileSnapshot(internedPath, relativePath, false));
-            }
+            fileSnapshots.put(propertyName, new DirectoryFileSnapshot(internedPath, relativePath, root));
         } else {
             OutputStream output = new FileOutputStream(outputFile);
             HashCode hash;

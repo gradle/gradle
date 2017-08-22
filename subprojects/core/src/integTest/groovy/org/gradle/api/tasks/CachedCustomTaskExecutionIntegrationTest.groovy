@@ -603,7 +603,34 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         skippedTasks as List == [":producer"]
 
         when:
-        succeeds "producer"
+        withBuildCache().succeeds "producer", "--info"
+        then:
+        skippedTasks as List == [":producer"]
+    }
+
+    def "task can be cached after loaded from cache"() {
+        file("input.txt").text = "input"
+        buildFile << defineProducerTask()
+
+        // Store in local cache
+        withBuildCache().succeeds "producer"
+
+        // Load from local cache
+        cleanBuildDir()
+        withBuildCache().succeeds "producer"
+
+        // Store to local cache again
+        when:
+        cleanLocalBuildCache()
+        withBuildCache().succeeds "producer", "--info", "--rerun-tasks"
+        then:
+        !output.contains("Caching disabled for task ':producer'")
+        true
+
+        when:
+        // Can load from local cache again
+        cleanBuildDir()
+        withBuildCache().succeeds "producer"
         then:
         skippedTasks as List == [":producer"]
     }

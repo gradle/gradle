@@ -26,6 +26,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.internal.serialize.SerializerRegistry;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -95,7 +96,7 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         @Override
         public void visitDirectoryTree(DirectoryFileTree directoryTree) {
             FileTreeSnapshot treeSnapshot = fileSystemSnapshotter.snapshotDirectoryTree(directoryTree);
-            List<FileSnapshot> descendants = treeSnapshot.getDescendants();
+            Collection<FileSnapshot> descendants = treeSnapshot.getDescendants();
             fileSnapshotVisitor.visitFileTreeSnapshot(descendants);
         }
     }

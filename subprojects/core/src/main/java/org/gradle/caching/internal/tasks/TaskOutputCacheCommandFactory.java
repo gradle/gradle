@@ -16,6 +16,8 @@
 
 package org.gradle.caching.internal.tasks;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
@@ -49,6 +51,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Collection;
 import java.util.List;
 import java.util.SortedSet;
 
@@ -57,6 +60,12 @@ import static org.gradle.api.internal.changedetection.state.TaskFilePropertyComp
 public class TaskOutputCacheCommandFactory {
 
     private static final Logger LOGGER = Logging.getLogger(TaskOutputCacheCommandFactory.class);
+    private static final Predicate<? super FileSnapshot> EXCLUDE_ROOT_SNAPSHOTS = new Predicate<FileSnapshot>() {
+        @Override
+        public boolean apply(FileSnapshot snapshot) {
+            return !snapshot.isRoot();
+        }
+    };
 
     private final TaskOutputPacker packer;
     private final TaskOutputOriginFactory taskOutputOriginFactory;
@@ -164,7 +173,8 @@ public class TaskOutputCacheCommandFactory {
                         }
                         break;
                     case DIRECTORY:
-                        fileSystemMirror.putDirectory(new DirectoryTreeDetails(outputFile.getAbsolutePath(), fileSnapshots));
+                        Collection<FileSnapshot> descendants = Collections2.filter(fileSnapshots, EXCLUDE_ROOT_SNAPSHOTS);
+                        fileSystemMirror.putDirectory(new DirectoryTreeDetails(outputFile.getAbsolutePath(), descendants));
                         break;
                     default:
                         throw new AssertionError();

@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures
 
 import groovy.transform.SelfType
+import org.apache.commons.io.FileUtils
 import org.gradle.caching.local.internal.BuildCacheTempFileStore
 import org.gradle.caching.local.internal.DirectoryBuildCacheServiceFactory
 import org.gradle.test.fixtures.file.TestFile
@@ -47,6 +48,13 @@ trait DirectoryBuildCacheFixture extends BuildCacheFixture {
 
     TestFile getCacheDir() {
         cacheDir
+    }
+
+    void cleanLocalBuildCache() {
+        listCacheFiles().each { file ->
+            println "Deleting cache entry: $file"
+            FileUtils.forceDelete(file)
+        }
     }
 
     TestFile gcFile() {

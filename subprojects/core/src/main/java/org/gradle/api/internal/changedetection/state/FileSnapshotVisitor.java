@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import java.util.List;
+import java.util.Collection;
 
 /**
  * A {@link FileSnapshotVisitor} is used to visit all snapshots created by the {@link FileSystemSnapshotter} for a {@link org.gradle.api.file.FileCollection}.
@@ -25,7 +25,7 @@ public interface FileSnapshotVisitor {
     /**
      * Visits the descendants of a {@link org.gradle.api.file.FileTree} or a {@link org.gradle.api.internal.file.collections.DirectoryFileTree}.
      */
-    void visitFileTreeSnapshot(List<FileSnapshot> descendants);
+    void visitFileTreeSnapshot(Collection<FileSnapshot> descendants);
 
     /**
      * Visits a {@link DirectoryFileSnapshot} in the root of the {@link org.gradle.api.file.FileCollection}.

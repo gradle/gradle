@@ -27,7 +27,7 @@ import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.List;
+import java.util.Collection;
 import java.util.zip.ZipException;
 
 public abstract class AbstractClasspathSnapshotBuilder implements FileVisitingSnapshotBuilder {
@@ -60,7 +60,7 @@ public abstract class AbstractClasspathSnapshotBuilder implements FileVisitingSn
     }
 
     @Override
-    public void visitFileTreeSnapshot(List<FileSnapshot> descendants) {
+    public void visitFileTreeSnapshot(Collection<FileSnapshot> descendants) {
         ClasspathEntrySnapshotBuilder entryResourceCollectionBuilder = newClasspathEntrySnapshotBuilder();
         try {
             new FileTree(descendants).visit(entryResourceCollectionBuilder);
