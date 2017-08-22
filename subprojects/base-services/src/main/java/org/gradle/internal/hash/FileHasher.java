@@ -26,7 +26,7 @@ import java.io.OutputStream;
 
 public interface FileHasher {
     /**
-     * Returns the hash of the given input stream.
+     * Returns the hash of the given input stream. The stream will not be closed by the method.
      */
     HashCode hash(InputStream inputStream);
 
