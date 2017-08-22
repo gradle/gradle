@@ -72,7 +72,7 @@ class MavenInstallationDownloader {
         try {
             log.info "Attempting to downloading Maven binary distribution from '$binArchiveUrl'"
             return downloadBinArchive(mavenVersion, binArchiveUrl)
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.warn "Unable to download Maven distribution from '$binArchiveUrl'", e
         }
     }
