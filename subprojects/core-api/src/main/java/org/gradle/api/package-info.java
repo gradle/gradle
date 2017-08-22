@@ -23,4 +23,5 @@
  * <li>{@link org.gradle.api.Task}</li>
  * </ul>
  */
+@NonNullApi
 package org.gradle.api;

@@ -25,6 +25,7 @@ import org.gradle.api.CircularReferenceException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.PathValidation;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectConfigurationException;
@@ -114,6 +115,7 @@ import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.net.URI;
@@ -132,6 +134,7 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
 import static org.gradle.util.GUtil.addMaps;
 
 @NoConventionMapping
+@NonNullApi
 public class DefaultProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {
     private static final ModelType<ServiceRegistry> SERVICE_REGISTRY_MODEL_TYPE = ModelType.of(ServiceRegistry.class);
     private static final ModelType<File> FILE_MODEL_TYPE = ModelType.of(File.class);
@@ -197,7 +200,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     private Path identityPath;
 
     public DefaultProject(String name,
-                          ProjectInternal parent,
+                          @Nullable ProjectInternal parent,
                           File projectDir,
                           File buildFile,
                           ScriptSource buildScriptSource,
@@ -207,7 +210,6 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
                           ClassLoaderScope baseClassLoaderScope) {
         this.classLoaderScope = selfClassLoaderScope;
         this.baseClassLoaderScope = baseClassLoaderScope;
-        assert name != null;
         this.rootProject = parent != null ? parent.getRootProject() : this;
         this.projectDir = projectDir;
         this.buildFile = buildFile;
@@ -404,7 +406,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
-    public void setDescription(String description) {
+    public void setDescription(@Nullable String description) {
         this.description = description;
     }
 

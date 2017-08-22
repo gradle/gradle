@@ -18,6 +18,7 @@ package org.gradle.api;
 import groovy.lang.Closure;
 import org.gradle.api.specs.Spec;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.SortedMap;
@@ -119,6 +120,7 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @param name The object name
      * @return The object with the given name, or null if there is no such object in this collection.
      */
+    @Nullable
     T findByName(String name);
 
     /**

@@ -18,6 +18,8 @@ package org.gradle.api;
 
 import org.gradle.internal.HasInternalProtocol;
 
+import javax.annotation.Nullable;
+
 /**
  * {@code ProjectState} provides information about the execution state of a project.
  */
@@ -35,6 +37,7 @@ public interface ProjectState {
      *
      * @return The exception, or null if project evaluation did not fail.
      */
+    @Nullable
     Throwable getFailure();
 
     /**
