@@ -55,7 +55,7 @@ class MavenDownloaderTest extends Specification {
         MavenInstallation.probeVersion(install.home) == mavenVersion
 
         where:
-        mavenVersion << ['3.2.5', '3.3.9']
+        mavenVersion << ['3.3.9', '3.5.0']
     }
 
     def "throws exception if Maven distribution cannot be downloaded from any repository"() {
