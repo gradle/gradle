@@ -28,7 +28,7 @@ abstract class AbstractNativeSoftwareModelParallelIntegrationTest extends Abstra
     def "can execute link executable tasks in parallel"() {
         given:
         withComponentForApp()
-        withTaskThatRunsParallelWith("linkMainExecutable")
+        createTaskThatRunsInParallelUsingCustomToolchainWith("linkMainExecutable")
 
         when:
         succeeds("assemble", "parallelTask")
@@ -40,7 +40,7 @@ abstract class AbstractNativeSoftwareModelParallelIntegrationTest extends Abstra
     def "can execute link shared library tasks in parallel"() {
         given:
         withComponentsForAppAndSharedLib()
-        withTaskThatRunsParallelWith("linkMainLibSharedLibrary")
+        createTaskThatRunsInParallelUsingCustomToolchainWith("linkMainLibSharedLibrary")
 
         when:
         succeeds("assemble", "parallelTask")
@@ -52,7 +52,7 @@ abstract class AbstractNativeSoftwareModelParallelIntegrationTest extends Abstra
     def "can execute create static library tasks in parallel"() {
         given:
         withComponentsForAppAndStaticLib()
-        withTaskThatRunsParallelWith("createMainLibStaticLibrary")
+        createTaskThatRunsInParallelUsingCustomToolchainWith("createMainLibStaticLibrary")
 
         when:
         succeeds("assemble", "parallelTask")
@@ -64,13 +64,25 @@ abstract class AbstractNativeSoftwareModelParallelIntegrationTest extends Abstra
     def "can execute compile tasks in parallel"() {
         given:
         withComponentForApp()
-        withTaskThatRunsParallelWith("compileMainExecutableMain${app.sourceType.capitalize()}")
+        createTaskThatRunsInParallelUsingCustomToolchainWith("compileMainExecutableMain${app.sourceType.capitalize()}")
 
         when:
         succeeds("assemble", "parallelTask")
 
         then:
         assertTaskIsParallel("compileMainExecutableMain${app.sourceType.capitalize()}")
+    }
+
+    def "can execute install task in parallel"() {
+        given:
+        withComponentForApp()
+        createTaskThatRunsInParallelUsingWorkerLeaseInjectionWith("installMainExecutable")
+
+        when:
+        succeeds("installMainExecutable", "parallelTask")
+
+        then:
+        assertTaskIsParallel("installMainExecutable")
     }
 
     def withComponentForApp() {

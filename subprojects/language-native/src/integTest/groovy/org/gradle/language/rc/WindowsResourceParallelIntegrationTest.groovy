@@ -30,7 +30,7 @@ class WindowsResourceParallelIntegrationTest extends AbstractNativeSoftwareModel
     def "can execute compile windows resource tasks in parallel"() {
         given:
         withComponentsForAppAndSharedLib()
-        withTaskThatRunsParallelWith("compileMainLibSharedLibraryMainLibRc")
+        createTaskThatRunsInParallelUsingCustomToolchainWith("compileMainLibSharedLibraryMainLibRc")
         buildFile << """
             // prevent windows resource and cpp compile tasks from running in parallel
             // this is because we don't want the cpp compile tasks to accidentally use 

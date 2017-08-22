@@ -35,7 +35,8 @@ class SwiftParallelExecutionIntegrationTest extends AbstractNativeParallelIntegr
         buildFile << """
             apply plugin: 'swift-executable'
         """
-        withTaskThatRunsParallelWith("linkDebug")
+
+        createTaskThatRunsInParallelUsingCustomToolchainWith("linkDebug")
 
         when:
         succeeds "assemble", "parallelTask"
@@ -54,7 +55,8 @@ class SwiftParallelExecutionIntegrationTest extends AbstractNativeParallelIntegr
         buildFile << """
             apply plugin: 'swift-executable'
          """
-        withTaskThatRunsParallelWith("compileDebugSwift")
+
+        createTaskThatRunsInParallelUsingCustomToolchainWith("compileDebugSwift")
 
         when:
         succeeds "assemble", "parallelTask"

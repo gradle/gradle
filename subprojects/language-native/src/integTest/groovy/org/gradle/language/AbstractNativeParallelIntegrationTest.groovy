@@ -49,17 +49,32 @@ abstract class AbstractNativeParallelIntegrationTest extends AbstractInstalledTo
         assert concurrentTasks.find { it.displayName == "Task :parallelTask" }
     }
 
-    def withTaskThatRunsParallelWith(String taskName) {
+    private void setupParallelTaskAndExpectations(String taskName) {
         server.start()
         server.expectConcurrent("operationsStarted", "parallelTaskStarted")
         server.expectConcurrent("operationsFinished", "parallelTaskFinished")
 
         buildFile << """
-            ${callbackToolChain}
-            
             def beforeOperations = { ${server.callFromBuild("operationsStarted")} }
             def afterOperations = { ${server.callFromBuild("operationsFinished")} }
 
+            task parallelTask {
+                dependsOn { tasks.${taskName}.taskDependencies }
+                doLast { 
+                    ${server.callFromBuild("parallelTaskStarted")}
+                    println "parallel task"
+                    ${server.callFromBuild("parallelTaskFinished")}
+                }
+            }
+        """
+    }
+
+    def createTaskThatRunsInParallelUsingCustomToolchainWith(String taskName) {
+        setupParallelTaskAndExpectations(taskName)
+
+        buildFile << """
+            ${callbackToolChain}
+            
             tasks.matching { it.name == '${taskName}' }.all {
                 doFirst {
                     setToolChain(new CallbackToolChain(toolChain, beforeOperations, afterOperations))
@@ -68,14 +83,21 @@ abstract class AbstractNativeParallelIntegrationTest extends AbstractInstalledTo
                     toolChain.undecorateToolProviders()
                 }
             }
-            
-            task parallelTask {
-                dependsOn { tasks.${taskName}.taskDependencies }
-                doLast { 
-                    ${server.callFromBuild("parallelTaskStarted")}
-                    println "parallel task"
-                    ${server.callFromBuild("parallelTaskFinished")}
-                }
+        """
+    }
+
+    def createTaskThatRunsInParallelUsingWorkerLeaseInjectionWith(String taskName) {
+        setupParallelTaskAndExpectations(taskName)
+
+        buildFile << """
+            import org.gradle.api.internal.AbstractTask
+
+            ${callbackWorkerLeaseService}
+
+            tasks.matching { it.name == '${taskName}' }.all { task ->
+                def workerLeaseService = task.asDynamicObject.publicType.getDeclaredField("workerLeaseService")
+                workerLeaseService.setAccessible(true)
+                workerLeaseService.set(task, new CallbackWorkerLeaseService(workerLeaseService.get(task), beforeOperations, afterOperations))
             }
         """
     }
@@ -88,13 +110,15 @@ abstract class AbstractNativeParallelIntegrationTest extends AbstractInstalledTo
             import org.gradle.internal.operations.*
             import org.gradle.internal.progress.*
             
+            ${callbackWorkerLeaseService}
+
             class CallbackToolChain implements NativeToolChainInternal { 
                 @Delegate
                 final NativeToolChainInternal delegate
                 
                 final Closure beforeCallback
                 final Closure afterCallback
-                BuildOperationExecutor originalBuildExecutor
+                WorkerLeaseService originalWorkerLeaseService
                 def decorated = []
         
                 CallbackToolChain(NativeToolChainInternal delegate, Closure beforeCallback, Closure afterCallback) {
@@ -107,10 +131,10 @@ abstract class AbstractNativeParallelIntegrationTest extends AbstractInstalledTo
                 PlatformToolProvider select(NativePlatformInternal targetPlatform) {
                     def toolProvider = delegate.select(targetPlatform)
                     if (! decorated.contains(toolProvider)) {
-                        Field buildOperationExecutor = AbstractPlatformToolProvider.class.getDeclaredField("buildOperationExecutor")
-                        buildOperationExecutor.setAccessible(true)
-                        originalBuildExecutor = buildOperationExecutor.get(toolProvider)
-                        buildOperationExecutor.set(toolProvider, new CallbackBuildOperationExecutor(originalBuildExecutor, beforeCallback, afterCallback))
+                        Field workerLeaseService = toolProvider.getClass().getDeclaredField("workerLeaseService")
+                        workerLeaseService.setAccessible(true)
+                        originalWorkerLeaseService = workerLeaseService.get(toolProvider)
+                        workerLeaseService.set(toolProvider, new CallbackWorkerLeaseService(originalWorkerLeaseService, beforeCallback, afterCallback))
                         decorated << toolProvider
                     }
                     return toolProvider   
@@ -118,35 +142,45 @@ abstract class AbstractNativeParallelIntegrationTest extends AbstractInstalledTo
                 
                 void undecorateToolProviders() {
                     decorated.each { toolProvider ->
-                        Field buildOperationExecutor = AbstractPlatformToolProvider.class.getDeclaredField("buildOperationExecutor")
-                        buildOperationExecutor.setAccessible(true)
-                        buildOperationExecutor.set(toolProvider, originalBuildExecutor)
+                        Field workerLeaseService = toolProvider.getClass().getDeclaredField("workerLeaseService")
+                        workerLeaseService.setAccessible(true)
+                        workerLeaseService.set(toolProvider, originalWorkerLeaseService)
                     }
                     decorated = []
                 }
             }
-        
-            class CallbackBuildOperationExecutor implements BuildOperationExecutor {
+        """
+    }
+
+    String getCallbackWorkerLeaseService() {
+        return """
+            import org.gradle.internal.work.WorkerLeaseService
+            
+            class CallbackWorkerLeaseService implements WorkerLeaseService {
                 @Delegate
-                final BuildOperationExecutor delegate
+                final WorkerLeaseService delegate
                 
                 final Closure beforeCallback
                 final Closure afterCallback
         
-                CallbackBuildOperationExecutor(BuildOperationExecutor delegate, Closure beforeCallback, Closure afterCallback) {
+                CallbackWorkerLeaseService(WorkerLeaseService delegate, Closure beforeCallback, Closure afterCallback) {
                     this.delegate = delegate
                     this.beforeCallback = beforeCallback
                     this.afterCallback = afterCallback
                 }
-        
-                public <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction) {
-                    beforeCallback.call()
-                    try {
-                        delegate.runAll(worker, schedulingAction);
-                    } finally {
-                        afterCallback.call()
-                    }
-                }        
+                
+                public void withoutProjectLock(Runnable action) {
+                    delegate.withoutProjectLock(new Runnable() {
+                        public void run() {
+                            beforeCallback.call()
+                            try {
+                                action.run();
+                            } finally {
+                                afterCallback.call()
+                            }
+                        }
+                    })
+                }
             }
         """
     }
