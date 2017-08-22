@@ -25,7 +25,6 @@ import org.gradle.api.CircularReferenceException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.PathValidation;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectConfigurationException;
@@ -134,7 +133,6 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
 import static org.gradle.util.GUtil.addMaps;
 
 @NoConventionMapping
-@NonNullApi
 public class DefaultProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {
     private static final ModelType<ServiceRegistry> SERVICE_REGISTRY_MODEL_TYPE = ModelType.of(ServiceRegistry.class);
     private static final ModelType<File> FILE_MODEL_TYPE = ModelType.of(File.class);
@@ -406,7 +404,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
-    public void setDescription(@Nullable String description) {
+    public void setDescription(String description) {
         this.description = description;
     }
 

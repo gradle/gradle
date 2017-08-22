@@ -20,6 +20,7 @@ import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 
+import javax.annotation.Nullable;
 import java.util.regex.Pattern;
 
 /**
@@ -98,7 +99,7 @@ public interface CopyProcessingSpec extends ContentFilterable {
      * @param mode The file permissions.
      * @return this
      */
-    CopyProcessingSpec setFileMode(Integer mode);
+    CopyProcessingSpec setFileMode(@Nullable Integer mode);
 
     /**
      * Returns the Unix permissions to use for the target directories. {@code null} means that existing
@@ -107,6 +108,7 @@ public interface CopyProcessingSpec extends ContentFilterable {
      *
      * @return The directory permissions, or {@code null} if existing permissions should be preserved.
      */
+    @Nullable
     Integer getDirMode();
 
     /**
@@ -117,7 +119,7 @@ public interface CopyProcessingSpec extends ContentFilterable {
      * @param mode The directory permissions.
      * @return this
      */
-    CopyProcessingSpec setDirMode(Integer mode);
+    CopyProcessingSpec setDirMode(@Nullable Integer mode);
 
     /**
      * Adds an action to be applied to each file as it is about to be copied into its destination. The action can change

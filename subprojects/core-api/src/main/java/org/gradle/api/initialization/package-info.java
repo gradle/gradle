@@ -17,4 +17,5 @@
 /**
  * Classes for managing and monitoring build initialization.
  */
+@org.gradle.api.NonNullApi
 package org.gradle.api.initialization;
