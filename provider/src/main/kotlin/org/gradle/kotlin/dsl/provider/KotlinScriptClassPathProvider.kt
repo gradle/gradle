@@ -107,8 +107,7 @@ class KotlinScriptClassPathProvider(
     private
     fun produceFrom(id: String, generate: JarGeneratorWithProgress): File =
         jarCache(id) { outputFile ->
-            val progressMonitor = progressMonitorFor(outputFile, 1)
-            progressMonitor.use { progressMonitor ->
+            progressMonitorFor(outputFile, 1).use { progressMonitor ->
                 generateAtomically(outputFile, { generate(it, progressMonitor::onProgress) })
             }
         }
