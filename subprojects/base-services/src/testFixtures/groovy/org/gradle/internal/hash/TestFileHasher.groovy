@@ -16,10 +16,6 @@
 
 package org.gradle.internal.hash
 
-import com.google.common.hash.HashCode
-import com.google.common.hash.Hashing
-import com.google.common.hash.HashingOutputStream
-import com.google.common.io.Files
 import org.gradle.api.file.FileTreeElement
 import org.gradle.internal.file.FileMetadataSnapshot
 
@@ -40,7 +36,7 @@ class TestFileHasher implements FileHasher {
 
     @Override
     HashCode hash(File file) {
-        return Files.hash(file, HASH_FUNCTION)
+        HASH_FUNCTION.hashBytes(file.bytes)
     }
 
     @Override

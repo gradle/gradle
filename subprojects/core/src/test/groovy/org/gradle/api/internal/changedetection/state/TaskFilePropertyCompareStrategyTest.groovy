@@ -17,9 +17,9 @@
 package org.gradle.api.internal.changedetection.state
 
 import com.google.common.collect.Lists
-import com.google.common.hash.HashCode
 import org.gradle.api.internal.changedetection.rules.FileChange
 import org.gradle.internal.file.FileType
+import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
 import spock.lang.Unroll
 

@@ -15,13 +15,13 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.hash.HashCode;
-import com.google.common.hash.Hasher;
-import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
 import org.gradle.api.internal.tasks.compile.ApiClassExtractor;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.util.DeprecationLogger;
 import org.objectweb.asm.ClassReader;
 

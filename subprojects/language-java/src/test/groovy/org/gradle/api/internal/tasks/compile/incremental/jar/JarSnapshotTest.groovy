@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar
 
-import com.google.common.hash.HashCode
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependencyToAll
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet
+import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
 
 import static org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsSet.dependents

@@ -16,7 +16,6 @@
 
 package org.gradle.internal.service.scopes;
 
-import com.google.common.hash.HashCode;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
@@ -63,6 +62,7 @@ import org.gradle.internal.filewatch.PendingChangesManager;
 import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.FileContentHasherFactory;
 import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;

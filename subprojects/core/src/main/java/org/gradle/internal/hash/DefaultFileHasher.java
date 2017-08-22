@@ -15,8 +15,6 @@
  */
 package org.gradle.internal.hash;
 
-import com.google.common.hash.HashCode;
-import com.google.common.hash.Hasher;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileTreeElement;

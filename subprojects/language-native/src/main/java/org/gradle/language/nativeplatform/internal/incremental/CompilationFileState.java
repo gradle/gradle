@@ -16,7 +16,7 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.hash.HashCode;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 
 /**

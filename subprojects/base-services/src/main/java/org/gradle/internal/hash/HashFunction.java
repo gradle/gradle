@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource;
+package org.gradle.internal.hash;
 
-import org.gradle.internal.file.FileType;
-import org.gradle.internal.hash.HashCode;
-
-/**
- * An immutable snapshot of the type and content of a resource. Does not include any information about the identity of the resource. The resource may not exist.
- */
-public interface ResourceContentMetadataSnapshot {
-    FileType getType();
-
-    HashCode getContentMd5();
+public interface HashFunction {
+    Hasher newHasher();
+    HashCode hashBytes(byte[] bytes);
+    HashCode hashString(CharSequence string);
 }

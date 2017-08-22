@@ -16,10 +16,9 @@
 
 package org.gradle.caching.internal;
 
-import com.google.common.base.Charsets;
-import com.google.common.hash.HashCode;
-import com.google.common.hash.Hasher;
-import com.google.common.hash.Hashing;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
 
 /**
  * A hasher used for build cache keys.
@@ -31,9 +30,9 @@ public class DefaultBuildCacheHasher implements BuildCacheHasher {
     private final Hasher hasher = Hashing.md5().newHasher();
 
     @Override
-    public DefaultBuildCacheHasher putByte(byte b) {
+    public DefaultBuildCacheHasher putByte(byte value) {
         hasher.putInt(1);
-        hasher.putByte(b);
+        hasher.putByte(value);
         return this;
     }
 
@@ -59,37 +58,37 @@ public class DefaultBuildCacheHasher implements BuildCacheHasher {
     }
 
     @Override
-    public DefaultBuildCacheHasher putInt(int i) {
+    public DefaultBuildCacheHasher putInt(int value) {
         hasher.putInt(4);
-        hasher.putInt(i);
+        hasher.putInt(value);
         return this;
     }
 
     @Override
-    public DefaultBuildCacheHasher putLong(long l) {
+    public DefaultBuildCacheHasher putLong(long value) {
         hasher.putInt(8);
-        hasher.putLong(l);
+        hasher.putLong(value);
         return this;
     }
 
     @Override
-    public DefaultBuildCacheHasher putDouble(double d) {
+    public DefaultBuildCacheHasher putDouble(double value) {
         hasher.putInt(8);
-        hasher.putDouble(d);
+        hasher.putDouble(value);
         return this;
     }
 
     @Override
-    public DefaultBuildCacheHasher putBoolean(boolean b) {
+    public DefaultBuildCacheHasher putBoolean(boolean value) {
         hasher.putInt(1);
-        hasher.putBoolean(b);
+        hasher.putBoolean(value);
         return this;
     }
 
     @Override
-    public DefaultBuildCacheHasher putString(CharSequence charSequence) {
-        hasher.putInt(charSequence.length());
-        hasher.putString(charSequence, Charsets.UTF_8);
+    public DefaultBuildCacheHasher putString(CharSequence value) {
+        hasher.putInt(value.length());
+        hasher.putString(value);
         return this;
     }
 

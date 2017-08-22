@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state
 
-import com.google.common.hash.Hashing
 import org.gradle.api.file.RelativePath
+import org.gradle.internal.hash.Hashing
 import org.gradle.internal.serialize.HashCodeSerializer
 import org.gradle.testfixtures.internal.InMemoryIndexedCache
 import spock.lang.Specification

@@ -16,7 +16,6 @@
 
 package org.gradle.cache.internal
 
-import com.google.common.hash.HashCode
 import org.gradle.api.internal.changedetection.state.FileHashSnapshot
 import org.gradle.api.internal.changedetection.state.FileSnapshot
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter
@@ -29,6 +28,7 @@ import org.gradle.cache.CrossProcessCacheAccess
 import org.gradle.cache.MultiProcessSafePersistentIndexedCache
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.file.FileType
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryCacheFactory

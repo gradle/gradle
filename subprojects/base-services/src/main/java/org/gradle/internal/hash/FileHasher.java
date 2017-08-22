@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.hash;
 
-import com.google.common.hash.HashCode;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.internal.file.FileMetadataSnapshot;
 

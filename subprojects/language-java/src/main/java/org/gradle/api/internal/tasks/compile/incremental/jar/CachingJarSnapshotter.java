@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
-import com.google.common.hash.HashCode;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.hash.HashCode;
 
 public class CachingJarSnapshotter implements JarSnapshotter {
 

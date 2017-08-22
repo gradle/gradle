@@ -17,8 +17,8 @@
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import com.google.common.base.Objects;
-import com.google.common.hash.HashCode;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;

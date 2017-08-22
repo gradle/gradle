@@ -18,7 +18,7 @@ package org.gradle.internal.serialize;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.hash.HashCode;
+import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
 import java.nio.ByteBuffer;

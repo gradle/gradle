@@ -16,12 +16,8 @@
 
 package org.gradle.internal.hash;
 
-import com.google.common.base.Charsets;
-import com.google.common.hash.Hasher;
-import com.google.common.hash.Hashing;
-
 public class DefaultFileContentHasherFactory implements FileContentHasherFactory {
-    private static final byte[] SIGNATURE = Hashing.md5().hashString(DefaultFileContentHasherFactory.class.getName(), Charsets.UTF_8).asBytes();
+    private static final byte[] SIGNATURE = Hashing.md5().hashString(DefaultFileContentHasherFactory.class.getName()).asBytes();
 
     @Override
     public Hasher create() {

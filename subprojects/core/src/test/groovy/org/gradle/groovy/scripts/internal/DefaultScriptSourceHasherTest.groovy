@@ -17,11 +17,11 @@
 package org.gradle.groovy.scripts.internal
 
 import com.google.common.base.Charsets
-import com.google.common.hash.HashCode
-import com.google.common.hash.Hasher
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.hash.FileContentHasherFactory
 import org.gradle.internal.hash.FileHasher
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.Hasher
 import org.gradle.internal.resource.TextResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

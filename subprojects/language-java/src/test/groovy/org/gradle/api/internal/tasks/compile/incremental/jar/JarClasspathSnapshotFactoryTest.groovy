@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar
 
-import com.google.common.hash.HashCode
 import org.gradle.api.file.FileTree
+import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
 import spock.lang.Subject
 

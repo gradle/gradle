@@ -17,8 +17,8 @@
 package org.gradle.internal.classloader
 
 import com.google.common.base.Charsets
-import com.google.common.hash.HashCode
-import com.google.common.hash.Hashing
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.Hashing
 import spock.lang.Specification
 
 class ConfigurableClassLoaderHierarchyHasherTest extends Specification {

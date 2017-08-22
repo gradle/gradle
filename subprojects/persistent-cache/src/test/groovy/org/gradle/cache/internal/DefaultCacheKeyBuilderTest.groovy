@@ -16,14 +16,13 @@
 
 package org.gradle.cache.internal
 
-import com.google.common.base.Charsets
-import com.google.common.hash.HashCode
-import com.google.common.hash.HashFunction
-import com.google.common.hash.Hasher
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.FileHasher
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.HashFunction
+import org.gradle.internal.hash.Hasher
 import spock.lang.Specification
 
 import static org.gradle.cache.internal.CacheKeyBuilder.CacheKeySpec
@@ -60,7 +59,7 @@ class DefaultCacheKeyBuilderTest extends Specification {
         def key = subject.build(CacheKeySpec.withPrefix(prefix) + string)
 
         then:
-        1 * hashFunction.hashString(string, Charsets.UTF_8) >> hashCodeFrom(stringHash)
+        1 * hashFunction.hashString(string) >> hashCodeFrom(stringHash)
         0 * _
 
         and:
@@ -133,7 +132,7 @@ class DefaultCacheKeyBuilderTest extends Specification {
 
         then:
         1 * hashFunction.newHasher() >> hasher
-        1 * hashFunction.hashString(string, Charsets.UTF_8) >> hashCodeFrom(stringHash)
+        1 * hashFunction.hashString(string) >> hashCodeFrom(stringHash)
         1 * fileHasher.hash(file) >> hashCodeFrom(fileHash)
         1 * hasher.putBytes(stringHash.toByteArray())
         1 * hasher.putBytes(fileHash.toByteArray())
