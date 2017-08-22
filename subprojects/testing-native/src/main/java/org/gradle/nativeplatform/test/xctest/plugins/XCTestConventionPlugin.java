@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.test.xctest.plugins;
 
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
@@ -44,6 +43,7 @@ import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.test.xctest.internal.MacOSSdkPlatformPathLocator;
 import org.gradle.nativeplatform.test.xctest.tasks.CreateXcTestBundle;
@@ -54,7 +54,6 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Arrays;
 
 /**
  * A plugin that sets up the infrastructure for testing native binaries with XCTest test framework. It also adds conventions on top of it.
@@ -180,33 +179,13 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         TaskContainer tasks = project.getTasks();
         DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
 
-        SwiftCompile compile = tasks.create("compileMainSwiftWithTestingEnabled", SwiftCompile.class, configureCompileTestedComponentTask(tasks.withType(SwiftCompile.class).getByName("compileSwift")));
-        compile.setObjectFileDir(buildDirectory.dir("test/objs"));
-        compile.setCompilerArgs(Lists.newArrayList(Iterables.concat(compile.getCompilerArgs(), Arrays.asList("-enable-testing"))));
+        SwiftCompile compile = tasks.withType(SwiftCompile.class).getByName("compileSwift");
 
         SwiftCompile compileTest = tasks.withType(SwiftCompile.class).getByName("compileTestSwift");
         compileTest.dependsOn(compile);
-        compileTest.includes(buildDirectory.dir("test/objs"));
-    }
+        compileTest.includes(buildDirectory.dir("main/objs"));
 
-    private static Action<SwiftCompile> configureCompileTestedComponentTask(final SwiftCompile sourceTask) {
-        return new Action<SwiftCompile>() {
-            @Override
-            public void execute(SwiftCompile destinationTask) {
-                destinationTask.source(sourceTask.getSource().filter(new Spec<File>() {
-                    @Override
-                    public boolean isSatisfiedBy(File element) {
-                        return !element.getName().equals("main.swift");
-                    }
-                }));
-                destinationTask.setModuleName(sourceTask.getModuleName());
-                destinationTask.setTargetPlatform(sourceTask.getTargetPlatform());
-                destinationTask.setToolChain(sourceTask.getToolChain());
-                destinationTask.setMacros(sourceTask.getMacros());
-                destinationTask.includes(sourceTask.getIncludes());
-                destinationTask.setObjectFileDir(sourceTask.getObjectFileDir());
-                destinationTask.setCompilerArgs(sourceTask.getCompilerArgs());
-            }
-        };
+        AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkTest");
+        linkTest.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o").exclude("**/main.o")));
     }
 }
