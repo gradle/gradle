@@ -30,7 +30,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.zip.ZipException;
 
-public abstract class AbstractClasspathSnapshotBuilder extends FileCollectionSnapshotBuilder {
+public abstract class AbstractClasspathSnapshotBuilder implements FileVisitingSnapshotBuilder {
+    protected final FileCollectionSnapshotBuilder builder;
     private final ResourceHasher classpathResourceHasher;
     private final StringInterner stringInterner;
     private final ResourceSnapshotterCacheService cacheService;
@@ -38,7 +39,7 @@ public abstract class AbstractClasspathSnapshotBuilder extends FileCollectionSna
     private final byte[] jarHasherConfigurationHash;
 
     public AbstractClasspathSnapshotBuilder(ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
-        super(TaskFilePropertyCompareStrategy.ORDERED, InputPathNormalizationStrategy.NONE, stringInterner);
+        this.builder = new FileCollectionSnapshotBuilder(TaskFilePropertyCompareStrategy.ORDERED, InputPathNormalizationStrategy.NONE, stringInterner);
         this.cacheService = cacheService;
         this.stringInterner = stringInterner;
         this.classpathResourceHasher = classpathResourceHasher;
@@ -66,7 +67,7 @@ public abstract class AbstractClasspathSnapshotBuilder extends FileCollectionSna
         } catch (IOException e) {
             throw new GradleException("Error while snapshotting directory in classpath", e);
         }
-        entryResourceCollectionBuilder.collectNormalizedSnapshots(this);
+        entryResourceCollectionBuilder.collectNormalizedSnapshots(builder);
     }
 
     @Override
@@ -81,7 +82,7 @@ public abstract class AbstractClasspathSnapshotBuilder extends FileCollectionSna
     private void visitJar(RegularFileSnapshot jarFile) {
         HashCode hash = cacheService.hashFile(jarFile, jarHasher, jarHasherConfigurationHash);
         if (hash != null) {
-            collectFileSnapshot(jarFile.withContentHash(hash));
+            builder.collectFileSnapshot(jarFile.withContentHash(hash));
         }
     }
 
@@ -123,5 +124,10 @@ public abstract class AbstractClasspathSnapshotBuilder extends FileCollectionSna
 
     private ClasspathEntrySnapshotBuilder newClasspathEntrySnapshotBuilder() {
         return new ClasspathEntrySnapshotBuilder(classpathResourceHasher, stringInterner);
+    }
+
+    @Override
+    public FileCollectionSnapshot build() {
+        return builder.build();
     }
 }

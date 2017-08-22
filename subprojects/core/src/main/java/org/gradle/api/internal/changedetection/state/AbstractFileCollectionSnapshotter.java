@@ -26,6 +26,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.internal.serialize.SerializerRegistry;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Responsible for calculating a {@link FileCollectionSnapshot} for a particular {@link FileCollection}.
@@ -45,11 +46,11 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         registry.register(DefaultFileCollectionSnapshot.class, new DefaultFileCollectionSnapshot.SerializerImpl(stringInterner));
     }
 
-    public FileCollectionSnapshot snapshot(FileCollection input, FileCollectionSnapshotBuilder fileCollectionSnapshotBuilder) {
+    public FileCollectionSnapshot snapshot(FileCollection input, FileVisitingSnapshotBuilder fileVisitingSnapshotBuilder) {
         FileCollectionInternal fileCollection = (FileCollectionInternal) input;
-        FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl(fileCollectionSnapshotBuilder);
+        FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl(fileVisitingSnapshotBuilder);
         fileCollection.visitRootElements(visitor);
-        return fileCollectionSnapshotBuilder.build();
+        return fileVisitingSnapshotBuilder.build();
     }
 
     protected StringInterner getStringInterner() {
@@ -87,13 +88,15 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
 
         @Override
         public void visitTree(FileTreeInternal fileTree) {
-            fileSnapshotVisitor.visitFileTreeSnapshot(fileSystemSnapshotter.snapshotTree(fileTree));
+            List<FileSnapshot> descendants = fileSystemSnapshotter.snapshotTree(fileTree);
+            fileSnapshotVisitor.visitFileTreeSnapshot(descendants);
         }
 
         @Override
         public void visitDirectoryTree(DirectoryFileTree directoryTree) {
             FileTreeSnapshot treeSnapshot = fileSystemSnapshotter.snapshotDirectoryTree(directoryTree);
-            fileSnapshotVisitor.visitFileTreeSnapshot(treeSnapshot.getDescendants());
+            List<FileSnapshot> descendants = treeSnapshot.getDescendants();
+            fileSnapshotVisitor.visitFileTreeSnapshot(descendants);
         }
     }
 }

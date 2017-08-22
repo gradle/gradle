@@ -16,20 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.cache.StringInterner;
-
-/**
- * Builds a {@link FileCollectionSnapshot} for a runtime classpath.
- *
- * We take the contents of jar files, non jar files and directories into account.
- */
-public class RuntimeClasspathSnapshotBuilder extends AbstractClasspathSnapshotBuilder {
-    public RuntimeClasspathSnapshotBuilder(ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
-        super(classpathResourceHasher, cacheService, stringInterner);
-    }
-
-    @Override
-    protected void visitNonJar(RegularFileSnapshot file) {
-        builder.collectFileSnapshot(file);
-    }
+public interface FileVisitingSnapshotBuilder extends FileSnapshotVisitor {
+    FileCollectionSnapshot build();
 }

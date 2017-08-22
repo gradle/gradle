@@ -146,9 +146,11 @@ public class TaskOutputCacheCommandFactory {
             for (String propertyName : propertiesFileSnapshots.keySet()) {
                 ResolvedTaskOutputFilePropertySpec property = propertySpecsMap.get(propertyName);
                 List<FileSnapshot> fileSnapshots = propertiesFileSnapshots.get(propertyName);
-                FileCollectionSnapshotBuilder builder = new FileCollectionSnapshotBuilder(UNORDERED, OutputPathNormalizationStrategy.getInstance(), stringInterner);
-                builder.visitFileTreeSnapshot(fileSnapshots);
 
+                FileCollectionSnapshotBuilder builder = new FileCollectionSnapshotBuilder(UNORDERED, OutputPathNormalizationStrategy.getInstance(), stringInterner);
+                for (FileSnapshot fileSnapshot : fileSnapshots) {
+                    builder.collectFileSnapshot(fileSnapshot);
+                }
                 propertySnapshotsBuilder.put(propertyName, builder.build());
 
                 if (fileSnapshots.size() == 1) {
