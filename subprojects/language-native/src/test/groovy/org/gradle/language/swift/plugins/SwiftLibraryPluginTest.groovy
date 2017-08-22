@@ -17,7 +17,7 @@
 package org.gradle.language.swift.plugins
 
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.language.swift.model.SwiftComponent
+import org.gradle.language.swift.SwiftComponent
 import org.gradle.language.swift.tasks.SwiftCompile
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.swift.model;
+package org.gradle.language.swift;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;

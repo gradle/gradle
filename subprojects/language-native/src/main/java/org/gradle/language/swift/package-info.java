@@ -15,6 +15,6 @@
  */
 
 /**
- * Classes that define the Swift plugin model.
+ * Model classes for building from Swift language sources.
  */
-package org.gradle.language.swift.model;
+package org.gradle.language.swift;

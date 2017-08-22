@@ -22,7 +22,7 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
-import org.gradle.language.swift.model.SwiftComponent;
+import org.gradle.language.swift.SwiftComponent;
 
 import java.util.Collections;
 
