@@ -15,7 +15,6 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental
 
-import com.google.common.io.Files
 import org.gradle.cache.PersistentStateCache
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.Hashing
@@ -48,7 +47,7 @@ class IncrementalCompileProcessorTest extends Specification {
 
     def setup() {
         hasher.hash(_) >> { File file ->
-            Files.asByteSource(file).hash(Hashing.sha1())
+            Hashing.sha1().hashBytes(file.bytes)
         }
 
         // S1 - D1 \

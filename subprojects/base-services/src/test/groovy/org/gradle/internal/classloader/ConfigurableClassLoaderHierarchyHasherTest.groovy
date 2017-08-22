@@ -16,7 +16,6 @@
 
 package org.gradle.internal.classloader
 
-import com.google.common.base.Charsets
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import spock.lang.Specification
@@ -74,7 +73,7 @@ class ConfigurableClassLoaderHierarchyHasherTest extends Specification {
         def hasher = Hashing.md5().newHasher()
         values.each {
             if (it instanceof String) {
-                hasher.putString(it, Charsets.UTF_8)
+                hasher.putString(it)
             } else if (it instanceof HashCode) {
                 hasher.putBytes(it.asBytes())
             } else {

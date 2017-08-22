@@ -17,7 +17,7 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.file.RelativePath
-import org.gradle.internal.hash.Hashing
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.HashCodeSerializer
 import org.gradle.testfixtures.internal.InMemoryIndexedCache
 import spock.lang.Specification
@@ -26,11 +26,11 @@ import java.util.zip.ZipEntry
 
 class CachingResourceHasherTest extends Specification {
     def delegate = Mock(ResourceHasher)
-    def fileSnapshot = new RegularFileSnapshot("path", RelativePath.parse(true, "path"), false, new FileHashSnapshot(Hashing.md5().hashInt(0)))
+    def fileSnapshot = new RegularFileSnapshot("path", RelativePath.parse(true, "path"), false, new FileHashSnapshot(HashCode.fromInt(456)))
     def cachingHasher = new CachingResourceHasher(delegate, new ResourceSnapshotterCacheService(new InMemoryIndexedCache(new HashCodeSerializer())))
 
     def "returns result from delegate"() {
-        def expectedHash = Hashing.md5().hashInt(1)
+        def expectedHash = HashCode.fromInt(123)
         when:
         def actualHash = cachingHasher.hash(fileSnapshot)
         then:
@@ -40,7 +40,7 @@ class CachingResourceHasherTest extends Specification {
     }
 
     def "caches the result"() {
-        def expectedHash = Hashing.md5().hashInt(1)
+        def expectedHash = HashCode.fromInt(123)
         when:
         def actualHash = cachingHasher.hash(fileSnapshot)
         then:
@@ -72,7 +72,7 @@ class CachingResourceHasherTest extends Specification {
     }
 
     def "does not cache zip entries"() {
-        def expectedHash = Hashing.md5().hashInt(1)
+        def expectedHash = HashCode.fromInt(123)
         def inputStream = Mock(InputStream)
         def zipEntry = Mock(ZipEntry)
 

@@ -16,7 +16,6 @@
 
 package org.gradle.groovy.scripts.internal
 
-import com.google.common.base.Charsets
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.hash.FileContentHasherFactory
 import org.gradle.internal.hash.FileHasher
@@ -70,7 +69,7 @@ class DefaultScriptSourceHasherTest extends Specification {
         1 * resource.file >> null
         1 * resource.text >> "alma"
         1 * contentHasherFactory.create() >> hasher
-        1 * hasher.putString("alma", Charsets.UTF_8)
+        1 * hasher.putString("alma")
         1 * hasher.hash() >> hash
         0 * _
     }
