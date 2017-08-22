@@ -30,6 +30,7 @@ import org.gradle.language.nativeplatform.internal.incremental.ResolvedInclude;
 import org.gradle.language.nativeplatform.internal.incremental.SourceIncludesParser;
 import org.gradle.language.nativeplatform.internal.incremental.SourceIncludesResolver;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.RegexBackedCSourceParser;
+import org.gradle.workers.WorkerExecutor;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -42,7 +43,8 @@ public class DiscoverInputsForCompilation extends AbstractNativeTask {
     private File dependencyFile;
 
     @Inject
-    public DiscoverInputsForCompilation() {
+    public DiscoverInputsForCompilation(WorkerExecutor workerExecutor) {
+        super(workerExecutor);
         this.includesParser = new DefaultSourceIncludesParser(new RegexBackedCSourceParser(), true);
     }
 
@@ -85,11 +87,13 @@ public class DiscoverInputsForCompilation extends AbstractNativeTask {
         IncludeDirectives includeDirectives = includesParser.parseIncludes(sourceFile);
         SourceIncludesResolver.ResolvedSourceIncludes resolvedSourceIncludes = includesResolver.resolveIncludes(sourceFile, includeDirectives);
         for (ResolvedInclude resolvedInclude : resolvedSourceIncludes.getResolvedIncludes()) {
-            File includeFile = resolvedInclude.getFile();
-            Boolean previousValue = discoveredFiles.putIfAbsent(includeFile.getAbsolutePath(), Boolean.TRUE);
-            if (previousValue == null) {
-                inputs.newInput(includeFile);
-                discoverInputs(includeFile, discoveredFiles, inputs, includesResolver);
+            if (!resolvedInclude.isUnknown()) {
+                File includeFile = resolvedInclude.getFile();
+                Boolean previousValue = discoveredFiles.putIfAbsent(includeFile.getAbsolutePath(), Boolean.TRUE);
+                if (previousValue == null) {
+                    inputs.newInput(includeFile);
+                    discoverInputs(includeFile, discoveredFiles, inputs, includesResolver);
+                }
             }
         }
     }

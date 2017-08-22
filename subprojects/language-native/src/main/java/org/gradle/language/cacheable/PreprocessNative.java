@@ -24,8 +24,6 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.UncheckedException;
-import org.gradle.workers.IsolationMode;
-import org.gradle.workers.WorkerConfiguration;
 import org.gradle.workers.WorkerExecutor;
 
 import javax.inject.Inject;
@@ -36,7 +34,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PreprocessNative extends AbstractNativeTask {
-    private final WorkerExecutor workerExecutor;
     private File preprocessedSourcesDir;
     private final PreprocessedCFileParser parser = new PreprocessedCFileParser();
 
@@ -51,7 +48,7 @@ public class PreprocessNative extends AbstractNativeTask {
 
     @Inject
     public PreprocessNative(WorkerExecutor workerExecutor) {
-        this.workerExecutor = workerExecutor;
+        super(workerExecutor);
     }
 
     @TaskAction
@@ -72,22 +69,13 @@ public class PreprocessNative extends AbstractNativeTask {
                 String preprocessedName = base + (extension.equals("cpp") ? ".ii" : ".i");
                 final File preprocessedFile = fileVisitDetails.getRelativePath().getParent().append(true, preprocessedName).getFile(getPreprocessedSourcesDir());
                 preprocessedFile.getParentFile().mkdirs();
-                workerExecutor.submit(RunCxx.class, new Action<WorkerConfiguration>() {
-                    @Override
-                    public void execute(WorkerConfiguration workerConfiguration) {
-                        workerConfiguration.setIsolationMode(IsolationMode.NONE);
-                        workerConfiguration.setParams(
-                            new File("."),
-                            getGccExecutable().getAbsolutePath(),
-                            args("-E",
-                                "-o", preprocessedFile.getAbsolutePath(),
-                                fileVisitDetails.getFile().getAbsolutePath()));
-                    }
-                });
+                runGxx("-E",
+                    "-o", preprocessedFile.getAbsolutePath(),
+                    fileVisitDetails.getFile().getAbsolutePath());
                 preprocessedFiles.add(preprocessedFile);
             }
         });
-        workerExecutor.await();
+        getWorkerExecutor().await();
         for (File preprocessedFile : preprocessedFiles) {
             discoverIncludes(inputs, preprocessedFile, seenIncludes, discoveredInputFiles);
         }

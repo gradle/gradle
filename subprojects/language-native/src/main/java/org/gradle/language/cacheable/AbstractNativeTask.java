@@ -16,9 +16,13 @@
 
 package org.gradle.language.cacheable;
 
+import org.gradle.api.Action;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.SourceTask;
+import org.gradle.workers.IsolationMode;
+import org.gradle.workers.WorkerConfiguration;
+import org.gradle.workers.WorkerExecutor;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -26,9 +30,15 @@ import java.util.Arrays;
 import java.util.List;
 
 public class AbstractNativeTask extends SourceTask {
-    protected List<String> compilerOptions = new ArrayList<String>();
+    private final WorkerExecutor workerExecutor;
+
+    private List<String> compilerOptions = new ArrayList<String>();
     private File gccExecutable;
     private List<File> includeRoots = new ArrayList<File>();
+
+    public AbstractNativeTask(WorkerExecutor workerExecutor) {
+        this.workerExecutor = workerExecutor;
+    }
 
     @Input
     public File getGccExecutable() {
@@ -48,10 +58,25 @@ public class AbstractNativeTask extends SourceTask {
         this.includeRoots = includeRoots;
     }
 
-    protected List<String> args(String... additionalArgs) {
+    @Internal
+    protected WorkerExecutor getWorkerExecutor() {
+        return workerExecutor;
+    }
+
+    @Input
+    public List<String> getCompilerOptions() {
+        return compilerOptions;
+    }
+
+    public void setCompilerOptions(List<String> compilerOptions) {
+        this.compilerOptions = compilerOptions;
+    }
+
+    private List<String> args(String... additionalArgs) {
         ArrayList<String> result = new ArrayList<String>();
         result.addAll(getCompilerOptions());
         result.add("-m64");
+
         for (File header : includeRoots) {
             result.add("-I" + header.getAbsolutePath());
         }
@@ -59,7 +84,16 @@ public class AbstractNativeTask extends SourceTask {
         return result;
     }
 
-    public List<String> getCompilerOptions() {
-        return compilerOptions;
+    protected void runGxx(final String... additionalArgs) {
+        workerExecutor.submit(RunCxx.class, new Action<WorkerConfiguration>() {
+            @Override
+            public void execute(WorkerConfiguration workerConfiguration) {
+                workerConfiguration.setIsolationMode(IsolationMode.NONE);
+                workerConfiguration.setParams(
+                    new File("."),
+                    getGccExecutable().getAbsolutePath(),
+                    args(additionalArgs));
+            }
+        });
     }
 }

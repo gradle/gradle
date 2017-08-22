@@ -18,7 +18,6 @@ package org.gradle.language.cacheable;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
-import org.gradle.api.Action;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.tasks.InputFiles;
@@ -26,8 +25,6 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.workers.IsolationMode;
-import org.gradle.workers.WorkerConfiguration;
 import org.gradle.workers.WorkerExecutor;
 
 import javax.inject.Inject;
@@ -37,13 +34,12 @@ import java.util.Collection;
 
 public class CompileNative extends AbstractNativeTask {
 
-    private final WorkerExecutor workerExecutor;
     private File outputDir;
     private File dependencyFile;
 
     @Inject
     public CompileNative(WorkerExecutor workerExecutor) {
-        this.workerExecutor = workerExecutor;
+        super(workerExecutor);
     }
 
     @Optional
@@ -85,18 +81,9 @@ public class CompileNative extends AbstractNativeTask {
                 String outputName = name.replaceAll("\\.i(i)?", ".o").replaceAll("\\.c(pp)?", ".o");
                 final File outputFile = fileVisitDetails.getRelativePath().getParent().append(true, outputName).getFile(getOutputDir());
                 assert outputFile.getParentFile().isDirectory() || outputFile.getParentFile().mkdirs();
-                workerExecutor.submit(RunCxx.class, new Action<WorkerConfiguration>() {
-                    @Override
-                    public void execute(WorkerConfiguration workerConfiguration) {
-                        workerConfiguration.setIsolationMode(IsolationMode.NONE);
-                        workerConfiguration.setParams(
-                            new File("."),
-                            getGccExecutable().getAbsolutePath(),
-                            args("-c",
-                                "-o", outputFile.getAbsolutePath(),
-                                fileVisitDetails.getFile().getAbsolutePath()));
-                    }
-                });
+                runGxx("-c",
+                    "-o", outputFile.getAbsolutePath(),
+                    fileVisitDetails.getFile().getAbsolutePath());
             }
         });
 
