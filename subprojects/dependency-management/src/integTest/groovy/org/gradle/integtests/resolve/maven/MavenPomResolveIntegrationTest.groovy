@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import spock.lang.Issue
 
 class MavenPomResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    def "follows relocation to another group and ignore original artifact"() {
+    def "follows relocation to another group"() {
         given:
         def original = mavenHttpRepo.module("groupA", "projectA", "1.2").publishPom()
         original.pomFile.text = """
@@ -30,14 +30,13 @@ class MavenPomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
     <version>1.2</version>
     <distributionManagement>
         <relocation>
-            <groupId>groupB</groupId>
-            <artifactId>projectB</artifactId>
+            <groupId>newGroupA</groupId>
         </relocation>
     </distributionManagement>
 </project>
 """
 
-        def newModule = mavenHttpRepo.module("groupB", "projectB", "1.2").publish()
+        def newModule = mavenHttpRepo.module("newGroupA", "projectA", "1.2").publish()
         newModule.publish()
 
         and:
@@ -60,7 +59,7 @@ task retrieve(type: Sync) {
         run "retrieve"
 
         then:
-        file("libs").assertHasDescendants("projectB-1.2.jar")
+        file("libs").assertHasDescendants("projectA-1.2.jar")
     }
 
 

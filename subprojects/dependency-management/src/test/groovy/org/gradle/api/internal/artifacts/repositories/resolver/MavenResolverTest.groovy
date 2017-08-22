@@ -19,6 +19,10 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.component.external.model.FixedComponentArtifacts
+import org.gradle.internal.component.external.model.MavenModuleResolveMetadata
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
+import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult
 import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
@@ -26,9 +30,41 @@ import spock.lang.Specification
 
 class MavenResolverTest extends Specification {
     def resolver = new MavenResolver("repo", new URI("http://localhost"), Stub(RepositoryTransport), Stub(LocallyAvailableResourceFinder), Stub(FileStore), Stub(MetaDataParser), Stub(ImmutableModuleIdentifierFactory), Stub(CacheAwareExternalResourceAccessor), Stub(FileStore), TestFiles.fileSystem())
+    def module = Mock(MavenModuleResolveMetadata)
+    def result = Mock(BuildableComponentArtifactsResolveResult)
 
     def "has useful string representation"() {
         expect:
         resolver.toString() == "Maven repository 'repo'"
+    }
+
+    def "resolve to empty when module is relocated"() {
+        given:
+        module.isRelocated() >> true
+
+        when:
+        resolver.getLocalAccess().resolveModuleArtifacts(module, result)
+
+        then:
+        1 * result.resolved(_) >> { args ->
+            assert args[0] instanceof FixedComponentArtifacts
+            assert args[0].artifacts.isEmpty()
+        }
+    }
+
+    def "resolve artifact when module's packaging is jar"() {
+        given:
+        module.isKnownJarPackaging() >> true
+        ModuleComponentArtifactMetadata artifact = Mock(ModuleComponentArtifactMetadata)
+        module.artifact('jar', 'jar', null) >> artifact
+
+        when:
+        resolver.getLocalAccess().resolveModuleArtifacts(module, result)
+
+        then:
+        1 * result.resolved(_) >> { args ->
+            assert args[0] instanceof FixedComponentArtifacts
+            assert args[0].artifacts == [artifact] as Set
+        }
     }
 }
