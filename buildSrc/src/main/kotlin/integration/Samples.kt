@@ -22,4 +22,4 @@ import java.io.File
 fun Project.sampleDirs(): List<File> =
     samplesDir().listFiles()!!.filter { it.isDirectory }
 
-fun Project.samplesDir(): File = file("samples")!!
+fun Project.samplesDir(): File = file("samples")
