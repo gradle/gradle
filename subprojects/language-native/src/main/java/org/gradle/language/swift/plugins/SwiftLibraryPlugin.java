@@ -76,10 +76,11 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
         ObjectFactory objectFactory = project.getObjects();
 
-        SwiftComponent component = project.getExtensions().create(SwiftComponent.class, "library", DefaultSwiftComponent.class, fileOperations, project.getProviders());
-        final PropertyState<String> module = component.getModule();
+        SwiftComponent component = project.getExtensions().create(SwiftComponent.class, "library", DefaultSwiftComponent.class, "main", fileOperations, project.getProviders());
+        project.getComponents().add(component);
 
         // Setup component
+        final PropertyState<String> module = component.getModule();
         module.set(GUtil.toCamelCase(project.getName()));
         component.getCompileImportPath().from(configurations.getByName(SwiftBasePlugin.SWIFT_IMPORT_PATH));
 

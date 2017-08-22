@@ -45,6 +45,14 @@ class CppExecutablePluginTest extends Specification {
         project.executable.cppSource.files == [src] as Set
     }
 
+    def "registers a component for the executable"() {
+        when:
+        project.pluginManager.apply(CppExecutablePlugin)
+
+        then:
+        project.components.main == project.executable
+    }
+
     def "adds compile, link and install tasks"() {
         given:
         def src = projectDir.file("src/main/cpp/main.cpp").createFile()

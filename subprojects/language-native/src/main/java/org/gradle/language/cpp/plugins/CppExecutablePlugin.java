@@ -71,7 +71,10 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         TaskContainer tasks = project.getTasks();
 
         // Add the component extension
-        final CppComponent component = project.getExtensions().create(CppComponent.class, "executable", DefaultCppComponent.class, fileOperations, providers);
+        final CppComponent component = project.getExtensions().create(CppComponent.class, "executable", DefaultCppComponent.class, "main", fileOperations, providers);
+        project.getComponents().add(component);
+
+        // Configure the component
         component.getBaseName().set(project.getName());
 
         // Wire in dependencies

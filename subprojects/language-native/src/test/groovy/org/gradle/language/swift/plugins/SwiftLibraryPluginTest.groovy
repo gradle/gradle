@@ -44,6 +44,14 @@ class SwiftLibraryPluginTest extends Specification {
         project.library.swiftSource.files == [src] as Set
     }
 
+    def "registers a component for the library"() {
+        when:
+        project.pluginManager.apply(SwiftLibraryPlugin)
+
+        then:
+        project.components.main == project.library
+    }
+
     def "adds compile and link tasks"() {
         given:
         def src = projectDir.file("src/main/swift/main.swift").createFile()

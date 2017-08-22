@@ -80,7 +80,10 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         // TODO - extract some common code to setup the compile task and conventions
 
         // Add the component extension
-        final CppLibrary component = project.getExtensions().create(CppLibrary.class, "library", DefaultCppLibrary.class, fileOperations, providers);
+        final CppLibrary component = project.getExtensions().create(CppLibrary.class, "library", DefaultCppLibrary.class, "main", fileOperations, providers);
+        project.getComponents().add(component);
+
+        // Configure the component
         component.getBaseName().set(project.getName());
 
         // Wire in dependencies

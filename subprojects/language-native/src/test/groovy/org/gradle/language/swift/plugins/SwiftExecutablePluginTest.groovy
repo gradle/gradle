@@ -45,6 +45,14 @@ class SwiftExecutablePluginTest extends Specification {
         project.executable.swiftSource.files == [src] as Set
     }
 
+    def "registers a component for the executable"() {
+        when:
+        project.pluginManager.apply(SwiftExecutablePlugin)
+
+        then:
+        project.components.main == project.executable
+    }
+
     def "adds compile, link and install tasks"() {
         given:
         def src = projectDir.file("src/main/swift/main.swift").createFile()

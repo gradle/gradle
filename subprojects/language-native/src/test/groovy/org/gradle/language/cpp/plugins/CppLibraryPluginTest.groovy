@@ -46,6 +46,14 @@ class CppLibraryPluginTest extends Specification {
         project.library.publicHeaderDirs.files == [publicHeaders] as Set
     }
 
+    def "registers a component for the library"() {
+        when:
+        project.pluginManager.apply(CppLibraryPlugin)
+
+        then:
+        project.components.main == project.library
+    }
+
     def "adds compile and link tasks"() {
         given:
         def src = projectDir.file("src/main/cpp/lib.cpp").createFile()

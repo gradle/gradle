@@ -25,7 +25,7 @@ import spock.lang.Specification
 class DefaultCppComponentTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def component = new DefaultCppComponent(TestFiles.fileOperations(tmpDir.testDirectory), new DefaultProviderFactory())
+    def component = new DefaultCppComponent("main", TestFiles.fileOperations(tmpDir.testDirectory), new DefaultProviderFactory())
 
     def "has no source files by default"() {
         expect:

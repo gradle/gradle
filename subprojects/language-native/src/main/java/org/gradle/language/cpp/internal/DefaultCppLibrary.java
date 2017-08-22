@@ -30,8 +30,8 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     private final FileCollection publicHeadersWithConvention;
 
     @Inject
-    public DefaultCppLibrary(FileOperations fileOperations, ProviderFactory providerFactory) {
-        super(fileOperations, providerFactory);
+    public DefaultCppLibrary(String name, FileOperations fileOperations, ProviderFactory providerFactory) {
+        super(name, fileOperations, providerFactory);
         publicHeaders = fileOperations.files();
         publicHeadersWithConvention = createDirView(publicHeaders, "src/main/public");
         getCompileIncludePath().setFrom(publicHeadersWithConvention, getPrivateHeaderDirs());

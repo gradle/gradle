@@ -85,9 +85,14 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         ProviderFactory providers = project.getProviders();
 
         // TODO - Reuse logic from Swift*Plugin
+        // TODO - component name and extension name aren't the same
         // Add the component extension
-        SwiftComponent component = project.getExtensions().create(SwiftComponent.class, "xctest", DefaultSwiftComponent.class, fileOperations, providers);
+        SwiftComponent component = project.getExtensions().create(SwiftComponent.class, "xctest", DefaultSwiftComponent.class, "test", fileOperations, providers);
+        project.getComponents().add(component);
+
+        // Configure the component
         // TODO - should reuse convention from the component
+        // TODO - should use `src/xctext/swift` as the convention?
         component.getSource().from(projectDirectory.dir("src/test/swift"));
 
         // Add a compile task

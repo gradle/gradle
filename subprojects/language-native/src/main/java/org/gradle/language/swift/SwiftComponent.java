@@ -18,19 +18,20 @@ package org.gradle.language.swift;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.PropertyState;
 
 /**
- * Configuration for a Swift library or executable, defining the source files that make up the component.
+ * Configuration for a Swift library or executable, defining the source files that make up the component plus other settings.
  *
  * <p>An instance of this type is added as a project extension by the Swift plugins.</p>
  *
  * @since 4.2
  */
 @Incubating
-public interface SwiftComponent {
+public interface SwiftComponent extends SoftwareComponent {
     /**
      * Defines the Swift module for this component. The default value is calculated from the project name.
      */

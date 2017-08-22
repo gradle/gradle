@@ -77,10 +77,11 @@ public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
         TaskContainer tasks = project.getTasks();
 
         // Add the component extension
-        SwiftComponent component = project.getExtensions().create(SwiftComponent.class, "executable", DefaultSwiftComponent.class, fileOperations, providers);
-        final PropertyState<String> module = component.getModule();
+        SwiftComponent component = project.getExtensions().create(SwiftComponent.class, "executable", DefaultSwiftComponent.class, "main", fileOperations, providers);
+        project.getComponents().add(component);
 
         // Setup component
+        final PropertyState<String> module = component.getModule();
         module.set(GUtil.toCamelCase(project.getName()));
         component.getCompileImportPath().from(configurations.getByName(SwiftBasePlugin.SWIFT_IMPORT_PATH));
 

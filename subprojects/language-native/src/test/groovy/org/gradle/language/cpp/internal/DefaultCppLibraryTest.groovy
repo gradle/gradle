@@ -26,7 +26,7 @@ import spock.lang.Specification
 class DefaultCppLibraryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def library = new DefaultCppLibrary(TestFiles.fileOperations(tmpDir.testDirectory), new DefaultProviderFactory())
+    def library = new DefaultCppLibrary("main", TestFiles.fileOperations(tmpDir.testDirectory), new DefaultProviderFactory())
 
     def "uses convention for public headers when nothing specified"() {
         def d = tmpDir.file("src/main/public")

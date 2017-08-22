@@ -18,6 +18,7 @@ package org.gradle.language.cpp;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -31,7 +32,7 @@ import org.gradle.api.provider.PropertyState;
  * @since 4.2
  */
 @Incubating
-public interface CppComponent {
+public interface CppComponent extends SoftwareComponent {
     /**
      * Specifies the base name for this component. This name is used to calculate various output file names. The default value is calculated from the project name.
      */

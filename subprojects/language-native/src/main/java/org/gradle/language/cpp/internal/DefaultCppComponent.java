@@ -33,6 +33,7 @@ import java.util.concurrent.Callable;
 
 public class DefaultCppComponent extends DefaultNativeComponent implements CppComponent {
     private final FileCollection cppSource;
+    private final String name;
     private final FileOperations fileOperations;
     private final ConfigurableFileCollection privateHeaders;
     private final FileCollection privateHeadersWithConvention;
@@ -40,8 +41,9 @@ public class DefaultCppComponent extends DefaultNativeComponent implements CppCo
     private final PropertyState<String> baseName;
 
     @Inject
-    public DefaultCppComponent(FileOperations fileOperations, ProviderFactory providerFactory) {
+    public DefaultCppComponent(String name, FileOperations fileOperations, ProviderFactory providerFactory) {
         super(fileOperations);
+        this.name = name;
         this.fileOperations = fileOperations;
         cppSource = createSourceView("src/main/cpp", Arrays.asList("cpp", "c++"));
         privateHeaders = fileOperations.files();
@@ -49,6 +51,11 @@ public class DefaultCppComponent extends DefaultNativeComponent implements CppCo
         compileIncludePath = fileOperations.files();
         compileIncludePath.from(privateHeadersWithConvention);
         baseName = providerFactory.property(String.class);
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     protected FileCollection createDirView(final ConfigurableFileCollection dirs, final String conventionLocation) {
