@@ -485,34 +485,4 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         then:
         result.assertTaskSkipped(":cacheable")
     }
-
-    def "downstream task stays cached when upstream task is loaded from cache"() {
-        buildFile << """
-            repositories {
-                mavenCentral()
-            }
-
-            dependencies {
-                testCompile 'junit:junit:4.12'
-            }
-        """
-        file("src/test/java/HelloTest.java") << """
-            import org.junit.Test; 
-
-            public class HelloTest { 
-                @Test 
-                public void someTest() { 
-                    Hello.main(); 
-                } 
-            }
-        """
-
-        withBuildCache().succeeds "test"
-        succeeds "clean"
-
-        when:
-        withBuildCache().succeeds "test"
-        then:
-        skippedTasks.contains ":test"
-    }
 }
