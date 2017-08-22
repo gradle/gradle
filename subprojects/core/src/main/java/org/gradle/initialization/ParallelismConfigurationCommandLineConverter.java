@@ -22,17 +22,18 @@ import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.concurrent.ParallelismConfiguration;
 
+import static org.gradle.initialization.GradleBuildOptions.PARALLEL;
+import static org.gradle.initialization.GradleBuildOptions.MAX_WORKERS;
+
 public class ParallelismConfigurationCommandLineConverter extends AbstractCommandLineConverter<ParallelismConfiguration> {
-    private static final String PARALLEL = "parallel";
-    private static final String MAX_WORKERS = "max-workers";
 
     public ParallelismConfiguration convert(ParsedCommandLine options, ParallelismConfiguration target) throws CommandLineArgumentException {
-        if (options.hasOption(PARALLEL)) {
+        if (options.hasOption(PARALLEL.getCommandLineOption().getOption())) {
             target.setParallelProjectExecutionEnabled(true);
         }
 
-        if (options.hasOption(MAX_WORKERS)) {
-            String value = options.option(MAX_WORKERS).getValue();
+        if (options.hasOption(MAX_WORKERS.getCommandLineOption().getOption())) {
+            String value = options.option(MAX_WORKERS.getCommandLineOption().getOption()).getValue();
             try {
                 int workerCount = Integer.parseInt(value);
                 if (workerCount < 1) {
@@ -48,11 +49,11 @@ public class ParallelismConfigurationCommandLineConverter extends AbstractComman
     }
 
     private ParallelismConfiguration invalidMaxWorkersSwitchValue(String value) {
-        throw new CommandLineArgumentException(String.format("Argument value '%s' given for --%s option is invalid (must be a positive, non-zero, integer)", value, MAX_WORKERS));
+        throw new CommandLineArgumentException(String.format("Argument value '%s' given for --%s option is invalid (must be a positive, non-zero, integer)", value, MAX_WORKERS.getCommandLineOption().getOption()));
     }
 
     public void configure(CommandLineParser parser) {
-        parser.option(PARALLEL).hasDescription("Build projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.").incubating();
-        parser.option(MAX_WORKERS).hasArgument().hasDescription("Configure the number of concurrent workers Gradle is allowed to use.").incubating();
+        PARALLEL.getCommandLineOption().registerOption(parser);
+        MAX_WORKERS.getCommandLineOption().registerOption(parser);
     }
 }

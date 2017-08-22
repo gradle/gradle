@@ -16,12 +16,13 @@
 package org.gradle.tooling.internal.provider
 
 import org.gradle.TaskExecutionRequest
-import org.gradle.launcher.daemon.configuration.GradleProperties
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.internal.protocol.InternalLaunchable
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters
 import org.junit.Rule
 import spock.lang.Specification
+
+import static org.gradle.initialization.GradleBuildOptions.CONFIGURE_ON_DEMAND
 
 class ProviderStartParameterConverterTest extends Specification {
     @Rule TestNameTestDirectoryProvider temp
@@ -92,7 +93,7 @@ class ProviderStartParameterConverterTest extends Specification {
     def "the start parameter is configured from properties"() {
         when:
         def properties = [
-                (GradleProperties.CONFIGURE_ON_DEMAND_PROPERTY): "true",
+                (CONFIGURE_ON_DEMAND.gradleProperty): "true",
         ]
 
         def start = new ProviderStartParameterConverter().toStartParameter(params, properties)

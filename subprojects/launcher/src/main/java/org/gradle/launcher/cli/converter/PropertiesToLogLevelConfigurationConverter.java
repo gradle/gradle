@@ -18,13 +18,13 @@ package org.gradle.launcher.cli.converter;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
-import org.gradle.launcher.daemon.configuration.GradleProperties;
+import org.gradle.initialization.GradleBuildOptions;
 
 import java.util.Map;
 
 public class PropertiesToLogLevelConfigurationConverter {
     public LoggingConfiguration convert(Map<String, String> properties, LoggingConfiguration loggingConfiguration) {
-        String logLevel = properties.get(GradleProperties.LOG_LEVEL_PROPERTY);
+        String logLevel = properties.get(GradleBuildOptions.LOG_LEVEL.getGradleProperty());
         if (logLevel != null) {
             LogLevel level = parseLogLevel(logLevel);
             loggingConfiguration.setLogLevel(level);
@@ -41,7 +41,7 @@ public class PropertiesToLogLevelConfigurationConverter {
             }
             return logLevel;
         } catch (IllegalArgumentException e) {
-            String message = String.format("Value '%s' given for %s system property is invalid.  (must be one of quiet, warn, lifecycle, info, or debug)", value, GradleProperties.LOG_LEVEL_PROPERTY);
+            String message = String.format("Value '%s' given for %s system property is invalid.  (must be one of quiet, warn, lifecycle, info, or debug)", value, GradleBuildOptions.LOG_LEVEL.getGradleProperty());
             throw new IllegalArgumentException(message, e);
         }
     }

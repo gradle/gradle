@@ -20,11 +20,13 @@ import org.gradle.cli.AbstractCommandLineConverter;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
+import org.gradle.initialization.GradleBuildOption;
+import org.gradle.initialization.GradleBuildOptions;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
 public class DaemonCommandLineConverter extends AbstractCommandLineConverter<DaemonParameters> {
 
-    private static final String DAEMON = "daemon";
+    private static final GradleBuildOption.CommandLineOption DAEMON = GradleBuildOptions.DAEMON.getCommandLineOption();
     private static final String NO_DAEMON = "no-daemon";
     private static final String FOREGROUND = "foreground";
     private static final String STOP = "stop";
@@ -43,7 +45,7 @@ public class DaemonCommandLineConverter extends AbstractCommandLineConverter<Dae
 
         if (args.hasOption(NO_DAEMON)) {
             target.setEnabled(false);
-        } else if (args.hasOption(DAEMON)) {
+        } else if (args.hasOption(DAEMON.getOption())) {
             target.setEnabled(true);
         }
         return target;
@@ -53,8 +55,8 @@ public class DaemonCommandLineConverter extends AbstractCommandLineConverter<Dae
         parser.option(FOREGROUND).hasDescription("Starts the Gradle Daemon in the foreground.").incubating();
         parser.option(STOP).hasDescription("Stops the Gradle Daemon if it is running.");
         parser.option(STATUS).hasDescription("Shows status of running and recently stopped Gradle Daemon(s).");
-        parser.option(DAEMON).hasDescription("Uses the Gradle Daemon to run the build. Starts the Daemon if not running.");
+        DAEMON.registerOption(parser);
         parser.option(NO_DAEMON).hasDescription("Do not use the Gradle Daemon to run the build.");
-        parser.allowOneOf(DAEMON, NO_DAEMON);
+        parser.allowOneOf(DAEMON.getOption(), NO_DAEMON);
     }
 }

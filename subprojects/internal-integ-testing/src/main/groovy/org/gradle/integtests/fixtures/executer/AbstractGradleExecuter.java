@@ -41,7 +41,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
-import org.gradle.launcher.daemon.configuration.GradleProperties;
+import org.gradle.initialization.GradleBuildOptions;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
@@ -847,8 +847,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             properties.put("user.home", getUserHomeDir().getAbsolutePath());
         }
 
-        properties.put(GradleProperties.IDLE_TIMEOUT_PROPERTY, "" + (daemonIdleTimeoutSecs * 1000));
-        properties.put(GradleProperties.DAEMON_BASE_DIR_PROPERTY, daemonBaseDir.getAbsolutePath());
+        properties.put(GradleBuildOptions.DAEMON_IDLE_TIMEOUT.getGradleProperty(), "" + (daemonIdleTimeoutSecs * 1000));
+        properties.put(GradleBuildOptions.DAEMON_BASE_DIR.getGradleProperty(), daemonBaseDir.getAbsolutePath());
         if (!noExplicitNativeServicesDir) {
             properties.put(NativeServices.NATIVE_DIR_OVERRIDE, buildContext.getNativeServicesDir().getAbsolutePath());
         }

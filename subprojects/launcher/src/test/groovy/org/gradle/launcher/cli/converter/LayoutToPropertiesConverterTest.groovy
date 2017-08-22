@@ -22,8 +22,8 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.launcher.daemon.configuration.GradleProperties.IDLE_TIMEOUT_PROPERTY
-import static org.gradle.launcher.daemon.configuration.GradleProperties.JVM_ARGS_PROPERTY
+import static org.gradle.initialization.GradleBuildOptions.DAEMON_IDLE_TIMEOUT
+import static org.gradle.initialization.GradleBuildOptions.JVM_ARGS
 
 class LayoutToPropertiesConverterTest extends Specification {
 
@@ -50,47 +50,47 @@ class LayoutToPropertiesConverterTest extends Specification {
 
     def "configures from gradle home dir"() {
         when:
-        temp.file("gradleHome/gradle.properties") << "$JVM_ARGS_PROPERTY=-Xmx1024m -Dprop=value"
+        temp.file("gradleHome/gradle.properties") << "$JVM_ARGS.gradleProperty=-Xmx1024m -Dprop=value"
 
         then:
-        converter.convert(layout, props).get(JVM_ARGS_PROPERTY) == '-Xmx1024m -Dprop=value'
+        converter.convert(layout, props).get(JVM_ARGS.gradleProperty) == '-Xmx1024m -Dprop=value'
     }
 
     def "configures from project dir"() {
         when:
-        temp.file("projectDir/gradle.properties") << "$IDLE_TIMEOUT_PROPERTY=125"
+        temp.file("projectDir/gradle.properties") << "$DAEMON_IDLE_TIMEOUT.gradleProperty=125"
 
         then:
-        converter.convert(layout, props).get(IDLE_TIMEOUT_PROPERTY) == "125"
+        converter.convert(layout, props).get(DAEMON_IDLE_TIMEOUT.gradleProperty) == "125"
     }
 
     def "configures from root dir in a multiproject build"() {
         when:
         temp.file("projectDir/settings.gradle") << "include 'foo'"
-        temp.file("projectDir/gradle.properties") << "$JVM_ARGS_PROPERTY=-Xmx128m"
+        temp.file("projectDir/gradle.properties") << "$JVM_ARGS.gradleProperty=-Xmx128m"
         layout.setProjectDir(temp.file("projectDir/foo"))
         layout.searchUpwards = true
 
         then:
-        converter.convert(layout, props).get(JVM_ARGS_PROPERTY) == '-Xmx128m'
+        converter.convert(layout, props).get(JVM_ARGS.gradleProperty) == '-Xmx128m'
     }
 
     def "gradle home properties take precedence over project dir properties"() {
         when:
-        temp.file("gradleHome/gradle.properties") << "$JVM_ARGS_PROPERTY=-Xmx1024m"
-        temp.file("projectDir/gradle.properties") << "$JVM_ARGS_PROPERTY=-Xmx512m"
+        temp.file("gradleHome/gradle.properties") << "$JVM_ARGS.gradleProperty=-Xmx1024m"
+        temp.file("projectDir/gradle.properties") << "$JVM_ARGS.gradleProperty=-Xmx512m"
 
         then:
-        converter.convert(layout, props).get(JVM_ARGS_PROPERTY) == '-Xmx1024m'
+        converter.convert(layout, props).get(JVM_ARGS.gradleProperty) == '-Xmx1024m'
     }
 
     def "system property takes precedence over gradle home"() {
         when:
-        temp.file("gradleHome/gradle.properties") << "$JVM_ARGS_PROPERTY=-Xmx1024m"
-        System.setProperty(JVM_ARGS_PROPERTY, '-Xmx2048m')
+        temp.file("gradleHome/gradle.properties") << "$JVM_ARGS.gradleProperty=-Xmx1024m"
+        System.setProperty(JVM_ARGS.gradleProperty, '-Xmx2048m')
 
         then:
-        converter.convert(layout, props).get(JVM_ARGS_PROPERTY) == '-Xmx2048m'
+        converter.convert(layout, props).get(JVM_ARGS.gradleProperty) == '-Xmx2048m'
     }
 
     def "non-serializable system properties are ignored"() {

@@ -21,7 +21,7 @@ import org.gradle.api.logging.LogLevel
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.launcher.daemon.configuration.GradleProperties.*
+import static org.gradle.initialization.GradleBuildOptions.*
 
 class PropertiesToStartParameterConverterTest extends Specification {
 
@@ -29,16 +29,16 @@ class PropertiesToStartParameterConverterTest extends Specification {
 
     def "converts"() {
         expect:
-        converter.convert([(WORKERS_PROPERTY): "37"], new StartParameter()).maxWorkerCount == 37
-        converter.convert([(PARALLEL_PROPERTY): "true"], new StartParameter()).parallelProjectExecutionEnabled
-        converter.convert([(BUILD_CACHE_PROPERTY): "true"], new StartParameter()).buildCacheEnabled
-        converter.convert([(CONFIGURE_ON_DEMAND_PROPERTY): "TRUE"], new StartParameter()).configureOnDemand
-        !converter.convert([(CONFIGURE_ON_DEMAND_PROPERTY): "xxx"], new StartParameter()).configureOnDemand
+        converter.convert([(MAX_WORKERS.gradleProperty): "37"], new StartParameter()).maxWorkerCount == 37
+        converter.convert([(PARALLEL.gradleProperty): "true"], new StartParameter()).parallelProjectExecutionEnabled
+        converter.convert([(BUILD_CACHE.gradleProperty): "true"], new StartParameter()).buildCacheEnabled
+        converter.convert([(CONFIGURE_ON_DEMAND.gradleProperty): "TRUE"], new StartParameter()).configureOnDemand
+        !converter.convert([(CONFIGURE_ON_DEMAND.gradleProperty): "xxx"], new StartParameter()).configureOnDemand
     }
 
     def invalidMaxWorkersProperty() {
         when:
-        converter.convert([(WORKERS_PROPERTY): "invalid"], new StartParameter())
+        converter.convert([(MAX_WORKERS.gradleProperty): "invalid"], new StartParameter())
         then:
         thrown(IllegalArgumentException)
     }
@@ -46,7 +46,7 @@ class PropertiesToStartParameterConverterTest extends Specification {
     @Unroll
     def "converts log levels"() {
         expect:
-        converter.convert([(LOG_LEVEL_PROPERTY): level], new StartParameter()).logLevel == logLevel
+        converter.convert([(LOG_LEVEL.gradleProperty): level], new StartParameter()).logLevel == logLevel
 
         where:
         level       | logLevel
@@ -59,11 +59,11 @@ class PropertiesToStartParameterConverterTest extends Specification {
 
     def "throws exception for invalid log level"() {
         when:
-        converter.convert([(LOG_LEVEL_PROPERTY): "fakeLevel"], new StartParameter())
+        converter.convert([(LOG_LEVEL.gradleProperty): "fakeLevel"], new StartParameter())
 
         then:
         def ex = thrown(IllegalArgumentException)
-        ex.getMessage().contains(LOG_LEVEL_PROPERTY)
+        ex.getMessage().contains(LOG_LEVEL.gradleProperty)
         LogLevel.values().each { level ->
             if(level != LogLevel.ERROR) {
                 ex.getMessage().contains(level.toString())

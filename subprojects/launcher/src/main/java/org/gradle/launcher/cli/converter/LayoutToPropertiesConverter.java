@@ -18,10 +18,13 @@ package org.gradle.launcher.cli.converter;
 
 import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.specs.Spec;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
-import org.gradle.launcher.daemon.configuration.GradleProperties;
+import org.gradle.initialization.GradleBuildOption;
+import org.gradle.initialization.GradleBuildOptions;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -75,8 +78,14 @@ public class LayoutToPropertiesConverter {
             throw new UncheckedIOException(e);
         }
 
-        for (Object key : properties.keySet()) {
-            if (GradleProperties.ALL.contains(key.toString())) {
+        for (final Object key : properties.keySet()) {
+            GradleBuildOption validOption = CollectionUtils.findFirst(GradleBuildOptions.ALL, new Spec<GradleBuildOption>() {
+                @Override
+                public boolean isSatisfiedBy(GradleBuildOption option) {
+                    return option.getGradleProperty().equals(key.toString());
+                }
+            });
+            if (validOption != null) {
                 result.put(key.toString(), properties.get(key).toString());
             }
         }

@@ -34,6 +34,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.gradle.StartParameter.GRADLE_USER_HOME_PROPERTY_KEY;
+import static org.gradle.initialization.GradleBuildOptions.BUILD_CACHE;
+import static org.gradle.initialization.GradleBuildOptions.CONFIGURE_ON_DEMAND;
 
 public class DefaultCommandLineConverter extends AbstractCommandLineConverter<StartParameter> {
     private static final String NO_PROJECT_DEPENDENCY_REBUILD = "a";
@@ -50,15 +52,12 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String PROJECT_CACHE_DIR = "project-cache-dir";
     private static final String RECOMPILE_SCRIPTS = "recompile-scripts";
 
-    private static final String CONFIGURE_ON_DEMAND = "configure-on-demand";
-
     private static final String CONTINUOUS = "continuous";
     private static final String CONTINUOUS_SHORT_FLAG = "t";
 
     private static final String BUILDSCAN = "scan";
     private static final String NO_BUILDSCAN = "no-scan";
 
-    private static final String BUILD_CACHE = "build-cache";
     private static final String NO_BUILD_CACHE = "no-build-cache";
 
     private static final String INCLUDE_BUILD = "include-build";
@@ -94,7 +93,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(CONTINUE).hasDescription("Continue task execution after a task failure.");
         parser.option(OFFLINE).hasDescription("Execute the build without accessing network resources.");
         parser.option(REFRESH_DEPENDENCIES).hasDescription("Refresh the state of dependencies.");
-        parser.option(CONFIGURE_ON_DEMAND).hasDescription("Configure necessary projects only. Gradle will attempt to reduce configuration time for large multi-project builds.").incubating();
+        CONFIGURE_ON_DEMAND.getCommandLineOption().registerOption(parser);
         parser.option(CONTINUOUS, CONTINUOUS_SHORT_FLAG).hasDescription("Enables continuous build. Gradle does not exit and will re-execute tasks when task file inputs change.").incubating();
 
         parser.option(BUILDSCAN).hasDescription("Creates a build scan. Gradle will emit a warning if the build scan plugin has not been applied. (https://gradle.com/build-scans)").incubating();
@@ -102,9 +101,9 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
         parser.option(INCLUDE_BUILD).hasArguments().hasDescription("Include the specified build in the composite.").incubating();
 
-        parser.option(BUILD_CACHE).hasDescription("Enables the Gradle build cache. Gradle will try to reuse outputs from previous builds.").incubating();
+        BUILD_CACHE.getCommandLineOption().registerOption(parser);
         parser.option(NO_BUILD_CACHE).hasDescription("Disables the Gradle build cache.").incubating();
-        parser.allowOneOf(BUILD_CACHE, NO_BUILD_CACHE);
+        parser.allowOneOf(BUILD_CACHE.getCommandLineOption().getOption(), NO_BUILD_CACHE);
     }
 
     public StartParameter convert(final ParsedCommandLine options, final StartParameter startParameter) throws CommandLineArgumentException {
@@ -184,7 +183,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
             startParameter.setRefreshDependencies(true);
         }
 
-        if (options.hasOption(CONFIGURE_ON_DEMAND)) {
+        if (options.hasOption(CONFIGURE_ON_DEMAND.getCommandLineOption().getOption())) {
             startParameter.setConfigureOnDemand(true);
         }
 
@@ -203,7 +202,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
             startParameter.setNoBuildScan(true);
         }
 
-        if (options.hasOption(BUILD_CACHE)) {
+        if (options.hasOption(BUILD_CACHE.getCommandLineOption().getOption())) {
             startParameter.setBuildCacheEnabled(true);
         }
 
