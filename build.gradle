@@ -35,76 +35,61 @@ buildTypes {
     // Used for builds to run all tests, but not necessarily on all platforms
     fullTest {
         tasks "test", "forkingIntegTest", "forkingCrossVersionTest"
-        projectProperties useIncomingDistributions: true, testAllVersions: true
+        projectProperties testAllVersions: true
     }
 
     // Used for builds to test the code on certain platforms
     platformTest {
         tasks "test", "forkingIntegTest", "forkingCrossVersionTest"
-        projectProperties useIncomingDistributions: true, testAllVersions: true, testAllPlatforms: true
+        projectProperties testAllVersions: true, testAllPlatforms: true
     }
 
     // Tests not using the daemon mode
     noDaemonTest {
         tasks "noDaemonIntegTest"
-        projectProperties useIncomingDistributions: true
     }
 
     // Run the integration tests using the parallel executer
     parallelTest {
         tasks "parallelIntegTest"
-        projectProperties useIncomingDistributions: true
     }
 
     performanceTests {
         tasks "performance:performanceTest"
-        projectProperties useIncomingDistributions: true
     }
 
     performanceExperiments {
         tasks "performance:performanceExperiments"
-        projectProperties useIncomingDistributions: true
     }
 
     fullPerformanceTests {
         tasks "performance:fullPerformanceTest"
-        projectProperties useIncomingDistributions: true
     }
 
     distributedPerformanceTests {
         tasks "performance:distributedPerformanceTest"
-        projectProperties useIncomingDistributions: true
     }
 
     distributedPerformanceExperiments {
         tasks "performance:distributedPerformanceExperiment"
-        projectProperties useIncomingDistributions: true
     }
 
     distributedFullPerformanceTests {
         tasks "performance:distributedFullPerformanceTest"
-        projectProperties useIncomingDistributions: true
     }
 
     // Used for cross version tests on CI
     crossVersionTest {
         tasks "crossVersionTests"
-        projectProperties useIncomingDistributions: true
     }
 
     quickFeedbackCrossVersionTest {
         tasks "quickFeedbackCrossVersionTests"
-        projectProperties useIncomingDistributions: true
     }
 
     // Used to build production distros and smoke test them
     packageBuild {
         tasks "verifyIsProductionBuildEnvironment", "clean", "buildDists", "distributions:integTest"
-    }
-
-    // Used to build (experimental) production distros and smoke test them
-    packageBuildExperimental {
-        tasks "verifyIsProductionBuildEnvironment", "buildDists", "distributions:integTest"
     }
 
     // Used to build production distros and smoke test them
@@ -115,12 +100,10 @@ buildTypes {
     //Initial smoke test for java 9
     java9Build {
         tasks "java9Test", "java9IntegTest"
-        projectProperties useIncomingDistributions: true
     }
 
     java9SmokeTest {
         tasks "java9IntegTest"
-        projectProperties useIncomingDistributions: true
     }
 
     soakTest {
@@ -141,10 +124,10 @@ ext {
         ext.maxParallelForks = 4
     }
 
-    if (project.hasProperty("useIncomingDistributions")) {
-        project.useIncomingDistributions = true
+    if (project.hasProperty("useAllDistribution")) {
+        project.useAllDistribution = true
     } else {
-        ext.useIncomingDistributions = false
+        ext.useAllDistribution = false
     }
 
     agentNum = 1
@@ -188,7 +171,6 @@ ext {
 
 apply from: "gradle/buildScanUserData.gradle"
 apply from: "gradle/taskCacheBuildScanUserData.gradle"
-apply from: "gradle/incomingDistributions.gradle"
 apply from: "gradle/versioning.gradle"
 apply from: "gradle/dependencies.gradle"
 apply from: "gradle/wrapper.gradle"

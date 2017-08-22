@@ -13,28 +13,24 @@ if ((milestoneNumber != null && rcNumber != null) ||
     throw new InvalidUserDataException("Cannot set any combination of milestoneNumber, rcNumber and finalRelease at the same time")
 }
 
-if (incomingDistributionsBuildReceipt) {
-    ext.baseVersion = incomingDistributionsBuildReceipt.baseVersion
-    ext.buildTimestamp = incomingDistributionsBuildReceipt.buildTimestamp
-} else {
-    ext.baseVersion = rootProject.file("version.txt").text.trim()
+ext.baseVersion = rootProject.file("version.txt").text.trim()
 
-    def timestampFormat = new java.text.SimpleDateFormat('yyyyMMddHHmmssZ')
-    timestampFormat.timeZone = TimeZone.getTimeZone("UTC")
-    Date buildTime
-    if (project.hasProperty("buildTimestamp")) {
-        buildTime = timestampFormat.parse(buildTimestamp)
+def timestampFormat = new java.text.SimpleDateFormat('yyyyMMddHHmmssZ')
+timestampFormat.timeZone = TimeZone.getTimeZone("UTC")
+Date buildTime
+if (project.hasProperty("buildTimestamp")) {
+    buildTime = timestampFormat.parse(buildTimestamp)
+} else {
+    if (isCiServer || gradle.startParameter.taskNames.contains("install") || gradle.startParameter.taskNames.contains("installAll")) {
+        buildTime = new Date()
     } else {
-        if (isCiServer || gradle.startParameter.taskNames.contains("install") || gradle.startParameter.taskNames.contains("installAll")) {
-            buildTime = new Date()
-        } else {
-            def sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
-            Date dateWithoutTime = sdf.parse(sdf.format(new Date()))
-            buildTime = dateWithoutTime
-        }
+        def sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+        Date dateWithoutTime = sdf.parse(sdf.format(new Date()))
+        buildTime = dateWithoutTime
     }
-    ext.buildTimestamp = timestampFormat.format(buildTime)
 }
+ext.buildTimestamp = timestampFormat.format(buildTime)
+
 
 task determineCommitId {
     ext.commitId = null
