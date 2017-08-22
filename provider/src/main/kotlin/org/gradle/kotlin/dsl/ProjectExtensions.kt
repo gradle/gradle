@@ -54,6 +54,7 @@ import kotlin.reflect.KProperty
  * starting the build.
  */
 inline
+@Suppress("nothing_to_inline")
 fun Project.defaultTasks(vararg tasks: Task) {
     defaultTasks(*tasks.map { it.name }.toTypedArray())
 }
@@ -127,6 +128,7 @@ fun <reified type : Task> Project.task(name: String, noinline configuration: typ
  * @see TaskContainer.create
  */
 inline
+@Suppress("extension_shadowed_by_member")
 fun <reified type : Task> Project.task(name: String) =
     tasks.create(name, type::class.java)
 

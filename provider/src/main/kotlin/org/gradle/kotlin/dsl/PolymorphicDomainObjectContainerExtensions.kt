@@ -51,5 +51,6 @@ fun <reified U : Any> PolymorphicDomainObjectContainer<in U>.create(
  * type
  */
 inline
+@Suppress("extension_shadowed_by_member")
 fun <reified U : Any> PolymorphicDomainObjectContainer<in U>.create(name: String) =
     create(name, U::class.java)
