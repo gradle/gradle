@@ -28,13 +28,14 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.swift.internal.DefaultSwiftComponent;
-import org.gradle.language.swift.model.SwiftComponent;
+import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
@@ -81,10 +82,11 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         Directory projectDirectory = project.getLayout().getProjectDirectory();
         ConfigurationContainer configurations = project.getConfigurations();
         TaskContainer tasks = project.getTasks();
+        ProviderFactory providers = project.getProviders();
 
         // TODO - Reuse logic from Swift*Plugin
         // Add the component extension
-        SwiftComponent component = project.getExtensions().create(SwiftComponent.class, "xctest", DefaultSwiftComponent.class, fileOperations);
+        SwiftComponent component = project.getExtensions().create(SwiftComponent.class, "xctest", DefaultSwiftComponent.class, fileOperations, providers);
         // TODO - should reuse convention from the component
         component.getSource().from(projectDirectory.dir("src/test/swift"));
 
