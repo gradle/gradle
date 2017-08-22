@@ -19,7 +19,7 @@ package org.gradle.testing.internal.util
 final class RetryUtil {
     private RetryUtil() {}
 
-    static int retry(int retries = 3, Closure closure) {
+    static int retry(int retries = 3, int waitMsBetweenRetries = 0, Closure closure) {
         int retryCount = 0
         Throwable lastException = null
 
@@ -29,6 +29,7 @@ final class RetryUtil {
                 return retryCount
             } catch (Throwable e) {
                 lastException = e
+                Thread.sleep(waitMsBetweenRetries)
             }
         }
 
