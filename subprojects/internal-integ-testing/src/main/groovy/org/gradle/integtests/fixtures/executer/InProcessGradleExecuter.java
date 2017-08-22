@@ -27,7 +27,6 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.configuration.ConsoleOutput;
-import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.configuration.GradleLauncherMetaData;
@@ -259,7 +258,6 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         // TODO: Fix tests that rely on this being set before we process arguments like this...
         StartParameter startParameter = new StartParameter();
         startParameter.setCurrentDir(getWorkingDir());
-        startParameter.setShowStacktrace(ShowStacktrace.ALWAYS);
 
         // TODO: Reuse more of CommandlineActionFactory
         CommandLineParser parser = new CommandLineParser();

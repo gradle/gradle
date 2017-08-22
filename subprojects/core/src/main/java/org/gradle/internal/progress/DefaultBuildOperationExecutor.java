@@ -189,27 +189,24 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         BuildOperationIdentifierRegistry.setCurrentOperationIdentifier(this.currentOperation.get().getId());
         try {
             listener.started(descriptor, new OperationStartEvent(currentOperation.getStartTime()));
+            ProgressLogger progressLogger = createProgressLogger(currentOperation);
 
             Throwable failure = null;
             DefaultBuildOperationContext context = new DefaultBuildOperationContext();
-            try {
-                ProgressLogger progressLogger = createProgressLogger(currentOperation);
 
-                LOGGER.debug("Build operation '{}' started", descriptor.getDisplayName());
-                try {
-                    worker.execute(buildOperation, context);
-                } finally {
-                    LOGGER.debug("Completing Build operation '{}'", descriptor.getDisplayName());
-                    progressLogger.completed(context.status, context.failure != null);
-                    assertParentRunning("Parent operation (%2$s) completed before this operation (%1$s).", descriptor, parent);
-                }
+            LOGGER.debug("Build operation '{}' started", descriptor.getDisplayName());
+            try {
+                worker.execute(buildOperation, context);
             } catch (Throwable t) {
                 context.thrown(t);
                 failure = t;
             }
+            LOGGER.debug("Completing Build operation '{}'", descriptor.getDisplayName());
 
-            long endTime = timeProvider.getCurrentTime();
-            listener.finished(descriptor, new OperationFinishEvent(currentOperation.getStartTime(), endTime, context.failure, context.result));
+            progressLogger.completed(context.status, context.failure != null);
+            listener.finished(descriptor, new OperationFinishEvent(currentOperation.getStartTime(), timeProvider.getCurrentTime(), context.failure, context.result));
+
+            assertParentRunning("Parent operation (%2$s) completed before this operation (%1$s).", descriptor, parent);
 
             if (failure != null) {
                 throw UncheckedException.throwAsUncheckedException(failure, true);

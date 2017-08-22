@@ -234,6 +234,21 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleGroupedTaskFu
         result.output.contains(styled("> Task :succeeding", null, Ansi.Attribute.INTENSITY_BOLD))
     }
 
+    def "configure project group header is printed red if configuration fails with additional failures"() {
+        given:
+        buildFile << """
+            afterEvaluate { throw new RuntimeException("After Evaluate Failure...") }
+            throw new RuntimeException('Config Failure...')
+        """
+        executer.withStacktraceDisabled()
+
+        when:
+        fails('failing')
+
+        then:
+        result.output.contains(styled("> Configure project :", Ansi.Color.RED, Ansi.Attribute.INTENSITY_BOLD))
+    }
+
     private void assertOutputContains(GradleHandle gradle, String str) {
         ConcurrentTestUtil.poll {
             assert gradle.standardOutput =~ /(?ms)$str/
