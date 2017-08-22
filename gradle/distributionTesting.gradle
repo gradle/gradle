@@ -300,19 +300,16 @@ Output: ${killOutput}
     }
 }
 
+def killExistingProcessesStartedByGradle() {
+    forEachJavaProcess { pid, process ->
+        logger.warn("A process wasn't shutdown properly in a previous Gradle run. Killing process with PID $pid (Command line: $process)")
+        pkill(pid)
+    }
+}
+
 project(":") {
     if (tasks.findByName('cleanUpDaemons')) {
         return
-    }
-    task killExistingDaemons {
-        doLast {
-            didWork = false
-            forEachJavaProcess { pid, process ->
-                logger.warn("A process wasn't shutdown properly in a previous Gradle run. Killing process with PID $pid (Command line: $process)")
-                pkill(pid)
-                didWork = true
-            }
-        }
     }
 
     task cleanUpDaemons {
@@ -332,5 +329,10 @@ project(":") {
             }
         }
     }
-    clean.dependsOn killExistingDaemons
+
+    if (isCiServer) {
+        afterEvaluate {
+            killExistingProcessesStartedByGradle()
+        }
+    }
 }
