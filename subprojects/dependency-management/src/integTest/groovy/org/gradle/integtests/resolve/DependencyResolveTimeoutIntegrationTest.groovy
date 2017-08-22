@@ -24,6 +24,8 @@ import org.gradle.test.fixtures.maven.MavenRepository
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 
+import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.SOCKET_TIMEOUT_SYSTEM_PROPERTY
+
 class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     private static final String GROUP_ID = 'group'
@@ -34,6 +36,7 @@ class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyReso
     def setup() {
         moduleA = publishMavenModule(mavenHttpRepo, 'a')
         downloadedLibsDir = file('build/libs')
+        executer.withArgument("-D${SOCKET_TIMEOUT_SYSTEM_PROPERTY}=2000")
     }
 
     def "fails single build script dependency resolution if HTTP connection exceeds timeout"() {

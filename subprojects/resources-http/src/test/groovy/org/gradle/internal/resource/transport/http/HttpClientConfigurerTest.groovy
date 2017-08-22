@@ -110,10 +110,4 @@ public class HttpClientConfigurerTest extends Specification {
         then:
         httpClientBuilder.userAgent == UriTextResource.userAgentString
     }
-
-    def "configures default connection and socket timeouts"() {
-        expect:
-        configurer.connectionTimeout == 10000
-        configurer.socketTimeout == 30000
-    }
 }

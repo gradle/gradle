@@ -77,10 +77,7 @@ import java.util.Collections;
 
 public class HttpClientConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientConfigurer.class);
-    private final int connectionTimeout = 10000;
-    private final int socketTimeout = 30000;
     private static final int MAX_HTTP_CONNECTIONS = 20;
-
     private final HttpSettings httpSettings;
 
     public HttpClientConfigurer(HttpSettings httpSettings) {
@@ -200,9 +197,10 @@ public class HttpClientConfigurer {
     }
 
     private void configureRequestConfig(HttpClientBuilder builder) {
+        HttpTimeoutSettings timeoutSettings = httpSettings.getTimeoutSettings();
         RequestConfig config = RequestConfig.custom()
-            .setConnectTimeout(connectionTimeout)
-            .setSocketTimeout(socketTimeout)
+            .setConnectTimeout(timeoutSettings.getConnectionTimeout())
+            .setSocketTimeout(timeoutSettings.getSocketTimeout())
             .build();
         builder.setDefaultRequestConfig(config);
     }
@@ -226,14 +224,6 @@ public class HttpClientConfigurer {
         } else {
             throw new IllegalArgumentException(String.format("Authentication scheme of '%s' is not supported.", authentication.getClass().getSimpleName()));
         }
-    }
-
-    public int getConnectionTimeout() {
-        return connectionTimeout;
-    }
-
-    public int getSocketTimeout() {
-        return socketTimeout;
     }
 
     static class PreemptiveAuth implements HttpRequestInterceptor {
