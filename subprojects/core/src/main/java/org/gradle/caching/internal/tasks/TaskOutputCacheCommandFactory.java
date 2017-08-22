@@ -16,14 +16,13 @@
 
 package org.gradle.caching.internal.tasks;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Maps;
+import com.google.common.collect.Iterables;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
@@ -32,9 +31,9 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotBuilder;
 import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSystemMirror;
+import org.gradle.api.internal.changedetection.state.MissingFileSnapshot;
 import org.gradle.api.internal.changedetection.state.OutputPathNormalizationStrategy;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
-import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -136,15 +135,14 @@ public class TaskOutputCacheCommandFactory {
         }
 
         private void updateSnapshots(ImmutableListMultimap<String, FileSnapshot> propertiesFileSnapshots) {
-            ImmutableMap<String, ResolvedTaskOutputFilePropertySpec> propertySpecsMap = Maps.uniqueIndex(outputProperties, new Function<TaskOutputFilePropertySpec, String>() {
-                @Override
-                public String apply(TaskOutputFilePropertySpec propertySpec) {
-                    return propertySpec.getPropertyName();
-                }
-            });
             ImmutableSortedMap.Builder<String, FileCollectionSnapshot> propertySnapshotsBuilder = ImmutableSortedMap.naturalOrder();
-            for (String propertyName : propertiesFileSnapshots.keySet()) {
-                ResolvedTaskOutputFilePropertySpec property = propertySpecsMap.get(propertyName);
+            for (ResolvedTaskOutputFilePropertySpec property : outputProperties) {
+                String propertyName = property.getPropertyName();
+                File outputFile = property.getOutputFile();
+                if (outputFile == null) {
+                    propertySnapshotsBuilder.put(propertyName, FileCollectionSnapshot.EMPTY);
+                    continue;
+                }
                 List<FileSnapshot> fileSnapshots = propertiesFileSnapshots.get(propertyName);
 
                 FileCollectionSnapshotBuilder builder = new FileCollectionSnapshotBuilder(UNORDERED, OutputPathNormalizationStrategy.getInstance(), stringInterner);
@@ -153,14 +151,23 @@ public class TaskOutputCacheCommandFactory {
                 }
                 propertySnapshotsBuilder.put(propertyName, builder.build());
 
-                if (fileSnapshots.size() == 1) {
-                    FileSnapshot singleSnapshot = fileSnapshots.get(0);
-                    if (singleSnapshot.getType() != FileType.RegularFile) {
-                        throw new IllegalStateException(String.format("Only a regular file should be produced by unpacking property '%s', but saw a %s", propertyName, singleSnapshot.getType()));
-                    }
-                    fileSystemMirror.putFile(singleSnapshot);
-                } else {
-                    fileSystemMirror.putDirectory(new DirectoryTreeDetails(property.getOutputFile().getAbsolutePath(), fileSnapshots));
+                switch (property.getOutputType()) {
+                    case FILE:
+                        FileSnapshot singleSnapshot = Iterables.getOnlyElement(fileSnapshots, null);
+                        if (singleSnapshot != null) {
+                            if (singleSnapshot.getType() != FileType.RegularFile) {
+                                throw new IllegalStateException(String.format("Only a regular file should be produced by unpacking property '%s', but saw a %s", propertyName, singleSnapshot.getType()));
+                            }
+                            fileSystemMirror.putFile(singleSnapshot);
+                        } else {
+                            fileSystemMirror.putFile(new MissingFileSnapshot(outputFile.getAbsolutePath(), RelativePath.EMPTY_ROOT));
+                        }
+                        break;
+                    case DIRECTORY:
+                        fileSystemMirror.putDirectory(new DirectoryTreeDetails(outputFile.getAbsolutePath(), fileSnapshots));
+                        break;
+                    default:
+                        throw new AssertionError();
                 }
             }
             taskArtifactState.snapshotAfterLoadedFromCache(propertySnapshotsBuilder.build());
