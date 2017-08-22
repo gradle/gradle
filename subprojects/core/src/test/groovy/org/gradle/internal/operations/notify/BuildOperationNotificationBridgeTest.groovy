@@ -77,7 +77,6 @@ class BuildOperationNotificationBridgeTest extends Specification {
         then:
         1 * listener.started(_)
         1 * listener.finished(_)
-        1 * recorder.stop()
     }
 
     def "forwards operations with details"() {
