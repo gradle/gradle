@@ -85,21 +85,13 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
 
         // Configure the component
         component.getBaseName().set(project.getName());
-
-        // Wire in dependencies
         component.getCompileIncludePath().from(configurations.getByName(CppBasePlugin.CPP_INCLUDE_PATH));
 
-        // Add a compile task
-        CppCompile compile = tasks.create("compileCpp", CppCompile.class);
-        compile.includes(component.getCompileIncludePath());
-        compile.source(component.getCppSource());
-
-        compile.setCompilerArgs(Collections.<String>emptyList());
+        // Configure the compile task
+        CppCompile compile = (CppCompile) tasks.getByName("compileCpp");
         compile.setPositionIndependentCode(true);
-        compile.setMacros(Collections.<String, String>emptyMap());
 
-        compile.setObjectFileDir(buildDirectory.dir("main/objs"));
-
+        // TODO - move this up into the base plugin
         DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
         compile.setTargetPlatform(currentPlatform);
 
