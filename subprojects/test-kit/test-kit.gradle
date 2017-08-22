@@ -5,13 +5,11 @@ dependencies {
     runtime project(':native')
 }
 
-task testKitVersionCompatibilityIntegTest(type: org.gradle.testing.IntegrationTest) {
+task crossVersionTests(type: org.gradle.testing.IntegrationTest) {
     description "Runs the TestKit version compatibility tests"
     systemProperties['org.gradle.integtest.testkit.compatibility'] = 'all'
     systemProperties['org.gradle.integtest.executer'] = 'forking'
 }
-
-crossVersionTests.dependsOn testKitVersionCompatibilityIntegTest
 
 strictCompile()
 useTestFixtures()
