@@ -149,6 +149,26 @@ class DefaultMavenPomTest extends Specification {
         mavenPom.mavenProject.licenses[0].distribution == 'repo'
     }
 
+    void actionBasedProjectBuilder() {
+        mavenPom.mavenProject.inceptionYear = '2007'
+        mavenPom.mavenProject.description = 'some description'
+        mavenPom.project({
+            it.inceptionYear '2008'
+            it.licenses {
+                license {
+                    name 'The Apache Software License, Version 2.0'
+                }
+            }
+        } as Action<GroovyObject>)
+
+        expect:
+        mavenPom.mavenProject.modelVersion == "4.0.0"
+        mavenPom.version == EXPECTED_VERSION
+        mavenPom.mavenProject.inceptionYear == '2008'
+        mavenPom.mavenProject.description == 'some description'
+        mavenPom.mavenProject.licenses*.name == ['The Apache Software License, Version 2.0']
+    }
+
     void writeToShouldApplyXmlActions() {
         mavenPom.configurations = null
         StringWriter pomWriter = new StringWriter()
