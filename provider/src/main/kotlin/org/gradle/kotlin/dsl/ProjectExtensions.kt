@@ -144,7 +144,7 @@ fun Project.task(name: String, configuration: Task.() -> Unit): DefaultTask =
 
 
 fun <T : Task> Project.createTask(name: String, type: KClass<T>, configuration: T.() -> Unit): T =
-    tasks.create(name, type.java, configuration)!!
+    tasks.create(name, type.java, configuration)
 
 
 /**

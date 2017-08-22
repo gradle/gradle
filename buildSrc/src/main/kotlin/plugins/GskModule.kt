@@ -13,6 +13,7 @@ import org.gradle.api.tasks.testing.Test
 
 import org.jetbrains.kotlin.gradle.dsl.Coroutines
 import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 
 /**
@@ -32,6 +33,12 @@ open class GskModule : Plugin<Project> {
 
             kotlin {
                 experimental.coroutines = Coroutines.ENABLE
+            }
+
+            tasks.withType(KotlinCompile::class.java) {
+                it.kotlinOptions.apply {
+                    freeCompilerArgs = listOf("-Xjsr305-annotations=enable")
+                }
             }
 
             // including all sources
