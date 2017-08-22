@@ -76,6 +76,7 @@ class HttpClientHelperTimeoutTest extends Specification {
         Stub(HttpSettings) {
             getProxySettings() >> Mock(HttpProxySettings)
             getSecureProxySettings() >> Mock(HttpProxySettings)
+            getTimeoutSettings() >> new JavaSystemPropertiesHttpTimeoutSettings()
             getSslContextFactory() >> Mock(SslContextFactory) {
                 createSslContext() >> SSLContexts.createDefault()
             }
