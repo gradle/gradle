@@ -73,6 +73,9 @@ import org.gradle.api.internal.notations.ProjectDependencyFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
+import org.gradle.vcs.internal.ExternalSourceDependencyResolver;
+import org.gradle.vcs.internal.VcsMappingFactory;
+import org.gradle.vcs.internal.VcsMappingsInternal;
 import org.gradle.authentication.Authentication;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
@@ -99,6 +102,7 @@ import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFact
 import org.gradle.internal.resource.transfer.DefaultUriTextResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.BuildCommencedTimeProvider;
+import org.gradle.vcs.internal.VersionControlSystemFactory;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -323,10 +327,32 @@ class DependencyManagementBuildScopeServices {
         return new ProjectResolverProviderFactory(resolver);
     }
 
+    ResolverProviderFactory createExternalSourceResolverProviderFactory(final ProjectDependencyResolver resolver, VcsMappingsInternal vcsMappingsInternal, VersionControlSystemFactory versionControlSystemFactory, VcsMappingFactory vcsMappingFactory, ServiceRegistry serviceRegistry) {
+        return new ExternalSourceDependencyResolverProviderFactory(new ExternalSourceDependencyResolver(resolver, vcsMappingsInternal.getVcsMappingRule(), versionControlSystemFactory, vcsMappingFactory, serviceRegistry));
+    }
+
     private static class ProjectResolverProviderFactory implements ResolverProviderFactory {
         private final ProjectDependencyResolver resolver;
 
         public ProjectResolverProviderFactory(ProjectDependencyResolver resolver) {
+            this.resolver = resolver;
+        }
+
+        @Override
+        public boolean canCreate(ResolveContext context) {
+            return true;
+        }
+
+        @Override
+        public ComponentResolvers create(ResolveContext context) {
+            return resolver;
+        }
+    }
+
+    private static class ExternalSourceDependencyResolverProviderFactory implements ResolverProviderFactory {
+        private final ExternalSourceDependencyResolver resolver;
+
+        public ExternalSourceDependencyResolverProviderFactory(ExternalSourceDependencyResolver resolver) {
             this.resolver = resolver;
         }
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.vcs.git;
+package org.gradle.vcs.git.internal;
 
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
@@ -23,6 +23,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.VersionControlSystem;
+import org.gradle.vcs.git.GitVersionControlSpec;
 
 import java.io.File;
 
