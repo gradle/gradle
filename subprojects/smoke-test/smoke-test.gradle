@@ -24,7 +24,6 @@ processSmokeTestResources {
     from ("$rootDir/gradle") {
         into "org/gradle/smoketests/cache-init-scripts"
         include "overlappingTaskOutputsStatsInit.gradle"
-        include "taskCacheDetailedStatsInit.gradle"
     }
 }
 

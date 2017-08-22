@@ -52,9 +52,6 @@ apply from: '../gradle/compile.gradle'
 apply from: '../gradle/dependencies.gradle'
 apply from: '../gradle/classycle.gradle'
 
-apply from: '../gradle/buildScanUserData.gradle'
-apply from: '../gradle/taskCacheBuildScanUserData.gradle'
-
 if (!isCiServer || (isCiServer && Boolean.getBoolean('enableCodeQuality'))) {
     apply from: '../gradle/codeQuality.gradle'
 }
