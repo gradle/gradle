@@ -11,9 +11,7 @@ import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.testing.Test
 
-import org.jetbrains.kotlin.gradle.dsl.Coroutines
 import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 
 /**
@@ -29,17 +27,7 @@ open class GskModule : Plugin<Project> {
 
         project.run {
 
-            plugins.apply("kotlin")
-
-            kotlin {
-                experimental.coroutines = Coroutines.ENABLE
-            }
-
-            tasks.withType(KotlinCompile::class.java) {
-                it.kotlinOptions.apply {
-                    freeCompilerArgs = listOf("-Xjsr305-annotations=enable")
-                }
-            }
+            plugins.apply(KotlinLibrary::class.java)
 
             // including all sources
             val mainSourceSet = java.sourceSets.getByName("main")
@@ -67,11 +55,12 @@ open class GskModule : Plugin<Project> {
             withTestWorkersMemoryLimits()
         }
     }
-
-    private
-    fun Project.kotlin(action: KotlinProjectExtension.() -> Unit) =
-        extensions.configure(KotlinProjectExtension::class.java, action)
 }
+
+
+internal
+fun Project.kotlin(action: KotlinProjectExtension.() -> Unit) =
+    extensions.configure(KotlinProjectExtension::class.java, action)
 
 
 internal
