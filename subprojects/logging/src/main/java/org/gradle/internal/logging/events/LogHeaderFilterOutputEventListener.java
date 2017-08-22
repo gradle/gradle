@@ -16,7 +16,6 @@
 package org.gradle.internal.logging.events;
 
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.progress.BuildOperationCategory;
 
 public class LogHeaderFilterOutputEventListener implements OutputEventListener {
     private final OutputEventListener listener;
@@ -32,9 +31,5 @@ public class LogHeaderFilterOutputEventListener implements OutputEventListener {
         if (!(event instanceof LogGroupHeaderEvent && !headerFilter.isSatisfiedBy((LogGroupHeaderEvent) event))) {
             listener.onOutput(event);
         }
-    }
-
-    private boolean shouldRenderHeader(LogGroupHeaderEvent headerEvent) {
-        return headerEvent.isGroupHasLogs() && headerEvent.getBuildOperationCategory() == BuildOperationCategory.TASK;
     }
 }

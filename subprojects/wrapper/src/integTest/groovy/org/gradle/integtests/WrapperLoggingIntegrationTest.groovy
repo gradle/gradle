@@ -17,6 +17,7 @@
 package org.gradle.integtests
 
 class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
+    // FIXME(ew): this is broken currently
     def "wrapper does not output anything when executed in quiet mode"() {
         given:
         file("build.gradle") << """
