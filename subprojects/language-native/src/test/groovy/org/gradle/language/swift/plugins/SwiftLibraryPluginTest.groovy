@@ -17,7 +17,7 @@
 package org.gradle.language.swift.plugins
 
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.language.swift.SwiftComponent
+import org.gradle.language.swift.SwiftLibrary
 import org.gradle.language.swift.tasks.SwiftCompile
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -39,7 +39,7 @@ class SwiftLibraryPluginTest extends Specification {
         project.pluginManager.apply(SwiftLibraryPlugin)
 
         then:
-        project.library instanceof SwiftComponent
+        project.library instanceof SwiftLibrary
         project.library.module.get() == "TestLib"
         project.library.swiftSource.files == [src] as Set
     }

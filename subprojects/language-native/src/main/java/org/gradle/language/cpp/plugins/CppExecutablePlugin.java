@@ -29,7 +29,8 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppComponent;
-import org.gradle.language.cpp.internal.DefaultCppComponent;
+import org.gradle.language.cpp.CppExecutable;
+import org.gradle.language.cpp.internal.DefaultCppExecutable;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
@@ -71,7 +72,7 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         TaskContainer tasks = project.getTasks();
 
         // Add the component extension
-        final CppComponent component = project.getExtensions().create(CppComponent.class, "executable", DefaultCppComponent.class, "main", fileOperations, providers);
+        final CppComponent component = project.getExtensions().create(CppExecutable.class, "executable", DefaultCppExecutable.class, "main", fileOperations, providers);
         project.getComponents().add(component);
 
         // Configure the component

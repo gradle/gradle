@@ -25,7 +25,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.provider.PropertyState;
 
 /**
- * Configuration for a C++ library or executable, defining the source files that make up the component.
+ * Configuration for a C++ component, such as a library or executable, defining the source files and private header directories that make up the component. Private headers are those that are visible only to the source files of the component.
  *
  * <p>An instance of this type is added as a project extension by the C++ plugins.</p>
  *

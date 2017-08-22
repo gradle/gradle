@@ -35,7 +35,8 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.swift.SwiftComponent;
-import org.gradle.language.swift.internal.DefaultSwiftComponent;
+import org.gradle.language.swift.SwiftLibrary;
+import org.gradle.language.swift.internal.DefaultSwiftLibrary;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
@@ -76,7 +77,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
         ObjectFactory objectFactory = project.getObjects();
 
-        SwiftComponent component = project.getExtensions().create(SwiftComponent.class, "library", DefaultSwiftComponent.class, "main", fileOperations, project.getProviders());
+        SwiftComponent component = project.getExtensions().create(SwiftLibrary.class, "library", DefaultSwiftLibrary.class, "main", fileOperations, project.getProviders());
         project.getComponents().add(component);
 
         // Setup component

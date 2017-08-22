@@ -34,7 +34,8 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.swift.SwiftComponent;
-import org.gradle.language.swift.internal.DefaultSwiftComponent;
+import org.gradle.language.swift.SwiftExecutable;
+import org.gradle.language.swift.internal.DefaultSwiftExecutable;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
@@ -77,7 +78,7 @@ public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
         TaskContainer tasks = project.getTasks();
 
         // Add the component extension
-        SwiftComponent component = project.getExtensions().create(SwiftComponent.class, "executable", DefaultSwiftComponent.class, "main", fileOperations, providers);
+        SwiftComponent component = project.getExtensions().create(SwiftExecutable.class, "executable", DefaultSwiftExecutable.class, "main", fileOperations, providers);
         project.getComponents().add(component);
 
         // Setup component

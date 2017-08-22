@@ -22,7 +22,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 
 /**
- * Configuration for a C++ library, defining the source files that make up the component.
+ * Configuration for a C++ library, defining the source files and header directories that make up the library plus other settings.
  *
  * <p>An instance of this type is added as a project extension by the C++ library plugin.</p>
  *

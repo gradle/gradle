@@ -17,7 +17,7 @@
 package org.gradle.language.swift.plugins
 
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.language.swift.SwiftComponent
+import org.gradle.language.swift.SwiftExecutable
 import org.gradle.language.swift.tasks.SwiftCompile
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
@@ -40,7 +40,7 @@ class SwiftExecutablePluginTest extends Specification {
         project.pluginManager.apply(SwiftExecutablePlugin)
 
         then:
-        project.executable instanceof SwiftComponent
+        project.executable instanceof SwiftExecutable
         project.executable.module.get() == "TestApp"
         project.executable.swiftSource.files == [src] as Set
     }
