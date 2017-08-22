@@ -16,13 +16,8 @@ dependencies {
     implementation libraries.commons_lang
     implementation libraries.commons_io
     implementation libraries.jcip
-}
 
-jmh {
-    threads = 2
-    warmupIterations = 10
-    synchronizeIterations = false
-    fork = 4
+    jmh libraries.bouncycastle_provider
 }
 
 task buildReceiptResource(type: Copy) {
