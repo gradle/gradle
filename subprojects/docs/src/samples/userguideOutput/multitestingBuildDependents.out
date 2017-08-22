@@ -27,6 +27,5 @@
 :services:personService:buildDependents
 :api:buildDependents
 
-BUILD SUCCESSFUL
-
-Total time: 1 secs
+BUILD SUCCESSFUL in 0s
+17 actionable tasks: 17 executed

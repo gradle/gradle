@@ -23,7 +23,7 @@ import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
-import org.gradle.internal.nativeintegration.filesystem.FileType;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -33,7 +33,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
+public class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
     private final Map<String, NormalizedFileSnapshot> snapshots;
     private final TaskFilePropertyCompareStrategy compareStrategy;
     private final boolean pathIsAbsolute;
@@ -67,8 +67,8 @@ class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
     }
 
     @Override
-    public Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, String fileType) {
-        return compareStrategy.iterateContentChangesSince(snapshots, oldSnapshot.getSnapshots(), fileType, pathIsAbsolute);
+    public Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, String fileType, boolean includeAdded) {
+        return compareStrategy.iterateContentChangesSince(snapshots, oldSnapshot.getSnapshots(), fileType, pathIsAbsolute, includeAdded);
     }
 
     @Override
@@ -92,6 +92,11 @@ class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
     @Override
     public List<File> getFiles() {
         return cachedFilesFactory.create();
+    }
+
+    @Override
+    public String toString() {
+        return compareStrategy + (pathIsAbsolute ? " with absolute paths" : "") + ": " + snapshots;
     }
 
     private List<File> doGetFiles() {

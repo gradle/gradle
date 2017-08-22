@@ -17,6 +17,8 @@ package org.gradle.internal.nativeintegration.filesystem;
 
 import com.google.common.collect.ImmutableMap;
 import net.rubygrapefruit.platform.Files;
+import org.gradle.internal.file.FileMetadataSnapshot;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7FileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.services.FallbackFileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.services.NativePlatformBackedFileMetadataAccessor;

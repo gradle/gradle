@@ -60,8 +60,8 @@ model {
         """
 
         and:
-        helloWorldApp.allFiles.each { SourceFile sourceFile ->
-            file("src/main/flat/${sourceFile.name}") << sourceFile.content
+        helloWorldApp.files.each { SourceFile sourceFile ->
+            sourceFile.writeToFile(file("src/main/flat/${sourceFile.name}"))
         }
 
         when:

@@ -27,6 +27,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.FindBugsReportsImpl;
 import org.gradle.api.plugins.quality.internal.FindBugsReportsInternal;
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsClasspathValidator;
@@ -51,7 +52,6 @@ import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
 import org.gradle.internal.logging.ConsoleRenderer;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import javax.inject.Inject;
@@ -96,15 +96,23 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
 
     private Collection<String> extraArgs = new ArrayList<String>();
 
+    private boolean showProgress;
+
     @Nested
     private final FindBugsReportsInternal reports;
 
     public FindBugs() {
-        reports = getInstantiator().newInstance(FindBugsReportsImpl.class, this);
+        reports = getObjectFactory().newInstance(FindBugsReportsImpl.class, this);
     }
 
+    /**
+     * Injects and returns an instance of {@link org.gradle.api.model.ObjectFactory}.
+     *
+     * @since 4.2
+     */
+    @Incubating
     @Inject
-    public Instantiator getInstantiator() {
+    public ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -251,6 +259,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
             .withIncludeFilter(getIncludeFilter())
             .withExcludeBugsFilter(getExcludeBugsFilter())
             .withExtraArgs(getExtraArgs())
+            .withShowProgress(getShowProgress())
             .configureReports(getReports());
 
         return specBuilder.build();
@@ -330,7 +339,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     @InputFiles
     protected FileCollection getCandidateClassFiles() {
         // We need to resolve the classes into a set of files so @SkipWhenEmpty will work
-        // Otherwise, a collection of empty directories is not seen as "empty" 
+        // Otherwise, a collection of empty directories is not seen as "empty"
         return getClasses().getAsFileTree();
     }
 
@@ -589,4 +598,24 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
         this.extraArgs = extraArgs;
     }
 
+    /**
+     * Indicates whether analysis progress should be rendered on standard output. Defaults to false.
+     *
+     * @since 4.2
+     */
+    @Incubating
+    @Input
+    public boolean getShowProgress() {
+        return showProgress;
+    }
+
+    /**
+     * Indicates whether analysis progress should be rendered on standard output.
+     *
+     * @since 4.2
+     */
+    @Incubating
+    public void setShowProgress(boolean showProgress) {
+        this.showProgress = showProgress;
+    }
 }

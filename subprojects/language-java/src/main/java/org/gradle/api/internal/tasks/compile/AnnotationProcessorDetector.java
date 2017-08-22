@@ -21,15 +21,15 @@ import com.google.common.base.Splitter;
 import org.apache.tools.zip.ZipFile;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.cache.FileContentCache;
-import org.gradle.api.internal.cache.FileContentCacheFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.compile.CompileOptions;
+import org.gradle.cache.internal.FileContentCache;
+import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.internal.FileUtils;
-import org.gradle.internal.nativeintegration.filesystem.FileType;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.util.DeprecationLogger;
 
@@ -71,6 +71,9 @@ public class AnnotationProcessorDetector {
                 files.add(new File(path));
             }
             return fileCollectionFactory.fixed("annotation processor path", files);
+        }
+        if (compileClasspath == null) {
+            return null;
         }
         if (checkExplicitProcessorOption(compileOptions)) {
             return compileClasspath;
@@ -118,7 +121,7 @@ public class AnnotationProcessorDetector {
                 return new File(file, "META-INF/services/javax.annotation.processing.Processor").isFile();
             }
 
-            if (fileType == FileType.RegularFile && FileUtils.isJar(file.getName())) {
+            if (fileType == FileType.RegularFile && FileUtils.hasExtensionIgnoresCase(file.getName(), ".jar")) {
                 try {
                     ZipFile zipFile = new ZipFile(file);
                     try {

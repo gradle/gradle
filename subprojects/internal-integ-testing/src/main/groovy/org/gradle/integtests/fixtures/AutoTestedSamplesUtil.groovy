@@ -50,7 +50,7 @@ I tried looking for a root folder here: $candidates
     }
 
     void runSamplesFromFile(File file, Closure runner) {
-        file.text.eachMatch(/(?ms).*?<pre autoTested.*?>(.*?)<\/pre>(.*?)/) {
+        file.text.eachMatch(/(?ms).*?<pre class=['|"]autoTested['|"].*?>(.*?)<\/pre>(.*?)/) {
             def sample = it[1]
             sample = sample.replaceAll(/(?m)^\s*?\*/, '')
             sample = sample.replace('&lt;', '<')
@@ -68,7 +68,7 @@ Failed to execute sample:
 $sample
 -Problem: see the full stacktrace below.
 *****
-""", e);
+""", e)
             }
         }
     }

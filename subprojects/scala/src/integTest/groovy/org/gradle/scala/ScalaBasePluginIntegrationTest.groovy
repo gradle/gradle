@@ -34,9 +34,7 @@ class ScalaBasePluginIntegrationTest extends MultiVersionIntegrationSpec {
            custom
         }
 
-        repositories {
-           mavenCentral()
-        }
+        ${mavenCentralRepository()}
 
         dependencies {
            customCompile "org.scala-lang:scala-library:$version"

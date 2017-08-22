@@ -17,7 +17,8 @@
 package org.gradle.tooling.events.test;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
+
+import javax.annotation.Nullable;
 
 /**
  * Describes a test that runs on the JVM and for which an event has occurred. At least

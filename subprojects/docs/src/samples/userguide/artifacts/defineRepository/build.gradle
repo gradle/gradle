@@ -72,6 +72,18 @@ repositories {
 }
 //END SNIPPET maven-ivy-s3-repository-with-iam
 
+//START SNIPPET maven-ivy-gcs-repository
+repositories {
+    maven {
+        url "gcs://myCompanyBucket/maven2"
+    }
+
+    ivy {
+        url "gcs://myCompanyBucket/ivyrepo"
+    }
+}
+//END SNIPPET maven-ivy-gcs-repository
+
 //START SNIPPET maven-central
 repositories {
     mavenCentral()

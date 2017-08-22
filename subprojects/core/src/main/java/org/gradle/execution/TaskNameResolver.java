@@ -17,7 +17,6 @@ package org.gradle.execution;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.gradle.api.Nullable;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.Task;
@@ -25,6 +24,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;

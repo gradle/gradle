@@ -19,19 +19,19 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.cache.CrossBuildInMemoryCache;
-import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory;
-import org.gradle.api.internal.cache.HeapProportionalCacheSizer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.cache.internal.AsyncCacheAccess;
+import org.gradle.cache.AsyncCacheAccess;
+import org.gradle.cache.CacheDecorator;
+import org.gradle.cache.CrossProcessCacheAccess;
+import org.gradle.cache.FileLock;
+import org.gradle.cache.MultiProcessSafePersistentIndexedCache;
 import org.gradle.cache.internal.AsyncCacheAccessDecoratedCache;
-import org.gradle.cache.internal.CacheDecorator;
-import org.gradle.cache.internal.CrossProcessCacheAccess;
+import org.gradle.cache.internal.CrossBuildInMemoryCache;
+import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.CrossProcessSynchronizingCache;
-import org.gradle.cache.internal.FileLock;
+import org.gradle.cache.internal.HeapProportionalCacheSizer;
 import org.gradle.cache.internal.MultiProcessSafeAsyncPersistentIndexedCache;
-import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache;
 
 import java.util.concurrent.atomic.AtomicReference;
 

@@ -28,8 +28,8 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
-import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
@@ -37,7 +37,7 @@ import java.net.URI;
 
 public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRepository implements MavenArtifactRepository {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final FileSystem fileSystem;
+    private final FileResourceRepository fileResourceRepository;
 
     public DefaultMavenLocalArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                                LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, Instantiator instantiator,
@@ -45,10 +45,10 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
                                                MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
                                                AuthenticationContainer authenticationContainer,
                                                ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                               FileSystem fileSystem) {
-        super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiator, artifactFileStore, pomParser, authenticationContainer, moduleIdentifierFactory, null, fileSystem);
+                                               FileResourceRepository fileResourceRepository) {
+        super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiator, artifactFileStore, pomParser, authenticationContainer, moduleIdentifierFactory, null, fileResourceRepository);
         this.moduleIdentifierFactory = moduleIdentifierFactory;
-        this.fileSystem = fileSystem;
+        this.fileResourceRepository = fileResourceRepository;
     }
 
     protected MavenResolver createRealResolver() {
@@ -58,7 +58,7 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
         }
 
         RepositoryTransport transport = getTransport(rootUri.getScheme());
-        MavenResolver resolver = new MavenLocalResolver(getName(), rootUri, transport, getLocallyAvailableResourceFinder(), getArtifactFileStore(), getPomParser(), moduleIdentifierFactory, transport.getResourceAccessor(), fileSystem);
+        MavenResolver resolver = new MavenLocalResolver(getName(), rootUri, transport, getLocallyAvailableResourceFinder(), getArtifactFileStore(), getPomParser(), moduleIdentifierFactory, transport.getResourceAccessor(), fileResourceRepository);
         for (URI repoUrl : getArtifactUrls()) {
             resolver.addArtifactLocation(repoUrl);
         }

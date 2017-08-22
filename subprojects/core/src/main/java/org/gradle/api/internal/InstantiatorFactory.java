@@ -23,7 +23,7 @@ public interface InstantiatorFactory {
     /**
      * Creates an {@link Instantiator} that can inject services and user provided values into the instances it creates, but does not decorate the instances.
      *
-     * <p>Use for any public types for which services or user provided values need to injected.
+     * <p>Use for any public types for which services or user provided constructor values need to injected.
      *
      * @param registry The registry of services to make available to instances.
      * @return The instantiator
@@ -33,7 +33,7 @@ public interface InstantiatorFactory {
     /**
      * Creates an {@link Instantiator} that can inject user provided values into the instances it creates, but does not decorate the instances.
      *
-     * <p>Use for any public types for which user provided values need to injected.
+     * <p>Use for any public types for which user provided values, but no services, need to be injected.
      *
      * @return The instantiator
      */
@@ -42,7 +42,7 @@ public interface InstantiatorFactory {
     /**
      * Creates an {@link Instantiator} that decorates the instances created.
      *
-     * <p>Use for any public model types for which no user provided values need to injected.
+     * <p>Use for any public model types for which no user provided constructor values or services need to be injected.
      *
      * @return The instantiator
      */
@@ -51,7 +51,7 @@ public interface InstantiatorFactory {
     /**
      * Creates an {@link Instantiator} that can inject services and user provided values into the instances it creates and also decorates the instances.
      *
-     * <p>Use for any public model types for which services or user provided values need to injected.
+     * <p>Use for any public model types for which services or user provided constructor values need to injected.
      *
      * @param registry The registry of services to make available to instances.
      * @return The instantiator

@@ -26,7 +26,7 @@ class DownloadedIvyModuleDescriptorParserTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir
 
     final DefaultImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    final DownloadedIvyModuleDescriptorParser parser = new DownloadedIvyModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, TestFiles.fileSystem())
+    final DownloadedIvyModuleDescriptorParser parser = new DownloadedIvyModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, TestFiles.fileRepository())
     final parserSettings = Mock(DescriptorParseContext)
 
     def "discards the default attribute"() {

@@ -58,8 +58,8 @@ import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResol
 import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.transfer.UrlExternalResource;
 import org.gradle.util.CollectionUtils;
@@ -107,8 +107,8 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
     private final IvyModuleDescriptorConverter moduleDescriptorConverter;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
-    public IvyXmlModuleDescriptorParser(IvyModuleDescriptorConverter moduleDescriptorConverter, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileSystem fileSystem) {
-        super(fileSystem);
+    public IvyXmlModuleDescriptorParser(IvyModuleDescriptorConverter moduleDescriptorConverter, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileResourceRepository fileResourceRepository) {
+        super(fileResourceRepository);
         this.moduleDescriptorConverter = moduleDescriptorConverter;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
@@ -125,7 +125,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
     }
 
     protected Parser createParser(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, Map<String, String> properties) throws MalformedURLException {
-        return new Parser(parseContext, moduleDescriptorConverter, resource, resource.getLocalResource().getFile().toURI().toURL(), moduleIdentifierFactory, properties);
+        return new Parser(parseContext, moduleDescriptorConverter, resource, resource.getFile().toURI().toURL(), moduleIdentifierFactory, properties);
     }
 
     protected void postProcess(DefaultModuleDescriptor moduleDescriptor) {
@@ -790,7 +790,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             ModuleComponentIdentifier importedId = DefaultModuleComponentIdentifier.newId(parentOrganisation, parentModule, parentRevision);
             LocallyAvailableExternalResource externalResource = parseContext.getMetaDataArtifact(importedId, ArtifactType.IVY_DESCRIPTOR);
 
-            return parseModuleDescriptor(externalResource, externalResource.getLocalResource().getFile().toURI().toURL());
+            return parseModuleDescriptor(externalResource, externalResource.getFile().toURI().toURL());
         }
 
         private ModuleDescriptor parseModuleDescriptor(ExternalResource externalResource, URL descriptorURL) throws ParseException {

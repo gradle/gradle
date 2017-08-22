@@ -136,4 +136,8 @@ public abstract class AbstractIntegrationTest {
         action.execute(executer);
         return executer;
     }
+
+    public static String mavenCentralRepository() {
+        return RepoScriptBlockUtil.mavenCentralRepository();
+    }
 }

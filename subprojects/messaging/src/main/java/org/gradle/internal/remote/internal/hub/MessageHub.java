@@ -19,7 +19,7 @@ package org.gradle.internal.remote.internal.hub;
 import org.gradle.api.Action;
 import org.gradle.internal.concurrent.AsyncStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.dispatch.BoundedDispatch;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.remote.internal.Connection;
@@ -45,7 +45,7 @@ public class MessageHub implements AsyncStoppable {
     private enum State {Running, Stopping, Stopped}
 
     private static final Discard DISCARD = new Discard();
-    private final StoppableExecutor workers;
+    private final ManagedExecutor workers;
     private final String displayName;
     private final Action<? super Throwable> errorHandler;
     private final Lock lock = new ReentrantLock();

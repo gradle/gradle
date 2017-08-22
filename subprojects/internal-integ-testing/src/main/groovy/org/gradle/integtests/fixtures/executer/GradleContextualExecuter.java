@@ -32,7 +32,7 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
     private enum Executer {
         embedded(false),
         forking(true),
-        daemon(true),
+        noDaemon(true),
         parallel(true, true);
 
         final public boolean forks;
@@ -56,12 +56,16 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         return !getSystemPropertyExecuter().forks;
     }
 
+    public static boolean isNoDaemon() {
+        return getSystemPropertyExecuter() == Executer.noDaemon;
+    }
+
     public static boolean isDaemon() {
-        return getSystemPropertyExecuter() == Executer.daemon;
+        return !(isNoDaemon() || isEmbedded());
     }
 
     public static boolean isLongLivingProcess() {
-        return isEmbedded() || isDaemon();
+        return !isNoDaemon();
     }
 
     public static boolean isParallel() {
@@ -89,7 +93,7 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         try {
             gradleExecuter.assertCanExecute();
         } catch (AssertionError assertionError) {
-            gradleExecuter = new ForkingGradleExecuter(getDistribution(), getTestDirectoryProvider());
+            gradleExecuter = new NoDaemonGradleExecuter(getDistribution(), getTestDirectoryProvider());
             configureExecuter(gradleExecuter);
         }
 
@@ -108,12 +112,12 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         switch (executerType) {
             case embedded:
                 return new InProcessGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
-            case daemon:
-                return new DaemonGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
+            case noDaemon:
+                return new NoDaemonGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             case parallel:
                 return new ParallelForkingGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             case forking:
-                return new ForkingGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
+                return new DaemonGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             default:
                 throw new RuntimeException("Not a supported executer type: " + executerType);
         }

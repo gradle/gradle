@@ -304,4 +304,110 @@ Before\u001B[0K
         then:
         groupedOutput.task(':log').output == 'Before\nAfter'
     }
+
+    def "handles complex work-in-progress items"() {
+        given:
+        def consoleOutput = """
+\u001B[1m> Task :buildSrc:helloWorld\u001B[m
+Hello world
+
+
+\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [0s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/test files/ConsoleBuildSrcFunctionalTest/can_group_task_outp..._buildSrc/pco71/build.gradle into local compilation cache\u001B[m\u001B[185D\u001B[1B\u001B[2A\u001B[0K
+\u001B[1m> Task :byeWorld\u001B[m\u001B[0K
+Bye world
+
+
+\u001B[32;1mBUILD SUCCESSFUL\u001B[0;39m in 0s
+1 actionable task: 1 executed
+\u001B[2K"""
+
+        when:
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(consoleOutput)
+
+        then:
+        groupedOutput.task(':buildSrc:helloWorld').output == 'Hello world'
+    }
+
+    def "strip output removes all ANSI control sequences and work-in-progress area"() {
+        def consoleOutput = """
+\u001B[1m> Task :buildSrc:helloWorld\u001B[m
+Hello world
+
+
+\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [0s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/test files/ConsoleBuildSrcFunctionalTest/can_group_task_outp..._buildSrc/pco71/build.gradle into local compilation cache\u001B[m\u001B[185D\u001B[1B\u001B[2A\u001B[0K
+\u001B[1m> Task :byeWorld\u001B[m\u001B[0K
+Bye world
+
+
+\u001B[32;1mBUILD SUCCESSFUL\u001B[0;39m in 0s
+1 actionable task: 1 executed
+\u001B[2K"""
+
+        when:
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(consoleOutput)
+
+        then:
+        groupedOutput.strippedOutput == '''
+> Task :buildSrc:helloWorld
+Hello world
+
+
+
+> Task :byeWorld
+Bye world
+
+
+BUILD SUCCESSFUL in 0s
+1 actionable task: 1 executed
+'''
+    }
+
+    def "strip output removes formatted work in-progress items"() {
+        def consoleOutput = """
+\u001B[2A\u001B[1m<-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> settings\u001B[m\u001B[10D\u001B[1B
+\u001B[1A> IDLE\u001B[0K\u001B[6D\u001B[1B
+\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [1s]\u001B[m\u001B[0K\u001B[35D\u001B[1B\u001B[1m> root project\u001B[m\u001B[14D\u001B[1B
+\u001B[2A\u001B[1m<-------------> 0% EXECUTING [2s]\u001B[m\u001B[0K\u001B[33D\u001B[1B> IDLE\u001B[0K\u001B[6D\u001B[1B
+\u001B[1A\u001B[1m> :run\u001B[m\u001B[6D\u001B[1B
+\u001B[2A\u001B[0K
+\u001B[1m> Task :run\u001B[m\u001B[0K
+Hello, World!
+\u001B[0K
+\u001B[0K
+\u001B[2A\u001B[1m<=============> 100% EXECUTING [3s]\u001B[m\u001B[35D\u001B[1B> IDLE\u001B[6D\u001B[1B
+\u001B[2A\u001B[0K
+\u001B[0K
+\u001B[32;1mBUILD SUCCESSFUL\u001B[0;39m in 6s
+1 actionable task: 1 executed
+\u001B[2K"""
+
+        when:
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(consoleOutput)
+
+        then:
+        groupedOutput.strippedOutput == '''
+
+> Task :run
+Hello, World!
+
+
+BUILD SUCCESSFUL in 6s
+1 actionable task: 1 executed
+'''
+        groupedOutput.task(':run').output == 'Hello, World!'
+    }
+
+    def "accepts start of embedded build as end of group"() {
+        def consoleOutput = """
+> Task :helloWorld
+Hello, World!
+
+> :otherBuild > root project"""
+
+        when:
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(consoleOutput)
+
+        then:
+        groupedOutput.task(':helloWorld').output == 'Hello, World!'
+    }
 }

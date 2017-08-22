@@ -29,108 +29,104 @@
     </bookinfo>
     <part>
         <title>About Gradle</title>
-        <xi:include href='introduction.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/introduction.xml'/>
         <xi:include href='overview.xml'/>
     </part>
     <part>
         <title>Working with existing builds</title>
-        <xi:include href='installation.xml'/>
-        <xi:include href='commandLineTutorial.xml'/>
-        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/installation.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/commandLineTutorial.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/console.xml'/>
-        <xi:include href='gradleWrapper.xml'/>
-        <xi:include href='gradleDaemon.xml'/>
-        <xi:include href='artifactDependenciesTutorial.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/gradleWrapper.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/gradleDaemon.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/artifactDependenciesTutorial.xml'/>
         <xi:include href='introMultiProjectBuilds.xml'/>
-        <xi:include href='continuousBuild.xml'/>
-        <xi:include href='compositeBuilds.xml'/>
-        <xi:include href='buildEnvironment.xml'/>
-        <xi:include href='troubleshooting.xml'/>
-        <xi:include href='embedding.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/continuousBuild.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/compositeBuilds.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/buildEnvironment.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/troubleshooting.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/embedding.xml'/>
         <!-- this is generated -->
         <xi:include href='../../../build/asciidoc/userguide/buildCache.xml'/>
     </part>
     <part>
         <title>Writing Gradle build scripts</title>
-        <xi:include href='buildScriptsTutorial.xml'/>
-        <xi:include href='buildInitPlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/buildScriptsTutorial.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/buildInitPlugin.xml'/>
         <xi:include href='writingBuildScripts.xml'/>
-        <!-- this is generated from Asciidoc -->
         <xi:include href='../../../build/asciidoc/userguide/tasks.xml'/>
         <xi:include href='workingWithFiles.xml'/>
-        <xi:include href='ant.xml'/>
-        <xi:include href='buildLifecycle.xml'/>
-        <xi:include href='wrapperPlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/ant.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/buildLifecycle.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/wrapperPlugin.xml'/>
         <xi:include href='logging.xml'/>
-        <!-- this is generated from Asciidoc -->
         <xi:include href='../../../build/asciidoc/userguide/depMngmt.xml'/>
         <xi:include href='multiproject.xml'/>
         <xi:include href='plugins.xml'/>
         <xi:include href='standardPlugins.xml'/>
-        <xi:include href='projectReports.xml'/>
-        <xi:include href='buildDashboardPlugin.xml'/>
-        <xi:include href='comparingBuilds.xml'/>
-        <xi:include href='artifactMngmt.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/projectReports.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/buildDashboardPlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/comparingBuilds.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/artifactMngmt.xml'/>
         <xi:include href='mavenPlugin.xml'/>
         <xi:include href='signingPlugin.xml'/>
         <xi:include href='publishingIvy.xml'/>
         <xi:include href='publishingMaven.xml'/>
-        <xi:include href='distributionPlugin.xml'/>
-        <xi:include href='announcePlugin.xml'/>
-        <xi:include href='buildAnnouncementsPlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/distributionPlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/announcePlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/buildAnnouncementsPlugin.xml'/>
     </part>
     <part>
         <title>Extending the build</title>
-        <xi:include href='customTasks.xml'/>
-        <xi:include href='customPlugins.xml'/>
-        <xi:include href='javaGradlePlugin.xml' />
+        <xi:include href='../../../build/asciidoc/userguide/customTasks.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/customPlugins.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/javaGradlePlugin.xml' />
         <xi:include href='organizeBuildLogic.xml'/>
-        <xi:include href='initscripts.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/initscripts.xml'/>
         <xi:include href='testKit.xml' />
     </part>
     <part>
         <title>Building JVM projects</title>
-        <xi:include href='javaTutorial.xml'/>
-        <!-- this is generated from Asciidoc -->
+        <xi:include href='../../../build/asciidoc/userguide/javaTutorial.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/javaPlugin.xml'/>
         <xi:include href='javaLibraryPlugin.xml'/>
-        <xi:include href='webTutorial.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/webTutorial.xml'/>
         <xi:include href='warPlugin.xml'/>
-        <xi:include href='earPlugin.xml'/>
-        <xi:include href='applicationPlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/earPlugin.xml'/>
+        <xi:include href='jettyPlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/applicationPlugin.xml'/>
         <xi:include href='javaLibraryDistributionPlugin.xml'/>
-        <xi:include href='groovyTutorial.xml'/>
-        <xi:include href='groovyPlugin.xml'/>
-        <xi:include href='scalaPlugin.xml'/>
-        <xi:include href='antlrPlugin.xml'/>
-        <xi:include href='checkstylePlugin.xml'/>
-        <xi:include href='codeNarcPlugin.xml'/>
-        <xi:include href='findBugsPlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/groovyTutorial.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/groovyPlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/scalaPlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/antlrPlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/checkstylePlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/codeNarcPlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/findBugsPlugin.xml'/>
         <xi:include href='jdependPlugin.xml'/>
         <xi:include href='pmdPlugin.xml'/>
         <xi:include href='jacocoPlugin.xml'/>
         <xi:include href='osgi.xml'/>
-        <xi:include href='eclipsePlugin.xml'/>
-        <xi:include href='ideaPlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/eclipsePlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/ideaPlugin.xml'/>
     </part>
     <part>
         <title>The Software model</title>
         <xi:include href='softwareModel.xml'/>
-        <xi:include href='softwareModelConcepts.xml'/>
-        <xi:include href='ruleSource.xml'/>
-        <xi:include href='buildingJavaLibraries.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/softwareModelConcepts.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/ruleSource.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/buildingJavaLibraries.xml'/>
         <xi:include href='playPlugin.xml'/>
         <xi:include href='nativeBinaries.xml'/>
-        <xi:include href='softwareModelExtend.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/softwareModelExtend.xml'/>
     </part>
     <part>
         <title>Appendix</title>
         <!-- this is generated -->
         <xi:include href='../../../build/src/samplesList.xml'/>
-        <xi:include href='potentialTraps.xml'/>
-        <xi:include href='featureLifecycle.xml'/>
-        <xi:include href='commandLine.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/potentialTraps.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/featureLifecycle.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/commandLine.xml'/>
         <xi:include href='licenses.xml'/>
-        <xi:include href='glossary.xml'/>
     </part>
 </book>

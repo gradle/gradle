@@ -80,8 +80,8 @@ project(':consumer') {
         result.assertOutputContains("files: [java.jar, file-dep.jar, api-1.0.jar, compile-1.0.jar, other-java.jar, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
         result.assertOutputContains("file-dep.jar {artifactType=jar}")
         result.assertOutputContains("compile.jar (test:compile:1.0) {artifactType=jar}")
-        result.assertOutputContains("other-java.jar (project :other-java) {artifactType=jar}")
-        result.assertOutputContains("java.jar (project :java) {artifactType=jar}")
+        result.assertOutputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.api.attributes.Usage=java-runtime-jars}")
+        result.assertOutputContains("java.jar (project :java) {artifactType=jar, org.gradle.api.attributes.Usage=java-runtime-jars}")
 
         when:
         buildFile << """
@@ -140,7 +140,6 @@ project(':consumer') {
 
         where:
         usage                                          | _
-        "Usage.FOR_COMPILE"                            | _
         "objects.named(Usage, Usage.JAVA_API)"         | _
         "objects.named(Usage, Usage.JAVA_API_CLASSES)" | _
     }
@@ -183,7 +182,6 @@ project(':consumer') {
 
         where:
         usage                                           | _
-        "Usage.FOR_RUNTIME"                             | _
         "objects.named(Usage, Usage.JAVA_RUNTIME)"      | _
         "objects.named(Usage, Usage.JAVA_RUNTIME_JARS)" | _
     }
@@ -191,8 +189,8 @@ project(':consumer') {
     def "provides runtime JAR variant using artifactType"() {
         buildFile << """
             project(':consumer') {
-                configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, Usage.FOR_RUNTIME)
-                configurations.consume.attributes.attribute(artifactType, JavaPlugin.JAR_TYPE)
+                configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                configurations.consume.attributes.attribute(artifactType, ArtifactTypeDefinition.JAR_TYPE)
             }
 """
         when:

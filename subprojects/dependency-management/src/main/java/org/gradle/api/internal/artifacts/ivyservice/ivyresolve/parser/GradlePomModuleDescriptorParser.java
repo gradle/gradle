@@ -33,7 +33,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,8 +57,8 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final ModuleExclusions moduleExclusions;
 
-    public GradlePomModuleDescriptorParser(VersionSelectorScheme gradleVersionSelectorScheme, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions, FileSystem fileSystem) {
-        super(fileSystem);
+    public GradlePomModuleDescriptorParser(VersionSelectorScheme gradleVersionSelectorScheme, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions, FileResourceRepository fileResourceRepository) {
+        super(fileResourceRepository);
         this.gradleVersionSelectorScheme = gradleVersionSelectorScheme;
         mavenVersionSelectorScheme = new MavenVersionSelectorScheme(gradleVersionSelectorScheme);
         this.moduleIdentifierFactory = moduleIdentifierFactory;
@@ -170,10 +170,13 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         for(PomDependencyMgt currentDependencyMgt : currentDependencyMgts) {
             if(isDependencyImportScoped(currentDependencyMgt)) {
                 PomReader importDescr = parseImportedPom(parseContext, currentDependencyMgt);
-                importedDependencyMgts.putAll(importDescr.getDependencyMgt());
+                for (Map.Entry<MavenDependencyKey, PomDependencyMgt> entry : importDescr.getDependencyMgt().entrySet()) {
+                    if (!importedDependencyMgts.containsKey(entry.getKey())) {
+                        importedDependencyMgts.put(entry.getKey(), entry.getValue());
+                    }
+                }
             }
         }
-
         return importedDependencyMgts;
     }
 

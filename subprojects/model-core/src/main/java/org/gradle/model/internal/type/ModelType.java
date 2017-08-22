@@ -19,11 +19,16 @@ package org.gradle.model.internal.type;
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 
+import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.*;
+import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.lang.reflect.WildcardType;
 import java.util.Collections;
 import java.util.List;
 

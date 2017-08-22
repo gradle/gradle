@@ -33,10 +33,12 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
+import org.gradle.composite.internal.IncludedBuildFactory;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
+import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
@@ -205,7 +207,7 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getRootClassLoaderScope(), this);
+        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getRootClassLoaderScope(), getResourceLoader(), this);
     }
 
     public ClassLoaderScope getRootClassLoaderScope() {
@@ -222,6 +224,11 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     @Inject
     protected ScriptFileResolver getScriptFileResolver() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected TextResourceLoader getResourceLoader() {
         throw new UnsupportedOperationException();
     }
 

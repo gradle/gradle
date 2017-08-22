@@ -54,7 +54,7 @@ import java.util.List;
  * <p>
  * If you create your own Javadoc tasks remember to specify the 'source' property!
  * Without source the Javadoc task will not create any documentation. Example:
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  *
  * task myJavadocs(type: Javadoc) {
@@ -64,7 +64,7 @@ import java.util.List;
  *
  * <p>
  * An example how to create a task that runs a custom doclet implementation:
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  *
  * configurations {

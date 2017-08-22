@@ -22,17 +22,19 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.AbstractTask
-import org.gradle.api.internal.DependencyInjectingInstantiator
+import org.gradle.api.internal.InstantiatorFactory
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.model.DefaultObjectFactory
+import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.specs.Spec
 import org.gradle.internal.Actions
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.GUtil
@@ -40,14 +42,14 @@ import org.gradle.util.TestUtil
 
 import java.util.concurrent.atomic.AtomicBoolean
 
-import static org.junit.Assert.*
+import static org.junit.Assert.assertTrue
 
-public abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
+abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
     public static final String TEST_TASK_NAME = "testTask"
 
     protected DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry()
-
-    protected Instantiator instantiator = new DependencyInjectingInstantiator(serviceRegistry, new DependencyInjectingInstantiator.ConstructorCache())
+    private InstantiatorFactory instantiatorFactory = TestUtil.instantiatorFactory()
+    protected ObjectFactory objectFactory = new DefaultObjectFactory(instantiatorFactory.injectAndDecorate(serviceRegistry), NamedObjectInstantiator.INSTANCE)
 
     public abstract AbstractTask getTask()
 
@@ -71,7 +73,7 @@ public abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
     }
 
     def setup() {
-        serviceRegistry.add(Instantiator.class, instantiator)
+        serviceRegistry.add(ObjectFactory.class, objectFactory)
     }
 
     def "test Task"() {

@@ -27,7 +27,7 @@
                 <td>positionIndependentCode</td>
             </tr>
             <tr>
-                <td>objectFileDir</td>
+                <td>objectFileDirectory</td>
             </tr>
             <tr>
                 <td>macros</td>

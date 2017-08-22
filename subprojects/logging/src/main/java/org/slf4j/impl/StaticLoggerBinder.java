@@ -16,8 +16,8 @@
 
 package org.slf4j.impl;
 
-import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.internal.logging.slf4j.OutputEventListenerBackedLoggerContext;
+import org.gradle.internal.time.ReliableTimeProvider;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.spi.LoggerFactoryBinder;
 
@@ -27,7 +27,7 @@ public class StaticLoggerBinder implements LoggerFactoryBinder {
     private static final StaticLoggerBinder SINGLETON = new StaticLoggerBinder();
     private static final String LOGGER_FACTORY_CLASS_STR = OutputEventListenerBackedLoggerContext.class.getName();
 
-    private final OutputEventListenerBackedLoggerContext factory = new OutputEventListenerBackedLoggerContext(System.out, System.err, new TrueTimeProvider());
+    private final OutputEventListenerBackedLoggerContext factory = new OutputEventListenerBackedLoggerContext(System.out, System.err, new ReliableTimeProvider());
 
     public static StaticLoggerBinder getSingleton() {
         return SINGLETON;

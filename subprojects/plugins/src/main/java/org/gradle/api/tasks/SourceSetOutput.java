@@ -17,6 +17,7 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.SourceDirectorySet;
 
 import java.io.File;
 import java.util.Map;
@@ -26,7 +27,7 @@ import java.util.Map;
  * <p>
  * Provides output information of the source set. Allows configuring the default output dirs and specify additional output dirs.
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  *
  * sourceSets {
@@ -49,7 +50,7 @@ import java.util.Map;
  * <p>
  * An example how to work with generated resources:
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  *
  * def generatedResources = "$buildDir/generated-resources/main"
@@ -87,7 +88,7 @@ public interface SourceSetOutput extends FileCollection {
      * See example at {@link SourceSetOutput}
      *
      * @return The classes dir.
-     * @deprecated Use {@link #getClassesDirs()}
+     * @deprecated Use {@link #getClassesDirs()} or {@link SourceDirectorySet#getOutputDir()}
      */
     @Deprecated
     File getClassesDir();
@@ -98,7 +99,7 @@ public interface SourceSetOutput extends FileCollection {
      * See example at {@link SourceSetOutput}
      *
      * @param classesDir the classes dir. Should not be null.
-     * @deprecated Set the output directory for the particular {@link org.gradle.api.file.SourceDirectorySet}
+     * @deprecated Set the output directory for the particular {@link org.gradle.api.tasks.compile.AbstractCompile} task
      * @since 4.0
      */
     @Deprecated
@@ -110,7 +111,7 @@ public interface SourceSetOutput extends FileCollection {
      * See example at {@link SourceSetOutput}
      *
      * @param classesDir the classes dir. Should not be null.
-     * @deprecated Set the output directory for the particular {@link org.gradle.api.file.SourceDirectorySet}
+     * @deprecated Set the output directory for the particular {@link org.gradle.api.tasks.compile.AbstractCompile} task
      */
     @Deprecated
     void setClassesDir(Object classesDir);

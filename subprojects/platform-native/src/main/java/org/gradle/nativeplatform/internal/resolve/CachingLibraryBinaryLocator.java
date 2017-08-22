@@ -17,10 +17,10 @@
 package org.gradle.nativeplatform.internal.resolve;
 
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.nativeplatform.NativeLibraryBinary;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 

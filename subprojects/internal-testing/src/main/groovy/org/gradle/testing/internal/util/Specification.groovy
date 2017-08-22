@@ -48,4 +48,24 @@ class Specification extends spock.lang.Specification {
         super.with(t, type, closure)
     }
 
+    @SuppressWarnings(['MethodName', 'UnnecessaryOverridingMethod', 'GrUnnecessaryPublicModifier'])
+    @Override
+    public <T> T Mock(
+        @DelegatesTo.Target Class<T> type,
+        @DelegatesTo(strategy = Closure.DELEGATE_FIRST, genericTypeIndex = 0)
+        @ClosureParams(SecondParam.FirstGenericType) Closure closure
+    ) {
+        super.Mock(type, closure)
+    }
+
+    @SuppressWarnings(['MethodName', 'UnnecessaryOverridingMethod', 'GrUnnecessaryPublicModifier'])
+    @Override
+    public <T> T Stub(
+        @DelegatesTo.Target Class<T> type,
+        @DelegatesTo(strategy = Closure.DELEGATE_FIRST, genericTypeIndex = 0)
+        @ClosureParams(SecondParam.FirstGenericType) Closure closure
+    ) {
+        super.Stub(type, closure)
+    }
+
 }

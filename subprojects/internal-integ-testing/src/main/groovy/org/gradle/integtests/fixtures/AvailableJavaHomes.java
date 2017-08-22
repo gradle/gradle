@@ -24,7 +24,6 @@ import com.google.common.collect.Sets;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.Nullable;
 import org.gradle.api.specs.Spec;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
@@ -39,6 +38,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -178,6 +178,20 @@ public abstract class AvailableJavaHomes {
             @Override
             public boolean isSatisfiedBy(JvmInstallation element) {
                 return !element.getJavaVersion().equals(Jvm.current().getJavaVersion()) && isSupportedVersion(element);
+            }
+        });
+    }
+
+    /**
+     * Returns a JDK that has a different Java home to the current one, is supported by the Gradle version under tests and has a valid JRE.
+     */
+    public static Jvm getDifferentJdkWithValidJre() {
+        return AvailableJavaHomes.getAvailableJdk(new Spec<JvmInstallation>() {
+            @Override
+            public boolean isSatisfiedBy(JvmInstallation jvm) {
+                return !jvm.getJavaHome().equals(Jvm.current().getJavaHome())
+                    && isSupportedVersion(jvm)
+                    && Jvm.discovered(jvm.getJavaHome(), jvm.getJavaVersion()).getJre() != null;
             }
         });
     }

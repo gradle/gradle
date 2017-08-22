@@ -17,8 +17,6 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -106,16 +104,22 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
         AttributeContainerInternal fromConfigurationAttributes = fromConfiguration.getAttributes();
         boolean consumerHasAttributes = !fromConfigurationAttributes.isEmpty();
-        boolean useConfigurationAttributes = dependencyConfiguration == null && consumerHasAttributes;
-        AttributesSchemaInternal producerAttributeSchema = targetComponent.getAttributesSchema();
+        List<? extends ConfigurationMetadata> consumableConfigurations = targetComponent.getConsumableConfigurationsHavingAttributes();
+        boolean useConfigurationAttributes = dependencyConfiguration == null && (consumerHasAttributes || !consumableConfigurations.isEmpty());
         if (useConfigurationAttributes) {
-            List<? extends ConfigurationMetadata> consumableConfigurations = targetComponent.getConsumableConfigurationsHavingAttributes();
+            AttributesSchemaInternal producerAttributeSchema = targetComponent.getAttributesSchema();
             AttributeMatcher attributeMatcher = consumerSchema.withProducer(producerAttributeSchema);
-            List<? extends ConfigurationMetadata> matches = attributeMatcher.matches(consumableConfigurations, fromConfigurationAttributes);
+            ConfigurationMetadata fallbackConfiguration = targetComponent.getConfiguration(Dependency.DEFAULT_CONFIGURATION);
+            if (fallbackConfiguration != null && !fallbackConfiguration.isCanBeConsumed()) {
+                fallbackConfiguration = null;
+            }
+            List<ConfigurationMetadata> matches = attributeMatcher.matches(consumableConfigurations, fromConfigurationAttributes, fallbackConfiguration);
             if (matches.size() == 1) {
                 return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(matches.get(0), fromConfigurationAttributes));
             } else if (!matches.isEmpty()) {
                 throw new AmbiguousConfigurationSelectionException(fromConfigurationAttributes, attributeMatcher, matches, targetComponent);
+            } else {
+                throw new NoMatchingConfigurationSelectionException(fromConfigurationAttributes, attributeMatcher, targetComponent);
             }
         }
 
@@ -125,28 +129,19 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             throw new ConfigurationNotFoundException(fromComponent.getComponentId(), moduleConfiguration, targetConfiguration, targetComponent.getComponentId());
         }
         if (!toConfiguration.isCanBeConsumed()) {
-            if (dependencyConfiguration == null) {
-                // this was a fallback to `default`, and `default` is not consumable
-                Set<String> configurationNames = Sets.newTreeSet();
-                configurationNames.addAll(targetComponent.getConfigurationNames());
-                throw new NoMatchingConfigurationSelectionException(fromConfigurationAttributes, consumerSchema.withProducer(producerAttributeSchema), targetComponent, Lists.newArrayList(configurationNames));
-            }
-            // explicit configuration selection
             throw new ConfigurationNotConsumableException(targetComponent.toString(), toConfiguration.getName());
         }
-        ConfigurationMetadata delegate = toConfiguration;
-        if (consumerHasAttributes) {
-            if (!delegate.getAttributes().isEmpty()) {
-                // need to validate that the selected configuration still matches the consumer attributes
-                if (!consumerSchema.withProducer(producerAttributeSchema).isMatching(delegate.getAttributes(), fromConfigurationAttributes)) {
-                    throw new IncompatibleConfigurationSelectionException(fromConfigurationAttributes, consumerSchema.withProducer(producerAttributeSchema), targetComponent, targetConfiguration);
-                }
+        if (consumerHasAttributes && !toConfiguration.getAttributes().isEmpty()) {
+            // need to validate that the selected configuration still matches the consumer attributes
+            AttributesSchemaInternal producerAttributeSchema = targetComponent.getAttributesSchema();
+            if (!consumerSchema.withProducer(producerAttributeSchema).isMatching(toConfiguration.getAttributes(), fromConfigurationAttributes)) {
+                throw new IncompatibleConfigurationSelectionException(fromConfigurationAttributes, consumerSchema.withProducer(producerAttributeSchema), targetComponent, targetConfiguration);
             }
         }
-        if (useConfigurationAttributes) {
-            delegate = ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(delegate, fromConfigurationAttributes);
+        if (!fromConfigurationAttributes.isEmpty()) {
+            toConfiguration = ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(toConfiguration, fromConfigurationAttributes);
         }
-        return ImmutableSet.of(delegate);
+        return ImmutableSet.of(toConfiguration);
     }
 
     private static String getOrDefaultConfiguration(String configuration) {

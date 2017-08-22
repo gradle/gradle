@@ -17,7 +17,7 @@
 package org.gradle.internal.operations.trace;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.execution.internal.ExecuteTaskBuildOperationDetails;
+import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType;
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.progress.BuildOperationDescriptor;
@@ -47,16 +47,24 @@ class SerializedOperationStart {
     }
 
     private Object transform(Object details) {
-        if (details instanceof ExecuteTaskBuildOperationDetails) {
-            // This type exposes a non serializable property: “task”.
-            // We can do this more methodically if necessary by using the interface as a view
-            // to the object instead of blindly reflecting
-            ExecuteTaskBuildOperationType.Details cast = (ExecuteTaskBuildOperationDetails) details;
+        if (details instanceof ExecuteTaskBuildOperationType.Details) {
+            ExecuteTaskBuildOperationType.Details cast = (ExecuteTaskBuildOperationType.Details) details;
             Map<String, Object> map = new HashMap<String, Object>();
             map.put("buildPath", cast.getBuildPath());
             map.put("taskPath", cast.getTaskPath());
             map.put("taskClass", cast.getTaskClass().getName());
             map.put("taskId", cast.getTaskId());
+            return map;
+        }
+
+        if (details instanceof ApplyPluginBuildOperationType.Details) {
+            ApplyPluginBuildOperationType.Details cast = (ApplyPluginBuildOperationType.Details) details;
+            Map<String, Object> map = new HashMap<String, Object>();
+            map.put("pluginId", cast.getPluginId());
+            map.put("pluginClass", cast.getPluginClass().getName());
+            map.put("targetType", cast.getTargetType());
+            map.put("targetPath", cast.getTargetPath());
+            map.put("buildPath", cast.getBuildPath());
             return map;
         }
 

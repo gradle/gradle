@@ -30,7 +30,7 @@ public class TestStyledTextOutputFactory extends AbstractStyledTextOutputFactory
         if (logCategory != null) {
             textOutput.append("{").append(logCategory).append("}");
         }
-        if (logCategory != null) {
+        if (logLevel != null) {
             textOutput.append("{").append(logLevel.toString()).append("}");
         }
 

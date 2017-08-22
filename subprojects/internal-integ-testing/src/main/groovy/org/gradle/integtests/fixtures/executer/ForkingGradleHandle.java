@@ -24,12 +24,18 @@ import org.gradle.process.ExecResult;
 import org.gradle.process.internal.AbstractExecHandleBuilder;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleState;
-import org.gradle.util.TextUtil;
 
 import java.io.IOException;
 import java.io.PipedOutputStream;
+import java.io.PrintStream;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static java.lang.String.format;
+import static org.gradle.util.TextUtil.getPlatformLineSeparator;
 
 class ForkingGradleHandle extends OutputScrapingGradleHandle {
+
     final private Factory<? extends AbstractExecHandleBuilder> execHandleFactory;
 
     private final OutputCapturer standardOutputCapturer;
@@ -38,8 +44,8 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
     private final PipedOutputStream stdinPipe;
     private final boolean isDaemon;
 
-    private ExecHandle execHandle;
     private final DurationMeasurement durationMeasurement;
+    private AtomicReference<ExecHandle> execHandleRef = new AtomicReference<ExecHandle>();
 
     public ForkingGradleHandle(PipedOutputStream stdinPipe, boolean isDaemon, Action<ExecutionResult> resultAssertion, String outputEncoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory, DurationMeasurement durationMeasurement) {
         this.resultAssertion = resultAssertion;
@@ -47,8 +53,12 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         this.isDaemon = isDaemon;
         this.stdinPipe = stdinPipe;
         this.durationMeasurement = durationMeasurement;
-        this.standardOutputCapturer = new OutputCapturer(durationMeasurement == null ? System.out : NullOutputStream.INSTANCE, outputEncoding);
-        this.errorOutputCapturer = new OutputCapturer(durationMeasurement == null ? System.err : NullOutputStream.INSTANCE, outputEncoding);
+        this.standardOutputCapturer = outputCapturerFor(System.out, outputEncoding, durationMeasurement);
+        this.errorOutputCapturer = outputCapturerFor(System.err, outputEncoding, durationMeasurement);
+    }
+
+    private static OutputCapturer outputCapturerFor(PrintStream stream, String outputEncoding, DurationMeasurement durationMeasurement) {
+        return new OutputCapturer(durationMeasurement == null ? stream : NullOutputStream.INSTANCE, outputEncoding);
     }
 
     @Override
@@ -65,23 +75,12 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
     }
 
     public GradleHandle start() {
-        if (execHandle != null) {
+        ExecHandle execHandle = buildExecHandle();
+        if (this.execHandleRef.getAndSet(execHandle) != null) {
             throw new IllegalStateException("you have already called start() on this handle");
         }
 
-        AbstractExecHandleBuilder execBuilder = execHandleFactory.create();
-        execBuilder.setStandardOutput(standardOutputCapturer.getOutputStream());
-        execBuilder.setErrorOutput(errorOutputCapturer.getOutputStream());
-        execHandle = execBuilder.build();
-
-        System.out.println("Starting build with: " + execHandle.getCommand() + " " + Joiner.on(" ").join(execHandle.getArguments()));
-        System.out.println("Working directory: " + execHandle.getDirectory());
-        System.out.println("Environment vars:");
-        System.out.println(String.format("    JAVA_HOME: %s", execHandle.getEnvironment().get("JAVA_HOME")));
-        System.out.println(String.format("    GRADLE_HOME: %s", execHandle.getEnvironment().get("GRADLE_HOME")));
-        System.out.println(String.format("    GRADLE_USER_HOME: %s", execHandle.getEnvironment().get("GRADLE_USER_HOME")));
-        System.out.println(String.format("    JAVA_OPTS: %s", execHandle.getEnvironment().get("JAVA_OPTS")));
-        System.out.println(String.format("    GRADLE_OPTS: %s", execHandle.getEnvironment().get("GRADLE_OPTS")));
+        printExecHandleSettings();
 
         execHandle.start();
         if (durationMeasurement != null) {
@@ -90,11 +89,34 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         return this;
     }
 
+    private ExecHandle buildExecHandle() {
+        return execHandleFactory
+            .create()
+            .setStandardOutput(standardOutputCapturer.getOutputStream())
+            .setErrorOutput(errorOutputCapturer.getOutputStream())
+            .build();
+    }
+
+    private void printExecHandleSettings() {
+        ExecHandle execHandle = getExecHandle();
+        Map<String, String> environment = execHandle.getEnvironment();
+        println("Starting build with: " + execHandle.getCommand() + " " + Joiner.on(" ").join(execHandle.getArguments()));
+        println("Working directory: " + execHandle.getDirectory());
+        println("Environment vars:");
+        println(format("    JAVA_HOME: %s", environment.get("JAVA_HOME")));
+        println(format("    GRADLE_HOME: %s", environment.get("GRADLE_HOME")));
+        println(format("    GRADLE_USER_HOME: %s", environment.get("GRADLE_USER_HOME")));
+        println(format("    JAVA_OPTS: %s", environment.get("JAVA_OPTS")));
+        println(format("    GRADLE_OPTS: %s", environment.get("GRADLE_OPTS")));
+    }
+
+    private static void println(String s) {
+        System.out.println(s);
+    }
+
     @Override
     public GradleHandle cancel() {
-        if (stdinPipe == null) {
-            throw new UnsupportedOperationException("Handle must be started using GradleExecuter.withStdinPipe() to use cancel()");
-        }
+        requireStdinPipeFor("cancel()");
 
         try {
             stdinPipe.close();
@@ -107,16 +129,14 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
 
     @Override
     public GradleHandle cancelWithEOT() {
-        if (stdinPipe == null) {
-            throw new UnsupportedOperationException("Handle must be started using GradleExecuter.withStdinPipe() to use cancelwithEOT()");
-        }
+        requireStdinPipeFor("cancelWithEOT()");
 
         try {
             stdinPipe.write(4);
             if (isDaemon) {
                 // When running a test in a daemon executer, the input is buffered until a
                 // newline char is received
-                stdinPipe.write(TextUtil.toPlatformLineSeparators("\n").getBytes());
+                stdinPipe.write(getPlatformLineSeparator().getBytes());
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -125,21 +145,28 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         return this;
     }
 
+    private void requireStdinPipeFor(String method) {
+        if (stdinPipe == null) {
+            throw new UnsupportedOperationException("Handle must be started using GradleExecuter.withStdinPipe() to use " + method);
+        }
+    }
+
     public GradleHandle abort() {
         getExecHandle().abort();
         return this;
     }
 
     public boolean isRunning() {
+        ExecHandle execHandle = this.execHandleRef.get();
         return execHandle != null && execHandle.getState() == ExecHandleState.STARTED;
     }
 
-    protected ExecHandle getExecHandle() {
-        if (execHandle == null) {
+    private ExecHandle getExecHandle() {
+        ExecHandle handle = execHandleRef.get();
+        if (handle == null) {
             throw new IllegalStateException("you must call start() before calling this method");
         }
-
-        return execHandle;
+        return handle;
     }
 
     public ExecutionResult waitForFinish() {
@@ -155,9 +182,8 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         getExecHandle().waitForFinish().rethrowFailure();
     }
 
-    protected ExecutionResult waitForStop(boolean expectFailure) {
-        ExecHandle execHandle = getExecHandle();
-        ExecResult execResult = execHandle.waitForFinish();
+    private ExecutionResult waitForStop(boolean expectFailure) {
+        ExecResult execResult = getExecHandle().waitForFinish();
         if (durationMeasurement != null) {
             durationMeasurement.stop();
         }
@@ -165,17 +191,34 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
 
         String output = getStandardOutput();
         String error = getErrorOutput();
+        boolean processSucceeded = execResult.getExitValue() == 0;
+        ExecutionResult executionResult = processSucceeded ? toExecutionResult(output, error) : toExecutionFailure(output, error);
 
-        boolean didFail = execResult.getExitValue() != 0;
-        ExecutionResult executionResult = didFail ? toExecutionFailure(output, error) : toExecutionResult(output, error);
-        if (didFail != expectFailure) {
-            String message = String.format("Gradle execution %s in %s with: %s %s%nOutput:%n%s%n-----%nError:%n%s%n-----%nExecution result:%n%s%n-----%n",
-                expectFailure ? "did not fail" : "failed", execHandle.getDirectory(), execHandle.getCommand(), execHandle.getArguments(), output, error, execResult.toString());
-            Exception exception = executionResult instanceof OutputScrapingExecutionFailure ? ((OutputScrapingExecutionFailure) executionResult).getException() : null;
-            throw exception == null ? new UnexpectedBuildFailure(message) : new UnexpectedBuildFailure(message, exception);
+        if (expectFailure && processSucceeded) {
+            throw unexpectedBuildStatus(execResult, output, error, "did not fail", executionResult);
+        }
+        if (!expectFailure && !processSucceeded) {
+            throw unexpectedBuildStatus(execResult, output, error, "failed", executionResult);
         }
 
         resultAssertion.execute(executionResult);
         return executionResult;
+    }
+
+    private UnexpectedBuildFailure unexpectedBuildStatus(ExecResult execResult, String output, String error, String status, ExecutionResult executionResult) {
+        ExecHandle execHandle = getExecHandle();
+        String message =
+            format("Gradle execution %s in %s with: %s %s%n"
+                    + "Process ExecResult:%n%s%n"
+                    + "-----%n"
+                    + "Output:%n%s%n"
+                    + "-----%n"
+                    + "Error:%n%s%n"
+                    + "-----%n",
+                status, execHandle.getDirectory(), execHandle.getCommand(), execHandle.getArguments(), execResult.toString(), output, error);
+        Exception exception = executionResult instanceof OutputScrapingExecutionFailure ? ((OutputScrapingExecutionFailure) executionResult).getException() : null;
+        return exception != null
+            ? new UnexpectedBuildFailure(message, exception)
+            : new UnexpectedBuildFailure(message);
     }
 }

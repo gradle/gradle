@@ -15,7 +15,6 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.remote.internal.Connection;
@@ -24,6 +23,7 @@ import org.gradle.internal.remote.internal.RemoteConnection;
 import org.gradle.launcher.daemon.context.DaemonConnectDetails;
 import org.gradle.launcher.daemon.protocol.Message;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 

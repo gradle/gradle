@@ -17,7 +17,8 @@
 package org.gradle.test.fixtures.server.http;
 
 import com.sun.net.httpserver.HttpExchange;
-import org.gradle.internal.time.TrueTimeProvider;
+import org.gradle.internal.time.ReliableTimeProvider;
+import org.gradle.internal.time.TimeProvider;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,7 +38,7 @@ class CyclicBarrierAnyOfRequestHandler implements TrackingHttpHandler, WaitPreco
     private final Map<String, ResourceHandlerWrapper> expected = new TreeMap<String, ResourceHandlerWrapper>();
     private final int testId;
     private final int timeoutMs;
-    private final TrueTimeProvider timeProvider = new TrueTimeProvider();
+    private final TimeProvider timeProvider = new ReliableTimeProvider();
     private int waitingFor;
     private final WaitPrecondition previous;
     private long mostRecentEvent;
@@ -94,7 +95,7 @@ class CyclicBarrierAnyOfRequestHandler implements TrackingHttpHandler, WaitPreco
                 throw failure;
             }
 
-            long now = timeProvider.getCurrentTimeForDuration();
+            long now = timeProvider.getCurrentTime();
             if (mostRecentEvent < now) {
                 mostRecentEvent = now;
             }
@@ -115,7 +116,7 @@ class CyclicBarrierAnyOfRequestHandler implements TrackingHttpHandler, WaitPreco
             }
 
             while (!released.contains(path) && failure == null) {
-                long waitMs = mostRecentEvent + timeoutMs - timeProvider.getCurrentTimeForDuration();
+                long waitMs = mostRecentEvent + timeoutMs - timeProvider.getCurrentTime();
                 if (waitMs < 0) {
                     if (waitingFor > 0) {
                         System.out.println(String.format("[%d] timeout waiting for other requests", id));
@@ -232,13 +233,13 @@ class CyclicBarrierAnyOfRequestHandler implements TrackingHttpHandler, WaitPreco
         try {
             previous.assertCanWait();
 
-            long now = timeProvider.getCurrentTimeForDuration();
+            long now = timeProvider.getCurrentTime();
             if (mostRecentEvent < now) {
                 mostRecentEvent = now;
             }
 
             while (waitingFor > 0 && failure == null) {
-                long waitMs = mostRecentEvent + timeoutMs - timeProvider.getCurrentTimeForDuration();
+                long waitMs = mostRecentEvent + timeoutMs - timeProvider.getCurrentTime();
                 if (waitMs < 0) {
                     System.out.println(String.format("[%d] timeout waiting for expected requests.", testId));
                     throw timeoutWaitingForRequests();

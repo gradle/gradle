@@ -18,7 +18,7 @@ package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import org.gradle.test.fixtures.maven.MavenModule
+import org.gradle.util.Matchers
 
 /**
  * Tests for resolving dependency cycles in a composite build.
@@ -27,11 +27,9 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
     BuildTestFile buildB
     BuildTestFile buildC
     ResolveTestFixture resolve
-    MavenModule publishedModuleB
     List arguments = []
 
     def setup() {
-        publishedModuleB = mavenRepo.module("org.test", "buildB", "1.0").publish()
         resolve = new ResolveTestFixture(buildA.buildFile)
 
         buildA.buildFile << """
@@ -71,10 +69,13 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         then:
         checkGraph {
             edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:1.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
                 edge("org.test:buildC:1.0", "project :buildC", "org.test:buildC:1.0") {
+                    configuration = "runtimeElements"
                     compositeSubstitute()
                     edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:1.0") {
+                        configuration = "runtimeElements"
                         compositeSubstitute()
                     }
                 }
@@ -86,8 +87,10 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
 
         then:
         failure
-            .assertHasDescription("Could not determine the dependencies of task ':buildC:compileJava'.")
-            .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
+            .assertHasDescription("Could not determine the dependencies of task")
+            .assertHasCause("Included build dependency cycle:")
+            .assertThatCause(Matchers.containsText("build 'buildC' -> build 'buildB'"))
+            .assertThatCause(Matchers.containsText("build 'buildB' -> build 'buildC'"))
     }
 
     def "indirect dependency cycle between included builds"() {
@@ -113,12 +116,16 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         then:
         checkGraph {
             edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:1.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
                 edge("org.test:buildC:1.0", "project :buildC", "org.test:buildC:1.0") {
+                    configuration = "runtimeElements"
                     compositeSubstitute()
                     edge("org.test:buildD:1.0", "project :buildD", "org.test:buildD:1.0") {
+                        configuration = "runtimeElements"
                         compositeSubstitute()
                         edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:1.0") {
+                            configuration = "runtimeElements"
                             compositeSubstitute()
                         }
                     }
@@ -132,13 +139,8 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         then:
         failure
             .assertHasDescription("Could not determine the dependencies of task")
-            .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
-
-        // TODO:DAZ This message is technically correct, but not ideal.
-        // Since 'buildB' is an API dependency of 'buildD', 'buildC' actually does require 'buildB',
-        // but this message is probably not what a user would expect.
-        // A more helpful cycle report would be something like:
-        //    "Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildD' -> build 'buildB'"
+            .assertHasCause("Included build dependency cycle:")
+            .assertThatCause(Matchers.containsText("build 'buildC' -> build 'buildD'"))
     }
 
     // Not actually a cycle, just documenting behaviour
@@ -161,10 +163,13 @@ project(':b1') {
         then:
         checkGraph {
             edge("org.test:b1:1.0", "project :buildB:b1", "org.test:b1:1.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
                 edge("org.test:buildC:1.0", "project :buildC", "org.test:buildC:1.0") {
+                    configuration = "runtimeElements"
                     compositeSubstitute()
                     edge("org.test:b2:1.0", "project :buildB:b2", "org.test:b2:1.0") {
+                        configuration = "runtimeElements"
                         compositeSubstitute()
                     }
                 }
@@ -176,8 +181,10 @@ project(':b1') {
 
         then:
         failure
-            .assertHasDescription("Could not determine the dependencies of task ':buildC:compileJava'.")
-            .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
+            .assertHasDescription("Could not determine the dependencies of task")
+            .assertHasCause("Included build dependency cycle:")
+            .assertThatCause(Matchers.containsText("build 'buildC' -> build 'buildB'"))
+            .assertThatCause(Matchers.containsText("build 'buildB' -> build 'buildC'"))
     }
 
     def "compile-only dependency cycle between included builds"() {
@@ -198,8 +205,10 @@ project(':b1') {
         then: // No cycle when building dependency graph
         checkGraph {
             edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:1.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
                 edge("org.test:buildC:1.0", "project :buildC", "org.test:buildC:1.0") {
+                    configuration = "runtimeElements"
                     compositeSubstitute()
                 }
             }
@@ -210,8 +219,10 @@ project(':b1') {
 
         then:
         failure
-            .assertHasDescription("Could not determine the dependencies of task ':buildC:compileJava'.")
-            .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
+            .assertHasDescription("Could not determine the dependencies of task")
+            .assertHasCause("Included build dependency cycle:")
+            .assertThatCause(Matchers.containsText("build 'buildC' -> build 'buildB'"))
+            .assertThatCause(Matchers.containsText("build 'buildB' -> build 'buildC'"))
     }
 
     def "dependency cycle between subprojects in an included multiproject build"() {
@@ -241,10 +252,13 @@ project(':b1') {
         then:
         checkGraph {
             edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:1.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
                 edge("org.test:b1:1.0", "project :buildB:b1", "org.test:b1:1.0") {
+                    configuration = "runtimeElements"
                     compositeSubstitute()
                     edge("org.test:b2:1.0", "project :buildB:b2", "org.test:b2:1.0") {
+                        configuration = "runtimeElements"
                         compositeSubstitute()
                         edge("org.test:b1:1.0", "project :buildB:b1", "org.test:b1:1.0") {}
                     }

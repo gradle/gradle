@@ -24,7 +24,7 @@ import org.gradle.api.logging.LogLevel;
  * can be set for each log level. Options that are set directly (without
  * specifying a log level) apply to log level LIFECYCLE. Example:
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  *
  * test {

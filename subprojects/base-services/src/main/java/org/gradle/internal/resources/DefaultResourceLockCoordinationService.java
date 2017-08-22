@@ -22,7 +22,6 @@ import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -36,14 +35,14 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
     };
 
     @Override
-    public boolean withStateLock(Transformer<ResourceLockState.Disposition, ResourceLockState> reasourceLockAction) {
+    public boolean withStateLock(Transformer<ResourceLockState.Disposition, ResourceLockState> stateLockAction) {
         while (true) {
             DefaultResourceLockState resourceLockState = new DefaultResourceLockState();
             ResourceLockState.Disposition disposition;
             synchronized (lock) {
                 try {
                     currentState.get().add(resourceLockState);
-                    disposition = reasourceLockAction.transform(resourceLockState);
+                    disposition = stateLockAction.transform(resourceLockState);
 
                     switch (disposition) {
                         case RETRY:
@@ -89,7 +88,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
         }
     }
 
-    private void notifyStateChange() {
+    public void notifyStateChange() {
         synchronized (lock) {
             lock.notifyAll();
         }
@@ -124,7 +123,8 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
             return unlockedResources != null && !unlockedResources.isEmpty();
         }
 
-        void releaseLocks() {
+        @Override
+        public void releaseLocks() {
             if (lockedResources != null) {
                 rollback = true;
                 try {
@@ -141,7 +141,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
     /**
      * Attempts an atomic, blocking lock on the provided resource locks.
      */
-    public static Transformer<ResourceLockState.Disposition, ResourceLockState> lock(Collection<? extends ResourceLock> resourceLocks) {
+    public static Transformer<ResourceLockState.Disposition, ResourceLockState> lock(Iterable<? extends ResourceLock> resourceLocks) {
         return new AcquireLocks(resourceLocks, true);
     }
 
@@ -155,7 +155,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
     /**
      * Attempts an atomic, non-blocking lock on the provided resource locks.
      */
-    public static Transformer<ResourceLockState.Disposition, ResourceLockState> tryLock(Collection<? extends ResourceLock> resourceLocks) {
+    public static Transformer<ResourceLockState.Disposition, ResourceLockState> tryLock(Iterable<? extends ResourceLock> resourceLocks) {
         return new AcquireLocks(resourceLocks, false);
     }
 
@@ -169,7 +169,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
     /**
      * Unlocks the provided resource locks.
      */
-    public static Transformer<ResourceLockState.Disposition, ResourceLockState> unlock(Collection<? extends ResourceLock> resourceLocks) {
+    public static Transformer<ResourceLockState.Disposition, ResourceLockState> unlock(Iterable<? extends ResourceLock> resourceLocks) {
         return new ReleaseLocks(resourceLocks);
     }
 

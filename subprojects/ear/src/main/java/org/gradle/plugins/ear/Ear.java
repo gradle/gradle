@@ -18,17 +18,18 @@ package org.gradle.plugins.ear;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.collections.MapFileTree;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.bundling.Jar;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.EarModule;
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
@@ -125,8 +126,14 @@ public class Ear extends Jar {
         });
     }
 
+    /**
+     * Injects and returns an instance of {@link org.gradle.api.model.ObjectFactory}.
+     *
+     * @since 4.2
+     */
+    @Incubating
     @Inject
-    protected Instantiator getInstantiator() {
+    protected ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -159,7 +166,7 @@ public class Ear extends Jar {
 
     private DeploymentDescriptor forceDeploymentDescriptor() {
         if (deploymentDescriptor == null) {
-            deploymentDescriptor = getInstantiator().newInstance(DefaultDeploymentDescriptor.class, getFileResolver(), getInstantiator());
+            deploymentDescriptor = getObjectFactory().newInstance(DefaultDeploymentDescriptor.class, getFileResolver(), getObjectFactory());
         }
         return deploymentDescriptor;
     }

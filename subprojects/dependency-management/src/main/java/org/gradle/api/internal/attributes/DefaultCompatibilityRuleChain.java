@@ -62,11 +62,6 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChain<
     }
 
     @Override
-    public void assumeCompatibleWhenMissing() {
-        // Don't care. This method will be removed shortly
-    }
-
-    @Override
     public void execute(CompatibilityCheckResult<T> result) {
         for (Action<? super CompatibilityCheckDetails<T>> rule : rules) {
             rule.execute(result);

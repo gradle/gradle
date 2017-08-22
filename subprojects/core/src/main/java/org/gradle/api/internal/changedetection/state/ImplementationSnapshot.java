@@ -19,6 +19,8 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.hash.HashCode;
 import org.gradle.caching.internal.BuildCacheHasher;
 
+import javax.annotation.Nullable;
+
 /**
  * Identifies a type in a classloader hierarchy. The type is identified by its name,
  * the classloader hierarchy by its hash code.
@@ -27,7 +29,7 @@ public class ImplementationSnapshot implements Snapshot {
     private final String typeName;
     private final HashCode classLoaderHash;
 
-    public ImplementationSnapshot(String typeName, HashCode classLoaderHash) {
+    public ImplementationSnapshot(String typeName, @Nullable HashCode classLoaderHash) {
         this.typeName = typeName;
         this.classLoaderHash = classLoaderHash;
     }

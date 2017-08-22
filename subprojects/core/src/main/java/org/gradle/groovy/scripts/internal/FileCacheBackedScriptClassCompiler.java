@@ -21,7 +21,6 @@ import com.google.common.io.Files;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
-import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.cache.CacheRepository;
@@ -57,12 +56,12 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private final ProgressLoggerFactory progressLoggerFactory;
     private final CacheRepository cacheRepository;
     private final CacheValidator validator;
-    private final FileHasher hasher;
+    private final ScriptSourceHasher hasher;
     private final ClassLoaderCache classLoaderCache;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
 
     public FileCacheBackedScriptClassCompiler(CacheRepository cacheRepository, CacheValidator validator, ScriptCompilationHandler scriptCompilationHandler,
-                                              ProgressLoggerFactory progressLoggerFactory, FileHasher hasher, ClassLoaderCache classLoaderCache,
+                                              ProgressLoggerFactory progressLoggerFactory, ScriptSourceHasher hasher, ClassLoaderCache classLoaderCache,
                                               ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         this.cacheRepository = cacheRepository;
         this.validator = validator;
@@ -85,7 +84,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             return emptyCompiledScript(classLoaderId, operation);
         }
 
-        HashCode sourceHashCode = hasher.hash(source.getResource());
+        HashCode sourceHashCode = hasher.hash(source);
         final String sourceHash = HashUtil.compactStringFor(sourceHashCode);
         final String dslId = operation.getId();
         HashCode classLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(classLoader);
@@ -216,7 +215,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         private final String contentHash;
 
         public BuildScriptRemapper(ClassVisitor cv, ScriptSource source, String originalClassName, String contentHash) {
-            super(ASM5, cv);
+            super(ASM6, cv);
             this.scriptSource = source;
             this.originalClassName = originalClassName;
             this.contentHash = contentHash;
@@ -339,7 +338,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         class MethodRenamer extends MethodVisitor {
 
             public MethodRenamer(final MethodVisitor mv) {
-                super(ASM5, mv);
+                super(ASM6, mv);
             }
 
             public void visitTypeInsn(int i, String name) {

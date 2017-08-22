@@ -29,12 +29,13 @@ import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
-import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.io.OutputStream;
 
 public class TarCopyAction implements CopyAction {
+    public static final long CONSTANT_TIME_FOR_TAR_ENTRIES = 0;
+
     private final File tarFile;
     private final ArchiveOutputStreamFactory compressor;
     private final boolean preserveFileTimestamps;
@@ -116,6 +117,6 @@ public class TarCopyAction implements CopyAction {
     }
 
     private long getArchiveTimeFor(FileCopyDetails details) {
-        return preserveFileTimestamps ? details.getLastModified() : GUtil.CONSTANT_TIME_FOR_TAR_ENTRIES;
+        return preserveFileTimestamps ? details.getLastModified() : CONSTANT_TIME_FOR_TAR_ENTRIES;
     }
 }

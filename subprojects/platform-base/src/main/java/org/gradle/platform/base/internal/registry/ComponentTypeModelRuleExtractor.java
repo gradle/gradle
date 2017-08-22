@@ -17,7 +17,6 @@
 package org.gradle.platform.base.internal.registry;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Nullable;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
@@ -26,16 +25,29 @@ import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelView;
 import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.model.internal.inspect.*;
+import org.gradle.model.internal.inspect.AbstractExtractedModelRule;
+import org.gradle.model.internal.inspect.AbstractMethodRuleAction;
+import org.gradle.model.internal.inspect.ExtractedModelRule;
+import org.gradle.model.internal.inspect.MethodModelRuleApplicationContext;
+import org.gradle.model.internal.inspect.MethodModelRuleExtractionContext;
+import org.gradle.model.internal.inspect.MethodRuleDefinition;
+import org.gradle.model.internal.inspect.ModelRuleInvoker;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.platform.base.*;
+import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.ComponentSpec;
+import org.gradle.platform.base.ComponentType;
+import org.gradle.platform.base.InvalidModelException;
+import org.gradle.platform.base.SourceComponentSpec;
+import org.gradle.platform.base.TypeBuilder;
+import org.gradle.platform.base.VariantComponentSpec;
 import org.gradle.platform.base.component.internal.ComponentSpecFactory;
 import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
 import org.gradle.platform.base.plugins.BinaryBasePlugin;
 import org.gradle.platform.base.plugins.ComponentBasePlugin;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static java.util.Collections.emptyList;

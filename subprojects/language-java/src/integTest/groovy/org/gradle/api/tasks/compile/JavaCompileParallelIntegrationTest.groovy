@@ -56,9 +56,7 @@ class JavaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
             subprojects {
                 apply plugin: 'java'
 
-                repositories {
-                    mavenCentral()
-                }
+                ${mavenCentralRepository()}
 
                 dependencies {
                     compile 'commons-lang:commons-lang:2.5'

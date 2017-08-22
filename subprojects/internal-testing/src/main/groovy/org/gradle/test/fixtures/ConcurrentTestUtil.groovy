@@ -16,8 +16,8 @@
 package org.gradle.test.fixtures
 
 import org.gradle.internal.concurrent.ExecutorFactory
-import org.gradle.internal.concurrent.StoppableExecutor
-import org.gradle.internal.concurrent.StoppableScheduledExecutor
+import org.gradle.internal.concurrent.ManagedExecutor
+import org.gradle.internal.concurrent.ManagedScheduledExecutor
 import org.junit.rules.ExternalResource
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -100,16 +100,16 @@ class ConcurrentTestUtil extends ExternalResource {
 
     ExecutorFactory getExecutorFactory() {
         return new ExecutorFactory() {
-            StoppableExecutor create(String displayName) {
-                return new StoppableExecutorStub(ConcurrentTestUtil.this)
+            ManagedExecutor create(String displayName) {
+                return new ManagedExecutorStub(ConcurrentTestUtil.this)
             }
 
-            StoppableExecutor create(String displayName, int fixedSize) {
+            ManagedExecutor create(String displayName, int fixedSize) {
                 // Ignores size of thread pool
-                return new StoppableExecutorStub(ConcurrentTestUtil.this)
+                return new ManagedExecutorStub(ConcurrentTestUtil.this)
             }
 
-            StoppableScheduledExecutor createScheduled(String displayName, int fixedSize) {
+            ManagedScheduledExecutor createScheduled(String displayName, int fixedSize) {
                 throw new UnsupportedOperationException()
             }
         }
@@ -449,11 +449,11 @@ class CompositeTestParticipant extends AbstractTestParticipant {
     }
 }
 
-class StoppableExecutorStub extends AbstractExecutorService implements StoppableExecutor {
+class ManagedExecutorStub extends AbstractExecutorService implements ManagedExecutor {
     final ConcurrentTestUtil owner
     final Set<TestThread> threads = new CopyOnWriteArraySet<TestThread>()
 
-    StoppableExecutorStub(ConcurrentTestUtil owner) {
+    ManagedExecutorStub(ConcurrentTestUtil owner) {
         this.owner = owner
     }
 
@@ -491,6 +491,11 @@ class StoppableExecutorStub extends AbstractExecutorService implements Stoppable
     }
 
     boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
+    void setFixedPoolSize(int numThreads) {
         throw new UnsupportedOperationException()
     }
 }
@@ -689,9 +694,15 @@ abstract class AbstractWaitAction extends AbstractAsyncAction {
 class WaitForAsyncCallback extends AbstractWaitAction {
     private boolean callbackCompleted
     private Runnable callback
+    private int waitTimeMillis = 500
 
     WaitForAsyncCallback(ConcurrentTestUtil owner) {
         super(owner)
+    }
+
+    WaitForAsyncCallback withWaitTime(int waitTimeMillis) {
+        this.waitTimeMillis = waitTimeMillis
+        return this
     }
 
     /**
@@ -703,7 +714,7 @@ class WaitForAsyncCallback extends AbstractWaitAction {
         startBlockingAction(action)
         waitForCallbackToBeRegistered()
 
-        Thread.sleep(500)
+        Thread.sleep(waitTimeMillis)
 
         assertBlocked()
         runCallbackAction()

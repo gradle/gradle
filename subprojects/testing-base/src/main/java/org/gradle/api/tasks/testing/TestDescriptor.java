@@ -16,8 +16,9 @@
 
 package org.gradle.api.tasks.testing;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.HasInternalProtocol;
+
+import javax.annotation.Nullable;
 
 /**
  * Describes a test. A test may be a single atomic test, such as the execution of a test method, or it may be a

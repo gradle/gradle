@@ -23,11 +23,11 @@ import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
+import org.gradle.internal.resource.ExternalResourceRepository
+import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
-import org.gradle.internal.resource.transport.ExternalResourceRepository
 import spock.lang.Specification
 
 class DefaultFlatDirArtifactRepositoryTest extends Specification {
@@ -40,7 +40,7 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
     final ivyContextManager = Mock(IvyContextManager)
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
 
-    final DefaultFlatDirArtifactRepository repository = new DefaultFlatDirArtifactRepository(fileResolver, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore, ivyContextManager, moduleIdentifierFactory, TestFiles.fileSystem())
+    final DefaultFlatDirArtifactRepository repository = new DefaultFlatDirArtifactRepository(fileResolver, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore, ivyContextManager, moduleIdentifierFactory, Mock(FileResourceRepository))
 
     def "creates a repository with multiple root directories"() {
         given:

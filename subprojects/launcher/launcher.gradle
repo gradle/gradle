@@ -16,6 +16,7 @@ dependencies {
     compile project(':native')
     compile project(':logging')
 
+    compile libraries.asm
     compile libraries.commons_io
     compile libraries.slf4j_api
 
@@ -39,7 +40,8 @@ integTestTasks.all {
 
 task configureJar {
     doLast {
-        jar.manifest.mainAttributes('Class-Path': "${project(':core').jar.archivePath.name} ${project(':baseServices').jar.archivePath.name}")
+        def classpath = [":baseServices", ":coreApi", ":core"].collect { project(it).jar.archivePath.name }.join(" ")
+        jar.manifest.mainAttributes('Class-Path': classpath)
     }
 }
 
@@ -51,13 +53,6 @@ jar {
 task startScripts(type: GradleStartScriptGenerator) {
     startScriptsDir = new File("$buildDir/startScripts")
     launcherJar = jar.outputs.files
-}
-
-daemonIntegTest {
-    //those tests are always using the daemon, they use exclusive daemons and they are a part of a regular check-in build anyway.
-    //since they are using exclusive daemons they don't contribute to the daemonIntegTest stress/load test.
-    //excluding to avoid unnecessary re-running and stealing resources.
-    exclude "org/gradle/launcher/daemon/**/*"
 }
 
 useClassycle()

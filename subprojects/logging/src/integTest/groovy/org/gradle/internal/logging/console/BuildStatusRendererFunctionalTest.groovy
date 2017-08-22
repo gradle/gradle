@@ -38,42 +38,44 @@ class BuildStatusRendererFunctionalTest extends AbstractConsoleFunctionalSpec {
             new URL('${server.uri}').text
             task hello { 
                 doFirst {
+                    // wait for the execution phase
                     println 'hello world' 
+                    new URL('${server.uri}').text
                 } 
-            }
-            gradle.buildFinished {
-                // wait for the end of the build
-                println "Waiting for last sync"
-                new URL('${server.uri}').text
             }
         """
     }
 
     def "shows progress bar and percent phase completion"() {
+        given:
         gradle = executer.withTasks("hello").start()
+
         expect:
         server.waitFor()
-        assertHasMessage("INITIALIZING")
+        assertHasBuildPhase("INITIALIZING")
         server.release()
 
+        and:
         server.waitFor()
-        assertHasMessage("CONFIGURING")
+        assertHasBuildPhase("CONFIGURING")
         server.release()
 
+        and:
         server.waitFor()
-        assertHasMessage("EXECUTING")
+        assertHasBuildPhase("EXECUTING")
         server.release()
 
-        gradle.waitForFinish()
+        cleanup:
+        gradle?.waitForFinish()
     }
 
-    private void assertHasMessage(String message) {
+    private void assertHasBuildPhase(String message) {
         ConcurrentTestUtil.poll {
             assert gradle.standardOutput =~ regexFor(message)
         }
     }
 
     private String regexFor(String message) {
-        /<[-=]{13}> \d{1,3}% $message \[\d+s]/
+        /<.*> \d{1,3}% $message \[\d+s]/
     }
 }

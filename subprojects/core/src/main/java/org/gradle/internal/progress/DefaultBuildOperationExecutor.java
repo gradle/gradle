@@ -20,14 +20,16 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
+import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.GradleThread;
+import org.gradle.internal.concurrent.ManagedExecutor;
+import org.gradle.internal.concurrent.ParallelismConfigurationListener;
+import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -35,45 +37,62 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperation;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationIdentifierRegistry;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.BuildOperationQueueFactory;
 import org.gradle.internal.operations.BuildOperationQueueFailure;
 import org.gradle.internal.operations.BuildOperationWorker;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
 import org.gradle.internal.operations.MultipleBuildOperationFailures;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.resources.ResourceDeadlockException;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 //TODO move to base-services once the ProgressLogger dependency is removed
-public class DefaultBuildOperationExecutor implements BuildOperationExecutor, Stoppable {
+public class DefaultBuildOperationExecutor implements BuildOperationExecutor, Stoppable, ParallelismConfigurationListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationExecutor.class);
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
-    private static final long ROOT_BUILD_OPERATION_ID_VALUE = 1L;
 
     private final BuildOperationListener listener;
     private final TimeProvider timeProvider;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final BuildOperationQueueFactory buildOperationQueueFactory;
-    private final StoppableExecutor fixedSizePool;
+    private final ResourceLockCoordinationService resourceLockCoordinationService;
+    private final ManagedExecutor fixedSizePool;
+    private final ParallelismConfigurationManager parallelismConfigurationManager;
+    private final BuildOperationIdFactory buildOperationIdFactory;
 
-    private final AtomicLong nextId = new AtomicLong(ROOT_BUILD_OPERATION_ID_VALUE);
     private final ThreadLocal<DefaultBuildOperationState> currentOperation = new ThreadLocal<DefaultBuildOperationState>();
 
     public DefaultBuildOperationExecutor(BuildOperationListener listener, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory,
-                                         BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory, int maxWorkerCount) {
+                                         BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory,
+                                         ResourceLockCoordinationService resourceLockCoordinationService, ParallelismConfigurationManager parallelismConfigurationManager,
+                                         BuildOperationIdFactory buildOperationIdFactory) {
         this.listener = listener;
         this.timeProvider = timeProvider;
         this.progressLoggerFactory = progressLoggerFactory;
         this.buildOperationQueueFactory = buildOperationQueueFactory;
-        this.fixedSizePool = executorFactory.create("build operations", maxWorkerCount);
+        this.resourceLockCoordinationService = resourceLockCoordinationService;
+        this.fixedSizePool = executorFactory.create("build operations", parallelismConfigurationManager.getParallelismConfiguration().getMaxWorkerCount());
+        this.parallelismConfigurationManager = parallelismConfigurationManager;
+        this.buildOperationIdFactory = buildOperationIdFactory;
+        parallelismConfigurationManager.addListener(this);
+    }
+
+    @Override
+    public void onParallelismConfigurationChange(ParallelismConfiguration parallelismConfiguration) {
+        fixedSizePool.setFixedPoolSize(parallelismConfiguration.getMaxWorkerCount());
     }
 
     @Override
@@ -124,6 +143,8 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     }
 
     private <O extends BuildOperation> void executeInParallel(BuildOperationQueue.QueueWorker<O> worker, Action<BuildOperationQueue<O>> queueAction) {
+        failIfInResourceLockTransform();
+
         BuildOperationQueue<O> queue = buildOperationQueueFactory.create(fixedSizePool, worker);
 
         List<GradleException> failures = Lists.newArrayList();
@@ -148,6 +169,8 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     }
 
     private <O extends BuildOperation> void execute(O buildOperation, BuildOperationWorker<O> worker, @Nullable DefaultBuildOperationState defaultParent) {
+        failIfInResourceLockTransform();
+
         BuildOperationDescriptor.Builder descriptorBuilder = buildOperation.description();
         DefaultBuildOperationState parent = (DefaultBuildOperationState) descriptorBuilder.getParentState();
         if (parent == null) {
@@ -177,11 +200,11 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
                     worker.execute(buildOperation, context);
                 } finally {
                     LOGGER.debug("Completing Build operation '{}'", descriptor.getDisplayName());
-                    progressLogger.completed();
+                    progressLogger.completed(context.status, context.failure != null);
+                    assertParentRunning("Parent operation (%2$s) completed before this operation (%1$s).", descriptor, parent);
                 }
-                assertParentRunning("Parent operation (%2$s) completed before this operation (%1$s).", descriptor, parent);
             } catch (Throwable t) {
-                context.failed(t);
+                context.thrown(t);
                 failure = t;
             }
 
@@ -204,8 +227,14 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         }
     }
 
+    private void failIfInResourceLockTransform() {
+        if (resourceLockCoordinationService.getCurrent() != null) {
+            throw new ResourceDeadlockException("An attempt was made to execute build operations inside of a resource lock transform.  Aborting to avoid a deadlock.");
+        }
+    }
+
     private BuildOperationDescriptor createDescriptor(BuildOperationDescriptor.Builder descriptorBuilder, DefaultBuildOperationState parent) {
-        OperationIdentifier id = new OperationIdentifier(nextId.getAndIncrement());
+        OperationIdentifier id = new OperationIdentifier(buildOperationIdFactory.nextId());
         DefaultBuildOperationState current = maybeStartUnmanagedThreadOperation(parent);
         return descriptorBuilder.build(id, current == null ? null : current.getDescription().getId());
     }
@@ -251,7 +280,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
      */
     protected void createRunningRootOperation(String displayName) {
         assert currentOperation.get() == null;
-        OperationIdentifier rootBuildOpId = new OperationIdentifier(ROOT_BUILD_OPERATION_ID_VALUE);
+        OperationIdentifier rootBuildOpId = new OperationIdentifier(DefaultBuildOperationIdFactory.ROOT_BUILD_OPERATION_ID_VALUE);
         DefaultBuildOperationState operation = new DefaultBuildOperationState(BuildOperationDescriptor.displayName(displayName).build(rootBuildOpId, null), timeProvider.getCurrentTime());
         operation.setRunning(true);
         currentOperation.set(operation);
@@ -268,21 +297,34 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     @Override
     public void stop() {
+        parallelismConfigurationManager.removeListener(this);
         fixedSizePool.stop();
     }
 
     private static class DefaultBuildOperationContext implements BuildOperationContext {
         Throwable failure;
         Object result;
+        private String status;
 
         @Override
         public void failed(Throwable t) {
             failure = t;
         }
 
+        public void thrown(Throwable t) {
+            if (failure == null) {
+                failure = t;
+            }
+        }
+
         @Override
         public void setResult(Object result) {
             this.result = result;
+        }
+
+        @Override
+        public void setStatus(String status) {
+            this.status = status;
         }
     }
 

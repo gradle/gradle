@@ -305,8 +305,8 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
             project(':a') {
                 dependencies.attributesSchema {
-                    attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
-                    attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
+                    attribute(buildType)
+                    attribute(flavor)
                 }
                 configurations {
                     compile
@@ -483,8 +483,8 @@ Configuration 'bar':
                 }
                 dependencies {
                     attributesSchema {
-                        attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
-                        attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
+                        attribute(buildType)
+                        attribute(flavor)
                     }
                     
                     _compileFreeDebug project(':b')
@@ -518,7 +518,7 @@ Configuration 'bar':
         result.assertTasksExecuted(':b:barJar', ':a:checkDebug')
     }
 
-    def "selects default configuration when no match is found"() {
+    def "does not select default configuration when no match is found and configurations with attributes"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
@@ -529,8 +529,8 @@ Configuration 'bar':
                     _compileFreeDebug.attributes { $freeDebug }
                 }
                 dependencies.attributesSchema {
-                    attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
-                    attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
+                    attribute(buildType)
+                    attribute(flavor)
                 }
                 dependencies {
                     _compileFreeDebug project(':b')
@@ -562,13 +562,78 @@ Configuration 'bar':
         """
 
         when:
-        run ':a:checkDebug'
+        fails ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':a:checkDebug')
+        failure.assertHasDescription("Could not determine the dependencies of task ':a:checkDebug'.")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:_compileFreeDebug'.")
+        failure.assertHasCause("Could not resolve project :b.")
+        failure.assertHasCause("""Unable to find a matching configuration of project :b:
+  - Configuration 'bar':
+      - Required buildType 'debug' and found incompatible value 'release'.
+      - Required flavor 'free' but no value provided.
+  - Configuration 'foo':
+      - Required buildType 'debug' and found incompatible value 'release'.
+      - Required flavor 'free' and found compatible value 'free'.""")
     }
 
-    def "does not select default configuration when no match is found and default configuration is not consumable"() {
+    def "does not select default configuration when consumer has no attributes and configurations with attributes"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            project(':a') {
+                configurations {
+                    compile
+                }
+                dependencies {
+                    compile project(':b')
+                }
+                task checkDebug(dependsOn: configurations.compile) {
+                    doLast {
+                        assert configurations.compile.collect { it.name } == []
+                    }
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo { attributes { $freeRelease } }
+                    bar { attributes { $release } }
+                    create 'default'
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        """
+
+        when:
+        fails ':a:checkDebug'
+
+        then:
+        failure.assertHasDescription("Could not determine the dependencies of task ':a:checkDebug'.")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:compile'.")
+        failure.assertHasCause("Could not resolve project :b.")
+        failure.assertHasCause("""Cannot choose between the following configurations of project :b:
+  - bar
+  - foo
+All of them match the consumer attributes:
+  - Configuration 'bar': Found buildType 'release' but wasn't required.
+  - Configuration 'foo':
+      - Found buildType 'release' but wasn't required.
+      - Found flavor 'free' but wasn't required.""")
+    }
+
+    def "does not select default configuration when no configurations with attributes and default configuration is not consumable"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
@@ -595,16 +660,6 @@ Configuration 'bar':
                     'default' {
                         canBeConsumed = false
                     }
-                }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                artifacts {
-                    foo fooJar
-                    bar barJar
                 }
             }
 
@@ -735,9 +790,7 @@ Configuration 'bar':
                 }
                 dependencies {
                     attributesSchema {
-                        attribute(flavor) {
-                            compatibilityRules.assumeCompatibleWhenMissing()
-                        }
+                        attribute(flavor)
                     }
                     _compileFreeDebug project(':b')
                 }
@@ -794,12 +847,8 @@ Configuration 'bar':
                 }
                 dependencies {
                     attributesSchema {
-                        attribute(flavor) {
-                            compatibilityRules.assumeCompatibleWhenMissing()
-                        }
-                        attribute(buildType) {
-                            compatibilityRules.assumeCompatibleWhenMissing()
-                        }
+                        attribute(flavor)
+                        attribute(buildType)
                     }
                     _compileFreeDebug project(':b')
                 }
@@ -875,9 +924,7 @@ All of them match the consumer attributes:
             project(':b') {
                 dependencies {
                     attributesSchema {
-                        attribute(extra) {
-                            compatibilityRules.assumeCompatibleWhenMissing()
-                        }
+                        attribute(extra)
                     }
                 }
                 configurations {
@@ -930,7 +977,7 @@ All of them match the consumer attributes:
                 dependencies {
                     compile project(':b')
                 }
-                task check(dependsOn: configurations.compile)
+                task check(dependsOn: configurations.compile) { doLast { configurations.compile.each { println it } } }
             }
             project(':b') {
                 configurations {
@@ -985,9 +1032,7 @@ All of them match the consumer attributes:
             project(':b') {
                 dependencies {
                     attributesSchema {
-                        attribute(extra) {
-                            compatibilityRules.assumeCompatibleWhenMissing()
-                        }
+                        attribute(extra)
                     }
                 }
                 configurations {
@@ -1058,12 +1103,8 @@ All of them match the consumer attributes:
             project(':a') {
                 dependencies { 
                     attributesSchema {
-                        attribute(flavor) {
-                            compatibilityRules.assumeCompatibleWhenMissing()
-                        }
-                        attribute(buildType) {
-                            compatibilityRules.assumeCompatibleWhenMissing()
-                        }
+                        attribute(flavor)
+                        attribute(buildType)
                     }
                 }
                 configurations {
@@ -1072,7 +1113,7 @@ All of them match the consumer attributes:
                 dependencies {
                     compile project(':b')
                 }
-                task check(dependsOn: configurations.compile)
+                task check(dependsOn: configurations.compile) { doLast { configurations.compile.each { println it } } }
             }
             project(':b') {
                 configurations {
@@ -1119,8 +1160,8 @@ All of them match the consumer attributes:
             allprojects {
                dependencies {
                    attributesSchema {
-                      attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
-                      attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
+                      attribute(flavor)
+                      attribute(buildType)
                    }
                }
             }
@@ -1205,8 +1246,8 @@ All of them match the consumer attributes:
             allprojects {
                dependencies {
                    attributesSchema {
-                      attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
-                      attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
+                      attribute(flavor)
+                      attribute(buildType)
                    }
                }
             }
@@ -1283,8 +1324,8 @@ All of them match the consumer attributes:
             allprojects {
                dependencies {
                    attributesSchema {
-                      attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
-                      attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
+                      attribute(flavor)
+                      attribute(buildType)
                    }
                }
             }
@@ -1365,9 +1406,7 @@ All of them match the consumer attributes:
             allprojects {
                 dependencies { 
                     attributesSchema {
-                        attribute(extra) {
-                            compatibilityRules.assumeCompatibleWhenMissing()
-                        }
+                        attribute(extra)
                     }
                 }
             }
@@ -1483,14 +1522,14 @@ All of them match the consumer attributes:
             allprojects {
                dependencies {
                    attributesSchema {
-                      attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
-                      attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
+                      attribute(flavor)
+                      attribute(buildType)
                    }
                }
             }
 
             project(':a') {
-                repositories { jcenter() }
+                ${jcenterRepository()}
 
                 configurations {
                     _compileFreeDebug.attributes { $freeDebug }
@@ -1524,7 +1563,7 @@ All of them match the consumer attributes:
                 }
             }
             project(':c') {
-                repositories { jcenter() }
+                ${jcenterRepository()}
                 configurations {
                     foo.attributes { $freeDebug }
                     bar.attributes { $freeRelease }
@@ -1641,9 +1680,7 @@ All of them match the consumer attributes:
                 }
                 dependencies {
                     attributesSchema {
-                        attribute(flavor) {
-                            compatibilityRules.assumeCompatibleWhenMissing()
-                        }
+                        attribute(flavor)
                     }
                     _compileFreeDebug project(':b')
                 }
@@ -1703,9 +1740,7 @@ All of them match the consumer attributes:
             project(':b') {
                 dependencies {
                     attributesSchema {
-                        attribute(flavor) {
-                            compatibilityRules.assumeCompatibleWhenMissing()
-                        }
+                        attribute(flavor)
                     }
                 }
                 configurations {
@@ -1745,12 +1780,8 @@ All of them match the consumer attributes:
             allprojects {
                 dependencies {
                     attributesSchema {
-                        attribute(flavor) {
-                            compatibilityRules.assumeCompatibleWhenMissing()
-                        }
-                        attribute(buildType) {
-                            compatibilityRules.assumeCompatibleWhenMissing()
-                        }
+                        attribute(flavor)
+                        attribute(buildType)
                     }
                 }
             }
@@ -1833,9 +1864,9 @@ All of them match the consumer attributes:
                 }
                 dependencies {
                     attributesSchema {
-                        attribute(extra).compatibilityRules.assumeCompatibleWhenMissing()
-                        attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
-                        attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
+                        attribute(extra)
+                        attribute(buildType)
+                        attribute(flavor)
                     }
                     _compileFreeDebug project(':b')
                 }

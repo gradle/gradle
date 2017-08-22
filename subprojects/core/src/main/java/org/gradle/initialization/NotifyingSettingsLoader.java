@@ -21,19 +21,15 @@ import org.gradle.api.internal.SettingsInternal;
 
 public class NotifyingSettingsLoader implements SettingsLoader {
     private final SettingsLoader settingsLoader;
-    private final BuildLoader buildLoader;
 
-    public NotifyingSettingsLoader(SettingsLoader settingsLoader, BuildLoader buildLoader) {
+    public NotifyingSettingsLoader(SettingsLoader settingsLoader) {
         this.settingsLoader = settingsLoader;
-        this.buildLoader = buildLoader;
     }
 
     @Override
-    public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
-        SettingsInternal settings = settingsLoader.findAndLoadSettings(gradle);
+    public SettingsInternal findAndLoadSettings(final GradleInternal gradle) {
+        final SettingsInternal settings = settingsLoader.findAndLoadSettings(gradle);
         gradle.getBuildListenerBroadcaster().settingsEvaluated(settings);
-        buildLoader.load(settings.getRootProject(), settings.getDefaultProject(), gradle, settings.getRootClassLoaderScope());
-        gradle.getBuildListenerBroadcaster().projectsLoaded(gradle);
         return settings;
     }
 }

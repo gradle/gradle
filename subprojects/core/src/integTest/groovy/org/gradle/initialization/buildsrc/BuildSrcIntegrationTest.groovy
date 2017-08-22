@@ -40,7 +40,7 @@ class BuildSrcIntegrationTest extends AbstractIntegrationSpec {
         fails()
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for configuration ':buildSrc:runtimeClasspath'.")
+        failure.assertHasDescription("Could not resolve all files for configuration ':buildSrc:runtimeClasspath'.")
         failure.assertHasCause("""Could not find org.test:test:1.2.
 Searched in the following locations:
     ${m.pom.file.toURL()}

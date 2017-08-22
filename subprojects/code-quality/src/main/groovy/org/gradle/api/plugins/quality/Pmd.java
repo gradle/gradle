@@ -24,6 +24,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.PmdInvoker;
 import org.gradle.api.plugins.quality.internal.PmdReportsImpl;
 import org.gradle.api.reporting.Reporting;
@@ -42,7 +43,6 @@ import org.gradle.api.tasks.VerificationTask;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -68,11 +68,17 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     private FileCollection classpath;
 
     public Pmd() {
-        reports = getInstantiator().newInstance(PmdReportsImpl.class, this);
+        reports = getObjectFactory().newInstance(PmdReportsImpl.class, this);
     }
 
+    /**
+     * Injects and returns an instance of {@link org.gradle.api.model.ObjectFactory}.
+     *
+     * @since 4.2
+     */
+    @Incubating
     @Inject
-    public Instantiator getInstantiator() {
+    public ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();
     }
 

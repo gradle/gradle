@@ -41,7 +41,7 @@ import java.io.File;
  *
  * <p>
  * Examples:
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  *
  * // Sync can be used like a Copy task
  * // See the Copy documentation for more examples

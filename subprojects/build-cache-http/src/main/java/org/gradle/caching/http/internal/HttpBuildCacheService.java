@@ -132,7 +132,7 @@ public class HttpBuildCacheService implements BuildCacheService {
 
             @Override
             public long getContentLength() {
-                return -1;
+                return output.getSize();
             }
 
             @Override

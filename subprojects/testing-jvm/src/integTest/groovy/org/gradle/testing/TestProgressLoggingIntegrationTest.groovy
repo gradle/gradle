@@ -29,7 +29,7 @@ class TestProgressLoggingIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies { testCompile "junit:junit:4.12" }
         """
     }

@@ -22,7 +22,6 @@ import org.gradle.api.internal.project.TestPlugin1
 import org.gradle.api.internal.project.TestRuleSource
 import org.gradle.api.plugins.InvalidPluginException
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
-import DefaultPluginId
 import org.gradle.plugin.use.internal.DefaultPluginId
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GUtil

@@ -16,55 +16,36 @@
 
 package org.gradle.workers.internal;
 
+import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.progress.BuildOperationState;
-import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
-import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLeaseCompletion;
 import org.gradle.process.internal.health.memory.JvmMemoryStatus;
 import org.gradle.process.internal.worker.WorkerProcess;
 
-class WorkerDaemonClient<T extends WorkSpec> implements Worker<T>, Stoppable {
+class WorkerDaemonClient implements Worker, Stoppable {
     private final DaemonForkOptions forkOptions;
-    private final WorkerDaemonProcess<T> workerDaemonProcess;
+    private final WorkerDaemonProcess<ActionExecutionSpec> workerDaemonProcess;
     private final WorkerProcess workerProcess;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final LogLevel logLevel;
     private int uses;
 
-    public WorkerDaemonClient(DaemonForkOptions forkOptions, WorkerDaemonProcess<T> workerDaemonProcess, WorkerProcess workerProcess, BuildOperationExecutor buildOperationExecutor) {
+    public WorkerDaemonClient(DaemonForkOptions forkOptions, WorkerDaemonProcess<ActionExecutionSpec> workerDaemonProcess, WorkerProcess workerProcess, LogLevel logLevel) {
         this.forkOptions = forkOptions;
         this.workerDaemonProcess = workerDaemonProcess;
         this.workerProcess = workerProcess;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.logLevel = logLevel;
     }
 
     @Override
-    public DefaultWorkResult execute(final T spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation) {
-        WorkerLeaseCompletion workerLease = parentWorkerWorkerLease.startChild();
-        try {
-            return buildOperationExecutor.call(new CallableBuildOperation<DefaultWorkResult>() {
-                @Override
-                public DefaultWorkResult call(BuildOperationContext context) {
-                    uses++;
-                    return workerDaemonProcess.execute(spec);
-                }
-
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName(spec.getDisplayName()).parent(parentBuildOperation);
-                }
-            });
-        } finally {
-            workerLease.leaseFinish();
-        }
+    public DefaultWorkResult execute(final ActionExecutionSpec spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation) {
+        return execute(spec);
     }
 
     @Override
-    public DefaultWorkResult execute(T spec) {
-        throw new UnsupportedOperationException();
+    public DefaultWorkResult execute(ActionExecutionSpec spec) {
+        uses++;
+        return workerDaemonProcess.execute(spec);
     }
 
     public boolean isCompatibleWith(DaemonForkOptions required) {
@@ -86,5 +67,13 @@ class WorkerDaemonClient<T extends WorkSpec> implements Worker<T>, Stoppable {
 
     public int getUses() {
         return uses;
+    }
+
+    public KeepAliveMode getKeepAliveMode() {
+        return forkOptions.getKeepAliveMode();
+    }
+
+    public LogLevel getLogLevel() {
+        return logLevel;
     }
 }

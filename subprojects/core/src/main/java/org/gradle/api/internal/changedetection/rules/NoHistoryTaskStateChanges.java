@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 class NoHistoryTaskStateChanges extends SimpleTaskStateChanges {

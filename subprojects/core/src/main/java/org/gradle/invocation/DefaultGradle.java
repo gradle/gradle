@@ -23,7 +23,6 @@ import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.initialization.IncludedBuild;
@@ -46,6 +45,8 @@ import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
+import org.gradle.internal.progress.BuildOperationState;
+import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.scan.config.BuildScanConfigInit;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
@@ -53,6 +54,7 @@ import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
@@ -71,6 +73,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     private MutableActionSet<Project> rootProjectActions = new MutableActionSet<Project>();
     private Path identityPath;
     private final ClassLoaderScope classLoaderScope;
+    private BuildOperationState operation;
 
     public DefaultGradle(GradleInternal parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
         this.parent = parent;
@@ -138,6 +141,22 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
             throw new IllegalStateException("Identity path already set");
         }
         identityPath = path;
+    }
+
+    @Override
+    public BuildOperationState getBuildOperation() {
+        if (operation != null) {
+            return operation;
+        }
+        if (parent != null) {
+            return parent.getBuildOperation();
+        }
+        return null;
+    }
+
+    @Override
+    public void setBuildOperation(BuildOperationState operation) {
+        this.operation = operation;
     }
 
     @Override
@@ -371,12 +390,17 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getClassLoaderScope(), this);
+        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getClassLoaderScope(), getResourceLoader(), this);
     }
 
     @Override
     public ClassLoaderScope getClassLoaderScope() {
         return classLoaderScope;
+    }
+
+    @Inject
+    protected TextResourceLoader getResourceLoader() {
+        throw new UnsupportedOperationException();
     }
 
     @Inject

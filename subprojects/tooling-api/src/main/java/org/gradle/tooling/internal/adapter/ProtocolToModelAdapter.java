@@ -16,7 +16,6 @@
 package org.gradle.tooling.internal.adapter;
 
 import com.google.common.base.Optional;
-import org.gradle.api.Nullable;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.time.CountdownTimer;
@@ -29,6 +28,7 @@ import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.Exceptions;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.ref.SoftReference;
@@ -170,6 +170,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             } else {
                 literal = sourceObject.toString();
             }
+            @SuppressWarnings({"rawtypes", "unchecked"})
             NotationParser<String, T> parser = new NotationConverterToNotationParserAdapter<String, T>(new EnumFromCharSequenceNotationParser(targetType));
             T parsedLiteral = parser.parseNotation(literal);
             return targetType.cast(parsedLiteral);

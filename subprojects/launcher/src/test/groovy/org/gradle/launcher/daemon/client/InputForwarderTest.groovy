@@ -15,13 +15,13 @@
  */
 package org.gradle.launcher.daemon.client
 
-import org.gradle.api.Nullable
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.io.TextStream
 import spock.lang.Specification
 import spock.util.concurrent.BlockingVariable
 
+import javax.annotation.Nullable
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
@@ -64,7 +64,7 @@ class InputForwarderTest extends Specification {
     void input(str) {
         source << toPlatformLineSeparators(str)
     }
-    
+
     boolean isFinished() {
         finishedHolder.get() == true
     }

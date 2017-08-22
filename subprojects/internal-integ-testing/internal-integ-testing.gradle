@@ -25,12 +25,15 @@ dependencies {
         dependency "io.netty:netty-all:4.0.23.Final"
         dependency "org.apache.commons:commons-lang3:3.4"
     }
+    compile libraries.gcs
     compile libraries.ivy
     compile libraries.sshd
     compile libraries.gson
     compile libraries.joda
     compile libraries.jsch
     compile libraries.jcifs
+    compile libraries.jansi
+    compile libraries.commons_collections
     runtime project(':logging')
 }
 

@@ -17,6 +17,7 @@
 package org.gradle.internal.operations
 
 import org.gradle.api.GradleException
+import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.progress.BuildOperationDescriptor
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.work.DefaultWorkerLeaseService
@@ -61,7 +62,7 @@ class DefaultBuildOperationQueueTest extends Specification {
     WorkerLeaseService workerRegistry
 
     void setupQueue(int threads) {
-        workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), true, threads) {};
+        workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), new ParallelismConfigurationManagerFixture(true, threads)) {};
         operationQueue = new DefaultBuildOperationQueue(workerRegistry, Executors.newFixedThreadPool(threads), new SimpleWorker())
     }
 
@@ -137,28 +138,6 @@ class DefaultBuildOperationQueueTest extends Specification {
                  [new Failure(), new Success(), new Failure()],
                  [new Success(), new Failure(), new Failure()]],
                 [1, 4, 10]].combinations()
-    }
-
-    def "all failures reported in order for a single threaded executor"() {
-        given:
-        setupQueue(1)
-        operationQueue.add(Stub(TestBuildOperation) {
-            run(_) >> { throw new RuntimeException("first") }
-        })
-        operationQueue.add(Stub(TestBuildOperation) {
-            run(_) >> { throw new RuntimeException("second") }
-        })
-        operationQueue.add(Stub(TestBuildOperation) {
-            run(_) >> { throw new RuntimeException("third") }
-        })
-
-        when:
-        operationQueue.waitForCompletion()
-
-        then:
-        // assumes we don't fail early
-        MultipleBuildOperationFailures e = thrown()
-        e.getCauses()*.message == [ 'first', 'second', 'third' ]
     }
 
     def "when log location is set value is propagated in exceptions"() {

@@ -19,13 +19,9 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.cache.DefaultFileContentCacheFactory;
-import org.gradle.api.internal.cache.FileContentCacheFactory;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
-import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.delete.Deleter;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
@@ -36,6 +32,8 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.internal.DefaultFileContentCacheFactory;
+import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.execution.BuildConfigurationAction;
 import org.gradle.execution.BuildConfigurationActionExecuter;
@@ -56,17 +54,13 @@ import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Factory;
-import org.gradle.internal.cleanup.BuildOperationBuildOutputDeleterDecorator;
-import org.gradle.internal.cleanup.BuildOutputCleanupCache;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
-import org.gradle.internal.cleanup.BuildOutputDeleter;
-import org.gradle.internal.cleanup.DefaultBuildOutputCleanupCache;
 import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
-import org.gradle.internal.cleanup.DefaultBuildOutputDeleter;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.notify.BuildOperationNotificationServices;
 import org.gradle.internal.reflect.Instantiator;
@@ -126,9 +120,9 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new CommandLineTaskParser(new CommandLineTaskConfigurer(optionReader), taskSelector);
     }
 
-    BuildExecuter createBuildExecuter() {
+    BuildExecuter createBuildExecuter(StyledTextOutputFactory textOutputFactory) {
         return new DefaultBuildExecuter(
-            asList(new DryRunBuildExecutionAction(),
+            asList(new DryRunBuildExecutionAction(textOutputFactory),
                 new SelectedTaskExecutionAction()));
     }
 
@@ -152,14 +146,14 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         };
     }
 
-    TaskGraphExecuter createTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, BuildCancellationToken cancellationToken, BuildOperationExecutor buildOperationExecutor, WorkerLeaseService workerLeaseService, ResourceLockCoordinationService coordinationService) {
+    TaskGraphExecuter createTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, BuildCancellationToken cancellationToken, BuildOperationExecutor buildOperationExecutor, WorkerLeaseService workerLeaseService, ResourceLockCoordinationService coordinationService, GradleInternal gradleInternal) {
         Factory<TaskExecuter> taskExecuterFactory = new Factory<TaskExecuter>() {
             @Override
             public TaskExecuter create() {
                 return get(TaskExecuter.class);
             }
         };
-        return new DefaultTaskGraphExecuter(listenerManager, taskPlanExecutor, taskExecuterFactory, cancellationToken, buildOperationExecutor, workerLeaseService, coordinationService);
+        return new DefaultTaskGraphExecuter(listenerManager, taskPlanExecutor, taskExecuterFactory, cancellationToken, buildOperationExecutor, workerLeaseService, coordinationService, gradleInternal);
     }
 
     ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
@@ -191,14 +185,6 @@ public class GradleScopeServices extends DefaultServiceRegistry {
 
     protected BuildOutputCleanupRegistry createBuildOutputCleanupRegistry(FileResolver fileResolver) {
         return new DefaultBuildOutputCleanupRegistry(fileResolver);
-    }
-
-    protected BuildOutputDeleter createBuildOutputDeleter(BuildOperationExecutor buildOperationExecutor, GradleInternal gradle, FileResolver fileResolver, FileLookup lookup) {
-        return new BuildOperationBuildOutputDeleterDecorator(gradle, buildOperationExecutor, new DefaultBuildOutputDeleter(new Deleter(fileResolver, lookup.getFileSystem())));
-    }
-
-    protected BuildOutputCleanupCache createBuildOutputCleanupCache(CacheRepository cacheRepository, GradleInternal gradle, BuildOutputDeleter buildOutputDeleter, BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
-        return new DefaultBuildOutputCleanupCache(cacheRepository, gradle, buildOutputDeleter, buildOutputCleanupRegistry);
     }
 
     protected ConfigurationTargetIdentifier createConfigurationTargetIdentifier(GradleInternal gradle) {

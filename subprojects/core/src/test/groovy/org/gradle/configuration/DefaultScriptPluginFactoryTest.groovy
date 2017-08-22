@@ -22,6 +22,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
+import org.gradle.internal.hash.FileHasher
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
@@ -41,12 +42,13 @@ import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.resource.TextResourceLoader
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
+import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.plugin.repository.internal.PluginRepositoryFactory
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry
 import org.gradle.plugin.use.internal.PluginRequestApplicator
-import org.gradle.plugin.management.internal.PluginRequests
 import spock.lang.Specification
 
 class DefaultScriptPluginFactoryTest extends Specification {
@@ -74,9 +76,11 @@ class DefaultScriptPluginFactoryTest extends Specification {
     def pluginRepositoryRegistry = Mock(PluginRepositoryRegistry)
     def pluginRepositoryFactory = Mock(PluginRepositoryFactory)
     def providerFactory = Mock(ProviderFactory)
+    def textResourceLoader = Mock(TextResourceLoader)
+    def fileHasher = Mock(FileHasher)
 
     def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginRequestApplicator, fileLookup,
-        directoryFileTreeFactory, documentationRegistry, new ModelRuleSourceDetector(), pluginRepositoryRegistry, pluginRepositoryFactory, providerFactory)
+        directoryFileTreeFactory, documentationRegistry, new ModelRuleSourceDetector(), pluginRepositoryRegistry, pluginRepositoryFactory, providerFactory, textResourceLoader, fileHasher)
 
     def setup() {
         def configurations = Mock(ConfigurationContainer)

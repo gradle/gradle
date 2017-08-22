@@ -21,13 +21,13 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
  */
 public interface SelectedArtifactSet {
     /**
-     * Collects the build dependencies required to build the artifacts in this result.
+     * Collects the build dependencies required to build the artifacts in this result. Failures to calculate the build dependencies are supplied to the visitor
      */
     void collectBuildDependencies(BuildDependenciesVisitor visitor);
 
     /**
-     * Visits the files and artifacts of this set.
+     * Visits the files and artifacts of this set. Does not include any files or artifacts which could not be selected. Failures to select or resolve artifacts are supplied to the visitor.
      */
-    void visitArtifacts(ArtifactVisitor visitor);
+    void visitArtifacts(ArtifactVisitor visitor, boolean continueOnSelectionFailure);
 
 }

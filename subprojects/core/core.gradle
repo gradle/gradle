@@ -23,7 +23,7 @@ configurations {
 }
 
 classpathManifest {
-    optionalProjects = ['gradle-script-kotlin']
+    optionalProjects = ['gradle-kotlin-dsl']
 }
 
 dependencies {
@@ -34,27 +34,32 @@ dependencies {
     api project(":resources")
     api project(":cli")
     api project(":native")
+    api project(":persistentCache")
+    api project(":buildCache")
+    api project(":coreApi")
 
     api project(":processServices")
     api project(":jvmServices")
     api project(":modelCore")
     api libraries.groovy
-    api libraries.asm // should be implementation, leaks via Java9ClassReader
     api libraries.ant
     api libraries.guava
     api libraries.inject
 
     implementation project(":modelGroovy")
+    implementation libraries.asm
     implementation libraries.slf4j_api
     implementation libraries.commons_collections
     implementation libraries.commons_io
     implementation libraries.commons_lang
     implementation libraries.jcip
     implementation libraries.nativePlatform
+    implementation libraries.commons_compress
 
     runtimeOnly project(":docs")
 
     testImplementation libraries.jsoup
+    testImplementation libraries.log4j_to_slf4j
 
     testRuntimeOnly libraries.xerces
     testRuntimeOnly project(":diagnostics")
@@ -74,9 +79,11 @@ dependencies {
 }
 
 useTestFixtures()
+useTestFixtures(project: ":coreApi")
 useTestFixtures(project: ":messaging")
 useTestFixtures(project: ":modelCore")
 useTestFixtures(project: ":logging")
+useTestFixtures(project: ":baseServices")
 
 test {
     forkEvery = 200

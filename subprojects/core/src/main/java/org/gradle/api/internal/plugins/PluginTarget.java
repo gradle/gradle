@@ -16,9 +16,10 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
+
+import javax.annotation.Nullable;
 
 public interface PluginTarget {
 

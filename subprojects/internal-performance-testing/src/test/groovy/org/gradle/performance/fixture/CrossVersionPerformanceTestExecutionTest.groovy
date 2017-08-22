@@ -20,7 +20,7 @@ import org.gradle.performance.ResultSpecification
 import org.gradle.performance.results.CrossVersionPerformanceResults
 
 class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
-    def CrossVersionPerformanceResults result = new CrossVersionPerformanceResults(testProject: "some-project", tasks: [])
+    def result = new CrossVersionPerformanceResults(testProject: "some-project", tasks: [], cleanTasks: [])
 
     def "passes when average execution time for current release is smaller than average execution time for previous releases"() {
         given:
@@ -77,7 +77,7 @@ class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
         then:
         AssertionError e = thrown()
         e.message.startsWith("Speed ${result.displayName}: we're slower than 1.0.")
-        e.message.contains('Difference: 10 ms slower (1E+1 ms), 10.00%, max regression: 0.678 ms')
+        e.message.contains('Difference: 10 ms slower (1E+1 ms), 10.00%, max regression: 0.407 ms')
         !e.message.contains('1.3')
     }
 

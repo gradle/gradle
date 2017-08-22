@@ -15,6 +15,8 @@
  */
 package org.gradle.internal.reflect;
 
+import org.gradle.api.reflect.ObjectInstantiationException;
+
 /**
  * An object that can create new instances of a given type, which may be decorated in some fashion.
  */

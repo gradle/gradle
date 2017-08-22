@@ -16,9 +16,14 @@
 
 package org.gradle.model.internal.registry;
 
-import org.gradle.api.Nullable;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelNode;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelPredicate;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.type.ModelType;
+
+import javax.annotation.Nullable;
 
 /**
  * A fixed set of criteria to use to bind a single model element.

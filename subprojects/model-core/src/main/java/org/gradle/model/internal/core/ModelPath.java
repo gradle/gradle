@@ -23,9 +23,9 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.GradleException;
-import org.gradle.api.Nullable;
 import org.gradle.internal.exceptions.Contextual;
 
+import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;

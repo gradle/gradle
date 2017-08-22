@@ -29,9 +29,7 @@ class CachedImplementationIntegrationTest extends AbstractIntegrationSpec {
         """
 
         file("buildSrc/build.gradle") << """
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 compile "commons-codec:commons-codec:1.10"
@@ -146,7 +144,7 @@ class CachedImplementationIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.withBuildCacheEnabled()
-        succeeds "compileJava"
+        succeeds "compileJava", "--info"
         then:
         executedTasks.contains ":compileJava"
         output.contains "Build cache is an incubating feature."

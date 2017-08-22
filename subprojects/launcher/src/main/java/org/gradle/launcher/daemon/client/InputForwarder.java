@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon.client;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.io.TextStream;
 import org.gradle.util.DisconnectableInputStream;
 import org.gradle.internal.io.LineBufferingOutputStream;
@@ -41,7 +41,7 @@ public class InputForwarder implements Stoppable {
     private final TextStream handler;
     private final ExecutorFactory executorFactory;
     private final int bufferSize;
-    private StoppableExecutor forwardingExecuter;
+    private ManagedExecutor forwardingExecuter;
     private DisconnectableInputStream disconnectableInput;
     private LineBufferingOutputStream outputBuffer;
     private final Lock lifecycleLock = new ReentrantLock();

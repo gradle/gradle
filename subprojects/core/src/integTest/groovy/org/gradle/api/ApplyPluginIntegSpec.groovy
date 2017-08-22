@@ -192,9 +192,7 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
         """
             apply plugin: 'groovy'
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 compile gradleApi()

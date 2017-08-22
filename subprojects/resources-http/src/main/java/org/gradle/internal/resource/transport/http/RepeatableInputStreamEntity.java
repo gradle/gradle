@@ -19,16 +19,16 @@ package org.gradle.internal.resource.transport.http;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.ContentType;
-import org.gradle.internal.resource.LocalResource;
+import org.gradle.internal.resource.ReadableContent;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
 public class RepeatableInputStreamEntity extends AbstractHttpEntity {
-    private final LocalResource source;
+    private final ReadableContent source;
 
-    public RepeatableInputStreamEntity(LocalResource source, ContentType contentType) {
+    public RepeatableInputStreamEntity(ReadableContent source, ContentType contentType) {
         super();
         this.source = source;
         if (contentType != null) {

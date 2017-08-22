@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
@@ -23,15 +22,16 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
-import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
+import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.net.URI;
 
 public class MavenLocalResolver extends MavenResolver {
@@ -43,8 +43,8 @@ public class MavenLocalResolver extends MavenResolver {
                               MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
                               ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                               CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor,
-                              FileSystem fileSystem) {
-        super(name, rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, pomParser, moduleIdentifierFactory, cacheAwareExternalResourceAccessor, null, fileSystem);
+                              FileResourceRepository fileResourceRepository) {
+        super(name, rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, pomParser, moduleIdentifierFactory, cacheAwareExternalResourceAccessor, null, fileResourceRepository);
     }
 
     @Override

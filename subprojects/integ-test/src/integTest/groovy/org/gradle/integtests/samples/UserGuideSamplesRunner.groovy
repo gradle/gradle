@@ -169,6 +169,13 @@ class UserGuideSamplesRunner extends Runner {
                 }
                 expectedResult = replaceWithPlatformNewLines(expectedResult)
                 expectedResult = replaceWithRealSamplesDir(expectedResult)
+
+                def matcher = Pattern.compile("BUILD SUCCESSFUL in \\d+s").matcher(result.output)
+                if (matcher.find()) {
+                    String buildSuccessMessage = matcher.group()
+                    expectedResult = expectedResult.replace("BUILD SUCCESSFUL in 0s", buildSuccessMessage)
+                }
+
                 try {
                     result.assertOutputEquals(expectedResult, run.ignoreExtraLines, run.ignoreLineOrder)
                 } catch (AssertionError e) {
@@ -250,8 +257,6 @@ class UserGuideSamplesRunner extends Runner {
         samplesByDir.get('userguide/multiproject/dependencies/firstMessages/messages')*.brokenForParallel = true
         samplesByDir.get('userguide/multiproject/dependencies/messagesHack/messages')*.brokenForParallel = true
         samplesByDir.get('userguide/tutorial/helloShortcut')*.allowDeprecation = true
-        samplesByDir.get('webApplication/customized')*.allowDeprecation = true
-        samplesByDir.get('webApplication/quickstart')*.allowDeprecation = true
         samplesByDir.values().findAll() { it.subDir.startsWith('buildCache/') }.each {
             it.args = ['--build-cache', 'help']
         }

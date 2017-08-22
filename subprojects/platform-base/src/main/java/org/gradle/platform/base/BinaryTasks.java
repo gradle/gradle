@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
  * The following example demonstrates how to register multiple tasks for custom binary using a plugin with a
  * {@link org.gradle.platform.base.BinaryTasks} annotation.
  *
- * <pre autoTested='true'>
+ * <pre class='autoTested'>
  * {@literal @}Managed interface SampleComponent extends ComponentSpec {}
  * {@literal @}Managed interface SampleBinary extends BinarySpec {}
  *

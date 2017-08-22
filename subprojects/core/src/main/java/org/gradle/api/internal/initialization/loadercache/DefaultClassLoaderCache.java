@@ -22,7 +22,6 @@ import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
 import com.google.common.hash.HashCode;
-import org.gradle.api.Nullable;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.classloader.ClassLoaderUtils;
@@ -32,6 +31,7 @@ import org.gradle.internal.classloader.HashingClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.Stoppable;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {

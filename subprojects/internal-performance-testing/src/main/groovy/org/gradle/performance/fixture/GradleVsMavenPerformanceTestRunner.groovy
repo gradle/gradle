@@ -33,8 +33,10 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
     final M2Installation m2
 
     String testProject
-    String gradleTasks
-    String equivalentMavenTasks
+    List<String> gradleTasks
+    List<String> gradleCleanTasks = []
+    List<String> equivalentMavenTasks
+    List<String> equivalentMavenCleanTasks = []
     List<Object> jvmOpts = []
     List<Object> mvnArgs = []
 
@@ -56,19 +58,19 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
 
     @Override
     GradleVsMavenBuildPerformanceResults run() {
-        def commonBaseDisplayName = "$gradleTasks on $testProject"
+        def commonBaseDisplayName = "${gradleTasks.join(' ')} on $testProject"
         baseline {
             warmUpCount = warmUpRuns
             invocationCount = runs
             projectName(testProject).displayName("Gradle $commonBaseDisplayName").invocation {
-                tasksToRun(gradleTasks.split(' ')).useDaemon().gradleOpts(jvmOpts.collect {it.toString()})
+                tasksToRun(gradleTasks).cleanTasks(gradleCleanTasks).useDaemon().gradleOpts(jvmOpts.collect {it.toString()})
             }
         }
         mavenBuildSpec {
             warmUpCount = warmUpRuns
             invocationCount = runs
             projectName(testProject).displayName("Maven $commonBaseDisplayName").invocation {
-                tasksToRun(equivalentMavenTasks.split(' ')).mavenOpts(jvmOpts.collect {it.toString()}).args(mvnArgs.collect {it.toString()})
+                tasksToRun(equivalentMavenTasks).cleanTasks(equivalentMavenCleanTasks).mavenOpts(jvmOpts.collect {it.toString()}).args(mvnArgs.collect {it.toString()})
             }
         }
         super.run()

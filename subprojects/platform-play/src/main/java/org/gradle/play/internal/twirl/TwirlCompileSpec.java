@@ -18,12 +18,19 @@ package org.gradle.play.internal.twirl;
 
 import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.language.twirl.TwirlImports;
+import org.gradle.language.twirl.TwirlTemplateFormat;
 import org.gradle.play.internal.spec.PlayCompileSpec;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
 
 public interface TwirlCompileSpec extends PlayCompileSpec, Serializable {
     Iterable<RelativeFile> getSources();
 
     TwirlImports getDefaultImports();
+
+    Collection<TwirlTemplateFormat> getUserTemplateFormats();
+
+    List<String> getAdditionalImports();
 }

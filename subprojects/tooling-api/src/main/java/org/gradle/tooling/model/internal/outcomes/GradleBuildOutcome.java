@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.model.internal.outcomes;
 
-import org.gradle.api.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * Represents something that happens as part of a build.

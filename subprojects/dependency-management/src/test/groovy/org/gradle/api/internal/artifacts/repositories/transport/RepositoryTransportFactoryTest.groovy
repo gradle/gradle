@@ -21,11 +21,11 @@ import org.gradle.StartParameter
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.credentials.Credentials
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.authentication.Authentication
 import org.gradle.cache.internal.ProducerGuard
 import org.gradle.internal.authentication.AbstractAuthentication
 import org.gradle.internal.resource.connector.ResourceConnectorFactory
+import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.transport.ResourceConnectorRepositoryTransport
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -44,7 +44,7 @@ class RepositoryTransportFactoryTest extends Specification {
         connectorFactory2.getSupportedAuthentication() >> ([] as Set)
         List<ResourceConnectorFactory> resourceConnectorFactories = Lists.newArrayList(connectorFactory1, connectorFactory2)
         StartParameterResolutionOverride override = new StartParameterResolutionOverride(new StartParameter())
-        repositoryTransportFactory = new RepositoryTransportFactory(resourceConnectorFactories, null, null, null, null, null, null, override, producerGuard, TestFiles.fileSystem())
+        repositoryTransportFactory = new RepositoryTransportFactory(resourceConnectorFactories, null, null, null, null, null, null, override, producerGuard, Mock(FileResourceRepository))
     }
 
     def "cannot create a transport for url with unsupported scheme"() {

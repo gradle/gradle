@@ -95,6 +95,7 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
 
             output.println("==============================================================================");
         }
+        writeGeneralTips(output);
     }
 
     private void renderSingleBuildException(Throwable failure) {
@@ -107,6 +108,8 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
         output.println();
 
         writeFailureDetails(output, details);
+
+        writeGeneralTips(output);
     }
 
     private FailureDetails constructFailureDetails(String granularity, Throwable failure) {
@@ -176,26 +179,33 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
     }
 
     private void fillInFailureResolution(FailureDetails details) {
+        BufferingStyledTextOutput resolution = details.resolution;
         if (details.failure instanceof FailureResolutionAware) {
-            ((FailureResolutionAware) details.failure).appendResolution(details.resolution, clientMetaData);
-            if (details.resolution.getHasContent()) {
-                details.resolution.append(' ');
+            ((FailureResolutionAware) details.failure).appendResolution(resolution, clientMetaData);
+            if (resolution.getHasContent()) {
+                resolution.append(' ');
             }
         }
         if (details.exceptionStyle == ExceptionStyle.NONE) {
-            details.resolution.text("Run with ");
-            details.resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.STACKTRACE_LONG);
-            details.resolution.text(" option to get the stack trace. ");
+            resolution.text("Run with ");
+            resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.STACKTRACE_LONG);
+            resolution.text(" option to get the stack trace. ");
         }
         if (loggingConfiguration.getLogLevel() != LogLevel.DEBUG) {
-            details.resolution.text("Run with ");
+            resolution.text("Run with ");
             if (loggingConfiguration.getLogLevel() != LogLevel.INFO) {
-                details.resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.INFO_LONG);
-                details.resolution.text(" or ");
+                resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.INFO_LONG);
+                resolution.text(" or ");
             }
-            details.resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.DEBUG_LONG);
-            details.resolution.text(" option to get more log output.");
+            resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.DEBUG_LONG);
+            resolution.text(" option to get more log output.");
         }
+    }
+
+    private void writeGeneralTips(StyledTextOutput resolution) {
+        resolution.println();
+        resolution.text("* Get more help at https://help.gradle.org");
+        resolution.println();
     }
 
     private String getMessage(Throwable throwable) {

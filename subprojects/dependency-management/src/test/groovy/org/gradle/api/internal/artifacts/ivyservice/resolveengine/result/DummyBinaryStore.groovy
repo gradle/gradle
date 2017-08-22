@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
-import org.gradle.api.internal.cache.BinaryStore
+import org.gradle.cache.internal.BinaryStore
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.InputStreamBackedDecoder

@@ -26,7 +26,7 @@ public class PathNormalisingKeyFileStore implements FileStore<String>, FileStore
     private final PathKeyFileStore delegate;
 
     public PathNormalisingKeyFileStore(File baseDir) {
-        this(new PathKeyFileStore(baseDir));
+        this(new DefaultPathKeyFileStore(baseDir));
     }
 
     public PathNormalisingKeyFileStore(PathKeyFileStore delegate) {

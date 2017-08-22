@@ -36,7 +36,7 @@ import java.net.URI;
  * </ol>
  *
  * <p>Example:</p>
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * ProjectConnection connection = GradleConnector.newConnector()
  *    .forProjectDirectory(new File("someProjectFolder"))
  *    .connect();

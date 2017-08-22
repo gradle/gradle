@@ -19,22 +19,22 @@ package org.gradle.caching.http.internal
 import groovy.transform.SelfType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildCacheFixture
-import org.gradle.test.fixtures.server.http.HttpBuildCache
+import org.gradle.test.fixtures.server.http.HttpBuildCacheServer
 import org.junit.Before
 import org.junit.Rule
 
 @SelfType(AbstractIntegrationSpec)
 trait HttpBuildCacheFixture extends BuildCacheFixture {
-    private HttpBuildCache httpBuildCache
+    private HttpBuildCacheServer httpBuildCacheServer
 
     @Rule
-    HttpBuildCache getHttpBuildCache() {
-        return httpBuildCache
+    HttpBuildCacheServer getHttpBuildCacheServer() {
+        return httpBuildCacheServer
     }
 
     @Before
     void createBuildCache() {
-        httpBuildCache = new HttpBuildCache(temporaryFolder)
+        httpBuildCacheServer = new HttpBuildCacheServer(temporaryFolder)
     }
 
     String useHttpBuildCache(URI uri) {
@@ -43,7 +43,7 @@ trait HttpBuildCacheFixture extends BuildCacheFixture {
                 local {
                     enabled = false
                 }
-                remote(org.gradle.caching.http.HttpBuildCache) {
+                remote(HttpBuildCache) {
                     url = "${uri}/"   
                     push = true
                 }

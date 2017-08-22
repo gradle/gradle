@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.resolve;
 
-import org.gradle.api.Nullable;
 import org.gradle.platform.base.Binary;
 import org.gradle.platform.base.VariantComponent;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 
 public interface VariantBinarySelector {

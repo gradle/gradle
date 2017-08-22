@@ -21,6 +21,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 
@@ -29,5 +30,7 @@ public interface AttributeMatcher {
 
     <T> boolean isMatching(Attribute<T> attribute, T candidate, T requested);
 
-    <T extends HasAttributes> List<T> matches(Collection<T> candidates, AttributeContainerInternal requested);
+    <T extends HasAttributes> List<T> matches(Collection<? extends T> candidates, AttributeContainerInternal requested);
+
+    <T extends HasAttributes> List<T> matches(Collection<? extends T> candidates, AttributeContainerInternal requested, @Nullable T fallback);
 }

@@ -16,63 +16,42 @@
 
 package org.gradle.play.internal.run;
 
-import org.gradle.BuildAdapter;
-import org.gradle.BuildResult;
-import org.gradle.api.invocation.Gradle;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-import org.gradle.deployment.internal.DeploymentHandle;
+import org.gradle.deployment.Deployment;
+import org.gradle.deployment.DeploymentHandle;
+
+import javax.inject.Inject;
+import java.net.InetSocketAddress;
 
 public class PlayApplicationDeploymentHandle implements DeploymentHandle {
+    private final PlayRunSpec spec;
+    private final PlayApplicationRunner playApplicationRunner;
+    private PlayApplication playApplication;
 
-    private static final Logger LOGGER = Logging.getLogger(PlayApplicationDeploymentHandle.class);
-
-    private PlayApplicationRunnerToken runnerToken;
-    private final String id;
-
-    public PlayApplicationDeploymentHandle(String id) {
-        this.id = id;
-    }
-
-    public void start(PlayApplicationRunnerToken runnerToken) {
-        this.runnerToken = runnerToken;
+    @Inject
+    public PlayApplicationDeploymentHandle(PlayRunSpec spec, PlayApplicationRunner playApplicationRunner) {
+        this.spec = spec;
+        this.playApplicationRunner = playApplicationRunner;
     }
 
     @Override
     public boolean isRunning() {
-        return runnerToken != null && runnerToken.isRunning();
+        return playApplication != null && playApplication.isRunning();
     }
 
     @Override
-    public void onNewBuild(Gradle gradle) {
-        gradle.addBuildListener(new BuildAdapter() {
-            @Override
-            public void buildFinished(BuildResult result) {
-                reloadFromResult(result);
-            }
-        });
-        if (isRunning()) {
-            runnerToken.rebuildInProgress();
-        }
+    public void start(Deployment deployment) {
+        playApplication = playApplicationRunner.start(spec, deployment);
     }
 
-    void reloadFromResult(BuildResult result) {
+    public InetSocketAddress getPlayAppAddress() {
         if (isRunning()) {
-            Throwable failure = result.getFailure();
-            if (failure != null) {
-                runnerToken.rebuildFailure(failure);
-            } else {
-                runnerToken.rebuildSuccess();
-            }
+            return playApplication.getPlayAppAddress();
         }
+        return null;
     }
 
     @Override
     public void stop() {
-        if (isRunning()) {
-            LOGGER.info("Stopping Play deployment handle for {}", id);
-            runnerToken.stop();
-            LOGGER.info("Stopped Play deployment handle for {}", id);
-        }
+        playApplication.stop();
     }
 }

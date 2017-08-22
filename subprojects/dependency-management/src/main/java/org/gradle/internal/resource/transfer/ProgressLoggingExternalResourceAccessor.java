@@ -16,10 +16,10 @@
 
 package org.gradle.internal.resource.transfer;
 
-import org.gradle.api.Nullable;
-import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -60,6 +60,7 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
             return new ProgressLoggingInputStream(resource.openStream(), downloadOperation);
         }
 
+        @Override
         public void close() throws IOException {
             try {
                 resource.close();
@@ -68,13 +69,9 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
             }
         }
 
-        @Nullable
+        @Override
         public ExternalResourceMetaData getMetaData() {
             return resource.getMetaData();
-        }
-
-        public boolean isLocal() {
-            return resource.isLocal();
         }
 
         public String toString(){

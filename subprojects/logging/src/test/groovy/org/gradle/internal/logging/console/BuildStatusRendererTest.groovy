@@ -17,97 +17,69 @@
 package org.gradle.internal.logging.console
 
 import org.gradle.internal.logging.OutputSpecification
-import org.gradle.internal.logging.events.BatchOutputEventListener
-import org.gradle.internal.logging.events.EndOutputEvent
-import org.gradle.internal.logging.events.OutputEvent
+import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import org.gradle.internal.time.TimeProvider
 
-import java.util.concurrent.ScheduledExecutorService
-import java.util.concurrent.ScheduledFuture
-
 class BuildStatusRendererTest extends OutputSpecification {
-    def listener = Mock(BatchOutputEventListener)
+    def listener = Mock(OutputEventListener)
     def console = new ConsoleStub()
     def consoleMetaData = Mock(ConsoleMetaData)
     def timeProvider = Mock(TimeProvider)
-    def future = Mock(ScheduledFuture)
-    def executor = Mock(ScheduledExecutorService)
     long currentTimeMs
-    def renderer = new BuildStatusRenderer(listener, console.statusBar, console, consoleMetaData, timeProvider, executor)
+    def renderer = new BuildStatusRenderer(listener, console.statusBar, console, consoleMetaData, timeProvider)
 
     def setup() {
-        executor.scheduleAtFixedRate(_, _, _, _) >> future
         timeProvider.getCurrentTime() >> { currentTimeMs }
     }
 
-    def "schedules render at fixed rate once an root progress event is started"() {
-        def event = startPhase(1, "message")
-
-        when:
-        renderer.onOutput([event] as ArrayList<OutputEvent>)
-
-        then:
-        1 * executor.scheduleAtFixedRate(_, _, _, _)
-    }
-
-    def "forwards event list to listener"() {
+    def "forwards event list to` listener"() {
         def event = event("message")
 
         when:
-        renderer.onOutput([event] as ArrayList<OutputEvent>)
+        renderer.onOutput(event)
 
         then:
-        1 * listener.onOutput([event] as ArrayList)
+        1 * listener.onOutput(event)
     }
 
     def "formats given message with an incrementing timer"() {
-        def event1 = startPhase(1, '<--> 0% INITIALIZING')
+        def event1 = startPhase(1, 'INITIALIZING')
         def event2 = event('2')
 
         when:
-        renderer.onOutput([event1] as ArrayList<OutputEvent>)
+        renderer.onOutput(event1)
+        renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == "<--> 0% INITIALIZING [0s]"
+        statusBar.display == "<-------------> 0% INITIALIZING [0s]"
 
         when:
         currentTimeMs += 1000
-        renderer.onOutput([event2] as ArrayList<OutputEvent>)
+        renderer.onOutput(event2)
+        renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == "<--> 0% INITIALIZING [1s]"
-    }
-
-    def "correctly cancel the future once the end event is received"() {
-        def startEvent = startPhase(1, 'message')
-        def end = new EndOutputEvent()
-
-        given:
-        renderer.onOutput([startEvent] as ArrayList<OutputEvent>)
-
-        when:
-        renderer.onOutput([end] as ArrayList<OutputEvent>)
-
-        then:
-        1 * future.cancel(false)
+        statusBar.display == "<-------------> 0% INITIALIZING [1s]"
     }
 
     def "hides timer between build phases"() {
         given:
-        def event1 = startPhase(1, '<--> 0% INITIALIZING')
+        def event1 = startPhase(1, 'INITIALIZING')
 
         when:
-        renderer.onOutput([event1] as ArrayList<OutputEvent>)
+        renderer.onOutput(event1)
+        renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '<--> 0% INITIALIZING [0s]'
+        statusBar.display == '<-------------> 0% INITIALIZING [0s]'
 
         when:
-        renderer.onOutput([complete(1, '<--> 0% WAITING')] as ArrayList<OutputEvent>)
+        renderer.onOutput(complete(1, 'WAITING'))
+        renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '<--> 0% WAITING'
+        statusBar.display == '<-------------> 0% WAITING'
     }
 
     def startPhase(Long id, String description) {

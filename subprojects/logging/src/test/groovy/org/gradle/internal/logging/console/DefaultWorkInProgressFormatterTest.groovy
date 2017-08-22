@@ -17,6 +17,7 @@
 package org.gradle.internal.logging.console
 
 import org.gradle.internal.logging.events.OperationIdentifier
+import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import spock.lang.Specification
 import spock.lang.Subject
@@ -64,5 +65,6 @@ class DefaultWorkInProgressFormatterTest extends Specification {
 
         expect:
         statusBarFormatter.format(operation).first().text == "> IDLE"
+        statusBarFormatter.format(operation).first().style == StyledTextOutput.Style.Normal
     }
 }

@@ -356,12 +356,12 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
 
         @Override
         public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
-            visitor.visitFailure(wrapException(e, configuration));
+            visitor.visitFailure(e);
         }
 
         @Override
-        public void visitArtifacts(ArtifactVisitor visitor) {
-            throw wrapException(e, configuration);
+        public void visitArtifacts(ArtifactVisitor visitor, boolean continueOnSelectionFailure) {
+            visitor.visitFailure(e);
         }
 
     }

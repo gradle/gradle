@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.testing.logging;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.logging.TestLogEvent;
@@ -26,6 +25,7 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.TextUtil;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**

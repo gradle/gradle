@@ -26,7 +26,6 @@ import java.util.concurrent.Callable;
  * A project extension named "reporting" that provides basic reporting settings and utilities.
  * <p>
  * Example usage:
- * <p>
  * <pre>
  * reporting {
  *     baseDir "$buildDir/our-reports"

@@ -16,57 +16,47 @@
 
 package org.gradle.internal.logging.console;
 
-import org.gradle.internal.logging.events.BatchOutputEventListener;
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEvent;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
-import org.gradle.internal.logging.format.TersePrettyDurationFormatter;
-import org.gradle.internal.logging.text.Span;
-import org.gradle.internal.logging.text.Style;
+import org.gradle.internal.logging.events.UpdateNowEvent;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.time.TimeProvider;
 
-import java.util.Collections;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+public class BuildStatusRenderer implements OutputEventListener {
+    public static final int PROGRESS_BAR_WIDTH = 13;
+    public static final String PROGRESS_BAR_PREFIX = "<";
+    public static final char PROGRESS_BAR_COMPLETE_CHAR = '=';
+    public static final char PROGRESS_BAR_INCOMPLETE_CHAR = '-';
+    public static final String PROGRESS_BAR_SUFFIX = ">";
 
-public class BuildStatusRenderer extends BatchOutputEventListener {
     public static final String BUILD_PROGRESS_CATEGORY = "org.gradle.internal.progress.BuildProgressLogger";
-    private static final long RENDER_NOW_PERIOD_MILLISECONDS = 250;
-    private final TersePrettyDurationFormatter elapsedTimeFormatter = new TersePrettyDurationFormatter();
-    private final BatchOutputEventListener listener;
+
+    private final OutputEventListener listener;
     private final StyledLabel buildStatusLabel;
     private final Console console;
     private final ConsoleMetaData consoleMetaData;
     private final TimeProvider timeProvider;
-    private final ScheduledExecutorService executor;
-    private final Object lock = new Object();
+    private long currentPhaseProgressOperationId;
 
     // What actually shows up on the console
-    private String currentBuildStatus;
-    private long currentPhaseProgressOperationId;
+    private ProgressBar progressBar;
 
     // Used to maintain timer
     private long buildStartTimestamp;
-    private ScheduledFuture future;
     private boolean timerEnabled;
 
-    public BuildStatusRenderer(BatchOutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData, TimeProvider timeProvider) {
-        this(listener, buildStatusLabel, console, consoleMetaData, timeProvider, Executors.newSingleThreadScheduledExecutor());
-    }
-
-    BuildStatusRenderer(BatchOutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData, TimeProvider timeProvider, ScheduledExecutorService executor) {
+    public BuildStatusRenderer(OutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData, TimeProvider timeProvider) {
         this.listener = listener;
         this.buildStatusLabel = buildStatusLabel;
         this.console = console;
         this.consoleMetaData = consoleMetaData;
         this.timeProvider = timeProvider;
-        this.executor = executor;
     }
 
     @Override
@@ -88,55 +78,24 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
             if (isPhaseProgressEvent(progressEvent.getProgressOperationId())) {
                 phaseProgressed(progressEvent);
             }
-        } else if (event instanceof EndOutputEvent) {
-            buildSessionFinished();
         }
-    }
 
-    @Override
-    public void onOutput(Iterable<OutputEvent> events) {
-        synchronized (lock) {
-            super.onOutput(events);
-            listener.onOutput(events);
+        listener.onOutput(event);
+
+        if (event instanceof UpdateNowEvent || event instanceof EndOutputEvent) {
             renderNow(timeProvider.getCurrentTime());
         }
     }
 
-    private String trimToConsole(String str) {
-        int width = consoleMetaData.getCols() - 1;
-        if (width > 0 && width < str.length()) {
-            return str.substring(0, width);
-        }
-        return str;
+    private boolean isPhaseProgressEvent(OperationIdentifier progressOpId) {
+        return progressOpId.getId() == currentPhaseProgressOperationId;
     }
 
     private void renderNow(long now) {
-        if (currentBuildStatus != null && !currentBuildStatus.isEmpty()) {
-            if ((future == null || future.isCancelled()) && !executor.isShutdown()) {
-                future = executor.scheduleAtFixedRate(new Runnable() {
-                    @Override
-                    public void run() {
-                        synchronized (lock) {
-                            renderNow(timeProvider.getCurrentTime());
-                        }
-                    }
-                }, RENDER_NOW_PERIOD_MILLISECONDS, RENDER_NOW_PERIOD_MILLISECONDS, TimeUnit.MILLISECONDS);
-            }
-            final String buildStatusToRender = trimToConsole(format(currentBuildStatus, timerEnabled, now - buildStartTimestamp));
-            buildStatusLabel.setText(Collections.singletonList(new Span(Style.of(Style.Emphasis.BOLD), buildStatusToRender)));
+        if (progressBar != null) {
+            buildStatusLabel.setText(progressBar.formatProgress(consoleMetaData.getCols(), timerEnabled, now - buildStartTimestamp));
         }
         console.flush();
-    }
-
-    private String format(String prefix, boolean timerEnabled, long elapsedTime) {
-        if (timerEnabled) {
-            return prefix + " [" + elapsedTimeFormatter.format(elapsedTime) + "]";
-        }
-        return prefix;
-    }
-
-    private boolean isPhaseProgressEvent(OperationIdentifier progressOpId) {
-        return progressOpId.getId() == currentPhaseProgressOperationId;
     }
 
     private void buildStarted(ProgressStartEvent startEvent) {
@@ -146,22 +105,27 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
     private void phaseStarted(ProgressStartEvent progressStartEvent) {
         timerEnabled = true;
         currentPhaseProgressOperationId = progressStartEvent.getProgressOperationId().getId();
-        currentBuildStatus = progressStartEvent.getShortDescription();
+        progressBar = newProgressBar(progressStartEvent.getShortDescription(), 0, progressStartEvent.getTotalProgress());
     }
 
     private void phaseProgressed(ProgressEvent progressEvent) {
-        currentBuildStatus = progressEvent.getStatus();
+        if (progressBar != null) {
+            progressBar.update(progressEvent.isFailing());
+        }
     }
 
     private void phaseEnded(ProgressCompleteEvent progressCompleteEvent) {
-        currentBuildStatus = progressCompleteEvent.getStatus();
+        progressBar = newProgressBar(progressCompleteEvent.getStatus(), 0, 1);
         timerEnabled = false;
     }
 
-    private void buildSessionFinished() {
-        if (future != null && !future.isCancelled()) {
-            future.cancel(false);
-        }
-        executor.shutdown();
+    @VisibleForTesting
+    public ProgressBar newProgressBar(String initialSuffix, int initialProgress, int totalProgress) {
+        return new ProgressBar(PROGRESS_BAR_PREFIX,
+            PROGRESS_BAR_WIDTH,
+            PROGRESS_BAR_SUFFIX,
+            PROGRESS_BAR_COMPLETE_CHAR,
+            PROGRESS_BAR_INCOMPLETE_CHAR,
+            initialSuffix, initialProgress, totalProgress);
     }
 }

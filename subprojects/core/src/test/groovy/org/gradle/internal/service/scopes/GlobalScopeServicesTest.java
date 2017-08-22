@@ -30,10 +30,10 @@ import org.gradle.api.internal.file.DefaultFileLookup;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.cache.FileLockManager;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.DefaultCacheFactory;
 import org.gradle.cache.internal.DefaultFileLockManager;
-import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.DefaultClassLoaderRegistry;
@@ -55,8 +55,8 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.time.ReliableTimeProvider;
 import org.gradle.internal.time.TimeProvider;
-import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.process.internal.health.memory.DefaultJvmMemoryInfo;
 import org.gradle.process.internal.health.memory.DefaultMemoryManager;
 import org.gradle.process.internal.health.memory.DefaultOsMemoryInfo;
@@ -192,7 +192,7 @@ public class GlobalScopeServicesTest {
 
     @Test
     public void providesATimeProvider() throws Exception {
-        assertThat(registry().get(TimeProvider.class), instanceOf(TrueTimeProvider.class));
+        assertThat(registry().get(TimeProvider.class), instanceOf(ReliableTimeProvider.class));
     }
 
     @Test

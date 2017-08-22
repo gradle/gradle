@@ -1,0 +1,131 @@
+{
+    "baseVersion": "4.1-rc-2",
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.plugins.quality.Checkstyle",
+            "member": "Method org.gradle.api.plugins.quality.Checkstyle.getInstantiator()",
+            "changes": ["Method has been removed"],
+            "acceptation": "use ObjectFactory instead"
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.CodeNarc",
+            "member": "Method org.gradle.api.plugins.quality.CodeNarc.getInstantiator()",
+            "changes": ["Method has been removed"],
+            "acceptation": "use ObjectFactory instead"
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugs",
+            "member": "Method org.gradle.api.plugins.quality.FindBugs.getInstantiator()",
+            "changes": ["Method has been removed"],
+            "acceptation": "use ObjectFactory instead"
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDepend",
+            "member": "Method org.gradle.api.plugins.quality.JDepend.getInstantiator()",
+            "changes": ["Method has been removed"],
+            "acceptation": "use ObjectFactory instead"
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.Pmd",
+            "member": "Method org.gradle.api.plugins.quality.Pmd.getInstantiator()",
+            "changes": ["Method has been removed"],
+            "acceptation": "use ObjectFactory instead"
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPlugin",
+            "member": "Constructor EarPlugin",
+            "changes": ["Constructor has been removed"],
+            "acceptation": "use ObjectFactory instead"
+        },
+        {
+            "type": "org.gradle.api.tasks.TaskOutputFilePropertyBuilder",
+            "member": "Implemented interface org.gradle.api.tasks.TaskFilePropertyBuilder",
+            "acceptation": "Removed at not exposed method (`withPathSensitivity`) on an incubating interface"
+        },
+        {
+            "type": "org.gradle.api.tasks.TaskInputFilePropertyBuilder",
+            "member": "Implemented interface org.gradle.api.tasks.TaskFilePropertyBuilder",
+            "acceptation": "Removed at not exposed method (`withPathSensitivity`) on an incubating interface"
+        },
+        {
+            "type": "org.gradle.language.swift.plugins.SwiftModulePlugin",
+            "member": "Constructor SwiftModulePlugin",
+            "acceptation": "Incubating class `SwiftModulePlugin` was renamed to `SwiftLibraryPlugin`",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.language.swift.plugins.SwiftModulePlugin",
+            "member": "Implemented interface org.gradle.api.Plugin",
+            "acceptation": "Incubating class `SwiftModulePlugin` was renamed to `SwiftLibraryPlugin`",
+            "changes": [
+                "Interface has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.language.swift.plugins.SwiftExecutablePlugin",
+            "member": "Constructor SwiftExecutablePlugin",
+            "acceptation": "API inspection is broken, it shouldn't have complained about this change",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.language.cpp.plugins.CppExecutablePlugin",
+            "member": "Constructor CppExecutablePlugin",
+            "acceptation": "API inspection is broken, it shouldn't have complained about this change",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.language.cpp.plugins.CppLibraryPlugin",
+            "member": "Constructor CppLibraryPlugin",
+            "acceptation": "API inspection is broken, it shouldn't have complained about this change",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getCachingFileHasher()",
+            "acceptation": "Injected type was moved (protected)",
+            "changes": [
+                "Method return type has changed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.attributes.Usage",
+            "member": "Field FOR_RUNTIME",
+            "acceptation": "Part of API cleanup, validated with Google team",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.attributes.Usage",
+            "member": "Field FOR_COMPILE",
+            "acceptation": "Part of API cleanup, validated with Google team",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.Directory",
+            "member": "Implemented interface org.gradle.api.provider.Provider",
+            "acceptation": "API inspection is broken, it shouldn't have complained about this change",
+            "changes": [
+                "Interface has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.RegularFile",
+            "member": "Implemented interface org.gradle.api.provider.Provider",
+            "acceptation": "API inspection is broken, it shouldn't have complained about this change",
+            "changes": [
+                "Interface has been removed"
+            ]
+        }
+    ]
+}

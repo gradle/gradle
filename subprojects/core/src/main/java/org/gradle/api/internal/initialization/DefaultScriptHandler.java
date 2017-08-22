@@ -27,7 +27,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.resource.ResourceLocation;
@@ -41,6 +40,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
 
     private final ResourceLocation scriptResource;
     private final ClassLoaderScope classLoaderScope;
+    private final ScriptClassPathResolver scriptClassPathResolver;
     private final DependencyResolutionServices dependencyResolutionServices;
     // The following values are relatively expensive to create, so defer creation until required
     private RepositoryHandler repositoryHandler;
@@ -49,10 +49,12 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     private Configuration classpathConfiguration;
     private DynamicObject dynamicObject;
 
-    public DefaultScriptHandler(ScriptSource scriptSource, DependencyResolutionServices dependencyResolutionServices, ClassLoaderScope classLoaderScope) {
+    public DefaultScriptHandler(ScriptSource scriptSource, DependencyResolutionServices dependencyResolutionServices, ClassLoaderScope classLoaderScope,
+                                ScriptClassPathResolver scriptClassPathResolver) {
         this.dependencyResolutionServices = dependencyResolutionServices;
         this.scriptResource = scriptSource.getResource().getLocation();
         this.classLoaderScope = classLoaderScope;
+        this.scriptClassPathResolver = scriptClassPathResolver;
     }
 
     @Override
@@ -67,10 +69,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
 
     @Override
     public ClassPath getScriptClassPath() {
-        if (classpathConfiguration == null) {
-            return ClassPath.EMPTY;
-        }
-        return new DefaultClassPath(classpathConfiguration.getFiles());
+        return scriptClassPathResolver.resolveClassPath(classpathConfiguration);
     }
 
     @Override

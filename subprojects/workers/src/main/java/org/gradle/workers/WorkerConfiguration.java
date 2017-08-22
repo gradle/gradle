@@ -25,7 +25,24 @@ import org.gradle.process.JavaForkOptions;
 import java.io.File;
 
 /**
- * Represents the configuration of a worker.
+ * Represents the configuration of a worker.  Used when submitting an item of work
+ * to the {@link WorkerExecutor}.
+ *
+ * <pre>
+ *      workerExecutor.submit(RunnableWorkImpl.class) { WorkerConfiguration conf -&gt;
+ *          conf.isolationMode = IsolationMode.PROCESS
+ *
+ *          forkOptions { JavaForkOptions options -&gt;
+ *              options.maxHeapSize = "512m"
+ *              options.systemProperty 'some.prop', 'value'
+ *              options.jvmArgs "-server"
+ *          }
+ *
+ *          classpath configurations.fooLibrary
+ *
+ *          conf.params = [ "foo", file('bar') ]
+ *      }
+ * </pre>
  *
  * @since 3.5
  */
@@ -53,6 +70,8 @@ public interface WorkerConfiguration extends Describable, ActionConfiguration {
     Iterable<File> getClasspath();
 
     /**
+     * Gets the isolation mode for this worker, see {@link IsolationMode}.
+     *
      * @return the isolation mode for this worker, see {@link IsolationMode}, defaults to {@link IsolationMode#AUTO}
      *
      * @since 4.0
@@ -69,6 +88,8 @@ public interface WorkerConfiguration extends Describable, ActionConfiguration {
     void setIsolationMode(IsolationMode isolationMode);
 
     /**
+     * Gets the forking mode for this worker, see {@link ForkMode}.
+     *
      * @return the forking mode for this worker, see {@link ForkMode}, defaults to {@link ForkMode#AUTO}
      */
     ForkMode getForkMode();

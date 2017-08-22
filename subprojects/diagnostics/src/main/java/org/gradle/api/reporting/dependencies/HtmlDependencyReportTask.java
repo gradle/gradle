@@ -25,6 +25,7 @@ import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.reporting.dependencies.internal.DefaultDependencyReportContainer;
 import org.gradle.api.reporting.dependencies.internal.HtmlDependencyReporter;
@@ -33,7 +34,6 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.logging.ConsoleRenderer;
-import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
 import java.util.Set;
@@ -69,7 +69,7 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
     private final DependencyReportContainer reports;
 
     public HtmlDependencyReportTask() {
-        reports = getInstantiator().newInstance(DefaultDependencyReportContainer.class, this);
+        reports = getObjectFactory().newInstance(DefaultDependencyReportContainer.class, this);
         reports.getHtml().setEnabled(true);
         getOutputs().upToDateWhen(new Spec<Task>() {
             public boolean isSatisfiedBy(Task element) {
@@ -96,7 +96,7 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
     }
 
     @Inject
-    protected Instantiator getInstantiator() {
+    public ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();
     }
 

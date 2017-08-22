@@ -25,7 +25,7 @@ package org.gradle.api.internal.plugins;
  */
 public interface PotentialPlugin<T> {
 
-    static enum Type {
+    enum Type {
         UNKNOWN,
         IMPERATIVE_CLASS,
         PURE_RULE_SOURCE_CLASS,

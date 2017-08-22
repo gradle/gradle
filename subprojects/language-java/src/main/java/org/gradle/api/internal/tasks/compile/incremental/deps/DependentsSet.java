@@ -16,8 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
-import org.gradle.api.Nullable;
-
+import javax.annotation.Nullable;
 import java.util.Set;
 
 public interface DependentsSet {

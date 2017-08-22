@@ -19,6 +19,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
+import org.gradle.api.reflect.ObjectInstantiationException;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;

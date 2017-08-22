@@ -16,12 +16,18 @@
 
 package org.gradle.internal.progress
 
+import org.gradle.api.Action
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.GradleThread
+import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationQueueFactory
 import org.gradle.internal.operations.CallableBuildOperation
+import org.gradle.internal.operations.DefaultBuildOperationIdFactory
 import org.gradle.internal.operations.RunnableBuildOperation
+import org.gradle.internal.resources.ResourceDeadlockException
+import org.gradle.internal.resources.ResourceLockCoordinationService
+import org.gradle.internal.resources.ResourceLockState
 import org.gradle.internal.time.TimeProvider
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
@@ -31,7 +37,8 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
     def listener = Mock(BuildOperationListener)
     def timeProvider = Mock(TimeProvider)
     def progressLoggerFactory = Spy(NoOpProgressLoggerFactory)
-    def operationExecutor = new DefaultBuildOperationExecutor(listener, timeProvider, progressLoggerFactory, Mock(BuildOperationQueueFactory), Mock(ExecutorFactory), 1)
+    def resourceLockCoordinator = Mock(ResourceLockCoordinationService)
+    def operationExecutor = new DefaultBuildOperationExecutor(listener, timeProvider, progressLoggerFactory, Mock(BuildOperationQueueFactory), Mock(ExecutorFactory), resourceLockCoordinator, new ParallelismConfigurationManagerFixture(true, 1), new DefaultBuildOperationIdFactory())
 
     def "fires events when operation starts and finishes successfully"() {
         setup:
@@ -71,7 +78,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         1 * buildOperation.call(_) >> "result"
 
         then:
-        1 * progressLogger.completed()
+        1 * progressLogger.completed(null, false)
 
         then:
         1 * timeProvider.currentTime >> 124L
@@ -127,7 +134,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         1 * buildOperation.run(_) >> { throw failure }
 
         then:
-        1 * progressLogger.completed()
+        1 * progressLogger.completed(null, false)
 
         then:
         1 * timeProvider.currentTime >> 124L
@@ -624,6 +631,24 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
 
         cleanup:
         GradleThread.setUnmanaged()
+    }
+
+    def "throws an exception when parallel work is attempted while in a resource lock transform"() {
+        when:
+        operationExecutor.runAll(Stub(Action))
+
+        then:
+        1 * resourceLockCoordinator.current >> Stub(ResourceLockState)
+        def e = thrown(ResourceDeadlockException)
+    }
+
+    def "throws an exception when sequential work is attempted while in a resource lock transform"() {
+        when:
+        operationExecutor.run(Stub(RunnableBuildOperation))
+
+        then:
+        1 * resourceLockCoordinator.current >> Stub(ResourceLockState)
+        def e = thrown(ResourceDeadlockException)
     }
 
     def runnableBuildOperation(String name, Closure cl) {

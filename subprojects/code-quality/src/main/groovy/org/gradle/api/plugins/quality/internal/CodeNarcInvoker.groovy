@@ -19,6 +19,7 @@ package org.gradle.api.plugins.quality.internal
 
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.project.ant.AntLoggingAdapter
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.plugins.quality.CodeNarc
 import org.gradle.api.reporting.SingleFileReport
@@ -32,6 +33,7 @@ abstract class CodeNarcInvoker {
         def codenarcClasspath = codenarcTask.codenarcClasspath
         def antBuilder = codenarcTask.antBuilder
         def classpath = new DefaultClassPath(codenarcClasspath)
+        def compilationClasspath = codenarcTask.compilationClasspath
         def configFile = codenarcTask.configFile
         def maxPriority1Violations = codenarcTask.maxPriority1Violations
         def maxPriority2Violations = codenarcTask.maxPriority2Violations
@@ -47,18 +49,31 @@ abstract class CodeNarcInvoker {
             try {
                 ant.codenarc(ruleSetFiles: "file:${configFile}", maxPriority1Violations: maxPriority1Violations, maxPriority2Violations: maxPriority2Violations, maxPriority3Violations: maxPriority3Violations) {
                     reports.enabled.each { SingleFileReport r ->
-                        report(type: r.name) {
-                            option(name: 'outputFile', value: r.destination)
+                        // See http://codenarc.sourceforge.net/codenarc-TextReportWriter.html
+                        if (r.name == 'console') {
+                            setLifecycleLogLevel(ant, 'INFO')
+                            report(type: 'text') {
+                                option(name: 'writeToStandardOut', value: true)
+                            }
+                        } else {
+                            setLifecycleLogLevel(ant, null)
+                            report(type: r.name) {
+                                option(name: 'outputFile', value: r.destination)
+                            }
                         }
                     }
 
                     source.addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
+
+                    if (!compilationClasspath.empty) {
+                        compilationClasspath.addToAntBuilder(ant, 'classpath')
+                    }
                 }
             } catch (Exception e) {
                 if (e.message.matches('Exceeded maximum number of priority \\d* violations.*')) {
                     def message = "CodeNarc rule violations were found."
                     def report = reports.firstEnabled
-                    if (report) {
+                    if (report && report.name != 'console') {
                         def reportUrl = new ConsoleRenderer().asClickableFileUrl(report.destination)
                         message += " See the report at: $reportUrl"
                     }
@@ -68,9 +83,21 @@ abstract class CodeNarcInvoker {
                     }
                     throw new GradleException(message, e)
                 }
+                if (e.message == /codenarc doesn't support the nested "classpath" element./) {
+                    def message = "The compilationClasspath property of CodeNarc task can only be non-empty when using CodeNarc 0.27.0 or newer."
+                    throw new GradleException(message, e)
+                }
                 throw e
             }
         }
     }
 
+    static void setLifecycleLogLevel(Object ant, String lifecycleLogLevel) {
+        ant?.builder?.project?.buildListeners?.each {
+            // We cannot use instanceof or getClass()==AntLoggingAdapter since they're in different class loaders
+            if (it.class.name == AntLoggingAdapter.name) {
+                it.lifecycleLogLevel = lifecycleLogLevel
+            }
+        }
+    }
 }

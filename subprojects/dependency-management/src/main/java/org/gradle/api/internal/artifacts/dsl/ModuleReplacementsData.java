@@ -16,8 +16,9 @@
 
 package org.gradle.api.internal.artifacts.dsl;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleIdentifier;
+
+import javax.annotation.Nullable;
 
 public interface ModuleReplacementsData {
     ModuleReplacementsData NO_OP = new ModuleReplacementsData() {

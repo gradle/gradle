@@ -203,9 +203,7 @@ allprojects {
 
     group = "org.gradle.test"
 
-    repositories {
-        mavenCentral()
-    }
+    ${mavenCentralRepository()}
 }
 
 project(":project1") {

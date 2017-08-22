@@ -17,7 +17,6 @@
 package org.gradle.internal.resource;
 
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -26,6 +25,7 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -58,7 +58,9 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
         return buildOperationExecutor.call(new CallableBuildOperation<ExternalResourceMetaData>() {
             @Override
             public ExternalResourceMetaData call(BuildOperationContext context) {
-                return delegate.getMetaData();
+                ExternalResourceMetaData metaData = delegate.getMetaData();
+                context.setResult(METADATA_RESULT);
+                return metaData;
             }
 
             @Override
@@ -76,7 +78,9 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
         return buildOperationExecutor.call(new CallableBuildOperation<List<String>>() {
             @Override
             public List<String> call(BuildOperationContext context) {
-                return delegate.list();
+                List<String> list = delegate.list();
+                context.setResult(LIST_RESULT);
+                return list;
             }
 
             @Override
@@ -89,12 +93,12 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
     }
 
     @Override
-    public ExternalResourceWriteResult put(final LocalResource source) throws ResourceException {
+    public ExternalResourceWriteResult put(final ReadableContent source) throws ResourceException {
         return buildOperationExecutor.call(new CallableBuildOperation<ExternalResourceWriteResult>() {
             @Override
             public ExternalResourceWriteResult call(BuildOperationContext context) {
                 final ExternalResourceWriteResult result = delegate.put(source);
-                context.setResult(new ExternalResourceWriteBuildOperationType.Result(){
+                context.setResult(new ExternalResourceWriteBuildOperationType.Result() {
                     @Override
                     public long getBytesWritten() {
                         return result.getBytesWritten();
@@ -282,6 +286,9 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
         }
     }
 
+    private final static ExternalResourceReadMetadataBuildOperationType.Result METADATA_RESULT = new ExternalResourceReadMetadataBuildOperationType.Result() {
+    };
+
     private static class ListOperationDetails extends LocationDetails implements ExternalResourceListBuildOperationType.Details {
         private ListOperationDetails(URI location) {
             super(location);
@@ -292,6 +299,9 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
             return "ExternalResourceListBuildOperationType.Details{location=" + getLocation() + ", " + '}';
         }
     }
+
+    private final static ExternalResourceListBuildOperationType.Result LIST_RESULT = new ExternalResourceListBuildOperationType.Result() {
+    };
 
     private static class PutOperationDetails extends LocationDetails implements ExternalResourceWriteBuildOperationType.Details {
         private PutOperationDetails(URI location) {

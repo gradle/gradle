@@ -64,6 +64,6 @@ public class S3ConnectorFactory implements ResourceConnectorFactory {
             }
         }
 
-        throw new IllegalArgumentException("S3 resource should either specify AwsIamAutentication or provide some AwsCredentials.");
+        throw new IllegalArgumentException("S3 resource should either specify AwsImAuthentication or provide some AwsCredentials.");
     }
 }

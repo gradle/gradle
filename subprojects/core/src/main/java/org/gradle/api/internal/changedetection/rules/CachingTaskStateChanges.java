@@ -79,8 +79,4 @@ public class CachingTaskStateChanges implements TaskStateChanges {
         delegateIterator = delegate.iterator();
         overrun = false;
     }
-
-    public void snapshotAfterTask() {
-        delegate.snapshotAfterTask();
-    }
 }

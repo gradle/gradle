@@ -17,7 +17,6 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorBuilder;
@@ -26,6 +25,7 @@ import org.gradle.internal.component.external.descriptor.MutableModuleDescriptor
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Set;
 

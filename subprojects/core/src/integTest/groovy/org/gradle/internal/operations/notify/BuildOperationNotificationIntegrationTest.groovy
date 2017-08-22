@@ -17,10 +17,11 @@
 package org.gradle.internal.operations.notify
 
 import groovy.json.JsonOutput
+import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -31,6 +32,8 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
                     def details = notification.notificationOperationDetails
                     if (details instanceof $ExecuteTaskBuildOperationType.Details.name) {
                         details = [taskPath: details.taskPath, buildPath: details.buildPath, taskId: details.taskId, taskClass: details.taskClass.name]
+                    } else  if (details instanceof $ApplyPluginBuildOperationType.Details.name) {
+                        details = [pluginId: details.pluginId, pluginClass: details.pluginClass.name, targetType: details.targetType, targetPath: details.targetPath, buildPath: details.buildPath]
                     }
                     println "STARTED: \${notification.details.class.interfaces.first().name} - \${${JsonOutput.name}.toJson(details)} - \$notification.notificationOperationId - \$notification.notificationOperationParentId"   
                 }
@@ -68,7 +71,8 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         """
 
         file("buildSrc/build.gradle") << ""
-        file("a/buildSrc/build.gradle") << "task t"
+        file("a/buildSrc/build.gradle") << ""
+        file("a/build.gradle") << "task t"
         file("a/settings.gradle") << ""
         file("settings.gradle") << "includeBuild 'a'"
         buildScript """

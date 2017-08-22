@@ -21,7 +21,6 @@ import org.gradle.api.RecordingAntBuildListener
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.ClassGenerator
-import org.gradle.api.internal.DependencyInjectingInstantiator
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.InstantiatorFactory
 import org.gradle.api.internal.artifacts.DependencyManagementServices
@@ -35,6 +34,7 @@ import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
+import org.gradle.internal.hash.FileHasher
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.DefaultScriptHandler
 import org.gradle.api.internal.plugins.PluginRegistry
@@ -44,6 +44,7 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.logging.LoggingManager
+import org.gradle.api.internal.initialization.ScriptClassPathResolver
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.groovy.scripts.ScriptSource
@@ -105,9 +106,10 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(DirectoryFileTreeFactory) >> Stub(DirectoryFileTreeFactory)
         parent.get(ModelRuleSourceDetector) >> modelRuleSourceDetector
         parent.get(ModelRuleExtractor) >> Stub(ModelRuleExtractor)
-        parent.get(DependencyInjectingInstantiator.ConstructorCache) >> Stub(DependencyInjectingInstantiator.ConstructorCache)
         parent.get(ToolingModelBuilderRegistry) >> Mock(ToolingModelBuilderRegistry)
         parent.get(InstantiatorFactory) >> instantiatorFactory
+        parent.get(ScriptClassPathResolver) >> Mock(ScriptClassPathResolver)
+        parent.get(FileHasher) >> Mock(FileHasher)
         parent.hasService(_) >> true
         registry = new ProjectScopeServices(parent, project, loggingManagerInternalFactory)
     }

@@ -16,9 +16,10 @@
 
 package org.gradle.workers.internal;
 
-import java.io.File;
+import org.gradle.workers.IsolationMode;
 
 public interface WorkerFactory {
-    // TODO - workingDir should be injected into the implementation
-    <T extends WorkSpec> Worker<T> getWorker(Class<? extends WorkerProtocol<T>> workerImplementationClass, File workingDir, DaemonForkOptions forkOptions);
+    Worker getWorker(DaemonForkOptions forkOptions);
+
+    IsolationMode getIsolationMode();
 }

@@ -80,7 +80,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                     ResultSet keys = null;
 
                     try {
-                        statement = connection.prepareStatement("insert into testExecution(testId, startTime, endTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit, channel, host) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                        statement = connection.prepareStatement("insert into testExecution(testId, startTime, endTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit, channel, host, cleanTasks) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                         statement.setString(1, results.getTestId());
                         statement.setTimestamp(2, new Timestamp(results.getStartTime()));
                         statement.setTimestamp(3, new Timestamp(results.getEndTime()));
@@ -97,6 +97,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                         statement.setString(13, vcs);
                         statement.setString(14, results.getChannel());
                         statement.setString(15, results.getHost());
+                        statement.setObject(16, toArray(results.getCleanTasks()));
                         statement.execute();
                         keys = statement.getGeneratedKeys();
                         keys.next();
@@ -195,7 +196,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                     ResultSet operations = null;
 
                     try {
-                        executionsForName = connection.prepareStatement("select top ? id, startTime, endTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit, channel, host from testExecution where testId = ? and startTime >= ? and channel = ? order by startTime desc");
+                        executionsForName = connection.prepareStatement("select top ? id, startTime, endTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit, channel, host, cleanTasks from testExecution where testId = ? and startTime >= ? and channel = ? order by startTime desc");
                         executionsForName.setFetchSize(mostRecentN);
                         executionsForName.setInt(1, mostRecentN);
                         executionsForName.setString(2, testName);
@@ -222,6 +223,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                             performanceResults.setVcsCommits(ResultsStoreHelper.split(testExecutions.getString(13)));
                             performanceResults.setChannel(testExecutions.getString(14));
                             performanceResults.setHost(testExecutions.getString(15));
+                            performanceResults.setCleanTasks(ResultsStoreHelper.toList(testExecutions.getObject(16)));
                             results.put(id, performanceResults);
                             allBranches.add(performanceResults.getVcsBranch());
                         }
@@ -317,6 +319,10 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                 }
                 statement.execute("create index if not exists testExecution_testId on testExecution (testId)");
                 statement.execute("create index if not exists testExecution_executionTime on testExecution (startTime desc)");
+
+                if (!DataBaseSchemaUtil.columnExists(connection, "TESTEXECUTION", "CLEANTASKS")) {
+                    statement.execute("alter table testExecution add column if not exists cleanTasks array");
+                }
 
                 DataBaseSchemaUtil.removeOutdatedColumnsFromTestDB(connection, statement);
             } finally {

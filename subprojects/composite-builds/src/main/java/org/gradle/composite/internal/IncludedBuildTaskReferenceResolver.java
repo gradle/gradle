@@ -25,7 +25,6 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.BuildIdentity;
-import org.gradle.initialization.IncludedBuildTaskGraph;
 
 public class IncludedBuildTaskReferenceResolver implements TaskReferenceResolver {
 
@@ -50,7 +49,7 @@ public class IncludedBuildTaskReferenceResolver implements TaskReferenceResolver
 
         includedBuilds.addTask(sourceBuild, targetBuild, ref.getTaskPath());
 
-        String delegateTaskName = ref.getBuildName();
+        String delegateTaskName = ref.getName();
         Task task = tasks.findByName(delegateTaskName);
 
         if (task == null) {
@@ -58,6 +57,7 @@ public class IncludedBuildTaskReferenceResolver implements TaskReferenceResolver
                 @Override
                 public void execute(CompositeBuildTaskDelegate compositeBuildTaskDelegate) {
                     compositeBuildTaskDelegate.setBuild(targetBuild);
+                    compositeBuildTaskDelegate.setTaskPath(ref.getTaskPath());
                 }
             });
         }

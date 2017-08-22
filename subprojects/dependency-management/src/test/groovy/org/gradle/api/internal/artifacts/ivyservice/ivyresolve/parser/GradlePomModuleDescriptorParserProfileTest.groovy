@@ -17,10 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.component.external.descriptor.MavenScope
-import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource
-import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
 import spock.lang.Issue
 
 import static org.gradle.api.internal.component.ArtifactType.MAVEN_POM
@@ -151,7 +148,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact(_, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent), TestFiles.fileSystem()) }
+        parseContext.getMetaDataArtifact(_, MAVEN_POM) >> asResource(parent)
 
         when:
         parsePom()
@@ -225,8 +222,8 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.module == 'parent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent), TestFiles.fileSystem()) }
-        parseContext.getMetaDataArtifact({ it.module == 'grandparent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI(), new DefaultLocallyAvailableResource(grandParent), TestFiles.fileSystem()) }
+        parseContext.getMetaDataArtifact({ it.module == 'parent' }, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.module == 'grandparent' }, MAVEN_POM) >> asResource(grandParent)
 
         when:
         parsePom()
@@ -344,7 +341,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact(_, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent), TestFiles.fileSystem()) }
+        parseContext.getMetaDataArtifact(_, MAVEN_POM) >> asResource(parent)
 
         when:
         parsePom()
@@ -421,8 +418,8 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.module == 'parent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent), TestFiles.fileSystem()) }
-        parseContext.getMetaDataArtifact({ it.module == 'grandparent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI(), new DefaultLocallyAvailableResource(grandParent), TestFiles.fileSystem()) }
+        parseContext.getMetaDataArtifact({ it.module == 'parent' }, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.module == 'grandparent' }, MAVEN_POM) >> asResource(grandParent)
 
         when:
         parsePom()
@@ -491,7 +488,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.module == 'imported' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(imported.toURI(), new DefaultLocallyAvailableResource(imported), TestFiles.fileSystem()) }
+        parseContext.getMetaDataArtifact({ it.module == 'imported' }, MAVEN_POM) >> asResource(imported)
 
         when:
         parsePom()
@@ -582,7 +579,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact(_, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent), TestFiles.fileSystem()) }
+        parseContext.getMetaDataArtifact(_, MAVEN_POM) >> asResource(parent)
 
         when:
         parsePom()
@@ -650,8 +647,8 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.module == 'parent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent), TestFiles.fileSystem()) }
-        parseContext.getMetaDataArtifact({ it.module == 'grandparent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI(), new DefaultLocallyAvailableResource(grandParent), TestFiles.fileSystem()) }
+        parseContext.getMetaDataArtifact({ it.module == 'parent' }, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.module == 'grandparent' }, MAVEN_POM) >> asResource(grandParent)
 
         when:
         parsePom()
@@ -735,8 +732,8 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.module == 'parent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent), TestFiles.fileSystem()) }
-        parseContext.getMetaDataArtifact({ it.module == 'grandparent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI(), new DefaultLocallyAvailableResource(grandParent), TestFiles.fileSystem()) }
+        parseContext.getMetaDataArtifact({ it.module == 'parent' }, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.module == 'grandparent' }, MAVEN_POM) >> asResource(grandParent)
 
         when:
         parsePom()
@@ -804,7 +801,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.module == 'imported' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(imported.toURI(), new DefaultLocallyAvailableResource(imported), TestFiles.fileSystem()) }
+        parseContext.getMetaDataArtifact({ it.module == 'imported' }, MAVEN_POM) >> asResource(imported)
 
         when:
         parsePom()
@@ -947,7 +944,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact(_, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent), TestFiles.fileSystem()) }
+        parseContext.getMetaDataArtifact(_, MAVEN_POM) >> asResource(parent)
 
         when:
         parsePom()
@@ -1023,8 +1020,8 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.module == 'parent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent), TestFiles.fileSystem()) }
-        parseContext.getMetaDataArtifact({ it.module == 'grandparent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI(), new DefaultLocallyAvailableResource(grandParent), TestFiles.fileSystem()) }
+        parseContext.getMetaDataArtifact({ it.module == 'parent' }, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.module == 'grandparent' }, MAVEN_POM) >> asResource(grandParent)
 
         when:
         parsePom()
@@ -1146,7 +1143,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact(_, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent), TestFiles.fileSystem()) }
+        parseContext.getMetaDataArtifact(_, MAVEN_POM) >> asResource(parent)
 
         when:
         parsePom()
@@ -1225,8 +1222,8 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.module == 'parent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent), TestFiles.fileSystem()) }
-        parseContext.getMetaDataArtifact({ it.module == 'grandparent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI(), new DefaultLocallyAvailableResource(grandParent), TestFiles.fileSystem()) }
+        parseContext.getMetaDataArtifact({ it.module == 'parent' }, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.module == 'grandparent' }, MAVEN_POM) >> asResource(grandParent)
 
         when:
         parsePom()
@@ -1297,7 +1294,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.module == 'imported' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(imported.toURI(), new DefaultLocallyAvailableResource(imported), TestFiles.fileSystem()) }
+        parseContext.getMetaDataArtifact({ it.module == 'imported' }, MAVEN_POM) >> asResource(imported)
 
         when:
         parsePom()
@@ -1393,7 +1390,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact(_, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent), TestFiles.fileSystem()) }
+        parseContext.getMetaDataArtifact(_, MAVEN_POM) >> asResource(parent)
 
         when:
         parsePom()
@@ -1463,8 +1460,8 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.module == 'parent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent), TestFiles.fileSystem()) }
-        parseContext.getMetaDataArtifact({ it.module == 'grandparent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI(), new DefaultLocallyAvailableResource(grandParent), TestFiles.fileSystem()) }
+        parseContext.getMetaDataArtifact({ it.module == 'parent' }, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.module == 'grandparent' }, MAVEN_POM) >> asResource(grandParent)
 
         when:
         parsePom()
@@ -1550,8 +1547,8 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.module == 'parent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent), TestFiles.fileSystem()) }
-        parseContext.getMetaDataArtifact({ it.module == 'grandparent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI(), new DefaultLocallyAvailableResource(grandParent), TestFiles.fileSystem()) }
+        parseContext.getMetaDataArtifact({ it.module == 'parent' }, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.module == 'grandparent' }, MAVEN_POM) >> asResource(grandParent)
 
         when:
         parsePom()
@@ -1621,7 +1618,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.module == 'imported' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(imported.toURI(), new DefaultLocallyAvailableResource(imported), TestFiles.fileSystem()) }
+        parseContext.getMetaDataArtifact({ it.module == 'imported' }, MAVEN_POM) >> asResource(imported)
 
         when:
         parsePom()
@@ -1706,7 +1703,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 </project>
 """
         and:
-        parseContext.getMetaDataArtifact({ it.module == 'parent' }, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent), TestFiles.fileSystem()) }
+        parseContext.getMetaDataArtifact({ it.module == 'parent' }, MAVEN_POM) >> asResource(parent)
 
         when:
         def metaData = parseMetaData()

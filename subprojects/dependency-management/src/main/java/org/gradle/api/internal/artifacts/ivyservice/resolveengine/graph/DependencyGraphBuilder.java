@@ -370,6 +370,7 @@ public class DependencyGraphBuilder {
         private final Set<NodeState> targetNodes = new LinkedHashSet<NodeState>();
 
         private ComponentState targetModuleRevision;
+        private ModuleVersionResolveException targetNodeSelectionFailure;
 
         EdgeState(NodeState from, DependencyMetadata dependencyMetadata, ModuleExclusion moduleExclusion, ResolveState resolveState) {
             this.from = from;
@@ -427,6 +428,7 @@ public class DependencyGraphBuilder {
                 targetConfiguration.removeIncomingEdge(this);
             }
             targetNodes.clear();
+            targetNodeSelectionFailure = null;
             if (targetModuleRevision != null) {
                 selector.getSelectedModule().removeUnattachedDependency(this);
             }
@@ -440,13 +442,21 @@ public class DependencyGraphBuilder {
 
         private void calculateTargetConfigurations() {
             targetNodes.clear();
+            targetNodeSelectionFailure = null;
             ComponentResolveMetadata targetModuleVersion = targetModuleRevision.getMetaData();
             if (targetModuleVersion == null) {
                 // Broken version
                 return;
             }
 
-            Set<ConfigurationMetadata> targetConfigurations = dependencyMetadata.selectConfigurations(from.component.metaData, from.metaData, targetModuleVersion, resolveState.getAttributesSchema());
+            Set<ConfigurationMetadata> targetConfigurations;
+            try {
+                targetConfigurations = dependencyMetadata.selectConfigurations(from.component.metaData, from.metaData, targetModuleVersion, resolveState.getAttributesSchema());
+            } catch (Throwable t) {
+//                 Broken selector
+                targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyMetadata.getSelector(), t);
+                return;
+            }
             for (ConfigurationMetadata targetConfiguration : targetConfigurations) {
                 NodeState targetNodeState = resolveState.getNode(targetModuleRevision, targetConfiguration);
                 this.targetNodes.add(targetNodeState);
@@ -479,6 +489,9 @@ public class DependencyGraphBuilder {
 
         @Override
         public ModuleVersionResolveException getFailure() {
+            if (targetNodeSelectionFailure != null) {
+                return targetNodeSelectionFailure;
+            }
             return selector.getFailure();
         }
 

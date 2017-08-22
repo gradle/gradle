@@ -16,7 +16,7 @@
 
 package org.gradle.internal.remote.internal;
 
-import org.gradle.api.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * <p>A messaging end-point with some remote, or otherwise unreliable, peer.</p>

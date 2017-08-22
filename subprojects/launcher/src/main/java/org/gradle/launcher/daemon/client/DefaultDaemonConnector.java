@@ -21,10 +21,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Pair;
-import org.gradle.internal.time.CountdownTimer;
-import org.gradle.internal.time.TimeProvider;
-import org.gradle.internal.time.Timers;
-import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -32,6 +28,8 @@ import org.gradle.internal.remote.internal.ConnectException;
 import org.gradle.internal.remote.internal.OutgoingConnector;
 import org.gradle.internal.remote.internal.RemoteConnection;
 import org.gradle.internal.serialize.Serializers;
+import org.gradle.internal.time.CountdownTimer;
+import org.gradle.internal.time.Timers;
 import org.gradle.launcher.daemon.context.DaemonConnectDetails;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
@@ -66,7 +64,6 @@ public class DefaultDaemonConnector implements DaemonConnector {
     private final DaemonStarter daemonStarter;
     private final DaemonStartListener startListener;
     private final ProgressLoggerFactory progressLoggerFactory;
-    private final TimeProvider timeProvider = new TrueTimeProvider();
     private long connectTimeout = DefaultDaemonConnector.DEFAULT_CONNECT_TIMEOUT;
 
     public DefaultDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector connector, DaemonStarter daemonStarter, DaemonStartListener startListener, ProgressLoggerFactory progressLoggerFactory) {

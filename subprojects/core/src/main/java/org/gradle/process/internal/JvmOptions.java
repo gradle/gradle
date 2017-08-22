@@ -59,6 +59,7 @@ public class JvmOptions {
 
     private final List<Object> extraJvmArgs = new ArrayList<Object>();
     private final Map<String, Object> mutableSystemProperties = new TreeMap<String, Object>();
+    private final PathToFileResolver resolver;
 
     private DefaultConfigurableFileCollection bootstrapClasspath;
     private String minHeapSize;
@@ -69,7 +70,7 @@ public class JvmOptions {
     protected final Map<String, Object> immutableSystemProperties = new TreeMap<String, Object>();
 
     public JvmOptions(PathToFileResolver resolver) {
-        this.bootstrapClasspath = new DefaultConfigurableFileCollection(resolver, null);
+        this.resolver = resolver;
         immutableSystemProperties.put(FILE_ENCODING_KEY, Charset.defaultCharset().name());
         immutableSystemProperties.put(USER_LANGUAGE_KEY, DEFAULT_LOCALE.getLanguage());
         immutableSystemProperties.put(USER_COUNTRY_KEY, DEFAULT_LOCALE.getCountry());
@@ -124,8 +125,7 @@ public class JvmOptions {
         if (maxHeapSize != null) {
             args.add(XMX_PREFIX + maxHeapSize);
         }
-        FileCollection bootstrapClasspath = getBootstrapClasspath();
-        if (!bootstrapClasspath.isEmpty()) {
+        if (bootstrapClasspath != null && !bootstrapClasspath.isEmpty()) {
             args.add(BOOTCLASSPATH_PREFIX + bootstrapClasspath.getAsPath());
         }
 
@@ -247,19 +247,26 @@ public class JvmOptions {
     }
 
     public FileCollection getBootstrapClasspath() {
+        return internalGetBootstrapCLasspath();
+    }
+
+    private DefaultConfigurableFileCollection internalGetBootstrapCLasspath() {
+        if (bootstrapClasspath == null) {
+            bootstrapClasspath = new DefaultConfigurableFileCollection(resolver, null);
+        }
         return bootstrapClasspath;
     }
 
     public void setBootstrapClasspath(FileCollection classpath) {
-        this.bootstrapClasspath.setFrom(classpath);
+        internalGetBootstrapCLasspath().setFrom(classpath);
     }
 
     public void setBootstrapClasspath(Object... classpath) {
-        this.bootstrapClasspath.setFrom(classpath);
+        internalGetBootstrapCLasspath().setFrom(classpath);
     }
 
     public void bootstrapClasspath(Object... classpath) {
-        this.bootstrapClasspath.from(classpath);
+        internalGetBootstrapCLasspath().from(classpath);
     }
 
     public String getMinHeapSize() {
@@ -307,7 +314,7 @@ public class JvmOptions {
         target.setSystemProperties(mutableSystemProperties);
         target.setMinHeapSize(minHeapSize);
         target.setMaxHeapSize(maxHeapSize);
-        target.setBootstrapClasspath(bootstrapClasspath);
+        target.setBootstrapClasspath(getBootstrapClasspath());
         target.setEnableAssertions(assertionsEnabled);
         target.setDebug(debug);
         target.systemProperties(immutableSystemProperties);

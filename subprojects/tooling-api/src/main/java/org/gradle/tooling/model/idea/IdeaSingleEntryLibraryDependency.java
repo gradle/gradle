@@ -16,9 +16,9 @@
 
 package org.gradle.tooling.model.idea;
 
-import org.gradle.api.Nullable;
 import org.gradle.tooling.model.ExternalDependency;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**

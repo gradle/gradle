@@ -33,7 +33,7 @@ import java.io.File;
 /**
  * Task for verifying code coverage metrics. Fails the task if violations are detected based on specified rules.
  * <p>
- * Requires JaCoCo version >= 0.6.3.
+ * Requires JaCoCo version &gt;= 0.6.3.
  *
  * @since 3.4
  */

@@ -38,7 +38,7 @@ import java.util.List;
  *
  * <p>Example usage:
  *
- * <pre autoTested="">
+ * <pre class='autoTested'>
  *     apply plugin: "groovy"
  *
  *     repositories {

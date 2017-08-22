@@ -24,6 +24,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.internal.file.archive.ZipCopyAction;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
@@ -34,7 +35,6 @@ import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.progress.PercentageProgressFormatter;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.GUtil;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -239,12 +239,17 @@ class RuntimeShadedJarCreator {
         }
 
         if (name.endsWith(".class")) {
+            // do not include module-info files, as they would represent a bundled dependency module, instead of Gradle itself
             processClassFile(outputStream, inputStream, zipEntry, buffer);
         } else if (name.startsWith(SERVICES_DIR_PREFIX)) {
             processServiceDescriptor(inputStream, zipEntry, buffer, services);
         } else {
             copyEntry(outputStream, inputStream, zipEntry, buffer);
         }
+    }
+
+    private static boolean isModuleInfoClass(String name) {
+        return "module-info".equals(name);
     }
 
     private void processServiceDescriptor(InputStream inputStream, ZipEntry zipEntry, byte[] buffer, Map<String, List<String>> services) throws IOException {
@@ -319,12 +324,15 @@ class RuntimeShadedJarCreator {
 
     private ZipEntry newZipEntryWithFixedTime(String name) {
         ZipEntry entry = new ZipEntry(name);
-        entry.setTime(GUtil.CONSTANT_TIME_FOR_ZIP_ENTRIES);
+        entry.setTime(ZipCopyAction.CONSTANT_TIME_FOR_ZIP_ENTRIES);
         return entry;
     }
 
     private void processClassFile(ZipOutputStream outputStream, InputStream inputStream, ZipEntry zipEntry, byte[] buffer) throws IOException {
         String className = zipEntry.getName().substring(0, zipEntry.getName().length() - ".class".length());
+        if (isModuleInfoClass(className)) {
+            return;
+        }
         byte[] bytes = readEntry(inputStream, zipEntry, buffer);
         byte[] remappedClass = remapClass(className, bytes);
 
@@ -404,7 +412,7 @@ class RuntimeShadedJarCreator {
 
         @Override
         public MethodVisitor visitMethod(int access, final String name, final String desc, String signature, String[] exceptions) {
-            return new MethodVisitor(Opcodes.ASM5, super.visitMethod(access, name, desc, signature, exceptions)) {
+            return new MethodVisitor(Opcodes.ASM6, super.visitMethod(access, name, desc, signature, exceptions)) {
                 @Override
                 public void visitLdcInsn(Object cst) {
                     if (cst instanceof String) {

@@ -55,7 +55,7 @@ public class SomeTest {
         def buildFile = file('build.gradle')
         buildFile << """
 apply plugin: 'java'
-repositories { mavenCentral() }
+${mavenCentralRepository()}
 dependencies { testCompile "junit:junit:4.12" }
 
 test.addTestOutputListener(new VerboseOutputListener(logger: project.logger))
@@ -108,7 +108,7 @@ public class SomeTest {
         def buildFile = file('build.gradle')
         buildFile << """
 apply plugin: 'java'
-repositories { mavenCentral() }
+${mavenCentralRepository()}
 dependencies { testCompile "junit:junit:4.12" }
 
 test.onOutput { descriptor, event ->
@@ -151,7 +151,7 @@ public class SomeTest {
         def buildFile = file('build.gradle')
         buildFile << """
 apply plugin: 'java'
-repositories { mavenCentral() }
+${mavenCentralRepository()}
 dependencies { testCompile "junit:junit:4.12" }
 
 test.testLogging {
@@ -185,7 +185,7 @@ public class SomeTest {
         def buildFile = file('build.gradle')
         buildFile << """
 apply plugin: 'java'
-repositories { mavenCentral() }
+${mavenCentralRepository()}
 dependencies { testCompile 'org.testng:testng:6.3.1' }
 
 test {

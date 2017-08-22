@@ -144,6 +144,8 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_API));
                 actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_API_CLASSES));
                 actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_JARS));
+                actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_CLASSES));
+                actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_RESOURCES));
             }
         });
 
@@ -492,20 +494,36 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         final Usage javaApi;
         final Usage javaApiClasses;
         final Usage javaRuntimeJars;
+        final Usage javaRuntimeClasses;
+        final Usage javaRuntimeResources;
 
         @Inject
-        UsageDisambiguationRules(Usage javaApi, Usage javaApiClasses, Usage javaRuntimeJars) {
+        UsageDisambiguationRules(Usage javaApi, Usage javaApiClasses, Usage javaRuntimeJars, Usage javaRuntimeClasses, Usage javaRuntimeResources) {
             this.javaApi = javaApi;
             this.javaApiClasses = javaApiClasses;
             this.javaRuntimeJars = javaRuntimeJars;
+            this.javaRuntimeClasses = javaRuntimeClasses;
+            this.javaRuntimeResources = javaRuntimeResources;
         }
 
         @Override
         public void execute(MultipleCandidatesDetails<Usage> details) {
             if (details.getCandidateValues().equals(ImmutableSet.of(javaApi, javaApiClasses))) {
                 details.closestMatch(javaApiClasses);
-            } else if (details.getCandidateValues().equals(ImmutableSet.of(javaApi, javaRuntimeJars))) {
-                details.closestMatch(javaApi);
+            } else if (details.getConsumerValue() == null) {
+                if (details.getCandidateValues().equals(ImmutableSet.of(javaApi, javaRuntimeJars))) {
+                    // Use the Jars when nothing has been requested
+                    details.closestMatch(javaRuntimeJars);
+                } else if (details.getCandidateValues().equals(ImmutableSet.of(javaRuntimeJars, javaRuntimeClasses, javaRuntimeResources))) {
+                    // Use the Jars when nothing has been requested
+                    details.closestMatch(javaRuntimeJars);
+                }
+            } else if (details.getConsumerValue() != null) {
+                Usage requested = details.getConsumerValue();
+                if ((requested.getName().equals(Usage.JAVA_API) || requested.getName().equals(Usage.JAVA_API_CLASSES)) && details.getCandidateValues().equals(ImmutableSet.of(javaApi, javaRuntimeJars))) {
+                    // Prefer the API over the runtime when the API has been requested
+                    details.closestMatch(javaApi);
+                }
             }
         }
     }
@@ -513,16 +531,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     static class UsageCompatibilityRules implements AttributeCompatibilityRule<Usage> {
         @Override
         public void execute(CompatibilityCheckDetails<Usage> details) {
-            if (details.getConsumerValue().equals(Usage.FOR_COMPILE)) {
-                if (details.getProducerValue().getName().equals(Usage.JAVA_API)) {
-                    details.compatible();
-                } else if (details.getProducerValue().getName().equals(Usage.JAVA_API_CLASSES)) {
-                    details.compatible();
-                } else if (details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME_JARS)) {
-                    // Can use the runtime Jars if present, but prefer Java API
-                    details.compatible();
-                }
-            } else if (details.getConsumerValue().getName().equals(Usage.JAVA_API)) {
+            if (details.getConsumerValue().getName().equals(Usage.JAVA_API)) {
                 if (details.getProducerValue().getName().equals(Usage.JAVA_API_CLASSES)) {
                     details.compatible();
                 } else if (details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME_JARS)) {
@@ -537,8 +546,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                     // Can use the Java runtime jars if present, but prefer Java API classes
                     details.compatible();
                 }
-            } else if (details.getConsumerValue().equals(Usage.FOR_RUNTIME) && details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME_JARS)) {
-                details.compatible();
             } else if (details.getConsumerValue().getName().equals(Usage.JAVA_RUNTIME) && details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME_JARS)) {
                 details.compatible();
             } else if (details.getConsumerValue().getName().equals(Usage.JAVA_RUNTIME_CLASSES) && details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME_JARS)) {

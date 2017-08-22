@@ -40,8 +40,8 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             allprojects {
                 dependencies {
                     attributesSchema {
-                        attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
-                        attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
+                        attribute(buildType)
+                        attribute(flavor)
                     }
                 }
             }
@@ -152,8 +152,8 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             allprojects {
                 dependencies {
                     attributesSchema {
-                        attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
-                        attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
+                        attribute(flavor)
+                        attribute(buildType)
                     }
                 }
             }
@@ -242,7 +242,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             notExecuted ':external:barJar'
         } else {
             failure.assertHasDescription("Could not determine the dependencies of task ':a:checkDebug'.")
-            failure.assertHasCause("Could not resolve all dependencies for configuration ':a:_compileFreeDebug'")
+            failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:_compileFreeDebug'")
         }
 
         when:
@@ -258,7 +258,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             notExecuted ':external:fooJar'
         } else {
             failure.assertHasDescription("Could not determine the dependencies of task ':a:checkRelease'.")
-            failure.assertHasCause("Could not resolve all dependencies for configuration ':a:_compileFreeRelease'")
+            failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:_compileFreeRelease'")
         }
 
         where:

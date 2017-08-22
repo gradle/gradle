@@ -40,11 +40,6 @@ public class SetupLoggingActionExecuter implements BuildExecuter {
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         StartParameter startParameter = action.getStartParameter();
         loggingManager.setLevelInternal(startParameter.getLogLevel());
-        if (startParameter.isParallelProjectExecutionEnabled()) {
-            loggingManager.setMaxWorkerCount(startParameter.getMaxWorkerCount());
-        } else {
-            loggingManager.setMaxWorkerCount(1);
-        }
         loggingManager.start();
         try {
             return delegate.execute(action, requestContext, actionParameters, contextServices);

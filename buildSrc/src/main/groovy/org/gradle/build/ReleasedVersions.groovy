@@ -20,11 +20,16 @@ import org.gradle.api.GradleException
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.util.GradleVersion
+import org.gradle.util.VersionNumber
 
 import java.util.concurrent.TimeUnit
 
 class ReleasedVersions {
     private static final Logger LOGGER = Logging.getLogger(ReleasedVersions.class)
+    // Add versions which are known to have issues here, so that we don't test them in quick stages phase.
+    // In practice you only need to add versions which are either the first version of a major release series (say, 3.0)
+    // or the last version of a series (say, 2.14.1)
+    private static final List<String> BANNED_VERSIONS = []
 
     private lowestInterestingVersion = GradleVersion.version("0.8")
     private lowestTestedVersion = GradleVersion.version("1.0")
@@ -109,8 +114,26 @@ $standardErr""")
         return versions*.version*.version
     }
 
-    List<String> getTestedVersions() {
-        return testedVersions*.version*.version
+    List<String> getTestedVersions(boolean selection=false) {
+        //Only use latest patch release of each Gradle version
+        List<VersionNumber> versions = (testedVersions*.version*.version - BANNED_VERSIONS)
+            .collect { VersionNumber.parse(it) }
+            .groupBy { "$it.major.$it.minor" }
+            .collectEntries { k, v -> [k, { v.sort(); [v[-1]]}() as Set]}
+            .values().flatten()
+
+        if (selection) {
+            //Limit to first and last release of each major version
+            versions = versions
+                .groupBy { it.major }
+                .collectEntries { k, v -> [k, { v.sort(); [v[0], v[-1]]}() as Set]}
+                .values().flatten()
+        }
+
+        versions.sort().collect {
+            // reformat according to our versioning scheme, since toString() would typically convert 1.0 to 1.0.0
+            "$it.major.${it.minor}${it.micro>0?'.'+it.micro:''}${it.qualifier? '-' + it.qualifier:''}"
+        }
     }
 
     List<String> getAllSnapshots() {

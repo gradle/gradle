@@ -54,7 +54,7 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
         }
 
         when:
-        logger.completed('completed')
+        logger.completed('completed', false)
 
         then:
         1 * timeProvider.getCurrentTime() >> 300L
@@ -227,7 +227,7 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
         when:
         logger.started(null)
         logger.progress(null)
-        logger.completed(null)
+        logger.completed(null, false)
 
         then:
         1 * progressListener.started({it.status == ''})
@@ -316,7 +316,7 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
         logger.description = 'op'
 
         when:
-        logger.completed('finished')
+        logger.completed('finished', false)
 
         then:
         IllegalStateException e = thrown()

@@ -27,10 +27,12 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
     }
 
     def cleanup() {
-        testDirectory.usingNativeTools().deleteDir() //remove symlinks
+        if (testDirectoryProvider.cleanup) {
+            testDirectory.usingNativeTools().deleteDir() //remove symlinks
+        }
     }
 
-    public static boolean shellAvailable(String shellCommand) {
+    public static boolean   shellAvailable(String shellCommand) {
         return TestPrecondition.UNIX_DERIVATIVE.isFulfilled() && (
             new File("/bin/$shellCommand").exists()
                 || new File("/usr/bin/$shellCommand").exists()
@@ -158,16 +160,17 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
     }
 
     ExecutionResult runViaUnixStartScript(String shCommand, String... args) {
+        def path = setUpTestPATH(shCommand);
         TestFile startScriptDir = file('build/install/sample/bin')
         buildFile << """
 task execStartScript(type: Exec) {
     workingDir '$startScriptDir.canonicalPath'
+    environment PATH: "$path"
     commandLine './sample'
     args "${args.join('", "')}"
 }
 """
-        def path = setUpTestPATH(shCommand);
-        return executer.withEnvironmentVars('PATH': path).withTasks('execStartScript').run();
+        return executer.withTasks('execStartScript').run()
     }
 
     private String setUpTestPATH(String shCommand) {

@@ -17,7 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.api.logging.configuration.ShowStacktrace
-import org.gradle.caching.internal.ShortCircuitingErrorHandlerBuildCacheServiceDecorator
+import org.gradle.caching.internal.controller.DefaultBuildCacheController
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import spock.lang.Unroll
@@ -115,46 +115,7 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
     }
 
     @Unroll
-    def "cache switches off after third recoverable error for the current build (stacktraces: #showStractrace)"() {
-        // Need to do it like this because stacktraces are always enabled for integration tests
-        settingsFile << """
-            gradle.startParameter.setShowStacktrace(org.gradle.api.logging.configuration.ShowStacktrace.$showStractrace)
-        """
-        if (expectStacktrace) {
-            executer.withStackTraceChecksDisabled()
-        }
-
-        when:
-        succeeds "assemble", "-Dfail", "-Drecoverable"
-        then:
-        output.count("Could not load entry") == 2
-        output.count("Could not store entry") == 1
-        output.count("The remote build cache is now disabled because 3 recoverable errors were encountered.") == 1
-        output.count("The remote build cache was disabled during the build because 3 recoverable errors were encountered.") == 1
-        if (expectStacktrace) {
-            assert stackTraceContains(ShortCircuitingErrorHandlerBuildCacheServiceDecorator)
-        }
-
-        when:
-        succeeds "clean", "assemble"
-
-        then: "build cache is still enabled during next build"
-        !output.contains("The remote build cache is now disabled")
-        !output.contains("The remote build cache was disabled during the build")
-        if (expectStacktrace) {
-            assert !stackTraceContains(ShortCircuitingErrorHandlerBuildCacheServiceDecorator)
-        }
-        skippedTasks.empty
-
-        where:
-        showStractrace                     | expectStacktrace
-        ShowStacktrace.INTERNAL_EXCEPTIONS | false
-        ShowStacktrace.ALWAYS              | true
-        ShowStacktrace.ALWAYS_FULL         | true
-    }
-
-    @Unroll
-    def "cache switches off after first non-recoverable error for the current build (stacktraces: #showStractrace)"() {
+    def "cache switches off after first error for the current build (stacktraces: #showStractrace)"() {
         // Need to do it like this because stacktraces are always enabled for integration tests
         settingsFile << """
             gradle.startParameter.setShowStacktrace(org.gradle.api.logging.configuration.ShowStacktrace.$showStractrace)
@@ -167,12 +128,11 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
         succeeds "assemble", "-Dfail"
         then:
         output.count("Could not load entry") == 1
-        output.count("Could not store entry") == 1
-        output.count("Failure while packing") == 1
-        output.count("The remote build cache is now disabled because a non-recoverable error was encountered.") == 1
-        output.count("The remote build cache was disabled during the build because a non-recoverable error was encountered.") == 1
+        output.count("Could not store entry") == 0
+        output.count("Failure while packing") == 0
+        output.count("The remote build cache was disabled during the build due to errors.") == 1
         if (expectStacktrace) {
-            assert stackTraceContains(ShortCircuitingErrorHandlerBuildCacheServiceDecorator)
+            assert stackTraceContains(DefaultBuildCacheController)
         }
 
         when:
@@ -182,7 +142,7 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
         !output.contains("The remote build cache is now disabled")
         !output.contains("The remote build cache was disabled during the build")
         if (expectStacktrace) {
-            assert !stackTraceContains(ShortCircuitingErrorHandlerBuildCacheServiceDecorator)
+            assert !stackTraceContains(DefaultBuildCacheController)
         }
         skippedTasks.empty
 

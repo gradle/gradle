@@ -16,6 +16,9 @@
 
 package org.gradle.internal.nativeintegration.filesystem;
 
+import org.gradle.internal.file.FileMetadataSnapshot;
+import org.gradle.internal.file.FileType;
+
 public class DefaultFileMetadata implements FileMetadataSnapshot {
     private static final FileMetadataSnapshot DIR = new DefaultFileMetadata(FileType.Directory, 0, 0);
     private static final FileMetadataSnapshot MISSING = new DefaultFileMetadata(FileType.Missing, 0, 0);

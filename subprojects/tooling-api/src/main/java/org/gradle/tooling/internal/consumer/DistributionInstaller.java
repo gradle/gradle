@@ -19,7 +19,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.time.TimeProvider;
-import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.OperationResult;
 import org.gradle.tooling.events.StatusEvent;
@@ -59,10 +58,10 @@ public class DistributionInstaller {
     private boolean cancelled;
     private Throwable failure;
 
-    public DistributionInstaller(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener buildProgressListener) {
+    public DistributionInstaller(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener buildProgressListener, TimeProvider timeProvider) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.buildProgressListener = buildProgressListener;
-        this.timeProvider = new TrueTimeProvider();
+        this.timeProvider = timeProvider;
     }
 
     /**

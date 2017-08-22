@@ -27,6 +27,16 @@ class FileContentGenerator {
     def generateBuildGradle(Integer subProjectNumber, DependencyTree dependencyTree) {
         def isRoot = subProjectNumber == null
         if (isRoot && config.subProjects > 0) {
+            if (config.compositeBuild) {
+                return """
+                    task clean {
+                        dependsOn gradle.includedBuilds*.task(":clean")
+                    }
+                    task assemble {
+                        dependsOn gradle.includedBuilds*.task(":assemble")
+                    }
+                """
+            }
             return ""
         }
         """
@@ -68,23 +78,45 @@ class FileContentGenerator {
             outputs.upToDateWhen { false }
             outputFile = new File(buildDir, "dependencies.txt")
         }
+
+        group = 'org.gradle.test.performance'
+        version = '2.0'
         """
     }
 
     def generateSettingsGradle(boolean isRoot) {
-        if (!isRoot) {
-            return null
+        if (config.compositeBuild) {
+            if (!isRoot) {
+                return ""
+            }
+            return (0..config.subProjects-1).collect {
+                if (config.compositeBuild.usePredefinedPublications()) {
+                    """
+                    includeBuild('project$it') {
+                        dependencySubstitution {
+                            substitute module('org.gradle.test.performance:project${it}') with project(':')
+                        }
+                    }
+                    """
+                } else {
+                    "includeBuild('project$it')"
+                }
+            }.join("\n")
+        } else {
+            if (!isRoot) {
+                return null
+            }
+            if (config.subProjects == 0) {
+                return ""
+            }
+            """ 
+            ${(0..config.subProjects - 1).collect { "include 'project$it'" }.join("\n")}
+            """
         }
-        if (config.subProjects == 0) {
-            return ""
-        }
-        """ 
-        ${(0..config.subProjects - 1).collect { "include 'project$it'" }.join("\n")}
-        """
     }
 
     def generateGradleProperties(boolean isRoot) {
-        if (!isRoot) {
+        if (!isRoot && !config.compositeBuild) {
             return null
         }
         """
@@ -363,7 +395,7 @@ class FileContentGenerator {
         if (subProjectNumbers?.size() > 0) {
             def abiProjectNumber = subProjectNumbers.get(DependencyTree.API_DEPENDENCY_INDEX)
             subProjectDependencies = subProjectNumbers.collect {
-                it == abiProjectNumber ? "${hasParent ? api : implementation} project(':project${abiProjectNumber}')" : "$implementation project(':project$it')"
+                it == abiProjectNumber ? "${hasParent ? api : implementation} " + dependency(abiProjectNumber) : "$implementation " + dependency(it)
             }.join("\n            ")
         }
         """
@@ -386,6 +418,13 @@ class FileContentGenerator {
             $subProjectDependencies
         }
         """
+    }
+
+    private dependency(int projectNumber) {
+        if (config.compositeBuild) {
+            return "'org.gradle.test.performance:project${projectNumber}:1.0'"
+        }
+        return "project(':project${projectNumber}')"
     }
 
     private convertToPomDependency(String dependency, String scope = 'compile') {

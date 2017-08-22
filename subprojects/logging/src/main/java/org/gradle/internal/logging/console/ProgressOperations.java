@@ -16,9 +16,9 @@
 
 package org.gradle.internal.logging.console;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.logging.events.OperationIdentifier;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 

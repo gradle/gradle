@@ -22,7 +22,7 @@ import org.gradle.model.Managed;
 /**
  * A set of assembly language sources.
  *
- * <pre autoTested="true">
+ * <pre class='autoTested'>
  * apply plugin: "assembler"
  *
  * model {

@@ -52,5 +52,26 @@ abstract class PlayTestApplicationIntegrationTest extends PlayMultiVersionApplic
                 ":testPlayBinary")
     }
 
+    def "can run play app tests if java plugin is applied"() {
+        when:
+        buildFile << """
+            apply plugin: 'java'
+        """
+        succeeds("check")
+        then:
+        executed(
+            ":compilePlayBinaryPlayRoutes",
+            ":compilePlayBinaryPlayTwirlTemplates",
+            ":compilePlayBinaryScala",
+            ":createPlayBinaryJar",
+            ":createPlayBinaryAssetsJar",
+            ":playBinary",
+            ":compilePlayBinaryTests",
+            ":testPlayBinary")
+
+        then:
+        verifyTestOutput(new JUnitXmlTestExecutionResult(testDirectory, "build/playBinary/reports/test/xml"))
+    }
+
     void verifyTestOutput(TestExecutionResult result) { }
 }

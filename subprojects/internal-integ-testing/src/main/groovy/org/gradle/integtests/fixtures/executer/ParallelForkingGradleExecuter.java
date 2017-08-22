@@ -25,7 +25,7 @@ import org.gradle.util.GradleVersion;
 import java.util.ArrayList;
 import java.util.List;
 
-class ParallelForkingGradleExecuter extends ForkingGradleExecuter {
+class ParallelForkingGradleExecuter extends DaemonGradleExecuter {
     public ParallelForkingGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion, IntegrationTestBuildContext buildContext) {
         super(distribution, testDirectoryProvider, gradleVersion, buildContext);
     }

@@ -50,6 +50,7 @@ public class FindBugsSpecBuilder {
     private File excludeBugsFilter;
     private Collection<String> extraArgs;
     private boolean debugEnabled;
+    private boolean showProgress;
 
     public FindBugsSpecBuilder(FileCollection classesDirs) {
         if(classesDirs == null || classesDirs.isEmpty()){
@@ -157,7 +158,9 @@ public class FindBugsSpecBuilder {
         args.add(pluginsList==null ? "" : pluginsList.getAsPath());
         args.add("-sortByClass");
         args.add("-timestampNow");
-        args.add("-progress");
+        if (showProgress) {
+            args.add("-progress");
+        }
 
         if (reports != null && !reports.getEnabled().isEmpty()) {
             if (reports.getEnabled().size() == 1) {
@@ -259,5 +262,10 @@ public class FindBugsSpecBuilder {
 
     private boolean has(FileCollection fileCollection) {
         return fileCollection != null && !fileCollection.isEmpty();
+    }
+
+    public FindBugsSpecBuilder withShowProgress(boolean showProgress) {
+        this.showProgress = showProgress;
+        return this;
     }
 }

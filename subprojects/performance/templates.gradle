@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.gradle.testing.performance.generator.tasks.JavaExecProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.KtsProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.MonolithicNativeProjectGeneratorTask
@@ -22,9 +23,9 @@ import org.gradle.testing.performance.generator.tasks.RemoteProject
 
 // === Java ===
 ['largeMonolithicJavaProject', 'largeJavaMultiProject',
- 'mediumMonolithicJavaProject', 'mediumJavaMultiProject', 'mediumJavaMultiProjectWithTestNG',
+ 'mediumMonolithicJavaProject', 'mediumJavaMultiProject', 'mediumJavaMultiProjectWithTestNG', 'mediumJavaCompositeBuild', 'mediumJavaPredefinedCompositeBuild',
  'smallJavaMultiProject'].each { template ->
-    tasks.create(template, JavaExec) {
+    tasks.create(template, JavaExecProjectGeneratorTask) {
         outputs.dir new File(buildDir, template)
         classpath = sourceSets.performanceTest.runtimeClasspath
         main = 'org.gradle.performance.generator.TestProjectGenerator'
@@ -65,7 +66,7 @@ task createLotsOfTasks(type: JvmProjectGeneratorTask) {
     numberOfExternalDependencies = 0
 }
 
-// === Gradle Script Kotlin ===
+// === Gradle Kotlin DSL ===
 task ktsManyProjects(type: KtsProjectGeneratorTask) {
     projects = 100
     sourceFiles = 0
@@ -242,6 +243,11 @@ task largeNativeBuildPrebuilt(type: GradleBuild) {
     buildFile = file("$largeNativeBuild.outputDirectory/prebuilt/util/build.gradle")
     dir = file("$largeNativeBuild.outputDirectory/prebuilt/util")
     tasks = ['build']
+}
+
+task archivePerformanceProject(type: Copy) {
+    into "build/$name"
+    from "src/templates/$name"
 }
 
 tasks.withType(JvmProjectGeneratorTask) {

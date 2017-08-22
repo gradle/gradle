@@ -46,10 +46,7 @@
         <itemizedlist>
             <listitem>
                 <para>
-                    Full support is limited to Play 2.3.x applications.
-                    Limited support is available for Play 2.4.x &amp; 2.5.x applications. Gradle does not include support for a few new build-related features in 2.4.0+
-                    Specifically, Gradle does not yet support aggregate reverse routes.
-                    Future Gradle versions will add more support for Play 2.6.x.
+                    Gradle does not yet support aggregate reverse routes introduced in Play 2.4.x.
                 </para>
             </listitem>
             <listitem>
@@ -129,7 +126,7 @@
                     <td>twirlTemplates</td>
                     <td><apilink class="org.gradle.language.twirl.TwirlSourceSet"/></td>
                     <td>app</td>
-                    <td>**/*.html</td>
+                    <td>**/*.scala.*</td>
                 </tr>
                 <tr>
                     <td>javaScript</td>
@@ -290,10 +287,10 @@
                     <literal>compilePlayBinaryPlayTwirlTemplates</literal>
                 </td>
                 <td>
-                    Twirl HTML templates
+                    Twirl templates
                 </td>
                 <td><apilink class="org.gradle.play.tasks.TwirlCompile"/></td>
-                <td>Compiles HTML templates with the Twirl compiler.</td>
+                <td>Compiles Twirl templates with the Twirl compiler. Gradle supports all of the built-in Twirl template formats (HTML, XML, TXT and JavaScript). Twirl templates need to match the pattern <literal>*.scala.*</literal>.</td>
             </tr>
             <tr>
                 <td>
@@ -360,7 +357,7 @@
         <section id="configuring_play_platform">
             <title>Targeting a certain version of Play</title>
             <para>
-                By default, Gradle uses Play 2.3.9, Scala 2.11 and the version of Java used to start the build.
+                By default, Gradle uses Play 2.3.10, Scala 2.11 and the version of Java used to start the build.
                 A Play application can select a different version by specifying a target <apilink class="org.gradle.play.PlayApplicationSpec" method="platform">platform</apilink> on the Play application component.
             </para>
             <sample id="specifyPlayVersion" dir="play/advanced" title="Selecting a version of the Play Framework">
@@ -441,6 +438,12 @@
             <sample id="configureRoutesCompiler" dir="play/play-2.4" title="Configuring routes style">
                 <sourcefile file="build.gradle" snippet="play-injected-routes-compiler"/>
             </sample>
+        </section>
+        <section id="sec:configuring_twirl_templates">
+            <title>Configuring Twirl templates</title>
+            <para>
+                A custom Twirl template format can be configured independently for each Twirl source set. See the <apilink class="org.gradle.language.twirl.TwirlSourceSet"/> for an example.
+            </para>
         </section>
         <section id="sec:injecting_a_custom_asset_pipeline">
             <title>Injecting a custom asset pipeline</title>

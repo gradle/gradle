@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.Nullable;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.regex.Pattern;
 

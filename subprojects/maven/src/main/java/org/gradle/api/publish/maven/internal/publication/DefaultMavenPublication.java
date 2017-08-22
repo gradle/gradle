@@ -68,12 +68,13 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
      */
     private static final Set<ExcludeRule> EXCLUDE_ALL_RULE = Collections.<ExcludeRule>singleton(new DefaultExcludeRule("*", "*"));
     private static final Comparator<? super UsageContext> COMPILE_BEFORE_RUNTIME = new Comparator<UsageContext>() {
-        private final Comparator<? super Usage> compileBeforeRuntime = Ordering.explicit(Usage.FOR_COMPILE, Usage.FOR_RUNTIME);
+        private final Comparator<String> compileBeforeRuntime = Ordering.explicit(Usage.JAVA_API, Usage.JAVA_RUNTIME);
         @Override
         public int compare(UsageContext left, UsageContext right) {
-            return compileBeforeRuntime.compare(left.getUsage(), right.getUsage());
+            return compileBeforeRuntime.compare(left.getUsage().getName(), right.getUsage().getName());
         }
     };
+
     private final String name;
     private final MavenPomInternal pom;
     private final MavenProjectIdentity projectIdentity;
@@ -148,7 +149,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     private Set<MavenDependencyInternal> dependenciesFor(Usage usage) {
-        if (Usage.FOR_COMPILE.equals(usage)) {
+        if (Usage.JAVA_API.equals(usage.getName())) {
             return apiDependencies;
         }
         return runtimeDependencies;

@@ -16,8 +16,8 @@
 
 package org.gradle.internal.operations;
 
-import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.internal.concurrent.ManagedExecutor;
 
 public interface BuildOperationQueueFactory {
-    <T extends BuildOperation> BuildOperationQueue<T> create(StoppableExecutor executor, BuildOperationQueue.QueueWorker<T> worker);
+    <T extends BuildOperation> BuildOperationQueue<T> create(ManagedExecutor executor, BuildOperationQueue.QueueWorker<T> worker);
 }

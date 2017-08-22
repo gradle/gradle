@@ -30,6 +30,8 @@ import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
+import org.gradle.internal.resource.local.FileResourceRepository
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -44,7 +46,8 @@ abstract class AbstractGradlePomModuleDescriptorParserTest extends Specification
         }
     }
     final ModuleExclusions moduleExclusions = new ModuleExclusions(moduleIdentifierFactory)
-    final GradlePomModuleDescriptorParser parser = new GradlePomModuleDescriptorParser(new DefaultVersionSelectorScheme(), moduleIdentifierFactory, moduleExclusions, TestFiles.fileSystem())
+    final FileResourceRepository fileRepository = TestFiles.fileRepository()
+    final GradlePomModuleDescriptorParser parser = new GradlePomModuleDescriptorParser(new DefaultVersionSelectorScheme(), moduleIdentifierFactory, moduleExclusions, fileRepository)
     final parseContext = Mock(DescriptorParseContext)
     TestFile pomFile
     ModuleDescriptorState descriptor
@@ -57,6 +60,10 @@ abstract class AbstractGradlePomModuleDescriptorParserTest extends Specification
     protected void parsePom() {
         metadata = parseMetaData()
         descriptor = metadata.descriptor
+    }
+
+    protected LocallyAvailableExternalResource asResource(File file) {
+        return fileRepository.resource(file)
     }
 
     protected MutableMavenModuleResolveMetadata parseMetaData() {

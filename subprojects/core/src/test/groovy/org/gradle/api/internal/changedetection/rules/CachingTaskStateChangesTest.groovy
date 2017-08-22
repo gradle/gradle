@@ -26,23 +26,6 @@ public class CachingTaskStateChangesTest extends Specification {
 
     def cachingChanges = new CachingTaskStateChanges(2, delegate)
 
-    def "delegates to underlying instance"() {
-        when:
-        def reported = cachingChanges.iterator().collect()
-
-        then:
-        delegate.iterator() >> [change1, change2, change3].iterator()
-
-        and:
-        reported == [change1, change2, change3]
-
-        when:
-        cachingChanges.snapshotAfterTask()
-
-        then:
-        delegate.snapshotAfterTask()
-    }
-
     def "caches all reported changes under cache size"() {
         when:
         cachingChanges.iterator().collect()

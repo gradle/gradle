@@ -20,6 +20,9 @@ import org.gradle.internal.resource.Resource;
 
 import java.io.File;
 
+/**
+ * Represents a file backed local resource.
+ */
 public interface LocallyAvailableResource extends Resource {
 
     File getFile();

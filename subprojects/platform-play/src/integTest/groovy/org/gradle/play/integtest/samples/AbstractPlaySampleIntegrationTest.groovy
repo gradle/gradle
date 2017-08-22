@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.play.integtest.fixtures.RunningPlayApp
+import org.gradle.test.fixtures.ConcurrentTestUtil
+import spock.lang.IgnoreIf
 
 import static org.gradle.integtests.fixtures.UrlValidator.*
 
@@ -46,6 +48,7 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec
         """
     }
 
+    @IgnoreIf({ !AbstractPlaySampleIntegrationTest.portForWithBrowserTestIsFree() })
     def "produces usable application" () {
         when:
         executer.usingInitScript(initScript)
@@ -57,7 +60,7 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec
 
         when:
         sample playSample
-        executer.usingInitScript(initScript).withStdinPipe()
+        executer.usingInitScript(initScript).withStdinPipe().withForceInteractive(true)
         GradleHandle gradleHandle = executer.withTasks(":runPlayBinary").start()
         runningPlayApp.initialize(gradleHandle)
 
@@ -84,5 +87,23 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec
 
     File appAsset(String asset) {
         return new File(playSample.dir, "app/assets/${asset}")
+    }
+
+    static boolean portForWithBrowserTestIsFree() {
+        boolean free = true
+
+        ConcurrentTestUtil.poll(30) {
+            Socket probe
+            try {
+                probe = new Socket(InetAddress.getLocalHost(), 19001)
+                // something is listening, keep polling
+                free = false
+            } catch (Exception e) {
+                // nothing listening - exit the polling loop
+            } finally {
+                probe?.close()
+            }
+        }
+        free
     }
 }

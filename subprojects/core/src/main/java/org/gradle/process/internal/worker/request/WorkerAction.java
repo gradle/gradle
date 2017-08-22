@@ -17,7 +17,12 @@
 package org.gradle.process.internal.worker.request;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.AsmBackedClassGenerator;
+import org.gradle.api.internal.DefaultInstantiatorFactory;
+import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.operations.BuildOperationIdentifierRegistry;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
@@ -35,6 +40,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
     private transient Throwable failure;
     private transient Class<?> workerImplementation;
     private transient Object implementation;
+    private InstantiatorFactory instantiatorFactory;
 
     public WorkerAction(Class<?> workerImplementation) {
         this.workerImplementationName = workerImplementation.getName();
@@ -44,8 +50,11 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
     public void execute(WorkerProcessContext workerProcessContext) {
         completed = new CountDownLatch(1);
         try {
+            if (instantiatorFactory == null) {
+                instantiatorFactory = new DefaultInstantiatorFactory(new AsmBackedClassGenerator(), new CrossBuildInMemoryCacheFactory(new DefaultListenerManager()));
+            }
             workerImplementation = Class.forName(workerImplementationName);
-            implementation = workerImplementation.newInstance();
+            implementation = instantiatorFactory.inject(workerProcessContext.getServiceRegistry()).newInstance(workerImplementation);
         } catch (Throwable e) {
             failure = e;
         }

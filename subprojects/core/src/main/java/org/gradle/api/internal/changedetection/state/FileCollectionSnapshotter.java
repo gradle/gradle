@@ -33,12 +33,6 @@ public interface FileCollectionSnapshotter {
 
     /**
      * Creates a snapshot of the contents of the given collection.
-     *
-     * @param files The files to snapshot.
-     * @param compareStrategy How to compare this collection snapshot to others.
-     * @param snapshotNormalizationStrategy How to normalize file snapshots.
-     * @param normalizationStrategy The input normalization strategy to take into account.
-     * @return The snapshot.
      */
-    FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy, InputNormalizationStrategy normalizationStrategy);
+    FileCollectionSnapshot snapshot(FileCollection files, PathNormalizationStrategy pathNormalizationStrategy, InputNormalizationStrategy inputNormalizationStrategy);
 }

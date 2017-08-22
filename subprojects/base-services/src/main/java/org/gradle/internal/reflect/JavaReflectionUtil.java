@@ -16,13 +16,14 @@
 
 package org.gradle.internal.reflect;
 
+import org.apache.commons.lang.reflect.MethodUtils;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
 import java.lang.reflect.Constructor;
@@ -107,12 +108,13 @@ public class JavaReflectionUtil {
      *
      * @throws NoSuchPropertyException when the given property does not exist.
      */
-    public static PropertyMutator writeableProperty(Class<?> target, String property) throws NoSuchPropertyException {
-        PropertyMutator mutator = writeablePropertyIfExists(target, property);
+    public static PropertyMutator writeableProperty(Class<?> target, String property, @Nullable Class<?> valueType) throws NoSuchPropertyException {
+        PropertyMutator mutator = writeablePropertyIfExists(target, property, valueType);
         if (mutator != null) {
             return mutator;
         }
-        throw new NoSuchPropertyException(String.format("Could not find setter method for property '%s' on class %s.", property, target.getSimpleName()));
+        throw new NoSuchPropertyException(String.format("Could not find setter method for property '%s' %s on class %s.",
+            property, valueType == null ? "accepting null value" : "of type " + valueType.getSimpleName(), target.getSimpleName()));
     }
 
     /**
@@ -120,12 +122,10 @@ public class JavaReflectionUtil {
      *
      * Returns null if no such property exists.
      */
-    public static PropertyMutator writeablePropertyIfExists(Class<?> target, String property) throws NoSuchPropertyException {
+    public static PropertyMutator writeablePropertyIfExists(Class<?> target, String property, @Nullable Class<?> valueType) throws NoSuchPropertyException {
         String setterName = toMethodName("set", property);
-        for (final Method method : target.getMethods()) {
-            if (!method.getName().equals(setterName) || PropertyAccessorType.of(method) != PropertyAccessorType.SETTER) {
-                continue;
-            }
+        Method method = MethodUtils.getMatchingAccessibleMethod(target, setterName, new Class<?>[]{valueType});
+        if (method != null) {
             return new MethodBackedPropertyMutator(property, method);
         }
         return null;
@@ -321,10 +321,6 @@ public class JavaReflectionUtil {
         }
     }
 
-    public static <T> Factory<T> factory(final Instantiator instantiator, final Class<? extends T> type, final Object... args) {
-        return new InstantiatingFactory<T>(instantiator, type, args);
-    }
-
     public static boolean hasDefaultToString(Object object) {
         try {
             return object.getClass().getMethod("toString").getDeclaringClass() == Object.class;
@@ -338,7 +334,7 @@ public class JavaReflectionUtil {
         private final Method method;
         private final Class<F> returnType;
 
-        public GetterMethodBackedPropertyAccessor(String property, Class<F> returnType, Method method) {
+        GetterMethodBackedPropertyAccessor(String property, Class<F> returnType, Method method) {
             this.property = property;
             this.method = method;
             this.returnType = returnType;
@@ -373,7 +369,7 @@ public class JavaReflectionUtil {
         private final Field field;
         private final Class<F> fieldType;
 
-        public FieldBackedPropertyAccessor(String property, Class<F> fieldType, Field field) {
+        FieldBackedPropertyAccessor(String property, Class<F> fieldType, Field field) {
             this.property = property;
             this.field = field;
             this.fieldType = fieldType;
@@ -403,7 +399,7 @@ public class JavaReflectionUtil {
         private final String property;
         private final Method method;
 
-        public MethodBackedPropertyMutator(String property, Method method) {
+        MethodBackedPropertyMutator(String property, Method method) {
             this.property = property;
             this.method = method;
         }
@@ -436,7 +432,7 @@ public class JavaReflectionUtil {
         private final String name;
         private final Field field;
 
-        public FieldBackedPropertyMutator(String name, Field field) {
+        FieldBackedPropertyMutator(String name, Field field) {
             this.name = name;
             this.field = field;
         }
@@ -460,22 +456,6 @@ public class JavaReflectionUtil {
             } catch (IllegalAccessException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
-        }
-    }
-
-    private static class InstantiatingFactory<T> implements Factory<T> {
-        private final Instantiator instantiator;
-        private final Class<? extends T> type;
-        private final Object[] args;
-
-        public InstantiatingFactory(Instantiator instantiator, Class<? extends T> type, Object... args) {
-            this.instantiator = instantiator;
-            this.type = type;
-            this.args = args;
-        }
-
-        public T create() {
-            return instantiator.newInstance(type, args);
         }
     }
 

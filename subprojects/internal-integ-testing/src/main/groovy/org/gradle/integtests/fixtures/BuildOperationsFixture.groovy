@@ -46,6 +46,12 @@ class BuildOperationsFixture {
     }
 
     @SuppressWarnings("GrUnnecessaryPublicModifier")
+    public <T extends BuildOperationType<?, ?>> List<BuildOperationRecord> roots() {
+        return operations.roots
+    }
+
+
+    @SuppressWarnings("GrUnnecessaryPublicModifier")
     public <T extends BuildOperationType<?, ?>> BuildOperationRecord first(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
         def detailsType = BuildOperationTypes.detailsType(type)
         operations.records.values().find {
@@ -59,6 +65,11 @@ class BuildOperationsFixture {
         operations.records.values().findAll {
             it.detailsType && detailsType.isAssignableFrom(it.detailsType) && predicate.isSatisfiedBy(it)
         }
+    }
+
+    @SuppressWarnings("GrUnnecessaryPublicModifier")
+    public <T extends BuildOperationType<?, ?>> void none(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
+        assert all(type, predicate).isEmpty()
     }
 
     @SuppressWarnings("GrUnnecessaryPublicModifier")
@@ -113,5 +124,95 @@ class BuildOperationsFixture {
         }
 
         matches
+    }
+
+    void orderedSerialSiblings(BuildOperationRecord... expectedOrder) {
+        def expectedOrderList = expectedOrder.toList()
+        assert expectedOrder*.parentId.unique().size() == 1
+        def startTimeOrdered = expectedOrderList.sort(false) { it.startTime }
+        assert expectedOrderList == startTimeOrdered
+        def endTimeOrdered = expectedOrderList.sort(false) { it.endTime }
+        assert endTimeOrdered == startTimeOrdered
+    }
+
+    static class TimePoint implements Comparable<TimePoint> {
+        private final boolean end
+        private final long time
+        private final BuildOperationRecord operation
+
+        TimePoint(BuildOperationRecord operation, long time) {
+            this(operation, time, false)
+        }
+
+        TimePoint(BuildOperationRecord operation, long time, boolean end) {
+            this.operation = operation
+            this.time = time
+            this.end = end
+        }
+
+        @Override
+        int compareTo(TimePoint o) {
+            if (o.time > time) {
+                return -1
+            }
+            else if (o.time < time) {
+                return 1
+            }
+            else {
+                if (end && o.end) {
+                    return 0
+                } else if (end) {
+                    return -1
+                } else {
+                    return 1
+                }
+            }
+        }
+
+        @Override
+        String toString() {
+            if (end) {
+                time + "E"
+            } else {
+                time + "S"
+            }
+        }
+    }
+
+    /**
+     * Asserts that no more than maximumConcurrentOperations of the given type of build operation are executing at the same time.
+     *
+     * @param type type of build operation
+     * @param maximumConcurrentOperations maximum concurrent operations allowed
+     * @param concurrencyExpected whether or not to expect _any_ concurrency
+     */
+    void assertConcurrentOperationsDoNotExceed(Class<BuildOperationType> type, int maximumConcurrentOperations, boolean concurrencyExpected=false) {
+        def allOperations = all(type)
+
+        List<TimePoint> points = []
+
+        allOperations.each {
+            points.add(new TimePoint(it, it.startTime))
+            points.add(new TimePoint(it, it.endTime, true))
+        }
+
+        def concurrencySeen = false
+        def concurrentOperations = []
+        points.sort().each {
+            if (it.end) {
+                concurrentOperations.remove(it.operation)
+            } else {
+                if ((it.operation.endTime - it.operation.startTime) > 0) {
+                    concurrentOperations.add(it.operation)
+                }
+            }
+            assert concurrentOperations.size() <= maximumConcurrentOperations
+            if (concurrentOperations.size() > 1) {
+                concurrencySeen = true
+            }
+        }
+        if (concurrencyExpected) {
+            assert concurrencySeen : "No operations were executed concurrently"
+        }
     }
 }

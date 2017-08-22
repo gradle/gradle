@@ -25,8 +25,8 @@ import org.apache.commons.collections.map.ReferenceMap;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonExtensible;
-import org.gradle.api.Nullable;
 import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.api.provider.PropertyState;
 import org.gradle.internal.reflect.ClassDetails;
 import org.gradle.internal.reflect.ClassInspector;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -34,6 +34,7 @@ import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.PropertyDetails;
 import org.gradle.internal.service.ServiceRegistry;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -144,6 +145,11 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                     continue;
                 }
 
+                if (!property.getters.isEmpty() && PropertyState.class.isAssignableFrom(property.getType())) {
+                    builder.addPropertyStateSetters(property, property.getters.get(0));
+                    continue;
+                }
+
                 if (property.injector) {
                     builder.addInjectorProperty(property);
                     for (Method getter : property.getters) {
@@ -171,9 +177,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                     for (Method getter : property.getters) {
                         builder.applyConventionMappingToGetter(property, getter);
                     }
-                }
 
-                if (needsConventionMapping) {
                     for (Method setter : property.setters) {
                         if (!Modifier.isFinal(setter.getModifiers())) {
                             builder.applyConventionMappingToSetter(property, setter);
@@ -461,6 +465,8 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         void addSetMethod(PropertyMetaData propertyMetaData, Method setter) throws Exception;
 
         void addActionMethod(Method method) throws Exception;
+
+        void addPropertyStateSetters(PropertyMetaData property, Method getter) throws Exception;
 
         void generateServiceRegistrySupportMethods() throws Exception;
 

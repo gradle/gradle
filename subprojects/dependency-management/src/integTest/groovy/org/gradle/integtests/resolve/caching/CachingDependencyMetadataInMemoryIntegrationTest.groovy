@@ -20,7 +20,6 @@ package org.gradle.integtests.resolve.caching
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.ivy.IvyFileRepository
-import spock.lang.Ignore
 
 class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -120,56 +119,6 @@ class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractDependenc
         output.contains ':resolveConf [lib-1.0.jar]'
         //uses different repo that does not contain this dependency
         failure.assertResolutionFailure(":impl:conf").assertHasCause("Could not find org:lib:1.0")
-    }
-
-    @Ignore //TODO SF rework or remove this test
-    def "snapshot artifacts are only cached per build"() {
-        given:
-        file("provider/build.gradle") << """
-            apply plugin: 'java'
-            apply plugin: 'maven'
-            group = 'org'
-            archivesBaseName = 'provider'
-            version = '1.0-SNAPSHOT'
-            repositories { maven { url "$mavenRepo.uri" } }
-        """
-        file("provider/src/main/java/Name.java") << """public class Name {
-            public String toString() { return "foo"; }
-        }"""
-
-        when:
-        inDirectory "provider"; run "install"
-
-        then:
-        noExceptionThrown()
-
-        when:
-        file("consumer/build.gradle") << """
-            buildscript {
-                repositories { mavenLocal() }
-                dependencies { classpath 'org:provider:1.0-SNAPSHOT' }
-            }
-            task printName { doLast { println "Name: " + new Name() } }
-        """
-
-        inDirectory("consumer"); run "printName"
-
-        then:
-        output.contains "Name: foo"
-
-        when:
-        //change the class
-        file("provider/src/main/java/Name.java").text = """public class Name {
-            public String toString() { return "updated"; }
-        }"""
-
-        inDirectory("provider"); run "install"
-
-        and:
-        inDirectory("consumer"); run "printName"
-
-        then:
-        output.contains "Name: updated" //uses updated artifact
     }
 
     def "cache expires at the end of build"() {

@@ -520,6 +520,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
                 }
             }
             start {
+                server.waitForRequests(1)
                 try {
                     server.uri("b").toURL().text
                 } catch (Throwable t) {
@@ -527,6 +528,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
                 }
             }
             start {
+                server.waitForRequests(2)
                 try {
                     server.uri("c").toURL().text
                 } catch (Throwable t) {

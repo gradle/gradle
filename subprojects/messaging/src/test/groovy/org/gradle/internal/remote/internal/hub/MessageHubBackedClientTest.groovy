@@ -16,7 +16,7 @@
 package org.gradle.internal.remote.internal.hub
 
 import org.gradle.internal.concurrent.ExecutorFactory
-import org.gradle.internal.concurrent.StoppableExecutor
+import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.remote.Address
 import org.gradle.internal.remote.internal.ConnectCompletion
 import org.gradle.internal.remote.internal.OutgoingConnector
@@ -33,7 +33,7 @@ class MessageHubBackedClientTest extends Specification {
         Address address = Stub()
         ConnectCompletion connectCompletion = Mock()
         RemoteConnection<InterHubMessage> backingConnection = Mock()
-        StoppableExecutor executor = Mock()
+        ManagedExecutor executor = Mock()
 
         when:
         def objectConnection = client.getConnection(address)

@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
@@ -31,6 +30,7 @@ import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePoli
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.model.FixedComponentArtifacts;
@@ -121,7 +121,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     }
 
     @Override
-    public Map<ComponentArtifactIdentifier, ResolvedArtifact> getArtifactCache() {
+    public Map<ComponentArtifactIdentifier, ResolvableArtifact> getArtifactCache() {
         throw new UnsupportedOperationException();
     }
 

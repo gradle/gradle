@@ -18,9 +18,9 @@ package org.gradle.internal.nativeintegration.filesystem.services;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
+import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.FileException;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
-import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.FileModeAccessor;
 import org.gradle.internal.nativeintegration.filesystem.FileModeMutator;
 import org.gradle.internal.nativeintegration.filesystem.Symlink;
@@ -35,7 +35,7 @@ import java.util.UUID;
 class GenericFileSystem implements FileSystem {
     private static final Logger LOGGER = LoggerFactory.getLogger(GenericFileSystem.class);
 
-    private final boolean caseSensitive;
+    private Boolean caseSensitive;
     private final boolean canCreateSymbolicLink;
 
     private final FileModeMutator chmod;
@@ -45,6 +45,7 @@ class GenericFileSystem implements FileSystem {
 
     @Override
     public boolean isCaseSensitive() {
+        initializeCaseSensitive();
         return caseSensitive;
     }
 
@@ -96,16 +97,22 @@ class GenericFileSystem implements FileSystem {
         this.symlink = symlink;
         this.chmod = chmod;
         canCreateSymbolicLink = symlink.isSymlinkSupported();
-        String content = generateUniqueContent();
-        File file = null;
-        try {
-            checkJavaIoTmpDirExists();
-            file = createFile(content);
-            caseSensitive = probeCaseSensitive(file, content);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } finally {
-            FileUtils.deleteQuietly(file);
+    }
+
+    private void initializeCaseSensitive() {
+        if (caseSensitive == null) {
+
+            String content = generateUniqueContent();
+            File file = null;
+            try {
+                checkJavaIoTmpDirExists();
+                file = createFile(content);
+                caseSensitive = probeCaseSensitive(file, content);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } finally {
+                FileUtils.deleteQuietly(file);
+            }
         }
     }
 

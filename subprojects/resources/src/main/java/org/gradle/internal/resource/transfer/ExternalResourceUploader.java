@@ -16,11 +16,11 @@
 
 package org.gradle.internal.resource.transfer;
 
-import org.gradle.internal.resource.LocalResource;
+import org.gradle.internal.resource.ReadableContent;
 
 import java.io.IOException;
 import java.net.URI;
 
 public interface ExternalResourceUploader {
-    void upload(LocalResource resource, URI destination) throws IOException;
+    void upload(ReadableContent resource, URI destination) throws IOException;
 }

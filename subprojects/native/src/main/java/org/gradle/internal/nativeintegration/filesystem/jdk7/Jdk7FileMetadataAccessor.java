@@ -16,10 +16,10 @@
 package org.gradle.internal.nativeintegration.filesystem.jdk7;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.file.FileMetadataSnapshot;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
-import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
-import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 import java.io.File;
 import java.io.IOException;

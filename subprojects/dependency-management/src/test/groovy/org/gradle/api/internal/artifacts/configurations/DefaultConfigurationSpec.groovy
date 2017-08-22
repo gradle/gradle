@@ -40,6 +40,7 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
+import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor
@@ -317,8 +318,8 @@ class DefaultConfigurationSpec extends Specification {
         configuration.resolve()
 
         then:
-        def t = thrown(RuntimeException)
-        t == failure
+        def t = thrown(DefaultLenientConfiguration.ArtifactResolveException)
+        t.cause == failure
     }
 
     def "build dependencies are resolved lazily"() {
@@ -449,7 +450,7 @@ class DefaultConfigurationSpec extends Specification {
         def visitedArtifactSet = Stub(VisitedArtifactSet)
 
         _ * visitedArtifactSet.select(_, _, _, _) >> Stub(SelectedArtifactSet) {
-            visitArtifacts(_) >> { ArtifactVisitor visitor ->  files.each { visitor.visitFile(null, null, it) } }
+            visitArtifacts(_, _) >> { ArtifactVisitor visitor, boolean l     ->  files.each { visitor.visitFile(null, null, it) } }
         }
 
         _ * localComponentsResult.resolvedProjectConfigurations >> Collections.emptySet()
@@ -466,7 +467,7 @@ class DefaultConfigurationSpec extends Specification {
         def resolvedConfiguration = Stub(ResolvedConfiguration)
 
         _ * visitedArtifactSet.select(_, _, _, _) >> Stub(SelectedArtifactSet) {
-            visitArtifacts(_) >> { throw failure }
+            visitArtifacts(_, _) >> { ArtifactVisitor v, boolean l -> v.visitFailure(failure) }
         }
         _ * resolvedConfiguration.hasError() >> true
 
@@ -1479,7 +1480,7 @@ class DefaultConfigurationSpec extends Specification {
         def a1 = Attribute.of('a1', String)
 
         when:
-        conf.lockAttributes()
+        conf.preventFromFurtherMutation()
         conf.getAttributes().attribute(a1, "a1")
 
         then:
@@ -1497,7 +1498,7 @@ class DefaultConfigurationSpec extends Specification {
         def containerImmutable = conf.getAttributes().asImmutable()
 
         when:
-        conf.lockAttributes()
+        conf.preventFromFurtherMutation()
         def containerWrapped = conf.getAttributes()
 
         then:

@@ -241,8 +241,8 @@ allprojects {
                         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                         launcher.setStandardOutput(outputStream);
                         launcher.setStandardError(outputStream);
-                        launcher.setColorOutput(true);
-                        System.out.println("About to run the build");
+                        launcher.setColorOutput(${withColor});
+                        System.out.println("About to run the build with color=" + ${withColor});
                         // Run the build
                         launcher.run();
                         System.out.println("Build was successful");
@@ -258,7 +258,6 @@ allprojects {
 
         when:
         GradleHandle handle = executer.inDirectory(projectDir)
-            .expectDeprecationWarning() // tapi on java 6
             .withTasks('run')
             .start()
 
@@ -298,5 +297,8 @@ allprojects {
         }
 
         handle.waitForFinish()
+
+        where:
+        withColor << [true, false]
     }
 }

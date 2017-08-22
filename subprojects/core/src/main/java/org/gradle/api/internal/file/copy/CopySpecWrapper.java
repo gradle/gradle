@@ -19,7 +19,6 @@ package org.gradle.api.internal.file.copy;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.CopyProcessingSpec;
 import org.gradle.api.file.CopySpec;
@@ -29,6 +28,7 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.specs.Spec;
 
+import javax.annotation.Nullable;
 import java.io.FilterReader;
 import java.util.Map;
 import java.util.Set;

@@ -51,8 +51,9 @@ public class PackageListGenerator extends DefaultTask {
     public static final List<String> DEFAULT_EXCLUDES = Arrays.asList(
         "org/gradle",
         "java",
-        "javax/xml",
+        "javax/annotation",
         "javax/inject",
+        "javax/xml",
         "groovy",
         "groovyjarjarantlr",
         "net/rubygrapefruit",
@@ -63,7 +64,8 @@ public class PackageListGenerator extends DefaultTask {
         "org/apache/log4j",
         "org/apache/xerces",
         "org/w3c/dom",
-        "org/xml/sax");
+        "org/xml/sax",
+        "sun/misc");
 
     private File outputFile;
     private FileCollection classpath;

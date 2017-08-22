@@ -21,7 +21,6 @@ import org.gradle.api.internal.artifacts.ComponentMetadataProcessor
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryCachedRepositoryFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator
@@ -33,11 +32,11 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceR
 import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
+import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.cached.CachedArtifactIndex
 import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
-import org.gradle.internal.resource.transport.ExternalResourceRepository
 import org.gradle.util.BuildCommencedTimeProvider
 import spock.lang.Specification
 
@@ -47,7 +46,6 @@ class ResolveIvyFactoryTest extends Specification {
     ModuleMetaDataCache moduleMetaDataCache
     ModuleArtifactsCache moduleArtifactsCache
     CachedArtifactIndex cachedArtifactIndex
-    CacheLockingManager cacheLockingManager
     StartParameterResolutionOverride startParameterResolutionOverride
     BuildCommencedTimeProvider buildCommencedTimeProvider
     InMemoryCachedRepositoryFactory inMemoryCachedRepositoryFactory
@@ -60,7 +58,6 @@ class ResolveIvyFactoryTest extends Specification {
         moduleMetaDataCache = Mock(ModuleMetaDataCache)
         moduleArtifactsCache = Mock(ModuleArtifactsCache)
         cachedArtifactIndex = Mock(CachedArtifactIndex)
-        cacheLockingManager = Mock(CacheLockingManager)
         startParameterResolutionOverride = Mock(StartParameterResolutionOverride) {
             _ * overrideModuleVersionRepository(_) >> { ModuleComponentRepository repository -> repository }
         }
@@ -73,7 +70,7 @@ class ResolveIvyFactoryTest extends Specification {
         versionComparator = Mock(VersionComparator)
 
         resolveIvyFactory = new ResolveIvyFactory(moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache,
-            cachedArtifactIndex, cacheLockingManager, startParameterResolutionOverride, buildCommencedTimeProvider,
+            cachedArtifactIndex, startParameterResolutionOverride, buildCommencedTimeProvider,
             inMemoryCachedRepositoryFactory, versionSelectorScheme, versionComparator, moduleIdentifierFactory)
     }
 
@@ -131,7 +128,7 @@ class ResolveIvyFactoryTest extends Specification {
                 locallyAvailableResourceFinder,
                 artifactFileStore,
                 moduleIdentifierFactory,
-                TestFiles.fileSystem()
+                TestFiles.fileRepository()
             ]
         ) {
             getLocalAccess() >> Stub(ModuleComponentRepositoryAccess)

@@ -17,14 +17,6 @@
 package org.gradle.performance.experiment.maven
 
 import org.gradle.performance.AbstractGradleVsMavenPerformanceTest
-import org.gradle.performance.fixture.BuildExperimentInvocationInfo
-import org.gradle.performance.fixture.BuildExperimentListener
-import org.gradle.performance.fixture.BuildExperimentListenerAdapter
-import org.gradle.performance.fixture.GradleInvocationSpec
-import org.gradle.performance.fixture.InvocationCustomizer
-import org.gradle.performance.fixture.InvocationSpec
-import org.gradle.performance.fixture.MavenInvocationSpec
-import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll
 
@@ -38,7 +30,7 @@ import static org.gradle.performance.generator.JavaTestProject.MEDIUM_MONOLITHIC
 class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerformanceTest {
 
     @Unroll
-    def "#gradleCleanupTask #gradleTask on #testProject (Gradle vs Maven)"() {
+    def "clean #gradleTask on #testProject (Gradle vs Maven)"() {
         given:
         runner.testGroup = "Gradle vs Maven test build using Java plugin"
         runner.testProject = testProject
@@ -46,15 +38,16 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         if (testProject.parallel) {
             runner.mvnArgs << '-T' << testProject.maxWorkers
         }
-        runner.gradleTasks = gradleTask
-        runner.equivalentMavenTasks = mavenTask
+        runner.gradleTasks = [gradleTask]
+        runner.equivalentMavenTasks = [mavenTask]
         if (mavenTask == "package") {
             runner.mvnArgs << "-Dmaven.test.skip=true"
         }
-        runner.warmUpRuns = 4
-        runner.runs = 10
+        runner.warmUpRuns = 2
+        runner.runs = 5
 
-        setupCleanupOnOddRounds(gradleCleanupTask, mavenCleanupTask)
+        runner.gradleCleanTasks = ["clean"]
+        runner.equivalentMavenCleanTasks = ["clean"]
 
         when:
         def results = runner.run()
@@ -63,12 +56,12 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         results.assertFasterThanMaven()
 
         where:
-        testProject                    | gradleTask    | mavenTask | gradleCleanupTask | mavenCleanupTask
-        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'assemble'    | 'package' | 'clean'           | 'clean'
-        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'test'        | 'test'    | 'cleanTest'       | '-help'
+        testProject                    | gradleTask | mavenTask
+        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'assemble' | 'package'
+        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'test'     | 'test'
 
-        MEDIUM_JAVA_MULTI_PROJECT      | 'assemble'    | 'package' | 'clean'           | 'clean'
-        MEDIUM_JAVA_MULTI_PROJECT      | 'test'        | 'test'    | 'cleanTest'       | '-help'
+        MEDIUM_JAVA_MULTI_PROJECT      | 'assemble' | 'package'
+        MEDIUM_JAVA_MULTI_PROJECT      | 'test'     | 'test'
     }
 
     @Unroll
@@ -76,16 +69,18 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         given:
         runner.testGroup = "Gradle vs Maven test build using Java plugin"
         runner.testProject = testProject
-        runner.jvmOpts  << "-Xms${testProject.daemonMemory}" << "-Xmx${testProject.daemonMemory}"
+        runner.jvmOpts << "-Xms${testProject.daemonMemory}" << "-Xmx${testProject.daemonMemory}"
         if (testProject.parallel) {
             runner.mvnArgs << '-T' << testProject.maxWorkers
         }
-        runner.gradleTasks = gradleTask
-        runner.equivalentMavenTasks = mavenTask
+        runner.gradleTasks = gradleTask.split(' ')
+        runner.equivalentMavenTasks = mavenTask.split(' ')
         if (mavenTask == "package") {
             runner.mvnArgs << "-Dmaven.test.skip=true"
         }
         runner.buildExperimentListener = new ApplyNonAbiChangeToJavaSourceFileMutator(fileToChange)
+        runner.warmUpRuns = 4
+        runner.runs = 10
 
         when:
         def results = runner.run()
@@ -94,40 +89,11 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         results.assertFasterThanMaven()
 
         where:
-        testProject                    | gradleTask     | mavenTask | fileToChange
-        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'test'         | 'test'               | "src/main/java/org/gradle/test/performance/mediummonolithicjavaproject/p0/Production0.java"
-        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'assemble'     | 'package'            | "src/main/java/org/gradle/test/performance/mediummonolithicjavaproject/p0/Production0.java"
+        testProject                    | gradleTask | mavenTask       | fileToChange
+        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'test'     | 'clean test'    | "src/main/java/org/gradle/test/performance/mediummonolithicjavaproject/p0/Production0.java"
+        MEDIUM_MONOLITHIC_JAVA_PROJECT | 'assemble' | 'clean package' | "src/main/java/org/gradle/test/performance/mediummonolithicjavaproject/p0/Production0.java"
 
-        MEDIUM_JAVA_MULTI_PROJECT      | 'test'         | 'test'               | "project0/src/main/java/org/gradle/test/performance/mediumjavamultiproject/project0/p0/Production0.java"
-        MEDIUM_JAVA_MULTI_PROJECT      | 'assemble'     | 'package'            | "project0/src/main/java/org/gradle/test/performance/mediumjavamultiproject/project0/p0/Production0.java"
-    }
-
-    void setupCleanupOnOddRounds(String gradleCleanupTask, String mavenCleanupTarget) {
-        runner.invocationCustomizer = new InvocationCustomizer() {
-            @Override
-            def <T extends InvocationSpec> T customize(BuildExperimentInvocationInfo invocationInfo, T invocationSpec) {
-                if (invocationInfo.iterationNumber % 2 == 1) {
-                    if (invocationSpec instanceof GradleInvocationSpec) {
-                        invocationSpec.withBuilder()
-                        .tasksToRun([gradleCleanupTask])
-                        .build() as T
-                    } else {
-                        (invocationSpec as MavenInvocationSpec).withBuilder()
-                            .tasksToRun([mavenCleanupTarget])
-                            .build() as T
-                    }
-                } else {
-                    invocationSpec
-                }
-            }
-        }
-        runner.buildExperimentListener = new BuildExperimentListenerAdapter() {
-            @Override
-            void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
-                if (invocationInfo.iterationNumber % 2 == 1) {
-                    measurementCallback.omitMeasurement()
-                }
-            }
-        }
+        MEDIUM_JAVA_MULTI_PROJECT      | 'test'     | 'clean test'    | "project0/src/main/java/org/gradle/test/performance/mediumjavamultiproject/project0/p0/Production0.java"
+        MEDIUM_JAVA_MULTI_PROJECT      | 'assemble' | 'clean package' | "project0/src/main/java/org/gradle/test/performance/mediumjavamultiproject/project0/p0/Production0.java"
     }
 }

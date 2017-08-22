@@ -17,8 +17,10 @@
 package org.gradle.process.internal.worker.child;
 
 import org.gradle.internal.remote.ObjectConnection;
+import org.gradle.internal.service.ServiceRegistry;
 
 public interface WorkerContext {
     ClassLoader getApplicationClassLoader();
     ObjectConnection getServerConnection();
+    ServiceRegistry getServiceRegistry();
 }

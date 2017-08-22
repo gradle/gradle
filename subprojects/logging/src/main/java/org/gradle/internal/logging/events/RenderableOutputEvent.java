@@ -16,9 +16,10 @@
 
 package org.gradle.internal.logging.events;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
+
+import javax.annotation.Nullable;
 
 public abstract class RenderableOutputEvent extends CategorisedOutputEvent {
     private Object buildOperationId;

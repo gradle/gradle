@@ -44,7 +44,7 @@ import static org.gradle.util.ConfigureUtil.configure;
  * Example of use with a blend of most possible properties.
  * Typically you don't have to configure this model directly because Gradle configures it for you.
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  * apply plugin: 'idea'
  *
@@ -110,7 +110,7 @@ import static org.gradle.util.ConfigureUtil.configure;
  * <p>
  * Examples of advanced configuration:
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  * apply plugin: 'idea'
  *
@@ -129,14 +129,14 @@ import static org.gradle.util.ConfigureUtil.configure;
  *
  *       //closure executed after *.iml content is loaded from existing file
  *       //but before gradle build information is merged
- *       beforeMerged { module ->
+ *       beforeMerged { module -&gt;
  *         //if you want skip merging exclude dirs
  *         module.excludeFolders.clear()
  *       }
  *
  *       //closure executed after *.iml content is loaded from existing file
  *       //and after gradle build information is merged
- *       whenMerged { module ->
+ *       whenMerged { module -&gt;
  *         //you can tinker with {@link Module}
  *       }
  *     }
@@ -242,7 +242,7 @@ public class IdeaModule {
      * plus configurations are added minus the files from the minus configurations. See example below...
      * <p>
      * Example how to use scopes property to enable 'performanceTestCompile' dependencies in the output *.iml file:
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * apply plugin: 'java'
      * apply plugin: 'idea'
      *
@@ -315,7 +315,7 @@ public class IdeaModule {
     }
 
     /**
-     * {@link org.gradle.api.dsl.ConventionProperty} for the directories to be excluded. <p> For example see docs for {@link IdeaModule}
+     * Directories to be excluded. <p> For example see docs for {@link IdeaModule}
      */
     public Set<File> getExcludeDirs() {
         return excludeDirs;

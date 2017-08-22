@@ -41,7 +41,7 @@ import static org.gradle.util.ConfigureUtil.configure;
  * Example of use with a blend of all possible properties.
  * Bear in mind that usually you don't have to configure them directly because Gradle configures it for free!
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'war' //or 'ear' or 'java'
  * apply plugin: 'eclipse-wtp'
  *
@@ -63,7 +63,7 @@ import static org.gradle.util.ConfigureUtil.configure;
  *       //you can configure the deployName:
  *       deployName = 'killerApp'
  *
- *       //you can alter the wb-resource elements. sourceDirs is a ConventionProperty.
+ *       //you can alter the wb-resource elements.
  *       //non-existing source dirs won't be added to the component file.
  *       sourceDirs += file('someExtraFolder')
  *
@@ -74,7 +74,7 @@ import static org.gradle.util.ConfigureUtil.configure;
  *       rootConfigurations += [ configurations.someInterestingConfiguration ]
  *
  *       // dependencies to exclude from wtp deployment
- *       minusConfigurations << configurations.anotherConfiguration
+ *       minusConfigurations &lt;&lt; configurations.anotherConfiguration
  *
  *       //you can add a wb-resource elements; mandatory keys: 'sourcePath', 'deployPath':
  *       //if sourcePath points to non-existing folder it will *not* be added.
@@ -95,7 +95,7 @@ import static org.gradle.util.ConfigureUtil.configure;
  * <p>
  * Examples of advanced configuration:
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'war'
  * apply plugin: 'eclipse-wtp'
  *
@@ -112,13 +112,13 @@ import static org.gradle.util.ConfigureUtil.configure;
  *
  *         //closure executed after wtp component file content is loaded from existing file
  *         //but before gradle build information is merged
- *         beforeMerged { wtpComponent ->
+ *         beforeMerged { wtpComponent -&gt;
  *           //tinker with {@link WtpComponent} here
  *         }
  *
  *         //closure executed after wtp component file content is loaded from existing file
  *         //and after gradle build information is merged
- *         whenMerged { wtpComponent ->
+ *         whenMerged { wtpComponent -&gt;
  *           //you can tinker with the {@link WtpComponent} here
  *         }
  *       }
@@ -185,7 +185,7 @@ public class EclipseWtpComponent {
     }
 
     /**
-     * {@link org.gradle.api.dsl.ConventionProperty} for the source directories to be transformed into wb-resource elements.
+     * Source directories to be transformed into wb-resource elements.
      * <p>
      * For examples see docs for {@link EclipseWtp}
      * <p>
@@ -267,7 +267,7 @@ public class EclipseWtpComponent {
     }
 
     /**
-     * {@link org.gradle.api.dsl.ConventionProperty} for additional wb-resource elements.
+     * Additional wb-resource elements.
      * <p>
      * For examples see docs for {@link EclipseWtp}
      * <p>

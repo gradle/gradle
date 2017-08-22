@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;

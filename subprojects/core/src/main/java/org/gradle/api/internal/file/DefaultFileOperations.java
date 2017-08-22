@@ -33,13 +33,16 @@ import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.internal.file.copy.FileCopier;
 import org.gradle.api.internal.file.delete.Deleter;
+import org.gradle.internal.hash.FileHasher;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.resources.ReadableResource;
+import org.gradle.api.resources.internal.LocalResourceAdapter;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resource.local.LocalFileStandInExternalResource;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
@@ -60,17 +63,19 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     private final Instantiator instantiator;
     private final Deleter deleter;
     private final DefaultResourceHandler resourceHandler;
+    private final FileHasher fileHasher;
     private final FileCopier fileCopier;
     private final FileSystem fileSystem;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
 
-    public DefaultFileOperations(FileResolver fileResolver, TaskResolver taskResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    public DefaultFileOperations(FileResolver fileResolver, TaskResolver taskResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, FileHasher fileHasher) {
         this.fileResolver = fileResolver;
         this.taskResolver = taskResolver;
         this.temporaryFileProvider = temporaryFileProvider;
         this.instantiator = instantiator;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.resourceHandler = new DefaultResourceHandler(this, temporaryFileProvider);
+        this.fileHasher = fileHasher;
         this.fileCopier = new FileCopier(this.instantiator, this.fileResolver, fileLookup, directoryFileTreeFactory);
         this.fileSystem = fileLookup.getFileSystem();
         this.deleter = new Deleter(fileResolver, fileSystem);
@@ -101,7 +106,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     }
 
     public FileTree zipTree(Object zipPath) {
-        return new FileTreeAdapter(new ZipFileTree(file(zipPath), getExpandDir(), fileSystem, directoryFileTreeFactory));
+        return new FileTreeAdapter(new ZipFileTree(file(zipPath), getExpandDir(), fileSystem, directoryFileTreeFactory, fileHasher));
     }
 
     public FileTree tarTree(Object tarPath) {
@@ -114,9 +119,9 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
             resource = new UnknownBackingFileReadableResource((ReadableResource)tarPath);
         } else {
             tarFile = file(tarPath);
-            resource = new FileResource(tarFile);
+            resource = new LocalResourceAdapter(new LocalFileStandInExternalResource(tarFile, fileSystem));
         }
-        TarFileTree tarTree = new TarFileTree(tarFile, new MaybeCompressedFileResource(resource), getExpandDir(), fileSystem, fileSystem, directoryFileTreeFactory);
+        TarFileTree tarTree = new TarFileTree(tarFile, new MaybeCompressedFileResource(resource), getExpandDir(), fileSystem, fileSystem, directoryFileTreeFactory, fileHasher);
         return new FileTreeAdapter(tarTree);
     }
 

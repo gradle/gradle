@@ -16,9 +16,9 @@
 
 package org.gradle.internal.resource.metadata;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.hash.HashValue;
 
+import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.Date;
 
@@ -39,9 +39,9 @@ public interface ExternalResourceMetaData {
 
     /**
      * Some kind of opaque checksum that was advertised by the remote “server”.
-     * 
+     *
      * For HTTP this is likely the value of the ETag header but it may be any kind of opaque checksum.
-     * 
+     *
      * @return The entity tag, or null if there was no advertised or suitable etag.
      */
     @Nullable

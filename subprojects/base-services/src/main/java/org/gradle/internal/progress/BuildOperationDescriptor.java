@@ -16,7 +16,7 @@
 
 package org.gradle.internal.progress;
 
-import org.gradle.api.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * Meta-data about a build operation.
@@ -54,8 +54,8 @@ public final class BuildOperationDescriptor {
 
     /**
      * Returns the display name for the operation. This should be a standalone human consumable description of the
-     * operation, and should describe the operation whether currently running or not, eg "run test A" rather than
-     * "running test A".
+     * operation, and should describe the operation whether currently running or not, eg "Run test A" rather than
+     * "Running test A".
      */
     public String getDisplayName() {
         return displayName;
@@ -63,7 +63,7 @@ public final class BuildOperationDescriptor {
 
     /**
      * Returns the display name to use for progress logging for the operation. Should be short and describe the operation
-     * as it is running, eg "running test A" rather than "run test A".
+     * as it is running, eg "Running test A" rather than "Run test A".
      *
      * <p>When null, no progress logging is generated for the operation. Defaults to null.
      */

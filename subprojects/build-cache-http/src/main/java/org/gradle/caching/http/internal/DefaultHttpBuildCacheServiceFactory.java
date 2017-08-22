@@ -16,11 +16,13 @@
 
 package org.gradle.caching.http.internal;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.GradleException;
 import org.gradle.authentication.Authentication;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.http.HttpBuildCache;
+import org.gradle.caching.http.HttpBuildCacheCredentials;
 import org.gradle.internal.authentication.DefaultBasicAuthentication;
 import org.gradle.internal.resource.transport.http.DefaultHttpSettings;
 import org.gradle.internal.resource.transport.http.HttpClientHelper;
@@ -52,22 +54,40 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
         }
         URI noUserInfoUrl = stripUserInfo(url);
 
+        HttpBuildCacheCredentials credentials = configuration.getCredentials();
+        if (!credentialsPresent(credentials) && url.getUserInfo() != null) {
+            credentials = extractCredentialsFromUserInfo(url);
+        }
+
         Collection<Authentication> authentications = Collections.emptyList();
-        if (configuration.getCredentials().getUsername() != null && configuration.getCredentials().getPassword() != null) {
-            url = noUserInfoUrl;
+        if (credentialsPresent(credentials)) {
             DefaultBasicAuthentication basicAuthentication = new DefaultBasicAuthentication("basic");
-            basicAuthentication.setCredentials(configuration.getCredentials());
+            basicAuthentication.setCredentials(credentials);
             authentications = Collections.<Authentication>singleton(basicAuthentication);
         }
 
-        boolean authenticated = !authentications.isEmpty() || url.getUserInfo() != null;
+        boolean authenticated = !authentications.isEmpty();
 
         describer.type("HTTP")
             .config("url", noUserInfoUrl.toASCIIString())
             .config("authenticated", Boolean.toString(authenticated));
 
         HttpClientHelper httpClientHelper = new HttpClientHelper(new DefaultHttpSettings(authentications, sslContextFactory));
-        return new HttpBuildCacheService(httpClientHelper, url);
+        return new HttpBuildCacheService(httpClientHelper, noUserInfoUrl);
+    }
+
+    @VisibleForTesting
+    static HttpBuildCacheCredentials extractCredentialsFromUserInfo(URI url) {
+        HttpBuildCacheCredentials credentials = new HttpBuildCacheCredentials();
+        String userInfo = url.getUserInfo();
+        int indexOfSeparator = userInfo.indexOf(':');
+        if (indexOfSeparator > -1) {
+            String username = userInfo.substring(0, indexOfSeparator);
+            String password = userInfo.substring(indexOfSeparator + 1);
+            credentials.setUsername(username);
+            credentials.setPassword(password);
+        }
+        return credentials;
     }
 
     private static URI stripUserInfo(URI uri) {
@@ -76,6 +96,10 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
         } catch (URISyntaxException e) {
             throw new GradleException("Error constructing URL for http build cache", e);
         }
+    }
+
+    private static boolean credentialsPresent(HttpBuildCacheCredentials credentials) {
+        return credentials.getUsername() != null && credentials.getPassword() != null;
     }
 
 }

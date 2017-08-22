@@ -29,10 +29,6 @@ abstract class AbstractConsoleFunctionalSpec extends AbstractIntegrationSpec {
     public final static String CONTROL_SEQUENCE_END = "m"
     public final static String DEFAULT_TEXT = "0;39"
 
-    static String workInProgressLine(String plainText) {
-        return boldOn() + plainText + reset()
-    }
-
     def setup() {
         executer.withRichConsole()
     }
@@ -42,15 +38,28 @@ abstract class AbstractConsoleFunctionalSpec extends AbstractIntegrationSpec {
      */
     protected String styled(String plainText, Ansi.Color color, Ansi.Attribute... attributes) {
         String styledString = CONTROL_SEQUENCE_START
-        styledString += color != null ? color.fg() : Ansi.Color.DEFAULT.fg()
+        if (color) {
+            styledString += color.fg()
+        }
         if (attributes) {
             attributes.each { attribute ->
-                styledString += CONTROL_SEQUENCE_SEPARATOR + attribute.value()
+                if (styledString.length() > CONTROL_SEQUENCE_START.length()) {
+                    styledString += CONTROL_SEQUENCE_SEPARATOR
+                }
+                styledString += attribute.value()
             }
         }
-        styledString += CONTROL_SEQUENCE_END + plainText + CONTROL_SEQUENCE_START + DEFAULT_TEXT + CONTROL_SEQUENCE_END
+        styledString += CONTROL_SEQUENCE_END + plainText + CONTROL_SEQUENCE_START
+        if (color) {
+            styledString += DEFAULT_TEXT
+        }
+        styledString += CONTROL_SEQUENCE_END
 
         return styledString
+    }
+
+    static String workInProgressLine(String plainText) {
+        return boldOn() + plainText + reset()
     }
 
     private static String boldOn() {

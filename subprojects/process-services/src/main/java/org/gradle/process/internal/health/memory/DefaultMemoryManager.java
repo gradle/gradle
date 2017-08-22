@@ -20,7 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.concurrent.StoppableScheduledExecutor;
+import org.gradle.internal.concurrent.ManagedScheduledExecutor;
 import org.gradle.internal.event.ListenerManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +39,7 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
     private final OsMemoryInfo osMemoryInfo;
     private final JvmMemoryInfo jvmMemoryInfo;
     private final ListenerManager listenerManager;
-    private final StoppableScheduledExecutor scheduler;
+    private final ManagedScheduledExecutor scheduler;
     private final JvmMemoryStatusListener jvmBroadcast;
     private final OsMemoryStatusListener osBroadcast;
     private final boolean osMemoryStatusSupported;
@@ -116,16 +116,19 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
         long toReleaseMemory = requestedFreeMemory;
         if (freeMemory < requestedFreeMemory) {
             LOGGER.debug("{} memory requested, {} free", requestedFreeMemory, freeMemory);
+            List<MemoryHolder> memoryHolders;
             synchronized (holdersLock) {
-                for (MemoryHolder holder : holders) {
-                    long released = holder.attemptToRelease(toReleaseMemory);
-                    toReleaseMemory -= released;
-                    freeMemory += released;
-                    if (freeMemory >= requestedFreeMemory) {
-                        break;
-                    }
+                memoryHolders = new ArrayList<MemoryHolder>(holders);
+            }
+            for (MemoryHolder holder : memoryHolders) {
+                long released = holder.attemptToRelease(toReleaseMemory);
+                toReleaseMemory -= released;
+                freeMemory += released;
+                if (freeMemory >= requestedFreeMemory) {
+                    break;
                 }
             }
+
             LOGGER.debug("{} memory requested, {} released, {} free", requestedFreeMemory, requestedFreeMemory - toReleaseMemory, freeMemory);
         }
         return freeMemory;
@@ -171,12 +174,16 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
 
     @Override
     public void addMemoryHolder(MemoryHolder holder) {
-        holders.add(holder);
+        synchronized (holdersLock) {
+            holders.add(holder);
+        }
     }
 
     @Override
     public void removeMemoryHolder(MemoryHolder holder) {
-        holders.remove(holder);
+        synchronized (holdersLock) {
+            holders.remove(holder);
+        }
     }
 
     @Override

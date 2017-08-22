@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
  * A JUnit rule which provides a unique temporary folder for the test.
  */
 abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryProvider {
-    protected static TestFile root;
+    protected TestFile root;
 
     private static final Random RANDOM = new Random();
     private static final int ALL_DIGITS_AND_LETTERS_RADIX = 36;
@@ -58,6 +58,10 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
     @Override
     public void suppressCleanup() {
         cleanup = false;
+    }
+
+    public boolean isCleanup() {
+        return cleanup;
     }
 
     public Statement apply(final Statement base, Description description) {

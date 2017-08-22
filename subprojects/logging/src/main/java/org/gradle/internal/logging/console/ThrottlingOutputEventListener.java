@@ -16,10 +16,10 @@
 
 package org.gradle.internal.logging.console;
 
-import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.events.UpdateNowEvent;
 import org.gradle.internal.time.TimeProvider;
 
 import java.util.ArrayList;
@@ -32,7 +32,8 @@ import java.util.concurrent.TimeUnit;
  * Queue output events to be forwarded and schedule flush when time passed or if end of build is signalled.
  */
 public class ThrottlingOutputEventListener implements OutputEventListener {
-    private final BatchOutputEventListener listener;
+    private final static long UPDATE_NOW_FLUSH_INITIAL_DELAY_AND_PERIOD_MS = 100L;
+    private final OutputEventListener listener;
 
     private final ScheduledExecutorService executor;
     private final TimeProvider timeProvider;
@@ -42,15 +43,25 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
     private long lastUpdate;
     private final List<OutputEvent> queue = new ArrayList<OutputEvent>();
 
-    public ThrottlingOutputEventListener(BatchOutputEventListener listener, TimeProvider timeProvider) {
+    public ThrottlingOutputEventListener(OutputEventListener listener, TimeProvider timeProvider) {
         this(listener, Integer.getInteger("org.gradle.console.throttle", 85), Executors.newSingleThreadScheduledExecutor(), timeProvider);
     }
 
-    ThrottlingOutputEventListener(BatchOutputEventListener listener, int throttleMs, ScheduledExecutorService executor, TimeProvider timeProvider) {
+    ThrottlingOutputEventListener(OutputEventListener listener, int throttleMs, ScheduledExecutorService executor, TimeProvider timeProvider) {
         this.throttleMs = throttleMs;
         this.listener = listener;
         this.executor = executor;
         this.timeProvider = timeProvider;
+        scheduleUpdateNow();
+    }
+
+    private void scheduleUpdateNow() {
+        executor.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                onOutput(new UpdateNowEvent(timeProvider.getCurrentTime()));
+            }
+        }, UPDATE_NOW_FLUSH_INITIAL_DELAY_AND_PERIOD_MS, UPDATE_NOW_FLUSH_INITIAL_DELAY_AND_PERIOD_MS, TimeUnit.MILLISECONDS);
     }
 
     public void onOutput(OutputEvent newEvent) {
@@ -94,7 +105,9 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
             return;
         }
 
-        listener.onOutput(new ArrayList<OutputEvent>(queue));
+        for (OutputEvent event : queue) {
+            listener.onOutput(event);
+        }
         queue.clear();
         lastUpdate = now;
     }

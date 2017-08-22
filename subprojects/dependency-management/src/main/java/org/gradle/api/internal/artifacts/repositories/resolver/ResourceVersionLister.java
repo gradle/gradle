@@ -23,7 +23,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ResourceExceptions;
-import org.gradle.internal.resource.transport.ExternalResourceRepository;
+import org.gradle.internal.resource.ExternalResourceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

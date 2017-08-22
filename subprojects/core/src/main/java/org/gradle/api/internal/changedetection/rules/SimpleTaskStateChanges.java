@@ -32,7 +32,4 @@ abstract class SimpleTaskStateChanges implements TaskStateChanges {
     }
 
     protected abstract void addAllChanges(List<TaskStateChange> changes);
-
-    public void snapshotAfterTask() {
-    }
 }

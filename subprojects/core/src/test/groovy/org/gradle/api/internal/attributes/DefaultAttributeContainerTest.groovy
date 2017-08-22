@@ -75,7 +75,7 @@ class DefaultAttributeContainerTest extends Specification {
         when:
         def copy = container.copy()
         container.attribute(Attribute.of("a1", Integer), 2)
-        container.attribute(Attribute.of("a3", Number), 12L)
+        container.attribute(Attribute.of("a3", Long), 12L)
 
         then:
         copy.keySet().size() == 2

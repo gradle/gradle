@@ -567,8 +567,8 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         def failure = runAndFail("check", "resolveConf")
 
         then:
-        failure.assertResolutionFailure(":conf")
-            .assertHasCause("Could not find org.utils:api:1.123.15")
+        failure.assertHasCause("Could not resolve all files for configuration ':conf'.")
+        failure.assertHasCause("Could not find org.utils:api:1.123.15")
     }
 
     void "rules triggered exactly once per the same dependency"()
@@ -652,10 +652,11 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         def failure = runAndFail("resolveConf")
 
         then:
-        failure.assertResolutionFailure(":conf")
-                .assertHasCause("Could not resolve org.utils:impl:1.3.")
-                .assertHasCause("Unhappy :(")
-                .assertFailedDependencyRequiredBy("project :")
+        failure.assertHasCause("Could not resolve all files for configuration ':conf'.")
+        failure.assertHasCause("""Could not resolve org.utils:impl:1.3.
+Required by:
+    project :""")
+        failure.assertHasCause("Unhappy :(")
     }
 
     void "can substitute module name and resolve conflict"()
@@ -786,7 +787,9 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         runAndFail("dependencies")
 
         then:
-        failure.assertResolutionFailure(":conf").assertHasCause("Invalid format: 'foobar'")
+        failure.assertHasCause("Could not resolve all files for configuration ':conf'.")
+        failure.assertHasCause("Could not resolve org:a:1.0.")
+        failure.assertHasCause("Invalid format: 'foobar'")
     }
 
     def "substituted module version participates in conflict resolution"()

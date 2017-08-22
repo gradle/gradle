@@ -24,10 +24,10 @@
                 </tr>
             </thead>
             <tr>
-                <td>destinationDir</td>
+                <td>installDirectory</td>
             </tr>
             <tr>
-                <td>executable</td>
+                <td>sourceFile</td>
             </tr>
             <tr>
                 <td>libs</td>

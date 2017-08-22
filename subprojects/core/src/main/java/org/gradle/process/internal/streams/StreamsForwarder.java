@@ -17,7 +17,7 @@
 package org.gradle.process.internal.streams;
 
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.operations.BuildOperationIdentifierPreservingRunnable;
 import org.gradle.util.DisconnectableInputStream;
 
@@ -32,7 +32,7 @@ public class StreamsForwarder implements StreamsHandler {
     private final InputStream input;
     private final boolean readErrorStream;
 
-    private StoppableExecutor executor;
+    private ManagedExecutor executor;
     private ExecOutputHandleRunner standardOutputRunner;
     private ExecOutputHandleRunner errorOutputRunner;
     private ExecOutputHandleRunner standardInputRunner;

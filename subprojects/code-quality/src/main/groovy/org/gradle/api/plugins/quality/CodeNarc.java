@@ -22,6 +22,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.CodeNarcInvoker;
 import org.gradle.api.plugins.quality.internal.CodeNarcReportsImpl;
 import org.gradle.api.reporting.Reporting;
@@ -36,7 +37,6 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
-import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -48,6 +48,8 @@ import java.io.File;
 public class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNarcReports> {
 
     private FileCollection codenarcClasspath;
+
+    private FileCollection compilationClasspath;
 
     private TextResource config;
 
@@ -62,7 +64,8 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
     private boolean ignoreFailures;
 
     public CodeNarc() {
-        reports = getInstantiator().newInstance(CodeNarcReportsImpl.class, this);
+        reports = getObjectFactory().newInstance(CodeNarcReportsImpl.class, this);
+        compilationClasspath = getProject().files();
     }
 
     /**
@@ -89,8 +92,14 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
         setConfig(getProject().getResources().getText().fromFile(configFile));
     }
 
+    /**
+     * Injects and returns an instance of {@link org.gradle.api.model.ObjectFactory}.
+     *
+     * @since 4.2
+     */
+    @Incubating
     @Inject
-    public Instantiator getInstantiator() {
+    public ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -132,6 +141,27 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
      */
     public void setCodenarcClasspath(FileCollection codenarcClasspath) {
         this.codenarcClasspath = codenarcClasspath;
+    }
+
+    /**
+     * The class path to be used by CodeNarc when compiling classes during analysis.
+     *
+     * @since 4.2
+     */
+    @Incubating
+    @Classpath
+    public FileCollection getCompilationClasspath() {
+        return compilationClasspath;
+    }
+
+    /**
+     * The class path to be used by CodeNarc when compiling classes during analysis.
+     *
+     * @since 4.2
+     */
+    @Incubating
+    public void setCompilationClasspath(FileCollection compilationClasspath) {
+        this.compilationClasspath = compilationClasspath;
     }
 
     /**

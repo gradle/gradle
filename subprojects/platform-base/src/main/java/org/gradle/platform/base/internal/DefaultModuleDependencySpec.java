@@ -18,10 +18,11 @@ package org.gradle.platform.base.internal;
 
 import org.apache.commons.lang.ObjectUtils;
 import org.gradle.api.IllegalDependencyNotation;
-import org.gradle.api.Nullable;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.ModuleDependencySpec;
 import org.gradle.platform.base.ModuleDependencySpecBuilder;
+
+import javax.annotation.Nullable;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 

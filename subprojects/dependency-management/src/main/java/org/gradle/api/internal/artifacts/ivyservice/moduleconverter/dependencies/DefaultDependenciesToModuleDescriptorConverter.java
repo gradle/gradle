@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.FileCollectionDependency;
@@ -27,6 +26,8 @@ import org.gradle.api.internal.artifacts.dependencies.SelfResolvingDependencyInt
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
+
+import javax.annotation.Nullable;
 
 public class DefaultDependenciesToModuleDescriptorConverter implements DependenciesToModuleDescriptorConverter {
     private DependencyDescriptorFactory dependencyDescriptorFactory;

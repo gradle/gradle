@@ -18,218 +18,253 @@ package org.gradle.api.internal.changedetection.state
 
 import com.google.common.collect.Lists
 import com.google.common.hash.HashCode
-import org.gradle.api.internal.changedetection.rules.ChangeType
 import org.gradle.api.internal.changedetection.rules.FileChange
+import org.gradle.internal.file.FileType
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.api.internal.changedetection.rules.ChangeType.*
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.*
 
 class TaskFilePropertyCompareStrategyTest extends Specification {
 
     @Unroll
-    def "empty snapshots (#strategy)"() {
+    def "empty snapshots (#strategy, include added: #includeAdded)"() {
         expect:
-        changes(strategy,
+        changes(strategy, includeAdded,
             [:],
             [:]
         ) as List == []
 
         where:
-        strategy << [ORDERED, UNORDERED, OUTPUT]
+        strategy  | includeAdded
+        ORDERED   | true
+        ORDERED   | false
+        UNORDERED | true
+        UNORDERED | false
     }
 
     @Unroll
-    def "trivial addition (#strategy)"() {
+    def "trivial addition (#strategy, include added: #includeAdded)"() {
         expect:
-        changes(strategy,
+        changes(strategy, includeAdded,
             ["one-new": snapshot("one")],
             [:]
         ) as List == results
 
         where:
-        strategy  | results
-        ORDERED   | [new FileChange("one-new", ADDED, "test")]
-        UNORDERED | [new FileChange("one-new", ADDED, "test")]
-        OUTPUT    | []
+        strategy  | includeAdded | results
+        ORDERED   | true         | [added("one-new")]
+        ORDERED   | false        | []
+        UNORDERED | true         | [added("one-new")]
+        UNORDERED | false        | []
     }
 
     @Unroll
-    def "non-trivial addition (#strategy)"() {
+    def "non-trivial addition (#strategy, include added: #includeAdded)"() {
         expect:
-        changes(strategy,
+        changes(strategy, includeAdded,
             ["one-new": snapshot("one"), "two-new": snapshot("two")],
             ["one-old": snapshot("one")]
         ) == results
 
         where:
-        strategy  | results
-        ORDERED   | [change("two-new", ADDED)]
-        UNORDERED | [change("two-new", ADDED)]
-        OUTPUT    | []
+        strategy  | includeAdded | results
+        ORDERED   | true         | [added("two-new")]
+        ORDERED   | false        | []
+        UNORDERED | true         | [added("two-new")]
+        UNORDERED | false        | []
     }
 
     @Unroll
-    def "non-trivial addition with absolute paths (#strategy)"() {
+    def "non-trivial addition with absolute paths (#strategy, include added: #includeAdded)"() {
         expect:
-        changesUsingAbsolutePaths(strategy,
+        changesUsingAbsolutePaths(strategy, includeAdded,
             ["one": snapshot("one"), "two": snapshot("two")],
             ["one": snapshot("one")]
         ) == results
 
         where:
-        strategy  | results
-        ORDERED   | [change("two", ADDED)]
-        UNORDERED | [change("two", ADDED)]
-        OUTPUT    | []
+        strategy  | includeAdded | results
+        ORDERED   | true         | [added("two")]
+        ORDERED   | false        | []
+        UNORDERED | true         | [added("two")]
+        UNORDERED | false        | []
     }
 
     @Unroll
-    def "trivial removal (#strategy)"() {
+    def "trivial removal (#strategy, include added: #includeAdded)"() {
         expect:
-        changes(strategy,
+        changes(strategy, includeAdded,
             [:],
             ["one-old": snapshot("one")]
-        ) as List == [new FileChange("one-old", REMOVED, "test")]
+        ) as List == [removed("one-old")]
 
         where:
-        strategy << [ORDERED, UNORDERED, OUTPUT]
+        strategy  | includeAdded
+        ORDERED   | true
+        ORDERED   | false
+        UNORDERED | true
+        UNORDERED | false
     }
 
     @Unroll
-    def "non-trivial removal (#strategy)"() {
+    def "non-trivial removal (#strategy, include added: #includeAdded)"() {
         expect:
-        changes(strategy,
+        changes(strategy, includeAdded,
             ["one-new": snapshot("one")],
             ["one-old": snapshot("one"), "two-old": snapshot("two")]
-        ) == [change("two-old", REMOVED)]
+        ) == [removed("two-old")]
 
         where:
-        strategy << [ORDERED, UNORDERED, OUTPUT]
+        strategy  | includeAdded
+        ORDERED   | true
+        ORDERED   | false
+        UNORDERED | true
+        UNORDERED | false
     }
 
     @Unroll
-    def "non-trivial removal with absolute paths (#strategy)"() {
+    def "non-trivial removal with absolute paths (#strategy, include added: #includeAdded)"() {
         expect:
-        changesUsingAbsolutePaths(strategy,
+        changesUsingAbsolutePaths(strategy, includeAdded,
             ["one": snapshot("one")],
             ["one": snapshot("one"), "two": snapshot("two")]
-        ) == [change("two", REMOVED)]
+        ) == [removed("two")]
 
         where:
-        strategy << [ORDERED, UNORDERED, OUTPUT]
+        strategy  | includeAdded
+        ORDERED   | true
+        ORDERED   | false
+        UNORDERED | true
+        UNORDERED | false
     }
 
     @Unroll
-    def "non-trivial modification (#strategy)"() {
+    def "non-trivial modification (#strategy, include added: #includeAdded)"() {
         expect:
-        changes(strategy,
+        changes(strategy, includeAdded,
             ["one-new": snapshot("one"), "two-new": snapshot("two", "9876cafe")],
             ["one-old": snapshot("one"), "two-old": snapshot("two", "face1234")]
-        ) == [change("two-new", MODIFIED)]
+        ) == [modified("two-new", FileType.RegularFile, FileType.RegularFile)]
 
         where:
-        strategy << [ORDERED, UNORDERED, OUTPUT]
+        strategy  | includeAdded
+        ORDERED   | true
+        ORDERED   | false
+        UNORDERED | true
+        UNORDERED | false
     }
 
     @Unroll
-    def "non-trivial modification with absolute paths (#strategy)"() {
+    def "non-trivial modification with absolute paths (#strategy, include added: #includeAdded)"() {
         expect:
-        changesUsingAbsolutePaths(strategy,
+        changesUsingAbsolutePaths(strategy, includeAdded,
             ["one": snapshot("one"), "two": snapshot("two", "9876cafe")],
             ["one": snapshot("one"), "two": snapshot("two", "face1234")]
-        ) == [change("two", MODIFIED)]
+        ) == [modified("two", FileType.RegularFile, FileType.RegularFile)]
 
         where:
-        strategy << [ORDERED, UNORDERED, OUTPUT]
+        strategy  | includeAdded
+        ORDERED   | true
+        ORDERED   | false
+        UNORDERED | true
+        UNORDERED | false
     }
 
     @Unroll
-    def "trivial replacement (#strategy)"() {
+    def "trivial replacement (#strategy, include added: #includeAdded)"() {
         expect:
-        changes(strategy,
+        changes(strategy, includeAdded,
             ["two-new": snapshot("two")],
             ["one-old": snapshot("one")]
         ) as List == results
 
         where:
-        strategy | results
-        ORDERED   | [new FileChange("one-old", REMOVED, "test"), new FileChange("two-new", ADDED, "test")]
-        UNORDERED | [new FileChange("one-old", REMOVED, "test"), new FileChange("two-new", ADDED, "test")]
-        OUTPUT    | [new FileChange("one-old", REMOVED, "test")]
+        strategy  | includeAdded | results
+        ORDERED   | true         | [removed("one-old"), added("two-new")]
+        ORDERED   | false        | [removed("one-old")]
+        UNORDERED | true         | [removed("one-old"), added("two-new")]
+        UNORDERED | false        | [removed("one-old")]
     }
 
     @Unroll
-    def "non-trivial replacement (#strategy)"() {
+    def "non-trivial replacement (#strategy, include added: #includeAdded)"() {
         expect:
-        changes(strategy,
+        changes(strategy, includeAdded,
             ["one-new": snapshot("one"), "two-new": snapshot("two"), "four-new": snapshot("four")],
             ["one-old": snapshot("one"), "three-old": snapshot("three"), "four-old": snapshot("four")]
         ) == results
 
         where:
-        strategy  | results
-        ORDERED   | [change("three-old", REMOVED), change("two-new", ADDED)]
-        UNORDERED | [change("three-old", REMOVED), change("two-new", ADDED)]
-        OUTPUT    | [change("three-old", REMOVED)]
+        strategy  | includeAdded | results
+        ORDERED   | true         | [removed("three-old"), added("two-new")]
+        ORDERED   | false        | [removed("three-old")]
+        UNORDERED | true         | [removed("three-old"), added("two-new")]
+        UNORDERED | false        | [removed("three-old")]
     }
 
     @Unroll
-    def "non-trivial replacement with absolute paths (#strategy)"() {
+    def "non-trivial replacement with absolute paths (#strategy, include added: #includeAdded)"() {
         expect:
-        changesUsingAbsolutePaths(strategy,
+        changesUsingAbsolutePaths(strategy, includeAdded,
             ["one": snapshot("one"), "two": snapshot("two"), "four": snapshot("four")],
             ["one": snapshot("one"), "three": snapshot("three"), "four": snapshot("four")]
         ) == results
 
         where:
-        strategy  | results
-        ORDERED   | [change("three", REMOVED), change("two", ADDED)]
-        UNORDERED | [change("three", REMOVED), change("two", ADDED)]
-        OUTPUT    | [change("three", REMOVED)]
+        strategy  | includeAdded | results
+        ORDERED   | true         | [removed("three"), added("two")]
+        ORDERED   | false        | [removed("three")]
+        UNORDERED | true         | [removed("three"), added("two")]
+        UNORDERED | false        | [removed("three")]
     }
 
     @Unroll
-    def "reordering (#strategy)"() {
+    def "reordering (#strategy, include added: #includeAdded)"() {
         expect:
-        changes(strategy,
+        changes(strategy, includeAdded,
             ["one-new": snapshot("one"), "two-new": snapshot("two"), "three-new": snapshot("three")],
             ["one-old": snapshot("one"), "three-old": snapshot("three"), "two-old": snapshot("two")]
         ) == results
 
         where:
-        strategy | results
-        ORDERED   | [change("three-old", REMOVED), change("two-new", ADDED), change("two-old", REMOVED), change("three-new", ADDED)]
-        UNORDERED | []
-        OUTPUT    | []
+        strategy  | includeAdded | results
+        ORDERED   | true         | [removed("three-old"), added("two-new"), removed("two-old"), added("three-new")]
+        ORDERED   | false        | [removed("three-old"), removed("two-old")]
+        UNORDERED | true         | []
+        UNORDERED | false        | []
     }
 
     @Unroll
-    def "reordering with absolute paths (#strategy)"() {
+    def "reordering with absolute paths (#strategy, include added: #includeAdded)"() {
         expect:
-        changesUsingAbsolutePaths(strategy,
+        changesUsingAbsolutePaths(strategy, includeAdded,
             ["one": snapshot("one"), "two": snapshot("two"), "three": snapshot("three")],
             ["one": snapshot("one"), "three": snapshot("three"), "two": snapshot("two")]
         ) == results
 
         where:
-        strategy | results
-        ORDERED   | [change("three", REMOVED), change("two", ADDED), change("two", REMOVED), change("three", ADDED)]
-        UNORDERED | []
-        OUTPUT    | []
+        strategy  | includeAdded | results
+        ORDERED   | true         | [removed("three"), added("two"), removed("two"), added("three")]
+        ORDERED   | false        | [removed("three"), removed("two")]
+        UNORDERED | true         | []
+        UNORDERED | false        | []
     }
 
     @Unroll
-    def "handling duplicates (#strategy)"() {
+    def "handling duplicates (#strategy, include added: #includeAdded)"() {
         expect:
-        changes(strategy,
+        changes(strategy, includeAdded,
             ["one-new-1": snapshot("one"), "one-new-2": snapshot("one"), "two-new": snapshot("two")],
             ["one-old-1": snapshot("one"), "one-old-2": snapshot("one"), "two-old": snapshot("two")]
         ) == []
 
         where:
-        strategy << [ORDERED, UNORDERED, OUTPUT]
+        strategy  | includeAdded
+        ORDERED   | true
+        ORDERED   | false
+        UNORDERED | true
+        UNORDERED | false
     }
 
     @Unroll
@@ -244,19 +279,27 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         ["one": snapshot("one"), "two": snapshot("two")] | [:]
     }
 
-    def changes(TaskFilePropertyCompareStrategy strategy, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous) {
-        Lists.newArrayList(strategy.iterateContentChangesSince(current, previous, "test", false))
+    def changes(TaskFilePropertyCompareStrategy strategy, boolean includeAdded, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous) {
+        Lists.newArrayList(strategy.iterateContentChangesSince(current, previous, "test", false, includeAdded))
     }
 
-    def changesUsingAbsolutePaths(TaskFilePropertyCompareStrategy strategy, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous) {
-        Lists.newArrayList(strategy.iterateContentChangesSince(current, previous, "test", true))
+    def changesUsingAbsolutePaths(TaskFilePropertyCompareStrategy strategy, boolean includeAdded, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous) {
+        Lists.newArrayList(strategy.iterateContentChangesSince(current, previous, "test", true, includeAdded))
     }
 
     def snapshot(String normalizedPath, String hashCode = "1234abcd") {
         return new DefaultNormalizedFileSnapshot(normalizedPath, new FileHashSnapshot(HashCode.fromString(hashCode)))
     }
 
-    def change(String path, ChangeType type) {
-        new FileChange(path, type, "test")
+    def added(String path) {
+        FileChange.added(path, "test", FileType.RegularFile)
+    }
+
+    def removed(String path) {
+        FileChange.removed(path, "test", FileType.RegularFile)
+    }
+
+    def modified(String path, FileType previous, FileType current) {
+        FileChange.modified(path, "test", previous, current)
     }
 }

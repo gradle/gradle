@@ -52,25 +52,11 @@ task integTest(type: IntegrationTest) {
 }
 check.dependsOn(integTest)
 
-['embedded', 'forking', 'daemon', 'embeddedDaemon', 'parallel'].each { mode ->
+['embedded', 'forking', 'noDaemon', 'parallel'].each { mode ->
     def taskName = "${mode}IntegTest"
     tasks.create(taskName, IntegrationTest).configure {
         description "Runs integTests with '${mode}' executer"
         systemProperties['org.gradle.integtest.executer'] = mode
-    }
-}
-
-task crossVersionIntegTest {
-    description "Runs the cross version tests against all Gradle versions"
-}
-
-releasedVersions.testedVersions.each { targetVersion ->
-    tasks.create("gradle${targetVersion}IntegTest", IntegrationTest).configure {
-        crossVersionIntegTest.dependsOn it
-        description "Runs the cross version tests against Gradle ${targetVersion}"
-        systemProperties['org.gradle.integtest.versions'] = targetVersion
-        systemProperties['org.gradle.integtest.executer'] = 'forking'
-        include '**/*CrossVersion*'
     }
 }
 

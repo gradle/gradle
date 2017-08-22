@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.component.model;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -26,7 +27,10 @@ import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.MultipleCandidatesResult;
 import org.gradle.internal.Cast;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,6 +40,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class ComponentAttributeMatcher {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ComponentAttributeMatcher.class);
+
     /**
      * Determines whether the given candidate is compatible with the requested criteria, according to the given schema.
      */
@@ -52,14 +58,39 @@ public class ComponentAttributeMatcher {
     /**
      * Selects the candidates from the given set that are compatible with the requested criteria, according to the given schema.
      */
-    public <T extends HasAttributes> List<T> match(AttributeSelectionSchema schema, Collection<T> candidates, AttributeContainer requested) {
+    public <T extends HasAttributes> List<T> match(AttributeSelectionSchema schema, Collection<? extends T> candidates, AttributeContainer requested, @Nullable T fallback) {
+        if (candidates.size() == 0) {
+            if (fallback != null && isMatching(schema, fallback.getAttributes(), requested)) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("No candidates for {}, selected matching fallback {}", requested, fallback);
+                }
+                return ImmutableList.of(fallback);
+            }
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("No candidates for {} and fallback {} does not match. Select nothing.", requested, fallback);
+            }
+            return ImmutableList.of();
+        }
+
         if (candidates.size() == 1) {
             T candidate = candidates.iterator().next();
             if (isMatching(schema, candidate.getAttributes(), requested)) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Selected match {} from candidates {} for {}", candidate, candidates, requested);
+                }
                 return Collections.singletonList(candidate);
             }
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Selected match [] from candidates {} for {}", candidates, requested);
+            }
+            return ImmutableList.of();
         }
-        return new Matcher<T>(schema, candidates, requested).getMatches();
+
+        List<T> matches = new Matcher<T>(schema, candidates, requested).getMatches();
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Selected matches {} from candidates {} for {}", matches, candidates, requested);
+        }
+        return matches;
     }
 
     private void doMatchCandidate(AttributeSelectionSchema schema, HasAttributes candidate, AttributeContainer requested, MatchDetails details) {
@@ -106,7 +137,7 @@ public class ComponentAttributeMatcher {
         private final AttributeContainer requested;
 
         public Matcher(AttributeSelectionSchema schema,
-                       Collection<T> candidates,
+                       Collection<? extends T> candidates,
                        AttributeContainer requested) {
             this.schema = schema;
             this.matchDetails = Lists.newArrayListWithCapacity(candidates.size());
@@ -199,8 +230,8 @@ public class ComponentAttributeMatcher {
                 // missing or unknown
                 return;
             }
-            MultipleCandidatesResult<Object> details = new DefaultCandidateResult<MatchDetails<T>>(candidatesByValue, best);
-            schema.disambiguate(attribute, requested, details);
+            MultipleCandidatesResult<Object> details = new DefaultCandidateResult<MatchDetails<T>>(candidatesByValue, requested, best);
+            schema.disambiguate(attribute, details);
             remainingMatches.retainAll(best);
         }
     }

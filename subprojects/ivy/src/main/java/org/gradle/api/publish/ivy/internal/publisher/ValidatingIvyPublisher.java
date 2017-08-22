@@ -30,7 +30,7 @@ import org.gradle.api.publish.internal.PublicationFieldValidator;
 import org.gradle.api.publish.ivy.InvalidIvyPublicationException;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
-import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.resource.local.FileResourceRepository;
 
 import java.io.File;
 import java.util.HashSet;
@@ -41,9 +41,9 @@ public class ValidatingIvyPublisher implements IvyPublisher {
     private final IvyPublisher delegate;
     private final DisconnectedIvyXmlModuleDescriptorParser moduleDescriptorParser;
 
-    public ValidatingIvyPublisher(IvyPublisher delegate, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileSystem fileSystem) {
+    public ValidatingIvyPublisher(IvyPublisher delegate, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileResourceRepository fileResourceRepository) {
         this.delegate = delegate;
-        moduleDescriptorParser = new DisconnectedIvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, fileSystem);
+        moduleDescriptorParser = new DisconnectedIvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, fileResourceRepository);
     }
 
     public void publish(IvyNormalizedPublication publication, PublicationAwareRepository repository) {

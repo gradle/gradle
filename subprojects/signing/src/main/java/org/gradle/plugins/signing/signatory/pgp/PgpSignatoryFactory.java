@@ -20,9 +20,9 @@ import org.bouncycastle.openpgp.PGPSecretKeyRing;
 import org.bouncycastle.openpgp.PGPSecretKeyRingCollection;
 import org.bouncycastle.openpgp.bc.BcPGPSecretKeyRingCollection;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Nullable;
 import org.gradle.api.Project;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -80,15 +80,11 @@ public class PgpSignatoryFactory {
         ArrayList<Object> values = new ArrayList<Object>();
         for (String property : PROPERTIES) {
             String qualifiedProperty = (String)getQualifiedPropertyName(prefix, property);
-            if (project.hasProperty(qualifiedProperty)) {
-                values.add(
-                    project.property(qualifiedProperty));
+            Object prop = getPropertySafely(project, qualifiedProperty, required);
+            if(prop != null) {
+                values.add(prop);
             } else {
-                if (required) {
-                    throw new InvalidUserDataException("property \'" + qualifiedProperty + "\' could not be found on project and is needed for signing");
-                } else {
-                    return null;
-                }
+                return null;
             }
         }
 
@@ -96,6 +92,24 @@ public class PgpSignatoryFactory {
         File keyRing = project.file(values.get(1).toString());
         String password = values.get(2).toString();
         return createSignatory(name, keyId, keyRing, password);
+    }
+
+    private Object getPropertySafely(Project project, String qualifiedProperty, boolean required) {
+        final boolean propertyFound = project.hasProperty(qualifiedProperty);
+
+        if (!propertyFound && required) {
+            throw new InvalidUserDataException("property \'" + qualifiedProperty + "\' could not be found on project and is needed for signing");
+        }
+
+        if (propertyFound) {
+            Object prop = project.property(qualifiedProperty);
+            if (prop == null && required) {
+                throw new InvalidUserDataException("property \'" + qualifiedProperty + "\' was null. A valid value is needed for signing");
+            }
+            return prop;
+        }
+
+        return null;
     }
 
     protected Object getQualifiedPropertyName(final String propertyPrefix, final String name) {

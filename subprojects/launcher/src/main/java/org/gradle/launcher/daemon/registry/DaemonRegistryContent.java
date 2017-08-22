@@ -175,7 +175,6 @@ public class DaemonRegistryContent implements Serializable {
 
         private void writeAddresses(Encoder encoder, int infosSize, List<Address> addresses) throws Exception {
             encoder.writeInt(infosSize);
-            ObjectOutputStream oos = new ObjectOutputStream(encoder.getOutputStream());
             for (Address address : addresses) {
                 byte type = (byte) (address instanceof SocketInetAddress ? 0
                     : address instanceof MultiChoiceAddress ? 1
@@ -189,6 +188,7 @@ public class DaemonRegistryContent implements Serializable {
                         MULTI_CHOICE_ADDRESS_SERIALIZER.write(encoder, (MultiChoiceAddress) address);
                         break;
                     default:
+                        ObjectOutputStream oos = new ObjectOutputStream(encoder.getOutputStream());
                         oos.writeObject(address);
                 }
             }
@@ -197,7 +197,6 @@ public class DaemonRegistryContent implements Serializable {
         private List<Address> readAdresses(Decoder decoder) throws Exception {
             int infosSize = decoder.readInt();
             List<Address> out = new ArrayList<Address>();
-            ObjectInputStream ois = new ObjectInputStream(decoder.getInputStream());
             for (int i=0; i<infosSize; i++) {
                 byte type = decoder.readByte();
                 switch (type) {
@@ -208,6 +207,7 @@ public class DaemonRegistryContent implements Serializable {
                         out.add(MULTI_CHOICE_ADDRESS_SERIALIZER.read(decoder));
                         break;
                     default:
+                        ObjectInputStream ois = new ObjectInputStream(decoder.getInputStream());
                         out.add((Address) ois.readObject());
                 }
             }

@@ -178,9 +178,6 @@
                 <td>org.gradle.api.artifacts.ComponentSelectionRules</td>
             </tr>
             <tr>
-                <td>org.gradle.api.dsl.ConventionProperty</td>
-            </tr>
-            <tr>
                 <td>org.gradle.plugin.repository.GradlePluginPortal</td>
             </tr>
             <tr>

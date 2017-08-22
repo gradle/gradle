@@ -10,6 +10,5 @@
 :operatorsPassingStaticLibrary
 :assembleDependentsOperatorsPassingStaticLibrary
 
-BUILD SUCCESSFUL
-
-Total time: 1 secs
+BUILD SUCCESSFUL in 0s
+7 actionable tasks: 7 executed

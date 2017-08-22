@@ -41,9 +41,4 @@ public class MockTimeProvider implements TimeProvider {
         return current;
     }
 
-    /** Increments the time by 10ms and returns it. */
-    @Override
-    public long getCurrentTimeForDuration() {
-        return getCurrentTime();
-    }
 }

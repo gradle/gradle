@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.ToBeImplemented
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -151,6 +152,45 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
         expect:
         succeeds("check")
+    }
+
+    def "output should be printed in stdout if console type is specified"() {
+        when:
+        buildFile << '''
+            codenarc {
+                configFile == file('config/codenarc/codenarc.xml')
+                reportFormat = 'console' 
+            }
+        '''
+        file('src/main/groovy/a/A.groovy') << 'package a;class A{}'
+
+        then:
+        succeeds('check')
+        output.contains('CodeNarc Report')
+        output.contains('CodeNarc completed: (p1=0; p2=0; p3=0)')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/2326")
+    @ToBeImplemented
+    def "check task should not be up-to-date after clean if console type is specified"() {
+        given:
+        buildFile << '''
+            codenarc {
+                configFile == file('config/codenarc/codenarc.xml')
+                reportFormat = 'console' 
+            }
+        '''
+        file('src/main/groovy/a/A.groovy') << 'package a;class A{}'
+
+        when:
+        succeeds('check')
+        succeeds('clean', 'check')
+
+        then:
+        // TODO These should match
+        !!! nonSkippedTasks.contains(':codenarcMain')
+        !!! output.contains('CodeNarc Report')
+        !!! output.contains('CodeNarc completed: (p1=0; p2=0; p3=0)')
     }
 
     private goodCode() {

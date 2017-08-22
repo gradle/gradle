@@ -17,7 +17,7 @@ package org.gradle.initialization.layout
 
 import org.gradle.StartParameter
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.groovy.scripts.UriScriptSource
+import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -169,7 +169,7 @@ class BuildLayoutFactoryTest extends Specification {
     }
 
     void refersTo(ScriptSource scriptSource, File file) {
-        assert scriptSource instanceof UriScriptSource
+        assert scriptSource instanceof TextResourceScriptSource
         assert scriptSource.resource.sourceFile == file
     }
 

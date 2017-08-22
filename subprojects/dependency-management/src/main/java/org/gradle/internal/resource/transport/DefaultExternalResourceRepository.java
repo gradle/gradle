@@ -21,9 +21,11 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resource.BuildOperationFiringExternalResourceDecorator;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ExternalResourceLister;
 import org.gradle.internal.resource.transfer.ExternalResourceUploader;
+import org.gradle.internal.resource.transfer.AccessorBackedExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +65,7 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
 
     @Override
     public ExternalResource resource(ExternalResourceName resource, boolean revalidate) {
-        return new BuildOperationFiringExternalResourceDecorator(resource, buildOperationExecutor, new LazyExternalResource(resource, accessor, uploader, lister, revalidate));
+        return new BuildOperationFiringExternalResourceDecorator(resource, buildOperationExecutor, new AccessorBackedExternalResource(resource, accessor, uploader, lister, revalidate));
     }
 
     @Override

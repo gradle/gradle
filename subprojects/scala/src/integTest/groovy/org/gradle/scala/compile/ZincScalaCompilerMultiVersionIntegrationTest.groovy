@@ -26,9 +26,7 @@ class ZincScalaCompilerMultiVersionIntegrationTest extends MultiVersionIntegrati
         buildFile << """
             apply plugin: "scala"
 
-            repositories {
-                jcenter()
-            }
+            ${jcenterRepository()}
 
             dependencies {
                 compile "org.scala-lang:scala-library:2.10.4"
@@ -36,7 +34,6 @@ class ZincScalaCompilerMultiVersionIntegrationTest extends MultiVersionIntegrati
             }
         """
         args("--info")
-        executer.expectDeprecationWarning()
     }
 
     def "can build with configured zinc compiler version" () {

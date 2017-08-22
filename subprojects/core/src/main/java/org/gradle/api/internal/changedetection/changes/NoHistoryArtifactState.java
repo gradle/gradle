@@ -16,22 +16,75 @@
 
 package org.gradle.api.internal.changedetection.changes;
 
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
-import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBuilder;
+import org.gradle.caching.internal.tasks.BuildCacheKeyInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.id.UniqueId;
+import org.gradle.util.Path;
 
+import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
 
 class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory {
+
+    public static final TaskArtifactState INSTANCE = new NoHistoryArtifactState();
+
+    private static final BuildCacheKeyInputs NO_CACHE_KEY_INPUTS = new BuildCacheKeyInputs(
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+    );
+
+    private static final TaskOutputCachingBuildCacheKey NO_CACHE_KEY = new TaskOutputCachingBuildCacheKey() {
+        @Override
+        public boolean isValid() {
+            return false;
+        }
+
+        @Override
+        public String toString() {
+            return "INVALID";
+        }
+
+        @Override
+        public Path getTaskPath() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String getHashCode() {
+            return null;
+        }
+
+        @Override
+        public BuildCacheKeyInputs getInputs() {
+            return NO_CACHE_KEY_INPUTS;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return toString();
+        }
+    };
+
+    private NoHistoryArtifactState() {
+    }
+
+    @Override
     public boolean isUpToDate(Collection<String> messages) {
         messages.add("Task has not declared any outputs.");
         return false;
     }
 
+    @Override
     public IncrementalTaskInputs getInputChanges() {
         throw new UnsupportedOperationException();
     }
@@ -43,9 +96,10 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
 
     @Override
     public TaskOutputCachingBuildCacheKey calculateCacheKey() {
-        return DefaultTaskOutputCachingBuildCacheKeyBuilder.NO_CACHE_KEY;
+        return NO_CACHE_KEY;
     }
 
+    @Override
     public TaskExecutionHistory getExecutionHistory() {
         return this;
     }
@@ -55,21 +109,26 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
         return null;
     }
 
-    public void beforeTask() {
-    }
-
-    public void afterTask() {
-    }
-
-    public void finished() {
-    }
-
-    public FileCollection getOutputFiles() {
-        return null;
+    @Override
+    public void ensureSnapshotBeforeTask() {
     }
 
     @Override
-    public OverlappingOutputs getOverlappingOutputDetection() {
+    public void afterOutputsRemovedBeforeTask() {
+    }
+
+    @Override
+    public void snapshotAfterTask(Throwable failure) {
+    }
+
+    @Override
+    public Set<File> getOutputFiles() {
+        return Collections.emptySet();
+    }
+
+    @Override
+    public OverlappingOutputs getOverlappingOutputs() {
         return null;
     }
+
 }

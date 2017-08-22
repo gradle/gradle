@@ -19,22 +19,31 @@ package org.gradle.internal.component.model;
 import com.google.common.collect.Multimap;
 import org.gradle.api.internal.attributes.MultipleCandidatesResult;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
 public class DefaultCandidateResult<T> implements MultipleCandidatesResult<Object> {
     private final Multimap<Object, T> candidatesByValue;
+    private final Object consumerValue;
     private final List<T> best;
     private boolean done;
 
-    public DefaultCandidateResult(Multimap<Object, T> candidatesByValue, List<T> best) {
+    public DefaultCandidateResult(Multimap<Object, T> candidatesByValue, @Nullable Object consumerValue, List<T> best) {
         this.candidatesByValue = candidatesByValue;
+        this.consumerValue = consumerValue;
         this.best = best;
     }
 
     @Override
     public boolean hasResult() {
         return done;
+    }
+
+    @Nullable
+    @Override
+    public Object getConsumerValue() {
+        return consumerValue;
     }
 
     @Override

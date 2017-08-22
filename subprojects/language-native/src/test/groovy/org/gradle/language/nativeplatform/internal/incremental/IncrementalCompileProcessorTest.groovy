@@ -17,8 +17,8 @@ package org.gradle.language.nativeplatform.internal.incremental
 
 import com.google.common.hash.Hashing
 import com.google.common.io.Files
-import org.gradle.api.internal.hash.FileHasher
 import org.gradle.cache.PersistentStateCache
+import org.gradle.internal.hash.FileHasher
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultIncludeDirectives
 import org.gradle.test.fixtures.file.TestFile

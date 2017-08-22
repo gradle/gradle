@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 
 import org.gradle.api.Buildable
-import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.tasks.TaskDependency
@@ -84,8 +83,10 @@ class ArtifactBackedResolvedVariantTest extends Specification {
         _ * listener.requireArtifactFiles() >> true
         _ * artifact1.id >> Stub(ComponentArtifactIdentifier)
         _ * artifact2.id >> Stub(ComponentArtifactIdentifier)
+        1 * artifact1.resolved >> false
         1 * artifact1.file >> f1
         1 * listener.artifactAvailable(artifact1)
+        1 * artifact2.resolved >> false
         1 * artifact2.file >> f2
         1 * listener.artifactAvailable(artifact2)
         0 * _
@@ -106,6 +107,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
         then:
         _ * listener.requireArtifactFiles() >> true
         _ * artifact1.id >> Stub(ComponentArtifactIdentifier)
+        1 * artifact1.resolved >> false
         1 * artifact1.file >> f1
         1 * listener.artifactAvailable(artifact1)
         0 * _
@@ -149,6 +151,6 @@ class ArtifactBackedResolvedVariantTest extends Specification {
         return ArtifactBackedResolvedVariant.create(Describables.of("<variant>"), variant, artifacts)
     }
 
-    interface TestArtifact extends ResolvedArtifact, Buildable { }
+    interface TestArtifact extends ResolvableArtifact, Buildable { }
 
 }

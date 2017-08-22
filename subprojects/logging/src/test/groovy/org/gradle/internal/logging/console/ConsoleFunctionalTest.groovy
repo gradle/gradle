@@ -23,6 +23,7 @@ import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
 import org.gradle.internal.logging.sink.OutputEventRenderer
+import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import org.gradle.internal.progress.BuildOperationCategory
 import org.gradle.internal.progress.BuildProgressLogger
@@ -33,12 +34,13 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class ConsoleFunctionalTest extends Specification {
-    @Rule public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
+    @Rule
+    public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
     private final ConsoleStub console = new ConsoleStub()
     private final TimeProvider timeProvider = Mock(TimeProvider)
     private final ConsoleMetaData metaData = Mock(ConsoleMetaData)
     private OutputEventRenderer renderer
-    private long currentTimeMs;
+    private long currentTimeMs
     private static final String IDLE = '> IDLE'
 
     def setup() {
@@ -46,40 +48,40 @@ class ConsoleFunctionalTest extends Specification {
         renderer.configure(LogLevel.INFO)
         renderer.addConsole(console, true, true, metaData)
         _ * metaData.getRows() >> 10
-        _ * metaData.getCols() >> 35
+        _ * metaData.getCols() >> 36
         _ * timeProvider.getCurrentTime() >> { currentTimeMs }
     }
 
     def "renders initial state"() {
         when:
-        renderer.onOutput(startEvent(1, null, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, BuildProgressLogger.INITIALIZATION_PHASE_DESCRIPTION, '<---> 0% INITIALIZING'))
+        renderer.onOutput(startEvent(1, null, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, BuildProgressLogger.INITIALIZATION_PHASE_DESCRIPTION, 10, BuildProgressLogger.INITIALIZATION_PHASE_SHORT_DESCRIPTION))
 
         then:
         ConcurrentTestUtil.poll(1) {
-            assert statusBar.display == '<---> 0% INITIALIZING [0s]'
+            assert statusBar.display == '<-------------> 0% INITIALIZING [0s]'
             assert progressArea.display == []
         }
     }
 
     def "renders configuration progress"() {
         when:
-        renderer.onOutput(startEvent(1, null, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, BuildProgressLogger.CONFIGURATION_PHASE_DESCRIPTION, '<---> 0% CONFIGURING'))
-        renderer.onOutput(startEvent(2, 1, 'category', 'Configuring root project', 'root project', null, 'root project'))
+        renderer.onOutput(startEvent(1, null, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, BuildProgressLogger.CONFIGURATION_PHASE_DESCRIPTION, 3, BuildProgressLogger.CONFIGURATION_PHASE_SHORT_DESCRIPTION))
+        renderer.onOutput(startEvent(2, 1, 'category', 'Configuring root project', 3, 'root project', null, 'root project'))
 
         then:
         ConcurrentTestUtil.poll(1) {
-            assert statusBar.display == '<---> 0% CONFIGURING [0s]'
+            assert statusBar.display == '<-------------> 0% CONFIGURING [0s]'
             assert progressArea.display == ['> root project']
         }
 
         when:
-        currentTimeMs += 2000L;
+        currentTimeMs += 2000L
         renderer.onOutput(completeEvent(2, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY))
-        renderer.onOutput(progressEvent(1, '<=--> 33% CONFIGURING'))
+        renderer.onOutput(progressEvent(1, ''))
 
         then:
         ConcurrentTestUtil.poll(1) {
-            assert statusBar.display == '<=--> 33% CONFIGURING [2s]'
+            assert statusBar.display == '<====---------> 33% CONFIGURING [2s]'
             assert progressArea.display == [IDLE]
         }
     }
@@ -118,7 +120,7 @@ class ConsoleFunctionalTest extends Specification {
     def "renders child operation work inline"() {
         when:
         renderer.onOutput(startEvent(1, ':foo'))
-        renderer.onOutput(startEvent(2, 1, null, null, null, null, ':bar'))
+        renderer.onOutput(startEvent(2, 1, null, null, 10, null, null, ':bar'))
 
         then:
         ConcurrentTestUtil.poll(1) {
@@ -131,19 +133,19 @@ class ConsoleFunctionalTest extends Specification {
         _ * metaData.getCols() >> 35
 
         when:
-        renderer.onOutput(startEvent(2, null, "org.gradle.internal.progress.BuildProgressLogger", 'FULL DESCRIPTION', '123456789012345678901234567890123456789'))
+        renderer.onOutput(startEvent(2, null, "org.gradle.internal.progress.BuildProgressLogger", 'FULL DESCRIPTION', 10, '123456789012345678901234567890123456789'))
         renderer.onOutput(startEvent(3, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJK'))
 
         then:
         ConcurrentTestUtil.poll(1) {
-            assert statusBar.display == '1234567890123456789012345678901234'
-            assert progressArea.display == ['> abcdefghijklmnopqrstuvwxyzABCDEF']
+            assert statusBar.display == '<-------------> 0% 12345678901234567'
+            assert progressArea.display == ['> abcdefghijklmnopqrstuvwxyzABCDEFG']
         }
     }
 
     def "progress display is removed upon build completion"() {
         when:
-        renderer.onOutput(startEvent(1, null, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, BuildProgressLogger.EXECUTION_PHASE_DESCRIPTION, '<---> 0% EXECUTING'))
+        renderer.onOutput(startEvent(1, null, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, BuildProgressLogger.EXECUTION_PHASE_DESCRIPTION, 10, BuildProgressLogger.EXECUTION_PHASE_SHORT_DESCRIPTION))
         renderer.onOutput(startEvent(2, ':foo'))
 
         then:
@@ -297,7 +299,7 @@ class ConsoleFunctionalTest extends Specification {
 
     def "progress display uses short description if status is empty"() {
         when:
-        renderer.onOutput(startEvent(1, null, 'CATEGORY', 'DESCRIPTION', 'SHORT_DESCRIPTION', 'LOGGING_HEADER', ''))
+        renderer.onOutput(startEvent(1, null, 'CATEGORY', 'DESCRIPTION', 0, 'SHORT_DESCRIPTION', 'LOGGING_HEADER', ''))
 
         then:
         ConcurrentTestUtil.poll(1) {
@@ -305,23 +307,63 @@ class ConsoleFunctionalTest extends Specification {
         }
     }
 
-    ProgressStartEvent startEvent(Long id, Long parentId=null, category='CATEGORY', description='DESCRIPTION', shortDescription='SHORT_DESCRIPTION', loggingHeader='LOGGING_HEADER', status='STATUS') {
+    def "renders progress green while build is successful"() {
+        setup:
+        renderer.onOutput(startEvent(1, null, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, BuildProgressLogger.EXECUTION_PHASE_DESCRIPTION, 5))
+
+        when:
+        renderer.onOutput(progressEvent(1, "EXECUTING", false))
+
+        then:
+        ConcurrentTestUtil.poll(1) {
+            assert statusBar.styleOf("==") == StyledTextOutput.Style.SuccessHeader
+        }
+    }
+
+    def "renders progress red when build becomes failing"() {
+        setup:
+        renderer.onOutput(startEvent(1, null, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, BuildProgressLogger.EXECUTION_PHASE_DESCRIPTION, 5))
+
+        when:
+        renderer.onOutput(progressEvent(1, "EXECUTING", true))
+
+        then:
+        ConcurrentTestUtil.poll(1) {
+            assert statusBar.styleOf("==") == StyledTextOutput.Style.FailureHeader
+        }
+    }
+
+    def "continues to render progress red also if successive progress is not failing"() {
+        setup:
+        renderer.onOutput(startEvent(1, null, BuildStatusRenderer.BUILD_PROGRESS_CATEGORY, BuildProgressLogger.EXECUTION_PHASE_DESCRIPTION, 5))
+
+        when:
+        renderer.onOutput(progressEvent(1, "EXECUTING", true))
+        renderer.onOutput(progressEvent(1, "EXECUTING", false))
+
+        then:
+        ConcurrentTestUtil.poll(1) {
+            assert statusBar.styleOf("=====") == StyledTextOutput.Style.FailureHeader
+        }
+    }
+
+    ProgressStartEvent startEvent(Long id, Long parentId = null, category = 'CATEGORY', description = 'DESCRIPTION', int totalProgress = 0, shortDescription = 'SHORT_DESCRIPTION', loggingHeader = 'LOGGING_HEADER', status = 'STATUS') {
         long timestamp = timeProvider.currentTime
         OperationIdentifier parent = parentId ? new OperationIdentifier(parentId) : null
-        new ProgressStartEvent(new OperationIdentifier(id), parent, timestamp, category, description, shortDescription, loggingHeader, status, null, null, BuildOperationCategory.UNCATEGORIZED)
+        new ProgressStartEvent(new OperationIdentifier(id), parent, timestamp, category, description, shortDescription, loggingHeader, status, totalProgress, null, null, BuildOperationCategory.UNCATEGORIZED)
     }
 
     ProgressStartEvent startEvent(Long id, String status) {
-        new ProgressStartEvent(new OperationIdentifier(id), null, timeProvider.currentTime, null, null, null, null, status, null, null, BuildOperationCategory.UNCATEGORIZED)
+        new ProgressStartEvent(new OperationIdentifier(id), null, timeProvider.currentTime, null, null, null, null, status, 0, null, null, BuildOperationCategory.UNCATEGORIZED)
     }
 
-    ProgressEvent progressEvent(Long id, status='STATUS') {
-        new ProgressEvent(new OperationIdentifier(id), status)
+    ProgressEvent progressEvent(Long id, String status = 'STATUS', boolean failing=false) {
+        new ProgressEvent(new OperationIdentifier(id), status, failing)
     }
 
-    ProgressCompleteEvent completeEvent(Long id, status='STATUS') {
+    ProgressCompleteEvent completeEvent(Long id, status = 'STATUS') {
         long timestamp = timeProvider.currentTime
-        new ProgressCompleteEvent(new OperationIdentifier(id), timestamp, status)
+        new ProgressCompleteEvent(new OperationIdentifier(id), timestamp, status, false)
     }
 
     private ConsoleStub.TestableRedrawableLabel getStatusBar() {

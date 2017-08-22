@@ -159,12 +159,12 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
         [false, true, false, false]  | [false, true, true, true]
     }
 
-    def "can get the current worker lease state"() {
+    def "can get the current resource lock state"() {
         when:
         coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
-            ResourceLockState.Disposition transform(ResourceLockState workerLeaseState) {
-                assert coordinationService.getCurrent() == workerLeaseState
+            ResourceLockState.Disposition transform(ResourceLockState resourcesLockState) {
+                assert coordinationService.getCurrent() == resourcesLockState
                 return FINISHED
             }
         })
@@ -199,6 +199,34 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
         thrown(RuntimeException)
 
         and:
+        !lock1.lockedState
+        !lock2.lockedState
+    }
+
+    def "locks are rolled back when releaseLocks is called"() {
+        def lock1 = resourceLock("lock1", false)
+        def lock2 = resourceLock("lock2", false)
+
+        when:
+        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+            @Override
+            ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                lock1.tryLock()
+                lock2.tryLock()
+
+                assert lock1.lockedState
+                assert lock2.lockedState
+
+                resourceLockState.releaseLocks()
+
+                assert !lock1.lockedState
+                assert !lock2.lockedState
+
+                return FINISHED
+            }
+        })
+
+        then:
         !lock1.lockedState
         !lock2.lockedState
     }

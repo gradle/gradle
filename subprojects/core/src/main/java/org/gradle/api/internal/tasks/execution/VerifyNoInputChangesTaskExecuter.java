@@ -45,7 +45,7 @@ public class VerifyNoInputChangesTaskExecuter implements TaskExecuter {
                 throw new TaskExecutionException(task, new GradleException("The build cache key became invalid after the task has been executed!"));
             }
             if (!beforeExecution.getHashCode().equals(afterExecution.getHashCode())) {
-                throw new TaskExecutionException(task, new GradleException("The inputs for the task changed during the execution! Check if you have a `doFirst` changing the inputs."));
+                throw new TaskExecutionException(task, new GradleException("The inputs for the task changed during the execution! Check if you have a task action changing the inputs."));
             }
         }
     }

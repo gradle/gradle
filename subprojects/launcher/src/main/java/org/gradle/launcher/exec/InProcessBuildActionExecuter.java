@@ -23,31 +23,32 @@ import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
+import org.gradle.internal.invocation.GradleBuildController;
 import org.gradle.internal.service.ServiceRegistry;
 
 public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final GradleLauncherFactory gradleLauncherFactory;
     private final BuildActionRunner buildActionRunner;
 
-    public InProcessBuildActionExecuter(GradleLauncherFactory gradleLauncherFactory, BuildActionRunner buildActionRunner) {
+    public InProcessBuildActionExecuter(BuildActionRunner buildActionRunner, GradleLauncherFactory gradleLauncherFactory) {
         this.gradleLauncherFactory = gradleLauncherFactory;
         this.buildActionRunner = buildActionRunner;
     }
 
     public Object execute(BuildAction action, BuildRequestContext buildRequestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(action.getStartParameter(), buildRequestContext, contextServices);
+        GradleBuildController buildController = new GradleBuildController(gradleLauncher);
         try {
             RootBuildLifecycleListener buildLifecycleListener = contextServices.get(ListenerManager.class).getBroadcaster(RootBuildLifecycleListener.class);
             buildLifecycleListener.afterStart();
             try {
-                GradleBuildController buildController = new GradleBuildController(gradleLauncher);
                 buildActionRunner.run(action, buildController);
                 return buildController.getResult();
             } finally {
                 buildLifecycleListener.beforeComplete();
             }
         } finally {
-            gradleLauncher.stop();
+            buildController.stop();
         }
     }
 }

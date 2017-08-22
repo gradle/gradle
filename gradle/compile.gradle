@@ -1,4 +1,6 @@
 import org.gradle.internal.jvm.Jvm
+import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
+import org.gradle.jvm.toolchain.internal.LocalJavaInstallation
 
 if (!hasProperty('java7Home')) {
     // We allow the system property and the project property so that it is
@@ -8,7 +10,13 @@ if (!hasProperty('java7Home')) {
     ext.java7Home = System.getProperty('java7.home')
 }
 
+def javaInstallationProbe = gradle.services.get(JavaInstallationProbe)
+
 ext.jvmForCompilation = Jvm.current()
+ext.currentJavaInstallation = new DefaultJavaInstallation()
+ext.javaInstallationForCompilation = new DefaultJavaInstallation()
+javaInstallationProbe.current(currentJavaInstallation)
+javaInstallationProbe.current(javaInstallationForCompilation)
 
 tasks.withType(AbstractCompile) {
     options.fork = true // Always fork compilation
@@ -16,14 +24,12 @@ tasks.withType(AbstractCompile) {
 
 if (java7Home) {
     jvmForCompilation = Jvm.forHome(file(java7Home))
+    javaInstallationProbe.checkJdk(file(java7Home)).configure(javaInstallationForCompilation)
     tasks.withType(AbstractCompile) {
         options.with {
             fork = true
             forkOptions.javaHome = jvmForCompilation.javaHome
         }
-    }
-    tasks.withType(Javadoc) {
-        executable = jvmForCompilation.javadocExecutable
     }
 }
 
@@ -36,9 +42,22 @@ tasks.withType(JavaCompile) {
     // while compiling.
     options.compilerArgs = ['-Xlint:-options', '-Xlint:-path']
     options.incremental = true
+    inputs.property('javaInstallation') {
+        javaInstallationForCompilation.displayName
+    }
 }
 tasks.withType(GroovyCompile) {
     options.encoding = 'utf-8'
     options.compilerArgs = ['-Xlint:-options', '-Xlint:-path']
     groovyOptions.encoding = 'utf-8'
+    inputs.property('javaInstallation') {
+        currentJavaInstallation.displayName
+    }
+}
+
+class DefaultJavaInstallation implements LocalJavaInstallation {
+    JavaVersion javaVersion
+    File javaHome
+    String displayName
+    String name
 }

@@ -20,7 +20,7 @@ import com.google.common.hash.HashCode
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.api.internal.hash.DefaultFileHasher
+import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.serialize.HashCodeSerializer
 import org.gradle.normalization.internal.InputNormalizationStrategy
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -43,7 +43,8 @@ class DefaultClasspathSnapshotterTest extends Specification {
     def fileSystem = TestFiles.fileSystem()
     def directoryFileTreeFactory = TestFiles.directoryFileTreeFactory()
     def fileSystemMirror = new DefaultFileSystemMirror([])
-    def fileSystemSnapshotter = new DefaultFileSystemSnapshotter(new DefaultFileHasher(), stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror)
+    def fileHasher = new TestFileHasher()
+    def fileSystemSnapshotter = new DefaultFileSystemSnapshotter(fileHasher, stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror)
     InMemoryIndexedCache<HashCode, HashCode> resourceHashesCache = new InMemoryIndexedCache<>(new HashCodeSerializer())
     def cacheService = new ResourceSnapshotterCacheService(resourceHashesCache)
     def snapshotter = new DefaultClasspathSnapshotter(
@@ -76,20 +77,20 @@ class DefaultClasspathSnapshotterTest extends Specification {
 
         then:
         fileCollectionSnapshot == [
-            ['root1.txt', '', '729e1729eaaaa49d1312e62d073e9abe'],
-            ['file1.txt', 'file1.txt', '60c913683cc577eae172594b76316d06'],
-            ['file2.txt', 'file2.txt', 'e0d9760b191a5dc21838e8a16f956bb0'],
-            ['root2.txt', '', 'b90a100d5c89c184b8433e42a30bc892'],
+            ['root1.txt', '', 'e5d9dee0892c9f474a174d3bfffb7810'],
+            ['file1.txt', 'file1.txt', '826e8142e6baabe8af779f5f490cf5f5'],
+            ['file2.txt', 'file2.txt', '1c1c96fd2cf8330db0bfa936ce82f3b9'],
+            ['root2.txt', '', '9b70d6dbfb1457d05e4e2c2fbb42d7db'],
         ]
 
         when:
         fileCollectionSnapshot = snapshot(rootFile2, rootFile1, rootDir)
         then:
         fileCollectionSnapshot == [
-            ['root2.txt', '', 'b90a100d5c89c184b8433e42a30bc892'],
-            ['root1.txt', '', '729e1729eaaaa49d1312e62d073e9abe'],
-            ['file1.txt', 'file1.txt', '60c913683cc577eae172594b76316d06'],
-            ['file2.txt', 'file2.txt', 'e0d9760b191a5dc21838e8a16f956bb0'],
+            ['root2.txt', '', '9b70d6dbfb1457d05e4e2c2fbb42d7db'],
+            ['root1.txt', '', 'e5d9dee0892c9f474a174d3bfffb7810'],
+            ['file1.txt', 'file1.txt', '826e8142e6baabe8af779f5f490cf5f5'],
+            ['file2.txt', 'file2.txt', '1c1c96fd2cf8330db0bfa936ce82f3b9'],
         ]
     }
 
@@ -116,9 +117,9 @@ class DefaultClasspathSnapshotterTest extends Specification {
 
         fileCollectionSnapshot == [
             ['library.jar', '', 'f31495fd1bb4b8c3b8fb1f46a68adf9e'],
-            ['fourthFile.txt', 'fourthFile.txt', '8fd6978401143ae9adc277e9ce819f7e'],
-            ['build.log', 'subdir/build.log', 'abf951c0fe2b682313add34f016bcb30'],
-            ['thirdFile.txt', 'thirdFile.txt', '728271a3405e112740bfd3198cfa70de'],
+            ['fourthFile.txt', 'fourthFile.txt', '6c99cb370b82c9c527320b35524213e6'],
+            ['build.log', 'subdir/build.log', 'a9cca315f4b8650dccfa3d93284998ef'],
+            ['thirdFile.txt', 'thirdFile.txt', '3f1d3e7fb9620156f8e911fb90d89c42'],
         ]
 
         resourceHashesCache.keySet().size() == 1
@@ -142,7 +143,7 @@ class DefaultClasspathSnapshotterTest extends Specification {
         then:
         fileCollectionSnapshot == [
             ['library.jar', '', '9caa94545d5150c01cf20881f31c4fb2'],
-            ['thirdFile.txt', 'thirdFile.txt', '728271a3405e112740bfd3198cfa70de'],
+            ['thirdFile.txt', 'thirdFile.txt', '3f1d3e7fb9620156f8e911fb90d89c42'],
         ]
 
         when:
@@ -155,7 +156,7 @@ class DefaultClasspathSnapshotterTest extends Specification {
         then:
         fileCollectionSnapshot == [
             ['library.jar', '', '63d04b00e1c9d80e20d881a820b228a1'],
-            ['thirdFile.txt', 'subdir/thirdFile.txt', '728271a3405e112740bfd3198cfa70de'],
+            ['thirdFile.txt', 'subdir/thirdFile.txt', '3f1d3e7fb9620156f8e911fb90d89c42'],
         ]
     }
 
@@ -205,7 +206,7 @@ class DefaultClasspathSnapshotterTest extends Specification {
 
     def snapshot(TestFile... classpath) {
         fileSystemMirror.beforeTaskOutputsGenerated()
-        def fileCollectionSnapshot = snapshotter.snapshot(files(classpath), null, null, InputNormalizationStrategy.NOT_CONFIGURED)
+        def fileCollectionSnapshot = snapshotter.snapshot(files(classpath), null, InputNormalizationStrategy.NOT_CONFIGURED)
         return fileCollectionSnapshot.snapshots.collect { String path, NormalizedFileSnapshot normalizedFileSnapshot ->
             [new File(path).getName(), normalizedFileSnapshot.normalizedPath, normalizedFileSnapshot.snapshot.toString()]
         }

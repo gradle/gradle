@@ -447,13 +447,19 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     /**
      * Expects one PUT request for the given URL. Writes the request content to the given file.
      */
-    void expectPut(String path, File destFile, int statusCode = HttpStatus.ORDINAL_200_OK, PasswordCredentials credentials = null) {
-        def action = new ActionSupport("write request to $destFile.name and return status $statusCode") {
+    void expectPut(String path, File destFile, int statusCode = HttpStatus.ORDINAL_200_OK, PasswordCredentials credentials = null, long expectedContentLength = -1) {
+        def action = new ActionSupport("write request to $destFile.name (content length: $expectedContentLength) and return status $statusCode") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 if (HttpServer.this.expectedUserAgent != null) {
                     String receivedUserAgent = request.getHeader("User-Agent")
                     if (!expectedUserAgent.matches(receivedUserAgent)) {
                         response.sendError(412, String.format("Precondition Failed: Expected User-Agent: '%s' but was '%s'", expectedUserAgent, receivedUserAgent))
+                        return
+                    }
+                }
+                if (expectedContentLength > -1) {
+                    if (request.contentLength != expectedContentLength) {
+                        response.sendError(412, String.format("Precondition Failed: Expected Content-Length: '%d' but was '%d'", expectedContentLength, request.contentLength))
                         return
                     }
                 }

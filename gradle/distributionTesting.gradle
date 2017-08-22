@@ -41,6 +41,11 @@ distributionTestTasks.all { DistributionTest task ->
 
     systemProperties['org.gradle.integtest.multiversion'] = project.hasProperty("testAllVersions") && project.testAllVersions ? 'all' : 'default'
 
+    systemProperties['org.gradle.integtest.mirrors.mavencentral'] = isCiServer ? 'http://dev12.gradle.org:8081/artifactory/repo1' : ''
+    systemProperties['org.gradle.integtest.mirrors.jcenter'] = isCiServer ? 'http://dev12.gradle.org:8081/artifactory/jcenter' : ''
+    systemProperties['org.gradle.integtest.mirrors.typesafemaven'] = isCiServer ? 'http://dev12.gradle.org:8081/artifactory/typesafe-maven-releases' : ''
+    systemProperties['org.gradle.integtest.mirrors.typesafeivy'] = isCiServer ? 'http://dev12.gradle.org:8081/artifactory/typesafe-ivy-releases' : ''
+
     dependsOn project.task("configure${task.name.capitalize()}") {
         doLast {
             configure(task) {
@@ -225,7 +230,7 @@ project(":") {
 }
 
 def forEachJavaProcess(Closure action) {
-    String queryString = "(?i)[/\\\\](java(?:\\.exe)?.+?(?:(?:-cp.+${Pattern.quote(rootProject.projectDir.absolutePath)}.+?org\\.gradle\\.)|(?:-classpath.+${Pattern.quote(rootProject.buildDir.absolutePath)}.+?org\\.gradle\\.)).+)"
+    String queryString = "(?i)[/\\\\](java(?:\\.exe)?.+?(?:(?:-cp.+${Pattern.quote(rootProject.projectDir.absolutePath)}.+?(org\\.gradle\\.|[a-zA-Z]+))|(?:-classpath.+${Pattern.quote(rootProject.buildDir.absolutePath)}.+?(org\\.gradle\\.|[a-zA-Z]+))).+)"
     def output = new ByteArrayOutputStream()
     def error = new ByteArrayOutputStream()
     def pidPattern
@@ -261,10 +266,16 @@ def forEachJavaProcess(Closure action) {
             if (pidMatcher.find()) {
                 def pid = pidMatcher.group(1)
                 def process = processMatcher.group(1)
-                action.call(pid, process)
+                if (!isMe(process)) {
+                    action.call(pid, process)
+                }
             }
         }
     }
+}
+
+def isMe(process) {
+    process.contains(project.gradle.gradleHomeDir.path)
 }
 
 def pkill(pid) {

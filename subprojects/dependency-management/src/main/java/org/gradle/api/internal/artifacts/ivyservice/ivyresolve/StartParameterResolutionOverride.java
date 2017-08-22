@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.cache.ArtifactResolutionControl;
 import org.gradle.api.artifacts.cache.DependencyResolutionControl;
 import org.gradle.api.artifacts.cache.ModuleResolutionControl;
@@ -39,11 +38,12 @@ import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
-import org.gradle.internal.resource.LocalResource;
+import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
@@ -189,7 +189,7 @@ public class StartParameterResolutionOverride {
         }
 
         @Override
-        public void upload(LocalResource resource, URI destination) throws IOException {
+        public void upload(ReadableContent resource, URI destination) throws IOException {
             throw new ResourceException(destination, String.format("Cannot upload to '%s' in offline mode.", destination));
         }
 

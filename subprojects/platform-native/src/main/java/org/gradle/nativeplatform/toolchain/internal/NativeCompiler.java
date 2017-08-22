@@ -30,7 +30,6 @@ import org.gradle.internal.FileUtils;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
@@ -40,64 +39,45 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class NativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
-
-    private final CommandLineToolInvocationWorker commandLineToolInvocationWorker;
-    private final ArgsTransformer<T> argsTransformer;
+public abstract class NativeCompiler<T extends NativeCompileSpec> extends AbstractCompiler<T> {
     private final Transformer<T, T> specTransformer;
-    private final CommandLineToolContext invocationContext;
     private final String objectFileExtension;
-    private final boolean useCommandFile;
     private final Logger logger = Logging.getLogger(NativeCompiler.class);
 
-    private final BuildOperationExecutor buildOperationExecutor;
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
 
     public NativeCompiler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, String objectFileExtension, boolean useCommandFile) {
+        super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, argsTransformer, useCommandFile);
         this.compilerOutputFileNamingSchemeFactory = compilerOutputFileNamingSchemeFactory;
-        this.invocationContext = invocationContext;
         this.objectFileExtension = objectFileExtension;
-        this.useCommandFile = useCommandFile;
-        this.argsTransformer = argsTransformer;
         this.specTransformer = specTransformer;
-        this.commandLineToolInvocationWorker = commandLineToolInvocationWorker;
-        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
     public WorkResult execute(final T spec) {
         final T transformedSpec = specTransformer.transform(spec);
-        final List<String> genericArgs = getArguments(transformedSpec);
 
-        final File objectDir = transformedSpec.getObjectFileDir();
-        buildOperationExecutor.runAll(commandLineToolInvocationWorker, new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
+        super.execute(spec);
+
+        return new SimpleWorkResult(!transformedSpec.getSourceFiles().isEmpty());
+    }
+
+    // TODO(daniel): Should support in a better way multi file invocation.
+    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(final T spec) {
+        final List<String> genericArgs = getArguments(spec);
+
+        final File objectDir = spec.getObjectFileDir();
+        return new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
             @Override
             public void execute(BuildOperationQueue<CommandLineToolInvocation> buildQueue) {
                 buildQueue.setLogLocation(spec.getOperationLogger().getLogLocation());
-                for (File sourceFile : transformedSpec.getSourceFiles()) {
+                for (File sourceFile : spec.getSourceFiles()) {
                     CommandLineToolInvocation perFileInvocation =
                         createPerFileInvocation(genericArgs, sourceFile, objectDir, spec);
                     buildQueue.add(perFileInvocation);
                 }
             }
-        });
-
-        return new SimpleWorkResult(!transformedSpec.getSourceFiles().isEmpty());
-    }
-
-    protected List<String> getArguments(T spec) {
-        List<String> args = argsTransformer.transform(spec);
-
-        Action<List<String>> userArgTransformer = invocationContext.getArgAction();
-        // modifies in place
-        userArgTransformer.execute(args);
-
-        if (useCommandFile) {
-            // Shorten args and write out an options.txt file
-            // This must be called only once per execute()
-            addOptionsFileArgs(args, spec.getTempDir());
-        }
-        return args;
+        };
     }
 
     protected List<String> getSourceArgs(File sourceFile) {
@@ -165,7 +145,7 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> implements Com
         List<String> outputArgs = getOutputArgs(getOutputFileDir(sourceFile, objectDir, objectFileSuffix));
         List<String> pchArgs = maybeGetPCHArgs(spec, sourceFile);
 
-        return invocationContext.createInvocation("compiling ".concat(sourceFile.getName()), objectDir, buildPerFileArgs(genericArgs, sourceArgs, outputArgs, pchArgs), spec.getOperationLogger());
+        return newInvocation("compiling ".concat(sourceFile.getName()), objectDir, buildPerFileArgs(genericArgs, sourceArgs, outputArgs, pchArgs), spec.getOperationLogger());
     }
 
     protected Iterable<String> buildPerFileArgs(List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs, List<String> pchArgs) {

@@ -126,7 +126,7 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':run'.")
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':runtimeClasspath'.")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':runtimeClasspath'.")
         failure.assertHasCause("Cannot resolve external dependency org.sample:number-utils:1.0 because no repositories are defined.")
 
         when:

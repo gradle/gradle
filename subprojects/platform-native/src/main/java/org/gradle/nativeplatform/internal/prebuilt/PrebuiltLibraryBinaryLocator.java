@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.internal.prebuilt;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.NamedDomainObjectSet;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.NativeLibraryBinary;
@@ -27,6 +26,8 @@ import org.gradle.nativeplatform.PrebuiltLibrary;
 import org.gradle.nativeplatform.Repositories;
 import org.gradle.nativeplatform.internal.resolve.LibraryBinaryLocator;
 import org.gradle.nativeplatform.internal.resolve.LibraryIdentifier;
+
+import javax.annotation.Nullable;
 
 public class PrebuiltLibraryBinaryLocator implements LibraryBinaryLocator {
     private final ProjectModelResolver projectModelResolver;

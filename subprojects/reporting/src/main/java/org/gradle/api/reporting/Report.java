@@ -45,7 +45,6 @@ public interface Report extends Serializable, Configurable<Report> {
      * When part of a {@link ReportContainer}, reports are accessed via their name. That is, given a report container variable
      * named {@code reports} containing a report who's {@code getName()} returns {@code "html"}, the report could be accessed
      * via:
-     * <p>
      * <pre>
      * reports.html
      * </pre>

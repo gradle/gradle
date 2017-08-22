@@ -16,34 +16,24 @@ dependencies {
     testFixturesCompile project(':baseServicesGroovy')
     testFixturesCompile project(':internalIntegTesting')
 
-    // Need these to be loaded into the integTestRuntime, so that the modules are available on the classpath and the services can be registered
-    // I think this is only really required for the TAPI tests in embedded mode, where we use `GradleConnector.useClasspathDistribution()`.
-    integTestRuntime project(':ide')
-    integTestRuntime project(':buildInit')
-    integTestRuntime project(':buildComparison')
-    integTestRuntime project(":ivy")
-    integTestRuntime project(":maven")
-    integTestRuntime project(":compositeBuilds")
-
     integTestRuntime project(":toolingApiBuilders")
+    integTestRuntime rootProject.configurations.testRuntime.allDependencies
+
+    // Need these to be loaded into the crossVersionTestRuntime, so that the modules are available on the classpath and the services can be registered
+    // I think this is only really required for the TAPI tests in embedded mode, where we use `GradleConnector.useClasspathDistribution()`.
+    crossVersionTestRuntime project(':ide')
+    crossVersionTestRuntime project(':buildInit')
+    crossVersionTestRuntime project(':buildComparison')
+    crossVersionTestRuntime project(":ivy")
+    crossVersionTestRuntime project(":maven")
+    crossVersionTestRuntime project(":compositeBuilds")
+    crossVersionTestRuntime rootProject.configurations.testRuntime.allDependencies
 }
 
 useTestFixtures()
 useTestFixtures(project: ":logging")
 useTestFixtures(project: ':dependencyManagement')
 useTestFixtures(project: ':ide')
-
-forkingIntegTest {
-    maxParallelForks = Math.min(2, rootProject.maxParallelForks)
-}
-
-parallelIntegTest {
-    enabled = false //tooling integ tests use parallel settings, don't run
-}
-
-daemonIntegTest {
-    enabled = false //tooling integ tests use daemon anyway, don't rerun
-}
 
 task shadedJarWithoutVersion(type: ShadedJar) {
     ext.outputDir = file("$buildDir/shaded-jar-without-version")
@@ -53,7 +43,7 @@ task shadedJarWithoutVersion(type: ShadedJar) {
     classesDir = file("$outputDir/classes")
     jarFile = file("$outputDir/gradle-tooling-api-shaded-${baseVersion}.jar")
     keepPackages = ["org.gradle.tooling"]
-    unshadedPackages = ["org.gradle", "org.slf4j"]
+    unshadedPackages = ["org.gradle", "org.slf4j", "sun.misc"]
     ignorePackages = ["org.gradle.tooling.provider.model"]
     shadowPackage = "org.gradle.internal.impldep"
 }

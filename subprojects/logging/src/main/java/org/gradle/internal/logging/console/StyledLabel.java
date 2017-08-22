@@ -16,7 +16,7 @@
 
 package org.gradle.internal.logging.console;
 
-import org.gradle.internal.logging.text.Span;
+import org.gradle.internal.logging.events.StyledTextOutputEvent;
 
 import java.util.List;
 
@@ -24,6 +24,6 @@ import java.util.List;
  * A label where its text can be styled.
  */
 public interface StyledLabel extends Label {
-    void setText(List<Span> spans);
-    void setText(Span... spans);
+    void setText(List<StyledTextOutputEvent.Span> spans);
+    void setText(StyledTextOutputEvent.Span... spans);
 }

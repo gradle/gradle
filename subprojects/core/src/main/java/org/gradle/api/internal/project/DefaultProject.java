@@ -52,6 +52,7 @@ import org.gradle.api.internal.NoConventionMapping;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.file.DefaultProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
@@ -85,6 +86,7 @@ import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.typeconversion.TypeConverter;
@@ -151,6 +153,8 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     private final File projectDir;
 
+    private final File buildFile;
+
     private final ProjectInternal parent;
 
     private final String name;
@@ -172,10 +176,6 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     private Factory<AntBuilder> antBuilderFactory;
 
     private AntBuilder ant;
-
-    private Object buildDir = Project.DEFAULT_BUILD_DIR_NAME;
-
-    private File buildDirCached;
 
     private final int depth;
 
@@ -199,6 +199,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     public DefaultProject(String name,
                           ProjectInternal parent,
                           File projectDir,
+                          File buildFile,
                           ScriptSource buildScriptSource,
                           GradleInternal gradle,
                           ServiceRegistryFactory serviceRegistryFactory,
@@ -209,6 +210,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         assert name != null;
         this.rootProject = parent != null ? parent.getRootProject() : this;
         this.projectDir = projectDir;
+        this.buildFile = buildFile;
         this.parent = parent;
         this.name = name;
         this.state = new ProjectStateInternal();
@@ -352,7 +354,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public File getBuildFile() {
-        return getBuildscript().getSourceFile();
+        return buildFile;
     }
 
     @Override
@@ -696,10 +698,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public File getBuildDir() {
-        if (buildDirCached == null) {
-            buildDirCached = file(buildDir);
-        }
-        return buildDirCached;
+        return getLayout().getBuildDirectory().getAsFile().get();
     }
 
     @Override
@@ -709,8 +708,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void setBuildDir(Object path) {
-        buildDir = path;
-        buildDirCached = null;
+        getLayout().setBuildDirectory(path);
     }
 
     @Override
@@ -815,6 +813,13 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Override
     @Inject
     public ObjectFactory getObjects() {
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    @Inject
+    public DefaultProjectLayout getLayout() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }
@@ -1219,7 +1224,12 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getBaseClassLoaderScope(), this);
+        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getBaseClassLoaderScope(), getResourceLoader(), this);
+    }
+
+    @Inject
+    protected TextResourceLoader getResourceLoader() {
+        throw new UnsupportedOperationException();
     }
 
     @Inject

@@ -49,7 +49,7 @@ abstract class AbstractTaskRelocationIntegrationTest extends AbstractIntegration
 
     abstract protected String getTaskName()
 
-    abstract protected void setupProjectInOriginalLocation();
+    abstract protected void setupProjectInOriginalLocation()
 
     abstract protected void moveFilesAround()
 

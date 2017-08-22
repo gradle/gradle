@@ -43,7 +43,7 @@ public class MixedMethodsTest {
         def buildFile = file('build.gradle')
         buildFile << """
 apply plugin: 'java'
-repositories { mavenCentral() }
+${mavenCentralRepository()}
 dependencies { testCompile 'org.testng:testng:6.3.1' }
 
 test {
@@ -72,7 +72,7 @@ public class SomeTest {
         def buildFile = file('build.gradle')
         buildFile << """
 apply plugin: 'java'
-repositories { mavenCentral() }
+${mavenCentralRepository()}
 dependencies { testCompile 'org.testng:testng:6.3.1' }
 test {
   reports.html.enabled = false

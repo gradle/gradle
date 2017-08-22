@@ -17,6 +17,7 @@
 package org.gradle.caching.internal.tasks;
 
 import com.google.common.hash.HashCode;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.ValueSnapshot;
@@ -28,8 +29,8 @@ import java.util.SortedSet;
 
 public class TaskCacheKeyCalculator {
 
-    public TaskOutputCachingBuildCacheKey calculate(TaskExecution execution) {
-        DefaultTaskOutputCachingBuildCacheKeyBuilder builder = new DefaultTaskOutputCachingBuildCacheKeyBuilder();
+    public static TaskOutputCachingBuildCacheKey calculate(TaskInternal task, TaskExecution execution) {
+        TaskOutputCachingBuildCacheKeyBuilder builder = new DefaultTaskOutputCachingBuildCacheKeyBuilder(task.getIdentityPath());
         builder.appendTaskImplementation(execution.getTaskImplementation());
         builder.appendTaskActionImplementations(execution.getTaskActionImplementations());
 

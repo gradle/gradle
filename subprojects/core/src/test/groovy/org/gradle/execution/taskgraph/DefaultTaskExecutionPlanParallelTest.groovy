@@ -20,13 +20,17 @@ import com.google.common.collect.Queues
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
+import org.gradle.api.internal.GradleInternal
+import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.OutputFiles
 import org.gradle.initialization.BuildCancellationToken
+import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.work.DefaultWorkerLeaseService
@@ -57,12 +61,13 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
     ProjectInternal root
     def cancellationHandler = Mock(BuildCancellationToken)
     def coordinationService = new DefaultResourceLockCoordinationService()
-    def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, true, 3)
+    def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, new ParallelismConfigurationManagerFixture(true, 1))
     def parentWorkerLease = workerLeaseService.workerLease
+    def gradle = Mock(GradleInternal)
 
     def setup() {
         root = createRootProject(temporaryFolder.testDirectory)
-        executionPlan = new DefaultTaskExecutionPlan(cancellationHandler, coordinationService, workerLeaseService)
+        executionPlan = new DefaultTaskExecutionPlan(cancellationHandler, coordinationService, workerLeaseService, Mock(GradleInternal))
         parentWorkerLease.start()
     }
 
@@ -663,6 +668,24 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
         operation."${c.path}".start > operation."${b.path}".end
     }
 
+    def "handles an exception while while walking the task graph when an enforced task is present"() {
+        given:
+        Task finalizer = root.task("finalizer", type: BrokenTask)
+        Task finalized = root.task("finalized")
+        finalized.finalizedBy finalizer
+
+        when:
+        addToGraphAndPopulate(finalized)
+        async {
+            startTaskWorkers(2)
+            releaseTasks(finalized)
+        }
+
+        then:
+        executionPlan.executionPlan[finalized].isSuccessful()
+        executionPlan.executionPlan[finalizer].state == TaskInfo.TaskExecutionState.SKIPPED
+    }
+
     private void addToGraphAndPopulate(Task... tasks) {
         executionPlan.addToTaskGraph(Arrays.asList(tasks))
         executionPlan.determineExecutionPlan()
@@ -735,5 +758,12 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
     static class AsyncWithInputDirectory extends Async {
         @InputDirectory
         File inputDirectory
+    }
+
+    static class BrokenTask extends DefaultTask {
+        @OutputFiles
+        FileCollection getOutputFiles() {
+            throw new Exception("BOOM!")
+        }
     }
 }

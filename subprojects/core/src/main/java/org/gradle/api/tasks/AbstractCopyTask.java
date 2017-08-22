@@ -443,7 +443,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
 
     /**
      * {@inheritDoc}
-     * @param renamer
      */
     public AbstractCopyTask rename(Transformer<String, String> renamer) {
         getMainSpec().rename(renamer);
@@ -492,7 +491,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
 
     /**
      * {@inheritDoc}
-     * @param transformer
      */
     public AbstractCopyTask filter(Transformer<String, String> transformer) {
         getMainSpec().filter(transformer);

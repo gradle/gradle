@@ -103,9 +103,8 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         }
 
         @Override
-        public void visitArtifacts(ArtifactVisitor visitor) {
+        public void visitArtifacts(ArtifactVisitor visitor, boolean continueOnSelectionFailure) {
         }
-
     }
 
     private static class EmptyResolvedConfiguration implements ResolvedConfiguration {

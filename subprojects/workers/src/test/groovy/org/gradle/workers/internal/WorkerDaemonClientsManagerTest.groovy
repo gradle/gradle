@@ -17,6 +17,13 @@
 package org.gradle.workers.internal
 
 import org.gradle.api.Transformer
+import org.gradle.api.logging.LogLevel
+import org.gradle.initialization.SessionLifecycleListener
+import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.logging.LoggingManagerInternal
+import org.gradle.internal.logging.events.LogLevelChangeEvent
+import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.util.ConcurrentSpecification
 import spock.lang.Subject
 
@@ -27,8 +34,10 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
     def options = Stub(DaemonForkOptions)
     def starter = Stub(WorkerDaemonStarter)
     def serverImpl = Stub(WorkerProtocol)
+    def listenerManager = Stub(ListenerManager)
+    def loggingManager = Stub(LoggingManagerInternal)
 
-    @Subject manager = new WorkerDaemonClientsManager(starter)
+    @Subject manager = new WorkerDaemonClientsManager(starter, listenerManager, loggingManager)
 
     def "does not reserve idle client when no clients"() {
         expect:
@@ -56,10 +65,10 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
 
     def "reserves new client"() {
         def newClient = Stub(WorkerDaemonClient)
-        starter.startDaemon(serverImpl.class, workingDir, options) >> newClient
+        starter.startDaemon(serverImpl.class, options) >> newClient
 
         when:
-        def client = manager.reserveNewClient(serverImpl.class, workingDir, options)
+        def client = manager.reserveNewClient(serverImpl.class, options)
 
         then:
         newClient == client
@@ -68,11 +77,11 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
     def "can stop all created clients"() {
         def client1 = Mock(WorkerDaemonClient)
         def client2 = Mock(WorkerDaemonClient)
-        starter.startDaemon(serverImpl.class, workingDir, options) >>> [client1, client2]
+        starter.startDaemon(serverImpl.class, options) >>> [client1, client2]
 
         when:
-        manager.reserveNewClient(serverImpl.class, workingDir, options)
-        manager.reserveNewClient(serverImpl.class, workingDir, options)
+        manager.reserveNewClient(serverImpl.class, options)
+        manager.reserveNewClient(serverImpl.class, options)
         manager.stop()
 
         then:
@@ -80,12 +89,53 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
         1 * client2.stop()
     }
 
-    def "clients can be released for further use"() {
-        def client = Mock(WorkerDaemonClient) { isCompatibleWith(_) >> true }
-        starter.startDaemon(serverImpl.class, workingDir, options) >> client
+    def "can stop session-scoped clients"() {
+        listenerManager = new DefaultListenerManager()
+        manager = new WorkerDaemonClientsManager(starter, listenerManager, loggingManager)
+        def client1 = Mock(WorkerDaemonClient)
+        def client2 = Mock(WorkerDaemonClient)
+        starter.startDaemon(serverImpl.class, options) >>> [client1, client2]
 
         when:
-        manager.reserveNewClient(serverImpl.class, workingDir, options)
+        manager.reserveNewClient(serverImpl.class, options)
+        manager.reserveNewClient(serverImpl.class, options)
+        listenerManager.getBroadcaster(SessionLifecycleListener).beforeComplete()
+
+        then:
+        1 * client1.getKeepAliveMode() >> KeepAliveMode.SESSION
+        1 * client2.getKeepAliveMode() >> KeepAliveMode.SESSION
+        1 * client1.stop()
+        1 * client2.stop()
+    }
+
+    def "Stopping session-scoped clients does not stop other clients"() {
+        listenerManager = new DefaultListenerManager()
+        manager = new WorkerDaemonClientsManager(starter, listenerManager, loggingManager)
+        def client1 = Mock(WorkerDaemonClient)
+        def client2 = Mock(WorkerDaemonClient)
+        starter.startDaemon(serverImpl.class, options) >>> [client1, client2]
+
+        when:
+        manager.reserveNewClient(serverImpl.class, options)
+        manager.reserveNewClient(serverImpl.class, options)
+        listenerManager.getBroadcaster(SessionLifecycleListener).beforeComplete()
+
+        then:
+        1 * client1.getKeepAliveMode() >> KeepAliveMode.SESSION
+        1 * client2.getKeepAliveMode() >> KeepAliveMode.DAEMON
+        1 * client1.stop()
+        0 * client2.stop()
+    }
+
+    def "clients can be released for further use"() {
+        def client = Mock(WorkerDaemonClient) {
+            isCompatibleWith(_) >> true
+            getLogLevel() >> LogLevel.DEBUG
+        }
+        starter.startDaemon(serverImpl.class, options) >> client
+
+        when:
+        manager.reserveNewClient(serverImpl.class, options)
 
         then:
         manager.reserveIdleClient(options) == null
@@ -97,11 +147,42 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
         manager.reserveIdleClient(options) == client
     }
 
+    def "clients are discarded when log level changes"() {
+        OutputEventListener listener
+        def client = Mock(WorkerDaemonClient) {
+            isCompatibleWith(_) >> true
+            getLogLevel() >> LogLevel.INFO
+        }
+        starter.startDaemon(serverImpl.class, options) >> client
+        loggingManager.addOutputEventListener(_) >> { args  -> listener = args[0] }
+        loggingManager.getLevel() >> LogLevel.INFO
+
+        when:
+        manager = new WorkerDaemonClientsManager(starter, listenerManager, loggingManager)
+
+        then:
+        listener != null
+
+        when:
+        manager.reserveNewClient(serverImpl.class, options)
+
+        then:
+        manager.release(client)
+
+        when:
+        listener.onOutput(Stub(LogLevelChangeEvent) { getNewLogLevel() >> LogLevel.QUIET })
+        def shouldBeNull = manager.reserveIdleClient(options)
+
+        then:
+        1 * client.stop()
+        shouldBeNull == null
+    }
+
     def "prefers to stop less frequently used idle clients when releasing memory"() {
         def client1 = Mock(WorkerDaemonClient) { _ * getUses() >> 5 }
         def client2 = Mock(WorkerDaemonClient) { _ * getUses() >> 1 }
         def client3 = Mock(WorkerDaemonClient) { _ * getUses() >> 3 }
-        starter.startDaemon(serverImpl.class, workingDir, options) >>> [client1, client2, client3]
+        starter.startDaemon(serverImpl.class, options) >>> [client1, client2, client3]
         def stopMostPreferredClient = new Transformer<List<WorkerDaemonClient>, List<WorkerDaemonClient>>() {
             @Override
             List<WorkerDaemonClient> transform(List<WorkerDaemonClient> workerDaemonClients) {
@@ -110,7 +191,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
         }
 
         when:
-        3.times { manager.reserveNewClient(serverImpl.class, workingDir, options) }
+        3.times { manager.reserveNewClient(serverImpl.class, options) }
         [client1, client2, client3].each { manager.release(it) }
         manager.selectIdleClientsToStop(stopMostPreferredClient)
 
@@ -131,7 +212,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
         def client1 = Mock(WorkerDaemonClient) { _ * getUses() >> 5 }
         def client2 = Mock(WorkerDaemonClient) { _ * getUses() >> 1 }
         def client3 = Mock(WorkerDaemonClient) { _ * getUses() >> 3 }
-        starter.startDaemon(serverImpl.class, workingDir, options) >>> [client1, client2, client3]
+        starter.startDaemon(serverImpl.class, options) >>> [client1, client2, client3]
         def stopAll = new Transformer<List<WorkerDaemonClient>, List<WorkerDaemonClient>>() {
             @Override
             List<WorkerDaemonClient> transform(List<WorkerDaemonClient> workerDaemonClients) {
@@ -140,7 +221,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
         }
 
         when:
-        3.times { manager.reserveNewClient(serverImpl.class, workingDir, options) }
+        3.times { manager.reserveNewClient(serverImpl.class, options) }
         manager.release(client3)
         manager.selectIdleClientsToStop(stopAll)
 

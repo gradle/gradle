@@ -20,50 +20,73 @@ import groovy.transform.CompileStatic
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.CopySpec
-import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.tasks.*
+import org.gradle.api.file.FileCollection
+import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.TaskAction
 
 @CacheableTask
 @CompileStatic
 class PatchExternalModules extends DefaultTask {
 
     @Internal
-    Configuration externalModules
+    Configuration modulesToPatch
 
     @Input
-    Set<String> getExternalModuleNames() {
-        externalModules.dependencies*.name as Set
+    Set<String> getNamesOfModulesToPatch() {
+        modulesToPatch.dependencies*.name as Set
+    }
+
+    @Internal
+    Configuration allModules
+
+    @Input
+    Set<String> getFileNamesOfAllModules() {
+        allModules.incoming.artifacts*.file*.name as Set
+    }
+
+    @Internal
+    Configuration coreModules
+
+    @Input
+    Set<String> getFileNamesOfCoreModules() {
+        coreModules.incoming.artifacts*.file*.name as Set
     }
 
     @Classpath
-    Configuration externalModulesRuntime
-
-    @Classpath
-    Configuration coreRuntime
+    FileCollection getExternalModules() {
+        allModules - coreModules
+    }
 
     @OutputDirectory
     File destination
 
     PatchExternalModules() {
-        description = 'Patches the classpath manifests of external modules such as gradle-script-kotlin to match the Gradle runtime configuration.'
+        description = 'Patches the classpath manifests and content of external modules such as gradle-kotlin-dsl to match the Gradle runtime configuration.'
+        dependsOn { modulesToPatch }
     }
 
     @TaskAction
     void patch() {
-        ((ProjectInternal) project).sync { CopySpec copySpec ->
-            copySpec.from(externalModulesRuntime - coreRuntime)
+        project.sync { CopySpec copySpec ->
+            copySpec.from(externalModules)
             copySpec.into(destination)
         }
 
-        def rootProject = project.rootProject as ProjectInternal
-
-        new ClasspathManifestPatcher(rootProject, temporaryDir, externalModulesRuntime, externalModuleNames)
-                .writePatchedFilesTo(destination)
+        new ClasspathManifestPatcher(project.rootProject, temporaryDir, allModules, namesOfModulesToPatch)
+            .writePatchedFilesTo(destination)
 
         // TODO: Should this be configurable?
-        new ExcludeEntryPatcher(rootProject, temporaryDir, externalModulesRuntime, "kotlin-compiler-embeddable")
-                .exclude("META-INF/services/java.nio.charset.spi.CharsetProvider")
-                .exclude("net/rubygrapefruit/platform/**")
-                .writePatchedFilesTo(destination)
+        new JarPatcher(project.rootProject, temporaryDir, allModules, "kotlin-compiler-embeddable")
+            .exclude("META-INF/services/java.nio.charset.spi.CharsetProvider")
+            .exclude("net/rubygrapefruit/platform/**")
+            .exclude("org/fusesource/jansi/**")
+            .exclude("META-INF/native/**/*jansi.*")
+            .includeJar("native-platform-")
+            .includeJar("jansi-", "META-INF/native/**", "org/fusesource/jansi/internal/CLibrary*.class")
+            .writePatchedFilesTo(destination)
     }
 }

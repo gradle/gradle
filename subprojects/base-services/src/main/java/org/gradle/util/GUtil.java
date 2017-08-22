@@ -18,17 +18,37 @@ package org.gradle.util;
 
 import com.google.common.base.Charsets;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.LineBufferingOutputStream;
 import org.gradle.internal.io.SkipFirstTextStream;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.io.WriterTextStream;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.EnumSet;
+import java.util.Formatter;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -237,6 +257,20 @@ public class GUtil {
         }
     }
 
+
+    public static void savePropertiesNoDateComment(Properties properties, File propertyFile) {
+        try {
+            FileOutputStream propertiesFileOutputStream = new FileOutputStream(propertyFile);
+            try {
+                savePropertiesNoDateComment(properties, propertiesFileOutputStream);
+            } finally {
+                propertiesFileOutputStream.close();
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     public static void savePropertiesNoDateComment(Properties properties, OutputStream outputStream) {
         saveProperties(properties,
             new LineBufferingOutputStream(
@@ -405,25 +439,57 @@ public class GUtil {
         }
     }
 
-    /**
-     * Note that setting the January 1st 1980 (or even worse, "0", as time) won't work due
-     * to Java 8 doing some interesting time processing: It checks if this date is before January 1st 1980
-     * and if it is it starts setting some extra fields in the zip. Java 7 does not do that - but in the
-     * zip not the milliseconds are saved but values for each of the date fields - but no time zone. And
-     * 1980 is the first year which can be saved.
-     * If you use January 1st 1980 then it is treated as a special flag in Java 8.
-     * Moreover, only even seconds can be stored in the zip file. Java 8 uses the upper half of
-     * some other long to store the remaining millis while Java 7 doesn't do that. So make sure
-     * that your seconds are even.
-     * Moreover, parsing happens via `new Date(millis)` in {@link java.util.zip.ZipUtils}#javaToDosTime() so we
-     * must use default timezone and locale.
-     *
-     * The date is 1980 February 1st.
-     */
-    public static final long CONSTANT_TIME_FOR_ZIP_ENTRIES = new GregorianCalendar(1980, Calendar.FEBRUARY, 1, 0, 0, 0).getTimeInMillis();
+    public static <T extends Enum<T>> T toEnum(Class<? extends T> enumType, Object value) {
+        if (enumType.isInstance(value)) {
+            return enumType.cast(value);
+        }
+        if (value instanceof CharSequence) {
+            final String literal = value.toString();
+            T match = findEnumValue(enumType, literal);
+            if (match != null) {
+                return match;
+            }
 
-    /**
-     * Tar files are simpler.  We can just use "0" as a timestamp.
-     */
-    public static final long CONSTANT_TIME_FOR_TAR_ENTRIES = 0;
+            final String alternativeLiteral = toWords(literal, '_');
+            match = findEnumValue(enumType, alternativeLiteral);
+            if (match != null) {
+                return match;
+            }
+
+            throw new IllegalArgumentException(
+                String.format("Cannot convert string value '%s' to an enum value of type '%s' (valid case insensitive values: %s)",
+                    literal, enumType.getName(), CollectionUtils.join(", ", CollectionUtils.collect(Arrays.asList(enumType.getEnumConstants()), new Transformer<String, T>() {
+                        @Override
+                        public String transform(T t) {
+                            return t.name();
+                        }
+                    }))
+                )
+            );
+        }
+        throw new IllegalArgumentException(String.format("Cannot convert value '%s' of type '%s' to enum type '%s'",
+            value, value.getClass().getName(), enumType.getName()));
+    }
+
+    private static <T extends Enum<T>> T findEnumValue(Class<? extends T> enumType, final String literal) {
+        List<? extends T> enumConstants = Arrays.asList(enumType.getEnumConstants());
+        return CollectionUtils.findFirst(enumConstants, new Spec<T>() {
+            public boolean isSatisfiedBy(T enumValue) {
+                return enumValue.name().equalsIgnoreCase(literal);
+            }
+        });
+    }
+
+    public static <T extends Enum<T>> EnumSet<T> toEnumSet(Class<T> enumType, Object[] values) {
+        return toEnumSet(enumType, Arrays.asList(values));
+    }
+
+    public static <T extends Enum<T>> EnumSet<T> toEnumSet(Class<T> enumType, Iterable<?> values) {
+        EnumSet<T> result = EnumSet.noneOf(enumType);
+        for (Object value : values) {
+            result.add(toEnum(enumType, value));
+        }
+        return result;
+    }
+
 }

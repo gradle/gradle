@@ -36,5 +36,7 @@ public enum ToolChainRequirement {
     // Any available GCC compatible implementation (including mingw, cygwin, and clang)
     GCC_COMPATIBLE,
     // Any available Clang
-    CLANG
+    CLANG,
+    // Any Swift Compiler
+    SWIFT
 }

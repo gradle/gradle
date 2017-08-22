@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.util.ports.ReleasingPortAllocator
 import org.junit.Rule
+import spock.lang.Issue
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
@@ -35,9 +36,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
                 id 'com.github.johnrengelman.shadow' version '1.2.3'
             }
 
-            repositories {
-                jcenter()
-            }
+            ${jcenterRepository()}
 
             dependencies {
                 compile 'commons-collections:commons-collections:3.2.2'
@@ -63,9 +62,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         given:
         buildFile << """
             buildscript {
-                repositories {
-                    jcenter()
-                }
+                ${jcenterRepository()}
                 dependencies {
                     classpath "org.asciidoctor:asciidoctor-gradle-plugin:1.5.3"                
                 }
@@ -124,9 +121,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
                 id 'io.spring.dependency-management' version '1.0.1.RELEASE'
             }
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencyManagement {
                 dependencies {
@@ -176,6 +171,49 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         then:
         result.task(':findMainClass').outcome == SUCCESS
         result.task(':bootRepackage').outcome == SUCCESS
+    }
+
+    @Issue("gradle/gradle#2480")
+    def "spring dependency management plugin and BOM"() {
+        given:
+        buildFile << '''
+            buildscript {
+                repositories {
+                    mavenCentral()
+                }
+            }
+            
+            plugins { 
+                id 'java'
+                id 'io.spring.dependency-management' version '1.0.0.RELEASE' 
+            }
+            
+            repositories {
+                mavenCentral()
+            }
+            
+            dependencies {
+                compile('org.springframework.boot:spring-boot-starter')
+                testCompile('org.springframework.boot:spring-boot-starter-test')
+            }
+            
+            dependencyManagement {
+                imports { mavenBom("org.springframework.boot:spring-boot-dependencies:1.5.2.RELEASE") }
+            }
+            
+            task resolveDependencies {
+                doLast {
+                    configurations.compile.files
+                    configurations.testCompile.files
+                }
+            }
+        '''
+
+        when:
+        runner('resolveDependencies').build()
+
+        then:
+        noExceptionThrown()
     }
 
     def 'tomcat plugin'() {
@@ -279,7 +317,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
                 id "org.xtext.xtend" version "1.0.17"
             }
 
-            repositories.jcenter()
+            ${jcenterRepository()}
 
             dependencies {
                 compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.11.0'

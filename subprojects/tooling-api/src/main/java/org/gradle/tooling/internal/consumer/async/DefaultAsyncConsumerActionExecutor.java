@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.consumer.async;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ServiceLifecycle;
-import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerActionExecutor;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
@@ -28,7 +28,7 @@ import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
  */
 public class DefaultAsyncConsumerActionExecutor implements AsyncConsumerActionExecutor {
     private final ConsumerActionExecutor actionExecutor;
-    private final StoppableExecutor executor;
+    private final ManagedExecutor executor;
     private final ServiceLifecycle lifecycle;
 
     public DefaultAsyncConsumerActionExecutor(ConsumerActionExecutor actionExecutor, ExecutorFactory executorFactory) {

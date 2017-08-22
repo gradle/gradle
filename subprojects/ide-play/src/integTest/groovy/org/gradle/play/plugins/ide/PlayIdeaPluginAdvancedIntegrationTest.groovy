@@ -37,6 +37,6 @@ class PlayIdeaPluginAdvancedIntegrationTest extends PlayIdeaPluginIntegrationTes
     }
 
     int getExpectedScalaClasspathSize() {
-        116
+        114
     }
 }

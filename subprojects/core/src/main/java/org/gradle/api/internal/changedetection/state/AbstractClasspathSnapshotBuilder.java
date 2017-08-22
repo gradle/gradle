@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.hash.HashCode;
 import org.gradle.api.GradleException;
-import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.caching.internal.BuildCacheHasher;
@@ -26,6 +25,7 @@ import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.FileUtils;
 import org.gradle.util.DeprecationLogger;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.List;
 import java.util.zip.ZipException;
@@ -38,7 +38,7 @@ public abstract class AbstractClasspathSnapshotBuilder extends FileCollectionSna
     private final byte[] jarHasherConfigurationHash;
 
     public AbstractClasspathSnapshotBuilder(ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
-        super(TaskFilePropertyCompareStrategy.ORDERED, TaskFilePropertySnapshotNormalizationStrategy.NONE, stringInterner);
+        super(TaskFilePropertyCompareStrategy.ORDERED, InputPathNormalizationStrategy.NONE, stringInterner);
         this.cacheService = cacheService;
         this.stringInterner = stringInterner;
         this.classpathResourceHasher = classpathResourceHasher;
@@ -71,7 +71,7 @@ public abstract class AbstractClasspathSnapshotBuilder extends FileCollectionSna
 
     @Override
     public void visitFileSnapshot(RegularFileSnapshot file) {
-        if (FileUtils.isJar(file.getName())) {
+        if (FileUtils.hasExtensionIgnoresCase(file.getName(), ".jar")) {
             visitJar(file);
         } else {
             visitNonJar(file);

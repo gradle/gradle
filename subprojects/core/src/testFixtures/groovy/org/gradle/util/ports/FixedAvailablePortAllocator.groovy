@@ -22,13 +22,12 @@ class FixedAvailablePortAllocator extends AbstractAvailablePortAllocator {
     static final String WORKER_ID_SYS_PROPERTY = "org.gradle.test.worker"
     static final String AGENT_NUM_SYS_PROPERTY = "org.gradle.ci.agentNum"
     static final String TOTAL_AGENTS_SYS_PROPERTY = "org.gradle.ci.agentCount"
-    static final int DEFAULT_RANGE_SIZE = 20
+    static final int DEFAULT_RANGE_SIZE = 50
     private static FixedAvailablePortAllocator instance
     final int workerId
     final int agentNum
     final int totalAgents
-    final int bucketsPerAgent
-    final int rangeCount
+    final int rangeCountPerAgent
     final int rangeSize
 
     FixedAvailablePortAllocator(int workerId, int agentNum, int totalAgents) {
@@ -36,8 +35,7 @@ class FixedAvailablePortAllocator extends AbstractAvailablePortAllocator {
         this.workerId = workerId
         this.totalAgents = totalAgents
         this.rangeSize = DEFAULT_RANGE_SIZE
-        this.bucketsPerAgent = (MAX_PRIVATE_PORT - MIN_PRIVATE_PORT) / (rangeSize * totalAgents)
-        this.rangeCount = bucketsPerAgent * totalAgents
+        this.rangeCountPerAgent = (MAX_PRIVATE_PORT - MIN_PRIVATE_PORT) / (rangeSize * totalAgents)
     }
 
     public static FixedAvailablePortAllocator getInstance() {
@@ -60,13 +58,12 @@ class FixedAvailablePortAllocator extends AbstractAvailablePortAllocator {
             throw new IllegalArgumentException("Agent number was set to ${agentNum} but totalAgents was set to ${totalAgents}.")
         }
 
-        int fixedRange = 0
-
+        int rangeIndex = (agentNum - 1) * rangeCountPerAgent
         if (workerId != -1) {
-            fixedRange = ((workerId - 1) % bucketsPerAgent) + ((agentNum - 1) * bucketsPerAgent)
+            rangeIndex += (workerId - 1) % rangeCountPerAgent
         }
 
-        int startPort = MIN_PRIVATE_PORT + (fixedRange * rangeSize)
+        int startPort = MIN_PRIVATE_PORT + (rangeIndex * rangeSize)
         int endPort = startPort + rangeSize - 1
         return Pair.of(startPort, endPort)
     }

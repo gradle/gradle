@@ -16,9 +16,10 @@
 
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
-import org.gradle.internal.time.Clock
+import org.gradle.internal.time.Timers
+import org.gradle.internal.time.Timer
 
-def buildClock = new Clock()
+def buildTimer = Timers.startTimer()
 def taskInfos = []
 
 class TaskCacheInfo {
@@ -42,16 +43,16 @@ def internTaskType = { Class<? extends Task> type ->
 }
 
 gradle.addListener(new TaskExecutionListener() {
-    Map<String, Clock> clocks = [:]
+    Map<String, Timer> timers = [:]
 
     @Override
     void beforeExecute(Task task) {
-        clocks.put(task.path, new Clock())
+        timers.put(task.path, Timers.startTimer())
     }
 
     @Override
     void afterExecute(Task task, TaskState state) {
-        def clock = clocks.remove(task.path)
+        def timer = timers.remove(task.path)
         def type = task.getClass()
         if (type.name.endsWith("_Decorated")) {
             type = type.superclass
@@ -62,7 +63,7 @@ gradle.addListener(new TaskExecutionListener() {
             hasCustomActions: ((TaskInternal) task).hasCustomActions,
             outcome: state.outcome,
             cacheable: state.taskOutputCaching.enabled,
-            time: clock.elapsedMillis
+            time: timer.elapsedMillis
         )
         // println " >> $info.type.name took $info.time ms"
         taskInfos.add info
@@ -109,7 +110,7 @@ gradle.addListener(new BuildAdapter() {
                 ? new PrintWriter(csv)
                 : new PrintWriter(System.out)
             try {
-                csvPrint writer, "Build time", buildClock.elapsedMillis
+                csvPrint writer, "Build time", buildTimer.elapsedMillis
                 csvPrint writer,
                     "Outcome",
                     "Cacheable",
