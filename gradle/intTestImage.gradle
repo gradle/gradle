@@ -22,17 +22,19 @@ task intTestImage(type: Sync) {
     into file("$buildDir/integ test")
 }
 
-if (useIncomingDistributions) {
-    task unpackIncomingAllDistribution(type: Sync) {
-        from zipTree(incomingAllDistribution)
-        into "$buildDir/tmp/unpacked-incoming-all-distribution"
+if (useAllDistribution) {
+    def allZip = tasks.getByPath(':distributions:allZip')
+    task unpackAllDistribution(type: Sync) {
+        dependsOn allZip
+        from { zipTree(allZip.archivePath) }
+        into "$buildDir/tmp/unpacked-all-distribution"
     }
 
     // Compensate for the top level dir in the zip
-    def unpackedPath = "$unpackIncomingAllDistribution.destinationDir/gradle-${incomingDistributionsBuildReceipt.versionNumber}"
+    def unpackedPath = "$unpackAllDistribution.destinationDir/gradle-${version}"
 
     intTestImage {
-        dependsOn unpackIncomingAllDistribution
+        dependsOn unpackAllDistribution
         from(unpackedPath)
     }
 } else {
