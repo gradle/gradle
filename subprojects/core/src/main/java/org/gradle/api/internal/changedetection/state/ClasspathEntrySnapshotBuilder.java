@@ -38,7 +38,7 @@ import static org.gradle.api.internal.changedetection.state.InputPathNormalizati
 /**
  * Builds the snapshot of a classpath entry.
  * It can be either used on {@link RegularFileSnapshot}s or {@link ZipEntry}.
- * The {@link NormalizedFileSnapshot}s can be collected by a {@link FileCollectionVisitingSnapshotBuilder}.
+ * The {@link NormalizedFileSnapshot}s can be collected by a {@link FileCollectionSnapshotBuilder}.
  */
 public class ClasspathEntrySnapshotBuilder implements ResourceWithContentsVisitor {
     private static final Ordering<Map.Entry<String, NormalizedFileSnapshot>> SNAPSHOT_ENTRY_ORDERING = Ordering.natural().onResultOf(new Function<Map.Entry<String, NormalizedFileSnapshot>, Comparable<NormalizedFileSnapshot>>() {
