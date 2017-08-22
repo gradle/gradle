@@ -16,14 +16,22 @@
 
 package org.gradle.language.swift.plugins;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
+import org.gradle.language.swift.SwiftComponent;
+import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
+import org.gradle.util.GUtil;
+
+import java.util.Collections;
 
 /**
  * A common base plugin for the Swift executable and library plugins
@@ -110,5 +118,21 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
         testNativeRuntime.extendsFrom(testImplementation);
         testNativeRuntime.setCanBeConsumed(false);
         testNativeRuntime.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.NATIVE_RUNTIME));
+
+        final TaskContainerInternal tasks = project.getTasks();
+        final DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
+
+        project.getComponents().withType(SwiftComponent.class, new Action<SwiftComponent>() {
+            @Override
+            public void execute(SwiftComponent component) {
+                String compileTaskName = component.getName().equals("main") ? "compileSwift" : "compile" + GUtil.toCamelCase(component.getName()) + "Swift";
+                SwiftCompile compile = tasks.create(compileTaskName, SwiftCompile.class);
+                compile.includes(component.getCompileImportPath());
+                compile.source(component.getSwiftSource());
+                compile.setMacros(Collections.<String, String>emptyMap());
+                compile.setModuleName(component.getModule());
+                compile.setObjectFileDir(buildDirectory.dir(component.getName() + "/objs"));
+            }
+        });
     }
 }

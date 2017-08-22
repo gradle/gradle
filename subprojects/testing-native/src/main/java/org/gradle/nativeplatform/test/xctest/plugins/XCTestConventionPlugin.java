@@ -49,7 +49,6 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Collections;
 
 /**
  * A plugin that sets up the infrastructure for testing native binaries with XCTest test framework. It also adds conventions on top of it.
@@ -93,19 +92,13 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         // Configure the component
         component.getCompileImportPath().from(configurations.getByName(SwiftBasePlugin.SWIFT_TEST_IMPORT_PATH));
 
-        // Add a compile task
-        SwiftCompile compile = tasks.create("compileTestSwift", SwiftCompile.class);
-        compile.source(component.getSwiftSource());
-        compile.includes(component.getCompileImportPath());
-
+        // Configure compile task
+        SwiftCompile compile = (SwiftCompile) tasks.getByName("compileTestSwift");
         File frameworkDir = new File(sdkPlatformPathLocator.find(), "Developer/Library/Frameworks");
-
         compile.setCompilerArgs(Lists.newArrayList("-g", "-F" + frameworkDir.getAbsolutePath()));
-        compile.setMacros(Collections.<String, String>emptyMap());
         compile.setModuleName(project.getName());
 
-        compile.setObjectFileDir(buildDirectory.dir("test/objs"));
-
+        // TODO - move this up into the base plugin
         DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
         compile.setTargetPlatform(currentPlatform);
 

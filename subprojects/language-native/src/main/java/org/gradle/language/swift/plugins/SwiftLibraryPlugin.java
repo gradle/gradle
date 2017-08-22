@@ -34,8 +34,8 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
-import org.gradle.language.swift.internal.DefaultSwiftComponent;
 import org.gradle.language.swift.SwiftComponent;
+import org.gradle.language.swift.internal.DefaultSwiftComponent;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
@@ -84,18 +84,11 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         module.set(GUtil.toCamelCase(project.getName()));
         component.getCompileImportPath().from(configurations.getByName(SwiftBasePlugin.SWIFT_IMPORT_PATH));
 
-        // TODO - extract some common code to setup the compile task and conventions
-        // Add a compile task
-        SwiftCompile compile = tasks.create("compileSwift", SwiftCompile.class);
-        compile.includes(component.getCompileImportPath());
-        compile.source(component.getSwiftSource());
-
+        // Configure compile task
+        SwiftCompile compile = (SwiftCompile) tasks.getByName("compileSwift");
         compile.setCompilerArgs(Lists.newArrayList("-g"));
-        compile.setMacros(Collections.<String, String>emptyMap());
-        compile.setModuleName(module);
 
-        compile.setObjectFileDir(buildDirectory.dir("main/objs"));
-
+        // TODO - move this up into the base plugin
         DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
         compile.setTargetPlatform(currentPlatform);
 

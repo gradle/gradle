@@ -16,12 +16,19 @@
 
 package org.gradle.nativeplatform.test.xctest.plugins
 
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.SwiftComponent
+import org.gradle.language.swift.tasks.SwiftCompile
+import org.gradle.nativeplatform.tasks.LinkExecutable
+import org.gradle.nativeplatform.test.xctest.tasks.XcTest
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 
+@Requires(TestPrecondition.MAC_OS_X)
 class XCTestConventionPluginTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -48,5 +55,25 @@ class XCTestConventionPluginTest extends Specification {
         project.components.test == project.xctest
     }
 
+    def "adds compile, link and install tasks"() {
+        given:
+        def src = projectDir.file("src/test/swift/test.swift").createFile()
+
+        when:
+        project.pluginManager.apply(XCTestConventionPlugin)
+
+        then:
+        def compileSwift = project.tasks.compileTestSwift
+        compileSwift instanceof SwiftCompile
+        compileSwift.source.files == [src] as Set
+        compileSwift.objectFileDirectory.get().asFile == projectDir.file("build/test/objs")
+
+        def link = project.tasks.linkTest
+        link instanceof LinkExecutable
+        link.binaryFile.get().asFile == projectDir.file("build/exe/" + OperatingSystem.current().getExecutableName("testAppTest"))
+
+        def test = project.tasks.xcTest
+        test instanceof XcTest
+    }
 
 }
