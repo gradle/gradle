@@ -17,6 +17,7 @@ package org.gradle.api.plugins;
 
 import org.gradle.internal.metaobject.DynamicObject;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -51,6 +52,7 @@ public interface Convention extends ExtensionContainer {
      * @return The object. Returns null if there is no such object.
      * @throws IllegalStateException When there are multiple matching objects.
      */
+    @Nullable
     <T> T findPlugin(Class<T> type) throws IllegalStateException;
 
     /**
