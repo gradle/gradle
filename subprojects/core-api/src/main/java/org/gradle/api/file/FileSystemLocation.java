@@ -23,6 +23,8 @@ import java.io.File;
 /**
  * Represents some immutable location on the file system.
  *
+ * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors.
+ *
  * @since 4.2
  */
 @Incubating

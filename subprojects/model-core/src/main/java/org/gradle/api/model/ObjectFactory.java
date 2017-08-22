@@ -54,9 +54,15 @@ public interface ObjectFactory {
      *
      * <p>The type must be a non-abstract class.</p>
      *
-     * <p>Objects created using this method are decorated and extensible.</p>
+     * <p>Objects created using this method are decorated and extensible, meaning that they have DSL support mixed in and can be extended using the `extensions` property, similar to the {@link org.gradle.api.Project} object.</p>
      *
-     * <p>An @Inject annotation on any constructor that accepts parameters because JSR-330 semantics for dependency injection are used.</p>
+     * <p>An @Inject annotation is required on any constructor that accepts parameters because JSR-330 semantics for dependency injection are used. In addition to those parameters provided as an argument to this method, the following services are also available for injection:</p>
+     *
+     * <ul>
+     *     <li>{@link ObjectFactory}.</li>
+     *     <li>{@link org.gradle.api.file.ProjectLayout}.</li>
+     *     <li>{@link org.gradle.api.provider.ProviderFactory}.</li>
+     * </ul>
      *
      * @throws ObjectInstantiationException On failure to create the new instance.
      * @since 4.1
