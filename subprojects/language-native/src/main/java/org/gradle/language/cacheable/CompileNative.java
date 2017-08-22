@@ -83,7 +83,7 @@ public class CompileNative extends AbstractNativeTask {
                 assert outputFile.getParentFile().isDirectory() || outputFile.getParentFile().mkdirs();
                 runGxx("-c",
                     "-o", outputFile.getAbsolutePath(),
-                    fileVisitDetails.getFile().getAbsolutePath());
+                    relativePath(fileVisitDetails.getFile()));
             }
         });
 

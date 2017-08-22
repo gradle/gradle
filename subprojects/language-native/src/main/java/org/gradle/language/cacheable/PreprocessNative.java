@@ -71,7 +71,7 @@ public class PreprocessNative extends AbstractNativeTask {
                 preprocessedFile.getParentFile().mkdirs();
                 runGxx("-E",
                     "-o", preprocessedFile.getAbsolutePath(),
-                    fileVisitDetails.getFile().getAbsolutePath());
+                    relativePath(fileVisitDetails.getFile()));
                 preprocessedFiles.add(preprocessedFile);
             }
         });

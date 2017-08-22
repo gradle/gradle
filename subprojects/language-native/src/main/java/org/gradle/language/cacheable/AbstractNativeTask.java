@@ -78,22 +78,31 @@ public class AbstractNativeTask extends SourceTask {
         result.add("-m64");
 
         for (File header : includeRoots) {
-            result.add("-I" + header.getAbsolutePath());
+            result.add("-I" + relativePath(header));
         }
         result.addAll(Arrays.asList(additionalArgs));
         return result;
     }
 
     protected void runGxx(final String... additionalArgs) {
+        final File projectDir = getWorkDir();
         workerExecutor.submit(RunCxx.class, new Action<WorkerConfiguration>() {
             @Override
             public void execute(WorkerConfiguration workerConfiguration) {
                 workerConfiguration.setIsolationMode(IsolationMode.NONE);
                 workerConfiguration.setParams(
-                    new File("."),
+                    projectDir,
                     getGccExecutable().getAbsolutePath(),
                     args(additionalArgs));
             }
         });
+    }
+
+    private File getWorkDir() {
+        return getProject().getProjectDir().getAbsoluteFile();
+    }
+
+    protected String relativePath(File file) {
+        return getWorkDir().toPath().relativize(file.getAbsoluteFile().toPath()).toString();
     }
 }
