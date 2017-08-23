@@ -28,4 +28,4 @@ import org.gradle.api.plugins.ObjectConfigurationAction
  */
 inline
 fun <reified T : Plugin<*>> ObjectConfigurationAction.plugin() =
-    this.plugin(T::class.java)!!
+    this.plugin(T::class.java)

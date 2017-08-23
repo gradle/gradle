@@ -82,7 +82,7 @@ fun Project.apply(crossinline block: ObjectConfigurationAction.() -> Unit) =
  * @see PluginManager.apply
  */
 inline
-fun <reified T : Plugin<Project>> Project.apply(): Unit =
+fun <reified T : Plugin<Project>> Project.apply() =
     pluginManager.apply(T::class.java)
 
 
@@ -109,7 +109,7 @@ fun <reified T : Any> Project.the() =
 
 
 fun <T : Any> Project.the(extensionType: KClass<T>) =
-    convention.findPlugin(extensionType.java) ?: convention.getByType(extensionType.java)!!
+    convention.findPlugin(extensionType.java) ?: convention.getByType(extensionType.java)
 
 
 /**

@@ -43,7 +43,7 @@ fun <reified T : Any> Convention.getPlugin() =
 
 
 fun <T : Any> Convention.getPlugin(conventionType: KClass<T>) =
-    getPlugin(conventionType.java)!!
+    getPlugin(conventionType.java)
 
 
 /**

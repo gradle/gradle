@@ -64,6 +64,6 @@ open class GenerateClasspathManifest : DefaultTask() {
 
     private
     val base by lazy {
-        project.convention.getPlugin(BasePluginConvention::class.java)!!
+        project.convention.getPlugin(BasePluginConvention::class.java)
     }
 }
