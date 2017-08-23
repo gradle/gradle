@@ -26,22 +26,14 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.internal.DefaultCppExecutable;
-import org.gradle.language.cpp.tasks.CppCompile;
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
-import org.gradle.nativeplatform.toolchain.NativeToolChain;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
-import java.util.Collections;
 import java.util.concurrent.Callable;
 
 /**
@@ -80,36 +72,13 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         component.getCompileIncludePath().from(configurations.getByName(CppBasePlugin.CPP_INCLUDE_PATH));
         component.getLinkLibraries().from(configurations.getByName(CppBasePlugin.NATIVE_LINK));
 
-        // Configure the compile task
-        CppCompile compile = (CppCompile) tasks.getByName("compileCpp");
-
-        // TODO - move this up into the base plugin
-        DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
-        compile.setTargetPlatform(currentPlatform);
-
-        // TODO - make this lazy
-        NativeToolChain toolChain = project.getModelRegistry().realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
-        compile.setToolChain(toolChain);
-
-        // Add a link task
-        LinkExecutable link = tasks.create("linkMain", LinkExecutable.class);
-        link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
-        link.lib(component.getLinkLibraries());
-        link.setLinkerArgs(Collections.<String>emptyList());
-        final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
-        link.setOutputFile(buildDirectory.file(providers.provider(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                return toolProvider.getExecutableName("exe/" + component.getBaseName().get());
-            }
-        })));
-        link.setTargetPlatform(currentPlatform);
-        link.setToolChain(toolChain);
+        LinkExecutable link = (LinkExecutable) tasks.getByName("linkMain");
 
         // Add an install task
+        // TODO - move this up to the base plugin
         final InstallExecutable install = tasks.create("installMain", InstallExecutable.class);
-        install.setPlatform(currentPlatform);
-        install.setToolChain(toolChain);
+        install.setPlatform(link.getTargetPlatform());
+        install.setToolChain(link.getToolChain());
         install.setDestinationDir(buildDirectory.dir(providers.provider(new Callable<String>() {
             @Override
             public String call() throws Exception {

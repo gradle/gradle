@@ -22,15 +22,30 @@ import org.gradle.api.Plugin;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryVar;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppComponent;
+import org.gradle.language.cpp.CppExecutable;
+import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.tasks.CppCompile;
+import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
+import org.gradle.nativeplatform.tasks.LinkExecutable;
+import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
+import org.gradle.nativeplatform.toolchain.NativeToolChain;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPlugin;
 import org.gradle.util.GUtil;
 
 import java.util.Collections;
+import java.util.concurrent.Callable;
 
 /**
  * A common base plugin for the C++ executable and library plugins
@@ -99,11 +114,14 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
 
         final TaskContainerInternal tasks = project.getTasks();
         final DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
+        final ModelRegistry modelRegistry = project.getModelRegistry();
+        final ProviderFactory providers = project.getProviders();
 
         project.getComponents().withType(CppComponent.class, new Action<CppComponent>() {
             @Override
-            public void execute(CppComponent component) {
-                String compileTaskName = component.getName().equals("main") ? "compileCpp" : "compile" + GUtil.toCamelCase(component.getName()) + "Cpp";
+            public void execute(final CppComponent component) {
+                String capitalizedName = GUtil.toCamelCase(component.getName());
+                String compileTaskName = component.getName().equals("main") ? "compileCpp" : "compile" + capitalizedName + "Cpp";
                 CppCompile compile = tasks.create(compileTaskName, CppCompile.class);
                 compile.includes(component.getCompileIncludePath());
                 compile.source(component.getCppSource());
@@ -111,6 +129,48 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 compile.setCompilerArgs(Collections.<String>emptyList());
                 compile.setMacros(Collections.<String, String>emptyMap());
                 compile.setObjectFileDir(buildDirectory.dir(component.getName() + "/objs"));
+
+                DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
+                compile.setTargetPlatform(currentPlatform);
+
+                // TODO - make this lazy
+                NativeToolChain toolChain = modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
+                compile.setToolChain(toolChain);
+
+                if (component instanceof CppExecutable) {
+                    // Add a link task
+                    LinkExecutable link = tasks.create("link" + capitalizedName, LinkExecutable.class);
+                    link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
+                    link.lib(component.getLinkLibraries());
+                    link.setLinkerArgs(Collections.<String>emptyList());
+                    final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
+                    link.setOutputFile(buildDirectory.file(providers.provider(new Callable<String>() {
+                        @Override
+                        public String call() throws Exception {
+                            return toolProvider.getExecutableName("exe/" + component.getBaseName().get());
+                        }
+                    })));
+                    link.setTargetPlatform(currentPlatform);
+                    link.setToolChain(toolChain);
+                } else if (component instanceof CppLibrary) {
+                    final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
+
+                    // Add a link task
+                    LinkSharedLibrary link = tasks.create("link" + capitalizedName, LinkSharedLibrary.class);
+                    link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
+                    link.lib(component.getLinkLibraries());
+                    link.setLinkerArgs(Collections.<String>emptyList());
+                    // TODO - need to set soname
+                    Provider<RegularFile> runtimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
+                        @Override
+                        public String call() throws Exception {
+                            return toolProvider.getSharedLibraryName("lib/" + component.getBaseName().get());
+                        }
+                    }));
+                    link.setOutputFile(runtimeFile);
+                    link.setTargetPlatform(currentPlatform);
+                    link.setToolChain(toolChain);
+                }
             }
         });
     }

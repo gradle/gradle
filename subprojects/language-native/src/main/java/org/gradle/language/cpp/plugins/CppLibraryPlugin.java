@@ -31,21 +31,17 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.internal.DefaultCppLibrary;
 import org.gradle.language.cpp.tasks.CppCompile;
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
-import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -92,36 +88,15 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         CppCompile compile = (CppCompile) tasks.getByName("compileCpp");
         compile.setPositionIndependentCode(true);
 
-        // TODO - move this up into the base plugin
-        DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
-        compile.setTargetPlatform(currentPlatform);
-
-        // TODO - make this lazy
-        NativeToolChain toolChain = project.getModelRegistry().realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
-        final PlatformToolProvider platformToolChain = ((NativeToolChainInternal) toolChain).select(currentPlatform);
-        compile.setToolChain(toolChain);
-
-        // Add a link task
-        final LinkSharedLibrary link = tasks.create("linkMain", LinkSharedLibrary.class);
-        link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
-        link.lib(component.getLinkLibraries());
-        link.setLinkerArgs(Collections.<String>emptyList());
-        // TODO - need to set soname
+        final LinkSharedLibrary link = (LinkSharedLibrary) tasks.getByName("linkMain");
+        // TODO - make this lazy, make a query method on the link task
+        final PlatformToolProvider platformToolChain = ((NativeToolChainInternal) link.getToolChain()).select((NativePlatformInternal) link.getTargetPlatform());
         Provider<RegularFile> linkFile = buildDirectory.file(providers.provider(new Callable<String>() {
             @Override
             public String call() throws Exception {
                 return platformToolChain.getSharedLibraryLinkFileName("lib/" + component.getBaseName().get());
             }
         }));
-        Provider<RegularFile> runtimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                return platformToolChain.getSharedLibraryName("lib/" + component.getBaseName().get());
-            }
-        }));
-        link.setOutputFile(runtimeFile);
-        link.setTargetPlatform(currentPlatform);
-        link.setToolChain(toolChain);
 
         tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(link);
 
