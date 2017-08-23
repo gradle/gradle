@@ -67,7 +67,7 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
         converter.convert([
             (JVM_ARGS.gradleProperty)                      : '-Xmx256m',
             (JAVA_HOME.gradleProperty)                     : Jvm.current().javaHome.absolutePath,
-            (DAEMON.gradleProperty)                : "false",
+            (DAEMON.gradleProperty)                        : "false",
             (DAEMON_BASE_DIR.gradleProperty)               : new File("baseDir").absolutePath,
             (DAEMON_IDLE_TIMEOUT.gradleProperty)           : "115",
             (DAEMON_HEALTH_CHECK_INTERVAL.gradleProperty)  : "42",

@@ -54,6 +54,6 @@ public class ParallelismConfigurationCommandLineConverter extends AbstractComman
 
     public void configure(CommandLineParser parser) {
         PARALLEL.getCommandLineOption().registerOption(parser);
-        MAX_WORKERS.getCommandLineOption().registerOption(parser).hasArgument();
+        MAX_WORKERS.getCommandLineOption().registerOption(parser);
     }
 }

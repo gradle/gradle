@@ -20,53 +20,34 @@ import org.gradle.cli.CommandLineParser;
 
 import javax.annotation.Nullable;
 
-/**
- * Defines a Gradle build option exposed as command-line option, Gradle property or both.
- *
- * @since 4.2
- */
-public class GradleBuildOption {
+public abstract class GradleBuildOption {
 
-    private final OptionType type;
-    private final CommandLineOption commandLineOption;
-    private final String gradleProperty;
-
-    public GradleBuildOption(OptionType type, String gradleProperty) {
-        this(type, gradleProperty, null);
+    public static GradleBuildOption create(OptionType type, String gradleProperty) {
+        return new DefaultGradleBuildOption(type, gradleProperty);
     }
 
-    public GradleBuildOption(OptionType type, String gradleProperty, @Nullable CommandLineOption commandLineOption) {
-        this.type = type;
-        this.gradleProperty = gradleProperty;
-        this.commandLineOption = commandLineOption;
-    }
-
-    public OptionType getType() {
-        return type;
-    }
-
-    public String getGradleProperty() {
-        return gradleProperty;
-    }
+    public abstract OptionType getType();
+    public abstract String getGradleProperty();
+    abstract GradleBuildOption withCommandLineOption(String option, String description);
 
     @Nullable
-    public CommandLineOption getCommandLineOption() {
-        return commandLineOption;
-    }
+    public abstract CommandLineOption getCommandLineOption();
 
     public enum OptionType {
         BOOLEAN, STRING
     }
 
     public static class CommandLineOption {
+        private final OptionType type;
         private final String option;
         private final String description;
-        private final boolean incubating;
+        private boolean incubating;
+        private boolean argument;
 
-        public CommandLineOption(String option, String description, boolean incubating) {
+        public CommandLineOption(OptionType type, String option, String description) {
+            this.type = type;
             this.option = option;
             this.description = description;
-            this.incubating = incubating;
         }
 
         public String getOption() {
@@ -77,18 +58,47 @@ public class GradleBuildOption {
             return description;
         }
 
-        public boolean isIncubating() {
-            return incubating;
+        public CommandLineOption incubating() {
+            incubating = true;
+            return this;
         }
 
-        public org.gradle.cli.CommandLineOption registerOption(CommandLineParser parser) {
-            org.gradle.cli.CommandLineOption commandLineOption = parser.option(option).hasDescription(description);
+        public CommandLineOption hasArgument() {
+            argument = true;
+            return this;
+        }
 
-            if (incubating) {
-                commandLineOption.incubating();
+        public void registerOption(CommandLineParser parser) {
+            org.gradle.cli.CommandLineOption enabledFeatureCliOption = parser.option(option).hasDescription(description);
+
+            if (type == OptionType.STRING) {
+                if (argument) {
+                    enabledFeatureCliOption.hasArgument();
+                }
             }
 
-            return commandLineOption;
+            if (incubating) {
+                enabledFeatureCliOption.incubating();
+            }
+
+            if (type == OptionType.BOOLEAN) {
+                String disabledOption = createDisabledOption();
+                org.gradle.cli.CommandLineOption disabledFeatureCliOption = parser.option(disabledOption).hasDescription(createDisabledDescription());
+
+                if (incubating) {
+                    disabledFeatureCliOption.incubating();
+                }
+
+                parser.allowOneOf(option, disabledOption);
+            }
+        }
+
+        private String createDisabledOption() {
+            return "no-" + option;
+        }
+
+        private String createDisabledDescription() {
+            return "Disables feature --" + option + ".";
         }
     }
 }

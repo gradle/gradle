@@ -20,10 +20,10 @@ import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
 import org.gradle.initialization.BuildLayoutParameters;
-import org.gradle.initialization.layout.BuildLayout;
-import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.initialization.GradleBuildOption;
 import org.gradle.initialization.GradleBuildOptions;
+import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;

@@ -56,7 +56,5 @@ public class DaemonCommandLineConverter extends AbstractCommandLineConverter<Dae
         parser.option(STOP).hasDescription("Stops the Gradle Daemon if it is running.");
         parser.option(STATUS).hasDescription("Shows status of running and recently stopped Gradle Daemon(s).");
         DAEMON.registerOption(parser);
-        parser.option(NO_DAEMON).hasDescription("Do not use the Gradle Daemon to run the build.");
-        parser.allowOneOf(DAEMON.getOption(), NO_DAEMON);
     }
 }
