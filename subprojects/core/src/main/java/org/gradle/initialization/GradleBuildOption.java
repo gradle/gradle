@@ -27,16 +27,22 @@ import javax.annotation.Nullable;
  */
 public class GradleBuildOption {
 
+    private final OptionType type;
     private final CommandLineOption commandLineOption;
     private final String gradleProperty;
 
-    public GradleBuildOption(String gradleProperty) {
-        this(null, gradleProperty);
+    public GradleBuildOption(OptionType type, String gradleProperty) {
+        this(type, null, gradleProperty);
     }
 
-    public GradleBuildOption(@Nullable CommandLineOption commandLineOption, String gradleProperty) {
+    public GradleBuildOption(OptionType type, @Nullable CommandLineOption commandLineOption, String gradleProperty) {
+        this.type = type;
         this.commandLineOption = commandLineOption;
         this.gradleProperty = gradleProperty;
+    }
+
+    public OptionType getType() {
+        return type;
     }
 
     @Nullable
@@ -49,13 +55,11 @@ public class GradleBuildOption {
     }
 
     public static class CommandLineOption {
-        private final OptionType type;
         private final String option;
         private final String description;
         private final boolean incubating;
 
-        public CommandLineOption(OptionType type, String option, String description, boolean incubating) {
-            this.type = type;
+        public CommandLineOption(String option, String description, boolean incubating) {
             this.option = option;
             this.description = description;
             this.incubating = incubating;
@@ -82,9 +86,9 @@ public class GradleBuildOption {
 
             return commandLineOption;
         }
+    }
 
-        public enum OptionType {
-            BOOLEAN, STRING
-        }
+    public enum OptionType {
+        BOOLEAN, STRING
     }
 }
