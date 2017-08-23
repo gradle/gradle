@@ -15,6 +15,7 @@
  */
 
 /**
- * Classes for managing and monitoring build execution. 
+ * Classes for managing and monitoring build execution.
  */
+@org.gradle.api.NonNullApi
 package org.gradle.api.execution;
