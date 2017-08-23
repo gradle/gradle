@@ -18,6 +18,8 @@ package org.gradle;
 import org.gradle.api.GradleException;
 import org.gradle.api.invocation.Gradle;
 
+import javax.annotation.Nullable;
+
 /**
  * <p>A {@code BuildResult} packages up the results of a build executed by a {@link org.gradle.initialization.GradleLauncher} instance.</p>
  */
@@ -26,20 +28,22 @@ public class BuildResult {
     private final Throwable failure;
     private final Gradle gradle;
 
-    public BuildResult(Gradle gradle, Throwable failure) {
+    public BuildResult(@Nullable Gradle gradle, @Nullable Throwable failure) {
         this("Build", gradle, failure);
     }
 
-    public BuildResult(String action, Gradle gradle, Throwable failure) {
+    public BuildResult(String action, @Nullable Gradle gradle, @Nullable Throwable failure) {
         this.action = action;
         this.gradle = gradle;
         this.failure = failure;
     }
 
+    @Nullable
     public Gradle getGradle() {
         return gradle;
     }
 
+    @Nullable
     public Throwable getFailure() {
         return failure;
     }
