@@ -78,7 +78,8 @@ public interface ContentFilterable {
      * @param transformer to implement line based filtering
      * @return this
      */
-    ContentFilterable filter(Transformer<String, /*@Nullable*/ String> transformer);
+    //TODO:rbo Change the parameter type to `Transformer<String, @Nullable String>` once we migrate to Java 8
+    ContentFilterable filter(Transformer<String, String> transformer);
 
     /**
      * <p>Expands property references in each file as it is copied. More specifically, each file is transformed using

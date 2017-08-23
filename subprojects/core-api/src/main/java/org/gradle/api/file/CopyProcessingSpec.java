@@ -54,6 +54,7 @@ public interface CopyProcessingSpec extends ContentFilterable {
      * @param renamer rename function
      * @return this
      */
+    //TODO:rbo Change the parameter type to `Transformer<String, @Nullable String>` once we migrate to Java 8
     CopyProcessingSpec rename(Transformer<String, String> renamer);
 
     /**
