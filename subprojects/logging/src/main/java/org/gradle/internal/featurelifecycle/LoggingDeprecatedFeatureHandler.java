@@ -30,6 +30,7 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingDeprecatedFeatureHandler.class);
     private static final String ELEMENT_PREFIX = "\tat ";
+    private static final String RUN_WITH_STACKTRACE_INFO = "\t(Run with --stacktrace to get the full stack trace of this deprecation warning.)";
     private static boolean traceLoggingEnabled;
     private final Set<String> messages = new HashSet<String>();
     private UsageLocationReporter locationReporter;
@@ -78,6 +79,7 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
             if (isGradleScriptElement(element)) {
                 // only print first Gradle script stack trace element
                 appendStackTraceElement(element, message, lineSeparator);
+                appendRunWithStacktraceInfo(message, lineSeparator);
                 return;
             }
         }
@@ -87,6 +89,11 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
         message.append(lineSeparator);
         message.append(ELEMENT_PREFIX);
         message.append(frame.toString());
+    }
+
+    private static void appendRunWithStacktraceInfo(StringBuilder message, String lineSeparator) {
+        message.append(lineSeparator);
+        message.append(RUN_WITH_STACKTRACE_INFO);
     }
 
     private static boolean isGradleScriptElement(StackTraceElement element) {
