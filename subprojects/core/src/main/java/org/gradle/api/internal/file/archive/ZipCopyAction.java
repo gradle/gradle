@@ -93,7 +93,7 @@ public class ZipCopyAction implements CopyAction {
             }
         }
 
-        return new SimpleWorkResult(true);
+        return SimpleWorkResult.DID_WORK;
     }
 
     private class StreamAction implements CopyActionProcessingStreamAction {

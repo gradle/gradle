@@ -33,7 +33,7 @@ public class FileCopyAction implements CopyAction {
     public WorkResult execute(CopyActionProcessingStream stream) {
         FileCopyDetailsInternalAction action = new FileCopyDetailsInternalAction();
         stream.process(action);
-        return new SimpleWorkResult(action.didWork);
+        return SimpleWorkResult.didWork(action.didWork);
     }
 
     private class FileCopyDetailsInternalAction implements CopyActionProcessingStreamAction {

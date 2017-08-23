@@ -39,7 +39,7 @@ public class OutputCleaningCompiler<T extends NativeCompileSpec> implements Comp
     public WorkResult execute(T spec) {
         boolean didRemove = deleteOutputsForRemovedSources(spec);
         boolean didCompile = compileSources(spec);
-        return new SimpleWorkResult(didRemove || didCompile);
+        return SimpleWorkResult.didWork(didRemove || didCompile);
     }
 
     private boolean compileSources(T spec) {

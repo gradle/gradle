@@ -47,7 +47,7 @@ public abstract class AbstractCompiler<T extends BinaryToolSpec> implements Comp
     public WorkResult execute(T spec) {
         buildOperationExecutor.runAll(commandLineToolInvocationWorker, newInvocationAction(spec));
 
-        return new SimpleWorkResult(true);
+        return SimpleWorkResult.DID_WORK;
     }
 
     // TODO(daniel): Should support in a better way multi file invocation.

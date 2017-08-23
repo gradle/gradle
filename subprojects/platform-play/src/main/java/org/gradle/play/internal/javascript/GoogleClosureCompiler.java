@@ -63,7 +63,7 @@ public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, S
         }
 
         if (allErrors.isEmpty()) {
-            return new SimpleWorkResult(true);
+            return SimpleWorkResult.DID_WORK;
         } else {
             throw new SourceTransformationException(String.format("Minification failed with the following errors:\n\t%s", StringUtils.join(allErrors, "\n\t")), null);
         }

@@ -185,7 +185,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             compileClasspathLoader.shutdown();
         }
 
-        return new SimpleWorkResult(true);
+        return SimpleWorkResult.DID_WORK;
     }
 
     private boolean shouldProcessAnnotations(GroovyJavaJointCompileSpec spec) {

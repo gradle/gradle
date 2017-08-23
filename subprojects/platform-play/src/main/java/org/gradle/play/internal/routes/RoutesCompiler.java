@@ -59,7 +59,7 @@ public class RoutesCompiler implements Compiler<RoutesCompileSpec>, Serializable
             didWork = ret || didWork;
         }
 
-        return new SimpleWorkResult(didWork);
+        return SimpleWorkResult.didWork(didWork);
     }
 
     private Boolean compile(File sourceFile, RoutesCompileSpec spec) {

@@ -84,7 +84,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
             }
             LOGGER.info("Completed Scala compilation: {}", timer.getElapsed());
 
-            return new SimpleWorkResult(true);
+            return SimpleWorkResult.DID_WORK;
         }
 
         private static IncOptions getIncOptions() {
