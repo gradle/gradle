@@ -95,7 +95,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         then:
         1 * fileSystemMirror.putDirectory(_) >> { DirectoryTreeDetails dir ->
             assert dir.path == outputDir.path
-            assert dir.descendants == [outputDirSnapshot, outputDirFileSnapshot]
+            assert dir.descendants as List == [outputDirFileSnapshot]
         }
         1 * fileSystemMirror.putFile(outputFileSnapshot)
         1 * taskArtifactState.snapshotAfterLoadedFromCache(_) >> { ImmutableSortedMap<String, FileCollectionSnapshot> propertySnapshots ->
