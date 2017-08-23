@@ -46,4 +46,14 @@ public interface CppLibrary extends CppComponent {
      * Returns the public header files of this component, as defined in {@link #getPublicHeaders()}.
      */
     FileCollection getPublicHeaderDirs();
+
+    /**
+     * Returns the debug shared library for this library.
+     */
+    CppSharedLibrary getDebugSharedLibrary();
+
+    /**
+     * Returns the release shared library for this library.
+     */
+    CppSharedLibrary getReleaseSharedLibrary();
 }

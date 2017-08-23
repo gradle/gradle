@@ -17,23 +17,13 @@
 package org.gradle.language.cpp;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.component.SoftwareComponent;
 
 /**
- * Configuration for a C++ application, defining the source files that make up the application plus other settings.
- *
- * <p>An instance of this type is added as a project extension by the C++ executable plugin.</p>
+ * A C++ shared library.
  *
  * @since 4.2
  */
 @Incubating
-public interface CppApplication extends CppComponent {
-    /**
-     * Returns the debug executable for this application.
-     */
-    CppExecutable getDebugExecutable();
-
-    /**
-     * Returns the release executable for this application.
-     */
-    CppExecutable getReleaseExecutable();
+public interface CppSharedLibrary extends SoftwareComponent {
 }

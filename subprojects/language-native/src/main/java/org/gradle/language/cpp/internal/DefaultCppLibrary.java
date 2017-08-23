@@ -22,12 +22,15 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.cpp.CppLibrary;
+import org.gradle.language.cpp.CppSharedLibrary;
 
 import javax.inject.Inject;
 
 public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary {
     private final ConfigurableFileCollection publicHeaders;
     private final FileCollection publicHeadersWithConvention;
+    private final DefaultCppSharedLibrary debug;
+    private final DefaultCppSharedLibrary release;
 
     @Inject
     public DefaultCppLibrary(String name, FileOperations fileOperations, ProviderFactory providerFactory) {
@@ -35,6 +38,8 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
         publicHeaders = fileOperations.files();
         publicHeadersWithConvention = createDirView(publicHeaders, "src/" + name + "/public");
         getCompileIncludePath().setFrom(publicHeadersWithConvention, getPrivateHeaderDirs());
+        debug = new DefaultCppSharedLibrary(name + "Debug");
+        release = new DefaultCppSharedLibrary(name + "Release");
     }
 
     @Override
@@ -55,5 +60,15 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     @Override
     protected FileCollection getAllHeaderDirs() {
         return publicHeadersWithConvention.plus(super.getAllHeaderDirs());
+    }
+
+    @Override
+    public CppSharedLibrary getDebugSharedLibrary() {
+        return debug;
+    }
+
+    @Override
+    public CppSharedLibrary getReleaseSharedLibrary() {
+        return release;
     }
 }

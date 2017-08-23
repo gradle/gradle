@@ -14,26 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.language.cpp;
+package org.gradle.language.cpp.internal;
 
-import org.gradle.api.Incubating;
+import org.gradle.language.cpp.CppSharedLibrary;
 
-/**
- * Configuration for a C++ application, defining the source files that make up the application plus other settings.
- *
- * <p>An instance of this type is added as a project extension by the C++ executable plugin.</p>
- *
- * @since 4.2
- */
-@Incubating
-public interface CppApplication extends CppComponent {
-    /**
-     * Returns the debug executable for this application.
-     */
-    CppExecutable getDebugExecutable();
+public class DefaultCppSharedLibrary implements CppSharedLibrary {
+    private final String name;
 
-    /**
-     * Returns the release executable for this application.
-     */
-    CppExecutable getReleaseExecutable();
+    public DefaultCppSharedLibrary(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
 }

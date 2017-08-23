@@ -27,8 +27,8 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.CppApplication;
+import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.internal.DefaultCppApplication;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
@@ -63,14 +63,16 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         ProviderFactory providers = project.getProviders();
         TaskContainer tasks = project.getTasks();
 
-        // Add the component extension
-        final CppComponent component = project.getExtensions().create(CppApplication.class, "executable", DefaultCppApplication.class, "main", fileOperations, providers);
-        project.getComponents().add(component);
+        // Add the application extension
+        final CppApplication application = project.getExtensions().create(CppApplication.class, "executable", DefaultCppApplication.class, "main", fileOperations, providers);
+        project.getComponents().add(application);
+        project.getComponents().add(application.getDebugExecutable());
+        project.getComponents().add(application.getReleaseExecutable());
 
         // Configure the component
-        component.getBaseName().set(project.getName());
-        component.getCompileIncludePath().from(configurations.getByName(CppBasePlugin.CPP_INCLUDE_PATH));
-        component.getLinkLibraries().from(configurations.getByName(CppBasePlugin.NATIVE_LINK));
+        application.getBaseName().set(project.getName());
+        application.getCompileIncludePath().from(configurations.getByName(CppBasePlugin.CPP_INCLUDE_PATH));
+        application.getLinkLibraries().from(configurations.getByName(CppBasePlugin.NATIVE_LINK));
 
         LinkExecutable link = (LinkExecutable) tasks.getByName("linkMain");
 
@@ -82,7 +84,7 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         install.setDestinationDir(buildDirectory.dir(providers.provider(new Callable<String>() {
             @Override
             public String call() throws Exception {
-                return "install/" + component.getBaseName().get();
+                return "install/" + application.getBaseName().get();
             }
         })));
         install.setExecutable(link.getBinaryFile());

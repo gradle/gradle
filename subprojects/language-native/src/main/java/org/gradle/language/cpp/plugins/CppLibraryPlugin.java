@@ -73,16 +73,16 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         ObjectFactory objectFactory = project.getObjects();
         ProviderFactory providers = project.getProviders();
 
-        // TODO - extract some common code to setup the compile task and conventions
-
-        // Add the component extension
-        final CppLibrary component = project.getExtensions().create(CppLibrary.class, "library", DefaultCppLibrary.class, "main", fileOperations, providers);
-        project.getComponents().add(component);
+        // Add the library extension
+        final CppLibrary library = project.getExtensions().create(CppLibrary.class, "library", DefaultCppLibrary.class, "main", fileOperations, providers);
+        project.getComponents().add(library);
+        project.getComponents().add(library.getDebugSharedLibrary());
+        project.getComponents().add(library.getReleaseSharedLibrary());
 
         // Configure the component
-        component.getBaseName().set(project.getName());
-        component.getCompileIncludePath().from(configurations.getByName(CppBasePlugin.CPP_INCLUDE_PATH));
-        component.getLinkLibraries().from(configurations.getByName(CppBasePlugin.NATIVE_LINK));
+        library.getBaseName().set(project.getName());
+        library.getCompileIncludePath().from(configurations.getByName(CppBasePlugin.CPP_INCLUDE_PATH));
+        library.getLinkLibraries().from(configurations.getByName(CppBasePlugin.NATIVE_LINK));
 
         // Configure the compile task
         CppCompile compile = (CppCompile) tasks.getByName("compileCpp");
@@ -94,13 +94,14 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         Provider<RegularFile> linkFile = buildDirectory.file(providers.provider(new Callable<String>() {
             @Override
             public String call() throws Exception {
-                return platformToolChain.getSharedLibraryLinkFileName("lib/" + component.getBaseName().get());
+                return platformToolChain.getSharedLibraryLinkFileName("lib/" + library.getBaseName().get());
             }
         }));
 
         tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(link);
 
         // TODO - add lifecycle tasks
+        // TODO - extract some common code to setup the configurations
 
         Configuration apiElements = configurations.create("cppApiElements");
         apiElements.setCanBeResolved(false);
@@ -109,7 +110,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         Provider<File> publicHeaders = providers.provider(new Callable<File>() {
             @Override
             public File call() throws Exception {
-                Set<File> files = component.getPublicHeaderDirs().getFiles();
+                Set<File> files = library.getPublicHeaderDirs().getFiles();
                 if (files.size() != 1) {
                     throw new UnsupportedOperationException(String.format("The C++ library plugin currently requires exactly one public header directory, however there are %d directories configured: %s", files.size(), files));
                 }

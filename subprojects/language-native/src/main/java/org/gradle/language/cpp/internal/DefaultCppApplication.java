@@ -19,12 +19,28 @@ package org.gradle.language.cpp.internal;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.cpp.CppApplication;
+import org.gradle.language.cpp.CppExecutable;
 
 import javax.inject.Inject;
 
 public class DefaultCppApplication extends DefaultCppComponent implements CppApplication {
+    private final DefaultCppExecutable debug;
+    private final DefaultCppExecutable release;
+
     @Inject
     public DefaultCppApplication(String name, FileOperations fileOperations, ProviderFactory providerFactory) {
         super(name, fileOperations, providerFactory);
+        debug = new DefaultCppExecutable(name + "Debug");
+        release = new DefaultCppExecutable(name + "Release");
+    }
+
+    @Override
+    public CppExecutable getDebugExecutable() {
+        return debug;
+    }
+
+    @Override
+    public CppExecutable getReleaseExecutable() {
+        return release;
     }
 }

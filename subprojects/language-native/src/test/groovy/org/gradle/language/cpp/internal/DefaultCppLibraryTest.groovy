@@ -22,13 +22,18 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-
 class DefaultCppLibraryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def fileOperations = TestFiles.fileOperations(tmpDir.testDirectory)
     def providerFactory = new DefaultProviderFactory()
     def library = new DefaultCppLibrary("main", fileOperations, providerFactory)
+
+    def "has debug and release shared libraries"() {
+        expect:
+        library.debugSharedLibrary.name == "mainDebug"
+        library.releaseSharedLibrary.name == "mainRelease"
+    }
 
     def "uses convention for public headers when nothing specified"() {
         def d = tmpDir.file("src/main/public")
