@@ -25,6 +25,7 @@ public class DefaultHttpSettings implements HttpSettings {
     private final SslContextFactory sslContextFactory;
     private HttpProxySettings proxySettings;
     private HttpProxySettings secureProxySettings;
+    private HttpTimeoutSettings timeoutSettings;
 
     public DefaultHttpSettings(Collection<Authentication> authenticationSettings, SslContextFactory sslContextFactory) {
         if (authenticationSettings == null) {
@@ -49,6 +50,14 @@ public class DefaultHttpSettings implements HttpSettings {
             secureProxySettings = new JavaSystemPropertiesSecureHttpProxySettings();
         }
         return secureProxySettings;
+    }
+
+    @Override
+    public HttpTimeoutSettings getTimeoutSettings() {
+        if (timeoutSettings == null) {
+            timeoutSettings = new JavaSystemPropertiesHttpTimeoutSettings();
+        }
+        return timeoutSettings;
     }
 
     @Override

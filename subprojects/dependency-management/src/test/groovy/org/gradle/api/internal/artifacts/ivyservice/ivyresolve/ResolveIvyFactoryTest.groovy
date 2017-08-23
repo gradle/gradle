@@ -39,9 +39,10 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
 import org.gradle.util.BuildCommencedTimeProvider
 import spock.lang.Specification
+import spock.lang.Subject
 
 class ResolveIvyFactoryTest extends Specification {
-    ResolveIvyFactory resolveIvyFactory
+    @Subject ResolveIvyFactory resolveIvyFactory
     ModuleVersionsCache moduleVersionsCache
     ModuleMetaDataCache moduleMetaDataCache
     ModuleArtifactsCache moduleArtifactsCache
@@ -52,6 +53,7 @@ class ResolveIvyFactoryTest extends Specification {
     VersionSelectorScheme versionSelectorScheme
     VersionComparator versionComparator
     ImmutableModuleIdentifierFactory moduleIdentifierFactory
+    RepositoryBlacklister repositoryBlacklister
 
     def setup() {
         moduleVersionsCache = Mock(ModuleVersionsCache)
@@ -68,10 +70,11 @@ class ResolveIvyFactoryTest extends Specification {
         moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
         versionSelectorScheme = Mock(VersionSelectorScheme)
         versionComparator = Mock(VersionComparator)
+        repositoryBlacklister = Mock(RepositoryBlacklister)
 
         resolveIvyFactory = new ResolveIvyFactory(moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache,
             cachedArtifactIndex, startParameterResolutionOverride, buildCommencedTimeProvider,
-            inMemoryCachedRepositoryFactory, versionSelectorScheme, versionComparator, moduleIdentifierFactory)
+            inMemoryCachedRepositoryFactory, versionSelectorScheme, versionComparator, moduleIdentifierFactory, repositoryBlacklister)
     }
 
     def "returns an empty resolver when no repositories are configured" () {
