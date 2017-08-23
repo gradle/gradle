@@ -89,6 +89,7 @@ public interface CopyProcessingSpec extends ContentFilterable {
      *
      * @return The file permissions, or {@code null} if existing permissions should be preserved.
      */
+    @Nullable
     Integer getFileMode();
 
     /**
