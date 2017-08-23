@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.api.Action;
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.deployment.Deployment;
+import org.gradle.deployment.internal.Deployment;
 import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.execution.CancellableOperationManager;
 import org.gradle.execution.DefaultCancellableOperationManager;

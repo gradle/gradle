@@ -26,7 +26,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.BaseForkOptions;
-import org.gradle.deployment.DeploymentRegistry;
+import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.play.internal.run.DefaultPlayRunSpec;
 import org.gradle.play.internal.run.PlayApplicationDeploymentHandle;
 import org.gradle.play.internal.run.PlayApplicationRunner;

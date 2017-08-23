@@ -22,7 +22,7 @@ import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.deployment.DeploymentRegistry;
+import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 

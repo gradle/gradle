@@ -16,8 +16,8 @@
 
 package org.gradle.internal.deployment;
 
-import org.gradle.deployment.Deployment;
-import org.gradle.deployment.DeploymentHandle;
+import org.gradle.deployment.internal.Deployment;
+import org.gradle.deployment.internal.DeploymentHandle;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleState;
 import org.gradle.process.internal.JavaExecHandleBuilder;

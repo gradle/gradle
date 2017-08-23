@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.deployment;
+package org.gradle.deployment.internal;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Incubating;
