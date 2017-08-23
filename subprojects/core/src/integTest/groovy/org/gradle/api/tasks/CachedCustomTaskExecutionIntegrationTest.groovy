@@ -706,10 +706,10 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
             task consumer(type: ConsumerTask) {
                 dependsOn producer
-                regularFile = file("build/regular-file.txt")
-                emptyDir = file("build/empty-dir")
-                singleFileInDir = file("build/single-file-in-dir")
-                manyFilesInDir = file("build/many-files-in-dir")
+                regularFile = producer.regularFile
+                emptyDir = producer.emptyDir
+                singleFileInDir = producer.singleFileInDir
+                manyFilesInDir = producer.manyFilesInDir
                 output = file("build/output.txt")
             }
         """
