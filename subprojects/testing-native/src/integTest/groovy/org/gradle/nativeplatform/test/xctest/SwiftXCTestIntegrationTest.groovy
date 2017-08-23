@@ -105,7 +105,8 @@ apply plugin: 'swift-executable'
         settingsFile << "rootProject.name = 'App'"
         buildFile << """
 apply plugin: 'swift-executable'
-println compileSwift.moduleName
+
+linkTest.source = project.files(new HashSet(linkTest.source.from)).filter { !it.name.equals("main.o") }
 """
         app.writeToProject(testDirectory)
         test.writeToProject(testDirectory)
