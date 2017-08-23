@@ -16,6 +16,8 @@
 
 package org.gradle.api.credentials;
 
+import javax.annotation.Nullable;
+
 /**
  * A username/password credentials that can be used to login to something protected by a username and password.
  *
@@ -27,6 +29,7 @@ public interface PasswordCredentials extends Credentials {
      *
      * @return The user name. May be null.
      */
+    @Nullable
     String getUsername();
 
     /**
@@ -34,13 +37,14 @@ public interface PasswordCredentials extends Credentials {
      *
      * @param userName The user name. May be null.
      */
-    void setUsername(String userName);
+    void setUsername(@Nullable String userName);
 
     /**
      * Returns the password to use when authenticating.
      *
      * @return The password. May be null.
      */
+    @Nullable
     String getPassword();
 
     /**
@@ -48,5 +52,5 @@ public interface PasswordCredentials extends Credentials {
      *
      * @param password The password. May be null.
      */
-    void setPassword(String password);
+    void setPassword(@Nullable String password);
 }
