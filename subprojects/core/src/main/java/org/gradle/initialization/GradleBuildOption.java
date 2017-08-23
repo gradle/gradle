@@ -32,17 +32,21 @@ public class GradleBuildOption {
     private final String gradleProperty;
 
     public GradleBuildOption(OptionType type, String gradleProperty) {
-        this(type, null, gradleProperty);
+        this(type, gradleProperty, null);
     }
 
-    public GradleBuildOption(OptionType type, @Nullable CommandLineOption commandLineOption, String gradleProperty) {
+    public GradleBuildOption(OptionType type, String gradleProperty, @Nullable CommandLineOption commandLineOption) {
         this.type = type;
-        this.commandLineOption = commandLineOption;
         this.gradleProperty = gradleProperty;
+        this.commandLineOption = commandLineOption;
     }
 
     public OptionType getType() {
         return type;
+    }
+
+    public String getGradleProperty() {
+        return gradleProperty;
     }
 
     @Nullable
@@ -50,8 +54,8 @@ public class GradleBuildOption {
         return commandLineOption;
     }
 
-    public String getGradleProperty() {
-        return gradleProperty;
+    public enum OptionType {
+        BOOLEAN, STRING
     }
 
     public static class CommandLineOption {
@@ -86,9 +90,5 @@ public class GradleBuildOption {
 
             return commandLineOption;
         }
-    }
-
-    public enum OptionType {
-        BOOLEAN, STRING
     }
 }

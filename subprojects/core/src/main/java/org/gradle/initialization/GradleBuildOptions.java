@@ -36,12 +36,12 @@ public class GradleBuildOptions {
     public static final GradleBuildOption DAEMON_BASE_DIR = new GradleBuildOption(STRING, "org.gradle.daemon.registry.base");
     public static final GradleBuildOption JVM_ARGS = new GradleBuildOption(STRING, "org.gradle.jvmargs");
     public static final GradleBuildOption JAVA_HOME = new GradleBuildOption(STRING, "org.gradle.java.home");
-    public static final GradleBuildOption DAEMON = new GradleBuildOption(BOOLEAN, new CommandLineOption("daemon", "Uses the Gradle Daemon to run the build. Starts the Daemon if not running.", false), "org.gradle.daemon");
+    public static final GradleBuildOption DAEMON = new GradleBuildOption(BOOLEAN, "org.gradle.daemon", new CommandLineOption("daemon", "Uses the Gradle Daemon to run the build. Starts the Daemon if not running.", false));
     public static final GradleBuildOption DEBUG_MODE = new GradleBuildOption(STRING, "org.gradle.debug");
-    public static final GradleBuildOption CONFIGURE_ON_DEMAND = new GradleBuildOption(STRING, new CommandLineOption("configure-on-demand", "Configure necessary projects only. Gradle will attempt to reduce configuration time for large multi-project builds.", true), "org.gradle.configureondemand");
-    public static final GradleBuildOption PARALLEL = new GradleBuildOption(STRING, new CommandLineOption("parallel", "Build projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.", true), "org.gradle.parallel");
-    public static final GradleBuildOption MAX_WORKERS = new GradleBuildOption(STRING, new CommandLineOption("max-workers", "Configure the number of concurrent workers Gradle is allowed to use.", true), "org.gradle.workers.max");
-    public static final GradleBuildOption BUILD_CACHE = new GradleBuildOption(BOOLEAN, new CommandLineOption("build-cache", "Enables the Gradle build cache. Gradle will try to reuse outputs from previous builds.", true), "org.gradle.caching");
+    public static final GradleBuildOption CONFIGURE_ON_DEMAND = new GradleBuildOption(STRING, "org.gradle.configureondemand", new CommandLineOption("configure-on-demand", "Configure necessary projects only. Gradle will attempt to reduce configuration time for large multi-project builds.", true));
+    public static final GradleBuildOption PARALLEL = new GradleBuildOption(STRING, "org.gradle.parallel", new CommandLineOption("parallel", "Build projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.", true));
+    public static final GradleBuildOption MAX_WORKERS = new GradleBuildOption(STRING, "org.gradle.workers.max", new CommandLineOption("max-workers", "Configure the number of concurrent workers Gradle is allowed to use.", true));
+    public static final GradleBuildOption BUILD_CACHE = new GradleBuildOption(BOOLEAN, "org.gradle.caching", new CommandLineOption("build-cache", "Enables the Gradle build cache. Gradle will try to reuse outputs from previous builds.", true));
     public static final GradleBuildOption LOG_LEVEL = new GradleBuildOption(STRING, "org.gradle.logging.level");
 
     public static final Set<GradleBuildOption> ALL = ImmutableSet.of(DAEMON_IDLE_TIMEOUT, DAEMON_HEALTH_CHECK_INTERVAL, DAEMON_BASE_DIR, JVM_ARGS,
