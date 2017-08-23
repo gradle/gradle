@@ -604,6 +604,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
         when:
         withBuildCache().succeeds "producer", "--info"
+        !output.contains("Caching disabled for task ':producer'")
         then:
         skippedTasks as List == [":producer"]
     }
@@ -625,7 +626,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         withBuildCache().succeeds "producer", "--info", "--rerun-tasks"
         then:
         !output.contains("Caching disabled for task ':producer'")
-        true
 
         when:
         // Can load from local cache again
