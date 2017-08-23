@@ -36,6 +36,7 @@ import org.gradle.internal.logging.console.StyledTextOutputBackedRenderer;
 import org.gradle.internal.logging.console.ThrottlingOutputEventListener;
 import org.gradle.internal.logging.console.WorkInProgressRenderer;
 import org.gradle.internal.logging.events.EndOutputEvent;
+import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
@@ -82,7 +83,9 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         OutputEventListener stdOutChain = new LazyListener(new Factory<OutputEventListener>() {
             @Override
             public OutputEventListener create() {
-                return onNonError(new BuildLogLevelFilterRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false)));
+                return onNonError(new UserInputStandardOutputRenderer(
+                    new BuildLogLevelFilterRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false)))
+                );
             }
         });
         formatters.add(stdOutChain);
@@ -215,7 +218,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
 
     public OutputEventRenderer addConsole(Console console, boolean stdout, boolean stderr, ConsoleMetaData consoleMetaData) {
         final OutputEventListener consoleChain = new ThrottlingOutputEventListener(
-            new UserInputPromptRenderer(
+            new UserInputConsoleRenderer(
                 new BuildStatusRenderer(
                     new WorkInProgressRenderer(
                         new BuildLogLevelFilterRenderer(
@@ -349,13 +352,13 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         }
     }
 
-    private class UserInputPromptRenderer implements OutputEventListener {
+    private class UserInputConsoleRenderer implements OutputEventListener {
         private final OutputEventListener delegate;
         private final Console console;
         private final List<OutputEvent> eventQueue = Lists.newArrayList();
         private boolean paused;
 
-        public UserInputPromptRenderer(OutputEventListener delegate, Console console) {
+        public UserInputConsoleRenderer(OutputEventListener delegate, Console console) {
             this.delegate = delegate;
             this.console = console;
         }
@@ -379,6 +382,49 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                 console.getBuildProgressArea().setVisible(true);
                 console.flush();
 
+                replayEvents();
+
+                return;
+            }
+
+            if (paused) {
+                eventQueue.add(event);
+                return;
+            }
+
+            delegate.onOutput(event);
+        }
+
+        private void replayEvents() {
+            for (OutputEvent outputEvent : eventQueue) {
+                delegate.onOutput(outputEvent);
+            }
+            eventQueue.clear();
+        }
+    }
+
+    private class UserInputStandardOutputRenderer implements OutputEventListener {
+        private final OutputEventListener delegate;
+        private final List<OutputEvent> eventQueue = Lists.newArrayList();
+        private boolean paused;
+
+        public UserInputStandardOutputRenderer(OutputEventListener delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void onOutput(OutputEvent event) {
+            if (event instanceof UserInputRequestEvent) {
+                String prompt = ((UserInputRequestEvent) event).getPrompt();
+                delegate.onOutput(new LogEvent(0, "prompt", LogLevel.QUIET, prompt, null));
+                paused = true;
+                return;
+            }
+            if (event instanceof UserInputResumeEvent) {
+                if (!paused) {
+                    throw new RuntimeException("UnPause when not paused");
+                }
+                paused = false;
                 replayEvents();
 
                 return;
