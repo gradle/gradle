@@ -30,8 +30,8 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.zip.ZipException;
 
-public abstract class AbstractClasspathSnapshotBuilder implements FileVisitingSnapshotBuilder {
-    protected final FileCollectionSnapshotBuilder builder;
+public abstract class AbstractClasspathSnapshotBuilder implements VisitingFileCollectionSnapshotBuilder {
+    protected final CollectingFileCollectionSnapshotBuilder builder;
     private final ResourceHasher classpathResourceHasher;
     private final StringInterner stringInterner;
     private final ResourceSnapshotterCacheService cacheService;
@@ -39,7 +39,7 @@ public abstract class AbstractClasspathSnapshotBuilder implements FileVisitingSn
     private final byte[] jarHasherConfigurationHash;
 
     public AbstractClasspathSnapshotBuilder(ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
-        this.builder = new FileCollectionSnapshotBuilder(TaskFilePropertyCompareStrategy.ORDERED, InputPathNormalizationStrategy.NONE, stringInterner);
+        this.builder = new CollectingFileCollectionSnapshotBuilder(TaskFilePropertyCompareStrategy.ORDERED, InputPathNormalizationStrategy.NONE, stringInterner);
         this.cacheService = cacheService;
         this.stringInterner = stringInterner;
         this.classpathResourceHasher = classpathResourceHasher;

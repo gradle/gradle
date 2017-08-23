@@ -21,10 +21,10 @@ import java.util.Collection;
 /**
  * Used to build a {@link FileCollectionSnapshot} by collecting normalized file snapshots.
  */
-public class FileCollectionVisitingSnapshotBuilder implements FileVisitingSnapshotBuilder {
-    private final FileCollectionSnapshotBuilder builder;
+public class FileCollectionVisitingSnapshotBuilder implements VisitingFileCollectionSnapshotBuilder {
+    private final CollectingFileCollectionSnapshotBuilder builder;
 
-    public FileCollectionVisitingSnapshotBuilder(FileCollectionSnapshotBuilder builder) {
+    public FileCollectionVisitingSnapshotBuilder(CollectingFileCollectionSnapshotBuilder builder) {
         this.builder = builder;
     }
 

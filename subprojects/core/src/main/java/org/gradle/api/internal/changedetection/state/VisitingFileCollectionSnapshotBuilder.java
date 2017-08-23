@@ -16,6 +16,5 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-public interface FileVisitingSnapshotBuilder extends FileSnapshotVisitor {
-    FileCollectionSnapshot build();
+public interface VisitingFileCollectionSnapshotBuilder extends FileSnapshotVisitor, FileCollectionSnapshotBuilder {
 }

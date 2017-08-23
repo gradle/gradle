@@ -28,9 +28,9 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
+import org.gradle.api.internal.changedetection.state.CollectingFileCollectionSnapshotBuilder;
 import org.gradle.api.internal.changedetection.state.DirectoryTreeDetails;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotBuilder;
 import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSystemMirror;
 import org.gradle.api.internal.changedetection.state.MissingFileSnapshot;
@@ -154,7 +154,7 @@ public class TaskOutputCacheCommandFactory {
                 }
                 List<FileSnapshot> fileSnapshots = propertiesFileSnapshots.get(propertyName);
 
-                FileCollectionSnapshotBuilder builder = new FileCollectionSnapshotBuilder(UNORDERED, OutputPathNormalizationStrategy.getInstance(), stringInterner);
+                CollectingFileCollectionSnapshotBuilder builder = new CollectingFileCollectionSnapshotBuilder(UNORDERED, OutputPathNormalizationStrategy.getInstance(), stringInterner);
                 for (FileSnapshot fileSnapshot : fileSnapshots) {
                     builder.collectFileSnapshot(fileSnapshot);
                 }

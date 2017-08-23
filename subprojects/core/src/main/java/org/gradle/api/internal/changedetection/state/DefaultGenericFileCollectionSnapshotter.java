@@ -33,6 +33,6 @@ public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollect
 
     @Override
     public FileCollectionSnapshot snapshot(FileCollection files, PathNormalizationStrategy pathNormalizationStrategy, InputNormalizationStrategy inputNormalizationStrategy) {
-        return super.snapshot(files, new FileCollectionVisitingSnapshotBuilder(new FileCollectionSnapshotBuilder(TaskFilePropertyCompareStrategy.UNORDERED, pathNormalizationStrategy, getStringInterner())));
+        return super.snapshot(files, new FileCollectionVisitingSnapshotBuilder(new CollectingFileCollectionSnapshotBuilder(TaskFilePropertyCompareStrategy.UNORDERED, pathNormalizationStrategy, getStringInterner())));
     }
 }

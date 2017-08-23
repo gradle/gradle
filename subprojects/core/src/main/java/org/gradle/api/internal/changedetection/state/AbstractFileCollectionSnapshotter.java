@@ -47,11 +47,11 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
         registry.register(DefaultFileCollectionSnapshot.class, new DefaultFileCollectionSnapshot.SerializerImpl(stringInterner));
     }
 
-    public FileCollectionSnapshot snapshot(FileCollection input, FileVisitingSnapshotBuilder fileVisitingSnapshotBuilder) {
+    public FileCollectionSnapshot snapshot(FileCollection input, VisitingFileCollectionSnapshotBuilder builder) {
         FileCollectionInternal fileCollection = (FileCollectionInternal) input;
-        FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl(fileVisitingSnapshotBuilder);
+        FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl(builder);
         fileCollection.visitRootElements(visitor);
-        return fileVisitingSnapshotBuilder.build();
+        return builder.build();
     }
 
     protected StringInterner getStringInterner() {
