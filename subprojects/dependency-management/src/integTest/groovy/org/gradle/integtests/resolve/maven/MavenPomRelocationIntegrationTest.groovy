@@ -20,17 +20,17 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import spock.lang.Issue
 import spock.lang.Unroll
 
+@Issue('https://github.com/gradle/gradle/issues/1789')
 class MavenPomRelocationIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
-    @Issue('https://github.com/gradle/gradle/issues/1789')
     @Unroll
-    def "succeed when relocation exists"() {
+    def "can resolve relocated module"() {
         given:
-        def original = publishPomWithRelocation('groupA', 'projectA', relocationGroupId, relocationArtifactId)
+        def original = publishPomWithRelocation('groupA', 'artifactA', relocationGroupId, relocationArtifactId)
         def newModule = mavenHttpRepo.module(newGroupId, newArtifactId, "1.0").publish()
 
         and:
-        createBuildFileWithDependency('groupA', 'projectA')
+        createBuildFileWithDependency('groupA', 'artifactA')
 
         and:
         original.pom.expectGet()
@@ -44,19 +44,20 @@ class MavenPomRelocationIntegrationTest extends AbstractHttpDependencyResolution
         file("libs").assertHasDescendants("${newArtifactId}-1.0.jar")
 
         where:
-        relocationGroupId | relocationArtifactId | newGroupId  | newArtifactId
-        'groupB'          | 'projectB'           | 'groupB'    | 'projectB'
-        'newGroupA'       | ''                   | 'newGroupA' | 'projectA'
+        relocationGroupId | relocationArtifactId | newGroupId | newArtifactId
+        'groupB'          | 'artifactB'          | 'groupB'   | 'artifactB'
+        'groupB'          | null                 | 'groupB'   | 'artifactA'
+        null              | 'artifactB'          | 'groupA'   | 'artifactB'
     }
 
-    def "double-relocation should succeed"() {
+    def "can resolve module from a nested relocation"() {
         given:
-        def moduleA = publishPomWithRelocation('groupA', 'projectA', 'groupB', 'projectB')
-        def moduleB = publishPomWithRelocation('groupB', 'projectB', 'groupC', 'projectC')
-        def moduleC = mavenHttpRepo.module('groupC', 'projectC', "1.0").publish()
+        def moduleA = publishPomWithRelocation('groupA', 'artifactA', 'groupB', 'artifactB')
+        def moduleB = publishPomWithRelocation('groupB', 'artifactB', 'groupC', 'artifactC')
+        def moduleC = mavenHttpRepo.module('groupC', 'artifactC', "1.0").publish()
 
         and:
-        createBuildFileWithDependency('groupA', 'projectA')
+        createBuildFileWithDependency('groupA', 'artifactA')
 
         and:
         moduleA.pom.expectGet()
@@ -68,16 +69,16 @@ class MavenPomRelocationIntegrationTest extends AbstractHttpDependencyResolution
         run "retrieve"
 
         then:
-        file("libs").assertHasDescendants("projectC-1.0.jar")
+        file("libs").assertHasDescendants("artifactC-1.0.jar")
     }
 
-    def "fail when artifact in <relocation> doesn't exist"() {
+    def "fails to resolve module if published artifact does not exist with relocated coordinates"() {
         given:
-        def original = publishPomWithRelocation('groupA', 'projectA', 'notExist', 'notExist')
+        def original = publishPomWithRelocation('groupA', 'artifactA', 'notExist', 'notExist')
         def newModule = mavenHttpRepo.module("notExist", "notExist", "1.0")
 
         and:
-        createBuildFileWithDependency('groupA', 'projectA')
+        createBuildFileWithDependency('groupA', 'artifactA')
 
         and:
         original.pom.expectGet()
@@ -103,7 +104,7 @@ task retrieve(type: Sync) {
 
     def publishPomWithRelocation(String groupId, String artifactId, String relocationGroupId, String relocationArtifactId) {
         def module = mavenHttpRepo.module(groupId, artifactId, '1.0').publishPom()
-        def relocation = "<groupId>${relocationGroupId}</groupId>"
+        def relocation = relocationGroupId ? "<groupId>${relocationGroupId}</groupId>" : ''
         relocation += relocationArtifactId ? "<artifactId>${relocationArtifactId}</artifactId>" : ''
 
         module.pomFile.text = """
