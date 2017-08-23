@@ -17,7 +17,7 @@
 package org.gradle.language.cpp.plugins
 
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.language.cpp.CppExecutable
+import org.gradle.language.cpp.CppApplication
 import org.gradle.language.cpp.tasks.CppCompile
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
@@ -40,7 +40,7 @@ class CppExecutablePluginTest extends Specification {
         project.pluginManager.apply(CppExecutablePlugin)
 
         then:
-        project.executable instanceof CppExecutable
+        project.executable instanceof CppApplication
         project.executable.baseName.get() == "testApp"
         project.executable.cppSource.files == [src] as Set
     }

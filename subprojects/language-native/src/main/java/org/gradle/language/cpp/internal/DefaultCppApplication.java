@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.language.swift.internal;
+package org.gradle.language.cpp.internal;
 
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.language.swift.SwiftExecutable;
+import org.gradle.language.cpp.CppApplication;
 
 import javax.inject.Inject;
 
-public class DefaultSwiftExecutable extends DefaultSwiftComponent implements SwiftExecutable {
+public class DefaultCppApplication extends DefaultCppComponent implements CppApplication {
     @Inject
-    public DefaultSwiftExecutable(String name, FileOperations fileOperations, ProviderFactory providerFactory) {
+    public DefaultCppApplication(String name, FileOperations fileOperations, ProviderFactory providerFactory) {
         super(name, fileOperations, providerFactory);
     }
 }

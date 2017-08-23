@@ -31,7 +31,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.swift.SwiftComponent;
-import org.gradle.language.swift.SwiftExecutable;
+import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftLibrary;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -158,7 +158,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                 NativeToolChain toolChain = modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
                 compile.setToolChain(toolChain);
 
-                if (component instanceof SwiftExecutable) {
+                if (component instanceof SwiftApplication) {
                     // Add a link task
                     LinkExecutable link = tasks.create("link" + capitalizedName, LinkExecutable.class);
                     link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));

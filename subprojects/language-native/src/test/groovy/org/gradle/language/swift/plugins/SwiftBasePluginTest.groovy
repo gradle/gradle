@@ -18,7 +18,7 @@ package org.gradle.language.swift.plugins
 
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.SwiftComponent
-import org.gradle.language.swift.SwiftExecutable
+import org.gradle.language.swift.SwiftApplication
 import org.gradle.language.swift.SwiftLibrary
 import org.gradle.language.swift.tasks.SwiftCompile
 import org.gradle.nativeplatform.tasks.LinkExecutable
@@ -57,7 +57,7 @@ class SwiftBasePluginTest extends Specification {
     def "adds link task for executable"() {
         def module = project.providers.property(String)
         module.set("TestApp")
-        def component = Stub(SwiftExecutable)
+        def component = Stub(SwiftApplication)
         component.name >> name
         component.module >> module
 

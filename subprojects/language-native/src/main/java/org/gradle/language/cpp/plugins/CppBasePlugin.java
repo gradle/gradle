@@ -30,7 +30,7 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppComponent;
-import org.gradle.language.cpp.CppExecutable;
+import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -137,7 +137,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 NativeToolChain toolChain = modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
                 compile.setToolChain(toolChain);
 
-                if (component instanceof CppExecutable) {
+                if (component instanceof CppApplication) {
                     // Add a link task
                     LinkExecutable link = tasks.create("link" + capitalizedName, LinkExecutable.class);
                     link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));

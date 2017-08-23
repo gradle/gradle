@@ -18,7 +18,7 @@ package org.gradle.language.cpp.plugins
 
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.cpp.CppComponent
-import org.gradle.language.cpp.CppExecutable
+import org.gradle.language.cpp.CppApplication
 import org.gradle.language.cpp.CppLibrary
 import org.gradle.language.cpp.tasks.CppCompile
 import org.gradle.nativeplatform.tasks.LinkExecutable
@@ -56,7 +56,7 @@ class CppBasePluginTest extends Specification {
     def "adds link task for executable"() {
         def baseName = project.providers.property(String)
         baseName.set("test_app")
-        def component = Stub(CppExecutable)
+        def component = Stub(CppApplication)
         component.name >> name
         component.baseName >> baseName
 
