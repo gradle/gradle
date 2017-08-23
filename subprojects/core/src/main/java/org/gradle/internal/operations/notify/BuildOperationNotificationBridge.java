@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-class BuildOperationNotificationBridge implements BuildOperationNotificationListenerRegistrar, Stoppable {
+public class BuildOperationNotificationBridge implements BuildOperationNotificationListenerRegistrar, Stoppable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildOperationNotificationBridge.class);
 
@@ -41,12 +41,17 @@ class BuildOperationNotificationBridge implements BuildOperationNotificationList
     private final BuildOperationListenerManager buildOperationListenerManager;
     private BuildOperationRecorder buildOperationRecorder;
 
-    BuildOperationNotificationBridge(BuildOperationListenerManager buildOperationListenerManager, BuildOperationRecorder buildOperationRecorder, GradleInternal gradleInternal) {
+    BuildOperationNotificationBridge(BuildOperationListenerManager buildOperationListenerManager, BuildOperationRecorder buildOperationRecorder) {
         this.buildOperationListenerManager = buildOperationListenerManager;
         this.buildOperationRecorder = buildOperationRecorder;
+    }
+
+    public void start(GradleInternal gradle) {
+        buildOperationRecorder.start();
+
         // ensure we only store events for configuration phase to keep overhead small
         // when build scan plugin is not applied
-        gradleInternal.rootProject(new Action<Project>() {
+        gradle.rootProject(new Action<Project>() {
             @Override
             public void execute(Project project) {
                 project.afterEvaluate(new Action<Project>() {

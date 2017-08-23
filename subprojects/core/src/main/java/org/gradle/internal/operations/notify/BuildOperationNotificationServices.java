@@ -16,7 +16,6 @@
 
 package org.gradle.internal.operations.notify;
 
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.progress.BuildOperationListenerManager;
 
 /**
@@ -30,13 +29,12 @@ public class BuildOperationNotificationServices {
         return new BuildOperationRecorder(listenerManager);
     }
 
-    BuildOperationNotificationListenerRegistrar createBuildOperationNotificationListenerRegistrar(
+    BuildOperationNotificationBridge createBuildOperationNotificationListenerRegistrar(
         BuildOperationListenerManager buildOperationListenerManager,
-        BuildOperationRecorder buildOperationRecorder,
-        GradleInternal gradleInternal
+        BuildOperationRecorder buildOperationRecorder
     ) {
         // The listener manager must be build session scoped, not global.
-        return new BuildOperationNotificationBridge(buildOperationListenerManager, buildOperationRecorder, gradleInternal);
+        return new BuildOperationNotificationBridge(buildOperationListenerManager, buildOperationRecorder);
     }
 
 }

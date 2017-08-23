@@ -45,7 +45,7 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.operations.notify.BuildOperationNotificationListenerRegistrar;
+import org.gradle.internal.operations.notify.BuildOperationNotificationBridge;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildProgressFilter;
 import org.gradle.internal.progress.BuildProgressLogger;
@@ -120,7 +120,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         });
 
         // Start collecting operations for this build invocation
-        launcher.getGradle().getServices().get(BuildOperationNotificationListenerRegistrar.class);
+        parentRegistry.get(BuildOperationNotificationBridge.class).start(launcher.getGradle());
 
         return launcher;
     }

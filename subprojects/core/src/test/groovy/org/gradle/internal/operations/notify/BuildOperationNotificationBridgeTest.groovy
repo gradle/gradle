@@ -268,7 +268,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
     void register(BuildOperationNotificationListener listener, List<BuildOperationRecorder.RecordedBuildOperation> recordedBuildOps = []) {
         _ * recorder.retrieveEventsAndStop() >> recordedBuildOps
         if (bridge == null) {
-            bridge = new BuildOperationNotificationBridge(listenerManager, recorder, gradle)
+            bridge = new BuildOperationNotificationBridge(listenerManager, recorder)
         }
         bridge.registerBuildScopeListener(listener)
     }

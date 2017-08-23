@@ -33,14 +33,17 @@ class BuildOperationRecorder implements Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildOperationRecorder.class);
 
     private final BuildOperationListenerManager listenerManager;
-    private final BuildOperationListener listener;
+    private BuildOperationListener listener;
 
     private List<RecordedBuildOperation> recordedEvents = new ArrayList<RecordedBuildOperation>();
-    private boolean stopped = false;
+    private boolean stopped;
 
     public BuildOperationRecorder(BuildOperationListenerManager listenerManager) {
         this.listenerManager = listenerManager;
-        this.listener = new BuildOperationListener() {
+    }
+
+    public void start() {
+        listener = new BuildOperationListener() {
             @Override
             public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
                 recordedEvents.add(new RecordedBuildOperation(buildOperation, startEvent, RecordedBuildOperation.OperationEventType.START));
@@ -51,7 +54,7 @@ class BuildOperationRecorder implements Stoppable {
                 recordedEvents.add(new RecordedBuildOperation(buildOperation, finishEvent, RecordedBuildOperation.OperationEventType.FINISHED));
             }
         };
-        this.listenerManager.addListener(listener);
+        listenerManager.addListener(listener);
     }
 
     public List<RecordedBuildOperation> retrieveEventsAndStop() {
