@@ -16,6 +16,8 @@
 
 package org.gradle.caching.internal.tasks;
 
+import com.google.common.collect.ImmutableListMultimap;
+import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
@@ -38,25 +40,40 @@ public interface TaskOutputPacker {
     PackResult pack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException;
 
     class PackResult {
-
-        public final long entries;
+        private final long entries;
 
         public PackResult(long entries) {
             this.entries = entries;
         }
 
+        public long getEntries() {
+            return entries;
+        }
     }
 
     UnpackResult unpack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, InputStream input, TaskOutputOriginReader readOrigin) throws IOException;
 
     class UnpackResult {
+        private final TaskOutputOriginMetadata originMetadata;
+        private final long entries;
+        private final ImmutableListMultimap<String, FileSnapshot> snapshots;
 
-        public final TaskOutputOriginMetadata originMetadata;
-        public final long entries;
-
-        public UnpackResult(TaskOutputOriginMetadata originMetadata, long entries) {
+        public UnpackResult(TaskOutputOriginMetadata originMetadata, long entries, ImmutableListMultimap<String, FileSnapshot> snapshots) {
             this.originMetadata = originMetadata;
             this.entries = entries;
+            this.snapshots = snapshots;
+        }
+
+        public TaskOutputOriginMetadata getOriginMetadata() {
+            return originMetadata;
+        }
+
+        public long getEntries() {
+            return entries;
+        }
+
+        public ImmutableListMultimap<String, FileSnapshot> getSnapshots() {
+            return snapshots;
         }
     }
 }

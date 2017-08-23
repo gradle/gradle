@@ -20,12 +20,12 @@ import com.google.common.hash.HashCode;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.file.FileType;
 
-class DirectoryFileSnapshot implements FileSnapshot {
+public class DirectoryFileSnapshot implements FileSnapshot {
     final String path;
     private final RelativePath relativePath;
     private final boolean root;
 
-    DirectoryFileSnapshot(String path, RelativePath relativePath, boolean root) {
+    public DirectoryFileSnapshot(String path, RelativePath relativePath, boolean root) {
         this.path = path;
         this.relativePath = relativePath;
         this.root = root;

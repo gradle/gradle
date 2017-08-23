@@ -30,6 +30,6 @@ public class RuntimeClasspathSnapshotBuilder extends AbstractClasspathSnapshotBu
 
     @Override
     protected void visitNonJar(RegularFileSnapshot file) {
-        collectFileSnapshot(file);
+        builder.collectFileSnapshot(file);
     }
 }

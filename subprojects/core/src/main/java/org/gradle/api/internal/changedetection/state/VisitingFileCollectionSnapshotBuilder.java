@@ -13,28 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply plugin: 'java-library'
 
-dependencies {
-    api project(":baseServices")
-    api libraries.inject
+package org.gradle.api.internal.changedetection.state;
 
-    implementation project(":messaging")
-    implementation project(":native")
-    implementation project(":persistentCache")
-    implementation project(":resources")
-    implementation project(":logging")
-
-    implementation libraries.commons_io
-
-    jmh libraries.ant
-    jmh libraries.commons_compress
-    jmh "io.airlift:aircompressor:0.8"
-    jmh "org.iq80.snappy:snappy:0.4"
-    jmh "org.kamranzafar:jtar:2.3"
+public interface VisitingFileCollectionSnapshotBuilder extends FileSnapshotVisitor, FileCollectionSnapshotBuilder {
 }
-
-useTestFixtures()
-useTestFixtures(project: ":baseServices")
-useClassycle()
-strictCompile()

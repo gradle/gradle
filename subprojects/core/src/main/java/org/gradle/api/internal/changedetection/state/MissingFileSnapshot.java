@@ -23,11 +23,11 @@ import org.gradle.internal.file.FileType;
 /**
  * Snapshot for a missing file. Note that currently a missing file is always a root file.
  */
-class MissingFileSnapshot implements FileSnapshot {
+public class MissingFileSnapshot implements FileSnapshot {
     private final String path;
     private final RelativePath relativePath;
 
-    MissingFileSnapshot(String path, RelativePath relativePath) {
+    public MissingFileSnapshot(String path, RelativePath relativePath) {
         this.path = path;
         this.relativePath = relativePath;
     }

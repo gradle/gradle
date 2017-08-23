@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import java.util.List;
+import java.util.Collection;
 
 /**
  * An immutable snapshot of the content and meta-data of some part of the file system based at some root directory.
@@ -30,5 +30,5 @@ public interface FileTreeSnapshot {
     /**
      * The descendants of the root directory, if any. Includes direct and indirect children. Does not include the root directory.
      */
-    List<FileSnapshot> getDescendants();
+    Collection<FileSnapshot> getDescendants();
 }

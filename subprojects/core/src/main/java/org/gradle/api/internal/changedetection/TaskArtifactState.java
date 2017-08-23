@@ -15,7 +15,9 @@
  */
 package org.gradle.api.internal.changedetection;
 
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.TaskExecutionHistory;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.id.UniqueId;
@@ -59,7 +61,12 @@ public interface TaskArtifactState {
     /**
      * Called on completion of task execution.
      */
-    void snapshotAfterTask(Throwable failure);
+    void snapshotAfterTaskExecution(Throwable failure);
+
+    /**
+     * Called on task being loaded from cache.
+     */
+    void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot);
 
     /**
      * Returns the history for this task.
