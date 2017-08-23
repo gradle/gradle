@@ -646,7 +646,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         cleanBuildDir()
         withBuildCache().succeeds "consumer"
         then:
-        skippedTasks as List == [":producer", ":consumer"]
+        skippedTasks.sort() == [":consumer", ":producer"]
     }
 
     private static String defineProducerTask() {
