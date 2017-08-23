@@ -17,13 +17,18 @@
 package org.gradle.nativeplatform.tasks;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.nativeplatform.toolchain.internal.PCHUtils;
+import org.gradle.workers.IsolationMode;
+import org.gradle.workers.WorkerConfiguration;
+import org.gradle.workers.WorkerExecutor;
 
+import javax.inject.Inject;
 import java.io.File;
 
 /**
@@ -33,10 +38,22 @@ import java.io.File;
 public class PrefixHeaderFileGenerateTask extends DefaultTask {
     private String header;
     private File prefixHeaderFile;
+    private final WorkerExecutor workerExecutor;
+
+    @Inject
+    public PrefixHeaderFileGenerateTask(WorkerExecutor workerExecutor) {
+        this.workerExecutor = workerExecutor;
+    }
 
     @TaskAction
     void generatePrefixHeaderFile() {
-        PCHUtils.generatePCHFile(Lists.newArrayList(header), prefixHeaderFile);
+        workerExecutor.submit(GeneratePrefixHeaderFile.class, new Action<WorkerConfiguration>() {
+            @Override
+            public void execute(WorkerConfiguration config) {
+                config.setIsolationMode(IsolationMode.NONE);
+                config.setParams(header, prefixHeaderFile);
+            }
+        });
     }
 
     @Input
@@ -55,5 +72,21 @@ public class PrefixHeaderFileGenerateTask extends DefaultTask {
 
     public void setPrefixHeaderFile(File prefixHeaderFile) {
         this.prefixHeaderFile = prefixHeaderFile;
+    }
+
+    private static class GeneratePrefixHeaderFile implements Runnable {
+        private final String header;
+        private final File prefixHeaderFile;
+
+        @Inject
+        public GeneratePrefixHeaderFile(String header, File prefixHeaderFile) {
+            this.header = header;
+            this.prefixHeaderFile = prefixHeaderFile;
+        }
+
+        @Override
+        public void run() {
+            PCHUtils.generatePCHFile(Lists.newArrayList(header), prefixHeaderFile);
+        }
     }
 }
