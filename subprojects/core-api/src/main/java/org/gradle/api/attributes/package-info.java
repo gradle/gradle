@@ -17,4 +17,5 @@
 /**
  * Classes for dealing with configuration and artifact attributes.
  */
+@org.gradle.api.NonNullApi
 package org.gradle.api.attributes;
