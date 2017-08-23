@@ -128,9 +128,7 @@ public class TaskExecutionServices {
         }
         executer = new SkipUpToDateTaskExecuter(executer);
         executer = new ResolveTaskOutputCachingStateExecuter(taskOutputCacheEnabled, executer);
-        if (verifyInputsEnabled || taskOutputCacheEnabled) {
-            executer = new ResolveBuildCacheKeyExecuter(executer, buildOperationExecutor);
-        }
+        executer = new ResolveBuildCacheKeyExecuter(executer, buildOperationExecutor);
         executer = new ValidatingTaskExecuter(executer);
         executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, cleanupRegistry, taskOutputsGenerationListener, executer);
         executer = new CleanupStaleOutputsExecuter(cleanupRegistry, taskOutputFilesRepository, buildOperationExecutor, executer);
