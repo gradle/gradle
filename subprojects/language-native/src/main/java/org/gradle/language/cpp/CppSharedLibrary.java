@@ -17,13 +17,12 @@
 package org.gradle.language.cpp;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.component.SoftwareComponent;
 
 /**
- * A C++ shared library.
+ * A shared library built from C++ source.
  *
  * @since 4.2
  */
 @Incubating
-public interface CppSharedLibrary extends SoftwareComponent {
+public interface CppSharedLibrary extends CppBinary {
 }

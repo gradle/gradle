@@ -66,15 +66,15 @@ class CppLibraryPluginTest extends Specification {
         project.pluginManager.apply(CppLibraryPlugin)
 
         then:
-        def compileCpp = project.tasks.compileCpp
+        def compileCpp = project.tasks.compileDebugCpp
         compileCpp instanceof CppCompile
         compileCpp.includes.files as List == [publicHeaders, privateHeaders]
         compileCpp.source.files as List == [src]
-        compileCpp.objectFileDirectory.get().asFile == projectDir.file("build/main/objs")
+        compileCpp.objectFileDirectory.get().asFile == projectDir.file("build/obj/main/debug")
 
-        def link = project.tasks.linkMain
+        def link = project.tasks.linkDebug
         link instanceof LinkSharedLibrary
-        link.binaryFile.get().asFile == projectDir.file("build/lib/" + OperatingSystem.current().getSharedLibraryName("testLib"))
+        link.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("testLib"))
     }
 
     def "output locations are calculated using base name defined on extension"() {
@@ -83,8 +83,8 @@ class CppLibraryPluginTest extends Specification {
         project.library.baseName = "test_lib"
 
         then:
-        def link = project.tasks.linkMain
-        link.binaryFile.get().asFile == projectDir.file("build/lib/" + OperatingSystem.current().getSharedLibraryName("test_lib"))
+        def link = project.tasks.linkDebug
+        link.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("test_lib"))
     }
 
     def "output locations reflects changes to buildDir"() {
@@ -95,10 +95,10 @@ class CppLibraryPluginTest extends Specification {
         project.buildDir = "output"
 
         then:
-        def compileCpp = project.tasks.compileCpp
-        compileCpp.objectFileDir == project.file("output/main/objs")
+        def compileCpp = project.tasks.compileDebugCpp
+        compileCpp.objectFileDir == project.file("output/obj/main/debug")
 
-        def link = project.tasks.linkMain
-        link.outputFile == projectDir.file("output/lib/" + OperatingSystem.current().getSharedLibraryName("testLib"))
+        def link = project.tasks.linkDebug
+        link.outputFile == projectDir.file("output/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("testLib"))
     }
 }

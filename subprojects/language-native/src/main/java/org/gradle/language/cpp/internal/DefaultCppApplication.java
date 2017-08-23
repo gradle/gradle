@@ -30,8 +30,8 @@ public class DefaultCppApplication extends DefaultCppComponent implements CppApp
     @Inject
     public DefaultCppApplication(String name, FileOperations fileOperations, ProviderFactory providerFactory) {
         super(name, fileOperations, providerFactory);
-        debug = new DefaultCppExecutable(name + "Debug");
-        release = new DefaultCppExecutable(name + "Release");
+        debug = new DefaultCppExecutable(name + "Debug", getBaseName(), getCppSource(), getCompileIncludePath(), getLinkLibraries());
+        release = new DefaultCppExecutable(name + "Release", getBaseName(), getCppSource(), getCompileIncludePath(), getLinkLibraries());
     }
 
     @Override

@@ -16,17 +16,12 @@
 
 package org.gradle.language.cpp.internal;
 
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.CppExecutable;
 
-public class DefaultCppExecutable implements CppExecutable {
-    private final String name;
-
-    public DefaultCppExecutable(String name) {
-        this.name = name;
-    }
-
-    @Override
-    public String getName() {
-        return name;
+public class DefaultCppExecutable extends DefaultCppBinary implements CppExecutable {
+    public DefaultCppExecutable(String name, Provider<String> baseName, FileCollection sourceFiles, FileCollection includePath, FileCollection linkLibraries) {
+        super(name, baseName, sourceFiles, includePath, linkLibraries);
     }
 }

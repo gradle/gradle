@@ -38,8 +38,8 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
         publicHeaders = fileOperations.files();
         publicHeadersWithConvention = createDirView(publicHeaders, "src/" + name + "/public");
         getCompileIncludePath().setFrom(publicHeadersWithConvention, getPrivateHeaderDirs());
-        debug = new DefaultCppSharedLibrary(name + "Debug");
-        release = new DefaultCppSharedLibrary(name + "Release");
+        debug = new DefaultCppSharedLibrary(name + "Debug", getBaseName(), getCppSource(), getCompileIncludePath(), getLinkLibraries());
+        release = new DefaultCppSharedLibrary(name + "Release", getBaseName(), getCppSource(), getCompileIncludePath(), getLinkLibraries());
     }
 
     @Override

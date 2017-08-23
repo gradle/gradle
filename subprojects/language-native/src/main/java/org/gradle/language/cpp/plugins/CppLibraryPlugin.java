@@ -85,16 +85,16 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         library.getLinkLibraries().from(configurations.getByName(CppBasePlugin.NATIVE_LINK));
 
         // Configure the compile task
-        CppCompile compile = (CppCompile) tasks.getByName("compileCpp");
+        CppCompile compile = (CppCompile) tasks.getByName("compileDebugCpp");
         compile.setPositionIndependentCode(true);
 
-        final LinkSharedLibrary link = (LinkSharedLibrary) tasks.getByName("linkMain");
+        final LinkSharedLibrary link = (LinkSharedLibrary) tasks.getByName("linkDebug");
         // TODO - make this lazy, make a query method on the link task
         final PlatformToolProvider platformToolChain = ((NativeToolChainInternal) link.getToolChain()).select((NativePlatformInternal) link.getTargetPlatform());
         Provider<RegularFile> linkFile = buildDirectory.file(providers.provider(new Callable<String>() {
             @Override
             public String call() throws Exception {
-                return platformToolChain.getSharedLibraryLinkFileName("lib/" + library.getBaseName().get());
+                return platformToolChain.getSharedLibraryLinkFileName("lib/main/debug/" + library.getBaseName().get());
             }
         }));
 

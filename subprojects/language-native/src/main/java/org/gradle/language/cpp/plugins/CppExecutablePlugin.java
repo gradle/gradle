@@ -74,7 +74,7 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         application.getCompileIncludePath().from(configurations.getByName(CppBasePlugin.CPP_INCLUDE_PATH));
         application.getLinkLibraries().from(configurations.getByName(CppBasePlugin.NATIVE_LINK));
 
-        LinkExecutable link = (LinkExecutable) tasks.getByName("linkMain");
+        LinkExecutable link = (LinkExecutable) tasks.getByName("linkDebug");
 
         // Add an install task
         // TODO - move this up to the base plugin

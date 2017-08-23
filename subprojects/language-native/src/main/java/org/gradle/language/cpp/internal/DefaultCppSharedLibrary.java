@@ -16,17 +16,12 @@
 
 package org.gradle.language.cpp.internal;
 
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.CppSharedLibrary;
 
-public class DefaultCppSharedLibrary implements CppSharedLibrary {
-    private final String name;
-
-    public DefaultCppSharedLibrary(String name) {
-        this.name = name;
-    }
-
-    @Override
-    public String getName() {
-        return name;
+public class DefaultCppSharedLibrary extends DefaultCppBinary implements CppSharedLibrary {
+    public DefaultCppSharedLibrary(String name, Provider<String> baseName, FileCollection sourceFiles, FileCollection includePath, FileCollection linkLibraries) {
+        super(name, baseName, sourceFiles, includePath, linkLibraries);
     }
 }

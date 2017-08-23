@@ -29,9 +29,9 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.language.cpp.CppComponent;
-import org.gradle.language.cpp.CppApplication;
-import org.gradle.language.cpp.CppLibrary;
+import org.gradle.language.cpp.CppBinary;
+import org.gradle.language.cpp.CppExecutable;
+import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
@@ -42,7 +42,6 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPlugin;
-import org.gradle.util.GUtil;
 
 import java.util.Collections;
 import java.util.concurrent.Callable;
@@ -117,18 +116,17 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
         final ModelRegistry modelRegistry = project.getModelRegistry();
         final ProviderFactory providers = project.getProviders();
 
-        project.getComponents().withType(CppComponent.class, new Action<CppComponent>() {
+        project.getComponents().withType(CppBinary.class, new Action<CppBinary>() {
             @Override
-            public void execute(final CppComponent component) {
-                String capitalizedName = GUtil.toCamelCase(component.getName());
-                String compileTaskName = component.getName().equals("main") ? "compileCpp" : "compile" + capitalizedName + "Cpp";
-                CppCompile compile = tasks.create(compileTaskName, CppCompile.class);
+            public void execute(final CppBinary component) {
+                final Names names = new Names(component.getName());
+                CppCompile compile = tasks.create("compile" + names.taskName + "Cpp", CppCompile.class);
                 compile.includes(component.getCompileIncludePath());
                 compile.source(component.getCppSource());
 
                 compile.setCompilerArgs(Collections.<String>emptyList());
                 compile.setMacros(Collections.<String, String>emptyMap());
-                compile.setObjectFileDir(buildDirectory.dir(component.getName() + "/objs"));
+                compile.setObjectFileDir(buildDirectory.dir("obj/" + names.dirName));
 
                 DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
                 compile.setTargetPlatform(currentPlatform);
@@ -137,9 +135,9 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 NativeToolChain toolChain = modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
                 compile.setToolChain(toolChain);
 
-                if (component instanceof CppApplication) {
+                if (component instanceof CppExecutable) {
                     // Add a link task
-                    LinkExecutable link = tasks.create("link" + capitalizedName, LinkExecutable.class);
+                    LinkExecutable link = tasks.create("link" + names.taskName, LinkExecutable.class);
                     link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
                     link.lib(component.getLinkLibraries());
                     link.setLinkerArgs(Collections.<String>emptyList());
@@ -147,16 +145,16 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     link.setOutputFile(buildDirectory.file(providers.provider(new Callable<String>() {
                         @Override
                         public String call() throws Exception {
-                            return toolProvider.getExecutableName("exe/" + component.getBaseName().get());
+                            return toolProvider.getExecutableName("exe/" + names.dirName + component.getBaseName().get());
                         }
                     })));
                     link.setTargetPlatform(currentPlatform);
                     link.setToolChain(toolChain);
-                } else if (component instanceof CppLibrary) {
+                } else if (component instanceof CppSharedLibrary) {
                     final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
 
                     // Add a link task
-                    LinkSharedLibrary link = tasks.create("link" + capitalizedName, LinkSharedLibrary.class);
+                    LinkSharedLibrary link = tasks.create("link" + names.taskName, LinkSharedLibrary.class);
                     link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
                     link.lib(component.getLinkLibraries());
                     link.setLinkerArgs(Collections.<String>emptyList());
@@ -164,7 +162,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     Provider<RegularFile> runtimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
                         @Override
                         public String call() throws Exception {
-                            return toolProvider.getSharedLibraryName("lib/" + component.getBaseName().get());
+                            return toolProvider.getSharedLibraryName("lib/" + names.dirName + component.getBaseName().get());
                         }
                     }));
                     link.setOutputFile(runtimeFile);
@@ -173,5 +171,40 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 }
             }
         });
+    }
+
+    private static class Names {
+        private final String taskName;
+        private final String dirName;
+
+        public Names(String name) {
+            StringBuilder taskName = new StringBuilder();
+            StringBuilder dirName = new StringBuilder();
+            int startLast = 0;
+            int i = 0;
+            for (; i < name.length(); i++) {
+                if (Character.isUpperCase(name.charAt(i))) {
+                    if (i > startLast) {
+                        append(name, startLast, i, taskName, dirName);
+                    }
+                    startLast = i;
+                }
+            }
+            if (i > startLast) {
+                append(name, startLast, i, taskName, dirName);
+            }
+            this.taskName = taskName.toString();
+            this.dirName = dirName.toString();
+        }
+
+        private void append(String name, int start, int end, StringBuilder taskName, StringBuilder dirName) {
+            dirName.append(Character.toLowerCase(name.charAt(start)));
+            dirName.append(name.substring(start + 1, end));
+            dirName.append('/');
+            if (start != 0 || end != 4 || !name.startsWith("main")) {
+                taskName.append(Character.toUpperCase(name.charAt(start)));
+                taskName.append(name.substring(start + 1, end));
+            }
+        }
     }
 }

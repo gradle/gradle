@@ -45,10 +45,10 @@ apply plugin: 'cpp-executable'
         project.assertTargetsAreTools()
         project.targets.every { it.productName == 'App' }
         project.targets[0].name == 'App Executable'
-        project.targets[0].productReference.path == exe("build/exe/app").absolutePath
+        project.targets[0].productReference.path == exe("build/exe/main/debug/app").absolutePath
         project.targets[1].name == '[INDEXING ONLY] App Executable'
         project.products.children.size() == 1
-        project.products.children[0].path == exe("build/exe/app").absolutePath
+        project.products.children[0].path == exe("build/exe/main/debug/app").absolutePath
 
         assertProjectHasEqualsNumberOfGradleAndIndexTargets(project.targets)
     }
@@ -75,10 +75,10 @@ apply plugin: 'cpp-library'
         project.assertTargetsAreDynamicLibraries()
         project.targets.every { it.productName == "App" }
         project.targets[0].name == 'App SharedLibrary'
-        project.targets[0].productReference.path == sharedLib("build/lib/app").absolutePath
+        project.targets[0].productReference.path == sharedLib("build/lib/main/debug/app").absolutePath
         project.targets[1].name == '[INDEXING ONLY] App SharedLibrary'
         project.products.children.size() == 1
-        project.products.children[0].path == sharedLib("build/lib/app").absolutePath
+        project.products.children[0].path == sharedLib("build/lib/main/debug/app").absolutePath
 
         assertProjectHasEqualsNumberOfGradleAndIndexTargets(project.targets)
     }
@@ -201,10 +201,10 @@ executable.baseName = 'test_app'
         project.targets.size() == 2
         project.targets.every { it.productName == 'App' }
         project.targets[0].name == 'App Executable'
-        project.targets[0].productReference.path == exe("output/exe/test_app").absolutePath
+        project.targets[0].productReference.path == exe("output/exe/main/debug/test_app").absolutePath
         project.targets[1].name == '[INDEXING ONLY] App Executable'
         project.products.children.size() == 1
-        project.products.children[0].path == exe("output/exe/test_app").absolutePath
+        project.products.children[0].path == exe("output/exe/main/debug/test_app").absolutePath
     }
 
     def "honors changes to library output locations"() {
@@ -227,9 +227,9 @@ library.baseName = 'test_lib'
         project.targets.size() == 2
         project.targets.every { it.productName == "App" }
         project.targets[0].name == 'App SharedLibrary'
-        project.targets[0].productReference.path == sharedLib("output/lib/test_lib").absolutePath
+        project.targets[0].productReference.path == sharedLib("output/lib/main/debug/test_lib").absolutePath
         project.targets[1].name == '[INDEXING ONLY] App SharedLibrary'
         project.products.children.size() == 1
-        project.products.children[0].path == sharedLib("output/lib/test_lib").absolutePath
+        project.products.children[0].path == sharedLib("output/lib/main/debug/test_lib").absolutePath
     }
 }

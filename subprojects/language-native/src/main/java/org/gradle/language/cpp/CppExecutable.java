@@ -17,13 +17,12 @@
 package org.gradle.language.cpp;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.component.SoftwareComponent;
 
 /**
- * A C++ executable.
+ * An executable built from C++ source.
  *
  * @since 4.2
  */
 @Incubating
-public interface CppExecutable extends SoftwareComponent {
+public interface CppExecutable extends CppBinary {
 }

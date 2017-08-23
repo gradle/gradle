@@ -235,7 +235,7 @@ public class XcodePlugin extends IdePlugin {
 
         // TODO - Reuse the logic from `cpp-executable` or `cpp-library` to find the link task path
         // TODO - should use the _install_ task for an executable
-        AbstractLinkTask linkTask = (AbstractLinkTask) project.getTasks().getByName("linkMain");
+        AbstractLinkTask linkTask = (AbstractLinkTask) project.getTasks().getByName("linkDebug");
         String targetName = StringUtils.capitalize(project.getName());
         XcodeTarget target = newTarget(targetName + " " + toString(productType), targetName, productType, toGradleCommand(project.getRootProject()), linkTask.getPath(), linkTask.getBinaryFile(), sources);
         target.getHeaderSearchPaths().from(component.getCompileIncludePath());
