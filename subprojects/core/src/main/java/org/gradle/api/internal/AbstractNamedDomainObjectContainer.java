@@ -27,6 +27,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.metaobject.ConfigureDelegate;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.NameValidator;
 
 import static org.gradle.api.reflect.TypeOf.parameterizedTypeOf;
 import static org.gradle.api.reflect.TypeOf.typeOf;
@@ -64,6 +65,7 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
 
     public T create(String name, Action<? super T> configureAction) throws InvalidUserDataException {
         assertCanAdd(name);
+        NameValidator.validate(name);
         T object = doCreate(name);
         add(object);
         configureAction.execute(object);

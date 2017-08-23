@@ -69,6 +69,7 @@ import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
+import org.gradle.util.NameValidator;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -154,6 +155,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         this.publicType = taskInfo.publicType;
         assert project != null;
         assert name != null;
+        NameValidator.validate(name);
         state = new TaskStateInternal();
         TaskContainerInternal tasks = project.getTasks();
         dependencies = new DefaultTaskDependency(tasks);
