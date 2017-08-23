@@ -22,32 +22,23 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.DirectoryVar;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.PropertyState;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.SwiftExecutable;
 import org.gradle.language.swift.internal.DefaultSwiftExecutable;
 import org.gradle.language.swift.tasks.SwiftCompile;
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
-import org.gradle.nativeplatform.toolchain.NativeToolChain;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
-import java.util.Collections;
 import java.util.concurrent.Callable;
 
 /**
@@ -91,34 +82,12 @@ public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
         SwiftCompile compile = (SwiftCompile) tasks.getByName("compileSwift");
         compile.setCompilerArgs(Lists.newArrayList("-g"));
 
-        // TODO - move this up into the base plugin
-        DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
-        compile.setTargetPlatform(currentPlatform);
-
-        // TODO - make this lazy
-        NativeToolChain toolChain = project.getModelRegistry().realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
-        compile.setToolChain(toolChain);
-
-        // Add a link task
-        LinkExecutable link = tasks.create("linkMain", LinkExecutable.class);
-        link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
-        link.lib(component.getLinkLibraries());
-        link.setLinkerArgs(Collections.<String>emptyList());
-        final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
-        Provider<RegularFile> exeLocation = buildDirectory.file(providers.provider(new Callable<String>() {
-            @Override
-            public String call() {
-                return toolProvider.getExecutableName("exe/" + module.get());
-            }
-        }));
-        link.setOutputFile(exeLocation);
-        link.setTargetPlatform(currentPlatform);
-        link.setToolChain(toolChain);
+        LinkExecutable link = (LinkExecutable) tasks.getByName("linkMain");
 
         // Add an install task
         final InstallExecutable install = tasks.create("installMain", InstallExecutable.class);
-        install.setPlatform(currentPlatform);
-        install.setToolChain(toolChain);
+        install.setPlatform(link.getTargetPlatform());
+        install.setToolChain(link.getToolChain());
         install.setDestinationDir(buildDirectory.dir(providers.provider(new Callable<CharSequence>() {
             @Override
             public String call() {

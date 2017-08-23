@@ -22,16 +22,31 @@ import org.gradle.api.Plugin;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryVar;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.swift.SwiftComponent;
+import org.gradle.language.swift.SwiftExecutable;
+import org.gradle.language.swift.SwiftLibrary;
 import org.gradle.language.swift.tasks.SwiftCompile;
+import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
+import org.gradle.nativeplatform.tasks.LinkExecutable;
+import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
+import org.gradle.nativeplatform.toolchain.NativeToolChain;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
 import org.gradle.util.GUtil;
 
 import java.util.Collections;
+import java.util.concurrent.Callable;
 
 /**
  * A common base plugin for the Swift executable and library plugins
@@ -121,17 +136,62 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
 
         final TaskContainerInternal tasks = project.getTasks();
         final DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
+        final ModelRegistry modelRegistry = project.getModelRegistry();
+        final ProviderFactory providers = project.getProviders();
 
         project.getComponents().withType(SwiftComponent.class, new Action<SwiftComponent>() {
             @Override
-            public void execute(SwiftComponent component) {
-                String compileTaskName = component.getName().equals("main") ? "compileSwift" : "compile" + GUtil.toCamelCase(component.getName()) + "Swift";
+            public void execute(final SwiftComponent component) {
+                String capitalizedName = GUtil.toCamelCase(component.getName());
+                String compileTaskName = component.getName().equals("main") ? "compileSwift" : "compile" + capitalizedName + "Swift";
                 SwiftCompile compile = tasks.create(compileTaskName, SwiftCompile.class);
                 compile.includes(component.getCompileImportPath());
                 compile.source(component.getSwiftSource());
                 compile.setMacros(Collections.<String, String>emptyMap());
                 compile.setModuleName(component.getModule());
                 compile.setObjectFileDir(buildDirectory.dir(component.getName() + "/objs"));
+
+                DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
+                compile.setTargetPlatform(currentPlatform);
+
+                // TODO - make this lazy
+                NativeToolChain toolChain = modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
+                compile.setToolChain(toolChain);
+
+                if (component instanceof SwiftExecutable) {
+                    // Add a link task
+                    LinkExecutable link = tasks.create("link" + capitalizedName, LinkExecutable.class);
+                    link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
+                    link.lib(component.getLinkLibraries());
+                    link.setLinkerArgs(Collections.<String>emptyList());
+                    final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
+                    Provider<RegularFile> exeLocation = buildDirectory.file(providers.provider(new Callable<String>() {
+                        @Override
+                        public String call() {
+                            return toolProvider.getExecutableName("exe/" + component.getModule().get());
+                        }
+                    }));
+                    link.setOutputFile(exeLocation);
+                    link.setTargetPlatform(currentPlatform);
+                    link.setToolChain(toolChain);
+                } else if (component instanceof SwiftLibrary) {
+                    // Add a link task
+                    final LinkSharedLibrary link = tasks.create("link" + capitalizedName, LinkSharedLibrary.class);
+                    link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
+                    link.lib(component.getLinkLibraries());
+                    link.setLinkerArgs(Collections.<String>emptyList());
+                    // TODO - need to set soname
+                    final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
+                    Provider<RegularFile> runtimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
+                        @Override
+                        public String call() {
+                            return toolProvider.getSharedLibraryName("lib/" + component.getModule().get());
+                        }
+                    }));
+                    link.setOutputFile(runtimeFile);
+                    link.setTargetPlatform(currentPlatform);
+                    link.setToolChain(toolChain);
+                }
             }
         });
     }

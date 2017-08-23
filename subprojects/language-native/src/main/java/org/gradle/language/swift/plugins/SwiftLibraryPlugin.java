@@ -23,32 +23,20 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.file.DirectoryVar;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.PropertyState;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.SwiftLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftLibrary;
 import org.gradle.language.swift.tasks.SwiftCompile;
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
-import org.gradle.nativeplatform.toolchain.NativeToolChain;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
-import java.util.Collections;
-import java.util.concurrent.Callable;
 
 /**
  * <p>A plugin that produces a shared library from Swift source.</p>
@@ -74,7 +62,6 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
 
         TaskContainer tasks = project.getTasks();
         ConfigurationContainer configurations = project.getConfigurations();
-        DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
         ObjectFactory objectFactory = project.getObjects();
 
         SwiftComponent component = project.getExtensions().create(SwiftLibrary.class, "library", DefaultSwiftLibrary.class, "main", fileOperations, project.getProviders());
@@ -90,30 +77,8 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         SwiftCompile compile = (SwiftCompile) tasks.getByName("compileSwift");
         compile.setCompilerArgs(Lists.newArrayList("-g"));
 
-        // TODO - move this up into the base plugin
-        DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
-        compile.setTargetPlatform(currentPlatform);
-
-        // TODO - make this lazy
-        NativeToolChain toolChain = ((ProjectInternal) project).getModelRegistry().realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
-        final PlatformToolProvider platformToolChain = ((NativeToolChainInternal) toolChain).select(currentPlatform);
-        compile.setToolChain(toolChain);
-
         // Add a link task
-        final LinkSharedLibrary link = tasks.create("linkMain", LinkSharedLibrary.class);
-        link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
-        link.lib(component.getLinkLibraries());
-        link.setLinkerArgs(Collections.<String>emptyList());
-        // TODO - need to set soname
-        Provider<RegularFile> runtimeFile = buildDirectory.file(project.getProviders().provider(new Callable<String>() {
-            @Override
-            public String call() {
-                return platformToolChain.getSharedLibraryName("lib/" + module.get());
-            }
-        }));
-        link.setOutputFile(runtimeFile);
-        link.setTargetPlatform(currentPlatform);
-        link.setToolChain(toolChain);
+        LinkSharedLibrary link = (LinkSharedLibrary) tasks.getByName("linkMain");
 
         tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(link);
 
@@ -125,7 +90,6 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         apiElements.extendsFrom(api);
         apiElements.setCanBeResolved(false);
         apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
-        // TODO - should reflect changes to output file
         apiElements.getOutgoing().artifact(compile.getObjectFileDirectory());
 
         Configuration implementation = configurations.getByName(SwiftBasePlugin.IMPLEMENTATION);
@@ -134,7 +98,6 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         linkElements.extendsFrom(implementation);
         linkElements.setCanBeResolved(false);
         linkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
-        // TODO - should reflect changes to task output file
         // TODO - should distinguish between link-time and runtime files
         linkElements.getOutgoing().artifact(link.getBinaryFile());
 
@@ -142,7 +105,6 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         runtimeElements.extendsFrom(implementation);
         runtimeElements.setCanBeResolved(false);
         runtimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
-        // TODO - should reflect changes to task output file
         // TODO - should distinguish between link-time and runtime files
         runtimeElements.getOutgoing().artifact(link.getBinaryFile());
     }

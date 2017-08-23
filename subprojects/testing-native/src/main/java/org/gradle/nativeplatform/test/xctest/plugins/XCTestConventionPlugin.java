@@ -37,14 +37,14 @@ import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.internal.DefaultSwiftComponent;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
 import org.gradle.language.swift.tasks.SwiftCompile;
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
+import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.test.xctest.internal.MacOSSdkPlatformPathLocator;
 import org.gradle.nativeplatform.test.xctest.tasks.CreateXcTestBundle;
 import org.gradle.nativeplatform.test.xctest.tasks.XcTest;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
@@ -77,7 +77,6 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         // TODO - Add dependency on main component when Swift plugins are applied
 
         final DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
-        Directory projectDirectory = project.getLayout().getProjectDirectory();
         ConfigurationContainer configurations = project.getConfigurations();
         TaskContainer tasks = project.getTasks();
         ProviderFactory providers = project.getProviders();
@@ -99,24 +98,20 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         compile.setCompilerArgs(Lists.newArrayList("-g", "-F" + frameworkDir.getAbsolutePath()));
         compile.setModuleName(project.getName());
 
-        // TODO - move this up into the base plugin
-        DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
-        compile.setTargetPlatform(currentPlatform);
+        NativeToolChain toolChain = compile.getToolChain();
+        NativePlatform targetPlatform = compile.getTargetPlatform();
 
-        // TODO - make this lazy
-        NativeToolChain toolChain = project.getModelRegistry().realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
-        compile.setToolChain(toolChain);
-
+        // TODO - move up to base plugin
         // Add a link task
         LinkExecutable link = tasks.create("linkTest", LinkExecutable.class);
         // TODO - need to set basename from component
         link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
         link.lib(component.getLinkLibraries());
         link.setLinkerArgs(Lists.newArrayList("-Xlinker", "-bundle", "-F" + frameworkDir.getAbsolutePath(), "-framework", "XCTest", "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks", "-Xlinker", "-rpath", "-Xlinker", "@loader_path/../Frameworks"));
-        PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
+        PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select((NativePlatformInternal) targetPlatform);
         Provider<RegularFile> exeLocation = buildDirectory.file(toolProvider.getExecutableName("exe/" + project.getName() + "Test"));
         link.setOutputFile(exeLocation);
-        link.setTargetPlatform(currentPlatform);
+        link.setTargetPlatform(targetPlatform);
         link.setToolChain(toolChain);
 
         // TODO - need to set basename from component
