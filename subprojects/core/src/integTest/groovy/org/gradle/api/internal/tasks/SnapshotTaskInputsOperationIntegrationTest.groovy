@@ -24,14 +24,18 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import spock.lang.Unroll
 
+@Unroll
 class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec {
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
-    def "task output caching key is exposed when build cache is enabled"() {
+    def "task output caching key is exposed when build cache is #enabled"() {
         given:
-        executer.withBuildCacheEnabled()
+        if (buildCacheEnabled) {
+            executer.withBuildCacheEnabled()
+        }
 
         when:
         buildFile << customTaskCode('foo', 'bar')
@@ -44,15 +48,11 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.buildCacheKey != null
         result.inputHashes.keySet() == ['input1', 'input2'] as Set
         result.outputPropertyNames == ['outputFile1', 'outputFile2']
-    }
 
-    def "task output caching key is not exposed when build cache is disabled"() {
-        when:
-        buildFile << customTaskCode('foo', 'bar')
-        succeeds('customTask')
+        where:
+        buildCacheEnabled << [true, false]
+        enabled = buildCacheEnabled ? 'enabled' : 'disabled'
 
-        then:
-        !operations.hasOperation(SnapshotTaskInputsBuildOperationType)
     }
 
     def "handles task with no outputs"() {
