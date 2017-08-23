@@ -18,7 +18,6 @@ package org.gradle.internal.operations.notify
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.internal.event.DefaultListenerManager
-import org.gradle.internal.operations.recorder.BuildOperationRecorder
 import org.gradle.internal.progress.BuildOperationCategory
 import org.gradle.internal.progress.BuildOperationDescriptor
 import org.gradle.internal.progress.BuildOperationListener
@@ -255,7 +254,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
 
     }
 
-    BuildOperationRecorder.RecordedBuildOperation recordedBuildOperation(Object buildOperationEvent, org.gradle.internal.operations.recorder.BuildOperationRecorder.RecordedBuildOperation.OperationEventType eventType) {
+    BuildOperationRecorder.RecordedBuildOperation recordedBuildOperation(Object buildOperationEvent, BuildOperationRecorder.RecordedBuildOperation.OperationEventType eventType) {
         def operationDescriptor = new BuildOperationDescriptor(1,
             null,
             "name",

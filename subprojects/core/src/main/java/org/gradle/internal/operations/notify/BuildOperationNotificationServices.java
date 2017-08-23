@@ -17,7 +17,6 @@
 package org.gradle.internal.operations.notify;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.internal.operations.recorder.BuildOperationRecorder;
 import org.gradle.internal.progress.BuildOperationListenerManager;
 
 /**
@@ -26,6 +25,10 @@ import org.gradle.internal.progress.BuildOperationListenerManager;
  * Build tree scoped.
  */
 public class BuildOperationNotificationServices {
+
+    BuildOperationRecorder createBuildOperationRecorder(BuildOperationListenerManager listenerManager) {
+        return new BuildOperationRecorder(listenerManager);
+    }
 
     BuildOperationNotificationListenerRegistrar createBuildOperationNotificationListenerRegistrar(
         BuildOperationListenerManager buildOperationListenerManager,

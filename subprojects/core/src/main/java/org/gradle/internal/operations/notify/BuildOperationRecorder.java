@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.operations.recorder;
+package org.gradle.internal.operations.notify;
 
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.progress.BuildOperationDescriptor;
@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BuildOperationRecorder implements Stoppable {
+class BuildOperationRecorder implements Stoppable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildOperationRecorder.class);
 

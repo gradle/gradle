@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.operations.recorder.BuildOperationRecorder;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.BuildOperationListenerManager;
