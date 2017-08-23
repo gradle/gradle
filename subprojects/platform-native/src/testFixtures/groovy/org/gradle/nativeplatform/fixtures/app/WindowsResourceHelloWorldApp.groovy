@@ -51,6 +51,11 @@ class WindowsResourceHelloWorldApp extends HelloWorldApp {
     }
 
     @Override
+    String getExtraConfiguration(String binaryName) {
+        return getExtraConfiguration()
+    }
+
+    @Override
     String compilerArgs(String arg) {
         "rcCompiler.args '${arg}'"
     }

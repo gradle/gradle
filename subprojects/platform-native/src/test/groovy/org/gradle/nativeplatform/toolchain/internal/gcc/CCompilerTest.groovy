@@ -23,7 +23,7 @@ class CCompilerTest extends GccCompatibleNativeCompilerTest {
 
     @Override
     protected NativeCompiler getCompiler(CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile) {
-        new CCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, invocationContext, objectFileExtension, useCommandFile)
+        new CCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, invocationContext, objectFileExtension, useCommandFile, workerLeaseService)
     }
 
     @Override

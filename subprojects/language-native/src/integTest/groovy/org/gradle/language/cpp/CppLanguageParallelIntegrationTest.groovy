@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,78 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.language.nativeplatform
+package org.gradle.language.cpp
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.ExecutableFixture
+import org.gradle.internal.execution.ExecuteTaskBuildOperationType
+import org.gradle.language.AbstractNativeSoftwareModelParallelIntegrationTest
 import org.gradle.nativeplatform.fixtures.NativeInstallationFixture
-import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
-import org.gradle.nativeplatform.fixtures.app.MixedObjectiveCHelloWorldApp
-import org.gradle.nativeplatform.fixtures.app.ObjectiveCHelloWorldApp
-import org.gradle.nativeplatform.fixtures.app.ObjectiveCppHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.IgnoreIf
 
-@IgnoreIf({ GradleContextualExecuter.parallel })
-// no point, always runs in parallel
-class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
-    def setup() {
-        executer.withArgument("--parallel")
-                .withArgument("--max-workers=4")
-    }
-
-    @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
-    def "can produce multiple executables from a single project in parallel"() {
-        given:
-        Map<String, HelloWorldApp> apps = [
-                c              : new CHelloWorldApp(),
-                cpp            : new CppHelloWorldApp(),
-                objectiveC     : new ObjectiveCHelloWorldApp(),
-                objectiveCpp   : new ObjectiveCppHelloWorldApp(),
-                mixedObjectiveC: new MixedObjectiveCHelloWorldApp(),
-        ]
-
-        apps.each { name, app ->
-            buildFile << app.pluginScript
-            buildFile << app.getExtraConfiguration("${name}Executable")
-            buildFile << """
-                model {
-                    components {
-                        ${name}(NativeExecutableSpec)
-                    }
-                }
-            """
-
-            app.writeSources(file("src/$name"))
-        }
-
-        when:
-        run(*apps.keySet().collect { "${it}Executable" })
-
-        then:
-        Map<ExecutableFixture, HelloWorldApp> executables = apps.collectEntries { name, app ->
-            def executable = executable("build/exe/$name/$name")
-            executable.assertExists()
-            [executable, app]
-        }
-        executables.every { executable, app ->
-            executable.exec().out == app.englishOutput
-        }
-    }
+class CppLanguageParallelIntegrationTest extends AbstractNativeSoftwareModelParallelIntegrationTest {
+    HelloWorldApp app = new CppHelloWorldApp()
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "can produce multiple executables that use a library from a single project in parallel"() {
         given:
-        Map<String, ExeWithLibraryUsingLibraryHelloWorldApp> apps = [
-                first : new ExeWithLibraryUsingLibraryHelloWorldApp(),
-                second: new ExeWithLibraryUsingLibraryHelloWorldApp(),
-                third : new ExeWithLibraryUsingLibraryHelloWorldApp(),
+        def apps = [
+            first : new ExeWithLibraryUsingLibraryHelloWorldApp(),
+            second: new ExeWithLibraryUsingLibraryHelloWorldApp(),
+            third : new ExeWithLibraryUsingLibraryHelloWorldApp(),
         ]
 
         apps.each { name, app ->
@@ -140,5 +90,8 @@ class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainInt
         installations.every { installation, app ->
             installation.exec().out == app.englishOutput
         }
+
+        and:
+        buildOperations.assertConcurrentOperationsExecuted(ExecuteTaskBuildOperationType)
     }
 }
