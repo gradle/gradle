@@ -208,10 +208,11 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     private static FileCollectionSnapshot snapshotDiscoveredInputs(Task task, InputNormalizationStrategy normalizationStrategy, Collection<File> discoveredInputs, FileCollectionSnapshotterRegistry snapshotterRegistry, FileCollectionFactory fileCollectionFactory) {
         GenericFileCollectionSnapshotter snapshotter = snapshotterRegistry.getSnapshotter(GenericFileCollectionSnapshotter.class);
-        LOGGER.debug("Snapshotting discovered inputs for {}", task);
         if (discoveredInputs.isEmpty()) {
+            LOGGER.debug("No discovered inputs for {}", task);
             return FileCollectionSnapshot.EMPTY;
         }
+        LOGGER.debug("Snapshotting discovered inputs for {}", task);
         try {
             return snapshotter.snapshot(fileCollectionFactory.fixed("Discovered input files", discoveredInputs), ABSOLUTE, normalizationStrategy);
         } catch (UncheckedIOException e) {
@@ -320,7 +321,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             FileCollectionSnapshot result;
             try {
                 FileCollectionSnapshotter snapshotter = snapshotterRegistry.getSnapshotter(propertySpec.getSnapshotter());
-                LOGGER.debug("Snapshotting property '{}' for {}", propertySpec, task);
+                LOGGER.debug("Snapshotting property {} for {}", propertySpec, task);
                 result = snapshotter.snapshot(propertySpec.getPropertyFiles(), propertySpec.getPathNormalizationStrategy(), normalizationStrategy);
             } catch (UncheckedIOException e) {
                 throw new UncheckedIOException(String.format("Failed to capture snapshot of %s files for %s property '%s' during up-to-date check.", title.toLowerCase(), task, propertySpec.getPropertyName()), e);
