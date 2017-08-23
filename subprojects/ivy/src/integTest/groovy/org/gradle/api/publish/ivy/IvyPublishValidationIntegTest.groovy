@@ -27,7 +27,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         given:
         file("content-file") << "some content"
         def organisation = identifier.safeForFileName().decorate("org")
-        def moduleName = identifier.safeForGradleDomainObjectName().decorate("module")
+        def moduleName = identifier.safeForGradleDomainObjectName().safeForFileName().decorate("module")
         def version = identifier.safeForFileName().decorate("revision")
         def extraValue = identifier.decorate("extra")
         def resolver = identifier.decorate("description")
@@ -88,7 +88,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         file("content-file") << "some content"
 
         def organisation = identifier.safeForFileName().decorate("org")
-        def moduleName = identifier.safeForGradleDomainObjectName().decorate("module")
+        def moduleName = identifier.safeForGradleDomainObjectName().safeForFileName().decorate("module")
         def version = identifier.safeForFileName().decorate("revision")
         def module = ivyRepo.module(organisation, moduleName, version)
 

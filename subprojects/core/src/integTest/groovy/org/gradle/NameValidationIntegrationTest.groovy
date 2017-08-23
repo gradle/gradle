@@ -22,6 +22,9 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 
+import static org.gradle.internal.os.OperatingSystem.WINDOWS
+import static org.gradle.internal.os.OperatingSystem.current
+
 class NameValidationIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -64,7 +67,7 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
 
     def "does not assign an invalid project name from folder name"() {
         given:
-        def buildFolder = file("folder: name")
+        def buildFolder = file(current() == WINDOWS ? "folder  name" : "folder: name")
         GradleExecuter subDirExecuter = new GradleContextualExecuter(distribution, new TestDirectoryProvider() {
             TestFile getTestDirectory() { return buildFolder }
             void suppressCleanup() { }
