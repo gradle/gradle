@@ -22,6 +22,7 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.HashFunction
+import org.gradle.internal.hash.HashValue
 import org.gradle.internal.hash.Hasher
 import spock.lang.Specification
 
@@ -53,97 +54,97 @@ class DefaultCacheKeyBuilderTest extends Specification {
         given:
         def prefix = 'p'
         def string = 's'
-        def stringHash = 42G
+        def stringHash = HashCode.fromInt(42)
 
         when:
         def key = subject.build(CacheKeySpec.withPrefix(prefix) + string)
 
         then:
-        1 * hashFunction.hashString(string) >> hashCodeFrom(stringHash)
+        1 * hashFunction.hashString(string) >> stringHash
         0 * _
 
         and:
-        key == "$prefix/${stringHash.toString(36)}"
+        key == "$prefix/${toCompactHash(stringHash)}"
     }
 
     def 'given a File component, it should hash it and append it to the prefix'() {
         given:
         def prefix = 'p'
         def file = new File('f')
-        def fileHash = 42G
+        def fileHash = HashCode.fromInt(42)
 
         when:
         def key = subject.build(CacheKeySpec.withPrefix(prefix) + file)
 
         then:
-        1 * fileHasher.hash(file) >> hashCodeFrom(fileHash)
+        1 * fileHasher.hash(file) >> fileHash
         0 * _
 
         and:
-        key == "$prefix/${fileHash.toString(36)}"
+        key == "$prefix/${toCompactHash(fileHash)}"
     }
 
     def 'given a ClassPath component, it should snapshot it and append it to the prefix'() {
         given:
         def prefix = 'p'
         def classPath = DefaultClassPath.of([new File('f')])
-        def classPathHash = 42G
+        def classPathHash = HashCode.fromInt(42)
 
         when:
         def key = subject.build(CacheKeySpec.withPrefix(prefix) + classPath)
 
         then:
-        1 * classpathHasher.hash(classPath) >> hashCodeFrom(classPathHash)
+        1 * classpathHasher.hash(classPath) >> classPathHash
         0 * _
 
         and:
-        key == "$prefix/${classPathHash.toString(36)}"
+        key == "$prefix/${toCompactHash(classPathHash)}"
     }
 
     def 'given a ClassLoader component, it should hash its hierarchy and append it to the prefix'() {
         given:
         def prefix = 'p'
         def classLoader = Mock(ClassLoader)
-        def classLoaderHierarchyHash = 42G
+        def classLoaderHierarchyHash = HashCode.fromInt(42)
 
         when:
         def key = subject.build(CacheKeySpec.withPrefix(prefix) + classLoader)
 
         then:
-        1 * classLoaderHierarchyHasher.getClassLoaderHash(classLoader) >> hashCodeFrom(classLoaderHierarchyHash)
+        1 * classLoaderHierarchyHasher.getClassLoaderHash(classLoader) >> classLoaderHierarchyHash
         0 * _
 
         and:
-        key == "$prefix/${classLoaderHierarchyHash.toString(36)}"
+        key == "$prefix/${toCompactHash(classLoaderHierarchyHash)}"
     }
 
     def 'given more than one component, it should combine their hashes together and append the combined hash to the prefix'() {
         given:
         def prefix = 'p'
         def string = 's'
-        def stringHash = 42G
+        def stringHash = HashCode.fromInt(42)
         def file = new File('f')
-        def fileHash = 51G
+        def fileHash = HashCode.fromInt(51)
         def hasher = Mock(Hasher)
-        def combinedHash = 99G
+        def combinedHash = HashCode.fromInt(99)
 
         when:
         def key = subject.build(CacheKeySpec.withPrefix(prefix) + string + file)
 
         then:
         1 * hashFunction.newHasher() >> hasher
-        1 * hashFunction.hashString(string) >> hashCodeFrom(stringHash)
-        1 * fileHasher.hash(file) >> hashCodeFrom(fileHash)
-        1 * hasher.putBytes(stringHash.toByteArray())
-        1 * hasher.putBytes(fileHash.toByteArray())
-        1 * hasher.hash() >> hashCodeFrom(combinedHash)
+        1 * hashFunction.hashString(string) >> stringHash
+        1 * fileHasher.hash(file) >> fileHash
+        1 * hasher.putBytes(stringHash.asBytes())
+        1 * hasher.putBytes(fileHash.asBytes())
+        1 * hasher.hash() >> combinedHash
         0 * _
 
         and:
-        key == "$prefix/${combinedHash.toString(36)}"
+        key == "$prefix/${toCompactHash(combinedHash)}"
     }
 
-    private HashCode hashCodeFrom(BigInteger bigInteger) {
-        HashCode.fromBytes(bigInteger.toByteArray())
+    private static String toCompactHash(HashCode hash) {
+        return new HashValue(hash.asBytes()).asCompactString()
     }
 }
