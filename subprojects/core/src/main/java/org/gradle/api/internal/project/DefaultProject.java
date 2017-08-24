@@ -114,6 +114,7 @@ import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.net.URI;
@@ -197,7 +198,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     private Path identityPath;
 
     public DefaultProject(String name,
-                          ProjectInternal parent,
+                          @Nullable ProjectInternal parent,
                           File projectDir,
                           File buildFile,
                           ScriptSource buildScriptSource,
@@ -207,7 +208,6 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
                           ClassLoaderScope baseClassLoaderScope) {
         this.classLoaderScope = selfClassLoaderScope;
         this.baseClassLoaderScope = baseClassLoaderScope;
-        assert name != null;
         this.rootProject = parent != null ? parent.getRootProject() : this;
         this.projectDir = projectDir;
         this.buildFile = buildFile;

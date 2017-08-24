@@ -25,6 +25,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.HasInternalProtocol;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
 import java.util.Set;
@@ -169,6 +170,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @return the description. May be null.
      */
+    @Nullable
     String getDescription();
 
     /**
@@ -177,7 +179,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @param description the description. May be null
      * @return this configuration
      */
-    Configuration setDescription(String description);
+    Configuration setDescription(@Nullable String description);
 
     /**
      * Gets a ordered set including this configuration and all superconfigurations

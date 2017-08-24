@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.*;
 import org.gradle.internal.HasInternalProtocol;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -37,6 +38,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @param path the path of the task to be returned
      * @return The task. Returns null if so such task exists.
      */
+    @Nullable
     Task findByPath(String path);
 
     /**

@@ -30,6 +30,7 @@ import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInterna
 import org.gradle.plugin.use.resolve.internal.ArtifactRepositoryPluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
+import javax.annotation.Nullable;
 import java.net.URI;
 
 abstract class AbstractArtifactPluginRepository extends AbstractPluginRepository implements AuthenticationSupported, PluginRepositoryInternal, BackedByArtifactRepositories {
@@ -68,6 +69,7 @@ abstract class AbstractArtifactPluginRepository extends AbstractPluginRepository
         internalCreateArtifactRepository(repositoryHandler);
     }
 
+    @Nullable
     public URI getUrl() {
         return fileResolver.resolveUri(url);
     }

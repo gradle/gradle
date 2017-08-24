@@ -101,6 +101,7 @@ public abstract class AbstractFileResolver implements FileResolver {
         };
     }
 
+    @Nullable
     public URI resolveUri(Object path) {
         return convertObjectToURI(path);
     }

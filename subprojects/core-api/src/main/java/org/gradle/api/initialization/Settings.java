@@ -26,6 +26,7 @@ import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.plugin.management.PluginManagementSpec;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -146,6 +147,7 @@ public interface Settings extends PluginAware {
      * @param path The path
      * @return The project with the given path. Returns null if no such project exists.
      */
+    @Nullable
     ProjectDescriptor findProject(String path);
 
     /**
@@ -163,6 +165,7 @@ public interface Settings extends PluginAware {
      * @param projectDir The project directory.
      * @return The project with the given project directory. Returns null if no such project exists.
      */
+    @Nullable
     ProjectDescriptor findProject(File projectDir);
 
     /**

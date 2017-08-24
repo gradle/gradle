@@ -13,9 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/**
- * Utility classes used by the standard task implementations.
- */
 @org.gradle.api.NonNullApi
-package org.gradle.api.tasks.util;
+package org.gradle.api.internal.project;
+

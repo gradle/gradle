@@ -17,6 +17,8 @@ package org.gradle.api.attributes;
 
 import org.gradle.api.Incubating;
 
+import javax.annotation.Nullable;
+
 /**
  * Provides context about attribute compatibility checks, and allows the user to define
  * when an attribute is compatible with another.
@@ -31,12 +33,14 @@ public interface CompatibilityCheckDetails<T> {
      * The value of the attribute as found on the consumer side.
      * @return the value from the consumer
      */
+    @Nullable
     T getConsumerValue();
 
     /**
      * The value of the attribute as found on the producer side.
      * @return the value from the producer
      */
+    @Nullable
     T getProducerValue();
 
     /**
