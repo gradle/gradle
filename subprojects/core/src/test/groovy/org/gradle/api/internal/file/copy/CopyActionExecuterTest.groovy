@@ -53,7 +53,7 @@ class CopyActionExecuterTest extends WorkspaceTest {
         def copyAction = new CopyAction() {
             WorkResult execute(CopyActionProcessingStream stream) {
                 stream.process(action)
-                new SimpleWorkResult(workResult)
+                SimpleWorkResult.didWork(workResult)
             }
         }
         def executer = new CopyActionExecuter(DirectInstantiator.INSTANCE, TestFiles.fileSystem(), false)

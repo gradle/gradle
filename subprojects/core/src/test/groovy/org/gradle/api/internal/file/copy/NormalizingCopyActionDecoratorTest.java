@@ -39,7 +39,7 @@ public class NormalizingCopyActionDecoratorTest {
     private final CopyAction delegate = new CopyAction() {
         public WorkResult execute(CopyActionProcessingStream stream) {
             stream.process(delegateAction);
-            return new SimpleWorkResult(true);
+            return SimpleWorkResult.DID_WORK;
         }
     };
     private final NormalizingCopyActionDecorator decorator = new NormalizingCopyActionDecorator(delegate, fileSystem());

@@ -102,7 +102,7 @@ public class NormalizingJavaCompiler implements Compiler<JavaCompileSpec> {
                 throw e;
             }
             LOGGER.debug("Ignoring compilation failure.");
-            return new SimpleWorkResult(false);
+            return SimpleWorkResult.DID_NO_WORK;
         }
     }
 }

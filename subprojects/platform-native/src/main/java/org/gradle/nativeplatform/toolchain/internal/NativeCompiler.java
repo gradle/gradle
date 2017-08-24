@@ -60,7 +60,7 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> extends Abstra
 
         super.execute(spec);
 
-        return new SimpleWorkResult(!transformedSpec.getSourceFiles().isEmpty());
+        return SimpleWorkResult.didWork(!transformedSpec.getSourceFiles().isEmpty());
     }
 
     // TODO(daniel): Should support in a better way multi file invocation.

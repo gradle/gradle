@@ -142,7 +142,7 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
         boolean deleted = cleanPreviousOutputs(spec);
         WorkResult compileResult = delegateCompiler.execute(spec);
         if (deleted && !compileResult.getDidWork()) {
-            return new SimpleWorkResult(deleted);
+            return SimpleWorkResult.didWork(deleted);
         }
         return compileResult;
     }
