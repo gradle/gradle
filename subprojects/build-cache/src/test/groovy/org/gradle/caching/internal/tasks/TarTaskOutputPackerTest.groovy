@@ -271,14 +271,19 @@ class TarTaskOutputPackerTest extends Specification {
     def prop(String name = "test", OutputType type, File output) {
         switch (type) {
             case FILE:
-                return new PropertyDefinition(new ResolvedTaskOutputFilePropertySpec(name, FILE, output), {[:]})
-            case DIRECTORY:
-                return new PropertyDefinition(new ResolvedTaskOutputFilePropertySpec(name, DIRECTORY, output), {
-                    def descendants = []
+                return new PropertyDefinition(new ResolvedTaskOutputFilePropertySpec(name, FILE, output), {
                     if (output == null || !output.exists()) {
                         return [:]
                     }
-                    output.traverse(type: FileType.ANY, visitRoot: false) { descendants += it }
+                    return [(output.absolutePath): new FileHashSnapshot(Files.hash(output, Hashing.md5()))]
+                })
+            case DIRECTORY:
+                return new PropertyDefinition(new ResolvedTaskOutputFilePropertySpec(name, DIRECTORY, output), {
+                    if (output == null || !output.exists()) {
+                        return [:]
+                    }
+                    def descendants = []
+                    output.traverse(type: FileType.ANY, visitRoot: true) { descendants += it }
                     return descendants.collectEntries { File file ->
                         def snapshot
                         if (file.isDirectory()) {
