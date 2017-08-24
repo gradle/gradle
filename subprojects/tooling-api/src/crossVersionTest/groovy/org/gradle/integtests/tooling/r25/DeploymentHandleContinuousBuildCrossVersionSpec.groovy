@@ -33,10 +33,10 @@ class DeploymentHandleContinuousBuildCrossVersionSpec extends ContinuousBuildToo
     def setup() {
         buildFile << """
             import javax.inject.Inject
-            import org.gradle.deployment.Deployment
-            import org.gradle.deployment.DeploymentHandle
-            import org.gradle.deployment.DeploymentRegistry
-            import org.gradle.deployment.DeploymentRegistry.ChangeBehavior
+            import org.gradle.deployment.internal.Deployment
+            import org.gradle.deployment.internal.DeploymentHandle
+            import org.gradle.deployment.internal.DeploymentRegistry
+            import org.gradle.deployment.internal.DeploymentRegistry.ChangeBehavior
 
             task runDeployment(type: RunTestDeployment) {
                 triggerFile = file('${triggerFile.name}')

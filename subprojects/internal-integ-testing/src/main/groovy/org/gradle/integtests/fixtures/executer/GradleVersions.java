@@ -25,5 +25,6 @@ public class GradleVersions {
     }
 
     public static final String SUPPORTS_CONTINUOUS = ">=2.5";
+    // We moved the API back into internal, so this isn't really correct.
     public static final String SUPPORTS_DEPLOYMENT_REGISTRY = ">=4.2";
 }
