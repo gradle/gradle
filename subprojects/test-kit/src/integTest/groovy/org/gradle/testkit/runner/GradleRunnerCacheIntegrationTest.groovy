@@ -16,7 +16,7 @@
 
 package org.gradle.testkit.runner
 
-import org.gradle.initialization.GradleBuildOptions
+import org.gradle.initialization.option.GradleBuildOptions
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.util.TextUtil
 

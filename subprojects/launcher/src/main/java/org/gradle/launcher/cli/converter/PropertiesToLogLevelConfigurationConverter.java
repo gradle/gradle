@@ -18,7 +18,7 @@ package org.gradle.launcher.cli.converter;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
-import org.gradle.initialization.GradleBuildOptions;
+import org.gradle.initialization.option.GradleBuildOptions;
 
 import java.util.Map;
 

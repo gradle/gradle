@@ -21,7 +21,7 @@ import org.gradle.api.logging.LogLevel
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.initialization.GradleBuildOptions.*
+import static org.gradle.initialization.option.GradleBuildOptions.*
 
 class PropertiesToStartParameterConverterTest extends Specification {
 

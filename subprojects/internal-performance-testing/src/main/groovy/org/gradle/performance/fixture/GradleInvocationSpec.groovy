@@ -19,7 +19,7 @@ package org.gradle.performance.fixture
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.initialization.GradleBuildOptions
+import org.gradle.initialization.option.GradleBuildOptions
 
 @CompileStatic
 @EqualsAndHashCode

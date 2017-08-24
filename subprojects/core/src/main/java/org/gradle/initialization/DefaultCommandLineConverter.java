@@ -34,8 +34,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.gradle.StartParameter.GRADLE_USER_HOME_PROPERTY_KEY;
-import static org.gradle.initialization.GradleBuildOptions.BUILD_CACHE;
-import static org.gradle.initialization.GradleBuildOptions.CONFIGURE_ON_DEMAND;
+import static org.gradle.initialization.option.GradleBuildOptions.BUILD_CACHE;
+import static org.gradle.initialization.option.GradleBuildOptions.CONFIGURE_ON_DEMAND;
 
 public class DefaultCommandLineConverter extends AbstractCommandLineConverter<StartParameter> {
     private static final String NO_PROJECT_DEPENDENCY_REBUILD = "a";
@@ -57,8 +57,6 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
     private static final String BUILDSCAN = "scan";
     private static final String NO_BUILDSCAN = "no-scan";
-
-    private static final String NO_BUILD_CACHE = "no-build-cache";
 
     private static final String INCLUDE_BUILD = "include-build";
 
@@ -102,8 +100,6 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(INCLUDE_BUILD).hasArguments().hasDescription("Include the specified build in the composite.").incubating();
 
         BUILD_CACHE.getCommandLineOption().registerOption(parser);
-        parser.option(NO_BUILD_CACHE).hasDescription("Disables the Gradle build cache.").incubating();
-        parser.allowOneOf(BUILD_CACHE.getCommandLineOption().getOption(), NO_BUILD_CACHE);
     }
 
     public StartParameter convert(final ParsedCommandLine options, final StartParameter startParameter) throws CommandLineArgumentException {
@@ -202,11 +198,11 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
             startParameter.setNoBuildScan(true);
         }
 
-        if (options.hasOption(BUILD_CACHE.getCommandLineOption().getOption())) {
+        if (options.hasOption(BUILD_CACHE.getCommandLineOption().getEnabledOption())) {
             startParameter.setBuildCacheEnabled(true);
         }
 
-        if (options.hasOption(NO_BUILD_CACHE)) {
+        if (options.hasOption(BUILD_CACHE.getCommandLineOption().getDisabledOption())) {
             startParameter.setBuildCacheEnabled(false);
         }
 

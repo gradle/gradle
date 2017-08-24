@@ -19,7 +19,7 @@ package org.gradle.performance.regression.buildcache
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 
-import static org.gradle.initialization.GradleBuildOptions.BUILD_CACHE
+import static org.gradle.initialization.option.GradleBuildOptions.BUILD_CACHE
 import static org.gradle.performance.fixture.BuildExperimentRunner.Phase.MEASUREMENT
 import static org.gradle.performance.fixture.BuildExperimentRunner.Phase.WARMUP
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT

@@ -22,8 +22,8 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.initialization.GradleBuildOptions.DAEMON_IDLE_TIMEOUT
-import static org.gradle.initialization.GradleBuildOptions.JVM_ARGS
+import static org.gradle.initialization.option.GradleBuildOptions.DAEMON_IDLE_TIMEOUT
+import static org.gradle.initialization.option.GradleBuildOptions.JVM_ARGS
 
 class LayoutToPropertiesConverterTest extends Specification {
 

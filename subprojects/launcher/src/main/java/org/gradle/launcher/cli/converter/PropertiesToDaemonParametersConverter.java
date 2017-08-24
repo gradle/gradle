@@ -21,13 +21,13 @@ import org.gradle.internal.jvm.JavaHomeException;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
-import org.gradle.initialization.GradleBuildOptions;
+import org.gradle.initialization.option.GradleBuildOptions;
 import org.gradle.process.internal.JvmOptions;
 
 import java.io.File;
 import java.util.Map;
 
-import static org.gradle.initialization.GradleBuildOptions.isTrue;
+import static org.gradle.initialization.option.GradleBuildOptions.isTrue;
 
 public class PropertiesToDaemonParametersConverter {
     public void convert(Map<String, String> properties, DaemonParameters target) {

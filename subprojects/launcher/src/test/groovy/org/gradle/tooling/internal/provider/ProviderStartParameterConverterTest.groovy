@@ -22,7 +22,7 @@ import org.gradle.tooling.internal.provider.connection.ProviderOperationParamete
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.initialization.GradleBuildOptions.CONFIGURE_ON_DEMAND
+import static org.gradle.initialization.option.GradleBuildOptions.CONFIGURE_ON_DEMAND
 
 class ProviderStartParameterConverterTest extends Specification {
     @Rule TestNameTestDirectoryProvider temp

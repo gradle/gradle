@@ -20,14 +20,13 @@ import org.gradle.cli.AbstractCommandLineConverter;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
-import org.gradle.initialization.GradleBuildOption;
-import org.gradle.initialization.GradleBuildOptions;
+import org.gradle.initialization.option.GradleBuildBooleanOption;
+import org.gradle.initialization.option.GradleBuildOptions;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
 public class DaemonCommandLineConverter extends AbstractCommandLineConverter<DaemonParameters> {
 
-    private static final GradleBuildOption.CommandLineOption DAEMON = GradleBuildOptions.DAEMON.getCommandLineOption();
-    private static final String NO_DAEMON = "no-daemon";
+    private static final GradleBuildBooleanOption.CommandLineBooleanOption DAEMON = GradleBuildOptions.DAEMON.getCommandLineOption();
     private static final String FOREGROUND = "foreground";
     private static final String STOP = "stop";
     private static final String STATUS = "status";
@@ -43,9 +42,9 @@ public class DaemonCommandLineConverter extends AbstractCommandLineConverter<Dae
             target.setStatus(true);
         }
 
-        if (args.hasOption(NO_DAEMON)) {
+        if (args.hasOption(DAEMON.getDisabledOption())) {
             target.setEnabled(false);
-        } else if (args.hasOption(DAEMON.getOption())) {
+        } else if (args.hasOption(DAEMON.getEnabledOption())) {
             target.setEnabled(true);
         }
         return target;

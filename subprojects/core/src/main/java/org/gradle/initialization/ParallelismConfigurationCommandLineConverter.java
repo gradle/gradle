@@ -22,8 +22,8 @@ import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.concurrent.ParallelismConfiguration;
 
-import static org.gradle.initialization.GradleBuildOptions.PARALLEL;
-import static org.gradle.initialization.GradleBuildOptions.MAX_WORKERS;
+import static org.gradle.initialization.option.GradleBuildOptions.PARALLEL;
+import static org.gradle.initialization.option.GradleBuildOptions.MAX_WORKERS;
 
 public class ParallelismConfigurationCommandLineConverter extends AbstractCommandLineConverter<ParallelismConfiguration> {
 
