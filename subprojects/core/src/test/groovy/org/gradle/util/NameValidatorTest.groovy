@@ -20,8 +20,12 @@ import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeContainer
+import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.SourceDirectorySetFactory
 import org.gradle.api.internal.project.taskfactory.TaskFactory
+import org.gradle.api.internal.tasks.DefaultSourceSetContainer
+import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.ProjectDescriptorRegistry
 import org.gradle.internal.event.ListenerManager
@@ -42,7 +46,18 @@ class NameValidatorTest extends Specification {
     static invalidNames = forbiddenCharacters.collect { "a${it}b"} + ["${forbiddenLeadingAndTrailingCharacter}ab", "ab${forbiddenLeadingAndTrailingCharacter}"]
 
     @Shared
+    def sourceDirectorySet = Mock(DefaultSourceDirectorySet) {
+        getFilter() >> Mock(PatternFilterable)
+    }
+    @Shared
+    def sourceDirectorySetFactory = Mock(SourceDirectorySetFactory) {
+        create(_) >> sourceDirectorySet
+        create(_, _) >> sourceDirectorySet
+    }
+
+    @Shared
     def domainObjectContainersWithValidation = [
+        ["source sets",  new DefaultSourceSetContainer(null, null, DirectInstantiator.INSTANCE, sourceDirectorySetFactory)],
         ["artifact types", new DefaultArtifactTypeContainer(DirectInstantiator.INSTANCE, null)],
         ["configurations", new DefaultConfigurationContainer(null, DirectInstantiator.INSTANCE, Mock(DomainObjectContext), Mock(ListenerManager), null, null, null, null, Mock(FileCollectionFactory), null, null, null, null, null, null)],
         ["flavors",  new DefaultFlavorContainer(DirectInstantiator.INSTANCE)]
