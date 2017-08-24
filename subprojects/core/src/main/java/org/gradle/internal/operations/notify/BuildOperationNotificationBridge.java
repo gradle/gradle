@@ -16,6 +16,7 @@
 
 package org.gradle.internal.operations.notify;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
@@ -29,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,15 +38,19 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildOperationNotificationBridge.class);
 
-    private final RecordingBuildOperationListener listener;
-    private BuildOperationNotificationListener registered;
+    private final BuildOperationListener transformingListener;
+    private final RecordingBuildOperationNotificationListener recordingListener;
+    private final BuildOperationListenerManager listenerManager;
+    private boolean stopped;
 
     BuildOperationNotificationBridge(BuildOperationListenerManager buildOperationListenerManager) {
-        listener = new RecordingBuildOperationListener(buildOperationListenerManager);
+        this.listenerManager = buildOperationListenerManager;
+        recordingListener = new RecordingBuildOperationNotificationListener();
+        transformingListener = new TransformingListener(recordingListener);
     }
 
     public void start(GradleInternal gradle) {
-        listener.startListening();
+        listenerManager.addListener(transformingListener);
 
         // ensure we only store events for configuration phase to keep overhead small
         // when build scan plugin is not applied
@@ -56,7 +60,9 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
                 project.afterEvaluate(new Action<Project>() {
                     @Override
                     public void execute(Project project) {
-                        listener.maybeStopListening();
+                        if (!recordingListener.isActive()) {
+                            stop();
+                        }
                     }
                 });
             }
@@ -65,16 +71,16 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
 
     @Override
     public void registerBuildScopeListener(BuildOperationNotificationListener notificationListener) {
-        if (registered != null) {
-            throw new IllegalStateException("listener is already registered (implementation class " + registered.getClass().getName() + ")");
-        }
-        registered = notificationListener;
-        listener.registerListener(new Listener(registered));
+        this.recordingListener.attach(notificationListener);
     }
 
     @Override
     public void stop() {
-        listener.stopListening();
+        if (!stopped) {
+            recordingListener.stop();
+            listenerManager.removeListener(transformingListener);
+            stopped = true;
+        }
     }
 
     /*
@@ -85,14 +91,14 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
         OperationStartEvent. This will happen later.
      */
 
-    private static class Listener implements BuildOperationListener {
+    private static class TransformingListener implements BuildOperationListener {
 
         private final BuildOperationNotificationListener notificationListener;
 
         private final Map<Object, Object> parents = new ConcurrentHashMap<Object, Object>();
         private final Map<Object, Object> active = new ConcurrentHashMap<Object, Object>();
 
-        private Listener(BuildOperationNotificationListener notificationListener) {
+        private TransformingListener(BuildOperationNotificationListener notificationListener) {
             this.notificationListener = notificationListener;
         }
 
@@ -150,62 +156,51 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
         }
     }
 
-    private static class RecordingBuildOperationListener implements BuildOperationListener {
-        private final BuildOperationListenerManager listenerManager;
-        private List<RecordedBuildOperation> storedEvents = new ArrayList<RecordedBuildOperation>();
-        private BuildOperationListener operationListener;
-        private boolean stopped;
+    private static class RecordingBuildOperationNotificationListener implements BuildOperationNotificationListener {
+        private List<Object> storedEvents = Lists.newArrayList();
+        private BuildOperationNotificationListener delegate;
 
-        public RecordingBuildOperationListener(BuildOperationListenerManager listenerManager) {
-            this.listenerManager = listenerManager;
-        }
-
-        public void startListening() {
-            listenerManager.addListener(this);
-        }
-
-        public void maybeStopListening() {
-            if (operationListener == null) {
-                stopListening();
+        public synchronized void attach(BuildOperationNotificationListener listener) {
+            if (delegate != null) {
+                throw new IllegalStateException("listener is already registered (implementation class " + delegate.getClass().getName() + ")");
             }
-        }
 
-        public void stopListening() {
-            if (!stopped) {
-                listenerManager.removeListener(this);
-                storedEvents = null;
-                stopped = true;
-            }
-        }
-
-        public synchronized void registerListener(BuildOperationListener listener) {
-            this.operationListener = listener;
-            for (RecordedBuildOperation storedEvent : storedEvents) {
-                if (storedEvent.eventType == RecordedBuildOperation.OperationEventType.START) {
-                    operationListener.started(storedEvent.buildOperation, (OperationStartEvent) storedEvent.event);
-                } else if (storedEvent.eventType == RecordedBuildOperation.OperationEventType.FINISHED) {
-                    operationListener.finished(storedEvent.buildOperation, (OperationFinishEvent) storedEvent.event);
+            delegate = listener;
+            for (Object storedEvent : storedEvents) {
+                if (storedEvent instanceof BuildOperationStartedNotification) {
+                    delegate.started((BuildOperationStartedNotification) storedEvent);
+                } else {
+                    delegate.finished((BuildOperationFinishedNotification) storedEvent);
                 }
             }
             storedEvents = null;
         }
 
+        public boolean isActive() {
+            return delegate != null;
+        }
+
         @Override
-        public synchronized void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-            if (operationListener == null) {
-                storedEvents.add(new RecordedBuildOperation(buildOperation, startEvent, RecordedBuildOperation.OperationEventType.START));
+        public synchronized void started(BuildOperationStartedNotification notification) {
+            if (isActive()) {
+                delegate.started(notification);
             } else {
-                operationListener.started(buildOperation, startEvent);
+                storedEvents.add(notification);
             }
         }
 
         @Override
-        public synchronized void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-            if (operationListener == null) {
-                storedEvents.add(new RecordedBuildOperation(buildOperation, finishEvent, RecordedBuildOperation.OperationEventType.FINISHED));
+        public synchronized void finished(BuildOperationFinishedNotification notification) {
+            if (isActive()) {
+                delegate.finished(notification);
             } else {
-                operationListener.finished(buildOperation, finishEvent);
+                storedEvents.add(notification);
             }
+        }
+
+        public void stop() {
+            delegate = null;
+            storedEvents = null;
         }
     }
 
