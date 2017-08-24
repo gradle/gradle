@@ -27,7 +27,7 @@ public class Identifier {
     private static final String NON_PRECOMPOSED_NON_ASCII = "-√æ∫ʙ₦∆√∫";
     private static final String FILESYSTEM_RESERVED_CHARS = "-./\\?%*:|\"<>";
     private static final String XML_MARKUP_CHARS = "-<with>some<xml-markup/></with>";
-    private static final String GRADLE_NAME_FORBIDDEN_CHARACTERS = " /\\:"; //See: NameValidator.FORBIDDEN_CHARACTERS
+    private static final String GRADLE_NAME_FORBIDDEN_CHARACTERS = " /\\:<>\"?*"; //See: NameValidator.FORBIDDEN_CHARACTERS
 
     private final String suffix;
     private final String displayName;

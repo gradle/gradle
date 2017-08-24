@@ -78,6 +78,6 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def assertPrintsCorrectDeprecationMessage(String deprecatedName) {
-        output.contains("The name '$deprecatedName' contains at least one of the following characters: [ , /, \\, :]. This has been deprecated and is scheduled to be removed in Gradle 5.0")
+        output.contains("The name '$deprecatedName' contains at least one of the following characters: [ , /, \\, :, <, >, \", ?, *]. This has been deprecated and is scheduled to be removed in Gradle 5.0")
     }
 }
