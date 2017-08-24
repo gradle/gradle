@@ -33,9 +33,9 @@ public final class NameValidator {
      */
     public static void validate(String name) {
         if (StringUtils.containsAny(name, FORBIDDEN_CHARACTERS)) {
-            DeprecationLogger.nagUserOfDeprecated("The name '" + name + "' contains at least one of the following characters: " + Arrays.toString(FORBIDDEN_CHARACTERS) + ". This");
+            DeprecationLogger.nagUserOfDeprecatedThing("The name '" + name + "' contains at least one of the following characters: " + Arrays.toString(FORBIDDEN_CHARACTERS));
         } else if (name.charAt(0) == FORBIDDEN_LEADING_AND_TRAILING_CHARACTER || name.charAt(name.length() - 1) == FORBIDDEN_LEADING_AND_TRAILING_CHARACTER) {
-            DeprecationLogger.nagUserOfDeprecated("The name '" + name + "' starts or ends with a '" + FORBIDDEN_LEADING_AND_TRAILING_CHARACTER + "'. This");
+            DeprecationLogger.nagUserOfDeprecatedThing("The name '" + name + "' starts or ends with a '" + FORBIDDEN_LEADING_AND_TRAILING_CHARACTER + "'");
         }
     }
 
