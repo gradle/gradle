@@ -18,8 +18,6 @@ gradlePlugin {
 
 publishing {
     repositories {
-        maven {
-            url = uri("build/repository")
-        }
+        maven(url = "build/repository")
     }
 }

@@ -65,9 +65,8 @@ plugins.forEach { plugin ->
 
 publishing {
     repositories {
-        maven {
+        maven(url = "build/repository") {
             name = "test"
-            url = uri("build/repository")
         }
     }
 }

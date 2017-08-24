@@ -10,7 +10,7 @@ buildscript {
 
     val kotlinRepo: String by extra
     repositories {
-        maven { url = uri(kotlinRepo) }
+        maven(url = kotlinRepo)
     }
 
     val kotlinVersion: String by extra
