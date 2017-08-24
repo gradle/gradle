@@ -40,7 +40,7 @@
         <xi:include href='../../../build/asciidoc/userguide/gradleWrapper.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/gradleDaemon.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/artifactDependenciesTutorial.xml'/>
-        <xi:include href='introMultiProjectBuilds.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/introMultiProjectBuilds.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/continuousBuild.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/compositeBuilds.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/buildEnvironment.xml'/>
@@ -89,13 +89,13 @@
         <title>Building JVM projects</title>
         <xi:include href='../../../build/asciidoc/userguide/javaTutorial.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/javaPlugin.xml'/>
-        <xi:include href='javaLibraryPlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/javaLibraryPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/webTutorial.xml'/>
         <xi:include href='warPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/earPlugin.xml'/>
         <xi:include href='jettyPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/applicationPlugin.xml'/>
-        <xi:include href='javaLibraryDistributionPlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/javaLibraryDistributionPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/groovyTutorial.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/groovyPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/scalaPlugin.xml'/>
@@ -103,9 +103,9 @@
         <xi:include href='../../../build/asciidoc/userguide/checkstylePlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/codeNarcPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/findBugsPlugin.xml'/>
-        <xi:include href='jdependPlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/jdependPlugin.xml'/>
         <xi:include href='pmdPlugin.xml'/>
-        <xi:include href='jacocoPlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/jacocoPlugin.xml'/>
         <xi:include href='osgi.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/eclipsePlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/ideaPlugin.xml'/>
