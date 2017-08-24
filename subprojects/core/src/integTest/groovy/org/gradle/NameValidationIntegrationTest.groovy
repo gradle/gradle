@@ -31,7 +31,7 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
         then:
         executer.expectDeprecationWarning()
         succeeds 'help'
-        assertPrintsCorrectDeprecationMessage('this::is::a::namespace')
+        assertPrintsForbiddenCharacterDeprecationMessage('this::is::a::namespace')
     }
 
     def "subproject names should not contain forbidden characters"() {
@@ -41,7 +41,7 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
         then:
         executer.expectDeprecationWarning()
         succeeds 'help'
-        assertPrintsCorrectDeprecationMessage('name with spaces')
+        assertPrintsForbiddenCharacterDeprecationMessage('name with spaces')
      }
 
     def "task names should not contain forbidden characters"() {
@@ -51,7 +51,7 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
         then:
         executer.expectDeprecationWarning()
         succeeds 'this/is/a/hierarchy'
-        assertPrintsCorrectDeprecationMessage("this/is/a/hierarchy")
+        assertPrintsForbiddenCharacterDeprecationMessage("this/is/a/hierarchy")
     }
 
     def "configuration names should not contain forbidden characters"() {
@@ -61,12 +61,34 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
         then:
         executer.expectDeprecationWarning()
         succeeds 'help'
-        assertPrintsCorrectDeprecationMessage("some/really.\\strange name:")
+        assertPrintsForbiddenCharacterDeprecationMessage("some/really.\\strange name:")
+    }
+
+    def "project names should not contain start with ."() {
+        when:
+        settingsFile << "rootProject.name = '.problematic-name'"
+        buildFile << ""
+
+        then:
+        executer.expectDeprecationWarning()
+        succeeds 'help'
+        assertPrintsForbiddenStartOrEndCharacterDeprecationMessage('.problematic-name')
+    }
+
+    def "project names should not end with ."() {
+        when:
+        settingsFile << "rootProject.name = 'problematic-name.'"
+        buildFile << ""
+
+        then:
+        executer.expectDeprecationWarning()
+        succeeds 'help'
+        assertPrintsForbiddenStartOrEndCharacterDeprecationMessage('problematic-name.')
     }
 
     def "does not assign an invalid project name from folder name"() {
         given:
-        def buildFolder = file(current() == WINDOWS ? "folder  name" : "folder: name")
+        def buildFolder = file(current() == WINDOWS ? ".folder  name." : ".folder: name.")
         inDirectory(buildFolder)
 
         when:
@@ -74,10 +96,14 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds 'help'
-        output.contains("folder__name")
+        output.contains("_folder__name_")
     }
 
-    def assertPrintsCorrectDeprecationMessage(String deprecatedName) {
+    def assertPrintsForbiddenCharacterDeprecationMessage(String deprecatedName) {
         output.contains("The name '$deprecatedName' contains at least one of the following characters: [ , /, \\, :, <, >, \", ?, *]. This has been deprecated and is scheduled to be removed in Gradle 5.0")
+    }
+
+    def assertPrintsForbiddenStartOrEndCharacterDeprecationMessage(String deprecatedName) {
+        output.contains("The name '$deprecatedName' starts or ends with a '.'. This has been deprecated and is scheduled to be removed in Gradle 5.0")
     }
 }
