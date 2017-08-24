@@ -17,7 +17,6 @@
 package org.gradle.internal.hash;
 
 import java.io.Serializable;
-import java.util.Arrays;
 
 public class HashCode implements Serializable {
     private static final int MIN_NUMBER_OF_BYTES = 4;
@@ -125,7 +124,22 @@ public class HashCode implements Serializable {
         if (obj.getClass() != HashCode.class) {
             return false;
         }
-        return Arrays.equals(bytes, ((HashCode) obj).bytes);
+
+        byte[] a = bytes;
+        byte[] b = ((HashCode) obj).bytes;
+        int length = a.length;
+
+        if (b.length != length) {
+            return false;
+        }
+
+        for (int i = 0; i < length; i++) {
+            if (a[i] != b[i]) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     @Override
