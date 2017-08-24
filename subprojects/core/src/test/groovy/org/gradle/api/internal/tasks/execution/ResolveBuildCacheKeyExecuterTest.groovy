@@ -128,22 +128,22 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         def adapter = new ResolveBuildCacheKeyExecuter.OperationResultImpl(key)
 
         when:
-        inputs.inputHashes >> ImmutableSortedMap.copyOf(b: HashCode.fromString("bb"), a: HashCode.fromString("aa"))
+        inputs.inputHashes >> ImmutableSortedMap.copyOf(b: HashCode.fromInt(0x000000bb), a: HashCode.fromInt(0x000000aa))
 
         then:
-        adapter.inputHashes == [a: "aa", b: "bb"]
+        adapter.inputHashes == [a: "000000aa", b: "000000bb"]
 
         when:
-        inputs.classLoaderHash >> HashCode.fromString("cc")
+        inputs.classLoaderHash >> HashCode.fromInt(0x000000cc)
 
         then:
-        adapter.classLoaderHash == "cc"
+        adapter.classLoaderHash == "000000cc"
 
         when:
-        inputs.actionClassLoaderHashes >> ImmutableList.copyOf([HashCode.fromString("ee"), HashCode.fromString("dd")])
+        inputs.actionClassLoaderHashes >> ImmutableList.copyOf([HashCode.fromInt(0x000000ee), HashCode.fromInt(0x000000dd)])
 
         then:
-        adapter.actionClassLoaderHashes == ["ee", "dd"]
+        adapter.actionClassLoaderHashes == ["000000ee", "000000dd"]
 
         when:
         inputs.actionClassNames >> ImmutableList.copyOf(["foo", "bar"])
@@ -158,11 +158,11 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         adapter.outputPropertyNames == ["1", "2"]
 
         when:
-        key.hashCode >> HashCode.fromString("ff")
+        key.hashCode >> HashCode.fromInt(0x000000ff)
         key.valid >> true
 
         then:
-        adapter.buildCacheKey == "ff"
+        adapter.buildCacheKey == "000000ff"
     }
 
     private SnapshotTaskInputsBuildOperationType.Result buildOpResult() {

@@ -83,7 +83,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
 
         then:
         result == Script
-        1 * hasher.hash(source) >> HashCode.fromString("0123")
+        1 * hasher.hash(source) >> HashCode.fromInt(0x0123)
         1 * cacheRepository.cache({ it =~ "scripts-remapped/ScriptClassName/\\p{XDigit}+/TransformerId\\p{XDigit}+" }) >> localCacheBuilder
         1 * localCacheBuilder.withInitializer(!null) >> { args ->
             initializer = args[0]
@@ -108,7 +108,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
 
     def "passes CacheValidator to cache builders"() {
         setup:
-        hasher.hash(source) >> HashCode.fromString("0123")
+        hasher.hash(source) >> HashCode.fromInt(0x0123)
         cacheRepository.cache({ it =~ "scripts-remapped/ScriptClassName/\\p{XDigit}+/TransformerId\\p{XDigit}+" }) >> localCacheBuilder
         localCacheBuilder.withProperties(!null) >> localCacheBuilder
         localCacheBuilder.withInitializer(!null) >> localCacheBuilder
@@ -135,7 +135,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
 
         then:
         result == Script
-        1 * hasher.hash(source) >> HashCode.fromString("0123")
+        1 * hasher.hash(source) >> HashCode.fromInt(0x0123)
         1 * cacheRepository.cache({ it =~ "scripts-remapped/ScriptClassName/\\p{XDigit}+/TransformerId\\p{XDigit}+" }) >> localCacheBuilder
         1 * localCacheBuilder.withInitializer(!null) >> { args ->
             initializer = args[0]
