@@ -80,7 +80,7 @@ public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
 
         // Configure compile task
         SwiftCompile compile = (SwiftCompile) tasks.getByName("compileSwift");
-        compile.setCompilerArgs(Lists.newArrayList("-g"));
+        compile.setCompilerArgs(Lists.newArrayList("-g", "-enable-testing"));
 
         LinkExecutable link = (LinkExecutable) tasks.getByName("linkMain");
 

@@ -17,8 +17,10 @@
 package org.gradle.nativeplatform.test.xctest.plugins;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.Directory;
@@ -36,9 +38,12 @@ import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.internal.DefaultSwiftComponent;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
+import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
+import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.test.xctest.internal.MacOSSdkPlatformPathLocator;
 import org.gradle.nativeplatform.test.xctest.tasks.CreateXcTestBundle;
@@ -96,7 +101,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         SwiftCompile compile = (SwiftCompile) tasks.getByName("compileTestSwift");
         File frameworkDir = new File(sdkPlatformPathLocator.find(), "Developer/Library/Frameworks");
         compile.setCompilerArgs(Lists.newArrayList("-g", "-F" + frameworkDir.getAbsolutePath()));
-        compile.setModuleName(project.getName());
+        compile.setModuleName(project.getName() + "Test");
 
         NativeToolChain toolChain = compile.getToolChain();
         NativePlatform targetPlatform = compile.getTargetPlatform();
@@ -113,6 +118,8 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         link.setOutputFile(exeLocation);
         link.setTargetPlatform(targetPlatform);
         link.setToolChain(toolChain);
+
+        configureTestedComponent(project);
 
         // TODO - need to set basename from component
         Provider<Directory> testBundleDir = buildDirectory.dir("bundle/" + project.getName() + "Test.xctest");
@@ -150,5 +157,32 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         test.dependsOn(xcTest);
 
         // TODO - check should depend on test
+    }
+
+    private void configureTestedComponent(final Project project) {
+        project.getPlugins().withType(SwiftExecutablePlugin.class, new Action<SwiftExecutablePlugin>() {
+            @Override
+            public void execute(SwiftExecutablePlugin plugin) {
+                configureTestedSwiftComponent(project);
+            }
+        });
+
+        project.getPlugins().withType(SwiftLibraryPlugin.class, new Action<SwiftLibraryPlugin>() {
+            @Override
+            public void execute(SwiftLibraryPlugin plugin) {
+                configureTestedSwiftComponent(project);
+            }
+        });
+    }
+
+    private void configureTestedSwiftComponent(Project project) {
+        TaskContainer tasks = project.getTasks();
+
+        SwiftCompile compileMain = tasks.withType(SwiftCompile.class).getByName("compileSwift");
+        SwiftCompile compileTest = tasks.withType(SwiftCompile.class).getByName("compileTestSwift");
+        compileTest.includes(compileMain.getObjectFileDirectory());
+
+        AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkTest");
+        linkTest.source(compileMain.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
     }
 }

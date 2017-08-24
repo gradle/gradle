@@ -18,28 +18,18 @@ package org.gradle.nativeplatform.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 
-class SwiftAlternateLib extends SourceElement implements GreeterElement, SumElement, MultiplyElement {
-    def alternateGreeter = new SwiftAlternateGreeter()
-    def sum = new SwiftSum()
-    def multiply = new SwiftMultiply()
-
+class SwiftMultiply extends SourceFileElement implements MultiplyElement {
     @Override
-    List<SourceFile> getFiles() {
-        return [alternateGreeter.sourceFile, sum.sourceFile, multiply.sourceFile]
-    }
-
-    @Override
-    String getExpectedOutput() {
-        return alternateGreeter.expectedOutput
-    }
-
-    @Override
-    int sum(int a, int b) {
-        return sum.sum(a, b)
+    SourceFile getSourceFile() {
+        sourceFile("swift", "multiply.swift", """
+             internal func multiply(a: Int, b: Int) -> Int {
+                return a * b
+             }
+         """)
     }
 
     @Override
     int multiply(int a, int b) {
-        return multiply.multiply(a, b)
+        return a * b
     }
 }

@@ -75,7 +75,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
 
         // Configure compile task
         SwiftCompile compile = (SwiftCompile) tasks.getByName("compileSwift");
-        compile.setCompilerArgs(Lists.newArrayList("-g"));
+        compile.setCompilerArgs(Lists.newArrayList("-g", "-enable-testing"));
 
         // Add a link task
         LinkSharedLibrary link = (LinkSharedLibrary) tasks.getByName("linkMain");
