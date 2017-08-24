@@ -18,23 +18,36 @@ package org.gradle.internal.operations
 
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.util.concurrent.AsyncConditions
 
 @Subject(BuildOperationIdentifierRegistry)
 class BuildOperationIdentifierRegistryTest extends Specification {
     def "able to set and retrieve current operation across threads"() {
-        expect:
-        BuildOperationIdentifierRegistry.getCurrentOperationIdentifier() == null
+        given:
+        def conditions = new AsyncConditions(3)
 
         when:
-        BuildOperationIdentifierRegistry.setCurrentOperationIdentifier(1L)
+        def thread = Thread.start {
+            // expect:
+            conditions.evaluate { BuildOperationIdentifierRegistry.getCurrentOperationIdentifier() == null }
+
+            // when:
+            BuildOperationIdentifierRegistry.setCurrentOperationIdentifier(1L)
+
+            // then:
+            conditions.evaluate { BuildOperationIdentifierRegistry.getCurrentOperationIdentifier() == 1L }
+
+            // when:
+            BuildOperationIdentifierRegistry.clearCurrentOperationIdentifier()
+
+            // then:
+            conditions.evaluate { BuildOperationIdentifierRegistry.getCurrentOperationIdentifier() == null }
+        }
 
         then:
-        BuildOperationIdentifierRegistry.getCurrentOperationIdentifier() == 1L
+        conditions.await()
 
-        when:
-        BuildOperationIdentifierRegistry.clearCurrentOperationIdentifier()
-
-        then:
-        BuildOperationIdentifierRegistry.getCurrentOperationIdentifier() == null
+        cleanup:
+        thread?.join(1000)
     }
 }
