@@ -31,6 +31,8 @@ public class SimpleWorkResult {
         }
     };
 
+    private SimpleWorkResult() {}
+
     public static WorkResult didWork(boolean didWork) {
         return didWork ? DID_WORK : DID_NO_WORK;
     }
