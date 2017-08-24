@@ -38,7 +38,7 @@ public class HashCode implements Serializable {
         if (bytes.length > MAX_NUMBER_OF_BYTES) {
             throw new IllegalArgumentException("Invalid hash code length: " + bytes.length);
         }
-        return fromBytesNoCopy(copyBytes(bytes));
+        return fromBytesNoCopy(bytes.clone());
     }
 
     public static HashCode fromInt(int value) {
@@ -105,10 +105,6 @@ public class HashCode implements Serializable {
     }
 
     public byte[] asBytes() {
-        return copyBytes(bytes);
-    }
-
-    private static byte[] copyBytes(byte[] bytes) {
         return bytes.clone();
     }
 
