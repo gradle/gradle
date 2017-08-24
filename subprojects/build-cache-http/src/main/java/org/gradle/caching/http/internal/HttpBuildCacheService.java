@@ -107,7 +107,7 @@ public class HttpBuildCacheService implements BuildCacheService {
         } catch (IOException e) {
             // TODO: We should consider different types of exceptions as fatal/recoverable.
             // Right now, everything is considered recoverable.
-            throw new BuildCacheException(String.format("Unable to load entry from '%s'", safeUri(uri)), e);
+            throw new BuildCacheException(String.format("Unable to load entry from '%s': %s", safeUri(uri), e.getMessage()), e);
         } finally {
             HttpClientUtils.closeQuietly(response);
         }

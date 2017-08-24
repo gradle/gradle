@@ -30,6 +30,7 @@ class HttpBuildCacheServer extends ExternalResource implements HttpServerFixture
     private final WebAppContext webapp
     private TestFile cacheDir
     private long dropConnectionForPutBytes = -1
+    boolean blockIncomingConnections
 
     HttpBuildCacheServer(TestDirectoryProvider provider) {
         this.provider = provider
@@ -47,7 +48,10 @@ class HttpBuildCacheServer extends ExternalResource implements HttpServerFixture
 
     private void addFilters() {
         if (dropConnectionForPutBytes > -1) {
-            this.webapp.addFilter(new FilterHolder(new DropConnectionFilter(dropConnectionForPutBytes, this)),"/*", 1)
+            this.webapp.addFilter(new FilterHolder(new DropConnectionFilter(dropConnectionForPutBytes, this)), "/*", 1)
+        }
+        if (blockIncomingConnections) {
+            this.webapp.addFilter(new FilterHolder(new BlockFilter()), "/*", 1)
         }
         this.webapp.addFilter(RestFilter, "/*", 1)
     }
