@@ -26,7 +26,7 @@ import java.io.File;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class DefaultGeneratedGradleJarCache implements GeneratedGradleJarCache, org.gradle.api.internal.cache.GeneratedGradleJarCache, Closeable {
+public class DefaultGeneratedGradleJarCache implements GeneratedGradleJarCache, Closeable {
 
     private final PersistentCache cache;
     private final String gradleVersion;
