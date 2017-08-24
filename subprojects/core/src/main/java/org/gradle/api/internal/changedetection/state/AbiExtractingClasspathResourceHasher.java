@@ -20,7 +20,6 @@ import org.gradle.api.internal.tasks.compile.ApiClassExtractor;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.util.DeprecationLogger;
 import org.objectweb.asm.ClassReader;
@@ -41,9 +40,7 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
         if (extractor.shouldExtractApiClassFrom(reader)) {
             byte[] signature = extractor.extractApiClassFrom(reader);
             if (signature != null) {
-                Hasher hasher = Hashing.md5().newHasher();
-                hasher.putBytes(signature);
-                return hasher.hash();
+                return Hashing.md5().hashBytes(signature);
             }
         }
         return null;

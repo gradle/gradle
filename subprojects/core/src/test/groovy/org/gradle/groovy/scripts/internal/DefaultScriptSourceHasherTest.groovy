@@ -17,7 +17,7 @@
 package org.gradle.groovy.scripts.internal
 
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.hash.FileContentHasherFactory
+import org.gradle.internal.hash.ContentHasherFactory
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hasher
@@ -32,7 +32,7 @@ class DefaultScriptSourceHasherTest extends Specification {
     def hash = HashCode.fromInt(123)
 
     def fileHasher = Mock(FileHasher)
-    def contentHasherFactory = Mock(FileContentHasherFactory)
+    def contentHasherFactory = Mock(ContentHasherFactory)
     def scriptHasher = new DefaultScriptSourceHasher(fileHasher, contentHasherFactory)
 
     def hashesBackingFileWhenResourceIsBackedByFile() {

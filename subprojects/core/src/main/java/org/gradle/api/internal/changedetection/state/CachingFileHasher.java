@@ -30,9 +30,6 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 public class CachingFileHasher implements FileHasher {
     private final PersistentIndexedCache<String, FileInfo> cache;
@@ -52,16 +49,6 @@ public class CachingFileHasher implements FileHasher {
     @Override
     public String toString() {
         return "{hasher cache: " + cache + "}";
-    }
-
-    @Override
-    public HashCode hash(InputStream inputStream) {
-        return delegate.hash(inputStream);
-    }
-
-    @Override
-    public HashCode hashCopy(InputStream inputStream, OutputStream outputStream) throws IOException {
-        return delegate.hashCopy(inputStream, outputStream);
     }
 
     @Override

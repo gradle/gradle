@@ -19,7 +19,7 @@ package org.gradle.internal.hash
 import org.gradle.api.file.FileTreeElement
 import org.gradle.internal.file.FileMetadataSnapshot
 
-class TestFileHasher implements FileHasher {
+class TestFileHasher implements FileHasher, StreamHasher {
     private final static HASH_FUNCTION = Hashing.md5()
 
     @Override

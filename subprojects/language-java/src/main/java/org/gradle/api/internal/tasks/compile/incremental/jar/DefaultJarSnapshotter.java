@@ -22,18 +22,18 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependentsAccumulator;
-import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.StreamHasher;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
 class DefaultJarSnapshotter {
-    private final FileHasher hasher;
+    private final StreamHasher hasher;
     private final ClassDependenciesAnalyzer analyzer;
 
-    public DefaultJarSnapshotter(FileHasher hasher, ClassDependenciesAnalyzer analyzer) {
+    public DefaultJarSnapshotter(StreamHasher hasher, ClassDependenciesAnalyzer analyzer) {
         this.hasher = hasher;
         this.analyzer = analyzer;
     }

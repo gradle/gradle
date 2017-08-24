@@ -18,5 +18,5 @@ package org.gradle.internal.hash;
 
 import org.gradle.internal.Factory;
 
-public interface FileContentHasherFactory extends Factory<Hasher> {
+public interface ContentHasherFactory extends Factory<Hasher> {
 }

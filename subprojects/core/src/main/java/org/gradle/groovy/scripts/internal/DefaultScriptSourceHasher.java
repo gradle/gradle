@@ -17,7 +17,7 @@
 package org.gradle.groovy.scripts.internal;
 
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.internal.hash.FileContentHasherFactory;
+import org.gradle.internal.hash.ContentHasherFactory;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
@@ -27,9 +27,9 @@ import java.io.File;
 
 public class DefaultScriptSourceHasher implements ScriptSourceHasher {
     private final FileHasher fileHasher;
-    private final FileContentHasherFactory contentHasherFactory;
+    private final ContentHasherFactory contentHasherFactory;
 
-    public DefaultScriptSourceHasher(FileHasher fileHasher, FileContentHasherFactory contentHasherFactory) {
+    public DefaultScriptSourceHasher(FileHasher fileHasher, ContentHasherFactory contentHasherFactory) {
         this.fileHasher = fileHasher;
         this.contentHasherFactory = contentHasherFactory;
     }
