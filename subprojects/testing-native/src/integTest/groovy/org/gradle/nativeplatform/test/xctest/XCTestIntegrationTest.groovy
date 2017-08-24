@@ -205,7 +205,7 @@ dependencies {
         succeeds("test")
 
         then:
-        executedAndNotSkipped(":Greeter:compileSwift", ":compileTestSwift", ":Greeter:linkMain",
+        executedAndNotSkipped(":Greeter:compileDebugSwift", ":compileTestSwift", ":Greeter:linkDebug",
             ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
     }
 

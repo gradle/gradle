@@ -35,8 +35,6 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
-import org.gradle.language.swift.SwiftComponent;
-import org.gradle.language.swift.internal.DefaultSwiftComponent;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
 import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
@@ -45,6 +43,8 @@ import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
+import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
+import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.internal.MacOSSdkPlatformPathLocator;
 import org.gradle.nativeplatform.test.xctest.tasks.CreateXcTestBundle;
 import org.gradle.nativeplatform.test.xctest.tasks.XcTest;
@@ -90,8 +90,9 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         // TODO - component name and extension name aren't the same
         // TODO - should use `src/xctext/swift` as the convention?
         // Add the component extension
-        SwiftComponent component = project.getExtensions().create(SwiftComponent.class, "xctest", DefaultSwiftComponent.class, "test", fileOperations, providers);
-        project.getComponents().add(component);
+        SwiftXCTestSuite component = project.getExtensions().create(SwiftXCTestSuite.class, "xctest", DefaultSwiftXCTestSuite.class, fileOperations, providers);
+//        project.getComponents().add(component);
+        project.getComponents().add(component.getExecutable());
 
         // Configure the component
         component.getCompileImportPath().from(configurations.getByName(SwiftBasePlugin.SWIFT_TEST_IMPORT_PATH));

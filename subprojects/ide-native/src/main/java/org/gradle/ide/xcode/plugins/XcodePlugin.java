@@ -200,7 +200,7 @@ public class XcodePlugin extends IdePlugin {
 
         // TODO - Reuse the logic from `swift-executable` or `swift-library` to determine the link task path
         // TODO - should use the _install_ task for an executable
-        AbstractLinkTask linkTask = (AbstractLinkTask) project.getTasks().getByName("linkMain");
+        AbstractLinkTask linkTask = (AbstractLinkTask) project.getTasks().getByName("linkDebug");
         // TODO - should reflect changes to module name
         XcodeTarget target = newTarget(component.getModule().get() + " " + toString(productType), component.getModule().get(), productType, toGradleCommand(project.getRootProject()), linkTask.getPath(), linkTask.getBinaryFile(), sources);
         target.getImportPaths().from(component.getCompileImportPath());

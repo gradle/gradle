@@ -30,9 +30,10 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
-import org.gradle.language.swift.SwiftComponent;
-import org.gradle.language.swift.SwiftApplication;
-import org.gradle.language.swift.SwiftLibrary;
+import org.gradle.language.nativeplatform.internal.Names;
+import org.gradle.language.swift.SwiftBinary;
+import org.gradle.language.swift.SwiftExecutable;
+import org.gradle.language.swift.SwiftSharedLibrary;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
@@ -43,7 +44,6 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
-import org.gradle.util.GUtil;
 
 import java.util.Collections;
 import java.util.concurrent.Callable;
@@ -139,17 +139,16 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
         final ModelRegistry modelRegistry = project.getModelRegistry();
         final ProviderFactory providers = project.getProviders();
 
-        project.getComponents().withType(SwiftComponent.class, new Action<SwiftComponent>() {
+        project.getComponents().withType(SwiftBinary.class, new Action<SwiftBinary>() {
             @Override
-            public void execute(final SwiftComponent component) {
-                String capitalizedName = GUtil.toCamelCase(component.getName());
-                String compileTaskName = component.getName().equals("main") ? "compileSwift" : "compile" + capitalizedName + "Swift";
-                SwiftCompile compile = tasks.create(compileTaskName, SwiftCompile.class);
+            public void execute(final SwiftBinary component) {
+                final Names names = Names.of(component.getName());
+                SwiftCompile compile = tasks.create(names.getCompileTaskName("swift"), SwiftCompile.class);
                 compile.includes(component.getCompileImportPath());
                 compile.source(component.getSwiftSource());
                 compile.setMacros(Collections.<String, String>emptyMap());
                 compile.setModuleName(component.getModule());
-                compile.setObjectFileDir(buildDirectory.dir(component.getName() + "/objs"));
+                compile.setObjectFileDir(buildDirectory.dir("obj/" + names.getDirName()));
 
                 DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
                 compile.setTargetPlatform(currentPlatform);
@@ -158,9 +157,9 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                 NativeToolChain toolChain = modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
                 compile.setToolChain(toolChain);
 
-                if (component instanceof SwiftApplication) {
+                if (component instanceof SwiftExecutable) {
                     // Add a link task
-                    LinkExecutable link = tasks.create("link" + capitalizedName, LinkExecutable.class);
+                    LinkExecutable link = tasks.create(names.getTaskName("link"), LinkExecutable.class);
                     link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
                     link.lib(component.getLinkLibraries());
                     link.setLinkerArgs(Collections.<String>emptyList());
@@ -168,15 +167,15 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     Provider<RegularFile> exeLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                         @Override
                         public String call() {
-                            return toolProvider.getExecutableName("exe/" + component.getModule().get());
+                            return toolProvider.getExecutableName("exe/" + names.getDirName() + component.getModule().get());
                         }
                     }));
                     link.setOutputFile(exeLocation);
                     link.setTargetPlatform(currentPlatform);
                     link.setToolChain(toolChain);
-                } else if (component instanceof SwiftLibrary) {
+                } else if (component instanceof SwiftSharedLibrary) {
                     // Add a link task
-                    final LinkSharedLibrary link = tasks.create("link" + capitalizedName, LinkSharedLibrary.class);
+                    final LinkSharedLibrary link = tasks.create(names.getTaskName("link"), LinkSharedLibrary.class);
                     link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
                     link.lib(component.getLinkLibraries());
                     link.setLinkerArgs(Collections.<String>emptyList());
@@ -185,7 +184,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     Provider<RegularFile> runtimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
                         @Override
                         public String call() {
-                            return toolProvider.getSharedLibraryName("lib/" + component.getModule().get());
+                            return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + component.getModule().get());
                         }
                     }));
                     link.setOutputFile(runtimeFile);

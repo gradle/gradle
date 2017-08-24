@@ -37,7 +37,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         expect:
         fails "assemble"
-        failure.assertHasDescription("Execution failed for task ':compileSwift'.")
+        failure.assertHasDescription("Execution failed for task ':compileDebugSwift'.")
         failure.assertHasCause("A build operation failed.")
         failure.assertThatCause(containsText("Swift compiler failed while compiling swift file(s)"))
     }
@@ -56,8 +56,8 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
-        sharedLibrary("build/lib/Hello").assertExists()
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
+        sharedLibrary("build/lib/main/debug/Hello").assertExists()
     }
 
     def "build logic can change source layout convention"() {
@@ -78,9 +78,9 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
 
-        sharedLibrary("build/lib/Hello").assertExists()
+        sharedLibrary("build/lib/main/debug/Hello").assertExists()
     }
 
     def "build logic can add individual source files"() {
@@ -105,9 +105,9 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
 
-        sharedLibrary("build/lib/Hello").assertExists()
+        sharedLibrary("build/lib/main/debug/Hello").assertExists()
     }
 
     def "build logic can change buildDir"() {
@@ -124,11 +124,11 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
 
         !file("build").exists()
-        file("output/main/objs").assertIsDir()
-        sharedLibrary("output/lib/Hello").assertExists()
+        file("output/obj/main/debug").assertIsDir()
+        sharedLibrary("output/lib/main/debug/Hello").assertExists()
     }
 
     def "build logic can change task output locations"() {
@@ -140,13 +140,13 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         and:
         buildFile << """
             apply plugin: 'swift-library'
-            compileSwift.objectFileDirectory.set(layout.buildDirectory.dir("object-files"))
-            linkMain.binaryFile.set(layout.buildDirectory.file("some-lib/main.bin"))
+            compileDebugSwift.objectFileDirectory.set(layout.buildDirectory.dir("object-files"))
+            linkDebug.binaryFile.set(layout.buildDirectory.file("some-lib/main.bin"))
          """
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
 
         file("build/object-files").assertIsDir()
         file("build/some-lib/main.bin").assertIsFile()
@@ -165,9 +165,9 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
-        sharedLibrary("build/lib/Hello").assertExists()
-        file("build/main/objs/Hello.swiftmodule").assertExists()
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
+        sharedLibrary("build/lib/main/debug/Hello").assertExists()
+        file("build/obj/main/debug/Hello.swiftmodule").assertExists()
     }
 
     def "can compile and link against another library"() {
@@ -191,9 +191,9 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         expect:
         succeeds ":hello:assemble"
-        result.assertTasksExecuted(":log:compileSwift", ":log:linkMain", ":hello:compileSwift", ":hello:linkMain", ":hello:assemble")
-        sharedLibrary("hello/build/lib/Hello").assertExists()
-        sharedLibrary("log/build/lib/Log").assertExists()
+        result.assertTasksExecuted(":log:compileDebugSwift", ":log:linkDebug", ":hello:compileDebugSwift", ":hello:linkDebug", ":hello:assemble")
+        sharedLibrary("hello/build/lib/main/debug/Hello").assertExists()
+        sharedLibrary("log/build/lib/main/debug/Log").assertExists()
     }
 
     def "can change default module name and successfully link against library"() {
@@ -223,8 +223,8 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         expect:
         succeeds ":lib1:assemble"
-        result.assertTasksExecuted(":lib2:compileSwift", ":lib2:linkMain", ":lib1:compileSwift", ":lib1:linkMain", ":lib1:assemble")
-        sharedLibrary("lib1/build/lib/Hello").assertExists()
-        sharedLibrary("lib2/build/lib/Log").assertExists()
+        result.assertTasksExecuted(":lib2:compileDebugSwift", ":lib2:linkDebug", ":lib1:compileDebugSwift", ":lib1:linkDebug", ":lib1:assemble")
+        sharedLibrary("lib1/build/lib/main/debug/Hello").assertExists()
+        sharedLibrary("lib2/build/lib/main/debug/Log").assertExists()
     }
 }

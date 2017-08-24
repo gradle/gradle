@@ -17,9 +17,9 @@
 package org.gradle.nativeplatform.test.xctest.plugins
 
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.language.swift.SwiftComponent
 import org.gradle.language.swift.tasks.SwiftCompile
 import org.gradle.nativeplatform.tasks.LinkExecutable
+import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite
 import org.gradle.nativeplatform.test.xctest.tasks.XcTest
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
@@ -43,7 +43,7 @@ class XCTestConventionPluginTest extends Specification {
         project.pluginManager.apply(XCTestConventionPlugin)
 
         then:
-        project.xctest instanceof SwiftComponent
+        project.xctest instanceof SwiftXCTestSuite
         project.xctest.swiftSource.files == [src] as Set
     }
 
@@ -52,7 +52,7 @@ class XCTestConventionPluginTest extends Specification {
         project.pluginManager.apply(XCTestConventionPlugin)
 
         then:
-        project.components.test == project.xctest
+        project.components.test == project.xctest.executable
     }
 
     def "adds compile, link and install tasks"() {
@@ -66,7 +66,7 @@ class XCTestConventionPluginTest extends Specification {
         def compileSwift = project.tasks.compileTestSwift
         compileSwift instanceof SwiftCompile
         compileSwift.source.files == [src] as Set
-        compileSwift.objectFileDirectory.get().asFile == projectDir.file("build/test/objs")
+        compileSwift.objectFileDirectory.get().asFile == projectDir.file("build/obj/test")
 
         def link = project.tasks.linkTest
         link instanceof LinkExecutable

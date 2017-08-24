@@ -81,10 +81,10 @@ public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
         application.getLinkLibraries().from(configurations.getByName(CppBasePlugin.NATIVE_LINK));
 
         // Configure compile task
-        SwiftCompile compile = (SwiftCompile) tasks.getByName("compileSwift");
+        SwiftCompile compile = (SwiftCompile) tasks.getByName("compileDebugSwift");
         compile.setCompilerArgs(Lists.newArrayList("-g", "-enable-testing"));
 
-        LinkExecutable link = (LinkExecutable) tasks.getByName("linkMain");
+        LinkExecutable link = (LinkExecutable) tasks.getByName("linkDebug");
 
         // Add an install task
         final InstallExecutable install = tasks.create("installMain", InstallExecutable.class);

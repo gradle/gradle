@@ -17,9 +17,9 @@
 package org.gradle.language.swift.plugins
 
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.language.swift.SwiftComponent
-import org.gradle.language.swift.SwiftApplication
-import org.gradle.language.swift.SwiftLibrary
+import org.gradle.language.swift.SwiftBinary
+import org.gradle.language.swift.SwiftExecutable
+import org.gradle.language.swift.SwiftSharedLibrary
 import org.gradle.language.swift.tasks.SwiftCompile
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
@@ -35,66 +35,72 @@ class SwiftBasePluginTest extends Specification {
     def project = ProjectBuilder.builder().withProjectDir(projectDir).withName("test").build()
 
     def "adds compile task for component"() {
-        def component = Stub(SwiftComponent)
-        component.name >> name
-        component.module >> project.providers.property(String)
+        def binary = Stub(SwiftBinary)
+        binary.name >> name
+        binary.module >> project.providers.property(String)
 
         when:
         project.pluginManager.apply(SwiftBasePlugin)
-        project.components.add(component)
+        project.components.add(binary)
 
         then:
         def compileSwift = project.tasks[taskName]
         compileSwift instanceof SwiftCompile
-        compileSwift.objectFileDirectory.get().asFile == projectDir.file("build/${name}/objs")
+        compileSwift.objectFileDirectory.get().asFile == projectDir.file("build/obj/${objDir}")
 
         where:
-        name   | taskName
-        "main" | "compileSwift"
-        "test" | "compileTestSwift"
+        name        | taskName                | objDir
+        "main"      | "compileSwift"          | "main"
+        "mainDebug" | "compileDebugSwift"     | "main/debug"
+        "test"      | "compileTestSwift"      | "test"
+        "testDebug" | "compileTestDebugSwift" | "test/debug"
     }
 
     def "adds link task for executable"() {
         def module = project.providers.property(String)
         module.set("TestApp")
-        def component = Stub(SwiftApplication)
-        component.name >> name
-        component.module >> module
+        def executable = Stub(SwiftExecutable)
+        executable.name >> name
+        executable.module >> module
 
         when:
         project.pluginManager.apply(SwiftBasePlugin)
-        project.components.add(component)
+        project.components.add(executable)
 
         then:
         def link = project.tasks[taskName]
         link instanceof LinkExecutable
-        link.binaryFile.get().asFile == projectDir.file("build/exe/" + OperatingSystem.current().getExecutableName("TestApp"))
+        link.binaryFile.get().asFile == projectDir.file("build/exe/${exeDir}" + OperatingSystem.current().getExecutableName("TestApp"))
 
         where:
-        name   | taskName
-        "main" | "linkMain"
-        "test" | "linkTest"
+        name        | taskName        | exeDir
+        "main"      | "link"          | "main/"
+        "mainDebug" | "linkDebug"     | "main/debug/"
+        "test"      | "linkTest"      | "test/"
+        "testDebug" | "linkTestDebug" | "test/debug/"
     }
 
     def "adds link task for shared library"() {
         def module = project.providers.property(String)
         module.set("TestLib")
-        def component = Stub(SwiftLibrary)
-        component.name >> name
-        component.module >> module
+        def library = Stub(SwiftSharedLibrary)
+        library.name >> name
+        library.module >> module
 
         when:
         project.pluginManager.apply(SwiftBasePlugin)
-        project.components.add(component)
+        project.components.add(library)
 
         then:
         def link = project.tasks[taskName]
         link instanceof LinkSharedLibrary
-        link.binaryFile.get().asFile == projectDir.file("build/lib/" + OperatingSystem.current().getSharedLibraryName("TestLib"))
+        link.binaryFile.get().asFile == projectDir.file("build/lib/${libDir}" + OperatingSystem.current().getSharedLibraryName("TestLib"))
 
         where:
-        name   | taskName
-        "main" | "linkMain"
-        "test" | "linkTest"
+        name        | taskName        | libDir
+        "main"      | "link"          | "main/"
+        "mainDebug" | "linkDebug"     | "main/debug/"
+        "test"      | "linkTest"      | "test/"
+        "testDebug" | "linkTestDebug" | "test/debug/"
     }
 }

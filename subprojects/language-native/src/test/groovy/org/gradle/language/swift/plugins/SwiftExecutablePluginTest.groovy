@@ -63,19 +63,28 @@ class SwiftExecutablePluginTest extends Specification {
         project.pluginManager.apply(SwiftExecutablePlugin)
 
         then:
-        def compileSwift = project.tasks.compileSwift
-        compileSwift instanceof SwiftCompile
-        compileSwift.source.files == [src] as Set
-        compileSwift.objectFileDirectory.get().asFile == projectDir.file("build/main/objs")
+        def compileDebug = project.tasks.compileDebugSwift
+        compileDebug instanceof SwiftCompile
+        compileDebug.source.files == [src] as Set
+        compileDebug.objectFileDirectory.get().asFile == projectDir.file("build/obj/main/debug")
 
-        def link = project.tasks.linkMain
-        link instanceof LinkExecutable
-        link.binaryFile.get().asFile == projectDir.file("build/exe/" + OperatingSystem.current().getExecutableName("TestApp"))
+        def linkDebug = project.tasks.linkDebug
+        linkDebug instanceof LinkExecutable
+        linkDebug.binaryFile.get().asFile == projectDir.file("build/exe/main/debug/" + OperatingSystem.current().getExecutableName("TestApp"))
 
         def install = project.tasks.installMain
         install instanceof InstallExecutable
         install.installDirectory.get().asFile == projectDir.file("build/install/TestApp")
         install.runScript.name == OperatingSystem.current().getScriptName("TestApp")
+
+        def compileRelease = project.tasks.compileReleaseSwift
+        compileRelease instanceof SwiftCompile
+        compileRelease.source.files == [src] as Set
+        compileRelease.objectFileDirectory.get().asFile == projectDir.file("build/obj/main/release")
+
+        def linkRelease = project.tasks.linkRelease
+        linkRelease instanceof LinkExecutable
+        linkRelease.binaryFile.get().asFile == projectDir.file("build/exe/main/release/" + OperatingSystem.current().getExecutableName("TestApp"))
     }
 
     def "output file names are calculated from module name defined on extension"() {
@@ -84,11 +93,11 @@ class SwiftExecutablePluginTest extends Specification {
         project.executable.module = "App"
 
         then:
-        def compileSwift = project.tasks.compileSwift
+        def compileSwift = project.tasks.compileDebugSwift
         compileSwift.moduleName == "App"
 
-        def link = project.tasks.linkMain
-        link.binaryFile.get().asFile == projectDir.file("build/exe/" + OperatingSystem.current().getExecutableName("App"))
+        def link = project.tasks.linkDebug
+        link.binaryFile.get().asFile == projectDir.file("build/exe/main/debug/" + OperatingSystem.current().getExecutableName("App"))
 
         def install = project.tasks.installMain
         install.installDirectory.get().asFile == projectDir.file("build/install/App")

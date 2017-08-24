@@ -42,10 +42,10 @@ apply plugin: 'swift-executable'
         project.assertTargetsAreTools()
         project.targets.every { it.productName == 'App' }
         project.targets[0].name == 'App Executable'
-        project.targets[0].productReference.path == exe("build/exe/App").absolutePath
+        project.targets[0].productReference.path == exe("build/exe/main/debug/App").absolutePath
         project.targets[1].name == '[INDEXING ONLY] App Executable'
         project.products.children.size() == 1
-        project.products.children[0].path == exe("build/exe/App").absolutePath
+        project.products.children[0].path == exe("build/exe/main/debug/App").absolutePath
 
         assertProjectHasEqualsNumberOfGradleAndIndexTargets(project.targets)
     }
@@ -70,10 +70,10 @@ apply plugin: 'swift-library'
         project.assertTargetsAreDynamicLibraries()
         project.targets.every { it.productName == "App" }
         project.targets[0].name == 'App SharedLibrary'
-        project.targets[0].productReference.path == sharedLib("build/lib/App").absolutePath
+        project.targets[0].productReference.path == sharedLib("build/lib/main/debug/App").absolutePath
         project.targets[1].name == '[INDEXING ONLY] App SharedLibrary'
         project.products.children.size() == 1
-        project.products.children[0].path == sharedLib("build/lib/App").absolutePath
+        project.products.children[0].path == sharedLib("build/lib/main/debug/App").absolutePath
 
         assertProjectHasEqualsNumberOfGradleAndIndexTargets(project.targets)
     }
@@ -192,10 +192,10 @@ executable.module = 'TestApp'
         project.targets.size() == 2
         project.targets.every { it.productName == 'App' }
         project.targets[0].name == 'App Executable'
-        project.targets[0].productReference.path == exe("output/exe/TestApp").absolutePath
+        project.targets[0].productReference.path == exe("output/exe/main/debug/TestApp").absolutePath
         project.targets[1].name == '[INDEXING ONLY] App Executable'
         project.products.children.size() == 1
-        project.products.children[0].path == exe("output/exe/TestApp").absolutePath
+        project.products.children[0].path == exe("output/exe/main/debug/TestApp").absolutePath
     }
 
     def "honors changes to library output file locations"() {
@@ -218,10 +218,10 @@ library.module = 'TestLib'
         project.targets.size() == 2
         project.targets.every { it.productName == "App" }
         project.targets[0].name == 'App SharedLibrary'
-        project.targets[0].productReference.path == sharedLib("output/lib/TestLib").absolutePath
+        project.targets[0].productReference.path == sharedLib("output/lib/main/debug/TestLib").absolutePath
         project.targets[1].name == '[INDEXING ONLY] App SharedLibrary'
         project.products.children.size() == 1
-        project.products.children[0].path == sharedLib("output/lib/TestLib").absolutePath
+        project.products.children[0].path == sharedLib("output/lib/main/debug/TestLib").absolutePath
 
         assertProjectHasEqualsNumberOfGradleAndIndexTargets(project.targets)
     }

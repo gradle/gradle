@@ -76,11 +76,11 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         library.getLinkLibraries().from(configurations.getByName(CppBasePlugin.NATIVE_LINK));
 
         // Configure compile task
-        SwiftCompile compile = (SwiftCompile) tasks.getByName("compileSwift");
+        SwiftCompile compile = (SwiftCompile) tasks.getByName("compileDebugSwift");
         compile.setCompilerArgs(Lists.newArrayList("-g", "-enable-testing"));
 
         // Add a link task
-        LinkSharedLibrary link = (LinkSharedLibrary) tasks.getByName("linkMain");
+        LinkSharedLibrary link = (LinkSharedLibrary) tasks.getByName("linkDebug");
 
         tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(link);
 

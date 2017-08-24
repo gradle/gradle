@@ -38,7 +38,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         expect:
         fails "assemble"
-        failure.assertHasDescription("Execution failed for task ':compileSwift'.");
+        failure.assertHasDescription("Execution failed for task ':compileDebugSwift'.");
         failure.assertHasCause("A build operation failed.")
         failure.assertThatCause(containsText("Swift compiler failed while compiling swift file(s)"))
     }
@@ -57,9 +57,9 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileSwift", ":linkMain", ":installMain", ":assemble")
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installMain", ":assemble")
 
-        executable("build/exe/App").assertExists()
+        executable("build/exe/main/debug/App").assertExists()
         installation("build/install/App").exec().out == app.expectedOutput
     }
 
@@ -82,9 +82,9 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileSwift", ":linkMain", ":installMain", ":assemble")
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installMain", ":assemble")
 
-        executable("build/exe/App").assertExists()
+        executable("build/exe/main/debug/App").assertExists()
         installation("build/install/App").exec().out == app.expectedOutput
     }
 
@@ -106,10 +106,10 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileSwift", ":linkMain", ":installMain", ":assemble")
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installMain", ":assemble")
 
-        file("build/main/objs").assertIsDir()
-        executable("build/exe/App").assertExists()
+        file("build/obj/main/debug").assertIsDir()
+        executable("build/exe/main/debug/App").assertExists()
         installation("build/install/App").exec().out == app.expectedOutput
     }
 
@@ -137,10 +137,10 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileSwift", ":linkMain", ":installMain", ":assemble")
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installMain", ":assemble")
 
-        file("build/main/objs").assertIsDir()
-        executable("build/exe/App").assertExists()
+        file("build/obj/main/debug").assertIsDir()
+        executable("build/exe/main/debug/App").assertExists()
         installation("build/install/App").exec().out == app.expectedOutput
     }
 
@@ -159,11 +159,11 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileSwift", ":linkMain", ":installMain", ":assemble")
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installMain", ":assemble")
 
         !file("build").exists()
-        file("output/main/objs").assertIsDir()
-        executable("output/exe/App").assertExists()
+        file("output/obj/main/debug").assertIsDir()
+        executable("output/exe/main/debug/App").assertExists()
         installation("output/install/App").exec().out == app.expectedOutput
     }
 
@@ -182,10 +182,10 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileSwift", ":linkMain", ":installMain", ":assemble")
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installMain", ":assemble")
 
-        file("build/main/objs").assertIsDir()
-        executable("build/exe/TestApp").assertExists()
+        file("build/obj/main/debug").assertIsDir()
+        executable("build/exe/main/debug/TestApp").assertExists()
         installation("build/install/TestApp").exec().out == app.expectedOutput
     }
 
@@ -199,14 +199,14 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         and:
         buildFile << """
             apply plugin: 'swift-executable'
-            compileSwift.objectFileDirectory = layout.buildDirectory.dir("object-files")
-            linkMain.binaryFile = layout.buildDirectory.file("exe/some-app.exe")
+            compileDebugSwift.objectFileDirectory = layout.buildDirectory.dir("object-files")
+            linkDebug.binaryFile = layout.buildDirectory.file("exe/some-app.exe")
             installMain.installDirectory = layout.buildDirectory.dir("some-app")
          """
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileSwift", ":linkMain", ":installMain", ":assemble")
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installMain", ":assemble")
 
         file("build/object-files").assertIsDir()
         file("build/exe/some-app.exe").assertIsFile()
@@ -234,10 +234,10 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(":greeter:compileSwift", ":greeter:linkMain", ":app:compileSwift", ":app:linkMain", ":app:installMain", ":app:assemble")
+        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installMain", ":app:assemble")
 
-        executable("app/build/exe/App").assertExists()
-        sharedLibrary("greeter/build/lib/Greeter").assertExists()
+        executable("app/build/exe/main/debug/App").assertExists()
+        sharedLibrary("greeter/build/lib/main/debug/Greeter").assertExists()
         installation("app/build/install/App").exec().out == app.expectedOutput
         sharedLibrary("app/build/install/App/lib/Greeter").assertExists()
     }
@@ -270,11 +270,11 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(":hello:compileSwift", ":hello:linkMain", ":log:compileSwift", ":log:linkMain", ":app:compileSwift", ":app:linkMain", ":app:installMain", ":app:assemble")
+        result.assertTasksExecuted(":hello:compileDebugSwift", ":hello:linkDebug", ":log:compileDebugSwift", ":log:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installMain", ":app:assemble")
 
-        sharedLibrary("hello/build/lib/Hello").assertExists()
-        sharedLibrary("log/build/lib/Log").assertExists()
-        executable("app/build/exe/App").exec().out == app.expectedOutput
+        sharedLibrary("hello/build/lib/main/debug/Hello").assertExists()
+        sharedLibrary("log/build/lib/main/debug/Log").assertExists()
+        executable("app/build/exe/main/debug/App").exec().out == app.expectedOutput
         sharedLibrary("app/build/install/App/lib/Hello").assertExists()
         sharedLibrary("app/build/install/App/lib/Log").assertExists()
     }
@@ -308,12 +308,12 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(":hello:compileSwift", ":hello:linkMain", ":log:compileSwift", ":log:linkMain", ":app:compileSwift", ":app:linkMain", ":app:installMain", ":app:assemble")
+        result.assertTasksExecuted(":hello:compileDebugSwift", ":hello:linkDebug", ":log:compileDebugSwift", ":log:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installMain", ":app:assemble")
 
         !file("log/build").exists()
-        sharedLibrary("hello/build/lib/Hello").assertExists()
-        sharedLibrary("log/out/lib/Log").assertExists()
-        executable("app/build/exe/App").exec().out == app.expectedOutput
+        sharedLibrary("hello/build/lib/main/debug/Hello").assertExists()
+        sharedLibrary("log/out/lib/main/debug/Log").assertExists()
+        executable("app/build/exe/main/debug/App").exec().out == app.expectedOutput
         sharedLibrary("app/build/install/App/lib/Hello").file.assertExists()
         sharedLibrary("app/build/install/App/lib/Log").file.assertExists()
     }
@@ -355,11 +355,11 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(":hello:compileSwift", ":hello:linkMain", ":log:compileSwift", ":log:linkMain", ":app:compileSwift", ":app:linkMain", ":app:installMain", ":app:assemble")
+        result.assertTasksExecuted(":hello:compileDebugSwift", ":hello:linkDebug", ":log:compileDebugSwift", ":log:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installMain", ":app:assemble")
 
-        sharedLibrary("hello/build/lib/Hello").assertExists()
-        sharedLibrary("log/build/lib/Log").assertExists()
-        executable("app/build/exe/App").exec().out == app.expectedOutput
+        sharedLibrary("hello/build/lib/main/debug/Hello").assertExists()
+        sharedLibrary("log/build/lib/main/debug/Log").assertExists()
+        executable("app/build/exe/main/debug/App").exec().out == app.expectedOutput
         sharedLibrary("app/build/install/App/lib/Hello").file.assertExists()
         sharedLibrary("app/build/install/App/lib/Log").file.assertExists()
     }
@@ -400,11 +400,11 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         expect:
         succeeds ":assemble"
-        result.assertTasksExecuted(":hello:compileSwift", ":hello:linkMain", ":log:compileSwift", ":log:linkMain", ":compileSwift", ":linkMain", ":installMain", ":assemble")
+        result.assertTasksExecuted(":hello:compileDebugSwift", ":hello:linkDebug", ":log:compileDebugSwift", ":log:linkDebug", ":compileDebugSwift", ":linkDebug", ":installMain", ":assemble")
 
-        sharedLibrary("hello/build/lib/Hello").assertExists()
-        sharedLibrary("log/build/lib/Log").assertExists()
-        executable("build/exe/App").assertExists()
+        sharedLibrary("hello/build/lib/main/debug/Hello").assertExists()
+        sharedLibrary("log/build/lib/main/debug/Log").assertExists()
+        executable("build/exe/main/debug/App").assertExists()
         installation("build/install/App").exec().out == app.expectedOutput
         sharedLibrary("build/install/App/lib/Hello").file.assertExists()
         sharedLibrary("build/install/App/lib/Log").file.assertExists()

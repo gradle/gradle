@@ -62,14 +62,23 @@ class SwiftLibraryPluginTest extends Specification {
         project.pluginManager.apply(SwiftLibraryPlugin)
 
         then:
-        def compileSwift = project.tasks.compileSwift
-        compileSwift instanceof SwiftCompile
-        compileSwift.source.files == [src] as Set
-        compileSwift.objectFileDirectory.get().asFile == projectDir.file("build/main/objs")
+        def compileDebug = project.tasks.compileDebugSwift
+        compileDebug instanceof SwiftCompile
+        compileDebug.source.files == [src] as Set
+        compileDebug.objectFileDirectory.get().asFile == projectDir.file("build/obj/main/debug")
 
-        def link = project.tasks.linkMain
-        link instanceof LinkSharedLibrary
-        link.binaryFile.get().asFile == projectDir.file("build/lib/" + OperatingSystem.current().getSharedLibraryName("TestLib"))
+        def linkDebug = project.tasks.linkDebug
+        linkDebug instanceof LinkSharedLibrary
+        linkDebug.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("TestLib"))
+
+        def compileRelease = project.tasks.compileReleaseSwift
+        compileRelease instanceof SwiftCompile
+        compileRelease.source.files == [src] as Set
+        compileRelease.objectFileDirectory.get().asFile == projectDir.file("build/obj/main/release")
+
+        def linkRelease = project.tasks.linkRelease
+        linkRelease instanceof LinkSharedLibrary
+        linkRelease.binaryFile.get().asFile == projectDir.file("build/lib/main/release/" + OperatingSystem.current().getSharedLibraryName("TestLib"))
     }
 
     def "output file names are calculated from module name defined on extension"() {
@@ -78,10 +87,10 @@ class SwiftLibraryPluginTest extends Specification {
         project.library.module = "Lib"
 
         then:
-        def compileSwift = project.tasks.compileSwift
+        def compileSwift = project.tasks.compileDebugSwift
         compileSwift.moduleName == "Lib"
 
-        def link = project.tasks.linkMain
-        link.binaryFile.get().asFile == projectDir.file("build/lib/" + OperatingSystem.current().getSharedLibraryName("Lib"))
+        def link = project.tasks.linkDebug
+        link.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("Lib"))
     }
 }

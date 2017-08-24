@@ -35,12 +35,12 @@ class CppBasePluginTest extends Specification {
     def project = ProjectBuilder.builder().withProjectDir(projectDir).withName("test").build()
 
     def "adds compile task for binary"() {
-        def component = Stub(CppBinary)
-        component.name >> name
+        def binary = Stub(CppBinary)
+        binary.name >> name
 
         when:
         project.pluginManager.apply(CppBasePlugin)
-        project.components.add(component)
+        project.components.add(binary)
 
         then:
         def compileCpp = project.tasks[taskName]
@@ -58,13 +58,13 @@ class CppBasePluginTest extends Specification {
     def "adds link task for executable"() {
         def baseName = project.providers.property(String)
         baseName.set("test_app")
-        def component = Stub(CppExecutable)
-        component.name >> name
-        component.baseName >> baseName
+        def executable = Stub(CppExecutable)
+        executable.name >> name
+        executable.baseName >> baseName
 
         when:
         project.pluginManager.apply(CppBasePlugin)
-        project.components.add(component)
+        project.components.add(executable)
 
         then:
         def link = project.tasks[taskName]
@@ -82,13 +82,13 @@ class CppBasePluginTest extends Specification {
     def "adds link task for shared library"() {
         def baseName = project.providers.property(String)
         baseName.set("test_lib")
-        def component = Stub(CppSharedLibrary)
-        component.name >> name
-        component.baseName >> baseName
+        def library = Stub(CppSharedLibrary)
+        library.name >> name
+        library.baseName >> baseName
 
         when:
         project.pluginManager.apply(CppBasePlugin)
-        project.components.add(component)
+        project.components.add(library)
 
         then:
         def link = project.tasks[taskName]
