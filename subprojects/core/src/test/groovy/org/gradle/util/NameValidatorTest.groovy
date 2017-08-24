@@ -17,12 +17,20 @@ package org.gradle.util
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.internal.ClassGenerator
+import org.gradle.api.internal.DomainObjectContext
+import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
+import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeContainer
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.ProjectDescriptorRegistry
+import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.nativeplatform.internal.DefaultFlavorContainer
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -32,6 +40,13 @@ class NameValidatorTest extends Specification {
     static forbiddenCharacters = NameValidator.FORBIDDEN_CHARACTERS
     static forbiddenLeadingAndTrailingCharacter = NameValidator.FORBIDDEN_LEADING_AND_TRAILING_CHARACTER
     static invalidNames = forbiddenCharacters.collect { "a${it}b"} + ["${forbiddenLeadingAndTrailingCharacter}ab", "ab${forbiddenLeadingAndTrailingCharacter}"]
+
+    @Shared
+    def domainObjectContainersWithValidation = [
+        ["artifact types", new DefaultArtifactTypeContainer(DirectInstantiator.INSTANCE, null)],
+        ["configurations", new DefaultConfigurationContainer(null, DirectInstantiator.INSTANCE, Mock(DomainObjectContext), Mock(ListenerManager), null, null, null, null, Mock(FileCollectionFactory), null, null, null, null, null, null)],
+        ["flavors",  new DefaultFlavorContainer(DirectInstantiator.INSTANCE)]
+    ]
 
     def loggingDeprecatedFeatureHandler = Mock(LoggingDeprecatedFeatureHandler)
 
@@ -69,6 +84,20 @@ class NameValidatorTest extends Specification {
 
         where:
         name << invalidNames
+    }
+
+    @Unroll
+    def "#objectType are not allowed to be named '#name'"() {
+        when:
+        domainObjectContainer.create(name)
+
+        then:
+        1 * loggingDeprecatedFeatureHandler.deprecatedFeatureUsed(_  as DeprecatedFeatureUsage) >> { DeprecatedFeatureUsage usage ->
+            assertForbidden(name, usage.message)
+        }
+
+        where:
+        [name, objectType, domainObjectContainer] << [invalidNames, domainObjectContainersWithValidation].combinations().collect { [it[0], it[1][0], it[1][1]] }
     }
 
     private assertForbidden(name, message) {

@@ -95,7 +95,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         def artifact = identifier.safeForFileName().decorate("artifact")
         def extension = identifier.safeForFileName().decorate("extension")
         def type = identifier.safeForFileName().decorate("type")
-        def conf = identifier.safeForGradleDomainObjectName().decorate("conf").replace(",", "")
+        def conf = identifier.safeForFileName().decorate("conf").replace(",", "")
         def classifier = identifier.safeForFileName().decorate("classifier")
 
         settingsFile.text = "rootProject.name = '${sq(moduleName)}'"

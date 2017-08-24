@@ -20,14 +20,14 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
+import org.gradle.api.internal.AbstractValidatingNamedDomainObjectContainer;
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.util.Set;
 
-public class DefaultArtifactTypeContainer extends AbstractNamedDomainObjectContainer<ArtifactTypeDefinition> implements ArtifactTypeContainer {
+public class DefaultArtifactTypeContainer extends AbstractValidatingNamedDomainObjectContainer<ArtifactTypeDefinition> implements ArtifactTypeContainer {
     private final ImmutableAttributesFactory attributesFactory;
 
     public DefaultArtifactTypeContainer(Instantiator instantiator, ImmutableAttributesFactory attributesFactory) {

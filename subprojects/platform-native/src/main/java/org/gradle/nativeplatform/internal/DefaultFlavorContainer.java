@@ -16,12 +16,12 @@
 
 package org.gradle.nativeplatform.internal;
 
-import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
+import org.gradle.api.internal.AbstractValidatingNamedDomainObjectContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.FlavorContainer;
 
-public class DefaultFlavorContainer extends AbstractNamedDomainObjectContainer<Flavor> implements FlavorContainer {
+public class DefaultFlavorContainer extends AbstractValidatingNamedDomainObjectContainer<Flavor> implements FlavorContainer {
 
     public DefaultFlavorContainer(Instantiator instantiator) {
         super(Flavor.class, instantiator);
