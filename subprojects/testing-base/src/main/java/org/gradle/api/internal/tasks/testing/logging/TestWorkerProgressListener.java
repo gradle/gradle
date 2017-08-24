@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.testing.logging;
 
 import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor;
-import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
+import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
@@ -88,9 +88,8 @@ public class TestWorkerProgressListener implements TestListenerInternal {
     }
 
     private boolean isDefaultTestClassDescriptor(TestDescriptorInternal testDescriptor) {
-        if (testDescriptor.isComposite()
-            && testDescriptor instanceof DecoratingTestDescriptor
-            && ((DecoratingTestDescriptor)testDescriptor).getDescriptor() instanceof DefaultTestClassDescriptor) {
+        if (testDescriptor instanceof DecoratingTestDescriptor
+            && ((DecoratingTestDescriptor)testDescriptor).getDescriptor() instanceof DefaultTestDescriptor) {
             return true;
         }
 
@@ -99,7 +98,7 @@ public class TestWorkerProgressListener implements TestListenerInternal {
 
     private String createProgressLoggerDescription(TestDescriptorInternal testDescriptor) {
         DecoratingTestDescriptor decoratingTestDescriptor = (DecoratingTestDescriptor)testDescriptor;
-        DefaultTestClassDescriptor defaultTestClassDescriptor = (DefaultTestClassDescriptor)decoratingTestDescriptor.getDescriptor();
+        DefaultTestDescriptor defaultTestClassDescriptor = (DefaultTestDescriptor)decoratingTestDescriptor.getDescriptor();
         return "Executing test " + JavaClassNameFormatter.abbreviateJavaPackage(defaultTestClassDescriptor.getClassName(), MAX_TEST_NAME_LENGTH);
     }
 
