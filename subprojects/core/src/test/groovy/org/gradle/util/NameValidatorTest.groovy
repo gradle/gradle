@@ -101,7 +101,7 @@ class NameValidatorTest extends Specification {
     }
 
     private assertForbidden(name, message) {
-        assert message == """The name '${name}' contains at least one of the following characters: [ , /, \\, :, <, >, ", ?, *]. This has been deprecated and is scheduled to be removed in Gradle 5.0""" ||
+        assert message == """The name '${name}' contains at least one of the following characters: [ , /, \\, :, <, >, ", ?, *, |]. This has been deprecated and is scheduled to be removed in Gradle 5.0""" ||
             message == """The name '${name}' starts or ends with a '.'. This has been deprecated and is scheduled to be removed in Gradle 5.0"""
     }
 }

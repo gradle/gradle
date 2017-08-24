@@ -17,93 +17,118 @@
 package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-
-import static org.gradle.internal.os.OperatingSystem.WINDOWS
-import static org.gradle.internal.os.OperatingSystem.current
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class NameValidationIntegrationTest extends AbstractIntegrationSpec {
 
     def "project names should not contain forbidden characters"() {
-        when:
+        given:
         settingsFile << "rootProject.name = 'this::is::a::namespace'"
         buildFile << ""
+        executer.expectDeprecationWarning()
+
+        when:
+        succeeds 'help'
 
         then:
-        executer.expectDeprecationWarning()
-        succeeds 'help'
         assertPrintsForbiddenCharacterDeprecationMessage('this::is::a::namespace')
     }
 
     def "subproject names should not contain forbidden characters"() {
-        when:
+        given:
         settingsFile << "include 'folder:name with spaces'"
+        executer.expectDeprecationWarning()
+
+        when:
+        succeeds 'help'
 
         then:
-        executer.expectDeprecationWarning()
-        succeeds 'help'
         assertPrintsForbiddenCharacterDeprecationMessage('name with spaces')
      }
 
     def "task names should not contain forbidden characters"() {
-        when:
+        given:
         buildFile << "task 'this/is/a/hierarchy'"
+        executer.expectDeprecationWarning()
+
+        when:
+        succeeds 'this/is/a/hierarchy'
 
         then:
-        executer.expectDeprecationWarning()
-        succeeds 'this/is/a/hierarchy'
         assertPrintsForbiddenCharacterDeprecationMessage("this/is/a/hierarchy")
     }
 
     def "configuration names should not contain forbidden characters"() {
-        when:
+        given:
         buildFile << "configurations { 'some/really.\\\\strange name:' {} }"
+        executer.expectDeprecationWarning()
+
+        when:
+        succeeds 'help'
 
         then:
-        executer.expectDeprecationWarning()
-        succeeds 'help'
         assertPrintsForbiddenCharacterDeprecationMessage("some/really.\\strange name:")
     }
 
     def "project names should not contain start with ."() {
-        when:
+        given:
         settingsFile << "rootProject.name = '.problematic-name'"
         buildFile << ""
+        executer.expectDeprecationWarning()
+
+        when:
+        succeeds 'help'
 
         then:
-        executer.expectDeprecationWarning()
-        succeeds 'help'
         assertPrintsForbiddenStartOrEndCharacterDeprecationMessage('.problematic-name')
     }
 
     def "project names should not end with ."() {
-        when:
+        given:
         settingsFile << "rootProject.name = 'problematic-name.'"
         buildFile << ""
+        executer.expectDeprecationWarning()
+
+        when:
+        succeeds 'help'
 
         then:
-        executer.expectDeprecationWarning()
-        succeeds 'help'
         assertPrintsForbiddenStartOrEndCharacterDeprecationMessage('problematic-name.')
     }
 
-    def "does not assign an invalid project name from folder name"() {
+    def "does not assign an invalid project name from folder names"() {
         given:
-        def buildFolder = file(current() == WINDOWS ? ".folder  name " : ".folder: name.")
+        def buildFolder = file(".folder  name ")
         inDirectory(buildFolder)
-
-        when:
         buildFolder.file("build.gradle") << "println rootProject.name"
 
-        then:
+        when:
         succeeds 'help'
+
+        then:
         output.contains("_folder__name_")
     }
 
-    def assertPrintsForbiddenCharacterDeprecationMessage(String deprecatedName) {
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    def "does not assign an invalid project name from unix folder names"() {
+        given:
+        def buildFolder = file(".folder: name.")
+        inDirectory(buildFolder)
+        buildFolder.file("build.gradle") << "println rootProject.name"
+
+        when:
+        succeeds 'help'
+
+        then:
+        output.contains("_folder__name_")
+    }
+
+    void assertPrintsForbiddenCharacterDeprecationMessage(String deprecatedName) {
         output.contains("The name '$deprecatedName' contains at least one of the following characters: [ , /, \\, :, <, >, \", ?, *]. This has been deprecated and is scheduled to be removed in Gradle 5.0")
     }
 
-    def assertPrintsForbiddenStartOrEndCharacterDeprecationMessage(String deprecatedName) {
+    void assertPrintsForbiddenStartOrEndCharacterDeprecationMessage(String deprecatedName) {
         output.contains("The name '$deprecatedName' starts or ends with a '.'. This has been deprecated and is scheduled to be removed in Gradle 5.0")
     }
 }
