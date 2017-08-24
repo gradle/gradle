@@ -135,8 +135,8 @@ class DefaultCacheKeyBuilderTest extends Specification {
         1 * hashFunction.newHasher() >> hasher
         1 * hashFunction.hashString(string) >> stringHash
         1 * fileHasher.hash(file) >> fileHash
-        1 * hasher.putBytes(stringHash.asBytes())
-        1 * hasher.putBytes(fileHash.asBytes())
+        1 * hasher.putBytes(stringHash.toByteArray())
+        1 * hasher.putBytes(fileHash.toByteArray())
         1 * hasher.hash() >> combinedHash
         0 * _
 
@@ -145,6 +145,6 @@ class DefaultCacheKeyBuilderTest extends Specification {
     }
 
     private static String toCompactHash(HashCode hash) {
-        return new HashValue(hash.asBytes()).asCompactString()
+        return new HashValue(hash.toByteArray()).asCompactString()
     }
 }

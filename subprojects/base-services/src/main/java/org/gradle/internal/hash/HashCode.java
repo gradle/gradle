@@ -16,6 +16,7 @@
 
 package org.gradle.internal.hash;
 
+import javax.annotation.Nullable;
 import java.io.Serializable;
 
 public class HashCode implements Serializable {
@@ -36,57 +37,36 @@ public class HashCode implements Serializable {
     public static HashCode fromBytes(byte[] bytes) {
         // Make sure hash codes are serializable with a single byte length
         if (bytes.length < MIN_NUMBER_OF_BYTES || bytes.length > MAX_NUMBER_OF_BYTES) {
-            throw new IllegalArgumentException("Invalid hash code length: " + bytes.length);
+            throw new IllegalArgumentException(String.format("Invalid hash code length: %d bytes", bytes.length));
         }
         return fromBytesNoCopy(bytes.clone());
     }
 
     public static HashCode fromInt(int value) {
         return fromBytesNoCopy(new byte[] {
-            (byte) value,
-            (byte) (value >> 8),
-            (byte) (value >> 16),
-            (byte) (value >> 24)
-        });
-    }
-
-    public static HashCode fromLong(long value) {
-        return fromBytesNoCopy(new byte[] {
-            (byte) value,
-            (byte) (value >> 8),
-            (byte) (value >> 16),
             (byte) (value >> 24),
-            (byte) (value >> 32),
-            (byte) (value >> 40),
-            (byte) (value >> 48),
-            (byte) (value >> 56)
+            (byte) (value >> 16),
+            (byte) (value >> 8),
+            (byte) value
         });
-    }
-
-    public void writeTo(byte[] dest, int offset) {
-        if (dest.length - offset < bytes.length) {
-            throw new IllegalArgumentException("Not enough space in destination array");
-        }
-        System.arraycopy(bytes, 0, dest, offset, bytes.length);
     }
 
     public static HashCode fromString(String string) {
-        if (!(string.length() >= 2)) {
-          throw new IllegalArgumentException(String.format("input string (%s) must have at least 2 characters", string));
-        }
-        if (!(string.length() % 2 == 0)) {
-          throw new IllegalArgumentException(String.format("input string (%s) must have an even number of characters", string));
-        }
-        if (string.length() > MAX_NUMBER_OF_BYTES * 2) {
-            throw new IllegalArgumentException(String.format("input string (%s) is too long", string));
+        int length = string.length();
+
+        if (length % 2 != 0
+            || length < MIN_NUMBER_OF_BYTES * 2
+            || length > MAX_NUMBER_OF_BYTES * 2) {
+            throw new IllegalArgumentException(String.format("Invalid hash code length: %d characters", length));
         }
 
-        byte[] bytes = new byte[string.length() / 2];
-        for (int i = 0; i < string.length(); i += 2) {
+        byte[] bytes = new byte[length / 2];
+        for (int i = 0; i < length; i += 2) {
             int ch1 = decode(string.charAt(i)) << 4;
             int ch2 = decode(string.charAt(i + 1));
             bytes[i / 2] = (byte) (ch1 + ch2);
         }
+
         return fromBytesNoCopy(bytes);
     }
 
@@ -97,14 +77,17 @@ public class HashCode implements Serializable {
         if (ch >= 'a' && ch <= 'f') {
             return ch - 'a' + 10;
         }
+        if (ch >= 'A' && ch <= 'F') {
+            return ch - 'A' + 10;
+        }
         throw new IllegalArgumentException("Illegal hexadecimal character: " + ch);
     }
 
-    public int bits() {
-        return bytes.length * 8;
+    public int length() {
+        return bytes.length;
     }
 
-    public byte[] asBytes() {
+    public byte[] toByteArray() {
         return bytes.clone();
     }
 
@@ -117,11 +100,12 @@ public class HashCode implements Serializable {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(@Nullable Object obj) {
         if (obj == this) {
             return true;
         }
-        if (obj.getClass() != HashCode.class) {
+
+        if (obj == null || obj.getClass() != HashCode.class) {
             return false;
         }
 

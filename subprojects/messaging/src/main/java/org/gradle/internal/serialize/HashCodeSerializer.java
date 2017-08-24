@@ -31,7 +31,7 @@ public class HashCodeSerializer extends AbstractSerializer<HashCode> {
 
     @Override
     public void write(Encoder encoder, HashCode value) throws IOException {
-        byte[] hash = value.asBytes();
+        byte[] hash = value.toByteArray();
         encoder.writeByte((byte) hash.length);
         encoder.writeBytes(hash);
     }

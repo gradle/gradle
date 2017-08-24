@@ -123,7 +123,7 @@ public class TaskExecutionSnapshotSerializer extends AbstractSerializer<TaskExec
             encoder.writeBoolean(false);
         } else {
             encoder.writeBoolean(true);
-            encoder.writeBinary(implementation.getClassLoaderHash().asBytes());
+            encoder.writeBinary(implementation.getClassLoaderHash().toByteArray());
         }
     }
 

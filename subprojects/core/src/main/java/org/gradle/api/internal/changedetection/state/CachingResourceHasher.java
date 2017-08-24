@@ -39,7 +39,7 @@ public class CachingResourceHasher implements ResourceHasher {
         this.resourceSnapshotterCacheService = resourceSnapshotterCacheService;
         BuildCacheHasher hasher = new DefaultBuildCacheHasher();
         delegate.appendConfigurationToHasher(hasher);
-        this.delegateConfigurationHash = hasher.hash().asBytes();
+        this.delegateConfigurationHash = hasher.hash().toByteArray();
     }
 
     @Override

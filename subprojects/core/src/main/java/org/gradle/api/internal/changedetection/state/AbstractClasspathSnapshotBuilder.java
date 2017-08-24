@@ -46,7 +46,7 @@ public abstract class AbstractClasspathSnapshotBuilder implements VisitingFileCo
         this.jarHasher = new JarHasher();
         DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
         jarHasher.appendConfigurationToHasher(hasher);
-        this.jarHasherConfigurationHash = hasher.hash().asBytes();
+        this.jarHasherConfigurationHash = hasher.hash().toByteArray();
     }
 
     protected abstract void visitNonJar(RegularFileSnapshot file);

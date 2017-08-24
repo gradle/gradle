@@ -38,7 +38,7 @@ class ConfigurableClassLoaderHierarchyHasherTest extends Specification {
 
     def "hashes hashed classloader"() {
         def hashedLoader = new DelegatingLoader(runtimeLoader)
-        def hashedLoaderHash = HashCode.fromLong(123456)
+        def hashedLoaderHash = HashCode.fromInt(123456)
 
         when:
         hasher.getClassLoaderHash(hashedLoader) == hashFor(hashedLoaderHash)
@@ -75,7 +75,7 @@ class ConfigurableClassLoaderHierarchyHasherTest extends Specification {
             if (it instanceof String) {
                 hasher.putString(it)
             } else if (it instanceof HashCode) {
-                hasher.putBytes(it.asBytes())
+                hasher.putBytes(it.toByteArray())
             } else {
                 throw new AssertionError()
             }

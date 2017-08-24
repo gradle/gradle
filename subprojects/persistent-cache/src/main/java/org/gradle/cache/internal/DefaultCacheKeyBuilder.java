@@ -86,7 +86,7 @@ class DefaultCacheKeyBuilder implements CacheKeyBuilder {
     private HashCode combinedHashOf(Object[] components) {
         Hasher hasher = hashFunction.newHasher();
         for (Object c : components) {
-            hasher.putBytes(hashOf(c).asBytes());
+            hasher.putBytes(hashOf(c).toByteArray());
         }
         return hasher.hash();
     }
