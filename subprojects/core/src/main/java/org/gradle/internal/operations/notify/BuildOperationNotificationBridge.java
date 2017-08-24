@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,17 +38,15 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildOperationNotificationBridge.class);
 
-    private Listener operationListener;
-    private final BuildOperationListenerManager buildOperationListenerManager;
-    private BuildOperationRecorder buildOperationRecorder;
+    private final RecordingBuildOperationListener listener;
+    private BuildOperationNotificationListener registered;
 
-    BuildOperationNotificationBridge(BuildOperationListenerManager buildOperationListenerManager, BuildOperationRecorder buildOperationRecorder) {
-        this.buildOperationListenerManager = buildOperationListenerManager;
-        this.buildOperationRecorder = buildOperationRecorder;
+    BuildOperationNotificationBridge(BuildOperationListenerManager buildOperationListenerManager) {
+        listener = new RecordingBuildOperationListener(buildOperationListenerManager);
     }
 
     public void start(GradleInternal gradle) {
-        buildOperationRecorder.start();
+        listener.startListening();
 
         // ensure we only store events for configuration phase to keep overhead small
         // when build scan plugin is not applied
@@ -57,7 +56,7 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
                 project.afterEvaluate(new Action<Project>() {
                     @Override
                     public void execute(Project project) {
-                        BuildOperationNotificationBridge.this.buildOperationRecorder.discardEventsAndStop();
+                        listener.maybeStopListening();
                     }
                 });
             }
@@ -66,29 +65,16 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
 
     @Override
     public void registerBuildScopeListener(BuildOperationNotificationListener notificationListener) {
-        if (operationListener == null) {
-            operationListener = new Listener(notificationListener);
-            List<BuildOperationRecorder.RecordedBuildOperation> recordedBuildOperations = buildOperationRecorder.retrieveEventsAndStop();
-            for (BuildOperationRecorder.RecordedBuildOperation storedEvent : recordedBuildOperations) {
-                BuildOperationDescriptor buildOperationDescriptor = storedEvent.buildOperation;
-                Object event = storedEvent.event;
-                if (storedEvent.eventType == BuildOperationRecorder.RecordedBuildOperation.OperationEventType.START) {
-                    operationListener.started(buildOperationDescriptor, (OperationStartEvent) event);
-                }else if (storedEvent.eventType == BuildOperationRecorder.RecordedBuildOperation.OperationEventType.FINISHED) {
-                    operationListener.finished(buildOperationDescriptor, (OperationFinishEvent) event);
-                }
-            }
-            buildOperationListenerManager.addListener(operationListener);
-        } else {
-            throw new IllegalStateException("listener is already registered (implementation class " + notificationListener.getClass().getName() + ")");
+        if (registered != null) {
+            throw new IllegalStateException("listener is already registered (implementation class " + registered.getClass().getName() + ")");
         }
+        registered = notificationListener;
+        listener.registerListener(new Listener(registered));
     }
 
     @Override
     public void stop() {
-        if (operationListener != null) {
-            buildOperationListenerManager.removeListener(operationListener);
-        }
+        listener.stopListening();
     }
 
     /*
@@ -160,6 +146,65 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
             } catch (Throwable e) {
                 LOGGER.debug("Build operation notification listener threw an error on " + notification, e);
                 maybeThrow(e);
+            }
+        }
+    }
+
+    private static class RecordingBuildOperationListener implements BuildOperationListener {
+        private final BuildOperationListenerManager listenerManager;
+        private List<RecordedBuildOperation> storedEvents = new ArrayList<RecordedBuildOperation>();
+        private BuildOperationListener operationListener;
+        private boolean stopped;
+
+        public RecordingBuildOperationListener(BuildOperationListenerManager listenerManager) {
+            this.listenerManager = listenerManager;
+        }
+
+        public void startListening() {
+            listenerManager.addListener(this);
+        }
+
+        public void maybeStopListening() {
+            if (operationListener == null) {
+                stopListening();
+            }
+        }
+
+        public void stopListening() {
+            if (!stopped) {
+                listenerManager.removeListener(this);
+                storedEvents = null;
+                stopped = true;
+            }
+        }
+
+        public synchronized void registerListener(BuildOperationListener listener) {
+            this.operationListener = listener;
+            for (RecordedBuildOperation storedEvent : storedEvents) {
+                if (storedEvent.eventType == RecordedBuildOperation.OperationEventType.START) {
+                    operationListener.started(storedEvent.buildOperation, (OperationStartEvent) storedEvent.event);
+                } else if (storedEvent.eventType == RecordedBuildOperation.OperationEventType.FINISHED) {
+                    operationListener.finished(storedEvent.buildOperation, (OperationFinishEvent) storedEvent.event);
+                }
+            }
+            storedEvents = null;
+        }
+
+        @Override
+        public synchronized void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+            if (operationListener == null) {
+                storedEvents.add(new RecordedBuildOperation(buildOperation, startEvent, RecordedBuildOperation.OperationEventType.START));
+            } else {
+                operationListener.started(buildOperation, startEvent);
+            }
+        }
+
+        @Override
+        public synchronized void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
+            if (operationListener == null) {
+                storedEvents.add(new RecordedBuildOperation(buildOperation, finishEvent, RecordedBuildOperation.OperationEventType.FINISHED));
+            } else {
+                operationListener.finished(buildOperation, finishEvent);
             }
         }
     }
@@ -255,4 +300,20 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
         }
     }
 
+    private static class RecordedBuildOperation {
+        final BuildOperationDescriptor buildOperation;
+        final Object event;
+        final OperationEventType eventType;
+
+        RecordedBuildOperation(BuildOperationDescriptor buildOperation, Object event, OperationEventType eventType) {
+            this.buildOperation = buildOperation;
+            this.event = event;
+            this.eventType = eventType;
+        }
+
+        public enum OperationEventType {
+            START,
+            FINISHED
+        }
+    }
 }
