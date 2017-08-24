@@ -26,9 +26,9 @@ import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
 public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements SwiftXCTestSuite {
     private final DefaultSwiftBinary executable;
 
-    public DefaultSwiftXCTestSuite(FileOperations fileOperations, ProviderFactory providerFactory) {
-        super("test", fileOperations, providerFactory);
-        executable = new DefaultSwiftBinary("test", getModule(), getSwiftSource(), getCompileImportPath(), getLinkLibraries());
+    public DefaultSwiftXCTestSuite(String name, FileOperations fileOperations, ProviderFactory providerFactory) {
+        super(name, fileOperations, providerFactory);
+        executable = new DefaultSwiftBinary(name + "Exe", getModule(), getSwiftSource(), getCompileImportPath(), getLinkLibraries());
     }
 
     @Override

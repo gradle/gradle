@@ -90,8 +90,8 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         // TODO - component name and extension name aren't the same
         // TODO - should use `src/xctext/swift` as the convention?
         // Add the component extension
-        SwiftXCTestSuite component = project.getExtensions().create(SwiftXCTestSuite.class, "xctest", DefaultSwiftXCTestSuite.class, fileOperations, providers);
-//        project.getComponents().add(component);
+        SwiftXCTestSuite component = project.getExtensions().create(SwiftXCTestSuite.class, "xctest", DefaultSwiftXCTestSuite.class, "test", fileOperations, providers);
+        project.getComponents().add(component);
         project.getComponents().add(component.getExecutable());
 
         // Configure the component

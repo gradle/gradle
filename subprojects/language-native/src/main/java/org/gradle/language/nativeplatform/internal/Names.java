@@ -43,6 +43,10 @@ public class Names {
     }
 
     public static Names of(String name) {
+        if (name.endsWith("Exe")) {
+            // Assume this is the 'main' variant
+            return new Names(name.substring(0, name.length() - 3));
+        }
         return new Names(name);
     }
 

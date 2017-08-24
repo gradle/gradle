@@ -35,6 +35,14 @@ class NamesTest extends Specification {
         name.getDirName() == "main/debug/"
     }
 
+    def "names for main variant of main"() {
+        expect:
+        def name = Names.of("mainExe")
+        name.getCompileTaskName("cpp") == "compileCpp"
+        name.getTaskName("link") == "link"
+        name.getDirName() == "main/"
+    }
+
     def "names for custom"() {
         expect:
         def name = Names.of("custom")
@@ -49,5 +57,13 @@ class NamesTest extends Specification {
         name.getCompileTaskName("cpp") == "compileCustomReleaseCpp"
         name.getTaskName("link") == "linkCustomRelease"
         name.getDirName() == "custom/release/"
+    }
+
+    def "names for main variants of custom"() {
+        expect:
+        def name = Names.of("customExe")
+        name.getCompileTaskName("cpp") == "compileCustomCpp"
+        name.getTaskName("link") == "linkCustom"
+        name.getDirName() == "custom/"
     }
 }

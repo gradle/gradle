@@ -52,7 +52,8 @@ class XCTestConventionPluginTest extends Specification {
         project.pluginManager.apply(XCTestConventionPlugin)
 
         then:
-        project.components.test == project.xctest.executable
+        project.components.test == project.xctest
+        project.components.testExe == project.xctest.executable
     }
 
     def "adds compile, link and install tasks"() {
