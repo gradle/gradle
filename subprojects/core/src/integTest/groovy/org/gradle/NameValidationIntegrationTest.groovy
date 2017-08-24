@@ -17,19 +17,11 @@
 package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.test.fixtures.file.TestDirectoryProvider
-import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.internal.os.OperatingSystem.WINDOWS
 import static org.gradle.internal.os.OperatingSystem.current
 
 class NameValidationIntegrationTest extends AbstractIntegrationSpec {
-
-    def setup() {
-        executer.expectDeprecationWarning()
-    }
 
     def "project names should not contain forbidden characters"() {
         when:
@@ -37,7 +29,9 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
         buildFile << ""
 
         then:
+        executer.expectDeprecationWarning()
         succeeds 'help'
+        assertPrintsCorrectDeprecationMessage('this::is::a::namespace')
     }
 
     def "subproject names should not contain forbidden characters"() {
@@ -45,16 +39,19 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << "include 'folder:name with spaces'"
 
         then:
+        executer.expectDeprecationWarning()
         succeeds 'help'
-        output.contains("The name 'name with spaces' contains at least one of the following characters:")
-    }
+        assertPrintsCorrectDeprecationMessage('name with spaces')
+     }
 
     def "task names should not contain forbidden characters"() {
         when:
         buildFile << "task 'this/is/a/hierarchy'"
 
         then:
+        executer.expectDeprecationWarning()
         succeeds 'this/is/a/hierarchy'
+        assertPrintsCorrectDeprecationMessage("this/is/a/hierarchy")
     }
 
     def "configuration names should not contain forbidden characters"() {
@@ -62,22 +59,25 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
         buildFile << "configurations { 'some/really.\\\\strange name:' {} }"
 
         then:
+        executer.expectDeprecationWarning()
         succeeds 'help'
+        assertPrintsCorrectDeprecationMessage("some/really.\\strange name:")
     }
 
     def "does not assign an invalid project name from folder name"() {
         given:
         def buildFolder = file(current() == WINDOWS ? "folder  name" : "folder: name")
-        GradleExecuter subDirExecuter = new GradleContextualExecuter(distribution, new TestDirectoryProvider() {
-            TestFile getTestDirectory() { return buildFolder }
-            void suppressCleanup() { }
-        }, getBuildContext())
+        inDirectory(buildFolder)
 
         when:
         buildFolder.file("build.gradle") << "println rootProject.name"
-        result = subDirExecuter.withTasks('help').run()
 
         then:
+        succeeds 'help'
         output.contains("folder__name")
+    }
+
+    def assertPrintsCorrectDeprecationMessage(String deprecatedName) {
+        output.contains("The name '$deprecatedName' contains at least one of the following characters: [ , /, \\, :]. This has been deprecated and is scheduled to be removed in Gradle 5.0")
     }
 }

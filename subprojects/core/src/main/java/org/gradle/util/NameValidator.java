@@ -31,10 +31,9 @@ public final class NameValidator {
      * Validates that a given name string does not contain any forbidden characters.
      */
     public static void validate(String name) {
-        if (StringUtils.containsNone(name, FORBIDDEN_CHARACTERS)) {
-            return;
+        if (StringUtils.containsAny(name, FORBIDDEN_CHARACTERS)) {
+            DeprecationLogger.nagUserOfDeprecated("The name '" + name + "' contains at least one of the following characters: " + Arrays.toString(FORBIDDEN_CHARACTERS) + ". This");
         }
-        DeprecationLogger.nagUserOfDeprecated("The name '" + name + "' contains at least one of the following characters: " + Arrays.toString(FORBIDDEN_CHARACTERS) + ". This");
     }
 
     /**
