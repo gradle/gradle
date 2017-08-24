@@ -31,14 +31,24 @@ import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Factory;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileMetadataSnapshot;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
 
+import java.io.Closeable;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * Responsible for snapshotting various aspects of the file system.
@@ -51,7 +61,7 @@ import java.util.List;
  *
  * The implementations are currently intentionally very, very simple, and so there are a number of ways in which they can be made much more efficient. This can happen over time.
  */
-public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
+public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Closeable {
     private final FileHasher hasher;
     private final StringInterner stringInterner;
     private final FileSystem fileSystem;
@@ -61,6 +71,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     private final ProducerGuard<String> producingTrees = ProducerGuard.striped();
     private final ProducerGuard<String> producingAllSnapshots = ProducerGuard.striped();
     private final DefaultGenericFileCollectionSnapshotter snapshotter;
+    private final ExecutorService executorService;
 
     public DefaultFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror) {
         this.hasher = hasher;
@@ -69,6 +80,12 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.fileSystemMirror = fileSystemMirror;
         snapshotter = new DefaultGenericFileCollectionSnapshotter(stringInterner, directoryFileTreeFactory, this);
+        this.executorService = Executors.newFixedThreadPool(8, new ThreadFactory() {
+            @Override
+            public Thread newThread(Runnable r) {
+                return new Thread(r, "File system snapshotting");
+            }
+        });
     }
 
     @Override
@@ -220,8 +237,73 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         }
 
         @Override
-        public void visitFile(FileVisitDetails fileDetails) {
-            fileTreeElements.add(new RegularFileSnapshot(getPath(fileDetails.getFile()), fileDetails.getRelativePath(), false, fileSnapshot(fileDetails)));
+        public void visitFile(final FileVisitDetails fileDetails) {
+            final DeferredFileSnapshot deferred = new DeferredFileSnapshot(executorService.submit(new Callable<FileSnapshot>() {
+                @Override
+                public FileSnapshot call() {
+                    return new RegularFileSnapshot(getPath(fileDetails.getFile()), fileDetails.getRelativePath(), false, fileSnapshot(fileDetails));
+                }
+            }));
+            fileTreeElements.add(deferred);
+        }
+    }
+
+    @Override
+    public void close() throws IOException {
+        executorService.shutdown();
+    }
+
+    private static class DeferredFileSnapshot implements FileSnapshot {
+        private final Future<FileSnapshot> delegate;
+
+        private DeferredFileSnapshot(Future<FileSnapshot> delegate) {
+            this.delegate = delegate;
+        }
+
+        private FileSnapshot blockUntilAvailable() {
+            try {
+                return delegate.get();
+            } catch (InterruptedException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            } catch (ExecutionException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+
+
+        @Override
+        public String getPath() {
+            return blockUntilAvailable().getPath();
+        }
+
+        @Override
+        public String getName() {
+            return blockUntilAvailable().getName();
+        }
+
+        @Override
+        public FileType getType() {
+            return blockUntilAvailable().getType();
+        }
+
+        @Override
+        public boolean isRoot() {
+            return blockUntilAvailable().isRoot();
+        }
+
+        @Override
+        public RelativePath getRelativePath() {
+            return blockUntilAvailable().getRelativePath();
+        }
+
+        @Override
+        public FileContentSnapshot getContent() {
+            return blockUntilAvailable().getContent();
+        }
+
+        @Override
+        public FileSnapshot withContentHash(HashCode contentHash) {
+            return blockUntilAvailable().withContentHash(contentHash);
         }
     }
 }
