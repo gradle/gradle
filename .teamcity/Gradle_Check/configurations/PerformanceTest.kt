@@ -12,7 +12,7 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType) : BuildTyp
     extId = uuid
     name = "Performance ${type.name.capitalize()} Coordinator - Linux"
 
-    applyDefaultSettings(this, timeout = type.timeout)
+    applyDefaultSettings(this, model.publishStatusToGitHub && type != PerformanceTestType.historical, timeout = type.timeout)
     detectHangingBuilds = false
     maxRunningBuilds = 2
 

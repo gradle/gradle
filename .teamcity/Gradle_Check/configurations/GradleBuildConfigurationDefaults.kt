@@ -44,7 +44,7 @@ val m2CleanScriptWindows = """
     )
 """.trimIndent()
 
-fun applyDefaultSettings(buildType: BuildType, runsOnWindows: Boolean = false, timeout: Int = 30, vcsRoot: String = "Gradle_Branches_GradlePersonalBranches") {
+fun applyDefaultSettings(buildType: BuildType, publishStatusToGitHub: Boolean, runsOnWindows: Boolean = false, timeout: Int = 30, vcsRoot: String = "Gradle_Branches_GradlePersonalBranches") {
     buildType.artifactRules = """
         build/report-* => .
         buildSrc/build/report-* => .
@@ -64,6 +64,12 @@ fun applyDefaultSettings(buildType: BuildType, runsOnWindows: Boolean = false, t
 
     buildType.failureConditions {
         executionTimeoutMin = timeout
+    }
+
+    if (publishStatusToGitHub) {
+        buildType.features {
+            publishBuildStatusToGithub()
+        }
     }
 }
 
@@ -89,7 +95,7 @@ fun ProjectFeatures.buildReportTab(title: String, startPage: String) {
 }
 
 fun applyDefaults(model: CIBuildModel, buildType: BuildType, gradleTasks: String, subProject: String = "", requiresDistribution: Boolean = false, runsOnWindows: Boolean = false, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}) {
-    applyDefaultSettings(buildType, runsOnWindows, timeout)
+    applyDefaultSettings(buildType, model.publishStatusToGitHub, runsOnWindows, timeout)
 
     val java7HomeParameter = if (runsOnWindows) java7Windows else java7HomeLinux
     val gradleParameterString = gradleParameters.joinToString(separator = " ").replace(java7HomeLinux, java7HomeParameter)
