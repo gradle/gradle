@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.file;
 
+import com.google.common.io.Files;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.apache.commons.io.FileUtils;
@@ -418,7 +419,7 @@ public class TestFile extends File {
 
     public String getMd5Hash() {
         try {
-            return Hashing.md5().hashBytes(FileUtils.readFileToByteArray(this)).toString();
+            return Hashing.md5().hashBytes(Files.toByteArray(this)).toString();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
