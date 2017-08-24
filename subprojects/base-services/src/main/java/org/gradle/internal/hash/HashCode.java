@@ -110,9 +110,9 @@ public class HashCode implements Serializable {
 
     @Override
     public int hashCode() {
-        int val = (bytes[0] & 0xFF);
+        int val = bytes[0] & 0xFF;
         for (int i = 1; i < bytes.length; i++) {
-            val |= ((bytes[i] & 0xFF) << (i * 8));
+            val |= (bytes[i] & 0xFF) << i * 8;
         }
         return val;
     }

@@ -55,7 +55,7 @@ public class HashingAlgorithmsBenchmark {
         }
     }
 
-    static Map<String, HashProcessorFactory> HASHERS = ImmutableMap.<String, HashProcessorFactory>builder()
+    static final Map<String, HashProcessorFactory> HASHERS = ImmutableMap.<String, HashProcessorFactory>builder()
         .put("md5.java", new MessageDigestHashProcessorFactory(getDigest("MD5")))
         .put("md5.bc", new MessageDigestHashProcessorFactory(new MD5.Digest()))
         .put("sha1.java", new MessageDigestHashProcessorFactory(getDigest("SHA-1")))
