@@ -16,11 +16,6 @@
 
 package org.gradle.internal.hash;
 
-import org.apache.commons.io.IOUtils;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.Arrays;
 
@@ -75,18 +70,6 @@ public class HashCode implements Serializable {
         System.arraycopy(bytes, 0, dest, offset, bytes.length);
     }
 
-    public void writeTo(OutputStream out) throws IOException {
-        out.write(bytes.length);
-        out.write(copyBytes(bytes));
-    }
-
-    public static HashCode readFrom(InputStream input) throws IOException {
-        int size = input.read();
-        byte[] bytes = new byte[size];
-        IOUtils.read(input, bytes);
-        return fromBytesNoCopy(bytes);
-    }
-
     public static HashCode fromString(String string) {
         if (!(string.length() >= 2)) {
           throw new IllegalArgumentException(String.format("input string (%s) must have at least 2 characters", string));
@@ -126,10 +109,7 @@ public class HashCode implements Serializable {
     }
 
     private static byte[] copyBytes(byte[] bytes) {
-        int length = bytes.length;
-        byte[] copy = new byte[length];
-        System.arraycopy(bytes, 0, copy, 0, length);
-        return copy;
+        return bytes.clone();
     }
 
     @Override
