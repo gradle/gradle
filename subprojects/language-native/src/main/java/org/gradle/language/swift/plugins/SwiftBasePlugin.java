@@ -141,13 +141,13 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
 
         project.getComponents().withType(SwiftBinary.class, new Action<SwiftBinary>() {
             @Override
-            public void execute(final SwiftBinary component) {
-                final Names names = Names.of(component.getName());
+            public void execute(final SwiftBinary binary) {
+                final Names names = Names.of(binary.getName());
                 SwiftCompile compile = tasks.create(names.getCompileTaskName("swift"), SwiftCompile.class);
-                compile.includes(component.getCompileImportPath());
-                compile.source(component.getSwiftSource());
+                compile.includes(binary.getCompileImportPath());
+                compile.source(binary.getSwiftSource());
                 compile.setMacros(Collections.<String, String>emptyMap());
-                compile.setModuleName(component.getModule());
+                compile.setModuleName(binary.getModule());
                 compile.setObjectFileDir(buildDirectory.dir("obj/" + names.getDirName()));
 
                 DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
@@ -157,34 +157,34 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                 NativeToolChain toolChain = modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
                 compile.setToolChain(toolChain);
 
-                if (component instanceof SwiftExecutable) {
+                if (binary instanceof SwiftExecutable) {
                     // Add a link task
                     LinkExecutable link = tasks.create(names.getTaskName("link"), LinkExecutable.class);
                     link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
-                    link.lib(component.getLinkLibraries());
+                    link.lib(binary.getLinkLibraries());
                     link.setLinkerArgs(Collections.<String>emptyList());
                     final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
                     Provider<RegularFile> exeLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                         @Override
                         public String call() {
-                            return toolProvider.getExecutableName("exe/" + names.getDirName() + component.getModule().get());
+                            return toolProvider.getExecutableName("exe/" + names.getDirName() + binary.getModule().get());
                         }
                     }));
                     link.setOutputFile(exeLocation);
                     link.setTargetPlatform(currentPlatform);
                     link.setToolChain(toolChain);
-                } else if (component instanceof SwiftSharedLibrary) {
+                } else if (binary instanceof SwiftSharedLibrary) {
                     // Add a link task
                     final LinkSharedLibrary link = tasks.create(names.getTaskName("link"), LinkSharedLibrary.class);
                     link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
-                    link.lib(component.getLinkLibraries());
+                    link.lib(binary.getLinkLibraries());
                     link.setLinkerArgs(Collections.<String>emptyList());
                     // TODO - need to set soname
                     final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
                     Provider<RegularFile> runtimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
                         @Override
                         public String call() {
-                            return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + component.getModule().get());
+                            return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + binary.getModule().get());
                         }
                     }));
                     link.setOutputFile(runtimeFile);

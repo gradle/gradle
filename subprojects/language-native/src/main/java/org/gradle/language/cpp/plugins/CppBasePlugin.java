@@ -119,11 +119,11 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
 
         project.getComponents().withType(CppBinary.class, new Action<CppBinary>() {
             @Override
-            public void execute(final CppBinary component) {
-                final Names names = Names.of(component.getName());
+            public void execute(final CppBinary binary) {
+                final Names names = Names.of(binary.getName());
                 CppCompile compile = tasks.create(names.getCompileTaskName("cpp"), CppCompile.class);
-                compile.includes(component.getCompileIncludePath());
-                compile.source(component.getCppSource());
+                compile.includes(binary.getCompileIncludePath());
+                compile.source(binary.getCppSource());
 
                 compile.setCompilerArgs(Collections.<String>emptyList());
                 compile.setMacros(Collections.<String, String>emptyMap());
@@ -136,34 +136,34 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 NativeToolChain toolChain = modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
                 compile.setToolChain(toolChain);
 
-                if (component instanceof CppExecutable) {
+                if (binary instanceof CppExecutable) {
                     // Add a link task
                     LinkExecutable link = tasks.create(names.getTaskName("link"), LinkExecutable.class);
                     link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
-                    link.lib(component.getLinkLibraries());
+                    link.lib(binary.getLinkLibraries());
                     link.setLinkerArgs(Collections.<String>emptyList());
                     final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
                     link.setOutputFile(buildDirectory.file(providers.provider(new Callable<String>() {
                         @Override
                         public String call() throws Exception {
-                            return toolProvider.getExecutableName("exe/" + names.getDirName() + component.getBaseName().get());
+                            return toolProvider.getExecutableName("exe/" + names.getDirName() + binary.getBaseName().get());
                         }
                     })));
                     link.setTargetPlatform(currentPlatform);
                     link.setToolChain(toolChain);
-                } else if (component instanceof CppSharedLibrary) {
+                } else if (binary instanceof CppSharedLibrary) {
                     final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
 
                     // Add a link task
                     LinkSharedLibrary link = tasks.create(names.getTaskName("link"), LinkSharedLibrary.class);
                     link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
-                    link.lib(component.getLinkLibraries());
+                    link.lib(binary.getLinkLibraries());
                     link.setLinkerArgs(Collections.<String>emptyList());
                     // TODO - need to set soname
                     Provider<RegularFile> runtimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
                         @Override
                         public String call() throws Exception {
-                            return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + component.getBaseName().get());
+                            return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + binary.getBaseName().get());
                         }
                     }));
                     link.setOutputFile(runtimeFile);
