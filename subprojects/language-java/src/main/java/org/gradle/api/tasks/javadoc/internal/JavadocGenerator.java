@@ -58,6 +58,6 @@ public class JavadocGenerator implements Compiler<JavadocSpec> {
             throw new GradleException(String.format("Javadoc generation failed. Generated Javadoc options file (useful for troubleshooting): '%s'", spec.getOptionsFile()), e);
         }
 
-        return SimpleWorkResult.DID_WORK;
+        return new SimpleWorkResult(true);
     }
 }

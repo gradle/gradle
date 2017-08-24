@@ -51,7 +51,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
             throw new CompilationFailedException();
         }
 
-        return SimpleWorkResult.DID_WORK;
+        return new SimpleWorkResult(true);
     }
 
     private JavaCompiler.CompilationTask createCompileTask(JavaCompileSpec spec) {

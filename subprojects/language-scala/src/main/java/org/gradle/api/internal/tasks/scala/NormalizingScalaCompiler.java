@@ -104,7 +104,7 @@ public class NormalizingScalaCompiler implements Compiler<ScalaJavaJointCompileS
                 throw e;
             }
             LOGGER.debug("Ignoring compilation failure.");
-            return SimpleWorkResult.DID_NO_WORK;
+            return new SimpleWorkResult(false);
         }
     }
 }

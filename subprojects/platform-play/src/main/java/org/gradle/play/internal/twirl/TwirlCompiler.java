@@ -65,7 +65,7 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
             }
         }
 
-        return SimpleWorkResult.didWork(!outputFiles.isEmpty());
+        return new SimpleWorkResult(!outputFiles.isEmpty());
     }
 
     private ScalaMethod getCompileMethod(ClassLoader cl) {

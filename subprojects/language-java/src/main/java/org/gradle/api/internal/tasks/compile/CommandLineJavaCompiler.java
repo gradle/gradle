@@ -47,7 +47,7 @@ public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec>, Seria
         ExecHandle handle = createCompilerHandle(executable, spec);
         executeCompiler(handle);
 
-        return SimpleWorkResult.DID_WORK;
+        return new SimpleWorkResult(true);
     }
 
     private ExecHandle createCompilerHandle(String executable, JavaCompileSpec spec) {

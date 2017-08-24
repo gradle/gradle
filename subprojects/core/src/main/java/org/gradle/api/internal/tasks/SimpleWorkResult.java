@@ -17,23 +17,14 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.tasks.WorkResult;
 
-public class SimpleWorkResult {
-    public static final WorkResult DID_WORK = new WorkResult() {
-        @Override
-        public boolean getDidWork() {
-            return true;
-        }
-    };
-    public static final WorkResult DID_NO_WORK = new WorkResult() {
-        @Override
-        public boolean getDidWork() {
-            return false;
-        }
-    };
+public class SimpleWorkResult implements WorkResult {
+    private final boolean didWork;
 
-    private SimpleWorkResult() {}
+    public SimpleWorkResult(boolean didWork) {
+        this.didWork = didWork;
+    }
 
-    public static WorkResult didWork(boolean didWork) {
-        return didWork ? DID_WORK : DID_NO_WORK;
+    public boolean getDidWork() {
+        return didWork;
     }
 }

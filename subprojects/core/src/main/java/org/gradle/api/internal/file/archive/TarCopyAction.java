@@ -70,7 +70,7 @@ public class TarCopyAction implements CopyAction {
             }
         });
 
-        return SimpleWorkResult.DID_WORK;
+        return new SimpleWorkResult(true);
     }
 
     private class StreamAction implements CopyActionProcessingStreamAction {

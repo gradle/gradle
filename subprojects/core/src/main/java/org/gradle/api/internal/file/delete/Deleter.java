@@ -65,7 +65,7 @@ public class Deleter {
             didWork = true;
             doDeleteInternal(file, deleteSpec);
         }
-        return SimpleWorkResult.didWork(didWork);
+        return new SimpleWorkResult(didWork);
     }
 
     private void doDeleteInternal(File file, DeleteSpecInternal deleteSpec) {

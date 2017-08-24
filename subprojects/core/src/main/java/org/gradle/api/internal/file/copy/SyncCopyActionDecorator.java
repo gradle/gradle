@@ -70,7 +70,7 @@ public class SyncCopyActionDecorator implements CopyAction {
         walker.visit(fileVisitor);
         visited.clear();
 
-        return SimpleWorkResult.didWork(didWork.getDidWork() || fileVisitor.didWork);
+        return new SimpleWorkResult(didWork.getDidWork() || fileVisitor.didWork);
     }
 
     private static class SyncCopyActionDecoratorFileVisitor implements FileVisitor {

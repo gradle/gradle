@@ -127,7 +127,7 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
                 throw e;
             }
             LOGGER.debug("Ignoring compilation failure.");
-            return SimpleWorkResult.DID_NO_WORK;
+            return new SimpleWorkResult(false);
         }
     }
 }
