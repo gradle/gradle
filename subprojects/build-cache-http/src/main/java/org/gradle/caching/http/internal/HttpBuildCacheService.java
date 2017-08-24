@@ -67,7 +67,6 @@ public class HttpBuildCacheService implements BuildCacheService {
     );
 
     private final URI root;
-    private final URI safeUri;
     private final HttpClientHelper httpClientHelper;
 
     public HttpBuildCacheService(HttpClientHelper httpClientHelper, URI url) {
@@ -75,7 +74,6 @@ public class HttpBuildCacheService implements BuildCacheService {
             throw new IncompleteArgumentException("HTTP cache root URI must end with '/'");
         }
         this.root = url;
-        this.safeUri = safeUri(url);
         this.httpClientHelper = httpClientHelper;
     }
 
