@@ -147,6 +147,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         ParallelismConfigurationManager parallelismConfigurationManager,
         BuildOperationIdFactory buildOperationIdFactory,
         @SuppressWarnings("unused") BuildOperationTrace buildOperationTrace // required in order to init this
+
     ) {
         return new DefaultBuildOperationExecutor(
             listenerManager.getBroadcaster(BuildOperationListener.class),

@@ -16,6 +16,9 @@
 
 package org.gradle.internal.operations.notify;
 
+import org.gradle.api.Action;
+import org.gradle.api.Project;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
@@ -26,27 +29,58 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-class BuildOperationNotificationBridge implements BuildOperationNotificationListenerRegistrar, Stoppable {
+public class BuildOperationNotificationBridge implements BuildOperationNotificationListenerRegistrar, Stoppable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildOperationNotificationBridge.class);
 
     private Listener operationListener;
     private final BuildOperationListenerManager buildOperationListenerManager;
+    private BuildOperationRecorder buildOperationRecorder;
 
-    BuildOperationNotificationBridge(BuildOperationListenerManager buildOperationListenerManager) {
+    BuildOperationNotificationBridge(BuildOperationListenerManager buildOperationListenerManager, BuildOperationRecorder buildOperationRecorder) {
         this.buildOperationListenerManager = buildOperationListenerManager;
+        this.buildOperationRecorder = buildOperationRecorder;
+    }
+
+    public void start(GradleInternal gradle) {
+        buildOperationRecorder.start();
+
+        // ensure we only store events for configuration phase to keep overhead small
+        // when build scan plugin is not applied
+        gradle.rootProject(new Action<Project>() {
+            @Override
+            public void execute(Project project) {
+                project.afterEvaluate(new Action<Project>() {
+                    @Override
+                    public void execute(Project project) {
+                        BuildOperationNotificationBridge.this.buildOperationRecorder.discardEventsAndStop();
+                    }
+                });
+            }
+        });
     }
 
     @Override
     public void registerBuildScopeListener(BuildOperationNotificationListener notificationListener) {
         if (operationListener == null) {
             operationListener = new Listener(notificationListener);
+            List<BuildOperationRecorder.RecordedBuildOperation> recordedBuildOperations = buildOperationRecorder.retrieveEventsAndStop();
+            for (BuildOperationRecorder.RecordedBuildOperation storedEvent : recordedBuildOperations) {
+                BuildOperationDescriptor buildOperationDescriptor = storedEvent.buildOperation;
+                Object event = storedEvent.event;
+                if (storedEvent.eventType == BuildOperationRecorder.RecordedBuildOperation.OperationEventType.START) {
+                    operationListener.started(buildOperationDescriptor, (OperationStartEvent) event);
+                }else if (storedEvent.eventType == BuildOperationRecorder.RecordedBuildOperation.OperationEventType.FINISHED) {
+                    operationListener.finished(buildOperationDescriptor, (OperationFinishEvent) event);
+                }
+            }
             buildOperationListenerManager.addListener(operationListener);
         } else {
-            throw new IllegalStateException("listener is already registered");
+            throw new IllegalStateException("listener is already registered (implementation class " + notificationListener.getClass().getName() + ")");
         }
     }
 
