@@ -76,9 +76,10 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
     def "the lock holder starts the release request only once and discards additional requests in the meantime"() {
         given:
         def requestReceived = false
+        def terminate = false
         setupLockOwner {
             requestReceived = true
-            while(true) { Thread.sleep(100000) } //block the release action thread
+            while(!terminate) { Thread.sleep(100) } //block the release action thread
         }
 
         when:
@@ -98,6 +99,9 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         then:
         waitCloseAndFinish(build)
         assertReceivingSocketEmpty()
+
+        cleanup:
+        terminate = true
     }
 
     def "if the lock holder confirmed the request, it is not pinged again"() {

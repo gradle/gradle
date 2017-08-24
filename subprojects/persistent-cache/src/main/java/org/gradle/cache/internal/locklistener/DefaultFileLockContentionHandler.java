@@ -128,8 +128,8 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     }
 
     private void startLockReleaseAsLockHolder(ContendedAction contendedAction) {
-        unlockActionExecutor.execute(contendedAction.action);
         contendedAction.running = true;
+        unlockActionExecutor.execute(contendedAction.action);
     }
 
     private void acceptConfirmationAsLockRequester(long lockId, int port) {
@@ -163,11 +163,11 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     }
 
     public boolean maybePingOwner(int port, long lockId, String displayName, long timeElapsed) {
-        if (unlocksConfirmedFrom.containsKey(lockId) && unlocksConfirmedFrom.get(lockId) == port) {
+        if (Integer.valueOf(port).equals(unlocksConfirmedFrom.get(lockId))) {
             //the unlock was confirmed we are waiting
             return false;
         }
-        if (unlocksRequestedFrom.containsKey(lockId) && unlocksRequestedFrom.get(lockId) == port && timeElapsed < PING_DELAY) {
+        if (Integer.valueOf(port).equals(unlocksRequestedFrom.get(lockId)) && timeElapsed < PING_DELAY) {
             //the unlock was just requested but not yet confirmed, give it some more time
             return false;
         }
