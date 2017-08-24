@@ -26,6 +26,7 @@ import org.gradle.workers.WorkerExecutor;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -48,8 +49,9 @@ public class PreprocessNativeWithDepsFile extends AbstractNativeTask {
     }
 
     @TaskAction
-    public void preprocess(IncrementalTaskInputs incrementalTaskInputs) {
-        final File discoveredDependenciesDir = getTemporaryDir();
+    public void preprocess(IncrementalTaskInputs incrementalTaskInputs) throws IOException {
+        final File discoveredDependenciesDir = new File(getTemporaryDir(), "deps");
+        discoveredDependenciesDir.mkdirs();
         final ConcurrentHashMap<String, Boolean> seenIncludes = new ConcurrentHashMap<String, Boolean>();
         final ConcurrentHashMap<String, Boolean> discoveredIncludeFiles = new ConcurrentHashMap<String, Boolean>();
         final IncrementalTaskInputsInternal inputs = (IncrementalTaskInputsInternal) incrementalTaskInputs;
@@ -58,21 +60,16 @@ public class PreprocessNativeWithDepsFile extends AbstractNativeTask {
             @Override
             public void visitFile(final FileVisitDetails fileVisitDetails) {
                 String name = fileVisitDetails.getName();
-                if (!(name.endsWith(".cpp") || name.endsWith(".c"))) {
+                if (!isSourceFile(name)) {
                     return;
                 }
-                String extension = name.endsWith(".cpp") ? "cpp" : "c";
-                String base = name.replaceAll("\\.c(pp)?", "");
-                String preprocessedName = base + (extension.equals("cpp") ? ".ii" : ".i");
-                String depName = base + ".d";
-                final File preprocessedFile = fileVisitDetails.getRelativePath().getParent().append(true, preprocessedName).getFile(getPreprocessedSourcesDir());
-                final File depFile = fileVisitDetails.getRelativePath().getParent().append(true, depName).getFile(discoveredDependenciesDir);
-                preprocessedFile.getParentFile().mkdirs();
-                depFile.getParentFile().mkdirs();
+                String preprocessedExtension = isCppFile(name) ? "ii" : "i";
+                File preprocessedFile = withNewExtensionInDir(fileVisitDetails, preprocessedExtension, getPreprocessedSourcesDir());
+                File depFile = withNewExtensionInDir(fileVisitDetails, "d", discoveredDependenciesDir);
                 runGxx("-E", "-MD",
                     "-MF", depFile.getAbsolutePath(),
                     "-o", preprocessedFile.getAbsolutePath(),
-                    fileVisitDetails.getFile().getAbsolutePath());
+                    relativePath(fileVisitDetails.getFile()));
                 depFiles.add(depFile);
             }
         });
@@ -80,6 +77,7 @@ public class PreprocessNativeWithDepsFile extends AbstractNativeTask {
         for (File depFile : depFiles) {
             DiscoverInputsFromDepFiles.addDiscoveredInputs(inputs, depFile, seenIncludes, discoveredIncludeFiles);
         }
+        DependenciesFile.write(discoveredIncludeFiles.keySet(), new File(getTemporaryDir(), "discoveredIncludes.out"));
     }
 
 }

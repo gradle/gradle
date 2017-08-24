@@ -60,7 +60,7 @@ public class DiscoverInputsForCompilation extends AbstractNativeTask {
     @TaskAction
     public void discoverInputs(final IncrementalTaskInputs incrementalTaskInputs) throws IOException {
         final SourceIncludesResolver includesResolver = new DefaultSourceIncludesResolver(ImmutableList.<File>builder().add(
-            getProject().file("src/main/headers"),
+            // Default includes on my machine, found by running `clang++ -v foo.cpp -o /dev/null` with an empty file
             new File("/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1"),
             new File("Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/clang/8.1.0/include"),
             new File("/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"),
@@ -73,7 +73,7 @@ public class DiscoverInputsForCompilation extends AbstractNativeTask {
             @Override
             public void visitFile(final FileVisitDetails fileVisitDetails) {
                 String name = fileVisitDetails.getName();
-                if (!(name.endsWith(".cpp") || name.endsWith(".c"))) {
+                if (!isSourceFile(name)) {
                     return;
                 }
                 File sourceFile = fileVisitDetails.getFile();

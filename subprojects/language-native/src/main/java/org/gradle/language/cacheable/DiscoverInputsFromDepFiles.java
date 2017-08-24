@@ -65,16 +65,13 @@ public class DiscoverInputsFromDepFiles extends AbstractNativeTask {
             @Override
             public void visitFile(final FileVisitDetails fileVisitDetails) {
                 String name = fileVisitDetails.getName();
-                if (!(name.endsWith(".cpp") || name.endsWith(".c"))) {
+                if (!isSourceFile(name)) {
                     return;
                 }
-                String base = name.replaceAll("\\.c(pp)?", "");
-                String depName = base + ".d";
-                final File depFile = fileVisitDetails.getRelativePath().getParent().append(true, depName).getFile(discoveredDependenciesDir);
-                depFile.getParentFile().mkdirs();
+                File depFile = withNewExtensionInDir(fileVisitDetails, "d", discoveredDependenciesDir);
                 runGxx("-M",
                     "-o", depFile.getAbsolutePath(),
-                    fileVisitDetails.getFile().getAbsolutePath());
+                    relativePath(fileVisitDetails.getFile()));
                 depFiles.add(depFile);
             }
         });

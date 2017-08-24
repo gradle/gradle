@@ -19,11 +19,15 @@ package org.gradle.language.cacheable;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import org.gradle.api.file.EmptyFileVisitor;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.workers.WorkerExecutor;
 
@@ -32,6 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 
+@CacheableTask
 public class CompileNative extends AbstractNativeTask {
 
     private File outputDir;
@@ -44,10 +49,17 @@ public class CompileNative extends AbstractNativeTask {
 
     @Optional
     @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
     public Collection<String> getDependencies() throws IOException {
         File dependencyFile = getDependencyFile();
         return dependencyFile == null ? null :
             dependencyFile.isFile() ? Files.readLines(dependencyFile, Charsets.UTF_8) : null;
+    }
+
+    @Override
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public FileTree getSource() {
+        return super.getSource();
     }
 
     @Internal
@@ -75,12 +87,10 @@ public class CompileNative extends AbstractNativeTask {
             @Override
             public void visitFile(final FileVisitDetails fileVisitDetails) {
                 String name = fileVisitDetails.getName();
-                if (!(name.endsWith(".c") || name.endsWith(".cpp") || name.endsWith(".i") || name.endsWith(".ii"))) {
+                if (!(isSourceFile(name) || isPreprocessedFile(name))) {
                     return;
                 }
-                String outputName = name.replaceAll("\\.i(i)?", ".o").replaceAll("\\.c(pp)?", ".o");
-                final File outputFile = fileVisitDetails.getRelativePath().getParent().append(true, outputName).getFile(getOutputDir());
-                assert outputFile.getParentFile().isDirectory() || outputFile.getParentFile().mkdirs();
+                File outputFile = withNewExtensionInDir(fileVisitDetails, "o", getOutputDir());
                 runGxx("-c",
                     "-o", outputFile.getAbsolutePath(),
                     relativePath(fileVisitDetails.getFile()));

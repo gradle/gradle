@@ -47,6 +47,9 @@ public class PreprocessedCFileParser {
 
                     if (m.matches()) {
                         String includedFile = m.group(1);
+                        if (includedFile.endsWith("<built-in>") || includedFile.endsWith("<command line>")) {
+                            continue;
+                        }
                         includeAction.execute(includedFile);
                     }
                 }

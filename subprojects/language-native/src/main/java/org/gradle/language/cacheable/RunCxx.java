@@ -43,8 +43,8 @@ public class RunCxx implements Runnable {
     @Override
     public void run() {
         try {
-            LOGGER.info("Starting process '{}'. Working directory: {} Command: {}",
-                workingDirectory, command + ' ' + Joiner.on(' ').useForNull("null").join(arguments));
+            LOGGER.info("Starting process '{}'. Working directory: {} Arguments: {}",
+                command, workingDirectory, Joiner.on(' ').useForNull("null").join(arguments));
             List<String> commandWithArguments = new ArrayList<String>();
             commandWithArguments.add(command);
             commandWithArguments.addAll(arguments);

@@ -47,16 +47,19 @@ class CppDiscoveredInputsIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """ 
             import org.gradle.language.cacheable.*
             
+            tasks.withType(AbstractNativeTask) {
+                gccExecutable = new File("/usr/bin/clang++")
+                includeRoots += [file('src/main/headers')]                
+            }
+            
             task preprocess(type: PreprocessNative) {
                 source = file('src/main/cpp')
                 preprocessedSourcesDir = new File(buildDir, 'preprocessed')
-                gccExecutable = new File("/usr/bin/clang++")
             }
             
             task compile(type: CompileNative) {
                 source = preprocess.outputs
                 outputDir = new File(buildDir, 'compiled')
-                gccExecutable = new File("/usr/bin/clang++")
             }
         """.stripIndent()
 
@@ -74,6 +77,11 @@ class CppDiscoveredInputsIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """ 
             import org.gradle.language.cacheable.*
             
+            tasks.withType(AbstractNativeTask) {
+                gccExecutable = new File("/usr/bin/clang++")
+                includeRoots += [file('src/main/headers')]                
+            }
+
             task discoverInputs(type: DiscoverInputsForCompilation) {
                 source = file('src/main/cpp')
                 dependencyFile = new File(buildDir, 'discoveredInputs.out')
@@ -84,7 +92,6 @@ class CppDiscoveredInputsIntegrationTest extends AbstractIntegrationSpec {
                 dependsOn(discoverInputs)
                 dependencyFile = discoverInputs.dependencyFile
                 outputDir = new File(buildDir, 'compiled')
-                gccExecutable = new File("/usr/bin/clang++")
             }
         """.stripIndent()
 
@@ -94,7 +101,7 @@ class CppDiscoveredInputsIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(":discoverInputs")
         executedAndNotSkipped(":compile")
-        println file("build/discoveredInputs.out").text
+        file("build/discoveredInputs.out").exists()
         file("build/compiled/main.o").exists()
     }
 
@@ -102,18 +109,20 @@ class CppDiscoveredInputsIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """ 
             import org.gradle.language.cacheable.*
             
-            task discoverInputs(type: PreprocessWithDepFiles) {
-                source = file('src/main/cpp')
-                dependencyFile = new File(buildDir, 'discoveredInputs.out')
+            tasks.withType(AbstractNativeTask) {
                 gccExecutable = new File("/usr/bin/clang++")
+                includeRoots += [file('src/main/headers')]                
+            }
+
+            task discoverInputs(type: PreprocessNativeWithDepsFile) {
+                source = file('src/main/cpp')
+                preprocessedSourcesDir = new File(buildDir, 'preprocessed')
             }
             
             task compile(type: CompileNative) {
-                source = file('src/main/cpp')
+                source = discoverInputs.preprocessedSourcesDir
                 dependsOn(discoverInputs)
-                dependencyFile = discoverInputs.dependencyFile
                 outputDir = new File(buildDir, 'compiled')
-                gccExecutable = new File("/usr/bin/clang++")
             }
         """.stripIndent()
 
@@ -123,7 +132,7 @@ class CppDiscoveredInputsIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(":discoverInputs")
         executedAndNotSkipped(":compile")
-        println file("build/discoveredInputs.out").text
+        file("build/tmp/discoverInputs/discoveredIncludes.out").isFile()
         file("build/compiled/main.o").exists()
     }
 }

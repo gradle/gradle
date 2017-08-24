@@ -16,7 +16,9 @@
 
 package org.gradle.language.cacheable;
 
+import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.Action;
+import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.SourceTask;
@@ -35,6 +37,8 @@ public class AbstractNativeTask extends SourceTask {
     private List<String> compilerOptions = new ArrayList<String>();
     private File gccExecutable;
     private List<File> includeRoots = new ArrayList<File>();
+
+    private boolean relativePaths;
 
     public AbstractNativeTask(WorkerExecutor workerExecutor) {
         this.workerExecutor = workerExecutor;
@@ -72,6 +76,14 @@ public class AbstractNativeTask extends SourceTask {
         this.compilerOptions = compilerOptions;
     }
 
+    public boolean isRelativePaths() {
+        return relativePaths;
+    }
+
+    public void setRelativePaths(boolean relativePaths) {
+        this.relativePaths = relativePaths;
+    }
+
     private List<String> args(String... additionalArgs) {
         ArrayList<String> result = new ArrayList<String>();
         result.addAll(getCompilerOptions());
@@ -102,7 +114,36 @@ public class AbstractNativeTask extends SourceTask {
         return getProject().getProjectDir().getAbsoluteFile();
     }
 
+    @SuppressWarnings("Since15")
     protected String relativePath(File file) {
-        return getWorkDir().toPath().relativize(file.getAbsoluteFile().toPath()).toString();
+        if (isRelativePaths()) {
+            return getWorkDir().toPath().relativize(file.getAbsoluteFile().toPath()).toString();
+        }
+        return file.getAbsolutePath();
+    }
+
+    protected static boolean isSourceFile(String name) {
+        return isCppFile(name) || isCFile(name);
+    }
+
+    private static boolean isCFile(String name) {
+        return name.endsWith(".c");
+    }
+
+    protected static boolean isCppFile(String name) {
+        return name.endsWith(".cpp");
+    }
+
+    protected static boolean isPreprocessedFile(String name) {
+        return name.endsWith(".i") || name.endsWith(".ii");
+    }
+
+    protected static File withNewExtensionInDir(FileVisitDetails details, String newExtension, File targetDir) {
+        String name = details.getName();
+        String baseName = FilenameUtils.removeExtension(name);
+        String outputName = baseName + "." + newExtension;
+        File outputFile = details.getRelativePath().getParent().append(true, outputName).getFile(targetDir);
+        assert outputFile.getParentFile().isDirectory() || outputFile.getParentFile().mkdirs();
+        return outputFile;
     }
 }

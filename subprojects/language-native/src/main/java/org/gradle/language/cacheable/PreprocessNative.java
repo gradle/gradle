@@ -52,7 +52,7 @@ public class PreprocessNative extends AbstractNativeTask {
     }
 
     @TaskAction
-    public void preprocess(IncrementalTaskInputs incrementalTaskInputs) {
+    public void preprocess(IncrementalTaskInputs incrementalTaskInputs) throws IOException {
         final ConcurrentHashMap<String, Boolean> seenIncludes = new ConcurrentHashMap<String, Boolean>();
         final ConcurrentHashMap<String, Boolean> discoveredInputFiles = new ConcurrentHashMap<String, Boolean>();
         final IncrementalTaskInputsInternal inputs = (IncrementalTaskInputsInternal) incrementalTaskInputs;
@@ -61,24 +61,24 @@ public class PreprocessNative extends AbstractNativeTask {
             @Override
             public void visitFile(final FileVisitDetails fileVisitDetails) {
                 String name = fileVisitDetails.getName();
-                if (!(name.endsWith(".cpp") || name.endsWith(".c"))) {
+                if (!isSourceFile(name)) {
                     return;
                 }
-                String extension = name.endsWith(".cpp") ? "cpp" : "c";
-                String base = name.replaceAll("\\.c(pp)?", "");
-                String preprocessedName = base + (extension.equals("cpp") ? ".ii" : ".i");
-                final File preprocessedFile = fileVisitDetails.getRelativePath().getParent().append(true, preprocessedName).getFile(getPreprocessedSourcesDir());
-                preprocessedFile.getParentFile().mkdirs();
+                String preprocessedExtension = isCppFile(name) ? "ii" : "i";
+                File preprocessedFile = withNewExtensionInDir(fileVisitDetails, preprocessedExtension, getPreprocessedSourcesDir());
+                String relativePath = relativePath(fileVisitDetails.getFile());
                 runGxx("-E",
                     "-o", preprocessedFile.getAbsolutePath(),
-                    relativePath(fileVisitDetails.getFile()));
+                    relativePath);
                 preprocessedFiles.add(preprocessedFile);
+                seenIncludes.putIfAbsent(relativePath, Boolean.TRUE);
             }
         });
         getWorkerExecutor().await();
         for (File preprocessedFile : preprocessedFiles) {
             discoverIncludes(inputs, preprocessedFile, seenIncludes, discoveredInputFiles);
         }
+        DependenciesFile.write(discoveredInputFiles.keySet(), new File(getTemporaryDir(), "discoveredIncludes.out"));
     }
 
     private void discoverIncludes(final IncrementalTaskInputsInternal inputs, File preprocessedFile, final ConcurrentHashMap<String, Boolean> seenIncludes, final ConcurrentHashMap<String, Boolean> discoveredInputFiles) {
