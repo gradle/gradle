@@ -306,11 +306,9 @@ project(":") {
     }
     task killExistingProcessesStartedByGradle {
         doLast {
-            didWork = false
             forEachJavaProcess { pid, process ->
                 logger.warn("A process wasn't shutdown properly in a previous Gradle run. Killing process with PID $pid (Command line: $process)")
                 pkill(pid)
-                didWork = true
             }
         }
     }
@@ -319,14 +317,12 @@ project(":") {
         ext.suspiciousDaemons = [:].withDefault { [].asSynchronized() }.asSynchronized()
         ext.daemonPids = ([] as Set).asSynchronized()
         doLast {
-            didWork = false
             Set alreadyKilled = []
             forEachJavaProcess { pid, process ->
                 suspiciousDaemons.each { suite, pids ->
                     if (pids.contains(pid) && !alreadyKilled.contains(pid)) {
                         logger.warn("A process was created in $suite but wasn't shutdown properly. Killing PID $pid (Command line: $process)")
                         pkill(pid)
-                        didWork = true
                     }
                 }
             }
