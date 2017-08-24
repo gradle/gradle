@@ -182,8 +182,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         SwiftCompile compileTest = tasks.withType(SwiftCompile.class).getByName("compileTestSwift");
         compileTest.includes(compileMain.getObjectFileDirectory());
 
-        AbstractLinkTask linkMain = tasks.withType(AbstractLinkTask.class).getByName("linkMain");
         AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkTest");
-        linkTest.source(linkMain.getSource());
+        linkTest.source(compileMain.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
     }
 }
