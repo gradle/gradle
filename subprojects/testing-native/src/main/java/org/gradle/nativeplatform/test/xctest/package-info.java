@@ -14,18 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.test.xctest;
-
-import org.gradle.api.Incubating;
-import org.gradle.language.swift.SwiftBinary;
-import org.gradle.language.swift.SwiftComponent;
-
 /**
- * An XCTest suite, implemented in Swift.
- *
- * @since 4.2
+ * Model classes for the XCTest plugins.
  */
-@Incubating
-public interface SwiftXCTestSuite extends SwiftComponent {
-    SwiftBinary getExecutable();
-}
+package org.gradle.nativeplatform.test.xctest;
