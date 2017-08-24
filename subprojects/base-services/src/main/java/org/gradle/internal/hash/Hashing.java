@@ -17,7 +17,6 @@
 package org.gradle.internal.hash;
 
 import com.google.common.base.Charsets;
-import org.gradle.internal.Factory;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -27,27 +26,9 @@ import java.security.NoSuchAlgorithmException;
 public class Hashing {
     private Hashing() {}
 
-    private static final HashFunction MD5 = new MessageDigestHashFunction(CloningFactory.of(new Factory<MessageDigest>() {
-        @Override
-        public MessageDigest create() {
-            try {
-                return MessageDigest.getInstance("MD5");
-            } catch (NoSuchAlgorithmException e) {
-                throw new UnsupportedOperationException();
-            }
-        }
-    }));
+    private static final HashFunction MD5 = MessageDigestHashFunction.of("MD5");
 
-    private static final HashFunction SHA1 = new MessageDigestHashFunction(CloningFactory.of(new Factory<MessageDigest>() {
-        @Override
-        public MessageDigest create() {
-            try {
-                return MessageDigest.getInstance("SHA-1");
-            } catch (NoSuchAlgorithmException e) {
-                throw new UnsupportedOperationException();
-            }
-        }
-    }));
+    private static final HashFunction SHA1 = MessageDigestHashFunction.of("SHA-1");
 
     public static HashFunction md5() {
         return MD5;
@@ -57,16 +38,25 @@ public class Hashing {
         return SHA1;
     }
 
-    private static class MessageDigestHashFunction implements HashFunction {
-        private final Factory<MessageDigest> factory;
-
-        public MessageDigestHashFunction(Factory<MessageDigest> factory) {
-            this.factory = factory;
+    private static abstract class MessageDigestHashFunction implements HashFunction {
+        public static MessageDigestHashFunction of(String algorithm) {
+            MessageDigest prototype;
+            try {
+                prototype = MessageDigest.getInstance(algorithm);
+            } catch (NoSuchAlgorithmException e) {
+                throw new IllegalArgumentException("Cannot instantiate digest algorithm: " + algorithm);
+            }
+            try {
+                prototype.clone();
+                return new CloningMessageDigestHashFunction(prototype);
+            } catch (CloneNotSupportedException e) {
+                return new RegularMessageDigestHashFunction(algorithm);
+            }
         }
 
         @Override
         public Hasher newHasher() {
-            MessageDigest digest = factory.create();
+            MessageDigest digest = createDigest();
             return new MessageDigestHasher(digest);
         }
 
@@ -82,6 +72,42 @@ public class Hashing {
             Hasher hasher = newHasher();
             hasher.putString(string);
             return hasher.hash();
+        }
+
+        protected abstract MessageDigest createDigest();
+    }
+
+    private static class CloningMessageDigestHashFunction extends MessageDigestHashFunction {
+        private final MessageDigest prototype;
+
+        public CloningMessageDigestHashFunction(MessageDigest prototype) {
+            this.prototype = prototype;
+        }
+
+        @Override
+        protected MessageDigest createDigest() {
+            try {
+                return (MessageDigest) prototype.clone();
+            } catch (CloneNotSupportedException e) {
+                throw new AssertionError(e);
+            }
+        }
+    }
+
+    private static class RegularMessageDigestHashFunction extends MessageDigestHashFunction {
+        private final String algorithm;
+
+        public RegularMessageDigestHashFunction(String algorithm) {
+            this.algorithm = algorithm;
+        }
+
+        @Override
+        protected MessageDigest createDigest() {
+            try {
+                return MessageDigest.getInstance(algorithm);
+            } catch (NoSuchAlgorithmException e) {
+                throw new AssertionError(e);
+            }
         }
     }
 
@@ -175,33 +201,6 @@ public class Hashing {
         @Override
         public void putString(CharSequence value) {
             putBytes(value.toString().getBytes(Charsets.UTF_8));
-        }
-    }
-
-    private static class CloningFactory implements Factory<MessageDigest> {
-        private final MessageDigest baseDigest;
-
-        public CloningFactory(MessageDigest baseDigest) {
-            this.baseDigest = baseDigest;
-        }
-
-        @Override
-        public MessageDigest create() {
-            try {
-                return (MessageDigest) baseDigest.clone();
-            } catch (CloneNotSupportedException ignore) {
-                throw new AssertionError();
-            }
-        }
-
-        public static Factory<MessageDigest> of(Factory<MessageDigest> factory) {
-            MessageDigest baseDigest = factory.create();
-            try {
-                baseDigest.clone();
-                return new CloningFactory(baseDigest);
-            } catch (CloneNotSupportedException e) {
-                return factory;
-            }
         }
     }
 }
