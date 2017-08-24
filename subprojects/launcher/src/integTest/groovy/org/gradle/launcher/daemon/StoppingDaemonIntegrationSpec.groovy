@@ -94,7 +94,7 @@ task block {
         executer.run()
 
         when:
-        def out = executer.withArguments("--stop").run().output
+        def out = executer.withArguments("--stop").run().normalizedOutput
 
         then:
         out == '''Stopping Daemon(s)
@@ -102,7 +102,7 @@ task block {
 '''
 
         when:
-        out = executer.withArguments("--stop").run().output
+        out = executer.withArguments("--stop").run().normalizedOutput
 
         then:
         out == """$DaemonMessages.NO_DAEMONS_RUNNING
