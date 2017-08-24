@@ -51,6 +51,8 @@ class SwiftExecutablePluginTest extends Specification {
 
         then:
         project.components.main == project.executable
+        project.components.mainDebug == project.executable.debugExecutable
+        project.components.mainRelease == project.executable.releaseExecutable
     }
 
     def "adds compile, link and install tasks"() {

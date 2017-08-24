@@ -64,14 +64,16 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         ConfigurationContainer configurations = project.getConfigurations();
         ObjectFactory objectFactory = project.getObjects();
 
-        SwiftComponent component = project.getExtensions().create(SwiftLibrary.class, "library", DefaultSwiftLibrary.class, "main", fileOperations, project.getProviders());
-        project.getComponents().add(component);
+        SwiftLibrary library = project.getExtensions().create(SwiftLibrary.class, "library", DefaultSwiftLibrary.class, "main", fileOperations, project.getProviders());
+        project.getComponents().add(library);
+        project.getComponents().add(library.getDebugSharedLibrary());
+        project.getComponents().add(library.getReleaseSharedLibrary());
 
         // Setup component
-        final PropertyState<String> module = component.getModule();
+        final PropertyState<String> module = library.getModule();
         module.set(GUtil.toCamelCase(project.getName()));
-        component.getCompileImportPath().from(configurations.getByName(SwiftBasePlugin.SWIFT_IMPORT_PATH));
-        component.getLinkLibraries().from(configurations.getByName(CppBasePlugin.NATIVE_LINK));
+        library.getCompileImportPath().from(configurations.getByName(SwiftBasePlugin.SWIFT_IMPORT_PATH));
+        library.getLinkLibraries().from(configurations.getByName(CppBasePlugin.NATIVE_LINK));
 
         // Configure compile task
         SwiftCompile compile = (SwiftCompile) tasks.getByName("compileSwift");

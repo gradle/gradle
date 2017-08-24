@@ -19,12 +19,28 @@ package org.gradle.language.swift.internal;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.swift.SwiftApplication;
+import org.gradle.language.swift.SwiftExecutable;
 
 import javax.inject.Inject;
 
 public class DefaultSwiftApplication extends DefaultSwiftComponent implements SwiftApplication {
+    private final DefaultSwiftExecutable debug;
+    private final DefaultSwiftExecutable release;
+
     @Inject
     public DefaultSwiftApplication(String name, FileOperations fileOperations, ProviderFactory providerFactory) {
         super(name, fileOperations, providerFactory);
+        debug = new DefaultSwiftExecutable(name + "Debug", getModule(), getSwiftSource(), getCompileImportPath(), getLinkLibraries());
+        release = new DefaultSwiftExecutable(name + "Release", getModule(), getSwiftSource(), getCompileImportPath(), getLinkLibraries());
+    }
+
+    @Override
+    public SwiftExecutable getDebugExecutable() {
+        return debug;
+    }
+
+    @Override
+    public SwiftExecutable getReleaseExecutable() {
+        return release;
     }
 }

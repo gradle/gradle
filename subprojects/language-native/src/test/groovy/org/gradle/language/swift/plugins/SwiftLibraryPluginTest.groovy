@@ -50,6 +50,8 @@ class SwiftLibraryPluginTest extends Specification {
 
         then:
         project.components.main == project.library
+        project.components.mainDebug == project.library.debugSharedLibrary
+        project.components.mainRelease == project.library.releaseSharedLibrary
     }
 
     def "adds compile and link tasks"() {

@@ -19,12 +19,28 @@ package org.gradle.language.swift.internal;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.swift.SwiftLibrary;
+import org.gradle.language.swift.SwiftSharedLibrary;
 
 import javax.inject.Inject;
 
 public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftLibrary {
+    private final DefaultSwiftSharedLibrary debug;
+    private final DefaultSwiftSharedLibrary release;
+
     @Inject
     public DefaultSwiftLibrary(String name, FileOperations fileOperations, ProviderFactory providerFactory) {
         super(name, fileOperations, providerFactory);
+        debug = new DefaultSwiftSharedLibrary(name + "Debug", getModule(), getSwiftSource(), getCompileImportPath(), getLinkLibraries());
+        release = new DefaultSwiftSharedLibrary(name + "Release", getModule(), getSwiftSource(), getCompileImportPath(), getLinkLibraries());
+    }
+
+    @Override
+    public SwiftSharedLibrary getDebugSharedLibrary() {
+        return debug;
+    }
+
+    @Override
+    public SwiftSharedLibrary getReleaseSharedLibrary() {
+        return release;
     }
 }

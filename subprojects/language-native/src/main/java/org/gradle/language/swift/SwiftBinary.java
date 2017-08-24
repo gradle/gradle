@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.cpp;
+package org.gradle.language.swift;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.component.SoftwareComponent;
@@ -22,26 +22,26 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 
 /**
- * A binary built from C++ source.
+ * A binary built from Swift source.
  *
  * @since 4.2
  */
 @Incubating
-public interface CppBinary extends SoftwareComponent {
+public interface SwiftBinary extends SoftwareComponent {
     /**
-     * Returns the base name of the binary.
+     * Returns the Swift module that this binary defines.
      */
-    Provider<String> getBaseName();
+    Provider<String> getModule();
 
     /**
-     * Returns the C++ source files of this binary.
+     * Returns the Swift source files of this binary.
      */
-    FileCollection getCppSource();
+    FileCollection getSwiftSource();
 
     /**
-     * Returns the header directories to use to compile this binary. Includes the header directories of this binary plus those of its dependencies.
+     * Returns the import path to use to compile this binary. Includes the import path this binary's dependencies.
      */
-    FileCollection getCompileIncludePath();
+    FileCollection getCompileImportPath();
 
     /**
      * Returns the link libraries to use to link this binary. Includes the link libraries of the component's dependencies.

@@ -14,26 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.language.swift;
+package org.gradle.language.swift.internal
 
-import org.gradle.api.Incubating;
+import org.gradle.api.internal.file.FileOperations
+import org.gradle.api.provider.ProviderFactory
+import spock.lang.Specification
 
-/**
- * Configuration for a Swift library, defining the source files that make up the library plus other settings.
- *
- * <p>An instance of this type is added as a project extension by the Swift library plugin.</p>
- *
- * @since 4.2
- */
-@Incubating
-public interface SwiftLibrary extends SwiftComponent {
-    /**
-     * Returns the debug shared library for this library.
-     */
-    SwiftSharedLibrary getDebugSharedLibrary();
 
-    /**
-     * Returns the release shared library for this library.
-     */
-    SwiftSharedLibrary getReleaseSharedLibrary();
+class DefaultSwiftApplicationTest extends Specification {
+    def "has debug and release variants"() {
+        expect:
+        def app = new DefaultSwiftApplication("main", Stub(FileOperations), Stub(ProviderFactory))
+        app.debugExecutable.name == "mainDebug"
+        app.releaseExecutable.name == "mainRelease"
+    }
 }

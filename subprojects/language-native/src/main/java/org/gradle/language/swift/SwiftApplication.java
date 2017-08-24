@@ -27,4 +27,13 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface SwiftApplication extends SwiftComponent {
+    /**
+     * Returns the debug executable for this application.
+     */
+    SwiftExecutable getDebugExecutable();
+
+    /**
+     * Returns the release executable for this application.
+     */
+    SwiftExecutable getReleaseExecutable();
 }

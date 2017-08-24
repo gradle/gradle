@@ -14,26 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.language.swift;
+package org.gradle.language.swift.internal;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.provider.Provider;
+import org.gradle.language.swift.SwiftExecutable;
 
-/**
- * Configuration for a Swift library, defining the source files that make up the library plus other settings.
- *
- * <p>An instance of this type is added as a project extension by the Swift library plugin.</p>
- *
- * @since 4.2
- */
-@Incubating
-public interface SwiftLibrary extends SwiftComponent {
-    /**
-     * Returns the debug shared library for this library.
-     */
-    SwiftSharedLibrary getDebugSharedLibrary();
-
-    /**
-     * Returns the release shared library for this library.
-     */
-    SwiftSharedLibrary getReleaseSharedLibrary();
+public class DefaultSwiftExecutable extends DefaultSwiftBinary implements SwiftExecutable {
+    public DefaultSwiftExecutable(String name, Provider<String> module, FileCollection source, FileCollection importPath, FileCollection linkLibs) {
+        super(name, module, source, importPath, linkLibs);
+    }
 }

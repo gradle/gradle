@@ -30,8 +30,8 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
-import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.SwiftApplication;
+import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.internal.DefaultSwiftApplication;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
@@ -69,14 +69,16 @@ public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
         TaskContainer tasks = project.getTasks();
 
         // Add the component extension
-        SwiftComponent component = project.getExtensions().create(SwiftApplication.class, "executable", DefaultSwiftApplication.class, "main", fileOperations, providers);
-        project.getComponents().add(component);
+        SwiftApplication application = project.getExtensions().create(SwiftApplication.class, "executable", DefaultSwiftApplication.class, "main", fileOperations, providers);
+        project.getComponents().add(application);
+        project.getComponents().add(application.getDebugExecutable());
+        project.getComponents().add(application.getReleaseExecutable());
 
         // Setup component
-        final PropertyState<String> module = component.getModule();
+        final PropertyState<String> module = application.getModule();
         module.set(GUtil.toCamelCase(project.getName()));
-        component.getCompileImportPath().from(configurations.getByName(SwiftBasePlugin.SWIFT_IMPORT_PATH));
-        component.getLinkLibraries().from(configurations.getByName(CppBasePlugin.NATIVE_LINK));
+        application.getCompileImportPath().from(configurations.getByName(SwiftBasePlugin.SWIFT_IMPORT_PATH));
+        application.getLinkLibraries().from(configurations.getByName(CppBasePlugin.NATIVE_LINK));
 
         // Configure compile task
         SwiftCompile compile = (SwiftCompile) tasks.getByName("compileSwift");
