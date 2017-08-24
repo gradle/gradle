@@ -20,6 +20,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 
 public class HashCode implements Serializable {
+    private static final int MIN_NUMBER_OF_BYTES = 4;
     private static final int MAX_NUMBER_OF_BYTES = 255;
     private static final char[] HEX_DIGITS = "0123456789abcdef".toCharArray();
 
@@ -35,7 +36,7 @@ public class HashCode implements Serializable {
 
     public static HashCode fromBytes(byte[] bytes) {
         // Make sure hash codes are serializable with a single byte length
-        if (bytes.length > MAX_NUMBER_OF_BYTES) {
+        if (bytes.length < MIN_NUMBER_OF_BYTES || bytes.length > MAX_NUMBER_OF_BYTES) {
             throw new IllegalArgumentException("Invalid hash code length: " + bytes.length);
         }
         return fromBytesNoCopy(bytes.clone());
@@ -110,11 +111,10 @@ public class HashCode implements Serializable {
 
     @Override
     public int hashCode() {
-        int val = bytes[0] & 0xFF;
-        for (int i = 1; i < bytes.length; i++) {
-            val |= (bytes[i] & 0xFF) << i * 8;
-        }
-        return val;
+        return (bytes[0] & 0xFF)
+            | ((bytes[1] & 0xFF) << 8)
+            | ((bytes[2] & 0xFF) << 16)
+            | ((bytes[3] & 0xFF) << 24);
     }
 
     @Override
