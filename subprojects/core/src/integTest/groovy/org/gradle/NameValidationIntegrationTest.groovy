@@ -88,7 +88,7 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
 
     def "does not assign an invalid project name from folder name"() {
         given:
-        def buildFolder = file(current() == WINDOWS ? ".folder  name." : ".folder: name.")
+        def buildFolder = file(current() == WINDOWS ? ".folder  name " : ".folder: name.")
         inDirectory(buildFolder)
 
         when:

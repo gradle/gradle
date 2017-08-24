@@ -22,7 +22,7 @@ import java.util.Arrays;
 
 public final class NameValidator {
 
-    private static final char[] FORBIDDEN_CHARACTERS = new char[] {' ', '/', '\\', ':', '<', '>', '"', '?', '*'};
+    private static final char[] FORBIDDEN_CHARACTERS = new char[] {' ', '/', '\\', ':', '<', '>', '"', '?', '*', '|'};
     private static final char FORBIDDEN_LEADING_AND_TRAILING_CHARACTER = '.';
     private static final char REPLACEMENT_CHARACTER = '_';
 
