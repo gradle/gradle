@@ -29,6 +29,19 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         Assume.assumeTrue(toolChain.id != "mingw" && toolChain.id != "gcccygwin")
     }
 
+    def "skip compile and link tasks when no source"() {
+        given:
+        buildFile << """
+            apply plugin: 'cpp-library'
+        """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":assemble")
+        // TODO - should skip the task as NO-SOURCE
+        result.assertTasksSkipped(":compileDebugCpp", ":linkDebug", ":assemble")
+    }
+
     def "build fails when compilation fails"() {
         given:
         buildFile << """
