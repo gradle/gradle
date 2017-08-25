@@ -27,8 +27,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
+import java.security.GeneralSecurityException;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 
@@ -112,10 +111,8 @@ public class DefaultHttpSettings implements HttpSettings {
                     SSLContext sslcontext = SSLContext.getInstance("TLS");
                     sslcontext.init(null, ALL_TRUSTING_TRUST_MANAGER, null);
                     return sslcontext;
-                } catch (NoSuchAlgorithmException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                } catch (KeyManagementException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
+                } catch (GeneralSecurityException e) {
+                    throw new UncheckedException(e);
                 }
             }
         });
