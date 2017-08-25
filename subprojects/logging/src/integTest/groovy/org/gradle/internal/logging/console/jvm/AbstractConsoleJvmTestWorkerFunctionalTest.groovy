@@ -26,7 +26,7 @@ import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 @IgnoreIf({ GradleContextualExecuter.isParallel() })
-class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
+abstract class AbstractConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
 
     private static final int MAX_WORKERS = 2
     private static final String SERVER_RESOURCE_1 = 'test-1'
@@ -44,8 +44,8 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
     def "shows test class execution #description test class name in work-in-progress area of console for single project build"() {
         given:
         buildFile << testableJavaProject()
-        file("src/test/java/${testClass1.fileRepresentation}") << junitTest(testClass1.classNameWithoutPackage, SERVER_RESOURCE_1)
-        file("src/test/java/${testClass2.fileRepresentation}") << junitTest(testClass2.classNameWithoutPackage, SERVER_RESOURCE_2)
+        file("src/test/java/${testClass1.fileRepresentation}") << testClass(testClass1.classNameWithoutPackage, SERVER_RESOURCE_1)
+        file("src/test/java/${testClass2.fileRepresentation}") << testClass(testClass2.classNameWithoutPackage, SERVER_RESOURCE_2)
         def testExecution = server.expectConcurrentAndBlock(2, SERVER_RESOURCE_1, SERVER_RESOURCE_2)
 
         when:
@@ -76,8 +76,8 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
                 ${testableJavaProject()}
             }
         """
-        file("project1/src/test/java/${testClass1.fileRepresentation}") << junitTest(testClass1.classNameWithoutPackage, SERVER_RESOURCE_1)
-        file("project2/src/test/java/${testClass2.fileRepresentation}") << junitTest(testClass2.classNameWithoutPackage, SERVER_RESOURCE_2)
+        file("project1/src/test/java/${testClass1.fileRepresentation}") << testClass(testClass1.classNameWithoutPackage, SERVER_RESOURCE_1)
+        file("project2/src/test/java/${testClass2.fileRepresentation}") << testClass(testClass2.classNameWithoutPackage, SERVER_RESOURCE_2)
         def testExecution = server.expectConcurrentAndBlock(2, SERVER_RESOURCE_1, SERVER_RESOURCE_2)
 
         when:
@@ -99,11 +99,11 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
         JavaTestClass.SHORTENED_TEST1 | JavaTestClass.SHORTENED_TEST2 | 'shortened'
     }
 
-    private String junitTest(String testClassName, String serverResource) {
+    private String testClass(String testClassName, String serverResource) {
         """
             package org.gradle;
 
-            import org.junit.Test;
+            import ${testAnnotationClass()};
 
             public class $testClassName {
                 @Test
@@ -114,21 +114,27 @@ class ConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
         """
     }
 
-    static String testableJavaProject() {
+    private String testableJavaProject() {
         """
             apply plugin: 'java'
             
             ${jcenterRepository()}
             
             dependencies {
-                testCompile 'junit:junit:4.12'
+                testCompile '${testDependency()}'
             }
             
             tasks.withType(Test) {
                 maxParallelForks = $MAX_WORKERS
             }
+
+            ${testFrameworkConfiguration()}
         """
     }
+
+    abstract String testAnnotationClass()
+    abstract String testDependency()
+    abstract String testFrameworkConfiguration()
 
     static boolean containsTestExecutionWorkInProgressLine(GradleHandle gradleHandle, String taskPath, String testName) {
         gradleHandle.standardOutput.contains(workInProgressLine("> $taskPath > Executing test $testName"))

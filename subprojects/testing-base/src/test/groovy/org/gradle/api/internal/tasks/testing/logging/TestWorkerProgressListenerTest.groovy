@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.testing.logging
 
 import groovy.transform.TupleConstructor
 import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor
-import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor
+import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent
 import org.gradle.api.internal.tasks.testing.TestStartEvent
@@ -194,10 +194,10 @@ class TestWorkerProgressListenerTest extends Specification {
 
     static TestDescriptor createTestDescriptor(TestEvent testEvent) {
         def testWorkerDescriptor = new WorkerTestClassProcessor.WorkerTestSuiteDescriptor(1, testEvent.testWorkerName)
-        def defaultTestClassDescriptor = new DefaultTestClassDescriptor(1, testEvent.testClassName)
-        def decoratingDefaultTestClassDescriptor = new DecoratingTestDescriptor(defaultTestClassDescriptor, null)
+        def defaultTestDescriptor = new DefaultTestDescriptor(1, testEvent.testClassName, 'testHelloWorld')
+        def decoratingDefaultTestClassDescriptor = new DecoratingTestDescriptor(defaultTestDescriptor, null)
         def decoratingTestWorkerDescriptor = new DecoratingTestDescriptor(testWorkerDescriptor, decoratingDefaultTestClassDescriptor)
-        new DecoratingTestDescriptor(defaultTestClassDescriptor, decoratingTestWorkerDescriptor)
+        new DecoratingTestDescriptor(defaultTestDescriptor, decoratingTestWorkerDescriptor)
     }
 
     @TupleConstructor
