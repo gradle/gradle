@@ -24,7 +24,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.CppExecutable;
 
 public class DefaultCppExecutable extends DefaultCppBinary implements CppExecutable {
-    public DefaultCppExecutable(String name, ObjectFactory objectFactory, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation) {
-        super(name, objectFactory, baseName, sourceFiles, componentHeaderDirs, configurations, implementation);
+    public DefaultCppExecutable(String name, ObjectFactory objectFactory, Provider<String> baseName, boolean debuggable, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation) {
+        super(name, objectFactory, baseName, debuggable, sourceFiles, componentHeaderDirs, configurations, implementation);
     }
 }

@@ -84,4 +84,9 @@ public interface CppComponent extends SoftwareComponent {
      * Returns the implementation dependencies of this component.
      */
     Configuration getImplementationDependencies();
+
+    /**
+     * Returns the binary of the component to use as the default for development.
+     */
+    CppBinary getDevelopmentBinary();
 }

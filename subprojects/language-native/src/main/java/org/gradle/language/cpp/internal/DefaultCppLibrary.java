@@ -41,8 +41,8 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
         super(name, fileOperations, providerFactory, configurations);
         publicHeaders = fileOperations.files();
         publicHeadersWithConvention = createDirView(publicHeaders, "src/" + name + "/public");
-        debug = new DefaultCppSharedLibrary(name + "Debug", objectFactory, getBaseName(), getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
-        release = new DefaultCppSharedLibrary(name + "Release", objectFactory, getBaseName(), getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
+        debug = new DefaultCppSharedLibrary(name + "Debug", objectFactory, getBaseName(), true, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
+        release = new DefaultCppSharedLibrary(name + "Release", objectFactory, getBaseName(), false, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
 
         api = configurations.create(getNames().withSuffix("api"));
         api.setCanBeConsumed(false);
@@ -73,6 +73,11 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     @Override
     protected FileCollection getAllHeaderDirs() {
         return publicHeadersWithConvention.plus(super.getAllHeaderDirs());
+    }
+
+    @Override
+    public CppSharedLibrary getDevelopmentBinary() {
+        return debug;
     }
 
     @Override

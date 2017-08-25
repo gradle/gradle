@@ -54,6 +54,12 @@ public interface CppLibrary extends CppComponent {
     Configuration getApiDependencies();
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    CppSharedLibrary getDevelopmentBinary();
+
+    /**
      * Returns the debug shared library for this library.
      */
     CppSharedLibrary getDebugSharedLibrary();

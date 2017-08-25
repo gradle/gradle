@@ -49,7 +49,10 @@ class DefaultCppLibraryTest extends Specification {
     def "has debug and release shared libraries"() {
         expect:
         library.debugSharedLibrary.name == "mainDebug"
+        library.debugSharedLibrary.debuggable
         library.releaseSharedLibrary.name == "mainRelease"
+        !library.releaseSharedLibrary.debuggable
+        library.developmentBinary == library.debugSharedLibrary
     }
 
     def "uses convention for public headers when nothing specified"() {

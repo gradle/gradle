@@ -18,8 +18,11 @@ package org.gradle.language.cpp.internal
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.provider.DefaultProviderFactory
+import org.gradle.api.provider.ProviderFactory
+import org.gradle.language.cpp.CppBinary
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -35,7 +38,7 @@ class DefaultCppComponentTest extends Specification {
 
     def setup() {
         _ * configurations.create("implementation") >> implementation
-        component = new DefaultCppComponent("main", fileOperations, providerFactory, configurations)
+        component = new TestComponent("main", fileOperations, providerFactory, configurations)
     }
 
     def "has an implementation configuration"() {
@@ -130,13 +133,24 @@ class DefaultCppComponentTest extends Specification {
         def h1 = tmpDir.createFile("src/a/headers")
         def f2 = tmpDir.createFile("src/b/cpp/b.cpp")
         def h2 = tmpDir.createFile("src/b/headers")
-        def c1 = new DefaultCppComponent("a", fileOperations, providerFactory, configurations)
-        def c2 = new DefaultCppComponent("b", fileOperations, providerFactory, configurations)
+        def c1 = new TestComponent("a", fileOperations, providerFactory, configurations)
+        def c2 = new TestComponent("b", fileOperations, providerFactory, configurations)
 
         expect:
         c1.cppSource.files == [f1] as Set
         c1.privateHeaderDirs.files == [h1] as Set
         c2.cppSource.files == [f2] as Set
         c2.privateHeaderDirs.files == [h2] as Set
+    }
+
+    static class TestComponent extends DefaultCppComponent {
+        TestComponent(String name, FileOperations fileOperations, ProviderFactory providerFactory, ConfigurationContainer configurations) {
+            super(name, fileOperations, providerFactory, configurations)
+        }
+
+        @Override
+        CppBinary getDevelopmentBinary() {
+            throw new UnsupportedOperationException()
+        }
     }
 }

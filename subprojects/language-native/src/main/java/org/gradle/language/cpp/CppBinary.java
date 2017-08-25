@@ -22,7 +22,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 
 /**
- * A binary built from C++ source.
+ * A binary built from C++ source and linked from the resulting object files.
  *
  * @since 4.2
  */
@@ -32,6 +32,11 @@ public interface CppBinary extends SoftwareComponent {
      * Returns the base name of the binary.
      */
     Provider<String> getBaseName();
+
+    /**
+     * Returns true if this binary has debugging enabled.
+     */
+    boolean isDebuggable();
 
     /**
      * Returns the C++ source files of this binary.
@@ -47,4 +52,9 @@ public interface CppBinary extends SoftwareComponent {
      * Returns the link libraries to use to link this binary. Includes the link libraries of the component's dependencies.
      */
     FileCollection getLinkLibraries();
+
+    /**
+     * Returns the runtime libraries required by this binary. Includes the runtime libraries of the component's dependencies.
+     */
+    FileCollection getRuntimeLibraries();
 }

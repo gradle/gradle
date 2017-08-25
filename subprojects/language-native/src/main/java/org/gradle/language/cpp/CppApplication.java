@@ -28,6 +28,12 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface CppApplication extends CppComponent {
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    CppExecutable getDevelopmentBinary();
+
+    /**
      * Returns the debug executable for this application.
      */
     CppExecutable getDebugExecutable();

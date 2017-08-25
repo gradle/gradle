@@ -34,7 +34,7 @@ import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 
-public class DefaultCppComponent extends DefaultNativeComponent implements CppComponent {
+public abstract class DefaultCppComponent extends DefaultNativeComponent implements CppComponent {
     private final FileCollection cppSource;
     private final String name;
     private final FileOperations fileOperations;

@@ -28,13 +28,16 @@ import org.gradle.language.nativeplatform.internal.Names;
 public class DefaultCppBinary implements CppBinary {
     private final String name;
     private final Provider<String> baseName;
+    private final boolean debuggable;
     private final FileCollection sourceFiles;
     private final FileCollection includePath;
     private final FileCollection linkLibraries;
+    private final FileCollection runtimeLibraries;
 
-    public DefaultCppBinary(String name, ObjectFactory objects, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation) {
+    public DefaultCppBinary(String name, ObjectFactory objects, Provider<String> baseName, boolean debuggable, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation) {
         this.name = name;
         this.baseName = baseName;
+        this.debuggable = debuggable;
         this.sourceFiles = sourceFiles;
 
         final Names names = Names.of(name);
@@ -57,6 +60,7 @@ public class DefaultCppBinary implements CppBinary {
 
         includePath = componentHeaderDirs.plus(includePathConfig);
         linkLibraries = nativeLink;
+        runtimeLibraries = nativeRuntime;
     }
 
     @Override
@@ -67,6 +71,11 @@ public class DefaultCppBinary implements CppBinary {
     @Override
     public Provider<String> getBaseName() {
         return baseName;
+    }
+
+    @Override
+    public boolean isDebuggable() {
+        return debuggable;
     }
 
     @Override
@@ -82,5 +91,10 @@ public class DefaultCppBinary implements CppBinary {
     @Override
     public FileCollection getLinkLibraries() {
         return linkLibraries;
+    }
+
+    @Override
+    public FileCollection getRuntimeLibraries() {
+        return runtimeLibraries;
     }
 }

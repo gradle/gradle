@@ -93,8 +93,7 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
                 return install.getExecutable().exists();
             }
         });
-        // TODO - query the model for this instead
-        install.lib(configurations.getByName("nativeRuntimeDebug"));
+        install.lib(application.getDebugExecutable().getRuntimeLibraries());
 
         tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(install);
 
