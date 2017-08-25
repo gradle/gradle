@@ -17,6 +17,7 @@
 package org.gradle.language.cpp;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
@@ -28,6 +29,13 @@ import org.gradle.api.provider.Provider;
  */
 @Incubating
 public interface CppBinary extends SoftwareComponent {
+    /**
+     * The dependency resolution attribute use to indicate whether a binary is debuggable or not.
+     *
+     * @since 4.2
+     */
+    Attribute<Boolean> DEBUGGABLE_ATTRIBUTE = Attribute.of("org.gradle.native.debuggable", Boolean.class);
+
     /**
      * Returns the base name of the binary.
      */

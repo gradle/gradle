@@ -45,7 +45,7 @@ import java.io.File;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import static org.gradle.language.cpp.plugins.CppBasePlugin.DEBUGGABLE_ATTRIBUTE;
+import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
 
 /**
  * <p>A plugin that produces a native library from C++ source.</p>
