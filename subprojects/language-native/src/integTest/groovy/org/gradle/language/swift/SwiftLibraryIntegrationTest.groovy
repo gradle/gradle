@@ -16,11 +16,13 @@
 
 package org.gradle.language.swift
 
+import groovy.io.FileType
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 
 import static org.gradle.util.Matchers.containsText
 
@@ -93,6 +95,36 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
         result.assertTasksSkipped(":compileSwift", ":linkMain", ":assemble")
 
+        sharedLibrary("build/lib/Hello").assertExists()
+    }
+
+    @Ignore("https://github.com/gradle/gradle-native/issues/94")
+    def "stalled object files are removed"() {
+        def lib = new SwiftLib()
+        settingsFile << "rootProject.name = 'hello'"
+
+        given:
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-library'
+         """
+
+        and:
+        succeeds "assemble"
+        file(lib.multiply.sourceFile.withPath("src/main")).delete()
+        file(lib.greeter.sourceFile.withPath("src/main")).renameTo("renamed-greeter.swift")
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
+        result.assertTasksNotSkipped(":compileSwift", ":linkMain", ":assemble")
+
+        file("build/main/objs").eachFileRecurse(FileType.FILES) {
+            assert it.name != lib.multiply.sourceFile.name.replace('.swift', '.o')
+            assert it.name != lib.greeter.sourceFile.name.replace('.swift', '.o')
+        }
         sharedLibrary("build/lib/Hello").assertExists()
     }
 

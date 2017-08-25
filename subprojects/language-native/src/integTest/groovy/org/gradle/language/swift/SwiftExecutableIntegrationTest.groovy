@@ -16,12 +16,14 @@
 
 package org.gradle.language.swift
 
+import groovy.io.FileType
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 
 import static org.gradle.util.Matchers.containsText
 
@@ -72,6 +74,37 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         succeeds "assemble"
         result.assertTasksExecuted(":compileSwift", ":linkMain", ":installMain", ":assemble")
 
+        executable("build/exe/App").assertExists()
+        installation("build/install/App").exec().out == app.expectedOutput
+    }
+
+    @Ignore("https://github.com/gradle/gradle-native/issues/94")
+    def "stalled object files are removed"() {
+        settingsFile << "rootProject.name = 'app'"
+        def app = new SwiftApp()
+
+        given:
+        app.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-executable'
+         """
+
+        and:
+        succeeds "assemble"
+        file(app.multiply.sourceFile.withPath("src/main")).delete()
+        file(app.greeter.sourceFile.withPath("src/main")).renameTo("renamed-greeter.swift")
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileSwift", ":linkMain", ":installMain", ":assemble")
+        result.assertTasksNotSkipped(":compileSwift", ":linkMain", ":installMain", ":assemble")
+
+        file("build/main/objs").eachFileRecurse(FileType.FILES) {
+            assert it.name != app.multiply.sourceFile.name.replace('.swift', '.o')
+            assert it.name != app.greeter.sourceFile.name.replace('.swift', '.o')
+        }
         executable("build/exe/App").assertExists()
         installation("build/install/App").exec().out == app.expectedOutput
     }
