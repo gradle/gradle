@@ -12,7 +12,7 @@ class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BuildType({
     extId = uuid
     name = "Individual Performance Scenario Workers - Linux"
 
-    applyDefaultSettings(this, false, timeout = 420)
+    applyDefaultSettings(this, timeout = 420)
     artifactRules = """
         subprojects/*/build/test-results-*.zip => results
         subprojects/*/build/tmp/**/log.txt => failure-logs

@@ -13,5 +13,11 @@ class SanityCheck(model: CIBuildModel) : BuildType({
         param("env.JAVA_HOME", "%linux.java8.oracle.64bit%")
     }
 
+    if (model.publishStatusToGitHub) {
+        features {
+            publishBuildStatusToGithub()
+        }
+    }
+
     applyDefaults(model, this, "compileAll sanityCheck", extraParameters = "-DenableCodeQuality=true --parallel")
 })

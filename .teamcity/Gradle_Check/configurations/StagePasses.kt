@@ -19,7 +19,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BuildT
     extId = uuid
     name = stage.name + " (Trigger)"
 
-    applyDefaultSettings(this, model.publishStatusToGitHub)
+    applyDefaultSettings(this)
     artifactRules = "build/build-receipt.properties"
 
     val triggerExcludes = """
@@ -27,6 +27,12 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BuildT
         -:subprojects/docs/src/docs/release
     """.trimIndent()
     val masterReleaseFiler = model.masterAndReleaseBranches.joinToString(prefix = "+:", separator = "\n+:")
+
+    if (model.publishStatusToGitHub) {
+        features {
+            publishBuildStatusToGithub()
+        }
+    }
 
     if (stage.trigger == Trigger.eachCommit) {
         triggers.vcs {

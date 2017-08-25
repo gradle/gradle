@@ -12,7 +12,7 @@ class ColonyCompatibility(model: CIBuildModel) : BuildType({
     name = "Colony Compatibility"
     description = "Check Gradle against latest development version of Colony"
 
-    applyDefaultSettings(this, false, vcsRoot = "Colony_ColonyMaster")
+    applyDefaultSettings(this, vcsRoot = "Colony_ColonyMaster")
 
     params {
         param("env.JAVA_HOME", "%linux.java8.oracle.64bit%")
