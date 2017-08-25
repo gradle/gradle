@@ -26,8 +26,6 @@ import org.gradle.internal.hash.Hasher;
 
 import java.io.File;
 
-import static org.gradle.internal.hash.HashUtil.compactStringFor;
-
 class DefaultCacheKeyBuilder implements CacheKeyBuilder {
 
     private final HashFunction hashFunction;
@@ -53,9 +51,9 @@ class DefaultCacheKeyBuilder implements CacheKeyBuilder {
             case 0:
                 return prefix;
             case 1:
-                return prefix + "/" + compactStringFor(hashOf(components[0]));
+                return prefix + "/" + hashOf(components[0]).toCompactString();
             default:
-                return prefix + "/" + compactStringFor(combinedHashOf(components));
+                return prefix + "/" + combinedHashOf(components).toCompactString();
         }
     }
 

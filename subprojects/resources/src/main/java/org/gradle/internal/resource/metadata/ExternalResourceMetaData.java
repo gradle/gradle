@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resource.metadata;
 
-import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
 import java.net.URI;
@@ -56,6 +56,6 @@ public interface ExternalResourceMetaData {
      * @return The sha1, or null if it's unknown.
      */
     @Nullable
-    HashValue getSha1();
+    HashCode getSha1();
 
 }

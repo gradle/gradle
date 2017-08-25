@@ -27,7 +27,7 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
-import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resource.local.DefaultPathKeyFileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.serialize.AbstractSerializer;
@@ -113,8 +113,8 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         return new ModuleComponentAtRepositoryKey(repository.getId(), id);
     }
 
-    private ModuleMetadataCacheEntry createEntry(ModuleComponentResolveMetadata metaData, HashValue moduleDescriptorHash) {
-        return ModuleMetadataCacheEntry.forMetaData(metaData, timeProvider.getCurrentTime(), moduleDescriptorHash.asBigInteger());
+    private ModuleMetadataCacheEntry createEntry(ModuleComponentResolveMetadata metaData, HashCode moduleDescriptorHash) {
+        return ModuleMetadataCacheEntry.forMetaData(metaData, timeProvider.getCurrentTime(), moduleDescriptorHash);
     }
 
     private static class RevisionKeySerializer extends AbstractSerializer<ModuleComponentAtRepositoryKey> {

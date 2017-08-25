@@ -21,6 +21,8 @@ import spock.lang.Unroll
 
 @Unroll
 class HashCodeTest extends Specification {
+    static final String MD5_HASH = "b1a4cf30d3f4095f0a7d2a6676bcae77"
+
     def "can parse hex string #input"() {
         def hash = HashCode.fromString(input)
 
@@ -167,6 +169,18 @@ class HashCodeTest extends Specification {
 
         then:
         thrown Exception
+    }
+
+    def "generates compact string from #hexString"() {
+        expect:
+        HashCode.fromString(hexString).toCompactString() == compactString
+
+        where:
+        hexString                          | compactString
+        "1234abcdef"                       | "zx6578v"
+        "abcd1234"                         | "1bo2mgk"
+        "d41d8cd98f00b204e9800998ecf8427e" | "ck2u8j60r58fu0sgyxrigm3cu"
+        "FFFFFFFF"                         | "1z141z3"
     }
 
     private static byte[] toBytes(int ... elements) {

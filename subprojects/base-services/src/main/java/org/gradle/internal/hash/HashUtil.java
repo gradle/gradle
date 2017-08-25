@@ -15,40 +15,35 @@
  */
 package org.gradle.internal.hash;
 
+import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.internal.UncheckedException;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 public class HashUtil {
-    public static HashValue createHash(String scriptText, String algorithm) {
-        MessageDigest messageDigest = createMessageDigest(algorithm);
-        messageDigest.update(scriptText.getBytes());
-        return new HashValue(messageDigest.digest());
-    }
-
-    public static HashValue createHash(File file, String algorithm) {
+    public static HashCode createHash(File file, HashFunction hashFunction) {
         try {
-            return createHash(new FileInputStream(file), algorithm);
+            FileInputStream input = new FileInputStream(file);
+            try {
+                return createHash(input, hashFunction);
+            } finally {
+                IOUtils.closeQuietly(input);
+            }
         } catch (UncheckedIOException e) {
             // Catch any unchecked io exceptions and add the file path for troubleshooting
-            throw new UncheckedIOException(String.format("Failed to create %s hash for file %s.", algorithm, file.getAbsolutePath()), e.getCause());
+            throw new UncheckedIOException(String.format("Failed to create %s hash for file %s.", hashFunction, file.getAbsolutePath()), e.getCause());
         } catch (FileNotFoundException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    public static HashValue createHash(InputStream instr, String algorithm) {
-        MessageDigest messageDigest;
+    private static HashCode createHash(InputStream instr, HashFunction hashFunction) {
+        Hasher hasher = hashFunction.newHasher();
         try {
-            messageDigest = createMessageDigest(algorithm);
             byte[] buffer = new byte[4096];
             try {
                 while (true) {
@@ -56,7 +51,7 @@ public class HashUtil {
                     if (nread < 0) {
                         break;
                     }
-                    messageDigest.update(buffer, 0, nread);
+                    hasher.putBytes(buffer, 0, nread);
                 }
             } finally {
                 instr.close();
@@ -64,51 +59,43 @@ public class HashUtil {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        return new HashValue(messageDigest.digest());
-    }
-
-    private static MessageDigest createMessageDigest(String algorithm) {
-        try {
-            return MessageDigest.getInstance(algorithm);
-        } catch (NoSuchAlgorithmException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+        return hasher.hash();
     }
 
     public static String createCompactMD5(String scriptText) {
-        return createHash(scriptText, "MD5").asCompactString();
+        return Hashing.md5().hashString(scriptText).toCompactString();
     }
 
-    public static String compactStringFor(HashCode hashCode) {
-        return compactStringFor(hashCode.toByteArray());
+    public static HashCode sha1(byte[] bytes) {
+        return Hashing.sha1().hashBytes(bytes);
     }
 
-    public static String compactStringFor(byte[] digest) {
-        return new HashValue(digest).asCompactString();
+    public static HashCode sha1(InputStream inputStream) {
+        return createHash(inputStream, Hashing.sha1());
     }
 
-    public static HashValue sha1(byte[] bytes) {
-        return createHash(new ByteArrayInputStream(bytes), "SHA1");
+    public static HashCode sha1(File file) {
+        return createHash(file, Hashing.sha1());
     }
 
-    public static HashValue sha1(InputStream inputStream) {
-        return createHash(inputStream, "SHA1");
+    public static HashCode md5(InputStream inputStream) {
+        return createHash(inputStream, Hashing.md5());
     }
 
-    public static HashValue sha1(File file) {
-        return createHash(file, "SHA1");
+    public static HashCode md5(File file) {
+        return createHash(file, Hashing.md5());
     }
 
-    public static HashValue sha256(byte[] bytes) {
-        return createHash(new ByteArrayInputStream(bytes), "SHA-256");
+    public static HashCode sha256(byte[] bytes) {
+        return Hashing.sha256().hashBytes(bytes);
     }
 
-    public static HashValue sha256(InputStream inputStream) {
-        return createHash(inputStream, "SHA-256");
+    public static HashCode sha256(InputStream inputStream) {
+        return createHash(inputStream, Hashing.sha256());
     }
 
-    public static HashValue sha256(File file) {
-        return createHash(file, "SHA-256");
+    public static HashCode sha256(File file) {
+        return createHash(file, Hashing.sha256());
     }
 
 }

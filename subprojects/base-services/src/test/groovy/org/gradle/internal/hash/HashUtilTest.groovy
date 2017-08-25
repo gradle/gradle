@@ -20,6 +20,8 @@ import org.gradle.api.UncheckedIOException
 import spock.lang.Issue
 import spock.lang.Specification
 
+import static org.gradle.internal.hash.Hashing.md5
+
 class HashUtilTest extends Specification {
     String stringToHash = "a test string"
     String md5HashString = "b1a4cf30d3f4095f0a7d2a6676bcae77"
@@ -28,7 +30,7 @@ class HashUtilTest extends Specification {
 
     def "createHash from String returns MD5 hash" () {
         expect:
-        HashUtil.createHash(stringToHash, "MD5").asHexString() == md5HashString
+        md5().hashString(stringToHash).toString() == md5HashString
     }
 
     def "createHash from File returns MD5 hash" () {
@@ -37,7 +39,7 @@ class HashUtilTest extends Specification {
         file << stringToHash
 
         expect:
-        HashUtil.createHash(file, "MD5").asHexString() == md5HashString
+        HashUtil.md5(file).toString() == md5HashString
 
         cleanup:
         file?.delete()
@@ -53,7 +55,7 @@ class HashUtilTest extends Specification {
         }
 
         when:
-        HashUtil.createHash(file, "MD5")
+        HashUtil.md5(file)
 
         then:
         UncheckedIOException e = thrown()
@@ -63,7 +65,7 @@ class HashUtilTest extends Specification {
 
     def "createHash from InputStream returns MD5 hash" () {
         expect:
-        HashUtil.createHash(new ByteArrayInputStream(stringToHash.bytes), "MD5").asHexString() == md5HashString
+        HashUtil.md5(new ByteArrayInputStream(stringToHash.bytes)).toString() == md5HashString
     }
 
     def "createHash from InputStream wraps IOException in UncheckedIOException" () {
@@ -74,7 +76,7 @@ class HashUtilTest extends Specification {
         }
 
         when:
-        HashUtil.createHash(stubInputStream, "MD5")
+        HashUtil.md5(stubInputStream)
 
         then:
         UncheckedIOException e = thrown()
@@ -84,16 +86,19 @@ class HashUtilTest extends Specification {
     def "createCompactMD5 returns correct String" () {
         expect:
         HashUtil.createCompactMD5(stringToHash) == new BigInteger(md5HashString, 16).toString(36)
+        HashUtil.createCompactMD5("") == "ck2u8j60r58fu0sgyxrigm3cu"
+        HashUtil.createCompactMD5("a") == "r6p51cluyxfm1x21kf967yw1"
+        HashUtil.createCompactMD5("i") == "7ycx034q3zbhupl01mv32dx6p"
     }
 
     def "sha1 from byteArray returns SHA1 hash" () {
         expect:
-        HashUtil.sha1(stringToHash.bytes).asHexString() == sha1HashString
+        HashUtil.sha1(stringToHash.bytes).toString() == sha1HashString
     }
 
     def "sha1 from InputStream returns SHA1 hash" () {
         expect:
-        HashUtil.sha1(new ByteArrayInputStream(stringToHash.bytes)).asHexString() == sha1HashString
+        HashUtil.sha1(new ByteArrayInputStream(stringToHash.bytes)).toString() == sha1HashString
     }
 
     def "sha1 from File returns SHA1 hash" () {
@@ -102,7 +107,7 @@ class HashUtilTest extends Specification {
         file << stringToHash
 
         expect:
-        HashUtil.sha1(file).asHexString() == sha1HashString
+        HashUtil.sha1(file).toString() == sha1HashString
 
         cleanup:
         file?.delete()
@@ -110,12 +115,12 @@ class HashUtilTest extends Specification {
 
     def "sha256 from byteArray returns SHA-256 hash" () {
         expect:
-        HashUtil.sha256(stringToHash.bytes).asHexString() == sha256HashString
+        HashUtil.sha256(stringToHash.bytes).toString() == sha256HashString
     }
 
     def "sha256 from InputStream returns SHA-256 hash" () {
         expect:
-        HashUtil.sha256(new ByteArrayInputStream(stringToHash.bytes)).asHexString() == sha256HashString
+        HashUtil.sha256(new ByteArrayInputStream(stringToHash.bytes)).toString() == sha256HashString
     }
 
     def "sha256 from File returns SHA-256 hash" () {
@@ -124,7 +129,7 @@ class HashUtilTest extends Specification {
         file << stringToHash
 
         expect:
-        HashUtil.sha256(file).asHexString() == sha256HashString
+        HashUtil.sha256(file).toString() == sha256HashString
 
         cleanup:
         file?.delete()

@@ -19,6 +19,7 @@ package org.gradle.internal.hash;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Serializable;
+import java.math.BigInteger;
 
 public class HashCode implements Serializable, Comparable<HashCode> {
     private static final int MIN_NUMBER_OF_BYTES = 4;
@@ -156,5 +157,9 @@ public class HashCode implements Serializable, Comparable<HashCode> {
             sb.append(HEX_DIGITS[(b >> 4) & 0xf]).append(HEX_DIGITS[b & 0xf]);
         }
         return sb.toString();
+    }
+
+    public String toCompactString() {
+        return new BigInteger(1, bytes).toString(36);
     }
 }

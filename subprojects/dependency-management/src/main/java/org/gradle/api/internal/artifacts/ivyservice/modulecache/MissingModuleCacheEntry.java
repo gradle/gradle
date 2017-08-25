@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
-import java.math.BigInteger;
+import org.gradle.internal.hash.HashCode;
 
 class MissingModuleCacheEntry extends ModuleMetadataCacheEntry {
     public MissingModuleCacheEntry(long createTimestamp) {
-        super(TYPE_MISSING, false, createTimestamp, BigInteger.ZERO, null);
+        super(TYPE_MISSING, false, createTimestamp, HashCode.fromInt(0), null);
     }
 }

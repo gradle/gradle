@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resource.local;
 
-import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.hash.HashCode;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -37,7 +37,7 @@ public class CompositeLocallyAvailableResourceFinder<C> implements LocallyAvaila
 
         return new CompositeLocallyAvailableResourceCandidates(allCandidates);
     }
-    
+
     private static class CompositeLocallyAvailableResourceCandidates implements LocallyAvailableResourceCandidates {
         private final List<LocallyAvailableResourceCandidates> allCandidates;
 
@@ -55,9 +55,9 @@ public class CompositeLocallyAvailableResourceFinder<C> implements LocallyAvaila
             return true;
         }
 
-        public LocallyAvailableResource findByHashValue(HashValue hashValue) {
+        public LocallyAvailableResource findByHash(HashCode hashCode) {
             for (LocallyAvailableResourceCandidates candidates : allCandidates) {
-                LocallyAvailableResource match = candidates.findByHashValue(hashValue);
+                LocallyAvailableResource match = candidates.findByHash(hashCode);
                 if (match != null) {
                     return match;
                 }

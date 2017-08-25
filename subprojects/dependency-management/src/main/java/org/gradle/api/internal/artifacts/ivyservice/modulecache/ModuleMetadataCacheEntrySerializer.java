@@ -18,12 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import com.google.common.base.Objects;
 import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DefaultSerializer;
 import org.gradle.internal.serialize.Encoder;
-
-import java.math.BigInteger;
 
 class ModuleMetadataCacheEntrySerializer extends AbstractSerializer<ModuleMetadataCacheEntry> {
     private final DefaultSerializer<ModuleSource> moduleSourceSerializer = new DefaultSerializer<ModuleSource>(ModuleSource.class.getClassLoader());
@@ -57,7 +56,7 @@ class ModuleMetadataCacheEntrySerializer extends AbstractSerializer<ModuleMetada
                 createTimestamp = decoder.readLong();
                 ModuleSource moduleSource = moduleSourceSerializer.read(decoder);
                 byte[] encodedHash = decoder.readBinary();
-                BigInteger hash = new BigInteger(encodedHash);
+                HashCode hash = HashCode.fromBytes(encodedHash);
                 return new ModuleMetadataCacheEntry(ModuleMetadataCacheEntry.TYPE_PRESENT, isChanging, createTimestamp, hash, moduleSource);
             default:
                 throw new IllegalArgumentException("Don't know how to deserialize meta-data entry of type " + type);

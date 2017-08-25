@@ -17,15 +17,15 @@
 package org.gradle.internal.resource.local
 
 import org.gradle.internal.Factory
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.internal.hash.HashUtil
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 class LazyLocallyAvailableResourceCandidatesTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider tmp
-    
+
     def "does not query factory until necessary"() {
         given:
         def factory = Mock(Factory)
@@ -35,22 +35,22 @@ class LazyLocallyAvailableResourceCandidatesTest extends Specification {
 
         then:
         0 * factory.create()
-        
+
         when:
         def isNone = candidates.isNone()
-        
+
         then:
         !isNone
         1 * factory.create() >> [file("abc"), file("def")]
-        
+
         when:
-        def candidate = candidates.findByHashValue(HashUtil.sha1("def".bytes))
+        def candidate = candidates.findByHash(HashUtil.sha1("def".bytes))
 
         then:
         candidate.file.name == "def"
         0 * factory.create()
     }
-    
+
     File file(path) {
         tmp.createFile(path) << path
     }

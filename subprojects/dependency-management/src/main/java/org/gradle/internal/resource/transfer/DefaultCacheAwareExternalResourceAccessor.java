@@ -26,8 +26,8 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.Factory;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.HashUtil;
-import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceReadResult;
@@ -125,14 +125,14 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                 boolean hasLocalCandidates = additionalCandidates != null && !additionalCandidates.isNone();
                 if (hasLocalCandidates) {
                     // The “remote” may have already given us the checksum
-                    HashValue remoteChecksum = remoteMetaData.getSha1();
+                    HashCode remoteChecksum = remoteMetaData.getSha1();
 
                     if (remoteChecksum == null) {
                         remoteChecksum = getResourceSha1(location, revalidate);
                     }
 
                     if (remoteChecksum != null) {
-                        LocallyAvailableResource local = additionalCandidates.findByHashValue(remoteChecksum);
+                        LocallyAvailableResource local = additionalCandidates.findByHash(remoteChecksum);
                         if (local != null) {
                             LOGGER.info("Found locally available resource with matching checksum: [{}, {}]", location, local.getFile());
                             // TODO - should iterate over each candidate until we successfully copy into the cache
@@ -155,16 +155,16 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         });
     }
 
-    private HashValue getResourceSha1(ExternalResourceName location, boolean revalidate) {
+    private HashCode getResourceSha1(ExternalResourceName location, boolean revalidate) {
         try {
             ExternalResourceName sha1Location = location.append(".sha1");
             ExternalResource resource = delegate.resource(sha1Location, revalidate);
-            ExternalResourceReadResult<HashValue> result = resource.withContentIfPresent(new Transformer<HashValue, InputStream>() {
+            ExternalResourceReadResult<HashCode> result = resource.withContentIfPresent(new Transformer<HashCode, InputStream>() {
                 @Override
-                public HashValue transform(InputStream inputStream) {
+                public HashCode transform(InputStream inputStream) {
                     try {
                         String sha = IOUtils.toString(inputStream, "us-ascii");
-                        return HashValue.parse(sha);
+                        return HashCode.fromString(sha);
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
@@ -176,11 +176,11 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         }
     }
 
-    private LocallyAvailableExternalResource copyCandidateToCache(ExternalResourceName source, ResourceFileStore fileStore, ExternalResourceMetaData remoteMetaData, HashValue remoteChecksum, LocallyAvailableResource local) throws IOException {
+    private LocallyAvailableExternalResource copyCandidateToCache(ExternalResourceName source, ResourceFileStore fileStore, ExternalResourceMetaData remoteMetaData, HashCode remoteChecksum, LocallyAvailableResource local) throws IOException {
         final File destination = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
         try {
             Files.copy(local.getFile(), destination);
-            HashValue localChecksum = HashUtil.createHash(destination, "SHA1");
+            HashCode localChecksum = HashUtil.sha1(destination);
             if (!localChecksum.equals(remoteChecksum)) {
                 return null;
             }

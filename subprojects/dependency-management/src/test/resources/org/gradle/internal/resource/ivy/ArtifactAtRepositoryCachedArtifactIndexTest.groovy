@@ -17,12 +17,13 @@
 package org.gradle.internal.resource.ivy
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
+import org.gradle.cache.PersistentIndexedCache
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.cached.CachedArtifact
 import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryCachedArtifactIndex
 import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryKey
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
-import org.gradle.cache.PersistentIndexedCache
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.BuildCommencedTimeProvider
 import org.junit.Rule
@@ -71,14 +72,14 @@ class ArtifactAtRepositoryCachedArtifactIndexTest extends Specification {
         def key = new ArtifactAtRepositoryKey("RepoID", Stub(ModuleComponentArtifactIdentifier));
         def testFile = folder.createFile("aTestFile");
         when:
-        index.store(key, testFile, BigInteger.TEN)
+        index.store(key, testFile, HashCode.fromInt(10))
 
         then:
         1 * cacheLockingManager.useCache("store into artifact resolution cache \'cacheFile\'", _) >> {descr, action -> action.run()}
         1 * timeProvider.currentTime >> 123
         1 * persistentIndexedCache.put(key, _) >> { k, v ->
             assert v.cachedAt == 123
-            assert v.descriptorHash == BigInteger.TEN
+            assert v.descriptorHash == HashCode.fromInt(10)
             assert v.cachedFile == testFile
         }
     }

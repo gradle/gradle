@@ -16,15 +16,19 @@
 
 package org.gradle.test.fixtures.server.http
 
+import org.gradle.internal.hash.HashFunction
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.resource.RemoteArtifact
+
+import static org.gradle.internal.hash.Hashing.md5
+import static org.gradle.internal.hash.Hashing.sha1
 
 abstract class HttpArtifact extends HttpResource implements RemoteArtifact {
 
     String modulePath
 
-    public HttpArtifact(HttpServer server, String modulePath) {
+    HttpArtifact(HttpServer server, String modulePath) {
         super(server)
         this.modulePath = modulePath
     }
@@ -50,13 +54,13 @@ abstract class HttpArtifact extends HttpResource implements RemoteArtifact {
     void verifyChecksums() {
         def sha1File = getSha1File()
         sha1File.assertIsFile()
-        assert new BigInteger(sha1File.text, 16) == new BigInteger(getHash(getFile(), "sha1"), 16)
+        assert new BigInteger(sha1File.text, 16) == new BigInteger(getHash(getFile(), sha1()), 16)
         def md5File = getMd5File()
         md5File.assertIsFile()
-        assert new BigInteger(md5File.text, 16) == new BigInteger(getHash(getFile(), "md5"), 16)
+        assert new BigInteger(md5File.text, 16) == new BigInteger(getHash(getFile(), md5()), 16)
     }
 
-    protected String getHash(TestFile file, String algorithm) {
-        HashUtil.createHash(file, algorithm.toUpperCase()).asHexString()
+    protected static String getHash(TestFile file, HashFunction hashFunction) {
+        HashUtil.createHash(file, hashFunction).toString()
     }
 }

@@ -22,7 +22,6 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.HashFunction
-import org.gradle.internal.hash.HashValue
 import org.gradle.internal.hash.Hasher
 import spock.lang.Specification
 
@@ -64,7 +63,7 @@ class DefaultCacheKeyBuilderTest extends Specification {
         0 * _
 
         and:
-        key == "$prefix/${toCompactHash(stringHash)}"
+        key == "$prefix/${stringHash.toCompactString()}"
     }
 
     def 'given a File component, it should hash it and append it to the prefix'() {
@@ -81,7 +80,7 @@ class DefaultCacheKeyBuilderTest extends Specification {
         0 * _
 
         and:
-        key == "$prefix/${toCompactHash(fileHash)}"
+        key == "$prefix/${fileHash.toCompactString()}"
     }
 
     def 'given a ClassPath component, it should snapshot it and append it to the prefix'() {
@@ -98,7 +97,7 @@ class DefaultCacheKeyBuilderTest extends Specification {
         0 * _
 
         and:
-        key == "$prefix/${toCompactHash(classPathHash)}"
+        key == "$prefix/${classPathHash.toCompactString()}"
     }
 
     def 'given a ClassLoader component, it should hash its hierarchy and append it to the prefix'() {
@@ -115,7 +114,7 @@ class DefaultCacheKeyBuilderTest extends Specification {
         0 * _
 
         and:
-        key == "$prefix/${toCompactHash(classLoaderHierarchyHash)}"
+        key == "$prefix/${classLoaderHierarchyHash.toCompactString()}"
     }
 
     def 'given more than one component, it should combine their hashes together and append the combined hash to the prefix'() {
@@ -141,10 +140,6 @@ class DefaultCacheKeyBuilderTest extends Specification {
         0 * _
 
         and:
-        key == "$prefix/${toCompactHash(combinedHash)}"
-    }
-
-    private static String toCompactHash(HashCode hash) {
-        return new HashValue(hash.toByteArray()).asCompactString()
+        key == "$prefix/${combinedHash.toCompactString()}"
     }
 }

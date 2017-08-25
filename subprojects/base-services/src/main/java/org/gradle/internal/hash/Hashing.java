@@ -30,12 +30,18 @@ public class Hashing {
 
     private static final HashFunction SHA1 = MessageDigestHashFunction.of("SHA-1");
 
+    private static final HashFunction SHA256 = MessageDigestHashFunction.of("SHA-256");
+
     public static HashFunction md5() {
         return MD5;
     }
 
     public static HashFunction sha1() {
         return SHA1;
+    }
+
+    public static HashFunction sha256() {
+        return SHA256;
     }
 
     private static abstract class MessageDigestHashFunction implements HashFunction {
@@ -75,6 +81,9 @@ public class Hashing {
         }
 
         protected abstract MessageDigest createDigest();
+
+        @Override
+        abstract public String toString();
     }
 
     private static class CloningMessageDigestHashFunction extends MessageDigestHashFunction {
@@ -92,6 +101,11 @@ public class Hashing {
                 throw new AssertionError(e);
             }
         }
+
+        @Override
+        public String toString() {
+            return prototype.getAlgorithm();
+        }
     }
 
     private static class RegularMessageDigestHashFunction extends MessageDigestHashFunction {
@@ -108,6 +122,11 @@ public class Hashing {
             } catch (NoSuchAlgorithmException e) {
                 throw new AssertionError(e);
             }
+        }
+
+        @Override
+        public String toString() {
+            return algorithm;
         }
     }
 

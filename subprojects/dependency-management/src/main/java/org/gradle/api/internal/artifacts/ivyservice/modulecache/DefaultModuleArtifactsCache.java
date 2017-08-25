@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetadataSerializer;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -30,7 +31,6 @@ import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SetSerializer;
 import org.gradle.util.BuildCommencedTimeProvider;
 
-import java.math.BigInteger;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -55,7 +55,7 @@ public class DefaultModuleArtifactsCache implements ModuleArtifactsCache {
         return cacheLockingManager.createCache("module-artifacts", new ModuleArtifactsKeySerializer(), new ModuleArtifactsCacheEntrySerializer());
     }
 
-    public CachedArtifacts cacheArtifacts(ModuleComponentRepository repository, ComponentIdentifier componentId, String context, BigInteger descriptorHash, Set<? extends ComponentArtifactMetadata> artifacts) {
+    public CachedArtifacts cacheArtifacts(ModuleComponentRepository repository, ComponentIdentifier componentId, String context, HashCode descriptorHash, Set<? extends ComponentArtifactMetadata> artifacts) {
         ModuleArtifactsKey key = new ModuleArtifactsKey(repository.getId(), componentId, context);
         ModuleArtifactsCacheEntry entry = new ModuleArtifactsCacheEntry(artifacts, timeProvider.getCurrentTime(), descriptorHash);
         getCache().put(key, entry);
@@ -143,10 +143,10 @@ public class DefaultModuleArtifactsCache implements ModuleArtifactsCache {
 
     private static class ModuleArtifactsCacheEntry {
         private final Set<ComponentArtifactMetadata> artifacts;
-        private final BigInteger moduleDescriptorHash;
+        private final HashCode moduleDescriptorHash;
         private final long createTimestamp;
 
-        ModuleArtifactsCacheEntry(Set<? extends ComponentArtifactMetadata> artifacts, long createTimestamp, BigInteger moduleDescriptorHash) {
+        ModuleArtifactsCacheEntry(Set<? extends ComponentArtifactMetadata> artifacts, long createTimestamp, HashCode moduleDescriptorHash) {
             this.artifacts = new LinkedHashSet<ComponentArtifactMetadata>(artifacts);
             this.createTimestamp = createTimestamp;
             this.moduleDescriptorHash = moduleDescriptorHash;
@@ -166,7 +166,7 @@ public class DefaultModuleArtifactsCache implements ModuleArtifactsCache {
         public ModuleArtifactsCacheEntry read(Decoder decoder) throws Exception {
             long createTimestamp = decoder.readLong();
             byte[] encodedHash = decoder.readBinary();
-            BigInteger hash = new BigInteger(encodedHash);
+            HashCode hash = HashCode.fromBytes(encodedHash);
             Set<ComponentArtifactMetadata> artifacts = artifactsSerializer.read(decoder);
             return new ModuleArtifactsCacheEntry(artifacts, createTimestamp, hash);
         }
@@ -189,10 +189,10 @@ public class DefaultModuleArtifactsCache implements ModuleArtifactsCache {
 
     private static class DefaultCachedArtifacts implements ModuleArtifactsCache.CachedArtifacts {
         private final Set<ComponentArtifactMetadata> artifacts;
-        private final BigInteger descriptorHash;
+        private final HashCode descriptorHash;
         private final long ageMillis;
 
-        private DefaultCachedArtifacts(Set<ComponentArtifactMetadata> artifacts, BigInteger descriptorHash, long ageMillis) {
+        private DefaultCachedArtifacts(Set<ComponentArtifactMetadata> artifacts, HashCode descriptorHash, long ageMillis) {
             this.ageMillis = ageMillis;
             this.artifacts = artifacts;
             this.descriptorHash = descriptorHash;
@@ -202,7 +202,7 @@ public class DefaultModuleArtifactsCache implements ModuleArtifactsCache {
             return artifacts;
         }
 
-        public BigInteger getDescriptorHash() {
+        public HashCode getDescriptorHash() {
             return descriptorHash;
         }
 

@@ -41,6 +41,7 @@ import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resolve.ArtifactNotFoundException;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
@@ -58,7 +59,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.math.BigInteger;
 import java.util.Map;
 import java.util.Set;
 
@@ -248,7 +248,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
         private void resolveModuleArtifactsFromCache(String contextId, ComponentResolveMetadata component, BuildableArtifactSetResolveResult result, CachingModuleSource cachedModuleSource) {
             ModuleArtifactsCache.CachedArtifacts cachedModuleArtifacts = moduleArtifactsCache.getCachedArtifacts(delegate, component.getComponentId(), contextId);
-            BigInteger moduleDescriptorHash = cachedModuleSource.getDescriptorHash();
+            HashCode moduleDescriptorHash = cachedModuleSource.getDescriptorHash();
 
             if (cachedModuleArtifacts != null) {
                 if (!cachePolicy.mustRefreshModuleArtifacts(component.getId(), null, cachedModuleArtifacts.getAgeMillis(),
@@ -310,7 +310,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
         private void resolveArtifactFromCache(ComponentArtifactMetadata artifact, CachingModuleSource moduleSource, BuildableArtifactResolveResult result) {
             CachedArtifact cached = artifactAtRepositoryCachedResolutionIndex.lookup(artifactCacheKey(artifact));
-            final BigInteger descriptorHash = moduleSource.getDescriptorHash();
+            final HashCode descriptorHash = moduleSource.getDescriptorHash();
             if (cached != null) {
                 long age = timeProvider.getCurrentTime() - cached.getCachedAt();
                 final boolean isChangingModule = moduleSource.isChangingModule();
@@ -432,11 +432,11 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     }
 
     static class CachingModuleSource implements ModuleSource {
-        private final BigInteger descriptorHash;
+        private final HashCode descriptorHash;
         private final boolean changingModule;
         private final ModuleSource delegate;
 
-        public CachingModuleSource(BigInteger descriptorHash, boolean changingModule, ModuleSource delegate) {
+        public CachingModuleSource(HashCode descriptorHash, boolean changingModule, ModuleSource delegate) {
             this.delegate = delegate;
             this.descriptorHash = descriptorHash;
             this.changingModule = changingModule;
@@ -447,7 +447,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             return "{descriptor: " + descriptorHash + ", changing: " + changingModule + ", source: " + delegate + "}";
         }
 
-        public BigInteger getDescriptorHash() {
+        public HashCode getDescriptorHash() {
             return descriptorHash;
         }
 

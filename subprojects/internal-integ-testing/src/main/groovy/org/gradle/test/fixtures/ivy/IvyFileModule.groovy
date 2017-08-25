@@ -17,6 +17,7 @@ package org.gradle.test.fixtures.ivy
 
 import groovy.xml.MarkupBuilder
 import org.gradle.api.Action
+import org.gradle.internal.hash.Hashing
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.test.fixtures.AbstractModule
 import org.gradle.test.fixtures.Module
@@ -350,7 +351,7 @@ ivyFileWriter << '</ivy-module>'
     void assertChecksumPublishedFor(TestFile testFile) {
         def sha1File = sha1File(testFile)
         sha1File.assertIsFile()
-        assert new BigInteger(sha1File.text, 16) == getHash(testFile, "SHA1")
+        assert new BigInteger(sha1File.text, 16) == getHash(testFile, Hashing.sha1())
     }
 
     void assertNotPublished() {

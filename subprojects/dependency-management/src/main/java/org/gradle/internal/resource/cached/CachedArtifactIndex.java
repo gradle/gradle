@@ -16,11 +16,11 @@
 
 package org.gradle.internal.resource.cached;
 
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryKey;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.math.BigInteger;
 import java.util.List;
 
 public interface CachedArtifactIndex {
@@ -33,7 +33,7 @@ public interface CachedArtifactIndex {
      * @param artifactFile The artifact file in the persistent file store. Cannot be null
      * @param moduleDescriptorHash The checksum (SHA1) of the related moduledescriptor.
      */
-    void store(ArtifactAtRepositoryKey key, File artifactFile, BigInteger moduleDescriptorHash);
+    void store(ArtifactAtRepositoryKey key, File artifactFile, HashCode moduleDescriptorHash);
 
     /**
      * Record that the artifact with the given key was missing.
@@ -41,7 +41,7 @@ public interface CachedArtifactIndex {
      * @param key The key to cache this resolution under in the index.
      * @param descriptorHash The SHA1 hash of the related moduleDescriptor
      */
-    void storeMissing(ArtifactAtRepositoryKey key, List<String> attemptedLocations, BigInteger descriptorHash);
+    void storeMissing(ArtifactAtRepositoryKey key, List<String> attemptedLocations, HashCode descriptorHash);
 
     /**
      * Lookup a cached resolution.

@@ -20,21 +20,25 @@ import org.apache.commons.io.FilenameUtils
 import org.apache.tools.zip.ZipEntry
 import org.apache.tools.zip.ZipOutputStream
 import org.gradle.internal.IoActions
+import org.gradle.internal.hash.HashFunction
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestFile
+
+import static org.gradle.internal.hash.Hashing.md5
+import static org.gradle.internal.hash.Hashing.sha1
 
 abstract class AbstractModule {
     /**
      Last modified date for writeZipped to be able to create zipFiles with identical hashes
      */
-    private static Date lmd = new Date();
+    private static Date lmd = new Date()
 
     /**
      * @param cl A closure that is passed a writer to use to generate the content.
      */
     protected void publish(TestFile file, Closure cl) {
         file.parentFile.mkdirs()
-        def hashBefore = file.exists() ? getHash(file, "sha1") : null
+        def hashBefore = file.exists() ? getHash(file, sha1()) : null
         def tmpFile = file.parentFile.file("${file.name}.tmp")
 
         if(isJarFile(file)) {
@@ -43,7 +47,7 @@ abstract class AbstractModule {
             writeContents(tmpFile, cl)
         }
 
-        def hashAfter = getHash(tmpFile, "sha1")
+        def hashAfter = getHash(tmpFile, sha1())
         if (hashAfter == hashBefore) {
             // Already published
             return
@@ -54,11 +58,11 @@ abstract class AbstractModule {
         onPublish(file)
     }
 
-    private void writeContents(output, Closure cl) {
+    private static void writeContents(output, Closure cl) {
         output.withWriter("utf-8", cl)
     }
 
-    private void writeZipped(TestFile testFile, Closure cl) {
+    private static void writeZipped(TestFile testFile, Closure cl) {
         def bos = new ByteArrayOutputStream()
         writeContents(bos, cl)
 
@@ -75,40 +79,40 @@ abstract class AbstractModule {
         }
     }
 
-    private boolean isJarFile(TestFile testFile) {
+    private static boolean isJarFile(TestFile testFile) {
         return FilenameUtils.getExtension(testFile.getName()) == 'jar'
     }
 
     protected abstract onPublish(TestFile file)
 
-    TestFile getSha1File(TestFile file) {
-        getHashFile(file, "sha1")
+    static TestFile getSha1File(TestFile file) {
+        getHashFile(file, sha1())
     }
 
-    TestFile sha1File(TestFile file) {
-        hashFile(file, "sha1", 40)
+    static TestFile sha1File(TestFile file) {
+        hashFile(file, sha1(), 40)
     }
 
-    TestFile getMd5File(TestFile file) {
-        getHashFile(file, "md5")
+    static TestFile getMd5File(TestFile file) {
+        getHashFile(file, md5())
     }
 
-    TestFile md5File(TestFile file) {
-        hashFile(file, "md5", 32)
+    static TestFile md5File(TestFile file) {
+        hashFile(file, md5(), 32)
     }
 
-    private TestFile hashFile(TestFile file, String algorithm, int len) {
-        def hashFile = getHashFile(file, algorithm)
-        def hash = getHash(file, algorithm)
-        hashFile.text = String.format("%0${len}x", hash)
+    private static TestFile hashFile(TestFile file, HashFunction hashFunction, int len) {
+        def hashFile = getHashFile(file, hashFunction)
+        def hash = getHash(file, hashFunction)
+        hashFile.text = String.format("%0${len}x", new BigInteger(1, hash.toByteArray()))
         return hashFile
     }
 
-    private TestFile getHashFile(TestFile file, String algorithm) {
-        file.parentFile.file("${file.name}.${algorithm}")
+    private static TestFile getHashFile(TestFile file, HashFunction hashFunction) {
+        file.parentFile.file("${file.name}.${hashFunction.toString().toLowerCase().replaceAll(/-/, "")}")
     }
 
-    protected BigInteger getHash(TestFile file, String algorithm) {
-        HashUtil.createHash(file, algorithm.toUpperCase()).asBigInteger()
+    protected static BigInteger getHash(TestFile file, HashFunction hashFunction) {
+        new BigInteger(1, HashUtil.createHash(file, hashFunction).toByteArray())
     }
 }
