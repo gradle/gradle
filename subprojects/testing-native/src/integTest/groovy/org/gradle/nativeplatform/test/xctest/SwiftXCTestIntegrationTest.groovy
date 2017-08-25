@@ -45,7 +45,7 @@ apply plugin: 'swift-library'
         succeeds("test")
 
         then:
-        result.assertTasksSkipped(":compileSwift", ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
     }
 
     def "xctest plugin can test public and internal feature of a Swift library"() {
@@ -87,7 +87,7 @@ apply plugin: 'swift-executable'
         succeeds("test")
 
         then:
-        result.assertTasksSkipped(":compileSwift", ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
     }
 
     def "xctest plugin can test public and internal feature of a Swift executable"() {
@@ -115,7 +115,7 @@ linkTest.source = project.files(new HashSet(linkTest.source.from)).filter { !it.
         succeeds("test")
 
         then:
-        executedAndNotSkipped(":compileSwift", ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        executedAndNotSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
 
     }
 }
