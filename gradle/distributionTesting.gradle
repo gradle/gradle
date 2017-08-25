@@ -306,9 +306,15 @@ project(":") {
     }
     task killExistingProcessesStartedByGradle {
         doLast {
+            def didKill = false
             forEachJavaProcess { pid, process ->
                 logger.warn("A process wasn't shutdown properly in a previous Gradle run. Killing process with PID $pid (Command line: $process)")
                 pkill(pid)
+                didKill = true
+            }
+            if (didKill && org.gradle.internal.os.OperatingSystem.current().windows) {
+                //it might take a moment until file handles are released on Windows
+                Thread.sleep(5000)
             }
         }
     }
