@@ -16,6 +16,11 @@
 
 package org.gradle.internal.logging.console.jvm
 
+import org.gradle.util.ToBeImplemented
+import spock.lang.Ignore
+
+@Ignore
+@ToBeImplemented
 class ConsoleTestNGTestWorkerFunctionalTest extends AbstractConsoleJvmTestWorkerFunctionalTest {
 
     @Override
