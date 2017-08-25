@@ -64,27 +64,37 @@ public class FixedSharedModeCrossProcessCacheAccess extends AbstractCrossProcess
         try {
             boolean rebuild = initializationAction.requiresInitialization(fileLock);
             if (rebuild) {
+                Exception latestException = null;
                 for (int tries = 0; rebuild && tries < 3; tries++) {
                     fileLock.close();
                     fileLock = null;
-                    final FileLock exclusiveLock = lockManager.lock(lockTarget, lockOptions.withMode(Exclusive), cacheDisplayName);
+                    FileLock exclusiveLock = null;
+                    try {
+                        exclusiveLock = lockManager.lock(lockTarget, lockOptions.withMode(Exclusive), cacheDisplayName);
+                    } catch (Exception e) {
+                        // acquiring the exclusive lock can fail in the rare case where another process is just doing or has just done the cache initialization
+                        latestException = e;
+                    }
                     try {
                         rebuild = initializationAction.requiresInitialization(exclusiveLock);
-                        if (rebuild) {
+                        if (rebuild && exclusiveLock != null) {
+                            final FileLock acquiredExclusiveLock = exclusiveLock;
                             exclusiveLock.writeFile(new Runnable() {
                                 public void run() {
-                                    initializationAction.initialize(exclusiveLock);
+                                    initializationAction.initialize(acquiredExclusiveLock);
                                 }
                             });
                         }
                     } finally {
-                        exclusiveLock.close();
+                        if (exclusiveLock != null) {
+                            exclusiveLock.close();
+                        }
                     }
                     fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName);
                     rebuild = initializationAction.requiresInitialization(fileLock);
                 }
                 if (rebuild) {
-                    throw new CacheOpenException(String.format("Failed to initialize %s", cacheDisplayName));
+                    throw new CacheOpenException(String.format("Failed to initialize %s", cacheDisplayName), latestException);
                 }
             }
             onOpenAction.execute(fileLock);
