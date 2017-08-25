@@ -27,6 +27,19 @@ import static org.gradle.util.Matchers.containsText
 
 @Requires(TestPrecondition.SWIFT_SUPPORT)
 class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+    def "skip compile, link and install tasks when no source"() {
+        given:
+        buildFile << """
+            apply plugin: 'swift-executable'
+        """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installMain", ":assemble")
+        // TODO - should skip the task as NO-SOURCE
+        result.assertTasksSkipped(":compileDebugSwift", ":linkDebug", ":installMain", ":assemble")
+    }
+
     def "build fails when compilation fails"() {
         given:
         buildFile << """
