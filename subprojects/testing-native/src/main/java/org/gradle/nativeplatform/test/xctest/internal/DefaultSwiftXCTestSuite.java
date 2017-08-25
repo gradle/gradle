@@ -17,29 +17,43 @@
 package org.gradle.nativeplatform.test.xctest.internal;
 
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.file.DirectoryVar;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.language.swift.SwiftBinary;
-import org.gradle.language.swift.internal.DefaultSwiftBinary;
+import org.gradle.language.swift.SwiftBundle;
+import org.gradle.language.swift.internal.DefaultSwiftBundle;
 import org.gradle.language.swift.internal.DefaultSwiftComponent;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
 
-public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements SwiftXCTestSuite {
-    private final DefaultSwiftBinary executable;
+import javax.inject.Inject;
 
-    public DefaultSwiftXCTestSuite(String name, ObjectFactory objectFactory, FileOperations fileOperations, ProviderFactory providerFactory, ConfigurationContainer configurations) {
+public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements SwiftXCTestSuite {
+    private final DefaultSwiftBundle executable;
+    private final DirectoryVar resourceDirectory;
+
+    @Inject
+    public DefaultSwiftXCTestSuite(String name, ObjectFactory objectFactory, FileOperations fileOperations, ProviderFactory providerFactory, ConfigurationContainer configurations, ProjectLayout projectLayout) {
         super(name, fileOperations, providerFactory, configurations);
-        executable = new DefaultSwiftBinary(name + "Exe", objectFactory, getModule(), true, getSwiftSource(), configurations, getImplementationDependencies());
+
+        resourceDirectory = projectLayout.newDirectoryVar();
+        resourceDirectory.set(projectLayout.getProjectDirectory().dir("src/" + name + "/resources"));
+        executable = new DefaultSwiftBundle(name + "Exe", objectFactory, getModule(), true, getSwiftSource(), configurations, getImplementationDependencies(), getResourceDir());
     }
 
     @Override
-    public SwiftBinary getDevelopmentBinary() {
+    public DirectoryVar getResourceDir() {
+        return resourceDirectory;
+    }
+
+    @Override
+    public SwiftBundle getDevelopmentBinary() {
         return executable;
     }
 
     @Override
-    public SwiftBinary getExecutable() {
+    public SwiftBundle getExecutable() {
         return executable;
     }
 }

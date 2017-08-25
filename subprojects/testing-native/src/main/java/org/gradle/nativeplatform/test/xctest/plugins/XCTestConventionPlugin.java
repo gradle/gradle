@@ -26,34 +26,33 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryVar;
-import org.gradle.api.file.RegularFile;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.language.nativeplatform.internal.Names;
+import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
 import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
 import org.gradle.language.swift.tasks.SwiftCompile;
-import org.gradle.nativeplatform.platform.NativePlatform;
-import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
-import org.gradle.nativeplatform.tasks.LinkExecutable;
+import org.gradle.nativeplatform.tasks.LinkBundle;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.internal.MacOSSdkPlatformPathLocator;
 import org.gradle.nativeplatform.test.xctest.tasks.CreateXcTestBundle;
 import org.gradle.nativeplatform.test.xctest.tasks.XcTest;
-import org.gradle.nativeplatform.toolchain.NativeToolChain;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.concurrent.Callable;
 
 /**
  * A plugin that sets up the infrastructure for testing native binaries with XCTest test framework. It also adds conventions on top of it.
@@ -62,13 +61,13 @@ import java.io.File;
  */
 @Incubating
 public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
-    private final FileOperations fileOperations;
     private final MacOSSdkPlatformPathLocator sdkPlatformPathLocator;
+    private final ObjectFactory objectFactory;
 
     @Inject
-    public XCTestConventionPlugin(FileOperations fileOperations, MacOSSdkPlatformPathLocator sdkPlatformPathLocator) {
-        this.fileOperations = fileOperations;
+    public XCTestConventionPlugin(MacOSSdkPlatformPathLocator sdkPlatformPathLocator, ObjectFactory objectFactory) {
         this.sdkPlatformPathLocator = sdkPlatformPathLocator;
+        this.objectFactory = objectFactory;
     }
 
     @Override
@@ -90,9 +89,14 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         // TODO - component name and extension name aren't the same
         // TODO - should use `src/xctext/swift` as the convention?
         // Add the component extension
-        SwiftXCTestSuite component = project.getExtensions().create(SwiftXCTestSuite.class, "xctest", DefaultSwiftXCTestSuite.class, "test", project.getObjects(), fileOperations, providers, configurations);
+        SwiftXCTestSuite component = objectFactory.newInstance(DefaultSwiftXCTestSuite.class, "test", configurations);
+        project.getExtensions().add(SwiftXCTestSuite.class, "xctest", component);
         project.getComponents().add(component);
         project.getComponents().add(component.getExecutable());
+
+        // Setup component
+        final PropertyState<String> module = component.getModule();
+        module.set(GUtil.toCamelCase(project.getName() + "Test"));
 
         // Configure compile task
         SwiftCompile compile = (SwiftCompile) tasks.getByName("compileTestSwift");
@@ -100,31 +104,25 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         compile.getCompilerArgs().set(Lists.newArrayList("-g", "-F" + frameworkDir.getAbsolutePath()));
         compile.setModuleName(project.getName() + "Test");
 
-        NativeToolChain toolChain = compile.getToolChain();
-        NativePlatform targetPlatform = compile.getTargetPlatform();
-
-        // TODO - move up to base plugin
         // Add a link task
-        LinkExecutable link = tasks.create("linkTest", LinkExecutable.class);
-        // TODO - need to set basename from component
-        link.source(compile.getObjectFileDir().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
-        link.lib(component.getExecutable().getLinkLibraries());
+        LinkBundle link = (LinkBundle) tasks.getByName("linkTest");
         link.getLinkerArgs().set(Lists.newArrayList("-Xlinker", "-bundle", "-F" + frameworkDir.getAbsolutePath(), "-framework", "XCTest", "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks", "-Xlinker", "-rpath", "-Xlinker", "@loader_path/../Frameworks"));
-        PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select((NativePlatformInternal) targetPlatform);
-        Provider<RegularFile> exeLocation = buildDirectory.file(toolProvider.getExecutableName("exe/" + project.getName() + "Test"));
-        link.setOutputFile(exeLocation);
-        link.setTargetPlatform(targetPlatform);
-        link.setToolChain(toolChain);
-        link.setDebuggable(true);
 
         configureTestedComponent(project);
 
-        // TODO - need to set basename from component
-        Provider<Directory> testBundleDir = buildDirectory.dir("bundle/" + project.getName() + "Test.xctest");
+        final SwiftBinary binary = component.getExecutable();
+        final Names names = Names.of(binary.getName());
+        Provider<Directory> testBundleDir = buildDirectory.dir(providers.provider(new Callable<String>() {
+            @Override
+            public String call() {
+                return "bundle/" + names.getDirName() + binary.getModule().get() + ".xctest";
+            }
+        }));
+
         final CreateXcTestBundle testBundle = tasks.create("createXcTestBundle", CreateXcTestBundle.class);
         testBundle.setExecutableFile(link.getBinaryFile());
         // TODO - should be defined on the component
-        testBundle.setInformationFile(project.file("src/test/resources/Info.plist"));
+        testBundle.setInformationFile(component.getExecutable().getInformationPropertyList());
         testBundle.setOutputDir(testBundleDir);
         testBundle.onlyIf(new Spec<Task>() {
             @Override

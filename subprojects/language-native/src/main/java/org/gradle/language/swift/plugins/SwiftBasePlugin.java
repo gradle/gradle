@@ -31,12 +31,14 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftBinary;
+import org.gradle.language.swift.SwiftBundle;
 import org.gradle.language.swift.SwiftExecutable;
 import org.gradle.language.swift.SwiftSharedLibrary;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
+import org.gradle.nativeplatform.tasks.LinkBundle;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
@@ -134,6 +136,22 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                         }
                     }));
                     link.setOutputFile(runtimeFile);
+                    link.setTargetPlatform(currentPlatform);
+                    link.setToolChain(toolChain);
+                    link.setDebuggable(binary.isDebuggable());
+                } else if (binary instanceof SwiftBundle) {
+                    // Add a link task
+                    LinkBundle link = tasks.create(names.getTaskName("link"), LinkBundle.class);
+                    link.source(compile.getObjectFileDir().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
+                    link.lib(binary.getLinkLibraries());
+                    final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
+                    Provider<RegularFile> exeLocation = buildDirectory.file(providers.provider(new Callable<String>() {
+                        @Override
+                        public String call() {
+                            return toolProvider.getExecutableName("exe/" + names.getDirName() + binary.getModule().get());
+                        }
+                    }));
+                    link.setOutputFile(exeLocation);
                     link.setTargetPlatform(currentPlatform);
                     link.setToolChain(toolChain);
                     link.setDebuggable(binary.isDebuggable());

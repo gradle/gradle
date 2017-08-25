@@ -14,29 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.test.xctest;
+package org.gradle.language.swift;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.file.DirectoryVar;
-import org.gradle.language.swift.SwiftBundle;
-import org.gradle.language.swift.SwiftComponent;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.provider.Provider;
 
 /**
- * An XCTest suite, implemented in Swift.
+ * An bundle built from Swift source.
  *
- * @since 4.2
+ * @since 4.3
  */
 @Incubating
-public interface SwiftXCTestSuite extends SwiftComponent {
+public interface SwiftBundle extends SwiftBinary {
     /**
-     * Returns the executable that is built to run this test suite.
+     * Defines the location of Info.plist.
      */
-    SwiftBundle getExecutable();
-
-    /**
-     * Returns the resource directory for this component.
-     *
-     * <p>{@code src/test/resources} is used by default.
-     */
-    DirectoryVar getResourceDir();
+    Provider<RegularFile> getInformationPropertyList();
 }

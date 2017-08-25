@@ -17,18 +17,41 @@
 package org.gradle.nativeplatform.test.xctest.internal
 
 import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.internal.file.FileOperations
-import org.gradle.api.provider.ProviderFactory
+import org.gradle.api.internal.file.DefaultProjectLayout
+import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.provider.DefaultProviderFactory
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Subject
 
-
+@Subject(DefaultSwiftXCTestSuite)
 class DefaultSwiftXCTestSuiteTest extends Specification {
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    def fileOperations = TestFiles.fileOperations(tmpDir.testDirectory)
+    def providerFactory = new DefaultProviderFactory()
+    def projectLayout = new DefaultProjectLayout(tmpDir.testDirectory, TestFiles.resolver(tmpDir.testDirectory))
+    def testSuite = new DefaultSwiftXCTestSuite("test", TestUtil.objectFactory(), fileOperations, providerFactory, Stub(ConfigurationContainer), projectLayout)
+
     def "has an executable"() {
         expect:
-        def testSuite = new DefaultSwiftXCTestSuite("test", TestUtil.objectFactory(), Stub(FileOperations), Stub(ProviderFactory), Stub(ConfigurationContainer))
         testSuite.executable.name == "testExe"
         testSuite.executable.debuggable
         testSuite.developmentBinary == testSuite.executable
+    }
+
+    def "can change location of Info.plist"() {
+        def file = tmpDir.createFile("Tests")
+
+        expect:
+        testSuite.resourceDir.set(file)
+        testSuite.executable.informationPropertyList.get().asFile == tmpDir.file("Tests/Info.plist")
+    }
+
+    def "uses source layout convention when Info.plist not set"() {
+        expect:
+        testSuite.executable.informationPropertyList.get().asFile == tmpDir.file("src/test/resources/Info.plist")
     }
 }

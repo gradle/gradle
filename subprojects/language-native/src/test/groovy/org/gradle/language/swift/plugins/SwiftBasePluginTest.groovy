@@ -18,10 +18,12 @@ package org.gradle.language.swift.plugins
 
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.SwiftBinary
+import org.gradle.language.swift.SwiftBundle
 import org.gradle.language.swift.SwiftExecutable
 import org.gradle.language.swift.SwiftSharedLibrary
 import org.gradle.language.swift.tasks.SwiftCompile
 import org.gradle.nativeplatform.tasks.InstallExecutable
+import org.gradle.nativeplatform.tasks.LinkBundle
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -103,6 +105,30 @@ class SwiftBasePluginTest extends Specification {
 
         where:
         name        | taskName        | libDir
+        "main"      | "link"          | "main/"
+        "mainDebug" | "linkDebug"     | "main/debug/"
+        "test"      | "linkTest"      | "test/"
+        "testDebug" | "linkTestDebug" | "test/debug/"
+    }
+
+    def "adds link task for bundle"() {
+        def module = project.providers.property(String)
+        module.set("TestBundle")
+        def bundle = Stub(SwiftBundle)
+        bundle.name >> name
+        bundle.module >> module
+
+        when:
+        project.pluginManager.apply(SwiftBasePlugin)
+        project.components.add(bundle)
+
+        then:
+        def link = project.tasks[taskName]
+        link instanceof LinkBundle
+        link.binaryFile.get().asFile == projectDir.file("build/exe/${bundleDir}" + OperatingSystem.current().getExecutableName("TestBundle"))
+
+        where:
+        name        | taskName        | bundleDir
         "main"      | "link"          | "main/"
         "mainDebug" | "linkDebug"     | "main/debug/"
         "test"      | "linkTest"      | "test/"

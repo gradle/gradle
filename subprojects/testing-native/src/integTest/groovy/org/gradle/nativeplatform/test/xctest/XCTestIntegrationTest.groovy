@@ -247,4 +247,32 @@ dependencies {
         result.assertTasksExecuted(":assemble")
         result.assertTasksSkipped(":assemble")
     }
+
+    def "build logic can change source layout convention"() {
+        def testApp = new SwiftXcTestTestApp([
+            newTestSuite("PassingTestSuite", [
+                newTestCase("testPass", TestElement.TestCase.Result.PASS)
+            ])
+        ])
+
+        given:
+        testApp.writeToSourceDir(file("Tests"))
+        file("src/test/swift/broken.swift") << "ignore me!"
+
+        and:
+        buildFile << """
+            xctest {
+                source.from 'Tests'
+                resourceDir.set(file('Tests'))
+            }
+         """
+
+        expect:
+        succeeds "test"
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+
+        file("build/obj/test").assertIsDir()
+        executable("build/exe/test/AppTest").assertExists()
+        testApp.expectedSummaryOutputPattern.matcher(output).find()
+    }
 }
