@@ -27,7 +27,7 @@ import org.gradle.util.NameValidator;
  *
  * @see org.gradle.util.NameValidator#validate(String)
  */
-public abstract class AbstractValidatingNamedDomainObjectContainer<T> extends AbstractNamedDomainObjectContainer<T>{
+public abstract class AbstractValidatingNamedDomainObjectContainer<T> extends AbstractNamedDomainObjectContainer<T> {
 
     protected AbstractValidatingNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
         super(type, instantiator, namer);
