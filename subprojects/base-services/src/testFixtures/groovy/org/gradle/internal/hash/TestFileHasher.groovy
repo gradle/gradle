@@ -20,13 +20,21 @@ import org.gradle.api.file.FileTreeElement
 import org.gradle.internal.file.FileMetadataSnapshot
 
 class TestFileHasher implements FileHasher, StreamHasher {
-    @Delegate StreamHasher streamHasher = new DefaultStreamHasher({ Hashing.md5().newHasher() })
+    @Override
+    HashCode hash(InputStream inputStream) {
+        return HashUtil.createHash(inputStream, Hashing.md5())
+    }
+
+    @Override
+    HashCode hashCopy(InputStream inputStream, OutputStream outputStream) throws IOException {
+        def hashingOutputStream = new HashingOutputStream(Hashing.md5(), outputStream)
+        hashingOutputStream << inputStream
+        return hashingOutputStream.hash()
+    }
 
     @Override
     HashCode hash(File file) {
-        new FileInputStream(file).withStream { input ->
-            return streamHasher.hash(input)
-        }
+        HashUtil.md5(file)
     }
 
     @Override
