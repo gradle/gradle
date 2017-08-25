@@ -21,8 +21,8 @@ import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import org.gradle.internal.file.FileType;
 
-class MissingFileContentSnapshot implements FileContentSnapshot {
-    private static final MissingFileContentSnapshot INSTANCE = new MissingFileContentSnapshot();
+public class MissingFileContentSnapshot implements FileContentSnapshot {
+    public static final MissingFileContentSnapshot INSTANCE = new MissingFileContentSnapshot();
     private static final HashCode SIGNATURE = Hashing.md5().hashString(MissingFileContentSnapshot.class.getName(), Charsets.UTF_8);
 
     private MissingFileContentSnapshot() {

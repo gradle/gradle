@@ -21,8 +21,8 @@ import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import org.gradle.internal.file.FileType;
 
-class DirContentSnapshot implements FileContentSnapshot {
-    private static final DirContentSnapshot INSTANCE = new DirContentSnapshot();
+public class DirContentSnapshot implements FileContentSnapshot {
+    public static final DirContentSnapshot INSTANCE = new DirContentSnapshot();
     private static final HashCode SIGNATURE = Hashing.md5().hashString(DirContentSnapshot.class.getName(), Charsets.UTF_8);
 
     private DirContentSnapshot() {

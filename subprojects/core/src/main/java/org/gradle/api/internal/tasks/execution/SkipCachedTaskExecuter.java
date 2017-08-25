@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.execution;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
+import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -35,6 +36,7 @@ import org.gradle.internal.time.Timers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
 import java.util.SortedSet;
 
 public class SkipCachedTaskExecuter implements TaskExecuter {
@@ -109,7 +111,9 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
             if (cacheKey.isValid()) {
                 if (state.getFailure() == null) {
                     try {
-                        buildCache.store(buildCacheCommandFactory.createStore(cacheKey, outputProperties, task, clock));
+                        TaskArtifactState taskState = context.getTaskArtifactState();
+                        Map<String, Map<String, FileContentSnapshot>> outputSnapshots = taskState.getOutputContentSnapshots();
+                        buildCache.store(buildCacheCommandFactory.createStore(cacheKey, outputProperties, outputSnapshots, task, clock));
                     } catch (Exception e) {
                         LOGGER.warn("Failed to store cache entry {}", cacheKey.getDisplayName(), task, e);
                     }

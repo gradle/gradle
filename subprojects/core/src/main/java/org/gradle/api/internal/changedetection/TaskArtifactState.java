@@ -18,12 +18,14 @@ package org.gradle.api.internal.changedetection;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
+import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.id.UniqueId;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * Encapsulates the state of the task when its outputs were last generated.
@@ -72,6 +74,11 @@ public interface TaskArtifactState {
      * Returns the history for this task.
      */
     TaskExecutionHistory getExecutionHistory();
+
+    /**
+     * Returns the current output file content snapshots indexed by property name.
+     */
+    Map<String, Map<String, FileContentSnapshot>> getOutputContentSnapshots();
 
     /**
      * The ID of the build that created the outputs that might be reused.

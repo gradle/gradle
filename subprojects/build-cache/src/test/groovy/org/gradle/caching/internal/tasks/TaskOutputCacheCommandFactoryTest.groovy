@@ -171,7 +171,8 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
     def "store invokes packer"() {
         def output = Mock(OutputStream)
         def outputProperties = props("output")
-        def command = commandFactory.createStore(key, outputProperties, task, timer)
+        def outputSnapshots = Mock(Map)
+        def command = commandFactory.createStore(key, outputProperties, outputSnapshots, task, timer)
 
         when:
         def result = command.store(output)
@@ -180,7 +181,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         1 * originFactory.createWriter(task, _)
 
         then:
-        1 * packer.pack(outputProperties, output, _) >> new TaskOutputPacker.PackResult(123)
+        1 * packer.pack(outputProperties, outputSnapshots, output, _) >> new TaskOutputPacker.PackResult(123)
 
         then:
         result.artifactEntryCount == 123

@@ -50,4 +50,6 @@ public interface FileCollectionSnapshot extends Snapshot {
     Collection<File> getFiles();
 
     Map<String, NormalizedFileSnapshot> getSnapshots();
+
+    Map<String, FileContentSnapshot> getContentSnapshots();
 }
