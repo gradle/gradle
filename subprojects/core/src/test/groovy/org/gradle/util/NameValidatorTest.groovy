@@ -20,14 +20,8 @@ import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeContainer
-import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.internal.file.FileCollectionFactory
-import org.gradle.api.internal.file.SourceDirectorySetFactory
 import org.gradle.api.internal.project.taskfactory.TaskFactory
-import org.gradle.api.internal.tasks.DefaultSourceSetContainer
-import org.gradle.api.tasks.util.PatternFilterable
-import org.gradle.initialization.DefaultProjectDescriptor
-import org.gradle.initialization.ProjectDescriptorRegistry
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
@@ -46,18 +40,7 @@ class NameValidatorTest extends Specification {
     static invalidNames = forbiddenCharacters.collect { "a${it}b"} + ["${forbiddenLeadingAndTrailingCharacter}ab", "ab${forbiddenLeadingAndTrailingCharacter}"]
 
     @Shared
-    def sourceDirectorySet = Mock(DefaultSourceDirectorySet) {
-        getFilter() >> Mock(PatternFilterable)
-    }
-    @Shared
-    def sourceDirectorySetFactory = Mock(SourceDirectorySetFactory) {
-        create(_) >> sourceDirectorySet
-        create(_, _) >> sourceDirectorySet
-    }
-
-    @Shared
     def domainObjectContainersWithValidation = [
-        ["source sets",  new DefaultSourceSetContainer(null, null, DirectInstantiator.INSTANCE, sourceDirectorySetFactory)],
         ["artifact types", new DefaultArtifactTypeContainer(DirectInstantiator.INSTANCE, null)],
         ["configurations", new DefaultConfigurationContainer(null, DirectInstantiator.INSTANCE, Mock(DomainObjectContext), Mock(ListenerManager), null, null, null, null, Mock(FileCollectionFactory), null, null, null, null, null, null)],
         ["flavors",  new DefaultFlavorContainer(DirectInstantiator.INSTANCE)]
@@ -71,20 +54,6 @@ class NameValidatorTest extends Specification {
 
     def cleanup() {
         SingleMessageLogger.reset()
-    }
-
-    @Unroll
-    def "projects are not allowed to be named '#name'"() {
-        when:
-        new DefaultProjectDescriptor(null, name, null, Mock(ProjectDescriptorRegistry), null)
-
-        then:
-        1 * loggingDeprecatedFeatureHandler.deprecatedFeatureUsed(_  as DeprecatedFeatureUsage) >> { DeprecatedFeatureUsage usage ->
-            assertForbidden(name, usage.message)
-        }
-
-        where:
-        name << invalidNames
     }
 
     @Unroll
@@ -115,8 +84,11 @@ class NameValidatorTest extends Specification {
         [name, objectType, domainObjectContainer] << [invalidNames, domainObjectContainersWithValidation].combinations().collect { [it[0], it[1][0], it[1][1]] }
     }
 
-    private assertForbidden(name, message) {
-        assert message == """The name '${name}' contains at least one of the following characters: [ , /, \\, :, <, >, ", ?, *, |]. This has been deprecated and is scheduled to be removed in Gradle 5.0""" ||
-            message == """The name '${name}' starts or ends with a '.'. This has been deprecated and is scheduled to be removed in Gradle 5.0"""
+    void assertForbidden(name, message) {
+        if (name.contains("" + forbiddenLeadingAndTrailingCharacter)) {
+            assert message == """The name '${name}' starts or ends with a '.'. This has been deprecated and is scheduled to be removed in Gradle 5.0"""
+        } else {
+            assert message == """The name '${name}' contains at least one of the following characters: [ , /, \\, :, <, >, ", ?, *, |]. This has been deprecated and is scheduled to be removed in Gradle 5.0"""
+        }
     }
 }
