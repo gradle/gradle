@@ -110,7 +110,7 @@ task verify {
         fails "compileScala"
 
         then:
-        failure.assertThatDescription(startsWith("Cannot infer Scala class path because no Scala library Jar was found."))
+        failure.assertThatCause(startsWith("Cannot infer Scala class path because no Scala library Jar was found."))
     }
 
 }
