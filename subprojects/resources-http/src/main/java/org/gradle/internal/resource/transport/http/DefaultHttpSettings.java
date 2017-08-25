@@ -16,11 +16,20 @@
 package org.gradle.internal.resource.transport.http;
 
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.gradle.authentication.Authentication;
+import org.gradle.internal.UncheckedException;
 
 import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.Collection;
 
 public class DefaultHttpSettings implements HttpSettings {
@@ -32,7 +41,7 @@ public class DefaultHttpSettings implements HttpSettings {
     private HttpTimeoutSettings timeoutSettings;
 
     public static DefaultHttpSettings allowUntrustedSslConnections(Collection<Authentication> authenticationSettings) {
-        return new DefaultHttpSettings(authenticationSettings, new AllTrustingSslContextFactory(), ALL_TRUSTING_HOSTNAME_VERIFIER);
+        return new DefaultHttpSettings(authenticationSettings, ALL_TRUSTING_SSL_CONTEXT_FACTORY, ALL_TRUSTING_HOSTNAME_VERIFIER);
     }
 
     public DefaultHttpSettings(Collection<Authentication> authenticationSettings, SslContextFactory sslContextFactory) {
@@ -94,4 +103,44 @@ public class DefaultHttpSettings implements HttpSettings {
             return true;
         }
     };
+
+    private static final SslContextFactory ALL_TRUSTING_SSL_CONTEXT_FACTORY = new SslContextFactory() {
+        private final Supplier<SSLContext> SSL_CONTEXT_SUPPLIER = Suppliers.memoize(new Supplier<SSLContext>() {
+            @Override
+            public SSLContext get() {
+                try {
+                    SSLContext sslcontext = SSLContext.getInstance("TLS");
+                    sslcontext.init(null, ALL_TRUSTING_TRUST_MANAGER, null);
+                    return sslcontext;
+                } catch (NoSuchAlgorithmException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                } catch (KeyManagementException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+        });
+
+        @Override
+        public SSLContext createSslContext() {
+            return SSL_CONTEXT_SUPPLIER.get();
+        }
+
+        private final TrustManager[] ALL_TRUSTING_TRUST_MANAGER = new TrustManager[]{
+            new X509TrustManager() {
+                @Override
+                public X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }
+
+                @Override
+                public void checkClientTrusted(X509Certificate[] certs, String authType) {
+                }
+
+                @Override
+                public void checkServerTrusted(X509Certificate[] certs, String authType) {
+                }
+            }
+        };
+    };
+
 }

@@ -96,7 +96,7 @@ public class HttpBuildCache extends AbstractBuildCache {
      * or set this property to {@code true} to disable verification of the server's identity.
      * <p>
      * Allowing communication with untrusted servers keeps data encrypted during transmission,
-     * but makes it easy for a man-in-the-middle to impersonate the intended server and capture data.
+     * but makes it easier for a man-in-the-middle to impersonate the intended server and capture data.
      * <p>
      * This value has no effect if a server is specified using the HTTP protocol (i.e. has SSL disabled).
      *
@@ -115,7 +115,7 @@ public class HttpBuildCache extends AbstractBuildCache {
      * or set this property to {@code true} to disable verification of the server's identity.
      * <p>
      * Allowing communication with untrusted servers keeps data encrypted during transmission,
-     * but makes it easy for a man-in-the-middle to impersonate the intended server and capture data.
+     * but makes it easier for a man-in-the-middle to impersonate the intended server and capture data.
      * <p>
      * This value has no effect if a server is specified using the HTTP protocol (i.e. has SSL disabled).
      *
