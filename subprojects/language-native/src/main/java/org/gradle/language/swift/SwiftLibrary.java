@@ -17,6 +17,7 @@
 package org.gradle.language.swift;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.Configuration;
 
 /**
  * Configuration for a Swift library, defining the source files that make up the library plus other settings.
@@ -27,6 +28,11 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface SwiftLibrary extends SwiftComponent {
+    /**
+     * Returns the API dependencies of this library.
+     */
+    Configuration getApiDependencies();
+
     /**
      * {@inheritDoc}
      */

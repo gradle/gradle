@@ -16,8 +16,13 @@
 
 package org.gradle.language.swift.internal;
 
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftBinary;
 
 public class DefaultSwiftBinary implements SwiftBinary {
@@ -27,14 +32,34 @@ public class DefaultSwiftBinary implements SwiftBinary {
     private final FileCollection source;
     private final FileCollection importPath;
     private final FileCollection linkLibs;
+    private final Configuration runtimeLibs;
 
-    public DefaultSwiftBinary(String name, Provider<String> module, boolean debuggable, FileCollection source, FileCollection importPath, FileCollection linkLibs) {
+    public DefaultSwiftBinary(String name, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
         this.name = name;
         this.module = module;
         this.debuggable = debuggable;
         this.source = source;
-        this.importPath = importPath;
-        this.linkLibs = linkLibs;
+
+        Names names = Names.of(name);
+
+        Configuration importPathConfig = configurations.create(names.withPrefix("swiftImport"));
+        importPathConfig.extendsFrom(implementation);
+        importPathConfig.setCanBeConsumed(false);
+        importPathConfig.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
+
+        Configuration nativeLink = configurations.create(names.withPrefix("nativeLink"));
+        nativeLink.extendsFrom(implementation);
+        nativeLink.setCanBeConsumed(false);
+        nativeLink.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
+
+        Configuration nativeRuntime = configurations.create(names.withPrefix("nativeRuntime"));
+        nativeRuntime.extendsFrom(implementation);
+        nativeRuntime.setCanBeConsumed(false);
+        nativeRuntime.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
+
+        importPath = importPathConfig;
+        linkLibs = nativeLink;
+        runtimeLibs = nativeRuntime;
     }
 
     @Override
@@ -65,5 +90,10 @@ public class DefaultSwiftBinary implements SwiftBinary {
     @Override
     public FileCollection getLinkLibraries() {
         return linkLibs;
+    }
+
+    @Override
+    public FileCollection getRuntimeLibraries() {
+        return runtimeLibs;
     }
 }

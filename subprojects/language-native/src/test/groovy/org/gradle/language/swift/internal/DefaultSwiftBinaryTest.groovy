@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.cpp.internal
+package org.gradle.language.swift.internal
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
@@ -23,30 +23,27 @@ import org.gradle.api.provider.Provider
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-
-class DefaultCppBinaryTest extends Specification {
+class DefaultSwiftBinaryTest extends Specification {
     def implementation = Stub(Configuration)
-    def headerDirs = Stub(FileCollection)
     def compile = Stub(Configuration)
     def link = Stub(Configuration)
     def runtime = Stub(Configuration)
     def configurations = Stub(ConfigurationContainer)
-    DefaultCppBinary binary
+    DefaultSwiftBinary binary
 
     def setup() {
-        def componentHeaders = Stub(FileCollection)
-        _ * configurations.create("cppCompileDebug") >> compile
+        _ * configurations.create("swiftImportDebug") >> compile
         _ * configurations.create("nativeLinkDebug") >> link
         _ * configurations.create("nativeRuntimeDebug") >> runtime
-        _ * componentHeaders.plus(compile) >> headerDirs
 
-        binary = new DefaultCppBinary("mainDebug", TestUtil.objectFactory(), Stub(Provider), true, Stub(FileCollection), componentHeaders, configurations, implementation)
+        binary = new DefaultSwiftBinary("mainDebug", TestUtil.objectFactory(), Stub(Provider), true, Stub(FileCollection),  configurations, implementation)
     }
 
     def "creates configurations for the binary"() {
         expect:
-        binary.compileIncludePath == headerDirs
+        binary.compileImportPath == compile
         binary.linkLibraries == link
         binary.runtimeLibraries == runtime
     }
+
 }

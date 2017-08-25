@@ -52,4 +52,9 @@ public interface SwiftBinary extends SoftwareComponent {
      * Returns the link libraries to use to link this binary. Includes the link libraries of the component's dependencies.
      */
     FileCollection getLinkLibraries();
+
+    /**
+     * Returns the runtime libraries required by this binary. Includes the runtime libraries of the component's dependencies.
+     */
+    FileCollection getRuntimeLibraries();
 }

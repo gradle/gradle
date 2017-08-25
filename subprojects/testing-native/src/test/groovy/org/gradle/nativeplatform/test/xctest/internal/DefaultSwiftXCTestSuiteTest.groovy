@@ -16,15 +16,17 @@
 
 package org.gradle.nativeplatform.test.xctest.internal
 
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 
 class DefaultSwiftXCTestSuiteTest extends Specification {
     def "has an executable"() {
         expect:
-        def testSuite = new DefaultSwiftXCTestSuite("test", Stub(FileOperations), Stub(ProviderFactory))
+        def testSuite = new DefaultSwiftXCTestSuite("test", TestUtil.objectFactory(), Stub(FileOperations), Stub(ProviderFactory), Stub(ConfigurationContainer))
         testSuite.executable.name == "testExe"
         testSuite.executable.debuggable
         testSuite.developmentBinary == testSuite.executable

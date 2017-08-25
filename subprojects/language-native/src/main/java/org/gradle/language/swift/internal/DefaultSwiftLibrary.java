@@ -16,7 +16,10 @@
 
 package org.gradle.language.swift.internal;
 
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.swift.SwiftLibrary;
 import org.gradle.language.swift.SwiftSharedLibrary;
@@ -26,12 +29,23 @@ import javax.inject.Inject;
 public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftLibrary {
     private final DefaultSwiftSharedLibrary debug;
     private final DefaultSwiftSharedLibrary release;
+    private final Configuration api;
 
     @Inject
-    public DefaultSwiftLibrary(String name, FileOperations fileOperations, ProviderFactory providerFactory) {
-        super(name, fileOperations, providerFactory);
-        debug = new DefaultSwiftSharedLibrary(name + "Debug", getModule(), true, getSwiftSource(), getCompileImportPath(), getLinkLibraries());
-        release = new DefaultSwiftSharedLibrary(name + "Release", getModule(), false, getSwiftSource(), getCompileImportPath(), getLinkLibraries());
+    public DefaultSwiftLibrary(String name, ObjectFactory objectFactory, FileOperations fileOperations, ProviderFactory providerFactory, ConfigurationContainer configurations) {
+        super(name, fileOperations, providerFactory, configurations);
+        debug = new DefaultSwiftSharedLibrary(name + "Debug", objectFactory, getModule(), true, getSwiftSource(), configurations, getImplementationDependencies());
+        release = new DefaultSwiftSharedLibrary(name + "Release", objectFactory, getModule(), false, getSwiftSource(), configurations, getImplementationDependencies());
+
+        api = configurations.create(getNames().withSuffix("api"));
+        api.setCanBeConsumed(false);
+        api.setCanBeResolved(false);
+        getImplementationDependencies().extendsFrom(api);
+    }
+
+    @Override
+    public Configuration getApiDependencies() {
+        return api;
     }
 
     @Override

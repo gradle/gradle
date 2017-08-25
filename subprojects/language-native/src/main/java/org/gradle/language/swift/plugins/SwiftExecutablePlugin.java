@@ -29,7 +29,6 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.internal.DefaultSwiftApplication;
@@ -69,7 +68,7 @@ public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
         TaskContainer tasks = project.getTasks();
 
         // Add the component extension
-        SwiftApplication application = project.getExtensions().create(SwiftApplication.class, "executable", DefaultSwiftApplication.class, "main", fileOperations, providers);
+        SwiftApplication application = project.getExtensions().create(SwiftApplication.class, "executable", DefaultSwiftApplication.class, "main", project.getObjects(), fileOperations, providers, configurations);
         project.getComponents().add(application);
         project.getComponents().add(application.getDebugExecutable());
         project.getComponents().add(application.getReleaseExecutable());
@@ -77,8 +76,6 @@ public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
         // Setup component
         final PropertyState<String> module = application.getModule();
         module.set(GUtil.toCamelCase(project.getName()));
-        application.getCompileImportPath().from(configurations.getByName(SwiftBasePlugin.SWIFT_IMPORT_PATH));
-        application.getLinkLibraries().from(configurations.getByName(CppBasePlugin.NATIVE_LINK));
 
         // Configure compile task
         SwiftCompile compile = (SwiftCompile) tasks.getByName("compileDebugSwift");
@@ -104,7 +101,7 @@ public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
                 return install.getExecutable().exists();
             }
         });
-        install.lib(configurations.getByName(CppBasePlugin.NATIVE_RUNTIME));
+        install.lib(application.getDebugExecutable().getRuntimeLibraries());
 
         tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(install);
     }

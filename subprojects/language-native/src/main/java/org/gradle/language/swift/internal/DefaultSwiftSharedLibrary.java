@@ -16,12 +16,15 @@
 
 package org.gradle.language.swift.internal;
 
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.swift.SwiftSharedLibrary;
 
 public class DefaultSwiftSharedLibrary extends DefaultSwiftBinary implements SwiftSharedLibrary {
-    public DefaultSwiftSharedLibrary(String name, Provider<String> module, boolean debuggable, FileCollection source, FileCollection importPath, FileCollection linkLibs) {
-        super(name, module, debuggable, source, importPath, linkLibs);
+    public DefaultSwiftSharedLibrary(String name, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
+        super(name, objectFactory, module, debuggable, source, configurations, implementation);
     }
 }

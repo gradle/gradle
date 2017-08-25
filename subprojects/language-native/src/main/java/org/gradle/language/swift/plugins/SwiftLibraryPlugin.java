@@ -28,7 +28,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.PropertyState;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.SwiftLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftLibrary;
@@ -64,7 +63,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         ConfigurationContainer configurations = project.getConfigurations();
         ObjectFactory objectFactory = project.getObjects();
 
-        SwiftLibrary library = project.getExtensions().create(SwiftLibrary.class, "library", DefaultSwiftLibrary.class, "main", fileOperations, project.getProviders());
+        SwiftLibrary library = project.getExtensions().create(SwiftLibrary.class, "library", DefaultSwiftLibrary.class, "main", objectFactory, fileOperations, project.getProviders(), configurations);
         project.getComponents().add(library);
         project.getComponents().add(library.getDebugSharedLibrary());
         project.getComponents().add(library.getReleaseSharedLibrary());
@@ -72,8 +71,6 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         // Setup component
         final PropertyState<String> module = library.getModule();
         module.set(GUtil.toCamelCase(project.getName()));
-        library.getCompileImportPath().from(configurations.getByName(SwiftBasePlugin.SWIFT_IMPORT_PATH));
-        library.getLinkLibraries().from(configurations.getByName(CppBasePlugin.NATIVE_LINK));
 
         // Configure compile task
         SwiftCompile compile = (SwiftCompile) tasks.getByName("compileDebugSwift");
@@ -85,16 +82,15 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(link);
 
         // TODO - add lifecycle tasks
-        Configuration api = configurations.getByName(SwiftBasePlugin.API);
 
         // TODO - extract common code with C++ plugins
         Configuration apiElements = configurations.create("swiftApiElements");
-        apiElements.extendsFrom(api);
+        apiElements.extendsFrom(library.getApiDependencies());
         apiElements.setCanBeResolved(false);
         apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
         apiElements.getOutgoing().artifact(compile.getObjectFileDirectory());
 
-        Configuration implementation = configurations.getByName(SwiftBasePlugin.IMPLEMENTATION);
+        Configuration implementation = library.getImplementationDependencies();
 
         Configuration linkElements = configurations.create("linkElements");
         linkElements.extendsFrom(implementation);

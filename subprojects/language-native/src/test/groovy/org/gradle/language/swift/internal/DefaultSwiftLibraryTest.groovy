@@ -16,19 +16,40 @@
 
 package org.gradle.language.swift.internal
 
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 
 class DefaultSwiftLibraryTest extends Specification {
+    def api = Stub(TestConfiguration)
+    def configurations = Stub(ConfigurationContainer)
+    DefaultSwiftLibrary library
+
+    def setup() {
+        _ * configurations.create("api") >> api
+        _ * configurations.create(_) >> Stub(TestConfiguration)
+        library = new DefaultSwiftLibrary("main", TestUtil.objectFactory(), Stub(FileOperations), Stub(ProviderFactory), configurations)
+    }
+
+    def "has api configuration"() {
+        expect:
+        library.apiDependencies == api
+    }
+
     def "has debug and release variants"() {
         expect:
-        def app = new DefaultSwiftLibrary("main", Stub(FileOperations), Stub(ProviderFactory))
-        app.debugSharedLibrary.name == "mainDebug"
-        app.debugSharedLibrary.debuggable
-        app.releaseSharedLibrary.name == "mainRelease"
-        !app.releaseSharedLibrary.debuggable
-        app.developmentBinary == app.debugSharedLibrary
+        library.debugSharedLibrary.name == "mainDebug"
+        library.debugSharedLibrary.debuggable
+        library.releaseSharedLibrary.name == "mainRelease"
+        !library.releaseSharedLibrary.debuggable
+        library.developmentBinary == library.debugSharedLibrary
+    }
+
+    interface TestConfiguration extends Configuration, FileCollectionInternal {
     }
 }

@@ -34,7 +34,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
 import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
@@ -90,13 +89,9 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         // TODO - component name and extension name aren't the same
         // TODO - should use `src/xctext/swift` as the convention?
         // Add the component extension
-        SwiftXCTestSuite component = project.getExtensions().create(SwiftXCTestSuite.class, "xctest", DefaultSwiftXCTestSuite.class, "test", fileOperations, providers);
+        SwiftXCTestSuite component = project.getExtensions().create(SwiftXCTestSuite.class, "xctest", DefaultSwiftXCTestSuite.class, "test", project.getObjects(), fileOperations, providers, configurations);
         project.getComponents().add(component);
         project.getComponents().add(component.getExecutable());
-
-        // Configure the component
-        component.getCompileImportPath().from(configurations.getByName(SwiftBasePlugin.SWIFT_TEST_IMPORT_PATH));
-        component.getLinkLibraries().from(configurations.getByName(CppBasePlugin.NATIVE_TEST_LINK));
 
         // Configure compile task
         SwiftCompile compile = (SwiftCompile) tasks.getByName("compileTestSwift");
@@ -112,7 +107,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         LinkExecutable link = tasks.create("linkTest", LinkExecutable.class);
         // TODO - need to set basename from component
         link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
-        link.lib(component.getLinkLibraries());
+        link.lib(component.getExecutable().getLinkLibraries());
         link.setLinkerArgs(Lists.newArrayList("-Xlinker", "-bundle", "-F" + frameworkDir.getAbsolutePath(), "-framework", "XCTest", "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks", "-Xlinker", "-rpath", "-Xlinker", "@loader_path/../Frameworks"));
         PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select((NativePlatformInternal) targetPlatform);
         Provider<RegularFile> exeLocation = buildDirectory.file(toolProvider.getExecutableName("exe/" + project.getName() + "Test"));

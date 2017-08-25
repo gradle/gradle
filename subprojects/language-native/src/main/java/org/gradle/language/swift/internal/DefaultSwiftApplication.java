@@ -16,7 +16,9 @@
 
 package org.gradle.language.swift.internal;
 
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftExecutable;
@@ -28,10 +30,10 @@ public class DefaultSwiftApplication extends DefaultSwiftComponent implements Sw
     private final DefaultSwiftExecutable release;
 
     @Inject
-    public DefaultSwiftApplication(String name, FileOperations fileOperations, ProviderFactory providerFactory) {
-        super(name, fileOperations, providerFactory);
-        debug = new DefaultSwiftExecutable(name + "Debug", getModule(), true, getSwiftSource(), getCompileImportPath(), getLinkLibraries());
-        release = new DefaultSwiftExecutable(name + "Release", getModule(), false, getSwiftSource(), getCompileImportPath(), getLinkLibraries());
+    public DefaultSwiftApplication(String name, ObjectFactory objectFactory, FileOperations fileOperations, ProviderFactory providerFactory, ConfigurationContainer configurations) {
+        super(name, fileOperations, providerFactory, configurations);
+        debug = new DefaultSwiftExecutable(name + "Debug", objectFactory, getModule(), true, getSwiftSource(), configurations, getImplementationDependencies());
+        release = new DefaultSwiftExecutable(name + "Release", objectFactory, getModule(), false, getSwiftSource(), configurations, getImplementationDependencies());
     }
 
     @Override
