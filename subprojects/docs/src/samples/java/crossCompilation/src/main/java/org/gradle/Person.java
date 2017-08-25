@@ -1,15 +1,25 @@
 package org.gradle;
 
-import org.apache.commons.collections.list.GrowthList;
+import org.apache.commons.lang3.StringUtils;
 
+/**
+ * <p>Represents a person.</p>
+ */
 public class Person {
     private final String name;
 
     public Person(String name) {
+        if (StringUtils.isEmpty(name)) {
+            throw new IllegalArgumentException();
+        }
         this.name = name;
-        new GrowthList();
     }
 
+    /**
+     * Get the person's name
+     *
+     * @return the name
+     */
     public String getName() {
         return name;
     }
