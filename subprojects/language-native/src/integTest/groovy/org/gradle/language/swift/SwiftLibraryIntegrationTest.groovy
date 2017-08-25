@@ -114,7 +114,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         and:
         succeeds "assemble"
         file(lib.multiply.sourceFile.withPath("src/main")).delete()
-        file(lib.greeter.sourceFile.withPath("src/main")).renameTo("renamed-greeter.swift")
+        file(lib.greeter.sourceFile.withPath("src/main")).renameTo(file("src/main/swift/renamed-greeter.swift"))
 
         expect:
         succeeds "assemble"
@@ -126,6 +126,31 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
             assert it.name != lib.greeter.sourceFile.name.replace('.swift', '.o')
         }
         sharedLibrary("build/lib/Hello").assertExists()
+    }
+
+    @Ignore("https://github.com/gradle/gradle-native/issues/94")
+    def "stalled library file are removed"() {
+        def lib = new SwiftLib()
+        settingsFile << "rootProject.name = 'hello'"
+
+        given:
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-library'
+         """
+
+        and:
+        succeeds "assemble"
+        testDirectory.file("src").deleteDir()
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
+        result.assertTasksNotSkipped(":compileSwift", ":linkMain", ":assemble")
+
+        sharedLibrary("build/lib/Hello").assertDoesNotExist()
     }
 
     def "build logic can change source layout convention"() {

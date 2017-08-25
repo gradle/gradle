@@ -56,6 +56,10 @@ class NativeInstallationFixture {
         this
     }
 
+    NativeInstallationFixture assertNotInstalled() {
+        installDir.assertDoesNotExist()
+    }
+
     NativeInstallationFixture assertIncludesLibraries(String... names) {
         def expected = names.collect { os.getSharedLibraryName(it) } as Set
         assert libraryFiles.collect { it.name } as Set == expected as Set

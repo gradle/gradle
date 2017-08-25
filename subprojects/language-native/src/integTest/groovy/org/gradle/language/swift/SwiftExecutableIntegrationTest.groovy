@@ -109,6 +109,32 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         installation("build/install/App").exec().out == app.expectedOutput
     }
 
+    @Ignore("https://github.com/gradle/gradle-native/issues/94")
+    def "stalled executable file are removed"() {
+        settingsFile << "rootProject.name = 'app'"
+        def app = new SwiftApp()
+
+        given:
+        app.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-executable'
+         """
+
+        and:
+        succeeds "assemble"
+        testDirectory.file("src").deleteDir()
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileSwift", ":linkMain", ":installMain", ":assemble")
+        result.assertTasksNotSkipped(":compileSwift", ":linkMain", ":installMain", ":assemble")
+
+        executable("build/exe/App").assertDoesNotExist()
+        installation("build/install/App").assertNotInstalled()
+    }
+
     def "ignores non-Swift source files in source directory"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new SwiftApp()
