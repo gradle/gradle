@@ -19,22 +19,23 @@ package org.gradle.nativeplatform.fixtures.app
 class CppLib extends CppSourceElement {
     final greeter = new CppGreeter()
     final sum = new CppSum()
+    final multiply = new CppMultiply()
 
     @Override
     SourceElement getHeaders() {
-        ofElements(greeter.headers, sum.headers)
+        ofElements(greeter.headers, sum.headers, multiply.headers)
     }
 
     SourceElement getPublicHeaders() {
-        ofElements(greeter.publicHeaders, sum.publicHeaders)
+        ofElements(greeter.publicHeaders, sum.publicHeaders, multiply.publicHeaders)
     }
 
     SourceElement getPrivateHeaders() {
-        ofElements(greeter.privateHeaders, sum.privateHeaders)
+        ofElements(greeter.privateHeaders, sum.privateHeaders, multiply.privateHeaders)
     }
 
     @Override
     SourceElement getSources() {
-        ofElements(greeter.source, sum.source)
+        ofElements(greeter.source, sum.source, multiply.source)
     }
 }

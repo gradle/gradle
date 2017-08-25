@@ -172,6 +172,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         lib.greeter.header.writeToSourceDir(file("src/main/public"))
         lib.greeter.privateHeader.writeToSourceDir(file("src/main/headers"))
         lib.sum.header.writeToSourceDir(file("src/main/public"))
+        lib.multiply.privateHeader.writeToSourceDir(file("src/main/headers"))
         lib.sources.writeToProject(testDirectory)
 
         and:
