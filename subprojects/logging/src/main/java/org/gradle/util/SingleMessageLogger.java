@@ -211,6 +211,12 @@ public class SingleMessageLogger {
         }
     }
 
+    public static void nagUserOfDeprecatedThing(String thing) {
+        if (isEnabled()) {
+            nagUserOfDeprecated(String.format("%s. This", thing));
+        }
+    }
+
     public static <T> T whileDisabled(Factory<T> factory) {
         ENABLED.set(false);
         try {
