@@ -17,10 +17,7 @@
 package org.gradle.plugins.ear.descriptor.internal
 
 import org.gradle.api.Action
-import org.gradle.api.internal.InstantiatorFactory
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.model.DefaultObjectFactory
-import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.model.ObjectFactory
 import org.gradle.plugins.ear.descriptor.EarSecurityRole
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -34,8 +31,7 @@ import javax.xml.parsers.DocumentBuilderFactory
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class DefaultDeploymentDescriptorTest extends Specification {
-    private InstantiatorFactory instantiatorFactory = TestUtil.instantiatorFactory()
-    private ObjectFactory objectFactory = new DefaultObjectFactory(instantiatorFactory.decorate(), NamedObjectInstantiator.INSTANCE)
+    private ObjectFactory objectFactory = TestUtil.objectFactory()
 
     def descriptor = new DefaultDeploymentDescriptor({ it } as FileResolver, objectFactory)
     @Rule TestNameTestDirectoryProvider tmpDir
