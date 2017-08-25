@@ -86,7 +86,7 @@ public class PrefixHeaderFileGenerateTask extends DefaultTask {
 
         @Override
         public void run() {
-            PCHUtils.generatePCHFile(Lists.newArrayList(header), prefixHeaderFile);
+            PCHUtils.generatePrefixHeaderFile(Lists.newArrayList(header), prefixHeaderFile);
         }
     }
 }

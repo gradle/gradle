@@ -188,6 +188,7 @@ public class InstallExecutable extends DefaultTask {
 
     @TaskAction
     public void install() {
+        // TODO: Migrate this to the worker API once the FileSystem and FileOperations services can be injected
         workerLeaseService.withoutProjectLock(new Runnable() {
             @Override
             public void run() {
