@@ -81,7 +81,7 @@ class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyRe
         ConcurrentTestUtil.poll {
             outputContainsProgress(build,
                 "> :resolve > Resolve dependencies :compile",
-                "> one-1.2.pom > 1 KB/2 KB downloaded", "> one-1.2.pom > 1 KB/2 KB downloaded"
+                "> one-1.2.pom > 1 KB/2 KB downloaded", "> two-1.2.pom > 1 KB/2 KB downloaded"
             )
         }
 
