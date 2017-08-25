@@ -165,6 +165,7 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
     private static class RecordingBuildOperationNotificationListener implements BuildOperationNotificationListener {
         private List<Object> storedEvents = Lists.newArrayList();
         private BuildOperationNotificationListener delegate;
+        private final Map<Object, Object> active = new ConcurrentHashMap<Object, Object>();
 
         public synchronized void attach(BuildOperationNotificationListener listener, boolean drainRecordedBuildOperations) {
             if (delegate != null) {
@@ -172,12 +173,16 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
             }
 
             delegate = listener;
-            if(drainRecordedBuildOperations){
+            if (drainRecordedBuildOperations) {
                 for (Object storedEvent : storedEvents) {
                     if (storedEvent instanceof BuildOperationStartedNotification) {
-                        delegate.started((BuildOperationStartedNotification) storedEvent);
+                        BuildOperationStartedNotification startedNotification = (BuildOperationStartedNotification) storedEvent;
+                        active.put(startedNotification.getNotificationOperationId(), "");
+                        delegate.started(startedNotification);
                     } else {
-                        delegate.finished((BuildOperationFinishedNotification) storedEvent);
+                        BuildOperationFinishedNotification finishedNotification = (BuildOperationFinishedNotification) storedEvent;
+                        active.remove(finishedNotification.getNotificationOperationId());
+                        delegate.finished(finishedNotification);
                     }
                 }
             }
@@ -191,6 +196,7 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
         @Override
         public synchronized void started(BuildOperationStartedNotification notification) {
             if (isActive()) {
+                active.put(notification.getNotificationOperationId(), "");
                 delegate.started(notification);
             } else {
                 storedEvents.add(notification);
@@ -200,7 +206,9 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
         @Override
         public synchronized void finished(BuildOperationFinishedNotification notification) {
             if (isActive()) {
-                delegate.finished(notification);
+                if (active.remove(notification.getNotificationOperationId()) != null) {
+                    delegate.finished(notification);
+                }
             } else {
                 storedEvents.add(notification);
             }
