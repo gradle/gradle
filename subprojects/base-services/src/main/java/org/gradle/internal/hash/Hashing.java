@@ -23,6 +23,9 @@ import java.nio.ByteOrder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+/**
+ * Some popular hash functions. Replacement for Guava's hashing.
+ */
 public class Hashing {
     private Hashing() {}
 
@@ -177,12 +180,6 @@ public class Hashing {
         }
 
         @Override
-        public void putShort(short value) {
-            buffer.putShort(value);
-            update(2);
-        }
-
-        @Override
         public void putInt(int value) {
             buffer.putInt(value);
             update(4);
@@ -195,12 +192,6 @@ public class Hashing {
         }
 
         @Override
-        public void putFloat(float value) {
-            int intValue = Float.floatToRawIntBits(value);
-            putInt(intValue);
-        }
-
-        @Override
         public void putDouble(double value) {
             long longValue = Double.doubleToRawLongBits(value);
             putLong(longValue);
@@ -210,11 +201,6 @@ public class Hashing {
         public void putBoolean(boolean value) {
             checkNotDone();
             putByte((byte) (value ? 1 : 0));
-        }
-
-        @Override
-        public void putChar(char value) {
-            putInt(value);
         }
 
         @Override
