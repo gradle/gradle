@@ -27,8 +27,14 @@ public class PersonTest {
         assertEquals("Larry", person.getName());
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void cannotConstructAPersonWithEmptyName() {
+        Person person = new Person("");
+        person.getName();
+    }
+
     @Test
     public void testJavaVersion() {
-        assertEquals(System.getProperty("java.version").substring(0, 3), "1.6");
+        assertEquals(System.getProperty("java.version").substring(0, 3), System.getProperty("targetJavaVersion"));
     }
 }

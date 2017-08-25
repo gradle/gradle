@@ -7,24 +7,26 @@ repositories {
 }
 
 dependencies {
-    compile group: 'commons-collections', name: 'commons-collections', version: '3.2.2'
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.6'
     testCompile group: 'junit', name: 'junit', version: '4.+'
 }
 
 // START SNIPPET java-cross-compilation
-sourceCompatibility = 1.6
+assert hasProperty('javaHome'): "Set the property 'javaHome' in your your gradle.properties pointing to a Java 6 or 7 installation"
+assert hasProperty('targetJavaVersion'): "Set the property 'targetJavaVersion' in your your gradle.properties to '1.6' or '1.7'"
 
-assert hasProperty('java6Home') : "Set the property 'java6Home' in your your gradle.properties pointing to a Java 6 installation"
-def javaExecutablesPath = new File(java6Home, 'bin')
+sourceCompatibility = targetJavaVersion
+
+def javaExecutablesPath = new File(javaHome, 'bin')
 def javaExecutables = [:].withDefault { execName ->
     def executable = new File(javaExecutablesPath, execName)
-    assert executable.exists() : "There is no ${execName} executable in ${javaExecutablesPath}"
+    assert executable.exists(): "There is no ${execName} executable in ${javaExecutablesPath}"
     executable
 }
 tasks.withType(AbstractCompile) {
     options.with {
         fork = true
-        forkOptions.javaHome = file(java6Home)
+        forkOptions.javaHome = file(javaHome)
     }
 }
 tasks.withType(Javadoc) {
@@ -37,3 +39,17 @@ tasks.withType(JavaExec) {
     executable = javaExecutables.java
 }
 // END SNIPPET java-cross-compilation
+
+tasks.withType(Test) {
+    systemProperty 'targetJavaVersion', targetJavaVersion
+}
+
+task checkJavadocOutput {
+    dependsOn javadoc
+    doLast {
+        assert new File(docsDir, 'javadoc/org/gradle/Person.html').text.contains('<p>Represents a person.</p>')
+    }
+}
+
+build.dependsOn checkJavadocOutput
+

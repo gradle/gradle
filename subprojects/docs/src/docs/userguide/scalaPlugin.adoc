@@ -290,7 +290,7 @@ Incremental compilation requires dependency analysis of the source code. The res
 Note that Zinc's Nailgun based daemon mode is not supported. Instead, we plan to enhance Gradle's own compiler daemon to stay alive across Gradle invocations, reusing the same Scala compiler. This is expected to yield another significant speedup for Scala compilation.
 
 [[sec:scala_cross_compilation]]
-=== Compiling and testing for Java 6
+=== Compiling and testing for Java 6/7
 
 The Scala compiler ignores Gradle's `targetCompatibility` and `sourceCompatibility` settings. In Scala 2.11, the Scala compiler always compiles to Java 6 compatible bytecode. In Scala 2.12, the Scala compiler always compiles to Java 8 compatible bytecode. If you also have Java sources, you can follow the same steps as for the <<sec:java_cross_compilation,Java plugin>> to ensure the correct Java compiler is used.
 ++++
