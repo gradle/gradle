@@ -125,9 +125,12 @@ in the next major Gradle version (Gradle 5.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
 
-<!--
-### Example deprecation
--->
+### Deprecated usage of path separator characters in names
+
+We deprecated the usage of the following characters in domain object names such as project or task names:
+` `, `/`, `\\`, `:`, `<`, `>`, `"`, `?`, `*` and `|`. We also deprecated `.` as leading or trailing character.
+These character represent path separators or have other special semantics in file systems. This caused inconsistent and unexpected behavior in different Gradle features.
+Using these characters in names will be forbidden in Gradle 5.0. 
 
 ## Potential breaking changes
 
