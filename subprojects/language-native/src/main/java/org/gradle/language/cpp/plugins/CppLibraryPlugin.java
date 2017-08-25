@@ -34,7 +34,6 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.internal.DefaultCppLibrary;
-import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
@@ -84,9 +83,8 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         // Configure the component
         library.getBaseName().set(project.getName());
 
-        // Configure the compile task
-        CppCompile compile = (CppCompile) tasks.getByName("compileDebugCpp");
-        compile.setPositionIndependentCode(true);
+        // Define the outgoing artifacts
+        // TODO - move this to the base plugin
 
         final LinkSharedLibrary linkDebug = (LinkSharedLibrary) tasks.getByName("linkDebug");
         // TODO - make this lazy, make a query method on the link task
@@ -114,6 +112,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         // TODO - extract some common code to setup the configurations
 
         Configuration apiElements = configurations.create("cppApiElements");
+        apiElements.extendsFrom(library.getApiDependencies());
         apiElements.setCanBeResolved(false);
         apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.C_PLUS_PLUS_API));
         // TODO - deal with more than one header dir, e.g. generated public headers

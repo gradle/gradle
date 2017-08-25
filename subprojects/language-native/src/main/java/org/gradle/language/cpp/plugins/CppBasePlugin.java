@@ -124,6 +124,8 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 } else if (binary instanceof CppSharedLibrary) {
                     final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
 
+                    compile.setPositionIndependentCode(true);
+
                     // Add a link task
                     LinkSharedLibrary link = tasks.create(names.getTaskName("link"), LinkSharedLibrary.class);
                     link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
