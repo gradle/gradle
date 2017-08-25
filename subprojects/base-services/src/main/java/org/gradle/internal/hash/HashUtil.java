@@ -111,22 +111,4 @@ public class HashUtil {
         return createHash(file, "SHA-256");
     }
 
-    public static int compareHashCodes(HashCode a, HashCode b) {
-        return compareHashCodes(a.toByteArray(), b.toByteArray());
-    }
-
-    public static int compareHashCodes(byte[] a, byte[] b) {
-        int result;
-        int len = a.length;
-        result = len - b.length;
-        if (result == 0) {
-            for (int idx = 0; idx < len; idx++) {
-                result = a[idx] - b[idx];
-                if (result != 0) {
-                    break;
-                }
-            }
-        }
-        return result;
-    }
 }

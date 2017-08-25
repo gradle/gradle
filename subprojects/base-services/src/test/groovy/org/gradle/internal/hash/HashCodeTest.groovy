@@ -78,12 +78,32 @@ class HashCodeTest extends Specification {
 
         expect:
         (hashA == hashB) == equals
+        (hashB == hashA) == equals
 
         where:
         a            | b            | equals
         "abcdef12"   | "abcdef12"   | true
         "abcdef12"   | "abcdef1234" | false
         "abcdef1234" | "abcdef12"   | false
+    }
+
+    def "#a <=> #b: #result"() {
+        def hashA = HashCode.fromString(a)
+        def hashB = HashCode.fromString(b)
+        def compareAB = hashA <=> hashB
+        def compareBA = hashB <=> hashA
+
+        expect:
+        Math.signum(compareAB) == result
+        Math.signum(compareBA) == -result
+
+        where:
+        a            | b            | result
+        "abcdef12"   | "abcdef12"   | 0
+        "abcdef12"   | "abcdef1234" | -1
+        "abcdef1234" | "abcdef12"   | 1
+        "abcdef1234" | "bcdef123"   | -1
+        "bcdef123"   | "abcdef12"   | 1
     }
 
     def "not equals with null"() {

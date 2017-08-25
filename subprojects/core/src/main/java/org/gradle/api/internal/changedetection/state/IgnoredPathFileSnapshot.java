@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.base.Objects;
 import org.gradle.caching.internal.BuildCacheHasher;
-import org.gradle.internal.hash.HashUtil;
 
 public class IgnoredPathFileSnapshot implements NormalizedFileSnapshot {
     private final FileContentSnapshot snapshot;
@@ -47,7 +46,7 @@ public class IgnoredPathFileSnapshot implements NormalizedFileSnapshot {
         if (!(o instanceof IgnoredPathFileSnapshot)) {
             return -1;
         }
-        return HashUtil.compareHashCodes(getSnapshot().getContentMd5(), o.getSnapshot().getContentMd5());
+        return getSnapshot().getContentMd5().compareTo(o.getSnapshot().getContentMd5());
     }
 
     @Override

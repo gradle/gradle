@@ -16,10 +16,11 @@
 
 package org.gradle.internal.hash;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Serializable;
 
-public class HashCode implements Serializable {
+public class HashCode implements Serializable, Comparable<HashCode> {
     private static final int MIN_NUMBER_OF_BYTES = 4;
     private static final int MAX_NUMBER_OF_BYTES = 255;
     private static final char[] HEX_DIGITS = "0123456789abcdef".toCharArray();
@@ -124,6 +125,28 @@ public class HashCode implements Serializable {
         }
 
         return true;
+    }
+
+    @Override
+    public int compareTo(@Nonnull HashCode o) {
+        byte[] bytes2 = o.bytes;
+        int result;
+        int len1 = bytes.length;
+        int len2 = bytes2.length;
+        int length = Math.min(len1, len2);
+        for (int idx = 0; idx < length; idx++) {
+            result = bytes[idx] - bytes2[idx];
+            if (result != 0) {
+                return result;
+            }
+        }
+        if (len1 < len2) {
+            return -1;
+        } else if (len1 == len2) {
+            return 0;
+        } else {
+            return 1;
+        }
     }
 
     @Override
