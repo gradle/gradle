@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.file.FileType;
@@ -56,7 +57,7 @@ public enum InputPathNormalizationStrategy implements PathNormalizationStrategy 
             if (fileSnapshot.isRoot() && fileSnapshot.getType() == FileType.Directory) {
                 return new IgnoredPathFileSnapshot(fileSnapshot.getContent());
             }
-            return getRelativeSnapshot(fileSnapshot, fileSnapshot.getContent(), stringInterner);
+            return getRelativeSnapshot(fileSnapshot, stringInterner);
         }
     },
 
@@ -76,7 +77,7 @@ public enum InputPathNormalizationStrategy implements PathNormalizationStrategy 
             if (fileSnapshot.isRoot() && fileSnapshot.getType() == FileType.Directory) {
                 return new IgnoredPathFileSnapshot(fileSnapshot.getContent());
             }
-            return getRelativeSnapshot(fileSnapshot, fileSnapshot.getName(), fileSnapshot.getContent(), stringInterner);
+            return getRelativeSnapshot(fileSnapshot, fileSnapshot.getName(), stringInterner);
         }
     },
 
@@ -114,7 +115,8 @@ public enum InputPathNormalizationStrategy implements PathNormalizationStrategy 
         }
     }
 
-    public static NormalizedFileSnapshot getRelativeSnapshot(FileSnapshot fileSnapshot, FileContentSnapshot snapshot, StringInterner stringInterner) {
+    @VisibleForTesting
+    static NormalizedFileSnapshot getRelativeSnapshot(FileSnapshot fileSnapshot, StringInterner stringInterner) {
         String[] segments = fileSnapshot.getRelativePath().getSegments();
         StringBuilder builder = new StringBuilder();
         for (int i = 0, len = segments.length; i < len; i++) {
@@ -123,16 +125,19 @@ public enum InputPathNormalizationStrategy implements PathNormalizationStrategy 
             }
             builder.append(segments[i]);
         }
-        return getRelativeSnapshot(fileSnapshot, builder.toString(), snapshot, stringInterner);
+        return getRelativeSnapshot(fileSnapshot, builder.toString(), stringInterner);
     }
 
-    public static NormalizedFileSnapshot getRelativeSnapshot(FileSnapshot fileSnapshot, String normalizedPath, FileContentSnapshot snapshot, StringInterner stringInterner) {
+    static NormalizedFileSnapshot getRelativeSnapshot(FileSnapshot fileSnapshot, String normalizedPath, StringInterner stringInterner) {
+        FileContentSnapshot contentSnapshot = fileSnapshot.getContent();
+        if (normalizedPath.isEmpty()) {
+            return new IgnoredPathFileSnapshot(contentSnapshot);
+        }
         String absolutePath = fileSnapshot.getPath();
         if (absolutePath.endsWith(normalizedPath)) {
-            return new IndexedNormalizedFileSnapshot(absolutePath, absolutePath.length() - normalizedPath.length(), snapshot);
+            return new IndexedNormalizedFileSnapshot(absolutePath, absolutePath.length() - normalizedPath.length(), contentSnapshot);
         } else {
-            return new DefaultNormalizedFileSnapshot(stringInterner.intern(normalizedPath), snapshot);
+            return new DefaultNormalizedFileSnapshot(stringInterner.intern(normalizedPath), contentSnapshot);
         }
     }
-
 }

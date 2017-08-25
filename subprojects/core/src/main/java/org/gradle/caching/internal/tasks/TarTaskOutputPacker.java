@@ -326,7 +326,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         }
 
         String internedPath = stringInterner.intern(outputFile.getAbsolutePath());
-        RelativePath relativePath = root ? RelativePath.EMPTY_ROOT : RelativePath.parse(!isDirEntry, childPath);
+        RelativePath relativePath = root ? RelativePath.parse(!isDirEntry, outputFile.getName()) : RelativePath.parse(!isDirEntry, childPath);
         if (isDirEntry) {
             FileUtils.forceMkdir(outputFile);
             fileSnapshots.put(propertyName, new DirectoryFileSnapshot(internedPath, relativePath, root));

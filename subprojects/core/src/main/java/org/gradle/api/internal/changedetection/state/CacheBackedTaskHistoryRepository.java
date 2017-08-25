@@ -24,7 +24,6 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.hash.HashCode;
-import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.OverlappingOutputs;
@@ -226,7 +225,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         LOGGER.debug("Snapshotting discovered inputs for {}", task);
         try {
             return snapshotter.snapshot(fileCollectionFactory.fixed("Discovered input files", discoveredInputs), ABSOLUTE, normalizationStrategy);
-        } catch (UncheckedIOException e) {
+        } catch (Exception e) {
             throw new UncheckedIOException(String.format("Failed to capture snapshot of discovered input files for %s during up-to-date check.", task), e);
         }
     }
@@ -318,7 +317,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                     builder.put(propertyName, valueSnapshotter.snapshot(value, previousSnapshot));
                 }
             } catch (Exception e) {
-                throw new GradleException(String.format("Unable to store input properties for %s. Property '%s' with value '%s' cannot be serialized.", task, propertyName, value), e);
+                throw new UncheckedIOException(String.format("Unable to store input properties for %s. Property '%s' with value '%s' cannot be serialized.", task, propertyName, value), e);
             }
         }
 
@@ -334,7 +333,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 FileCollectionSnapshotter snapshotter = snapshotterRegistry.getSnapshotter(propertySpec.getSnapshotter());
                 LOGGER.debug("Snapshotting property {} for {}", propertySpec, task);
                 result = snapshotter.snapshot(propertySpec.getPropertyFiles(), propertySpec.getPathNormalizationStrategy(), normalizationStrategy);
-            } catch (UncheckedIOException e) {
+            } catch (Exception e) {
                 throw new UncheckedIOException(String.format("Failed to capture snapshot of %s files for %s property '%s' during up-to-date check.", title.toLowerCase(), task, propertySpec.getPropertyName()), e);
             }
             builder.put(propertySpec.getPropertyName(), result);
