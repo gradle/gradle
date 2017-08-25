@@ -82,7 +82,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
         broadcast.finished(d1, new OperationFinishEvent(0, 1, null, ""))
 
         and:
-        bridge.registerBuildScopeListener(listener)
+        bridge.registerBuildScopeListenerAndDrainRecorded(listener)
 
         then:
         1 * listener.started(_)

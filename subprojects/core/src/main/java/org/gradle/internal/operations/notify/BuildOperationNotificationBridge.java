@@ -71,7 +71,13 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
 
     @Override
     public void registerBuildScopeListener(BuildOperationNotificationListener notificationListener) {
-        this.recordingListener.attach(notificationListener);
+        this.recordingListener.attach(notificationListener, false);
+    }
+
+    @Override
+    public void registerBuildScopeListenerAndDrainRecorded(BuildOperationNotificationListener notificationListener) {
+        this.recordingListener.attach(notificationListener, true);
+
     }
 
     @Override
@@ -160,17 +166,19 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
         private List<Object> storedEvents = Lists.newArrayList();
         private BuildOperationNotificationListener delegate;
 
-        public synchronized void attach(BuildOperationNotificationListener listener) {
+        public synchronized void attach(BuildOperationNotificationListener listener, boolean drainRecordedBuildOperations) {
             if (delegate != null) {
                 throw new IllegalStateException("listener is already registered (implementation class " + delegate.getClass().getName() + ")");
             }
 
             delegate = listener;
-            for (Object storedEvent : storedEvents) {
-                if (storedEvent instanceof BuildOperationStartedNotification) {
-                    delegate.started((BuildOperationStartedNotification) storedEvent);
-                } else {
-                    delegate.finished((BuildOperationFinishedNotification) storedEvent);
+            if(drainRecordedBuildOperations){
+                for (Object storedEvent : storedEvents) {
+                    if (storedEvent instanceof BuildOperationStartedNotification) {
+                        delegate.started((BuildOperationStartedNotification) storedEvent);
+                    } else {
+                        delegate.finished((BuildOperationFinishedNotification) storedEvent);
+                    }
                 }
             }
             storedEvents = null;

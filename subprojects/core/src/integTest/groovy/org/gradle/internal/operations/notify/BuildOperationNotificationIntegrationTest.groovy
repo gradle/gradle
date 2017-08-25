@@ -29,6 +29,18 @@ import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec {
 
     String registerListener() {
+        listenerClass() + """
+        registrar.registerBuildScopeListener(listener)
+        """
+    }
+
+    String registerListenerWithDrainRecordings() {
+        listenerClass() + """
+        registrar.registerBuildScopeListenerAndDrainRecorded(listener)
+        """
+    }
+
+    String listenerClass(){
         """
             def listener = new $BuildOperationNotificationListener.name() {
                 void started($BuildOperationStartedNotification.name notification) {
@@ -45,15 +57,14 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
                     println "FINISHED: \${notification.result?.class?.interfaces?.first()?.name} - \${${JsonOutput.name}.toJson(notification.notificationOperationResult)} - \$notification.notificationOperationId"
                 }
             }
-            def registrar = services.get($BuildOperationNotificationListenerRegistrar.name)
-            registrar.registerBuildScopeListener(listener)
+            def registrar = services.get($BuildOperationNotificationListenerRegistrar.name)            
         """
     }
 
-    def "emits notifications from start of build"() {
+    def "can emit notifications from start of build"() {
         when:
         buildScript """
-           ${registerListener()}
+           ${registerListenerWithDrainRecordings()}
             task t
         """
 
@@ -77,7 +88,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         finished(ExecuteTaskBuildOperationType.Result, [actionable: false, cachingDisabledReasonMessage: "Cacheability was not determined", upToDateMessages: null, cachingDisabledReasonCategory: "UNKNOWN", skipMessage: "UP-TO-DATE", originBuildInvocationId: null])
     }
 
-    def "emits notifications for nested builds"() {
+    def "can emit notifications for nested builds"() {
         when:
         file("buildSrc/build.gradle") << ""
         file("a/buildSrc/build.gradle") << ""
@@ -85,7 +96,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         file("a/settings.gradle") << ""
         file("settings.gradle") << "includeBuild 'a'"
         buildScript """
-           ${registerListener()}
+           ${registerListenerWithDrainRecordings()}
             task t {
                 dependsOn gradle.includedBuild("a").task(":t")
             }
@@ -150,11 +161,11 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
     }
 
     // This test simulates what the build scan plugin does.
-    def "emits notifications for buildSrc build"() {
+    def "drains notifications for buildSrc build"() {
         given:
         file("buildSrc/build.gradle") << ""
         file("build.gradle") << """
-            ${registerListener()}
+            ${registerListenerWithDrainRecordings()}
             task t
         """
 
