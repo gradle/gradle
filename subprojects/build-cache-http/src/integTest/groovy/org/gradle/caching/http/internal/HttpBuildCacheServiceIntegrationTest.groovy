@@ -17,6 +17,7 @@
 package org.gradle.caching.http.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.keystore.TestKeyStore
 import spock.lang.Timeout
 
 @Timeout(120)
@@ -216,6 +217,41 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         then:
         skippedTasks.empty
         httpBuildCacheServer.authenticationAttempts == ['Basic'] as Set
+    }
+
+    def "can use a self-signed certificate with allowUntrusted"() {
+        def keyStore = TestKeyStore.init(file('ssl-keystore'))
+        keyStore.enableSslWithServerCert(httpBuildCacheServer)
+        settingsFile.text = useHttpBuildCache(httpBuildCacheServer.uri)
+        settingsFile << """
+            buildCache {
+                remote {
+                    allowUntrustedServer = true
+                }
+            }
+        """.stripIndent()
+
+        when:
+        withBuildCache().succeeds "jar"
+        succeeds "clean"
+        withBuildCache().succeeds "jar"
+
+        then:
+        skipped(":compileJava")
+    }
+
+    def "ssl certificate is validated"() {
+        def keyStore = TestKeyStore.init(file('ssl-keystore'))
+        keyStore.enableSslWithServerCert(httpBuildCacheServer)
+        settingsFile.text = useHttpBuildCache(httpBuildCacheServer.uri)
+
+        when:
+        executer.withStackTraceChecksDisabled()
+        withBuildCache().succeeds "jar"
+
+        then:
+        skippedTasks.empty
+        output.contains('sun.security.validator.ValidatorException: PKIX path building failed')
     }
 
     private URI getUrlWithCredentials(String user, String password) {
