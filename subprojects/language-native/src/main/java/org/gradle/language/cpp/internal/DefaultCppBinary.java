@@ -42,6 +42,7 @@ public class DefaultCppBinary implements CppBinary {
 
         final Names names = Names.of(name);
 
+        // TODO - reduce duplication with Swift binary
         Configuration includePathConfig = configurations.create(names.withPrefix("cppCompile"));
         includePathConfig.setCanBeConsumed(false);
         includePathConfig.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));

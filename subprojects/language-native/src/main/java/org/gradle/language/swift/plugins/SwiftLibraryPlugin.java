@@ -28,6 +28,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.PropertyState;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.SwiftLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftLibrary;
@@ -73,37 +74,66 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         module.set(GUtil.toCamelCase(project.getName()));
 
         // Configure compile task
-        SwiftCompile compile = (SwiftCompile) tasks.getByName("compileDebugSwift");
-        compile.setCompilerArgs(Lists.newArrayList("-g", "-enable-testing"));
+        SwiftCompile compileDebug = (SwiftCompile) tasks.getByName("compileDebugSwift");
+        compileDebug.setCompilerArgs(Lists.newArrayList("-g", "-enable-testing"));
+        SwiftCompile compileRelease = (SwiftCompile) tasks.getByName("compileReleaseSwift");
 
-        // Add a link task
-        LinkSharedLibrary link = (LinkSharedLibrary) tasks.getByName("linkDebug");
+        LinkSharedLibrary linkDebug = (LinkSharedLibrary) tasks.getByName("linkDebug");
+        LinkSharedLibrary linkRelease = (LinkSharedLibrary) tasks.getByName("linkRelease");
 
-        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(link);
+        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(linkDebug);
 
         // TODO - add lifecycle tasks
-
+        // TODO - extract some common code to setup the configurations
         // TODO - extract common code with C++ plugins
-        Configuration apiElements = configurations.create("swiftApiElements");
-        apiElements.extendsFrom(library.getApiDependencies());
-        apiElements.setCanBeResolved(false);
-        apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
-        apiElements.getOutgoing().artifact(compile.getObjectFileDirectory());
 
         Configuration implementation = library.getImplementationDependencies();
+        Configuration api = library.getApiDependencies();
 
-        Configuration linkElements = configurations.create("linkElements");
-        linkElements.extendsFrom(implementation);
-        linkElements.setCanBeResolved(false);
-        linkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
-        // TODO - should distinguish between link-time and runtime files
-        linkElements.getOutgoing().artifact(link.getBinaryFile());
+        Configuration debugApiElements = configurations.create("debugSwiftApiElements");
+        debugApiElements.extendsFrom(api);
+        debugApiElements.setCanBeResolved(false);
+        debugApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
+        debugApiElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, true);
+        debugApiElements.getOutgoing().artifact(compileDebug.getObjectFileDirectory());
 
-        Configuration runtimeElements = configurations.create("runtimeElements");
-        runtimeElements.extendsFrom(implementation);
-        runtimeElements.setCanBeResolved(false);
-        runtimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
+        Configuration debugLinkElements = configurations.create("debugLinkElements");
+        debugLinkElements.extendsFrom(implementation);
+        debugLinkElements.setCanBeResolved(false);
+        debugLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
         // TODO - should distinguish between link-time and runtime files
-        runtimeElements.getOutgoing().artifact(link.getBinaryFile());
+        debugLinkElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, true);
+        debugLinkElements.getOutgoing().artifact(linkDebug.getBinaryFile());
+
+        Configuration debugRuntimeElements = configurations.create("debugRuntimeElements");
+        debugRuntimeElements.extendsFrom(implementation);
+        debugRuntimeElements.setCanBeResolved(false);
+        debugRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
+        debugRuntimeElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, true);
+        // TODO - should distinguish between link-time and runtime files
+        debugRuntimeElements.getOutgoing().artifact(linkDebug.getBinaryFile());
+
+        Configuration releaseApiElements = configurations.create("releaseSwiftApiElements");
+        releaseApiElements.extendsFrom(api);
+        releaseApiElements.setCanBeResolved(false);
+        releaseApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
+        releaseApiElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, false);
+        releaseApiElements.getOutgoing().artifact(compileRelease.getObjectFileDirectory());
+
+        Configuration releaseLinkElements = configurations.create("releaseLinkElements");
+        releaseLinkElements.extendsFrom(implementation);
+        releaseLinkElements.setCanBeResolved(false);
+        releaseLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
+        releaseLinkElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, false);
+        // TODO - should distinguish between link-time and runtime files
+        releaseLinkElements.getOutgoing().artifact(linkRelease.getBinaryFile());
+
+        Configuration releaseRuntimeElements = configurations.create("releaseRuntimeElements");
+        releaseRuntimeElements.extendsFrom(implementation);
+        releaseRuntimeElements.setCanBeResolved(false);
+        releaseRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
+        releaseRuntimeElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, false);
+        // TODO - should distinguish between link-time and runtime files
+        releaseRuntimeElements.getOutgoing().artifact(linkRelease.getBinaryFile());
     }
 }

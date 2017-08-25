@@ -60,6 +60,24 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         sharedLibrary("build/lib/main/debug/Hello").assertExists()
     }
 
+    def "can build release variant of library"() {
+        def lib = new SwiftLib()
+        settingsFile << "rootProject.name = 'hello'"
+
+        given:
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-library'
+         """
+
+        expect:
+        succeeds "linkRelease"
+        result.assertTasksExecuted(":compileReleaseSwift", ":linkRelease")
+        sharedLibrary("build/lib/main/release/Hello").assertExists()
+    }
+
     def "build logic can change source layout convention"() {
         def lib = new SwiftLib()
         settingsFile << "rootProject.name = 'hello'"
@@ -191,9 +209,16 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         expect:
         succeeds ":hello:assemble"
+
         result.assertTasksExecuted(":log:compileDebugSwift", ":log:linkDebug", ":hello:compileDebugSwift", ":hello:linkDebug", ":hello:assemble")
         sharedLibrary("hello/build/lib/main/debug/Hello").assertExists()
         sharedLibrary("log/build/lib/main/debug/Log").assertExists()
+
+        succeeds ":hello:linkRelease"
+
+        result.assertTasksExecuted(":log:compileReleaseSwift", ":log:linkRelease", ":hello:compileReleaseSwift", ":hello:linkRelease")
+        sharedLibrary("hello/build/lib/main/release/Hello").assertExists()
+        sharedLibrary("log/build/lib/main/release/Log").assertExists()
     }
 
     def "can change default module name and successfully link against library"() {

@@ -52,23 +52,6 @@ import java.util.concurrent.Callable;
  */
 @Incubating
 public class SwiftBasePlugin implements Plugin<ProjectInternal> {
-    /**
-     * The name of the api configuration.
-     */
-    public static final String API = "api";
-
-    /**
-     * The name of the Swift compile import path configuration.
-     */
-    public static final String SWIFT_IMPORT_PATH = "swiftImportPath";
-
-    /**
-     * The name of the Swift test compile import path configuration.
-     *
-     * @since 4.2
-     */
-    public static final String SWIFT_TEST_IMPORT_PATH = "swiftTestImportPath";
-
     @Override
     public void apply(ProjectInternal project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
@@ -88,6 +71,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                 SwiftCompile compile = tasks.create(names.getCompileTaskName("swift"), SwiftCompile.class);
                 compile.includes(binary.getCompileImportPath());
                 compile.source(binary.getSwiftSource());
+                compile.setCompilerArgs(Collections.<String>emptyList());
                 compile.setMacros(Collections.<String, String>emptyMap());
                 compile.setModuleName(binary.getModule());
                 compile.setObjectFileDir(buildDirectory.dir("obj/" + names.getDirName()));

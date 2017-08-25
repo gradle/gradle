@@ -63,6 +63,26 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         installation("build/install/App").exec().out == app.expectedOutput
     }
 
+    def "can build release variant of the executable"() {
+        settingsFile << "rootProject.name = 'app'"
+        def app = new SwiftApp()
+
+        given:
+        app.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-executable'
+         """
+
+        expect:
+        succeeds "linkRelease"
+        result.assertTasksExecuted(":compileReleaseSwift", ":linkRelease")
+
+        executable("build/exe/main/release/App").assertExists()
+        executable("build/exe/main/release/App").exec().out == app.expectedOutput
+    }
+
     def "ignores non-Swift source files in source directory"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new SwiftApp()
@@ -270,6 +290,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         expect:
         succeeds ":app:assemble"
+
         result.assertTasksExecuted(":hello:compileDebugSwift", ":hello:linkDebug", ":log:compileDebugSwift", ":log:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installMain", ":app:assemble")
 
         sharedLibrary("hello/build/lib/main/debug/Hello").assertExists()
@@ -277,6 +298,14 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         executable("app/build/exe/main/debug/App").exec().out == app.expectedOutput
         sharedLibrary("app/build/install/App/lib/Hello").assertExists()
         sharedLibrary("app/build/install/App/lib/Log").assertExists()
+
+        succeeds ":app:linkRelease"
+
+        result.assertTasksExecuted(":hello:compileReleaseSwift", ":hello:linkRelease", ":log:compileReleaseSwift", ":log:linkRelease", ":app:compileReleaseSwift", ":app:linkRelease")
+
+        sharedLibrary("hello/build/lib/main/release/Hello").assertExists()
+        sharedLibrary("log/build/lib/main/release/Log").assertExists()
+        executable("app/build/exe/main/release/App").exec().out == app.expectedOutput
     }
 
     def "honors changes to library buildDir"() {

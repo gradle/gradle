@@ -25,6 +25,8 @@ import org.gradle.api.provider.Provider;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftBinary;
 
+import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
+
 public class DefaultSwiftBinary implements SwiftBinary {
     private final String name;
     private final Provider<String> module;
@@ -42,20 +44,24 @@ public class DefaultSwiftBinary implements SwiftBinary {
 
         Names names = Names.of(name);
 
+        // TODO - reduce duplication with C++ binary
         Configuration importPathConfig = configurations.create(names.withPrefix("swiftImport"));
         importPathConfig.extendsFrom(implementation);
         importPathConfig.setCanBeConsumed(false);
         importPathConfig.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
+        importPathConfig.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
 
         Configuration nativeLink = configurations.create(names.withPrefix("nativeLink"));
         nativeLink.extendsFrom(implementation);
         nativeLink.setCanBeConsumed(false);
         nativeLink.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
+        nativeLink.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
 
         Configuration nativeRuntime = configurations.create(names.withPrefix("nativeRuntime"));
         nativeRuntime.extendsFrom(implementation);
         nativeRuntime.setCanBeConsumed(false);
         nativeRuntime.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
+        nativeRuntime.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
 
         importPath = importPathConfig;
         linkLibs = nativeLink;
