@@ -111,6 +111,24 @@ The HTTP build cache connector can now be configured to allow HTTPS connections 
 The SSL certificate for the HTTP build cache server may be untrusted since it is internally provisioned or a self-signed certificate.
 For more details see the [`HttpBuildCache.allowUntrustedServer`](dsl/org.gradle.caching.http.HttpBuildCache.html#org.gradle.caching.http.HttpBuildCache:allowUntrustedServer).
 
+### Timeouts for HTTP requests
+
+Previous versions of Gradle did not define a timeout for any HTTP requests. Under certain conditions e.g. network problems, unresponsive or overloaded servers this behavior could lead to hanging connections. Gradle now defines connection and socket timeouts for all HTTP requests. In the event of a timeout, Gradle will skip subsequent connections to the same repository for the duration of the build. The output of a build clearly indicates which request was skipped.
+
+    * What went wrong:
+    Could not resolve all files for configuration ':deps'.
+    > Could not resolve group:a:1.0.
+      Required by:
+          project :
+       > Could not resolve group:a:1.0.
+          > Could not get resource 'http://localhost:54347/repo/group/a/1.0/a-1.0.pom'.
+             > Could not GET 'http://localhost:54347/repo/group/a/1.0/a-1.0.pom'.
+                > Read timed out
+    > Could not resolve group:b:1.0.
+      Required by:
+          project :
+       > Skipped due to earlier error
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
