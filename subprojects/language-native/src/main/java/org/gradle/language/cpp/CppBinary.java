@@ -31,8 +31,6 @@ import org.gradle.api.provider.Provider;
 public interface CppBinary extends SoftwareComponent {
     /**
      * The dependency resolution attribute use to indicate whether a binary is debuggable or not.
-     *
-     * @since 4.2
      */
     Attribute<Boolean> DEBUGGABLE_ATTRIBUTE = Attribute.of("org.gradle.native.debuggable", Boolean.class);
 
