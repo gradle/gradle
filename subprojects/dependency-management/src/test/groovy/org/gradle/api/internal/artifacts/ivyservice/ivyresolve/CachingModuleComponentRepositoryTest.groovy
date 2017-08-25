@@ -77,7 +77,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
             getFailure() >> null
         }
 
-        def descriptorHash = 1234G
+        def descriptorHash = HashCode.fromInt(1234)
         def moduleSource = Stub(CachingModuleComponentRepository.CachingModuleSource) {
             getDescriptorHash() >> descriptorHash
         }

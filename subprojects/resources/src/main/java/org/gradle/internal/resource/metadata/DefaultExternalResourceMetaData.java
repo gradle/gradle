@@ -72,6 +72,7 @@ public class DefaultExternalResourceMetaData implements ExternalResourceMetaData
         return etag;
     }
 
+    @Nullable
     public HashCode getSha1() {
         return sha1;
     }

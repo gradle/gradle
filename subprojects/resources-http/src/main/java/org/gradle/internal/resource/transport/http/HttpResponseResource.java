@@ -23,6 +23,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.utils.DateUtils;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
@@ -138,14 +139,14 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
     private static HashCode getSha1(HttpResponse response, String etag) {
         Header sha1Header = response.getFirstHeader("X-Checksum-Sha1");
         if (sha1Header != null) {
-            return HashCode.fromString(sha1Header.getValue());
+            return HashUtil.parse(sha1Header.getValue(), 40);
         }
 
         // Nexus uses sha1 etags, with a constant prefix
         // e.g {SHA1{b8ad5573a5e9eba7d48ed77a48ad098e3ec2590b}}
         if (etag != null && etag.startsWith("{SHA1{")) {
             String hash = etag.substring(6, etag.length() - 2);
-            return HashCode.fromString(hash);
+            return HashUtil.parse(hash, 40);
         }
 
         return null;

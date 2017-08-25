@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.hash;
 
+import com.google.common.base.Strings;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
 
@@ -56,6 +57,28 @@ public class HashUtil {
             throw new UncheckedIOException(e);
         }
         return hasher.hash();
+    }
+
+    public static HashCode parse(String inputString, int padToLength) {
+        if (inputString == null || inputString.length() == 0) {
+            return null;
+        }
+        String cleaned = inputString.trim().toLowerCase();
+        int spaceIndex = cleaned.indexOf(' ');
+        if (spaceIndex != -1) {
+            String firstPart = cleaned.substring(0, spaceIndex);
+            if (firstPart.startsWith("md") || firstPart.startsWith("sha")) {
+                cleaned = cleaned.substring(cleaned.lastIndexOf(' ') + 1);
+            } else if (firstPart.endsWith(":")) {
+                cleaned = cleaned.substring(spaceIndex + 1).replace(" ", "");
+            } else {
+                cleaned = cleaned.substring(0, spaceIndex);
+            }
+        }
+        if (cleaned.length() < padToLength) {
+            cleaned = Strings.padStart(cleaned, padToLength, '0');
+        }
+        return HashCode.fromString(cleaned);
     }
 
     public static String createCompactMD5(String scriptText) {

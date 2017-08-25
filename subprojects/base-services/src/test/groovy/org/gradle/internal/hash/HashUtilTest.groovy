@@ -19,9 +19,11 @@ package org.gradle.internal.hash
 import org.gradle.api.UncheckedIOException
 import spock.lang.Issue
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static org.gradle.internal.hash.Hashing.md5
 
+@Unroll
 class HashUtilTest extends Specification {
     String stringToHash = "a test string"
     String md5HashString = "b1a4cf30d3f4095f0a7d2a6676bcae77"
@@ -133,5 +135,24 @@ class HashUtilTest extends Specification {
 
         cleanup:
         file?.delete()
+    }
+
+    def "parses hash value from input strings: #inputString (#padToLength)"() {
+        expect:
+        def hashCode = HashUtil.parse(inputString, padToLength)
+        hashCode.toString() == hexString
+
+        where:
+        hexString                                  | padToLength | inputString
+        "00001234"                                 | 8           | "1234"
+        "abcd1234"                                 | 8           | "ABCD1234"
+        "0000000000000001"                         | 16          | "0000000000000001"
+        "00001234"                                 | 8           | "md5 = 1234"
+        "00001234"                                 | 8           | "sha1 = 1234"
+        "76be4c7459d7fb64bf638bac7accd9b6df728f2b" | 40          | "SHA1 (dummy.gz) = 76be4c7459d7fb64bf638bac7accd9b6df728f2b"
+        "00be4c7459d7fb64bf638bac7accd9b6df728f2b" | 40          | "SHA1 (dummy.gz) = be4c7459d7fb64bf638bac7accd9b6df728f2b"
+        "687cab044c8f937b8957166272f1da3c"         | 32          | "fontbox-0.8.0-incubating.jar: 68 7C AB 04 4C 8F 93 7B  89 57 16 62 72 F1 DA 3C" // http://repo2.maven.org/maven2/org/apache/pdfbox/fontbox/0.8.0-incubator/fontbox-0.8.0-incubator.jar.md5
+        "f951934aa5ae5a88d7e6dfaa6d32307d834a88be" | 40          | "f951934aa5ae5a88d7e6dfaa6d32307d834a88be  /home/maven/repository-staging/to-ibiblio/maven2/commons-collections/commons-collections/3.2/commons-collections-3.2.jar"
+        "12345678abcd"                             | 8           | "12345678abcd"
     }
 }

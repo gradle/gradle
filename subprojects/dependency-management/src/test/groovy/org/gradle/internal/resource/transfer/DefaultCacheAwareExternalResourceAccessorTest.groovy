@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.transfer
 
+import com.google.common.base.Strings
 import org.gradle.api.Transformer
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultExternalResourceCachePolicy
@@ -243,7 +244,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         cachedMetaData.lastModified >> null
         1 * repository.resource(new ExternalResourceName("thing.sha1"), true) >> remoteSha1
         1 * remoteSha1.withContentIfPresent(_) >> { Transformer t ->
-            ExternalResourceReadResult.of(1, t.transform(new ByteArrayInputStream(sha1.asZeroPaddedHexString(40).bytes)))
+            ExternalResourceReadResult.of(1, t.transform(new ByteArrayInputStream(Strings.padStart(sha1.toString(), 40, '0').bytes)))
         }
         1 * localCandidates.findByHash(sha1) >> localCandidate
         localCandidate.file >> candidate

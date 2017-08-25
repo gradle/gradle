@@ -16,8 +16,6 @@
 
 package org.gradle.caching.internal.tasks
 
-import com.google.common.hash.Hashing
-import com.google.common.io.Files
 import groovy.io.FileType
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.DirContentSnapshot
@@ -27,6 +25,7 @@ import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputT
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter
+import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -275,7 +274,7 @@ class TarTaskOutputPackerTest extends Specification {
                     if (output == null || !output.exists()) {
                         return [:]
                     }
-                    return [(output.absolutePath): new FileHashSnapshot(Files.hash(output, Hashing.md5()))]
+                    return [(output.absolutePath): new FileHashSnapshot(HashUtil.md5(output))]
                 })
             case DIRECTORY:
                 return new PropertyDefinition(new ResolvedTaskOutputFilePropertySpec(name, DIRECTORY, output), {
@@ -289,7 +288,7 @@ class TarTaskOutputPackerTest extends Specification {
                         if (file.isDirectory()) {
                             snapshot = DirContentSnapshot.INSTANCE
                         } else {
-                            snapshot = new FileHashSnapshot(Files.hash(file, Hashing.md5()))
+                            snapshot = new FileHashSnapshot(HashUtil.md5(file))
                         }
                         return [(file.absolutePath): snapshot]
                     }
