@@ -19,8 +19,6 @@ package org.gradle.language.cpp.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -60,11 +58,6 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
     public static final String IMPLEMENTATION = "implementation";
 
     /**
-     * The name of the C++ compile classpath configuration.
-     */
-    public static final String CPP_INCLUDE_PATH = "cppCompileIncludePath";
-
-    /**
      * The name of the native link files configuration.
      */
     public static final String NATIVE_LINK = "nativeLink";
@@ -93,25 +86,6 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
         project.getPluginManager().apply(StandardToolChainsPlugin.class);
 
-        Configuration implementation = project.getConfigurations().create(IMPLEMENTATION);
-        implementation.setCanBeConsumed(false);
-        implementation.setCanBeResolved(false);
-
-        Configuration includePath = project.getConfigurations().create(CPP_INCLUDE_PATH);
-        includePath.extendsFrom(implementation);
-        includePath.setCanBeConsumed(false);
-        includePath.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.C_PLUS_PLUS_API));
-
-        Configuration nativeLink = project.getConfigurations().create(NATIVE_LINK);
-        nativeLink.extendsFrom(implementation);
-        nativeLink.setCanBeConsumed(false);
-        nativeLink.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.NATIVE_LINK));
-
-        Configuration nativeRuntime = project.getConfigurations().create(NATIVE_RUNTIME);
-        nativeRuntime.extendsFrom(implementation);
-        nativeRuntime.setCanBeConsumed(false);
-        nativeRuntime.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.NATIVE_RUNTIME));
-
         final TaskContainerInternal tasks = project.getTasks();
         final DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
         final ModelRegistry modelRegistry = project.getModelRegistry();
@@ -121,6 +95,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
             @Override
             public void execute(final CppBinary binary) {
                 final Names names = Names.of(binary.getName());
+
                 CppCompile compile = tasks.create(names.getCompileTaskName("cpp"), CppCompile.class);
                 compile.includes(binary.getCompileIncludePath());
                 compile.source(binary.getCppSource());

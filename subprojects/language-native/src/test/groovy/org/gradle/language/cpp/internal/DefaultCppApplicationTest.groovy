@@ -16,13 +16,15 @@
 
 package org.gradle.language.cpp.internal
 
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultCppApplicationTest extends Specification {
     def "has debug and release executables"() {
-        def app = new DefaultCppApplication("main", Stub(FileOperations), Stub(ProviderFactory))
+        def app = new DefaultCppApplication("main", TestUtil.objectFactory(), Stub(FileOperations), Stub(ProviderFactory), Stub(ConfigurationContainer))
 
         expect:
         app.debugExecutable.name == "mainDebug"

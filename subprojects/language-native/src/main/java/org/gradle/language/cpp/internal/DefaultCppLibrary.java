@@ -17,9 +17,12 @@
 package org.gradle.language.cpp.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.CppSharedLibrary;
@@ -31,15 +34,25 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     private final FileCollection publicHeadersWithConvention;
     private final DefaultCppSharedLibrary debug;
     private final DefaultCppSharedLibrary release;
+    private final Configuration api;
 
     @Inject
-    public DefaultCppLibrary(String name, FileOperations fileOperations, ProviderFactory providerFactory) {
-        super(name, fileOperations, providerFactory);
+    public DefaultCppLibrary(String name, ObjectFactory objectFactory, FileOperations fileOperations, ProviderFactory providerFactory, ConfigurationContainer configurations) {
+        super(name, fileOperations, providerFactory, configurations);
         publicHeaders = fileOperations.files();
         publicHeadersWithConvention = createDirView(publicHeaders, "src/" + name + "/public");
-        getCompileIncludePath().setFrom(publicHeadersWithConvention, getPrivateHeaderDirs());
-        debug = new DefaultCppSharedLibrary(name + "Debug", getBaseName(), getCppSource(), getCompileIncludePath(), getLinkLibraries());
-        release = new DefaultCppSharedLibrary(name + "Release", getBaseName(), getCppSource(), getCompileIncludePath(), getLinkLibraries());
+        debug = new DefaultCppSharedLibrary(name + "Debug", objectFactory, getBaseName(), getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
+        release = new DefaultCppSharedLibrary(name + "Release", objectFactory, getBaseName(), getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
+
+        api = configurations.create(getNames().withSuffix("api"));
+        api.setCanBeConsumed(false);
+        api.setCanBeResolved(false);
+        getImplementationDependencies().extendsFrom(api);
+    }
+
+    @Override
+    public Configuration getApiDependencies() {
+        return api;
     }
 
     @Override

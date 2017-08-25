@@ -16,9 +16,14 @@
 
 package org.gradle.language.cpp.internal;
 
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.CppBinary;
+import org.gradle.language.nativeplatform.internal.Names;
 
 public class DefaultCppBinary implements CppBinary {
     private final String name;
@@ -27,12 +32,31 @@ public class DefaultCppBinary implements CppBinary {
     private final FileCollection includePath;
     private final FileCollection linkLibraries;
 
-    public DefaultCppBinary(String name, Provider<String> baseName, FileCollection sourceFiles, FileCollection includePath, FileCollection linkLibraries) {
+    public DefaultCppBinary(String name, ObjectFactory objects, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation) {
         this.name = name;
         this.baseName = baseName;
         this.sourceFiles = sourceFiles;
-        this.includePath = includePath;
-        this.linkLibraries = linkLibraries;
+
+        final Names names = Names.of(name);
+
+        Configuration includePathConfig = configurations.create(names.withPrefix("cppCompile"));
+        includePathConfig.setCanBeConsumed(false);
+        includePathConfig.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
+
+        Configuration nativeLink = configurations.create(names.withPrefix("nativeLink"));
+        nativeLink.setCanBeConsumed(false);
+        nativeLink.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.NATIVE_LINK));
+
+        Configuration nativeRuntime = configurations.create(names.withPrefix("nativeRuntime"));
+        nativeRuntime.setCanBeConsumed(false);
+        nativeRuntime.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.NATIVE_RUNTIME));
+
+        includePathConfig.extendsFrom(implementation);
+        nativeLink.extendsFrom(implementation);
+        nativeRuntime.extendsFrom(implementation);
+
+        includePath = componentHeaderDirs.plus(includePathConfig);
+        linkLibraries = nativeLink;
     }
 
     @Override

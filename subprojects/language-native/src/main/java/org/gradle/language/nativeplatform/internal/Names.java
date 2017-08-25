@@ -18,58 +18,120 @@ package org.gradle.language.nativeplatform.internal;
 
 import org.apache.commons.lang.StringUtils;
 
-public class Names {
-    private final String taskName;
-    private final String dirName;
-
-    private Names(String name) {
-        StringBuilder taskName = new StringBuilder();
-        StringBuilder dirName = new StringBuilder();
-        int startLast = 0;
-        int i = 0;
-        for (; i < name.length(); i++) {
-            if (Character.isUpperCase(name.charAt(i))) {
-                if (i > startLast) {
-                    append(name, startLast, i, taskName, dirName);
-                }
-                startLast = i;
-            }
-        }
-        if (i > startLast) {
-            append(name, startLast, i, taskName, dirName);
-        }
-        this.taskName = taskName.toString();
-        this.dirName = dirName.toString();
-    }
+public abstract class Names {
 
     public static Names of(String name) {
-        if (name.endsWith("Exe")) {
-            // Assume this is the 'main' variant
-            return new Names(name.substring(0, name.length() - 3));
+        // Assume that names that end with 'Exe' represent the 'main' variant of the parent thing
+        if (name.equals("main") || name.equals("mainExe")) {
+            return new Main();
         }
-        return new Names(name);
+        if (name.endsWith("Exe")) {
+            return new Other(name.substring(0, name.length() - 3));
+        }
+        return new Other(name);
     }
 
-    public String getTaskName(String action) {
-        return action + taskName;
-    }
+    public abstract String withPrefix(String prefix);
 
-    public String getCompileTaskName(String language) {
-        return "compile" + taskName + StringUtils.capitalize(language);
-    }
+    public abstract String withSuffix(String suffix);
+
+    public abstract String getTaskName(String action);
+
+    public abstract String getCompileTaskName(String language);
 
     // Includes trailing '/'
-    public String getDirName() {
-        return dirName;
-    }
+    public abstract String getDirName();
 
-    private void append(String name, int start, int end, StringBuilder taskName, StringBuilder dirName) {
-        dirName.append(Character.toLowerCase(name.charAt(start)));
-        dirName.append(name.substring(start + 1, end));
-        dirName.append('/');
-        if (start != 0 || end != 4 || !name.startsWith("main")) {
-            taskName.append(Character.toUpperCase(name.charAt(start)));
-            taskName.append(name.substring(start + 1, end));
+    private static class Main extends Names {
+        @Override
+        public String getCompileTaskName(String language) {
+            return "compile" + StringUtils.capitalize(language);
+        }
+
+        @Override
+        public String getTaskName(String action) {
+            return action;
+        }
+
+        @Override
+        public String getDirName() {
+            return "main/";
+        }
+
+        @Override
+        public String withPrefix(String prefix) {
+            return prefix;
+        }
+
+        @Override
+        public String withSuffix(String suffix) {
+            return suffix;
         }
     }
+
+    private static class Other extends Names {
+        private final String baseName;
+        private final String capitalizedBaseName;
+        private final String dirName;
+
+        Other(String name) {
+            StringBuilder baseName = new StringBuilder();
+            StringBuilder capBaseName = new StringBuilder();
+            StringBuilder dirName = new StringBuilder();
+            int startLast = 0;
+            int i = 0;
+            for (; i < name.length(); i++) {
+                if (Character.isUpperCase(name.charAt(i))) {
+                    if (i > startLast) {
+                        append(name, startLast, i, baseName, capBaseName, dirName);
+                    }
+                    startLast = i;
+                }
+            }
+            if (i > startLast) {
+                append(name, startLast, i, baseName, capBaseName, dirName);
+            }
+            this.baseName = baseName.toString();
+            this.capitalizedBaseName = capBaseName.toString();
+            this.dirName = dirName.toString();
+        }
+
+        public String withPrefix(String prefix) {
+            return prefix + capitalizedBaseName;
+        }
+
+        public String withSuffix(String suffix) {
+            return baseName + StringUtils.capitalize(suffix);
+        }
+
+        public String getTaskName(String action) {
+            return action + capitalizedBaseName;
+        }
+
+        public String getCompileTaskName(String language) {
+            return "compile" + capitalizedBaseName + StringUtils.capitalize(language);
+        }
+
+        // Includes trailing '/'
+        public String getDirName() {
+            return dirName;
+        }
+
+        private void append(String name, int start, int end, StringBuilder baseName, StringBuilder capBaseName, StringBuilder dirName) {
+            dirName.append(Character.toLowerCase(name.charAt(start)));
+            dirName.append(name.substring(start + 1, end));
+            dirName.append('/');
+            if (start != 0 || end != 4 || !name.startsWith("main")) {
+                if (baseName.length() == 0) {
+                    baseName.append(Character.toLowerCase(name.charAt(start)));
+                    baseName.append(name.substring(start + 1, end));
+                } else {
+                    baseName.append(name.substring(start, end));
+                }
+                capBaseName.append(Character.toUpperCase(name.charAt(start)));
+                capBaseName.append(name.substring(start + 1, end));
+            }
+        }
+    }
+
 }

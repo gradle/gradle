@@ -16,6 +16,8 @@
 
 package org.gradle.language.cpp.internal
 
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -27,7 +29,19 @@ class DefaultCppComponentTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def fileOperations = TestFiles.fileOperations(tmpDir.testDirectory)
     def providerFactory = new DefaultProviderFactory()
-    def component = new DefaultCppComponent("main", fileOperations, providerFactory)
+    def implementation = Stub(Configuration)
+    def configurations = Stub(ConfigurationContainer)
+    DefaultCppComponent component
+
+    def setup() {
+        _ * configurations.create("implementation") >> implementation
+        component = new DefaultCppComponent("main", fileOperations, providerFactory, configurations)
+    }
+
+    def "has an implementation configuration"() {
+        expect:
+        component.implementationDependencies == implementation
+    }
 
     def "has no source files by default"() {
         expect:
@@ -96,26 +110,6 @@ class DefaultCppComponentTest extends Specification {
         component.privateHeaderDirs.files == [d] as Set
     }
 
-    def "compile include path includes private header dirs"() {
-        def d = tmpDir.file("src/main/headers")
-        def d2 = tmpDir.file("src/main/d1")
-        def d3 = tmpDir.file("src/main/d2")
-        def d4 = tmpDir.file("src/main/d3")
-        def d5 = tmpDir.file("src/main/d4")
-
-        expect:
-        component.compileIncludePath.files as List == [d]
-
-        component.privateHeaders.from(d2, d3)
-        component.compileIncludePath.files as List == [d2, d3]
-
-        component.compileIncludePath.from(d4, d5)
-        component.compileIncludePath.files as List == [d2, d3, d4, d5]
-
-        component.privateHeaders.setFrom(d3)
-        component.compileIncludePath.files as List == [d3, d4, d5]
-    }
-
     def "can query the header files of the component"() {
         def d1 = tmpDir.createDir("d1")
         def f1 = d1.createFile("a.h")
@@ -136,8 +130,8 @@ class DefaultCppComponentTest extends Specification {
         def h1 = tmpDir.createFile("src/a/headers")
         def f2 = tmpDir.createFile("src/b/cpp/b.cpp")
         def h2 = tmpDir.createFile("src/b/headers")
-        def c1 = new DefaultCppComponent("a", fileOperations, providerFactory)
-        def c2 = new DefaultCppComponent("b", fileOperations, providerFactory)
+        def c1 = new DefaultCppComponent("a", fileOperations, providerFactory, configurations)
+        def c2 = new DefaultCppComponent("b", fileOperations, providerFactory, configurations)
 
         expect:
         c1.cppSource.files == [f1] as Set

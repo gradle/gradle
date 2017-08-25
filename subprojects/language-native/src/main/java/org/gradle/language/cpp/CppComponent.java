@@ -18,6 +18,7 @@ package org.gradle.language.cpp;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -75,17 +76,12 @@ public interface CppComponent extends SoftwareComponent {
     FileCollection getPrivateHeaderDirs();
 
     /**
-     * Returns the header directories to use to compile this component. Includes the header directories of this component plus those of its dependencies.
-     */
-    ConfigurableFileCollection getCompileIncludePath();
-
-    /**
      * Returns all header files of this component. Includes public and private header files.
      */
     FileTree getHeaderFiles();
 
     /**
-     * Returns the link libraries to use to link this component. Includes the link libraries of the component's dependencies.
+     * Returns the implementation dependencies of this component.
      */
-    ConfigurableFileCollection getLinkLibraries();
+    Configuration getImplementationDependencies();
 }

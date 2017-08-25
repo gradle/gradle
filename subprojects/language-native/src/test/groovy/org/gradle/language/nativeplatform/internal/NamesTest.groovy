@@ -25,6 +25,8 @@ class NamesTest extends Specification {
         name.getCompileTaskName("cpp") == "compileCpp"
         name.getTaskName("link") == "link"
         name.getDirName() == "main/"
+        name.withPrefix("compile") == "compile"
+        name.withSuffix("implementation") == "implementation"
     }
 
     def "names for variants of main"() {
@@ -33,6 +35,8 @@ class NamesTest extends Specification {
         name.getCompileTaskName("cpp") == "compileDebugCpp"
         name.getTaskName("link") == "linkDebug"
         name.getDirName() == "main/debug/"
+        name.withPrefix("compile") == "compileDebug"
+        name.withSuffix("implementation") == "debugImplementation"
     }
 
     def "names for main variant of main"() {
@@ -41,6 +45,8 @@ class NamesTest extends Specification {
         name.getCompileTaskName("cpp") == "compileCpp"
         name.getTaskName("link") == "link"
         name.getDirName() == "main/"
+        name.withPrefix("compile") == "compile"
+        name.withSuffix("implementation") == "implementation"
     }
 
     def "names for custom"() {
@@ -49,6 +55,8 @@ class NamesTest extends Specification {
         name.getCompileTaskName("cpp") == "compileCustomCpp"
         name.getTaskName("link") == "linkCustom"
         name.getDirName() == "custom/"
+        name.withPrefix("compile") == "compileCustom"
+        name.withSuffix("implementation") == "customImplementation"
     }
 
     def "names for variants of custom"() {
@@ -57,6 +65,8 @@ class NamesTest extends Specification {
         name.getCompileTaskName("cpp") == "compileCustomReleaseCpp"
         name.getTaskName("link") == "linkCustomRelease"
         name.getDirName() == "custom/release/"
+        name.withPrefix("compile") == "compileCustomRelease"
+        name.withSuffix("implementation") == "customReleaseImplementation"
     }
 
     def "names for main variants of custom"() {
@@ -65,5 +75,7 @@ class NamesTest extends Specification {
         name.getCompileTaskName("cpp") == "compileCustomCpp"
         name.getTaskName("link") == "linkCustom"
         name.getDirName() == "custom/"
+        name.withPrefix("compile") == "compileCustom"
+        name.withSuffix("implementation") == "customImplementation"
     }
 }

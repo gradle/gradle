@@ -64,15 +64,13 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         TaskContainer tasks = project.getTasks();
 
         // Add the application extension
-        final CppApplication application = project.getExtensions().create(CppApplication.class, "executable", DefaultCppApplication.class, "main", fileOperations, providers);
+        final CppApplication application = project.getExtensions().create(CppApplication.class, "executable", DefaultCppApplication.class,  "main", project.getObjects(), fileOperations, providers, configurations);
         project.getComponents().add(application);
         project.getComponents().add(application.getDebugExecutable());
         project.getComponents().add(application.getReleaseExecutable());
 
         // Configure the component
         application.getBaseName().set(project.getName());
-        application.getCompileIncludePath().from(configurations.getByName(CppBasePlugin.CPP_INCLUDE_PATH));
-        application.getLinkLibraries().from(configurations.getByName(CppBasePlugin.NATIVE_LINK));
 
         LinkExecutable link = (LinkExecutable) tasks.getByName("linkDebug");
 
@@ -95,7 +93,8 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
                 return install.getExecutable().exists();
             }
         });
-        install.lib(configurations.getByName(CppBasePlugin.NATIVE_RUNTIME));
+        // TODO - query the model for this instead
+        install.lib(configurations.getByName("nativeRuntimeDebug"));
 
         tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(install);
 

@@ -74,15 +74,13 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         ProviderFactory providers = project.getProviders();
 
         // Add the library extension
-        final CppLibrary library = project.getExtensions().create(CppLibrary.class, "library", DefaultCppLibrary.class, "main", fileOperations, providers);
+        final CppLibrary library = project.getExtensions().create(CppLibrary.class, "library", DefaultCppLibrary.class, "main", project.getObjects(), fileOperations, providers, project.getConfigurations());
         project.getComponents().add(library);
         project.getComponents().add(library.getDebugSharedLibrary());
         project.getComponents().add(library.getReleaseSharedLibrary());
 
         // Configure the component
         library.getBaseName().set(project.getName());
-        library.getCompileIncludePath().from(configurations.getByName(CppBasePlugin.CPP_INCLUDE_PATH));
-        library.getLinkLibraries().from(configurations.getByName(CppBasePlugin.NATIVE_LINK));
 
         // Configure the compile task
         CppCompile compile = (CppCompile) tasks.getByName("compileDebugCpp");
@@ -119,7 +117,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         });
         apiElements.getOutgoing().artifact(publicHeaders);
 
-        Configuration implementation = configurations.getByName(CppBasePlugin.IMPLEMENTATION);
+        Configuration implementation = library.getImplementationDependencies();
 
         Configuration linkElements = configurations.create("linkElements");
         linkElements.extendsFrom(implementation);

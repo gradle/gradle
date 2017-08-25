@@ -52,7 +52,9 @@ import org.gradle.initialization.ProjectPathRegistry;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppComponent;
+import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.plugins.CppExecutablePlugin;
 import org.gradle.language.cpp.plugins.CppLibraryPlugin;
 import org.gradle.language.swift.SwiftComponent;
@@ -238,7 +240,14 @@ public class XcodePlugin extends IdePlugin {
         AbstractLinkTask linkTask = (AbstractLinkTask) project.getTasks().getByName("linkDebug");
         String targetName = StringUtils.capitalize(project.getName());
         XcodeTarget target = newTarget(targetName + " " + toString(productType), targetName, productType, toGradleCommand(project.getRootProject()), linkTask.getPath(), linkTask.getBinaryFile(), sources);
-        target.getHeaderSearchPaths().from(component.getCompileIncludePath());
+        // TODO - should have some way to query the 'default' variant of component
+        if (component instanceof CppApplication) {
+            CppApplication application = (CppApplication) component;
+            target.getHeaderSearchPaths().from(application.getDebugExecutable().getCompileIncludePath());
+        } else if (component instanceof CppLibrary) {
+            CppLibrary library = (CppLibrary) component;
+            target.getHeaderSearchPaths().from(library.getDebugSharedLibrary().getCompileIncludePath());
+        }
         xcode.getProject().setTarget(target);
 
         getProjectTask().dependsOn(createSchemeTask(project.getTasks(), xcode.getProject()));

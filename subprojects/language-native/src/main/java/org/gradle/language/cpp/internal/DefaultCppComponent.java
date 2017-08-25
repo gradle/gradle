@@ -17,6 +17,8 @@
 package org.gradle.language.cpp.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -26,6 +28,7 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
+import org.gradle.language.nativeplatform.internal.Names;
 
 import javax.inject.Inject;
 import java.util.Arrays;
@@ -37,22 +40,28 @@ public class DefaultCppComponent extends DefaultNativeComponent implements CppCo
     private final FileOperations fileOperations;
     private final ConfigurableFileCollection privateHeaders;
     private final FileCollection privateHeadersWithConvention;
-    private final ConfigurableFileCollection compileIncludePath;
-    private final ConfigurableFileCollection linkLibraries;
     private final PropertyState<String> baseName;
+    private final Names names;
+    private final Configuration implementation;
 
     @Inject
-    public DefaultCppComponent(String name, FileOperations fileOperations, ProviderFactory providerFactory) {
+    public DefaultCppComponent(String name, FileOperations fileOperations, ProviderFactory providerFactory, ConfigurationContainer configurations) {
         super(fileOperations);
         this.name = name;
         this.fileOperations = fileOperations;
         cppSource = createSourceView("src/" + name + "/cpp", Arrays.asList("cpp", "c++"));
         privateHeaders = fileOperations.files();
         privateHeadersWithConvention = createDirView(privateHeaders, "src/" + name + "/headers");
-        compileIncludePath = fileOperations.files();
-        compileIncludePath.from(privateHeadersWithConvention);
         baseName = providerFactory.property(String.class);
-        linkLibraries = fileOperations.files();
+
+        names = Names.of(name);
+        implementation = configurations.create(names.withSuffix("implementation"));
+        implementation.setCanBeConsumed(false);
+        implementation.setCanBeResolved(false);
+    }
+
+    protected Names getNames() {
+        return names;
     }
 
     @Override
@@ -98,13 +107,8 @@ public class DefaultCppComponent extends DefaultNativeComponent implements CppCo
     }
 
     @Override
-    public ConfigurableFileCollection getCompileIncludePath() {
-        return compileIncludePath;
-    }
-
-    @Override
-    public ConfigurableFileCollection getLinkLibraries() {
-        return linkLibraries;
+    public Configuration getImplementationDependencies() {
+        return implementation;
     }
 
     @Override

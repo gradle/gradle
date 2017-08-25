@@ -16,12 +16,15 @@
 
 package org.gradle.language.cpp.internal;
 
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.CppExecutable;
 
 public class DefaultCppExecutable extends DefaultCppBinary implements CppExecutable {
-    public DefaultCppExecutable(String name, Provider<String> baseName, FileCollection sourceFiles, FileCollection includePath, FileCollection linkLibraries) {
-        super(name, baseName, sourceFiles, includePath, linkLibraries);
+    public DefaultCppExecutable(String name, ObjectFactory objectFactory, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation) {
+        super(name, objectFactory, baseName, sourceFiles, componentHeaderDirs, configurations, implementation);
     }
 }
