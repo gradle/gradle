@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp
 
+import groovy.io.FileType
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.CppLib
@@ -76,6 +77,35 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         expect:
         succeeds "assemble"
         result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
+        sharedLibrary("build/lib/hello").assertExists()
+    }
+
+    def "stalled object files are removed"() {
+        def lib = new CppLib()
+        settingsFile << "rootProject.name = 'hello'"
+
+        given:
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-library'
+         """
+
+        and:
+        succeeds "assemble"
+        lib.multiply.files.each { file(it.withPath("src/main")).delete() }
+        file(lib.greeter.source.sourceFile.withPath("src/main")).renameTo("renamed-greeter.cpp")
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
+        result.assertTasksNotSkipped(":compileCpp", ":linkMain", ":assemble")
+
+        file("build/main/objs").eachFileRecurse(FileType.FILES) {
+            assert it.name != lib.multiply.source.sourceFile.name.replace('.cpp', '.o')
+            assert it.name != lib.greeter.source.sourceFile.name.replace('.cpp', '.o')
+        }
         sharedLibrary("build/lib/hello").assertExists()
     }
 

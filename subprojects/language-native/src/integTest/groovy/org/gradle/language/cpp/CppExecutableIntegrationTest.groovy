@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp
 
+import groovy.io.FileType
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
@@ -82,6 +83,36 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         executable("build/exe/app").assertExists()
         installation("build/install/app").exec().out == app.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
+    }
+
+    def "stalled object files are removed"() {
+        settingsFile << "rootProject.name = 'app'"
+        def app = new CppApp()
+
+        given:
+        app.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-executable'
+         """
+
+        and:
+        succeeds "assemble"
+        app.multiply.files.each { file(it.withPath("src/main")).delete() }
+        file(app.greeter.source.sourceFile.withPath("src/main")).renameTo(file("src/main/cpp/renamed-greeter.cpp"))
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileCpp", ":linkMain", ":installMain", ":assemble")
+        result.assertTasksNotSkipped(":compileCpp", ":linkMain", ":installMain", ":assemble")
+
+        file("build/main/objs").eachFileRecurse(FileType.FILES) {
+            assert it.name != app.multiply.source.sourceFile.name.replace('.cpp', '.o')
+            assert it.name != app.greeter.source.sourceFile.name.replace('.cpp', '.o')
+        }
+        executable("build/exe/App").assertExists()
+        installation("build/install/App").exec().out == app.expectedOutput
     }
 
     def "ignores non-C++ source files in source directory"() {
