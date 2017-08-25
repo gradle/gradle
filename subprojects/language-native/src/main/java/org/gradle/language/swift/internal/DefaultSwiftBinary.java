@@ -23,13 +23,15 @@ import org.gradle.language.swift.SwiftBinary;
 public class DefaultSwiftBinary implements SwiftBinary {
     private final String name;
     private final Provider<String> module;
+    private final boolean debuggable;
     private final FileCollection source;
     private final FileCollection importPath;
     private final FileCollection linkLibs;
 
-    public DefaultSwiftBinary(String name, Provider<String> module, FileCollection source, FileCollection importPath, FileCollection linkLibs) {
+    public DefaultSwiftBinary(String name, Provider<String> module, boolean debuggable, FileCollection source, FileCollection importPath, FileCollection linkLibs) {
         this.name = name;
         this.module = module;
+        this.debuggable = debuggable;
         this.source = source;
         this.importPath = importPath;
         this.linkLibs = linkLibs;
@@ -43,6 +45,11 @@ public class DefaultSwiftBinary implements SwiftBinary {
     @Override
     public Provider<String> getModule() {
         return module;
+    }
+
+    @Override
+    public boolean isDebuggable() {
+        return debuggable;
     }
 
     @Override

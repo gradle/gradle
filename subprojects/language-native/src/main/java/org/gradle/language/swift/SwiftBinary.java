@@ -34,6 +34,11 @@ public interface SwiftBinary extends SoftwareComponent {
     Provider<String> getModule();
 
     /**
+     * Returns true if this binary has debugging enabled.
+     */
+    boolean isDebuggable();
+
+    /**
      * Returns the Swift source files of this binary.
      */
     FileCollection getSwiftSource();

@@ -28,6 +28,12 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface SwiftLibrary extends SwiftComponent {
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    SwiftSharedLibrary getDevelopmentBinary();
+
+    /**
      * Returns the debug shared library for this library.
      */
     SwiftSharedLibrary getDebugSharedLibrary();

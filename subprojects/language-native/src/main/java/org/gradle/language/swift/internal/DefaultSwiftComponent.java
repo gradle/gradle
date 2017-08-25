@@ -26,7 +26,7 @@ import org.gradle.language.swift.SwiftComponent;
 
 import java.util.Collections;
 
-public class DefaultSwiftComponent extends DefaultNativeComponent implements SwiftComponent {
+public abstract class DefaultSwiftComponent extends DefaultNativeComponent implements SwiftComponent {
     private final FileCollection swiftSource;
     private final ConfigurableFileCollection importPath;
     private final ConfigurableFileCollection linkLibraries;

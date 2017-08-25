@@ -30,8 +30,13 @@ public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftL
     @Inject
     public DefaultSwiftLibrary(String name, FileOperations fileOperations, ProviderFactory providerFactory) {
         super(name, fileOperations, providerFactory);
-        debug = new DefaultSwiftSharedLibrary(name + "Debug", getModule(), getSwiftSource(), getCompileImportPath(), getLinkLibraries());
-        release = new DefaultSwiftSharedLibrary(name + "Release", getModule(), getSwiftSource(), getCompileImportPath(), getLinkLibraries());
+        debug = new DefaultSwiftSharedLibrary(name + "Debug", getModule(), true, getSwiftSource(), getCompileImportPath(), getLinkLibraries());
+        release = new DefaultSwiftSharedLibrary(name + "Release", getModule(), false, getSwiftSource(), getCompileImportPath(), getLinkLibraries());
+    }
+
+    @Override
+    public SwiftSharedLibrary getDevelopmentBinary() {
+        return debug;
     }
 
     @Override

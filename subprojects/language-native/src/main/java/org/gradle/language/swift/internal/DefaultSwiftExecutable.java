@@ -21,7 +21,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.language.swift.SwiftExecutable;
 
 public class DefaultSwiftExecutable extends DefaultSwiftBinary implements SwiftExecutable {
-    public DefaultSwiftExecutable(String name, Provider<String> module, FileCollection source, FileCollection importPath, FileCollection linkLibs) {
-        super(name, module, source, importPath, linkLibs);
+    public DefaultSwiftExecutable(String name, Provider<String> module, boolean debuggable, FileCollection source, FileCollection importPath, FileCollection linkLibs) {
+        super(name, module, debuggable, source, importPath, linkLibs);
     }
 }

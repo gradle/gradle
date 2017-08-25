@@ -26,6 +26,9 @@ class DefaultSwiftApplicationTest extends Specification {
         expect:
         def app = new DefaultSwiftApplication("main", Stub(FileOperations), Stub(ProviderFactory))
         app.debugExecutable.name == "mainDebug"
+        app.debugExecutable.debuggable
         app.releaseExecutable.name == "mainRelease"
+        !app.releaseExecutable.debuggable
+        app.developmentBinary == app.debugExecutable
     }
 }

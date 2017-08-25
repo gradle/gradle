@@ -28,7 +28,12 @@ public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements Sw
 
     public DefaultSwiftXCTestSuite(String name, FileOperations fileOperations, ProviderFactory providerFactory) {
         super(name, fileOperations, providerFactory);
-        executable = new DefaultSwiftBinary(name + "Exe", getModule(), getSwiftSource(), getCompileImportPath(), getLinkLibraries());
+        executable = new DefaultSwiftBinary(name + "Exe", getModule(), true, getSwiftSource(), getCompileImportPath(), getLinkLibraries());
+    }
+
+    @Override
+    public SwiftBinary getDevelopmentBinary() {
+        return executable;
     }
 
     @Override

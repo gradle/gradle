@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.language.swift.internal
+package org.gradle.nativeplatform.test.xctest.internal
 
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.provider.ProviderFactory
 import spock.lang.Specification
 
 
-class DefaultSwiftLibraryTest extends Specification {
-    def "has debug and release variants"() {
+class DefaultSwiftXCTestSuiteTest extends Specification {
+    def "has an executable"() {
         expect:
-        def app = new DefaultSwiftLibrary("main", Stub(FileOperations), Stub(ProviderFactory))
-        app.debugSharedLibrary.name == "mainDebug"
-        app.debugSharedLibrary.debuggable
-        app.releaseSharedLibrary.name == "mainRelease"
-        !app.releaseSharedLibrary.debuggable
-        app.developmentBinary == app.debugSharedLibrary
+        def testSuite = new DefaultSwiftXCTestSuite("test", Stub(FileOperations), Stub(ProviderFactory))
+        testSuite.executable.name == "testExe"
+        testSuite.executable.debuggable
+        testSuite.developmentBinary == testSuite.executable
     }
 }

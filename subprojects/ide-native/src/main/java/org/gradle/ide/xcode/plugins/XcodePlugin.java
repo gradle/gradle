@@ -203,7 +203,7 @@ public class XcodePlugin extends IdePlugin {
         AbstractLinkTask linkTask = (AbstractLinkTask) project.getTasks().getByName("linkDebug");
         // TODO - should reflect changes to module name
         XcodeTarget target = newTarget(component.getModule().get() + " " + toString(productType), component.getModule().get(), productType, toGradleCommand(project.getRootProject()), linkTask.getPath(), linkTask.getBinaryFile(), sources);
-        target.getImportPaths().from(component.getCompileImportPath());
+        target.getImportPaths().from(component.getDevelopmentBinary().getCompileImportPath());
         xcode.getProject().setTarget(target);
 
         getProjectTask().dependsOn(createSchemeTask(project.getTasks(), xcode.getProject()));

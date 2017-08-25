@@ -28,6 +28,12 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface SwiftApplication extends SwiftComponent {
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    SwiftExecutable getDevelopmentBinary();
+
+    /**
      * Returns the debug executable for this application.
      */
     SwiftExecutable getDebugExecutable();

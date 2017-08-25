@@ -57,6 +57,11 @@ public interface SwiftComponent extends SoftwareComponent {
     FileCollection getSwiftSource();
 
     /**
+     * Returns the binary of the component to use as the default for development.
+     */
+    SwiftBinary getDevelopmentBinary();
+
+    /**
      * Returns the import directories to use to compile this component. Includes the import directories of the component's dependencies.
      */
     ConfigurableFileCollection getCompileImportPath();
