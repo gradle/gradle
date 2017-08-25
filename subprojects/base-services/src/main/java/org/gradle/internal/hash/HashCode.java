@@ -144,13 +144,7 @@ public class HashCode implements Serializable, Comparable<HashCode> {
                 return result;
             }
         }
-        if (len1 < len2) {
-            return -1;
-        } else if (len1 == len2) {
-            return 0;
-        } else {
-            return 1;
-        }
+        return len1 - len2;
     }
 
     @Override
