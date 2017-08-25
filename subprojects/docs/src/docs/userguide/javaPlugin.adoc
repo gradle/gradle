@@ -1005,17 +1005,17 @@ You can easily write a manifest to disk.
 How to upload your archives is described in <<artifact_management>>.
 
 [[sec:java_cross_compilation]]
-=== Compiling and testing for Java 6
+=== Compiling and testing for Java 6/7
 
-Gradle can only run on Java version 7 or higher. Gradle 3.x still supports compiling, testing, generating Javadoc and executing applications for Java 6. Java 5 is not supported.
+Support for running Gradle on Java 7 has been deprecated and is scheduled to be removed in Gradle 5.0. However, it still supports compiling, testing, generating Javadoc and executing applications for Java 6 and Java 7. Java 5 is not supported.
 
-To use Java 6 the following tasks need to be configured:
+To use Java 6 or Java 7, the following tasks need to be configured:
 
 * `JavaCompile` task to fork and use the correct Java home
 * `Javadoc` task to use the correct `javadoc` executable
 * `Test` and the `JavaExec` task to use the correct `java` executable.
 
-The following sample shows how the `build.gradle` needs to be adjusted. In order to be able to make the build machine-independent, the location of the Java 6 home should be configured in `GRADLE_USER_HOME/gradle.properties` footnote:[For more details on `gradle.properties` see <<sec:gradle_configuration_properties>> ] in the users home directory on each developer machine, as shown in the example.
+The following sample shows how the `build.gradle` needs to be adjusted. In order to be able to make the build machine-independent, the location of the old Java home and target version should be configured in `GRADLE_USER_HOME/gradle.properties` footnote:[For more details on `gradle.properties` see <<sec:gradle_configuration_properties>> ] in the user's home directory on each developer machine, as shown in the example.
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="javaCrossCompilation" dir="java/crossCompilation" title="Configure Java 6 build">

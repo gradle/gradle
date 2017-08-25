@@ -268,9 +268,9 @@ The Groovy plugin adds a api:org.gradle.api.tasks.compile.GroovyCompile[] task f
 
 
 [[sec:groovy_cross_compilation]]
-=== Compiling and testing for Java 6
+=== Compiling and testing for Java 6/7
 
-The Groovy compiler will always be executed with the same version of Java that was used to start Gradle. You should set `sourceCompatibility` and `targetCompatibility` to `1.6`. If you also have Java sources, you can follow the same steps as for the <<sec:java_cross_compilation,Java plugin>> to ensure the correct Java compiler is used.
+The Groovy compiler will always be executed with the same version of Java that was used to start Gradle. You should set `sourceCompatibility` and `targetCompatibility` to `1.6` or `1.7`. If you also have Java sources, you can follow the same steps as for the <<sec:java_cross_compilation,Java plugin>> to ensure the correct Java compiler is used.
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="groovyCrossCompilation" dir="groovy/crossCompilation" title="Configure Java 6 build for Groovy">
                 <sourcefile file="gradle.properties"/>
