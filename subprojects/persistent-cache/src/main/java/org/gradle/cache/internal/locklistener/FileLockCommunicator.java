@@ -50,7 +50,7 @@ public class FileLockCommunicator {
         }
     }
 
-    public void pingOwner(int ownerPort, long lockId, String displayName) {
+    public boolean pingOwner(int ownerPort, long lockId, String displayName) {
         try {
             byte[] bytesToSend = encode(lockId);
             // Ping the owner via all available local addresses
@@ -60,6 +60,7 @@ public class FileLockCommunicator {
                 } catch (IOException e) {
                     if (e.getMessage() != null && e.getMessage().startsWith(SOCKET_OPERATION_NOT_PERMITTED_ERROR_MESSAGE)) {
                         LOGGER.debug("Failed attempt to ping owner of lock for {} (lock id: {}, port: {}, address: {})", displayName, lockId, ownerPort, address);
+                        return false;
                     } else {
                         throw e;
                     }
@@ -68,14 +69,39 @@ public class FileLockCommunicator {
         } catch (IOException e) {
             throw new RuntimeException(String.format("Failed to ping owner of lock for %s (lock id: %s, port: %s)", displayName, lockId, ownerPort), e);
         }
+        return true;
     }
 
-    public long receive() throws GracefullyStoppedException {
+    public DatagramPacket receive() throws GracefullyStoppedException {
         try {
             byte[] bytes = new byte[9];
             DatagramPacket packet = new DatagramPacket(bytes, bytes.length);
             socket.receive(packet);
-            return decode(bytes);
+            return packet;
+        } catch (IOException e) {
+            if (!stopped) {
+                throw new RuntimeException(e);
+            }
+            throw new GracefullyStoppedException();
+        }
+    }
+
+    public long decodeLockId(DatagramPacket receivedPacket) {
+        try {
+            return decode(receivedPacket.getData());
+        } catch (IOException e) {
+            if (!stopped) {
+                throw new RuntimeException(e);
+            }
+            throw new GracefullyStoppedException();
+        }
+    }
+
+    public void confirmUnlockRequest(DatagramPacket receivedPacket) {
+        try {
+            byte[] bytes = receivedPacket.getData();
+            DatagramPacket confirmPacket = new DatagramPacket(bytes, bytes.length, receivedPacket.getAddress(), receivedPacket.getPort());
+            socket.send(confirmPacket);
         } catch (IOException e) {
             if (!stopped) {
                 throw new RuntimeException(e);
