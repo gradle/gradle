@@ -99,7 +99,8 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
 
     def "does not assign an invalid project name from folder names"() {
         given:
-        def buildFolder = file(".folder  name ")
+        executer.expectDeprecationWarning()
+        def buildFolder = file(".folder  name")
         inDirectory(buildFolder)
         buildFolder.file("build.gradle") << "println rootProject.name"
 
@@ -107,12 +108,14 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'help'
 
         then:
-        output.contains("_folder__name_")
+        //output.contains("_folder__name")
+        assertPrintsForbiddenStartOrEndCharacterDeprecationMessage('.folder  name')
     }
 
     @Requires(TestPrecondition.UNIX_DERIVATIVE)
     def "does not assign an invalid project name from unix folder names"() {
         given:
+        executer.expectDeprecationWarning()
         def buildFolder = file(".folder: name.")
         inDirectory(buildFolder)
         buildFolder.file("build.gradle") << "println rootProject.name"
@@ -121,7 +124,8 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'help'
 
         then:
-        output.contains("_folder__name_")
+        //output.contains("_folder__name_")
+        assertPrintsForbiddenStartOrEndCharacterDeprecationMessage('.folder: name.')
     }
 
     void assertPrintsForbiddenCharacterDeprecationMessage(String deprecatedName) {
