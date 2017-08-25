@@ -75,7 +75,7 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
     }
 
     @Override
-    public void registerBuildScopeListenerAndDrainRecorded(BuildOperationNotificationListener notificationListener) {
+    public void registerBuildScopeListenerAndReceiveStoredOperations(BuildOperationNotificationListener notificationListener) {
         this.recordingListener.attach(notificationListener, true);
 
     }

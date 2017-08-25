@@ -47,6 +47,6 @@ public interface BuildOperationNotificationListenerRegistrar {
      * current build execution, including those those operations that started before the
      * listener was registered.
      */
-    void registerBuildScopeListenerAndDrainRecorded(BuildOperationNotificationListener listener);
+    void registerBuildScopeListenerAndReceiveStoredOperations(BuildOperationNotificationListener listener);
 
 }

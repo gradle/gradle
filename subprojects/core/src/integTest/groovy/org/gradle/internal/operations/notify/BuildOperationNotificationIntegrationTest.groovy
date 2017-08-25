@@ -36,7 +36,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
 
     String registerListenerWithDrainRecordings() {
         listenerClass() + """
-        registrar.registerBuildScopeListenerAndDrainRecorded(listener)
+        registrar.registerBuildScopeListenerAndReceiveStoredOperations(listener)
         """
     }
 
