@@ -69,12 +69,11 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends AbstractIntegrat
     }
 
     def "build cache is deactivated for the build if the connection times out"() {
-        httpBuildCacheServer.blockIncomingConnections = true
+        httpBuildCacheServer.blockIncomingConnectionsForSeconds = 10
         startServer()
 
         when:
-        executer.withArgument("-D${SOCKET_TIMEOUT_SYSTEM_PROPERTY}=2000")
-        executer.withStackTraceChecksDisabled()
+        executer.withArgument("-D${SOCKET_TIMEOUT_SYSTEM_PROPERTY}=1000")
         executer.withStacktraceDisabled()
         withBuildCache().succeeds("customTask")
 

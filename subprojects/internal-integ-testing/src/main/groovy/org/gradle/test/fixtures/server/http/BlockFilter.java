@@ -28,6 +28,12 @@ import java.util.concurrent.TimeUnit;
 
 public class BlockFilter implements Filter {
 
+    private final int blockForSeconds;
+
+    public BlockFilter(int blockForSeconds) {
+        this.blockForSeconds = blockForSeconds;
+    }
+
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
     }
@@ -36,7 +42,7 @@ public class BlockFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         CountDownLatch latch = new CountDownLatch(1);
         try {
-            latch.await(60, TimeUnit.SECONDS);
+            latch.await(blockForSeconds, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             // ignore
         }
