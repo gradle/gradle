@@ -109,6 +109,30 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         sharedLibrary("build/lib/hello").assertExists()
     }
 
+    def "stalled library file are removed"() {
+        def lib = new CppLib()
+        settingsFile << "rootProject.name = 'hello'"
+
+        given:
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-library'
+         """
+
+        and:
+        succeeds "assemble"
+        testDirectory.file("src").deleteDir()
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
+        result.assertTasksNotSkipped(":compileCpp")
+
+        sharedLibrary("build/lib/hello").assertDoesNotExist()
+    }
+
     def "build logic can change source layout convention"() {
         def lib = new CppLib()
         settingsFile << "rootProject.name = 'hello'"

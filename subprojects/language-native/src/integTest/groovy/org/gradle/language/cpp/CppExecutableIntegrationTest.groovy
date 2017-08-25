@@ -23,6 +23,7 @@ import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.junit.Assume
+import spock.lang.Ignore
 
 import static org.gradle.util.Matchers.containsText
 
@@ -113,6 +114,32 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         }
         executable("build/exe/App").assertExists()
         installation("build/install/App").exec().out == app.expectedOutput
+    }
+
+    @Ignore("Install task doesn't clean its output")
+    def "stalled executable file are removed"() {
+        settingsFile << "rootProject.name = 'app'"
+        def app = new CppApp()
+
+        given:
+        app.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-executable'
+         """
+
+        and:
+        succeeds "assemble"
+        testDirectory.file("src").deleteDir()
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileCpp", ":linkMain", ":installMain", ":assemble")
+        result.assertTasksNotSkipped(":compileCpp", ":linkMain", ":installMain", ":assemble")
+
+        executable("build/exe/app").assertDoesNotExist()
+        installation("build/install/app").assertNotInstalled()
     }
 
     def "ignores non-C++ source files in source directory"() {
