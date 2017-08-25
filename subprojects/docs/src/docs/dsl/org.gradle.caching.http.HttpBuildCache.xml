@@ -26,6 +26,9 @@
             <tr>
                 <td>url</td>
             </tr>
+            <tr>
+                <td>allowUntrustedServer</td>
+            </tr>
         </table>
     </section>
     <section>

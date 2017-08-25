@@ -18,6 +18,7 @@ package org.gradle.internal.resource.transport.http;
 
 import org.gradle.authentication.Authentication;
 
+import javax.net.ssl.HostnameVerifier;
 import java.util.Collection;
 
 public interface HttpSettings {
@@ -30,4 +31,6 @@ public interface HttpSettings {
     Collection<Authentication> getAuthenticationSettings();
 
     SslContextFactory getSslContextFactory();
+
+    HostnameVerifier getHostnameVerifier();
 }
