@@ -16,17 +16,17 @@
 
 package org.gradle.internal.hash;
 
+/**
+ * Hasher abstraction that can be fed different kinds of primitives.
+ */
 public interface Hasher {
     void putBytes(byte[] bytes);
     void putBytes(byte[] bytes, int off, int len);
     void putByte(byte value);
-    void putShort(short value);
     void putInt(int value);
     void putLong(long value);
-    void putFloat(float value);
     void putDouble(double value);
     void putBoolean(boolean value);
-    void putChar(char value);
     void putString(CharSequence value);
     HashCode hash();
 }

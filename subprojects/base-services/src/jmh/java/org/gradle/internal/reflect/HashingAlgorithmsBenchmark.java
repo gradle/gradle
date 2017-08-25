@@ -66,7 +66,6 @@ public class HashingAlgorithmsBenchmark {
 
     Random random = new Random(1234L);
 
-    // @Param({"16", "1024", "65536"})
     @Param({"16", "1024", "65536"})
     int hashSize;
 

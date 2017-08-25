@@ -20,6 +20,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Serializable;
 
+/**
+ * An immutable hash code. Must be 4-255 bytes long. Replacement for Guava's hashing.
+ */
 public class HashCode implements Serializable, Comparable<HashCode> {
     private static final int MIN_NUMBER_OF_BYTES = 4;
     private static final int MAX_NUMBER_OF_BYTES = 255;
