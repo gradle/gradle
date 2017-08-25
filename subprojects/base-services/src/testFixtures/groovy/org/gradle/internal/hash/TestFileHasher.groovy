@@ -18,25 +18,12 @@ package org.gradle.internal.hash
 
 import org.gradle.api.file.FileTreeElement
 import org.gradle.internal.file.FileMetadataSnapshot
+import org.gradle.test.fixtures.file.TestFile
 
-class TestFileHasher implements FileHasher, StreamHasher {
-    private final static HASH_FUNCTION = Hashing.md5()
-
-    @Override
-    HashCode hash(InputStream inputStream) {
-        return HASH_FUNCTION.hashBytes(inputStream.bytes)
-    }
-
-    @Override
-    HashCode hashCopy(InputStream inputStream, OutputStream outputStream) throws IOException {
-        def hashOutputStream = new HashingOutputStream(HASH_FUNCTION, outputStream)
-        hashOutputStream << inputStream
-        return hashOutputStream.hash()
-    }
-
+class TestFileHasher implements FileHasher {
     @Override
     HashCode hash(File file) {
-        HASH_FUNCTION.hashBytes(file.bytes)
+        TestFile.md5(file)
     }
 
     @Override
