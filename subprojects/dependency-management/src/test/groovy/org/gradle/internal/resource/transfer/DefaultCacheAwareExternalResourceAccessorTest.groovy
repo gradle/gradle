@@ -244,7 +244,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         cachedMetaData.lastModified >> null
         1 * repository.resource(new ExternalResourceName("thing.sha1"), true) >> remoteSha1
         1 * remoteSha1.withContentIfPresent(_) >> { Transformer t ->
-            ExternalResourceReadResult.of(1, t.transform(new ByteArrayInputStream(Strings.padStart(sha1.toString(), 40, '0').bytes)))
+            ExternalResourceReadResult.of(1, t.transform(new ByteArrayInputStream(Strings.padStart(sha1.toString(), 40, (char) '0').bytes)))
         }
         1 * localCandidates.findByHash(sha1) >> localCandidate
         localCandidate.file >> candidate
