@@ -16,7 +16,6 @@
 
 package org.gradle.test.fixtures.file;
 
-import com.google.common.io.Files;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.apache.commons.io.FileUtils;
@@ -24,7 +23,8 @@ import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.Zip;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.testing.internal.util.RetryUtil;
@@ -40,7 +40,6 @@ import java.io.ObjectStreamException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Formatter;
@@ -406,7 +405,7 @@ public class TestFile extends File {
         assertIsFile();
         other.assertIsFile();
         assertEquals(String.format("%s is not the same length as %s", this, other), other.length(), this.length());
-        assertTrue(String.format("%s does not have the same content as %s", this, other), Arrays.equals(getHash("MD5"), other.getHash("MD5")));
+        assertTrue(String.format("%s does not have the same content as %s", this, other), getMd5Hash().equals(other.getMd5Hash()));
         return this;
     }
 
@@ -418,21 +417,7 @@ public class TestFile extends File {
     }
 
     public String getMd5Hash() {
-        try {
-            return Hashing.md5().hashBytes(Files.toByteArray(this)).toString();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private byte[] getHash(String algorithm) {
-        try {
-            MessageDigest messageDigest = MessageDigest.getInstance(algorithm);
-            messageDigest.update(FileUtils.readFileToByteArray(this));
-            return messageDigest.digest();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        return HashUtil.md5(this).toString();
     }
 
     public void createLink(File target) {
@@ -657,28 +642,28 @@ public class TestFile extends File {
 
     public Snapshot snapshot() {
         assertIsFile();
-        return new Snapshot(lastModified(), getHash("MD5"));
+        return new Snapshot(lastModified(), HashUtil.md5(this));
     }
 
     public void assertHasChangedSince(Snapshot snapshot) {
         Snapshot now = snapshot();
-        assertTrue(String.format("contents or modification time of %s have not changed", this), now.modTime != snapshot.modTime || !Arrays.equals(now.hash, snapshot.hash));
+        assertTrue(String.format("contents or modification time of %s have not changed", this), now.modTime != snapshot.modTime || !now.hash.equals(snapshot.hash));
     }
 
     public void assertContentsHaveChangedSince(Snapshot snapshot) {
         Snapshot now = snapshot();
-        assertTrue(String.format("contents of %s have not changed", this), !Arrays.equals(now.hash, snapshot.hash));
+        assertNotEquals(String.format("contents of %s have not changed", this), snapshot.hash, now.hash);
     }
 
     public void assertContentsHaveNotChangedSince(Snapshot snapshot) {
         Snapshot now = snapshot();
-        assertArrayEquals(String.format("contents of %s has changed", this), snapshot.hash, now.hash);
+        assertEquals(String.format("contents of %s has changed", this), snapshot.hash, now.hash);
     }
 
     public void assertHasNotChangedSince(Snapshot snapshot) {
         Snapshot now = snapshot();
         assertEquals(String.format("last modified time of %s has changed", this), snapshot.modTime, now.modTime);
-        assertArrayEquals(String.format("contents of %s has changed", this), snapshot.hash, now.hash);
+        assertEquals(String.format("contents of %s has changed", this), snapshot.hash, now.hash);
     }
 
     public void writeProperties(Map<?, ?> properties) {
@@ -710,9 +695,9 @@ public class TestFile extends File {
 
     public class Snapshot {
         private final long modTime;
-        private final byte[] hash;
+        private final HashCode hash;
 
-        public Snapshot(long modTime, byte[] hash) {
+        public Snapshot(long modTime, HashCode hash) {
             this.modTime = modTime;
             this.hash = hash;
         }

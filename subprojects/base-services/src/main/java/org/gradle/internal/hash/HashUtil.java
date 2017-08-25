@@ -41,20 +41,16 @@ public class HashUtil {
         }
     }
 
-    private static HashCode createHash(InputStream instr, HashFunction hashFunction) {
+    public static HashCode createHash(InputStream input, HashFunction hashFunction) {
         Hasher hasher = hashFunction.newHasher();
         try {
             byte[] buffer = new byte[4096];
-            try {
-                while (true) {
-                    int nread = instr.read(buffer);
-                    if (nread < 0) {
-                        break;
-                    }
-                    hasher.putBytes(buffer, 0, nread);
+            while (true) {
+                int nread = input.read(buffer);
+                if (nread < 0) {
+                    break;
                 }
-            } finally {
-                instr.close();
+                hasher.putBytes(buffer, 0, nread);
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
