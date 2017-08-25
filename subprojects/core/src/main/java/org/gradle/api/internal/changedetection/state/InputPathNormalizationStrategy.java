@@ -130,9 +130,6 @@ public enum InputPathNormalizationStrategy implements PathNormalizationStrategy 
 
     static NormalizedFileSnapshot getRelativeSnapshot(FileSnapshot fileSnapshot, String normalizedPath, StringInterner stringInterner) {
         FileContentSnapshot contentSnapshot = fileSnapshot.getContent();
-        if (normalizedPath.isEmpty()) {
-            return new IgnoredPathFileSnapshot(contentSnapshot);
-        }
         String absolutePath = fileSnapshot.getPath();
         if (absolutePath.endsWith(normalizedPath)) {
             return new IndexedNormalizedFileSnapshot(absolutePath, absolutePath.length() - normalizedPath.length(), contentSnapshot);
