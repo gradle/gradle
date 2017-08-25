@@ -251,7 +251,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
 
         then:
         skippedTasks.empty
-        output.contains('sun.security.validator.ValidatorException: PKIX path building failed')
+        output.contains('PKIX path building failed: ')
     }
 
     private URI getUrlWithCredentials(String user, String password) {
