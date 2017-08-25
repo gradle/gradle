@@ -340,7 +340,6 @@ task installAll(type: Install) {
 }
 
 apply from: "gradle/intTestImage.gradle"
-apply from: 'gradle/pullRequestBuild.gradle'
 
 // Generate a report showing which tests in a subproject are leaving
 // files around.
