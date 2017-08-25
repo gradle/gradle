@@ -43,11 +43,8 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 
 /**
@@ -150,9 +147,9 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
         // Could potentially coordinate with a thread that is snapshotting an overlapping directory tree
         // Currently cache only those trees where we want everything from a directory
         if (!dirTree.getPatterns().isEmpty()) {
-            List<FileSnapshot> elements = Lists.newArrayList();
-            dirTree.visit(new FileVisitorImpl(elements));
-            return new DirectoryTreeDetails(dirTree.getDir().getAbsolutePath(), elements);
+            FileVisitorImpl visitor = new FileVisitorImpl();
+            dirTree.visit(visitor);
+            return new DirectoryTreeDetails(dirTree.getDir().getAbsolutePath(), visitor.getElements());
         }
 
         final String path = dirTree.getDir().getAbsolutePath();
@@ -172,16 +169,16 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
 
     @Override
     public List<FileSnapshot> snapshotTree(FileTreeInternal tree) {
-        List<FileSnapshot> elements = Lists.newArrayList();
-        tree.visitTreeOrBackingFile(new FileVisitorImpl(elements));
-        return elements;
+        FileVisitorImpl visitor = new FileVisitorImpl();
+        tree.visitTreeOrBackingFile(visitor);
+        return visitor.getElements();
     }
 
     private FileTreeSnapshot doSnapshot(DirectoryFileTree directoryTree) {
         String path = getPath(directoryTree.getDir());
-        List<FileSnapshot> elements = Lists.newArrayList();
-        directoryTree.visit(new FileVisitorImpl(elements));
-        return new DirectoryTreeDetails(path, ImmutableList.copyOf(elements));
+        FileVisitorImpl visitor = new FileVisitorImpl();
+        directoryTree.visit(visitor);
+        return new DirectoryTreeDetails(path, ImmutableList.copyOf(visitor.getElements()));
     }
 
     private String getPath(File file) {
@@ -225,10 +222,13 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
     }
 
     private class FileVisitorImpl implements FileVisitor {
+        private final static int BATCH_SIZE = 10;
         private final List<FileSnapshot> fileTreeElements;
+        private final List<Runnable> buffer;
 
-        FileVisitorImpl(List<FileSnapshot> fileTreeElements) {
-            this.fileTreeElements = fileTreeElements;
+        FileVisitorImpl() {
+            this.fileTreeElements = Lists.newArrayList();
+            this.buffer = Lists.newArrayListWithCapacity(BATCH_SIZE);
         }
 
         @Override
@@ -238,13 +238,36 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
 
         @Override
         public void visitFile(final FileVisitDetails fileDetails) {
-            final DeferredFileSnapshot deferred = new DeferredFileSnapshot(executorService.submit(new Callable<FileSnapshot>() {
+            final DeferredFileSnapshot deferred = new DeferredFileSnapshot();
+            Runnable task = new Runnable() {
                 @Override
-                public FileSnapshot call() {
-                    return new RegularFileSnapshot(getPath(fileDetails.getFile()), fileDetails.getRelativePath(), false, fileSnapshot(fileDetails));
+                public void run() {
+                    deferred.setResult(new RegularFileSnapshot(getPath(fileDetails.getFile()), fileDetails.getRelativePath(), false, fileSnapshot(fileDetails)));
                 }
-            }));
+            };
+            buffer.add(task);
             fileTreeElements.add(deferred);
+            if (buffer.size() == BATCH_SIZE) {
+                flush();
+            }
+        }
+
+        public List<FileSnapshot> getElements() {
+            flush();
+            return fileTreeElements;
+        }
+
+        private void flush() {
+            final List<Runnable> tasks = ImmutableList.copyOf(buffer);
+            buffer.clear();
+            executorService.submit(new Runnable() {
+                @Override
+                public void run() {
+                    for (Runnable task : tasks) {
+                        task.run();
+                    }
+                }
+            });
         }
     }
 
@@ -254,19 +277,30 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
     }
 
     private static class DeferredFileSnapshot implements FileSnapshot {
-        private final Future<FileSnapshot> delegate;
+        private final Object lock = new Object();
+        private FileSnapshot delegate;
 
-        private DeferredFileSnapshot(Future<FileSnapshot> delegate) {
-            this.delegate = delegate;
+        private DeferredFileSnapshot() {
+
         }
 
         private FileSnapshot blockUntilAvailable() {
-            try {
-                return delegate.get();
-            } catch (InterruptedException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            } catch (ExecutionException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
+            while (delegate == null) {
+                synchronized (lock) {
+                    try {
+                        lock.wait();
+                    } catch (InterruptedException e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
+                }
+            }
+            return delegate;
+        }
+
+        void setResult(FileSnapshot snapshot) {
+            synchronized (lock) {
+                delegate = snapshot;
+                lock.notifyAll();
             }
         }
 
