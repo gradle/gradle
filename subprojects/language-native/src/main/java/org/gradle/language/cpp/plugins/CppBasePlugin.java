@@ -19,6 +19,7 @@ package org.gradle.language.cpp.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -53,11 +54,6 @@ import java.util.concurrent.Callable;
 @Incubating
 public class CppBasePlugin implements Plugin<ProjectInternal> {
     /**
-     * The name of the implementation configuration.
-     */
-    public static final String IMPLEMENTATION = "implementation";
-
-    /**
      * The name of the native link files configuration.
      */
     public static final String NATIVE_LINK = "nativeLink";
@@ -80,6 +76,13 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
      * @since 4.2
      */
     public static final String NATIVE_TEST_RUNTIME = "nativeTestRuntime";
+
+    /**
+     * The dependency resolution attribute use to indicate whether a variant is debuggable or not.
+     *
+     * @since 4.2
+     */
+    public static final Attribute<Boolean> DEBUGGABLE_ATTRIBUTE = Attribute.of("org.gradle.native.debuggable", Boolean.class);
 
     @Override
     public void apply(ProjectInternal project) {

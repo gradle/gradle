@@ -66,6 +66,23 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 
+    def "can build release variant of library"() {
+        given:
+        settingsFile << "rootProject.name = 'hello'"
+        def lib = new CppLib()
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-library'
+         """
+
+        expect:
+        succeeds "linkRelease"
+        result.assertTasksExecuted(":compileReleaseCpp", ":linkRelease")
+        sharedLibrary("build/lib/main/release/hello").assertExists()
+    }
+
     def "build logic can change source layout convention"() {
         def lib = new CppLib()
         settingsFile << "rootProject.name = 'hello'"
@@ -206,9 +223,16 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         expect:
         succeeds ":lib1:assemble"
+
         result.assertTasksExecuted(":lib2:compileDebugCpp", ":lib2:linkDebug", ":lib1:compileDebugCpp", ":lib1:linkDebug", ":lib1:assemble")
         sharedLibrary("lib1/build/lib/main/debug/lib1").assertExists()
         sharedLibrary("lib2/build/lib/main/debug/lib2").assertExists()
+
+        succeeds ":lib1:linkRelease"
+
+        result.assertTasksExecuted(":lib2:compileReleaseCpp", ":lib2:linkRelease", ":lib1:compileReleaseCpp", ":lib1:linkRelease")
+        sharedLibrary("lib1/build/lib/main/release/lib1").assertExists()
+        sharedLibrary("lib2/build/lib/main/release/lib2").assertExists()
     }
 
     def "can change default base name and successfully link against library"() {

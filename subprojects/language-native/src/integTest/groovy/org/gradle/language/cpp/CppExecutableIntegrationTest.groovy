@@ -71,6 +71,26 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         installation("build/install/app").exec().out == app.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
     }
 
+    def "can build release variant of executable"() {
+        settingsFile << "rootProject.name = 'app'"
+        def app = new CppApp()
+
+        given:
+        app.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-executable'
+         """
+
+        expect:
+        succeeds "linkRelease"
+        result.assertTasksExecuted(":compileReleaseCpp", ":linkRelease")
+
+        executable("build/exe/main/release/app").assertExists()
+        executable("build/exe/main/release/app").exec().out == app.expectedOutput
+    }
+
     def "ignores non-C++ source files in source directory"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new CppApp()
@@ -281,6 +301,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         expect:
         succeeds ":app:assemble"
+
         result.assertTasksExecuted(":lib1:compileDebugCpp", ":lib1:linkDebug", ":lib2:compileDebugCpp", ":lib2:linkDebug", ":app:compileDebugCpp", ":app:linkDebug", ":app:installMain", ":app:assemble")
         sharedLibrary("lib1/build/lib/main/debug/lib1").assertExists()
         sharedLibrary("lib2/build/lib/main/debug/lib2").assertExists()
@@ -288,6 +309,13 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         installation("app/build/install/app").exec().out == app.expectedOutput
         sharedLibrary("app/build/install/app/lib/lib1").file.assertExists()
         sharedLibrary("app/build/install/app/lib/lib2").file.assertExists()
+
+        succeeds(":app:linkRelease")
+
+        result.assertTasksExecuted(":lib1:compileReleaseCpp", ":lib1:linkRelease", ":lib2:compileReleaseCpp", ":lib2:linkRelease", ":app:compileReleaseCpp", ":app:linkRelease")
+        sharedLibrary("lib1/build/lib/main/release/lib1").assertExists()
+        sharedLibrary("lib2/build/lib/main/release/lib2").assertExists()
+        executable("app/build/exe/main/release/app").assertExists()
     }
 
     def "honors changes to library buildDir"() {

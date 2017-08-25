@@ -23,6 +23,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.CppBinary;
+import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.nativeplatform.internal.Names;
 
 public class DefaultCppBinary implements CppBinary {
@@ -45,14 +46,17 @@ public class DefaultCppBinary implements CppBinary {
         Configuration includePathConfig = configurations.create(names.withPrefix("cppCompile"));
         includePathConfig.setCanBeConsumed(false);
         includePathConfig.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
+        includePathConfig.getAttributes().attribute(CppBasePlugin.DEBUGGABLE_ATTRIBUTE, debuggable);
 
         Configuration nativeLink = configurations.create(names.withPrefix("nativeLink"));
         nativeLink.setCanBeConsumed(false);
         nativeLink.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.NATIVE_LINK));
+        nativeLink.getAttributes().attribute(CppBasePlugin.DEBUGGABLE_ATTRIBUTE, debuggable);
 
         Configuration nativeRuntime = configurations.create(names.withPrefix("nativeRuntime"));
         nativeRuntime.setCanBeConsumed(false);
         nativeRuntime.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.NATIVE_RUNTIME));
+        nativeRuntime.getAttributes().attribute(CppBasePlugin.DEBUGGABLE_ATTRIBUTE, debuggable);
 
         includePathConfig.extendsFrom(implementation);
         nativeLink.extendsFrom(implementation);

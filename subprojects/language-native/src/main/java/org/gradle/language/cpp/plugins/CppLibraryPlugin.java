@@ -45,6 +45,8 @@ import java.io.File;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import static org.gradle.language.cpp.plugins.CppBasePlugin.DEBUGGABLE_ATTRIBUTE;
+
 /**
  * <p>A plugin that produces a native library from C++ source.</p>
  *
@@ -86,17 +88,27 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         CppCompile compile = (CppCompile) tasks.getByName("compileDebugCpp");
         compile.setPositionIndependentCode(true);
 
-        final LinkSharedLibrary link = (LinkSharedLibrary) tasks.getByName("linkDebug");
+        final LinkSharedLibrary linkDebug = (LinkSharedLibrary) tasks.getByName("linkDebug");
         // TODO - make this lazy, make a query method on the link task
-        final PlatformToolProvider platformToolChain = ((NativeToolChainInternal) link.getToolChain()).select((NativePlatformInternal) link.getTargetPlatform());
-        Provider<RegularFile> linkFile = buildDirectory.file(providers.provider(new Callable<String>() {
+        final PlatformToolProvider platformToolChain = ((NativeToolChainInternal) linkDebug.getToolChain()).select((NativePlatformInternal) linkDebug.getTargetPlatform());
+        // TODO - should reflect changes to the task configuration
+        Provider<RegularFile> debugLinkFile = buildDirectory.file(providers.provider(new Callable<String>() {
             @Override
             public String call() throws Exception {
                 return platformToolChain.getSharedLibraryLinkFileName("lib/main/debug/" + library.getBaseName().get());
             }
         }));
 
-        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(link);
+        final LinkSharedLibrary linkRelease = (LinkSharedLibrary) tasks.getByName("linkRelease");
+        // TODO - should reflect changes to the task configuration
+        Provider<RegularFile> releaseLinkFile = buildDirectory.file(providers.provider(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                return platformToolChain.getSharedLibraryLinkFileName("lib/main/release/" + library.getBaseName().get());
+            }
+        }));
+
+        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(linkDebug);
 
         // TODO - add lifecycle tasks
         // TODO - extract some common code to setup the configurations
@@ -119,22 +131,44 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
 
         Configuration implementation = library.getImplementationDependencies();
 
-        Configuration linkElements = configurations.create("linkElements");
-        linkElements.extendsFrom(implementation);
-        linkElements.setCanBeResolved(false);
-        linkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
+        Configuration debugLinkElements = configurations.create("debugLinkElements");
+        debugLinkElements.extendsFrom(implementation);
+        debugLinkElements.setCanBeResolved(false);
+        debugLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
+        debugLinkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, true);
         // TODO - should reflect changes to task output file
-        linkElements.getOutgoing().artifact(linkFile, new Action<ConfigurablePublishArtifact>() {
+        debugLinkElements.getOutgoing().artifact(debugLinkFile, new Action<ConfigurablePublishArtifact>() {
             @Override
             public void execute(ConfigurablePublishArtifact artifact) {
-                artifact.builtBy(link);
+                artifact.builtBy(linkDebug);
             }
         });
 
-        Configuration runtimeElements = configurations.create("runtimeElements");
-        runtimeElements.extendsFrom(implementation);
-        runtimeElements.setCanBeResolved(false);
-        runtimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
-        runtimeElements.getOutgoing().artifact(link.getBinaryFile());
+        Configuration debugRuntimeElements = configurations.create("debugRuntimeElements");
+        debugRuntimeElements.extendsFrom(implementation);
+        debugRuntimeElements.setCanBeResolved(false);
+        debugRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
+        debugRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, true);
+        debugRuntimeElements.getOutgoing().artifact(linkDebug.getBinaryFile());
+
+        Configuration releaseLinkElements = configurations.create("releaseLinkElements");
+        releaseLinkElements.extendsFrom(implementation);
+        releaseLinkElements.setCanBeResolved(false);
+        releaseLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
+        releaseLinkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, false);
+        // TODO - should reflect changes to task output file
+        releaseLinkElements.getOutgoing().artifact(releaseLinkFile, new Action<ConfigurablePublishArtifact>() {
+            @Override
+            public void execute(ConfigurablePublishArtifact artifact) {
+                artifact.builtBy(linkRelease);
+            }
+        });
+
+        Configuration releaseRuntimeElements = configurations.create("releaseRuntimeElements");
+        releaseRuntimeElements.extendsFrom(implementation);
+        releaseRuntimeElements.setCanBeResolved(false);
+        releaseRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
+        releaseRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, false);
+        releaseRuntimeElements.getOutgoing().artifact(linkRelease.getBinaryFile());
     }
 }
