@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.logging;
 
+import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor;
+import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
@@ -43,7 +45,7 @@ public class TestWorkerProgressListener implements TestListenerInternal {
 
     @Override
     public void started(TestDescriptorInternal testDescriptor, TestStartEvent startEvent) {
-        boolean testClassDescriptor = isTestClassDescriptor(testDescriptor);
+        boolean testClassDescriptor = isDefaultTestClassDescriptor(testDescriptor);
 
         if (testClassDescriptor) {
             String description = createProgressLoggerDescription(testDescriptor);
@@ -58,7 +60,7 @@ public class TestWorkerProgressListener implements TestListenerInternal {
 
     @Override
     public void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
-        boolean testClassDescriptor = isTestClassDescriptor(testDescriptor);
+        boolean testClassDescriptor = isDefaultTestClassDescriptor(testDescriptor);
 
         if (testClassDescriptor) {
             String description = createProgressLoggerDescription(testDescriptor);
@@ -85,12 +87,20 @@ public class TestWorkerProgressListener implements TestListenerInternal {
         testWorkerProgressLoggers.clear();
     }
 
-    private boolean isTestClassDescriptor(TestDescriptorInternal testDescriptor) {
-        return testDescriptor.getClassName() != null;
+    private boolean isDefaultTestClassDescriptor(TestDescriptorInternal testDescriptor) {
+        if (testDescriptor.isComposite()
+            && testDescriptor instanceof DecoratingTestDescriptor
+            && ((DecoratingTestDescriptor)testDescriptor).getDescriptor() instanceof DefaultTestClassDescriptor) {
+            return true;
+        }
+
+        return false;
     }
 
     private String createProgressLoggerDescription(TestDescriptorInternal testDescriptor) {
-        return "Executing test " + JavaClassNameFormatter.abbreviateJavaPackage(testDescriptor.getClassName(), MAX_TEST_NAME_LENGTH);
+        DecoratingTestDescriptor decoratingTestDescriptor = (DecoratingTestDescriptor)testDescriptor;
+        DefaultTestClassDescriptor defaultTestClassDescriptor = (DefaultTestClassDescriptor)decoratingTestDescriptor.getDescriptor();
+        return "Executing test " + JavaClassNameFormatter.abbreviateJavaPackage(defaultTestClassDescriptor.getClassName(), MAX_TEST_NAME_LENGTH);
     }
 
     Map<String, ProgressLogger> getTestWorkerProgressLoggers() {
