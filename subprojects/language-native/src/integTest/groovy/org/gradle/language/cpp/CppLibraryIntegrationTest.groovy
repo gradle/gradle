@@ -95,7 +95,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         and:
         succeeds "assemble"
         lib.multiply.files.each { file(it.withPath("src/main")).delete() }
-        file(lib.greeter.source.sourceFile.withPath("src/main")).renameTo("renamed-greeter.cpp")
+        file(lib.greeter.source.sourceFile.withPath("src/main")).renameTo(file("src/main/cpp/renamed-greeter.cpp"))
 
         expect:
         succeeds "assemble"

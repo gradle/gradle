@@ -17,9 +17,9 @@
 package org.gradle.nativeplatform.test.xctest.plugins
 
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.language.swift.SwiftComponent
 import org.gradle.language.swift.tasks.SwiftCompile
 import org.gradle.nativeplatform.tasks.LinkExecutable
+import org.gradle.nativeplatform.test.xctest.SwiftXCTestBundle
 import org.gradle.nativeplatform.test.xctest.tasks.XcTest
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
@@ -43,8 +43,8 @@ class XCTestConventionPluginTest extends Specification {
         project.pluginManager.apply(XCTestConventionPlugin)
 
         then:
-        project.xctest instanceof SwiftComponent
-        project.xctest.swiftSource.files == [src] as Set
+        project.test instanceof SwiftXCTestBundle
+        project.test.swiftSource.files == [src] as Set
     }
 
     def "registers a component for the test suite"() {
@@ -52,7 +52,7 @@ class XCTestConventionPluginTest extends Specification {
         project.pluginManager.apply(XCTestConventionPlugin)
 
         then:
-        project.components.test == project.xctest
+        project.components.test == project.test
     }
 
     def "adds compile, link and install tasks"() {
