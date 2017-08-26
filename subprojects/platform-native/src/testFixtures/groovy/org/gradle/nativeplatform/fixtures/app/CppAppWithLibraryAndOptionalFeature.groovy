@@ -17,15 +17,18 @@
 package org.gradle.nativeplatform.fixtures.app
 
 /**
- * A C++ app composed of 2 modules: an executable and a library.
+ * A C++ app composed of 2 modules, an executable and a library, with some optional compile time feature.
  */
-class CppAppWithLibrary implements AppElement {
-    private final greeter = new CppGreeter()
-    final main = new CppMainUsesGreeter(greeter)
+class CppAppWithLibraryAndOptionalFeature {
+    private final greeter = new CppGreeterWithOptionalFeature()
+    final main = new CppMainWithOptionalFeature(greeter)
     final greeterLib = greeter.asLib()
 
-    @Override
-    String getExpectedOutput() {
-        return main.expectedOutput
+    AppElement withFeatureDisabled() {
+        return main
+    }
+
+    AppElement withFeatureEnabled() {
+        return new CppMainWithOptionalFeature(greeter.withFeatureEnabled()).withFeatureEnabled()
     }
 }

@@ -20,6 +20,8 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
+import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraryAndOptionalFeature
+import org.gradle.nativeplatform.fixtures.app.CppAppWithOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
 import org.junit.Assume
 
@@ -74,6 +76,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         and:
         buildFile << """
             apply plugin: 'cpp-executable'
+            compileReleaseCpp.macros(WITH_FEATURE: "true")
          """
 
         expect:
@@ -84,9 +87,9 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         installation("build/install/app").exec().out == app.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
     }
 
-    def "can build release variant of executable"() {
+    def "can build debug and release variants of executable"() {
         settingsFile << "rootProject.name = 'app'"
-        def app = new CppApp()
+        def app = new CppAppWithOptionalFeature()
 
         given:
         app.writeToProject(testDirectory)
@@ -101,7 +104,13 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         result.assertTasksExecuted(":compileReleaseCpp", ":linkRelease")
 
         executable("build/exe/main/release/app").assertExists()
-        executable("build/exe/main/release/app").exec().out == app.expectedOutput
+        executable("build/exe/main/release/app").exec().out == app.withFeatureEnabled().expectedOutput
+
+        succeeds "linkDebug"
+        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug")
+
+        executable("build/exe/main/debug/app").assertExists()
+        executable("build/exe/main/debug/app").exec().out == app.withFeatureDisabled().expectedOutput
     }
 
     def "ignores non-C++ source files in source directory"() {
@@ -284,6 +293,45 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         sharedLibrary("hello/build/lib/main/debug/hello").assertExists()
         installation("app/build/install/app").exec().out == app.expectedOutput
         sharedLibrary("app/build/install/app/lib/hello").file.assertExists()
+    }
+
+    def "can compile and link against a library with debug and release variants"() {
+        settingsFile << "include 'app', 'hello'"
+        def app = new CppAppWithLibraryAndOptionalFeature()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'cpp-executable'
+                dependencies {
+                    implementation project(':hello')
+                    compileReleaseCpp.macros(WITH_FEATURE: "true")
+                }
+            }
+            project(':hello') {
+                apply plugin: 'cpp-library'
+                compileReleaseCpp.macros(WITH_FEATURE: "true")
+            }
+"""
+        app.greeterLib.writeToProject(file("hello"))
+        app.main.writeToProject(file("app"))
+
+        expect:
+        succeeds ":app:linkRelease"
+
+        result.assertTasksExecuted(":hello:compileReleaseCpp", ":hello:linkRelease", ":app:compileReleaseCpp", ":app:linkRelease")
+        executable("app/build/exe/main/release/app").assertExists()
+        sharedLibrary("hello/build/lib/main/release/hello").assertExists()
+        executable("app/build/exe/main/release/app").exec().out == app.withFeatureEnabled().expectedOutput
+
+        executer.withArgument("--info")
+        succeeds ":app:linkDebug"
+
+        result.assertTasksExecuted(":hello:compileDebugCpp", ":hello:linkDebug", ":app:compileDebugCpp", ":app:linkDebug")
+
+        executable("app/build/exe/main/debug/app").assertExists()
+        sharedLibrary("hello/build/lib/main/debug/hello").assertExists()
+        executable("app/build/exe/main/debug/app").exec().out == app.withFeatureDisabled().expectedOutput
     }
 
     def "can compile and link against library with dependencies"() {
