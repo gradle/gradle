@@ -22,7 +22,6 @@ import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 
 import static org.gradle.util.Matchers.containsText
 
@@ -98,7 +97,6 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         sharedLibrary("build/lib/Hello").assertExists()
     }
 
-    @Ignore("https://github.com/gradle/gradle-native/issues/94")
     def "stalled object files are removed"() {
         def lib = new SwiftLib()
         settingsFile << "rootProject.name = 'hello'"
@@ -128,7 +126,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         sharedLibrary("build/lib/Hello").assertExists()
     }
 
-    @Ignore("https://github.com/gradle/gradle-native/issues/94")
+//    @Ignore("https://github.com/gradle/gradle-native/issues/94")
     def "stalled library file are removed"() {
         def lib = new SwiftLib()
         settingsFile << "rootProject.name = 'hello'"
@@ -148,7 +146,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         expect:
         succeeds "assemble"
         result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
-        result.assertTasksNotSkipped(":compileSwift", ":linkMain", ":assemble")
+        result.assertTasksSkipped(":compileSwift", ":linkMain", ":assemble")
 
         sharedLibrary("build/lib/Hello").assertDoesNotExist()
     }

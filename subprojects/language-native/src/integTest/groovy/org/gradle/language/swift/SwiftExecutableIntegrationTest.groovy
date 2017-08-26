@@ -23,7 +23,6 @@ import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 
 import static org.gradle.util.Matchers.containsText
 
@@ -78,7 +77,6 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         installation("build/install/App").exec().out == app.expectedOutput
     }
 
-    @Ignore("https://github.com/gradle/gradle-native/issues/94")
     def "stalled object files are removed"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new SwiftApp()
@@ -94,7 +92,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         and:
         succeeds "assemble"
         file(app.multiply.sourceFile.withPath("src/main")).delete()
-        file(app.greeter.sourceFile.withPath("src/main")).renameTo("renamed-greeter.swift")
+        file(app.greeter.sourceFile.withPath("src/main")).renameTo(file("src/main/swift/renamed-greeter.swift"))
 
         expect:
         succeeds "assemble"
@@ -109,7 +107,6 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         installation("build/install/App").exec().out == app.expectedOutput
     }
 
-    @Ignore("https://github.com/gradle/gradle-native/issues/94")
     def "stalled executable file are removed"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new SwiftApp()
@@ -129,7 +126,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         expect:
         succeeds "assemble"
         result.assertTasksExecuted(":compileSwift", ":linkMain", ":installMain", ":assemble")
-        result.assertTasksNotSkipped(":compileSwift", ":linkMain", ":installMain", ":assemble")
+        result.assertTasksSkipped(":compileSwift", ":linkMain", ":installMain", ":assemble")
 
         executable("build/exe/App").assertDoesNotExist()
         installation("build/install/App").assertNotInstalled()
