@@ -126,7 +126,6 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         sharedLibrary("build/lib/Hello").assertExists()
     }
 
-//    @Ignore("https://github.com/gradle/gradle-native/issues/94")
     def "stalled library file are removed"() {
         def lib = new SwiftLib()
         settingsFile << "rootProject.name = 'hello'"
