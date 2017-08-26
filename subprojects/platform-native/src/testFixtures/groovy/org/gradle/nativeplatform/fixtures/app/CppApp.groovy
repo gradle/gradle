@@ -22,16 +22,17 @@ package org.gradle.nativeplatform.fixtures.app
 class CppApp extends CppSourceElement implements AppElement {
     final greeter = new CppGreeter()
     final sum = new CppSum()
+    final multiply = new CppMultiply()
     final main = new CppMain(greeter, sum)
 
     @Override
     SourceElement getSources() {
-        return ofElements(main, greeter.sources, sum.sources)
+        return ofElements(main, greeter.sources, sum.sources, multiply.sources)
     }
 
     @Override
     SourceElement getHeaders() {
-        return ofElements(greeter.headers, sum.headers)
+        return ofElements(greeter.headers, sum.headers, multiply.headers)
     }
 
     @Override

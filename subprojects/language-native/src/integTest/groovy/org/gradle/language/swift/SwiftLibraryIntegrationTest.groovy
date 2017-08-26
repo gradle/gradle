@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift
 
+import groovy.io.FileType
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
@@ -26,6 +27,19 @@ import static org.gradle.util.Matchers.containsText
 
 @Requires(TestPrecondition.SWIFT_SUPPORT)
 class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+    def "skip compile and link tasks when no source"() {
+        given:
+        buildFile << """
+            apply plugin: 'swift-library'
+        """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
+        // TODO - should skip the task as NO-SOURCE
+        result.assertTasksSkipped(":compileSwift", ":linkMain", ":assemble")
+    }
+
     def "build fails when compilation fails"() {
         given:
         buildFile << """
@@ -58,6 +72,82 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         succeeds "assemble"
         result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
         sharedLibrary("build/lib/Hello").assertExists()
+    }
+
+    def "compile and link task are skipped when source doesn't change"() {
+        def lib = new SwiftLib()
+        settingsFile << "rootProject.name = 'hello'"
+
+        given:
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-library'
+         """
+
+        and:
+        succeeds "assemble"
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
+        result.assertTasksSkipped(":compileSwift", ":linkMain", ":assemble")
+
+        sharedLibrary("build/lib/Hello").assertExists()
+    }
+
+    def "stalled object files are removed"() {
+        def lib = new SwiftLib()
+        settingsFile << "rootProject.name = 'hello'"
+
+        given:
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-library'
+         """
+
+        and:
+        succeeds "assemble"
+        file(lib.multiply.sourceFile.withPath("src/main")).delete()
+        file(lib.greeter.sourceFile.withPath("src/main")).renameTo(file("src/main/swift/renamed-greeter.swift"))
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
+        result.assertTasksNotSkipped(":compileSwift", ":linkMain", ":assemble")
+
+        file("build/main/objs").eachFileRecurse(FileType.FILES) {
+            assert it.name != lib.multiply.sourceFile.name.replace('.swift', '.o')
+            assert it.name != lib.greeter.sourceFile.name.replace('.swift', '.o')
+        }
+        sharedLibrary("build/lib/Hello").assertExists()
+    }
+
+    def "stalled library file are removed"() {
+        def lib = new SwiftLib()
+        settingsFile << "rootProject.name = 'hello'"
+
+        given:
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-library'
+         """
+
+        and:
+        succeeds "assemble"
+        testDirectory.file("src").deleteDir()
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
+        result.assertTasksSkipped(":compileSwift", ":linkMain", ":assemble")
+
+        sharedLibrary("build/lib/Hello").assertDoesNotExist()
     }
 
     def "build logic can change source layout convention"() {

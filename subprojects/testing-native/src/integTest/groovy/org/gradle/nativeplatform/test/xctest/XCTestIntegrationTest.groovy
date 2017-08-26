@@ -22,7 +22,6 @@ import org.gradle.nativeplatform.fixtures.app.SwiftXcTestTestApp
 import org.gradle.nativeplatform.fixtures.app.TestElement
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 
 import static org.gradle.nativeplatform.fixtures.app.SourceTestElement.newTestCase
 import static org.gradle.nativeplatform.fixtures.app.SourceTestElement.newTestSuite
@@ -83,7 +82,6 @@ apply plugin: 'xctest'
         testApp.expectedSummaryOutputPattern.matcher(output).find()
     }
 
-    @Ignore("https://github.com/gradle/gradle-native/issues/94")
     def "doesn't execute removed test suite and case"() {
         def oldTestApp = new SwiftXcTestTestApp([
             newTestSuite("FooTestSuite", [
@@ -225,5 +223,32 @@ dependencies {
         then:
         result.assertTasksExecutedInOrder(":assemble")
         result.assertTasksSkipped(":assemble")
+    }
+
+    def "build logic can change source layout convention"() {
+        def testApp = new SwiftXcTestTestApp([
+            newTestSuite("PassingTestSuite", [
+                newTestCase("testPass", TestElement.TestCase.Result.PASS)
+            ])
+        ])
+
+        given:
+        testApp.writeToSourceDir(file("Tests"))
+        file("src/test/swift/broken.swift") << "ignore me!"
+
+        and:
+        buildFile << """
+            test {
+                source.from 'Tests'
+                informationPropertyList.set(file('Tests/Info.plist'))
+            }
+         """
+
+        expect:
+        succeeds "test"
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+
+        file("build/test/objs").assertIsDir()
+        executable("build/exe/AppTest").assertExists()
     }
 }

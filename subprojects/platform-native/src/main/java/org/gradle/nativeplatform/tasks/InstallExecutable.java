@@ -15,9 +15,11 @@
  */
 package org.gradle.nativeplatform.tasks;
 
+import org.apache.commons.io.FileUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.Directory;
@@ -31,6 +33,7 @@ import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -42,6 +45,7 @@ import org.gradle.util.GFileUtils;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Installs an executable with it's dependent libraries so it can be easily executed.
@@ -119,18 +123,29 @@ public class InstallExecutable extends DefaultTask {
      *
      * @since 4.1
      */
-    @InputFile
+    @Internal("Covered by inputFileIfExists")
     public RegularFileVar getSourceFile() {
         return executable;
     }
 
-    @Internal
+    @Internal("Covered by inputFileIfExists")
     public File getExecutable() {
         return executable.getAsFile().getOrNull();
     }
 
     public void setExecutable(File executable) {
         this.executable.set(executable);
+    }
+
+    // Workaround for when the task is given an input file that doesn't exist
+    @Optional @InputFile
+    protected File getInputFileIfExists() {
+        File inputFile = getExecutable();
+        if (inputFile != null && inputFile.exists()) {
+            return inputFile;
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -184,10 +199,25 @@ public class InstallExecutable extends DefaultTask {
 
     @TaskAction
     public void install() {
+        deleteDestinationDir();
+
+        if (!getExecutable().exists()) {
+            setDidWork(false);
+            return;
+        }
+
         if (platform.getOperatingSystem().isWindows()) {
             installWindows();
         } else {
             installUnix();
+        }
+    }
+
+    private void deleteDestinationDir() {
+        try {
+            FileUtils.deleteDirectory(getDestinationDir());
+        } catch (IOException ex) {
+            throw new UncheckedIOException("Couldn't delete previous destination directory", ex);
         }
     }
 

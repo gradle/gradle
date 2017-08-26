@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp
 
+import groovy.io.FileType
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
@@ -29,6 +30,19 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
     def setup() {
         // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
         Assume.assumeTrue(toolChain.id != "mingw" && toolChain.id != "gcccygwin")
+    }
+
+    def "skip compile, link and install tasks when no source"() {
+        given:
+        buildFile << """
+            apply plugin: 'cpp-executable'
+        """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileCpp", ":linkMain", ":installMain", ":assemble")
+        // TODO - should skip the task as NO-SOURCE
+        result.assertTasksSkipped(":compileCpp", ":linkMain", ":installMain", ":assemble")
     }
 
     def "build fails when compilation fails"() {
@@ -69,6 +83,61 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         executable("build/exe/app").assertExists()
         installation("build/install/app").exec().out == app.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
+    }
+
+    def "stalled object files are removed"() {
+        settingsFile << "rootProject.name = 'app'"
+        def app = new CppApp()
+
+        given:
+        app.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-executable'
+         """
+
+        and:
+        succeeds "assemble"
+        app.multiply.files.each { file(it.withPath("src/main")).delete() }
+        file(app.greeter.source.sourceFile.withPath("src/main")).renameTo(file("src/main/cpp/renamed-greeter.cpp"))
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileCpp", ":linkMain", ":installMain", ":assemble")
+        result.assertTasksNotSkipped(":compileCpp", ":linkMain", ":installMain", ":assemble")
+
+        file("build/main/objs").eachFileRecurse(FileType.FILES) {
+            assert it.name != app.multiply.source.sourceFile.name.replace('.cpp', '.o')
+            assert it.name != app.greeter.source.sourceFile.name.replace('.cpp', '.o')
+        }
+        executable("build/exe/App").assertExists()
+        installation("build/install/App").exec().out == app.expectedOutput
+    }
+
+    def "stalled executable file are removed"() {
+        settingsFile << "rootProject.name = 'app'"
+        def app = new CppApp()
+
+        given:
+        app.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-executable'
+         """
+
+        and:
+        succeeds "assemble"
+        testDirectory.file("src").deleteDir()
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileCpp", ":linkMain", ":installMain", ":assemble")
+        result.assertTasksNotSkipped(":compileCpp")
+
+        executable("build/exe/app").assertDoesNotExist()
+        installation("build/install/app").assertNotInstalled()
     }
 
     def "ignores non-C++ source files in source directory"() {

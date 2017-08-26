@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift
 
+import groovy.io.FileType
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
@@ -27,6 +28,19 @@ import static org.gradle.util.Matchers.containsText
 
 @Requires(TestPrecondition.SWIFT_SUPPORT)
 class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+    def "skip compile, link and install tasks when no source"() {
+        given:
+        buildFile << """
+            apply plugin: 'swift-executable'
+        """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileSwift", ":linkMain", ":installMain", ":assemble")
+        // TODO - should skip the task as NO-SOURCE
+        result.assertTasksSkipped(":compileSwift", ":linkMain", ":installMain", ":assemble")
+    }
+
     def "build fails when compilation fails"() {
         given:
         buildFile << """
@@ -61,6 +75,61 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         executable("build/exe/App").assertExists()
         installation("build/install/App").exec().out == app.expectedOutput
+    }
+
+    def "stalled object files are removed"() {
+        settingsFile << "rootProject.name = 'app'"
+        def app = new SwiftApp()
+
+        given:
+        app.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-executable'
+         """
+
+        and:
+        succeeds "assemble"
+        file(app.multiply.sourceFile.withPath("src/main")).delete()
+        file(app.greeter.sourceFile.withPath("src/main")).renameTo(file("src/main/swift/renamed-greeter.swift"))
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileSwift", ":linkMain", ":installMain", ":assemble")
+        result.assertTasksNotSkipped(":compileSwift", ":linkMain", ":installMain", ":assemble")
+
+        file("build/main/objs").eachFileRecurse(FileType.FILES) {
+            assert it.name != app.multiply.sourceFile.name.replace('.swift', '.o')
+            assert it.name != app.greeter.sourceFile.name.replace('.swift', '.o')
+        }
+        executable("build/exe/App").assertExists()
+        installation("build/install/App").exec().out == app.expectedOutput
+    }
+
+    def "stalled executable file are removed"() {
+        settingsFile << "rootProject.name = 'app'"
+        def app = new SwiftApp()
+
+        given:
+        app.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-executable'
+         """
+
+        and:
+        succeeds "assemble"
+        testDirectory.file("src").deleteDir()
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileSwift", ":linkMain", ":installMain", ":assemble")
+        result.assertTasksSkipped(":compileSwift", ":linkMain", ":installMain", ":assemble")
+
+        executable("build/exe/App").assertDoesNotExist()
+        installation("build/install/App").assertNotInstalled()
     }
 
     def "ignores non-Swift source files in source directory"() {

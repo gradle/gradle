@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp
 
+import groovy.io.FileType
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.CppLib
@@ -27,6 +28,19 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
     def setup() {
         // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
         Assume.assumeTrue(toolChain.id != "mingw" && toolChain.id != "gcccygwin")
+    }
+
+    def "skip compile and link tasks when no source"() {
+        given:
+        buildFile << """
+            apply plugin: 'cpp-library'
+        """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
+        // TODO - should skip the task as NO-SOURCE
+        result.assertTasksSkipped(":compileCpp", ":linkMain", ":assemble")
     }
 
     def "build fails when compilation fails"() {
@@ -64,6 +78,59 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         succeeds "assemble"
         result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
         sharedLibrary("build/lib/hello").assertExists()
+    }
+
+    def "stalled object files are removed"() {
+        def lib = new CppLib()
+        settingsFile << "rootProject.name = 'hello'"
+
+        given:
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-library'
+         """
+
+        and:
+        succeeds "assemble"
+        lib.multiply.files.each { file(it.withPath("src/main")).delete() }
+        file(lib.greeter.source.sourceFile.withPath("src/main")).renameTo(file("src/main/cpp/renamed-greeter.cpp"))
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
+        result.assertTasksNotSkipped(":compileCpp", ":linkMain", ":assemble")
+
+        file("build/main/objs").eachFileRecurse(FileType.FILES) {
+            assert it.name != lib.multiply.source.sourceFile.name.replace('.cpp', '.o')
+            assert it.name != lib.greeter.source.sourceFile.name.replace('.cpp', '.o')
+        }
+        sharedLibrary("build/lib/hello").assertExists()
+    }
+
+    def "stalled library file are removed"() {
+        def lib = new CppLib()
+        settingsFile << "rootProject.name = 'hello'"
+
+        given:
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-library'
+         """
+
+        and:
+        succeeds "assemble"
+        testDirectory.file("src").deleteDir()
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
+        result.assertTasksNotSkipped(":compileCpp")
+
+        sharedLibrary("build/lib/hello").assertDoesNotExist()
     }
 
     def "build logic can change source layout convention"() {
@@ -172,6 +239,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         lib.greeter.header.writeToSourceDir(file("src/main/public"))
         lib.greeter.privateHeader.writeToSourceDir(file("src/main/headers"))
         lib.sum.header.writeToSourceDir(file("src/main/public"))
+        lib.multiply.privateHeader.writeToSourceDir(file("src/main/headers"))
         lib.sources.writeToProject(testDirectory)
 
         and:

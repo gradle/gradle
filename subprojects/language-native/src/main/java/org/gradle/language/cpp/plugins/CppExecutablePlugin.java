@@ -18,13 +18,11 @@ package org.gradle.language.cpp.plugins;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppComponent;
@@ -86,13 +84,6 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
             }
         })));
         install.setExecutable(link.getBinaryFile());
-        // TODO - infer this
-        install.onlyIf(new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return install.getExecutable().exists();
-            }
-        });
         install.lib(configurations.getByName(CppBasePlugin.NATIVE_RUNTIME));
 
         tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(install);

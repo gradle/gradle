@@ -26,17 +26,14 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.RegularFile;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
-import org.gradle.language.swift.SwiftComponent;
-import org.gradle.language.swift.internal.DefaultSwiftComponent;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
 import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
@@ -45,6 +42,8 @@ import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
+import org.gradle.nativeplatform.test.xctest.SwiftXCTestBundle;
+import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestBundle;
 import org.gradle.nativeplatform.test.xctest.internal.MacOSSdkPlatformPathLocator;
 import org.gradle.nativeplatform.test.xctest.tasks.CreateXcTestBundle;
 import org.gradle.nativeplatform.test.xctest.tasks.XcTest;
@@ -62,13 +61,13 @@ import java.io.File;
  */
 @Incubating
 public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
-    private final FileOperations fileOperations;
     private final MacOSSdkPlatformPathLocator sdkPlatformPathLocator;
+    private final ObjectFactory objectFactory;
 
     @Inject
-    public XCTestConventionPlugin(FileOperations fileOperations, MacOSSdkPlatformPathLocator sdkPlatformPathLocator) {
-        this.fileOperations = fileOperations;
+    public XCTestConventionPlugin(MacOSSdkPlatformPathLocator sdkPlatformPathLocator, ObjectFactory objectFactory) {
         this.sdkPlatformPathLocator = sdkPlatformPathLocator;
+        this.objectFactory = objectFactory;
     }
 
     @Override
@@ -84,13 +83,13 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         final DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
         ConfigurationContainer configurations = project.getConfigurations();
         TaskContainer tasks = project.getTasks();
-        ProviderFactory providers = project.getProviders();
 
         // TODO - Reuse logic from Swift*Plugin
         // TODO - component name and extension name aren't the same
         // TODO - should use `src/xctext/swift` as the convention?
         // Add the component extension
-        SwiftComponent component = project.getExtensions().create(SwiftComponent.class, "xctest", DefaultSwiftComponent.class, "test", fileOperations, providers);
+        SwiftXCTestBundle component = objectFactory.newInstance(DefaultSwiftXCTestBundle.class, "test");
+        project.getExtensions().add(SwiftXCTestBundle.class, "test", component);
         project.getComponents().add(component);
 
         // Configure the component
@@ -126,7 +125,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         final CreateXcTestBundle testBundle = tasks.create("createXcTestBundle", CreateXcTestBundle.class);
         testBundle.setExecutableFile(link.getBinaryFile());
         // TODO - should be defined on the component
-        testBundle.setInformationFile(project.file("src/test/resources/Info.plist"));
+        testBundle.setInformationFile(component.getInformationPropertyList());
         testBundle.setOutputDir(testBundleDir);
         testBundle.onlyIf(new Spec<Task>() {
             @Override
