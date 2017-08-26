@@ -95,13 +95,6 @@ public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
             }
         })));
         install.setExecutable(link.getBinaryFile());
-        // TODO - infer this
-        install.onlyIf(new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return install.getExecutable().exists();
-            }
-        });
         install.lib(configurations.getByName(CppBasePlugin.NATIVE_RUNTIME));
 
         tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(install);

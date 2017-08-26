@@ -58,6 +58,7 @@ class NativeInstallationFixture {
 
     NativeInstallationFixture assertNotInstalled() {
         installDir.assertDoesNotExist()
+        this
     }
 
     NativeInstallationFixture assertIncludesLibraries(String... names) {
