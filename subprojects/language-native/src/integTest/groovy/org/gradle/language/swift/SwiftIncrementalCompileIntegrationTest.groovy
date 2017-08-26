@@ -52,6 +52,13 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installMain", ":assemble")
         result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":installMain", ":assemble")
         executable("build/exe/main/debug/App").exec().out == app.alternateApp.expectedOutput
+
+        when:
+        succeeds "assemble"
+
+        then:
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installMain", ":assemble")
+        result.assertTasksSkipped(":compileDebugSwift", ":linkDebug", ":installMain", ":assemble")
     }
 
     def "rebuilds application when a single source file in library changes"() {
@@ -89,5 +96,12 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installMain", ":app:assemble")
         result.assertTasksNotSkipped(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:linkDebug", ":app:installMain", ":app:assemble")
         installation("app/build/install/App").exec().out == app.alternateLibraryOutput
+
+        when:
+        succeeds ":app:assemble"
+
+        then:
+        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installMain", ":app:assemble")
+        result.assertTasksSkipped(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installMain", ":app:assemble")
     }
 }

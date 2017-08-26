@@ -19,8 +19,8 @@ package org.gradle.language.cpp
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
+import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
-import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.junit.Assume
 
 import static org.gradle.util.Matchers.containsText
@@ -259,7 +259,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
     def "can compile and link against a library"() {
         settingsFile << "include 'app', 'hello'"
-        def app = new CppHelloWorldApp()
+        def app = new CppAppWithLibrary()
 
         given:
         buildFile << """
@@ -273,16 +273,16 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
                 apply plugin: 'cpp-library'
             }
 """
-        app.library.headerFiles.each { it.writeToFile(file("hello/src/main/public/$it.name")) }
-        app.library.sourceFiles.each { it.writeToFile(file("hello/src/main/cpp/$it.name")) }
-        app.executable.sourceFiles.each { it.writeToDir(file('app/src/main')) }
+        app.greeterLib.writeToProject(file("hello"))
+        app.main.writeToProject(file("app"))
 
         expect:
         succeeds ":app:assemble"
+
         result.assertTasksExecuted(":hello:compileDebugCpp", ":hello:linkDebug", ":app:compileDebugCpp", ":app:linkDebug", ":app:installMain", ":app:assemble")
         executable("app/build/exe/main/debug/app").assertExists()
         sharedLibrary("hello/build/lib/main/debug/hello").assertExists()
-        installation("app/build/install/app").exec().out == app.englishOutput
+        installation("app/build/install/app").exec().out == app.expectedOutput
         sharedLibrary("app/build/install/app/lib/hello").file.assertExists()
     }
 
@@ -360,6 +360,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         expect:
         succeeds ":app:assemble"
+
         result.assertTasksExecuted(":lib1:compileDebugCpp", ":lib1:linkDebug", ":lib2:compileDebugCpp", ":lib2:linkDebug", ":app:compileDebugCpp", ":app:linkDebug", ":app:installMain", ":app:assemble")
 
         !file("lib2/build").exists()
@@ -408,6 +409,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         expect:
         succeeds ":app:assemble"
+
         result.assertTasksExecuted(":lib1:compileDebugCpp", ":lib1:linkDebug", ":lib2:compileDebugCpp", ":lib2:linkDebug", ":app:compileDebugCpp", ":app:linkDebug", ":app:installMain", ":app:assemble")
 
         sharedLibrary("lib1/build/lib/main/debug/lib1").assertExists()

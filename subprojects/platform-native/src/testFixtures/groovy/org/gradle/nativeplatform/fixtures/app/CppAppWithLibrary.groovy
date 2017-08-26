@@ -17,27 +17,15 @@
 package org.gradle.nativeplatform.fixtures.app
 
 /**
- * A single project C++ library, with several source files.
+ * A C++ app composed of 2 modules: an executable and a library.
  */
-class CppLib extends CppSourceElement {
-    final greeter = new CppGreeter()
-    final sum = new CppSum()
+class CppAppWithLibrary implements AppElement {
+    private final greeter = new CppGreeter()
+    final main = new CppAlternateMain(greeter)
+    final greeterLib = greeter.asLib()
 
     @Override
-    SourceElement getHeaders() {
-        ofElements(greeter.headers, sum.headers)
-    }
-
-    SourceElement getPublicHeaders() {
-        ofElements(greeter.publicHeaders, sum.publicHeaders)
-    }
-
-    SourceElement getPrivateHeaders() {
-        ofElements(greeter.privateHeaders, sum.privateHeaders)
-    }
-
-    @Override
-    SourceElement getSources() {
-        ofElements(greeter.source, sum.source)
+    String getExpectedOutput() {
+        return main.expectedOutput
     }
 }
