@@ -96,23 +96,28 @@ public abstract class Names {
             this.dirName = dirName.toString();
         }
 
+        @Override
         public String withPrefix(String prefix) {
             return prefix + capitalizedBaseName;
         }
 
+        @Override
         public String withSuffix(String suffix) {
             return baseName + StringUtils.capitalize(suffix);
         }
 
+        @Override
         public String getTaskName(String action) {
             return action + capitalizedBaseName;
         }
 
+        @Override
         public String getCompileTaskName(String language) {
             return "compile" + capitalizedBaseName + StringUtils.capitalize(language);
         }
 
         // Includes trailing '/'
+        @Override
         public String getDirName() {
             return dirName;
         }
