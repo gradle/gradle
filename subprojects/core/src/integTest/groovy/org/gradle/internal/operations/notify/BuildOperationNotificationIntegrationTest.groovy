@@ -54,7 +54,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
                 }
 
                 void finished($BuildOperationFinishedNotification.name notification) {
-                    println "FINISHED: \${notification.result?.class?.interfaces?.first()?.name} - \${${JsonOutput.name}.toJson(notification.notificationOperationResult)} - \$notification.notificationOperationId"
+                    println "FINISHED: \${notification.result?.class?.interfaces?.first()?.name} - \${${JsonOutput.name}.toJson(notification.notificationOperationResult)} - \$notification.notificationOperationId - \$notification.notificationOperationParentId"
                 }
             }
             def registrar = services.get($BuildOperationNotificationListenerRegistrar.name)            
@@ -81,6 +81,28 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         started(ApplyScriptPluginBuildOperationType.Details, [targetType: "project", targetPath: ":", file: buildFile.absolutePath, buildPath: ":", uri:null])
         finished(ApplyScriptPluginBuildOperationType.Result, [:])
         finished(ConfigureProjectBuildOperationType.Result, [:])
+
+        started(CalculateTaskGraphBuildOperationType.Details, [:])
+        finished(CalculateTaskGraphBuildOperationType.Result, [excludedTaskPaths: [], requestedTaskPaths: [":t"]])
+        started(ExecuteTaskBuildOperationType.Details, [taskPath: ":t", buildPath: ":", taskClass: "org.gradle.api.DefaultTask"])
+        finished(ExecuteTaskBuildOperationType.Result, [actionable: false, cachingDisabledReasonMessage: "Cacheability was not determined", upToDateMessages: null, cachingDisabledReasonCategory: "UNKNOWN", skipMessage: "UP-TO-DATE", originBuildInvocationId: null])
+    }
+
+    def "can emit notifications from point of registration"() {
+        when:
+        buildScript """
+           ${registerListener()}
+            task t
+        """
+
+        succeeds "t", "-S"
+
+        then:
+        // Operations that started before the listener registration are not included (even if they finish _after_ listener registration)
+        notIncluded(EvaluateSettingsBuildOperationType)
+        notIncluded(LoadProjectsBuildOperationType)
+        notIncluded(ApplyPluginBuildOperationType)
+        notIncluded(ConfigureProjectBuildOperationType)
 
         started(CalculateTaskGraphBuildOperationType.Details, [:])
         finished(CalculateTaskGraphBuildOperationType.Result, [excludedTaskPaths: [], requestedTaskPaths: [":t"]])
@@ -189,6 +211,10 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
     void has(boolean started, Class<?> type, Map<String, ?> payload) {
         def string = notificationLogLine(started, type, payload)
         assert output.contains(string)
+    }
+
+    void notIncluded(Class<?> type) {
+        assert !output.contains(type.name)
     }
 
     String notificationLogLine(boolean started, Class<?> type, Map<String, ?> payload) {
