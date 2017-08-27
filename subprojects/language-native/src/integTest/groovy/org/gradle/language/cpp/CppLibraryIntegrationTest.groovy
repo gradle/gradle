@@ -98,14 +98,14 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         result.assertTasksExecuted(":compileReleaseCpp", ":linkRelease")
         sharedLibrary("build/lib/main/release/hello").assertExists()
-        output.contains('message("with feature enabled")')
+        output.contains('compiling with feature enabled')
 
         executer.withArgument("--info")
         succeeds "linkDebug"
 
         result.assertTasksExecuted(":compileDebugCpp", ":linkDebug")
         sharedLibrary("build/lib/main/debug/hello").assertExists()
-        !output.contains('message("with feature enabled")')
+        !output.contains('compiling with feature enabled')
     }
 
     def "build logic can change source layout convention"() {

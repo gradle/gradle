@@ -38,7 +38,7 @@ public:
 
 void Greeter::sayHello() {
 #ifdef WITH_FEATURE
-#pragma message("with feature enabled")
+#pragma message("compiling with feature enabled")
     std::cout << "${HelloWorldApp.HELLO_WORLD_FRENCH}" << std::endl;
 #else
     std::cout << "${HelloWorldApp.HELLO_WORLD}" << std::endl;
