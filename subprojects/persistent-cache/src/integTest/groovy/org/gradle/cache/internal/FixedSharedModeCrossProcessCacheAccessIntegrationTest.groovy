@@ -84,9 +84,10 @@ class FixedSharedModeCrossProcessCacheAccessIntegrationTest extends AbstractInte
             def count = 0
 
             boolean requiresInitialization(FileLock fileLock) {
+                assert fileLock != null
                 count++
                 println "Checking initialized $count"
-                return count < 7
+                return count < 4
             }
 
             void initialize(FileLock fileLock) {}
