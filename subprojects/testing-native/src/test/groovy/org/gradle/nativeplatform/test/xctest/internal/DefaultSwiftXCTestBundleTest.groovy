@@ -34,11 +34,11 @@ class DefaultSwiftXCTestBundleTest extends Specification {
     def component = new DefaultSwiftXCTestBundle("test", fileOperations, providerFactory, projectLayout)
 
     def "can change location of Info.plist"() {
-        def f = tmpDir.createFile("src/test/resources/Info.plist")
+        def file = tmpDir.createFile("Tests/Info.plist")
 
         expect:
-        component.informationPropertyList.set(f)
-        component.informationPropertyList.asFile.get() == f
+        component.informationPropertyList.set(file)
+        component.informationPropertyList.asFile.get() == file
     }
 
     def "uses source layout convention when Info.plist not set"() {

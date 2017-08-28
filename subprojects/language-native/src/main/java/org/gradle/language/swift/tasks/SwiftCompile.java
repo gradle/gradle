@@ -83,7 +83,6 @@ public class SwiftCompile extends AbstractNativeCompileTask {
         cleaner.execute();
 
         if (getSource().isEmpty()) {
-            setDidWork(false);
             return;
         }
 

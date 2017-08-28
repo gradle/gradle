@@ -17,6 +17,7 @@
 package org.gradle.language.swift
 
 import groovy.io.FileType
+import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
@@ -37,7 +38,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         succeeds "assemble"
         result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
         // TODO - should skip the task as NO-SOURCE
-        result.assertTasksSkipped(":compileSwift", ":linkMain", ":assemble")
+        result.assertTasksSkipped(":linkMain", ":assemble")
     }
 
     def "build fails when compilation fails"() {
@@ -97,7 +98,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         sharedLibrary("build/lib/Hello").assertExists()
     }
 
-    def "stalled object files are removed"() {
+    def "removes stale object files"() {
         def lib = new SwiftLib()
         settingsFile << "rootProject.name = 'hello'"
 
@@ -120,13 +121,21 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         result.assertTasksNotSkipped(":compileSwift", ":linkMain", ":assemble")
 
         file("build/main/objs").eachFileRecurse(FileType.FILES) {
-            assert it.name != lib.multiply.sourceFile.name.replace('.swift', '.o')
-            assert it.name != lib.greeter.sourceFile.name.replace('.swift', '.o')
+            assert !(it.name in disallowedSwiftOutputFiles(lib.multiply.sourceFile))
+            assert !(it.name in disallowedSwiftOutputFiles(lib.greeter.sourceFile))
         }
         sharedLibrary("build/lib/Hello").assertExists()
     }
 
-    def "stalled library file are removed"() {
+    private List<String> disallowedSwiftOutputFiles(SourceFile sourceFile) {
+        [
+            sourceFile.name.replace('.swift', '.o'),
+            sourceFile.name.replace('.swift', '.swiftdoc'),
+            sourceFile.name.replace('.swift', '.swiftmodule')
+        ]
+    }
+
+    def "removes stale library file"() {
         def lib = new SwiftLib()
         settingsFile << "rootProject.name = 'hello'"
 
@@ -145,7 +154,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         expect:
         succeeds "assemble"
         result.assertTasksExecuted(":compileSwift", ":linkMain", ":assemble")
-        result.assertTasksSkipped(":compileSwift", ":linkMain", ":assemble")
+        result.assertTasksSkipped(":linkMain", ":assemble")
 
         sharedLibrary("build/lib/Hello").assertDoesNotExist()
     }

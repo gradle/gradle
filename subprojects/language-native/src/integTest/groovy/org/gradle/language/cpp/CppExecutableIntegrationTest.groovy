@@ -42,7 +42,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         succeeds "assemble"
         result.assertTasksExecuted(":compileCpp", ":linkMain", ":installMain", ":assemble")
         // TODO - should skip the task as NO-SOURCE
-        result.assertTasksSkipped(":compileCpp", ":linkMain", ":installMain", ":assemble")
+        result.assertTasksSkipped(":compileCpp", ":linkMain")
     }
 
     def "build fails when compilation fails"() {
@@ -85,7 +85,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         installation("build/install/app").exec().out == app.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
     }
 
-    def "stalled object files are removed"() {
+    def "removes stale object files"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new CppApp()
 
@@ -115,7 +115,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         installation("build/install/App").exec().out == app.expectedOutput
     }
 
-    def "stalled executable file are removed"() {
+    def "removes stale executable file"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new CppApp()
 
@@ -134,7 +134,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         expect:
         succeeds "assemble"
         result.assertTasksExecuted(":compileCpp", ":linkMain", ":installMain", ":assemble")
-        result.assertTasksNotSkipped(":compileCpp")
+        result.assertTasksNotSkipped(":compileCpp", ":installMain", ":assemble")
 
         executable("build/exe/app").assertDoesNotExist()
         installation("build/install/app").assertNotInstalled()

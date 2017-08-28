@@ -202,7 +202,6 @@ public class InstallExecutable extends DefaultTask {
         deleteDestinationDir();
 
         if (!getExecutable().exists()) {
-            setDidWork(false);
             return;
         }
 

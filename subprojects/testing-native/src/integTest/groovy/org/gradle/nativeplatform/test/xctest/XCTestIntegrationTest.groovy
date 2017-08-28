@@ -42,7 +42,7 @@ apply plugin: 'xctest'
 
         then:
         result.assertTasksExecutedInOrder(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
-        result.assertTasksSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksSkipped(":linkTest", ":createXcTestBundle", ":xcTest", ":test")
 
     }
 

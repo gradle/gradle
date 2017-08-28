@@ -23,9 +23,9 @@ import org.gradle.language.swift.SwiftComponent;
 /**
  * Configuration for a Swift XCTest Bundle, defining the source files that make up the bundle plus other settings.
  *
- * <p>An instance of this type is added as a project extension by the Swift XCTest plugin.</p>
+ * <p>An instance of this type is added as a project extension by the Swift XCTest plugin.
  *
- * @since 4.2
+ * @since 4.3
  */
 @Incubating
 public interface SwiftXCTestBundle extends SwiftComponent {

@@ -45,7 +45,8 @@ apply plugin: 'swift-library'
         succeeds("test")
 
         then:
-        result.assertTasksSkipped(":compileSwift", ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileSwift", ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksSkipped(":linkTest", ":createXcTestBundle", ":xcTest", ":test")
     }
 
     def "xctest plugin can test public and internal feature of a Swift library"() {
@@ -73,7 +74,7 @@ apply plugin: 'swift-library'
         succeeds("test")
 
         then:
-        executedAndNotSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        executedAndNotSkipped(":compileSwift", ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
         test.expectedSummaryOutputPattern.matcher(output).find()
     }
 
@@ -87,7 +88,8 @@ apply plugin: 'swift-executable'
         succeeds("test")
 
         then:
-        result.assertTasksSkipped(":compileSwift", ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileSwift", ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksSkipped(":linkTest", ":createXcTestBundle", ":xcTest", ":test")
     }
 
     def "xctest plugin can test public and internal feature of a Swift executable"() {

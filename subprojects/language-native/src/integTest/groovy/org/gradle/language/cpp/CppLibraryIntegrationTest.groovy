@@ -80,7 +80,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         sharedLibrary("build/lib/hello").assertExists()
     }
 
-    def "stalled object files are removed"() {
+    def "removes stale object files"() {
         def lib = new CppLib()
         settingsFile << "rootProject.name = 'hello'"
 
@@ -109,7 +109,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         sharedLibrary("build/lib/hello").assertExists()
     }
 
-    def "stalled library file are removed"() {
+    def "removes stale library file"() {
         def lib = new CppLib()
         settingsFile << "rootProject.name = 'hello'"
 

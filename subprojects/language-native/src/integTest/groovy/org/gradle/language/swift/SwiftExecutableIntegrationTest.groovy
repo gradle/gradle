@@ -38,7 +38,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         succeeds "assemble"
         result.assertTasksExecuted(":compileSwift", ":linkMain", ":installMain", ":assemble")
         // TODO - should skip the task as NO-SOURCE
-        result.assertTasksSkipped(":compileSwift", ":linkMain", ":installMain", ":assemble")
+        result.assertTasksSkipped(":linkMain")
     }
 
     def "build fails when compilation fails"() {
@@ -77,7 +77,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         installation("build/install/App").exec().out == app.expectedOutput
     }
 
-    def "stalled object files are removed"() {
+    def "removes stale object files"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new SwiftApp()
 
@@ -107,7 +107,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         installation("build/install/App").exec().out == app.expectedOutput
     }
 
-    def "stalled executable file are removed"() {
+    def "removes stale executable file"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new SwiftApp()
 
@@ -126,7 +126,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         expect:
         succeeds "assemble"
         result.assertTasksExecuted(":compileSwift", ":linkMain", ":installMain", ":assemble")
-        result.assertTasksSkipped(":compileSwift", ":linkMain", ":installMain", ":assemble")
+        result.assertTasksSkipped(":linkMain")
 
         executable("build/exe/App").assertDoesNotExist()
         installation("build/install/App").assertNotInstalled()
