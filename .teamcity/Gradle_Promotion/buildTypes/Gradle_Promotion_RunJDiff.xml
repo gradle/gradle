@@ -9,7 +9,7 @@
     </options>
     <parameters>
       <param name="newVersion" value="origin/release" />
-      <param name="oldVersion" value="4.0" spec="text display='prompt' description='Old version of Gradle to diff against' label='oldVersion' validationMode='not_empty'" />
+      <param name="oldVersion" value="4.1" spec="text display='prompt' description='Old version of Gradle to diff against' label='oldVersion' validationMode='not_empty'" />
     </parameters>
     <build-runners>
       <runner id="RUNNER_9" name="Promote" type="gradle-runner">
