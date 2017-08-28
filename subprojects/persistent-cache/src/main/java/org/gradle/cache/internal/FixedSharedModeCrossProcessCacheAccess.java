@@ -78,11 +78,14 @@ public class FixedSharedModeCrossProcessCacheAccess extends AbstractCrossProcess
                     try {
                         if (exclusiveLock != null) {
                             final FileLock acquiredExclusiveLock = exclusiveLock;
-                            exclusiveLock.writeFile(new Runnable() {
-                                public void run() {
-                                    initializationAction.initialize(acquiredExclusiveLock);
-                                }
-                            });
+                            rebuild = initializationAction.requiresInitialization(acquiredExclusiveLock);
+                            if (rebuild) {
+                                exclusiveLock.writeFile(new Runnable() {
+                                    public void run() {
+                                        initializationAction.initialize(acquiredExclusiveLock);
+                                    }
+                                });
+                            }
                         }
                     } finally {
                         if (exclusiveLock != null) {
