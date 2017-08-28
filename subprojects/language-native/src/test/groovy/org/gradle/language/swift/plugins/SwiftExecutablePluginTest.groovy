@@ -72,10 +72,10 @@ class SwiftExecutablePluginTest extends Specification {
         linkDebug instanceof LinkExecutable
         linkDebug.binaryFile.get().asFile == projectDir.file("build/exe/main/debug/" + OperatingSystem.current().getExecutableName("TestApp"))
 
-        def install = project.tasks.installMain
-        install instanceof InstallExecutable
-        install.installDirectory.get().asFile == projectDir.file("build/install/TestApp")
-        install.runScript.name == OperatingSystem.current().getScriptName("TestApp")
+        def installDebug = project.tasks.installDebug
+        installDebug instanceof InstallExecutable
+        installDebug.installDirectory.get().asFile == projectDir.file("build/install/main/debug")
+        installDebug.runScript.name == OperatingSystem.current().getScriptName("TestApp")
 
         def compileRelease = project.tasks.compileReleaseSwift
         compileRelease instanceof SwiftCompile
@@ -85,6 +85,11 @@ class SwiftExecutablePluginTest extends Specification {
         def linkRelease = project.tasks.linkRelease
         linkRelease instanceof LinkExecutable
         linkRelease.binaryFile.get().asFile == projectDir.file("build/exe/main/release/" + OperatingSystem.current().getExecutableName("TestApp"))
+
+        def installRelease = project.tasks.installRelease
+        installRelease instanceof InstallExecutable
+        installRelease.installDirectory.get().asFile == projectDir.file("build/install/main/release")
+        installRelease.runScript.name == OperatingSystem.current().getScriptName("TestApp")
     }
 
     def "output file names are calculated from module name defined on extension"() {
@@ -99,8 +104,8 @@ class SwiftExecutablePluginTest extends Specification {
         def link = project.tasks.linkDebug
         link.binaryFile.get().asFile == projectDir.file("build/exe/main/debug/" + OperatingSystem.current().getExecutableName("App"))
 
-        def install = project.tasks.installMain
-        install.installDirectory.get().asFile == projectDir.file("build/install/App")
+        def install = project.tasks.installDebug
+        install.installDirectory.get().asFile == projectDir.file("build/install/main/debug")
         install.runScript.name == OperatingSystem.current().getScriptName("App")
     }
 }
