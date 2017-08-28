@@ -16,6 +16,12 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType) : BuildTyp
     detectHangingBuilds = false
     maxRunningBuilds = 2
 
+    if (type == PerformanceTestType.test) {
+        features {
+            publishBuildStatusToGithub()
+        }
+    }
+
     params {
         param("performance.baselines", type.defaultBaselines)
         param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
