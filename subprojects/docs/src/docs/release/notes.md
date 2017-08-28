@@ -130,7 +130,7 @@ Previous versions of Gradle did not define a timeout for any HTTP requests. Unde
        > Skipped due to earlier error
        
 The timeouts are also effective for connections to an [HTTP build cache](dsl/org.gradle.caching.http.HttpBuildCache.html#org.gradle.caching.http.HttpBuildCache).
-If connections to the build cache time out then it will be disabled for the rest of the build.
+If connections to the build cache time out then the build cache will be disabled for the rest of the build.
 
     :compileJava
     Could not load entry 2b308a0ad9cbd0ad048d4ea84c186f71 for task ':compileJava' from remote build cache: Unable to load entry from 'https://example.com/cache/2b308a0ad9cbd0ad048d4ea84c186f71': Read timed out
