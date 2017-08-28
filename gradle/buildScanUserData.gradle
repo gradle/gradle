@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import org.gradle.internal.exceptions.LocationAwareException
 
 def execAsync = { Runnable f ->
     def latch = new java.util.concurrent.CountDownLatch(1)
@@ -113,6 +114,16 @@ pluginManager.withPlugin("com.gradle.build-scan") {
                     }.flatten()
                 }.flatten()
                 errors.each { task.project.buildScan.value 'CodeNarc Issue', it }
+            }
+        }
+    }
+
+    buildScan.buildFinished { result ->
+        if (result.failure instanceof LocationAwareException) {
+            if (result.failure.cause instanceof TaskExecutionException) {
+                buildScan.tag result.failure.cause.task instanceof Test ? 'TEST_FAILURE' : 'UNKNOWN_TASK_FAILURE'
+            } else {
+                buildScan.tag 'OTHER_FAILURE'
             }
         }
     }
