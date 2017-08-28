@@ -20,6 +20,8 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
+import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraryAndOptionalFeature
+import org.gradle.nativeplatform.fixtures.app.SwiftAppWithOptionalFeature
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -66,6 +68,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         and:
         buildFile << """
             apply plugin: 'swift-executable'
+            compileReleaseSwift.compilerArgs = ['-DWITH_FEATURE']
          """
 
         expect:
@@ -76,9 +79,9 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         installation("build/install/App").exec().out == app.expectedOutput
     }
 
-    def "can build release variant of the executable"() {
+    def "can build debug and release variant of the executable"() {
         settingsFile << "rootProject.name = 'app'"
-        def app = new SwiftApp()
+        def app = new SwiftAppWithOptionalFeature()
 
         given:
         app.writeToProject(testDirectory)
@@ -93,7 +96,13 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         result.assertTasksExecuted(":compileReleaseSwift", ":linkRelease")
 
         executable("build/exe/main/release/App").assertExists()
-        executable("build/exe/main/release/App").exec().out == app.expectedOutput
+        executable("build/exe/main/release/App").exec().out == app.withFeatureEnabled().expectedOutput
+
+        succeeds "linkDebug"
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug")
+
+        executable("build/exe/main/debug/App").assertExists()
+        executable("build/exe/main/debug/App").exec().out == app.withFeatureDisabled().expectedOutput
     }
 
     def "ignores non-Swift source files in source directory"() {
@@ -319,6 +328,44 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         sharedLibrary("hello/build/lib/main/release/Hello").assertExists()
         sharedLibrary("log/build/lib/main/release/Log").assertExists()
         executable("app/build/exe/main/release/App").exec().out == app.expectedOutput
+    }
+
+    def "can compile and link against a library with debug and release variants"() {
+        settingsFile << "include 'app', 'hello', 'log'"
+        def app = new SwiftAppWithLibraryAndOptionalFeature()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-executable'
+                dependencies {
+                    implementation project(':hello')
+                }
+                compileReleaseSwift.compilerArgs = ['-DWITH_FEATURE']
+            }
+            project(':hello') {
+                apply plugin: 'swift-library'
+                library.module = 'Greeter'
+                compileReleaseSwift.compilerArgs = ['-DWITH_FEATURE']
+            }
+"""
+        app.library.writeToProject(file("hello"))
+        app.executable.writeToProject(file("app"))
+
+        expect:
+        succeeds ":app:linkRelease"
+
+        result.assertTasksExecuted(":hello:compileReleaseSwift", ":hello:linkRelease", ":app:compileReleaseSwift", ":app:linkRelease")
+
+        sharedLibrary("hello/build/lib/main/release/Greeter").assertExists()
+        executable("app/build/exe/main/release/App").exec().out == app.withFeatureEnabled().expectedOutput
+
+        succeeds ":app:linkDebug"
+
+        result.assertTasksExecuted(":hello:compileDebugSwift", ":hello:linkDebug", ":app:compileDebugSwift", ":app:linkDebug")
+
+        sharedLibrary("hello/build/lib/main/debug/Greeter").assertExists()
+        executable("app/build/exe/main/debug/App").exec().out == app.withFeatureDisabled().expectedOutput
     }
 
     def "honors changes to library buildDir"() {
