@@ -195,7 +195,7 @@ public class ScriptPluginPluginResolver implements PluginResolver {
         }
 
         private String scriptContentFor(ContextAwarePluginRequest pluginRequest) {
-            return textResourceLoader.loadUri(pluginRequest.getDisplayName(), pluginRequest.getScriptUri()).getText();
+            return textResourceLoader.loadUri("script plugin", pluginRequest.getScriptUri()).getText();
         }
 
         @Nullable
