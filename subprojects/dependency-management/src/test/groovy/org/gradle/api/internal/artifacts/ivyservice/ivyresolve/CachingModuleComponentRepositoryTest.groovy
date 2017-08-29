@@ -33,7 +33,6 @@ import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.ModuleSource
-import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableComponentArtifactsResolveResult
@@ -77,7 +76,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
             getFailure() >> null
         }
 
-        def descriptorHash = HashCode.fromInt(1234)
+        def descriptorHash = 1234G
         def moduleSource = Stub(CachingModuleComponentRepository.CachingModuleSource) {
             getDescriptorHash() >> descriptorHash
         }
