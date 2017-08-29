@@ -232,8 +232,8 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
         if (resultType == TestResult.ResultType.FAILURE) {
             resultProcessor.failure(testId, iTestResult.getThrowable());
         }
-        finishTestClass(iTestResult.getTestClass());
         resultProcessor.completed(testId, new TestCompleteEvent(iTestResult.getEndMillis(), resultType));
+        finishTestClass(iTestResult.getTestClass());
     }
 
     private void finishTestClass(IClass testClass) {
