@@ -94,6 +94,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
         final DeploymentRegistryInternal deploymentRegistry = contextServices.get(DeploymentRegistryInternal.class);
         if (!deploymentRegistry.getRunningDeployments().isEmpty()) {
             logger.println().println("Reloadable deployment detected. Entering continuous build..." + determineExitHint(actionParameters));
+            requestContext.getBuildTimeClock().reset();
             executeMultipleBuilds(action, requestContext, actionParameters, contextServices, cancellableOperationManager);
         }
     }
