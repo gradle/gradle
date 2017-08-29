@@ -253,7 +253,12 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
             Runnable task = new Runnable() {
                 @Override
                 public void run() {
-                    deferred.setResult(new RegularFileSnapshot(getPath(fileDetails.getFile()), fileDetails.getRelativePath(), false, fileSnapshot(fileDetails)));
+                    RegularFileSnapshot snapshot = null;
+                    try {
+                        snapshot = new RegularFileSnapshot(getPath(fileDetails.getFile()), fileDetails.getRelativePath(), false, fileSnapshot(fileDetails));
+                    } finally {
+                        deferred.setResult(snapshot);
+                    }
                 }
             };
             buffer[bufferSize++] = task;
