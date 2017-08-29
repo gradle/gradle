@@ -31,6 +31,10 @@ class DefaultFileSystemSnapshotterTest extends Specification {
     def fileSystemMirror = new DefaultFileSystemMirror([])
     def snapshotter = new DefaultFileSystemSnapshotter(fileHasher, new StringInterner(), TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror)
 
+    def tearDown() {
+        snapshotter.close()
+    }
+
     def "fetches details of a file and caches the result"() {
         def f = tmpDir.createFile("f")
 

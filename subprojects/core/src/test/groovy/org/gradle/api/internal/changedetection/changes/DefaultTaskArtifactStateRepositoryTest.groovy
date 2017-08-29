@@ -82,6 +82,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
     DefaultTaskArtifactStateRepository repository
     DefaultFileSystemMirror fileSystemMirror
     TaskOutputFilesRepository taskOutputFilesRepository = Stub(TaskOutputFilesRepository)
+    private DefaultFileSystemSnapshotter fileSystemSnapshotter
 
     def setup() {
         gradle = project.getGradle()
@@ -92,7 +93,8 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         def stringInterner = new StringInterner()
         def fileHasher = new TestFileHasher()
         fileSystemMirror = new DefaultFileSystemMirror([])
-        fileCollectionSnapshotter = new DefaultGenericFileCollectionSnapshotter(stringInterner, TestFiles.directoryFileTreeFactory(), new DefaultFileSystemSnapshotter(fileHasher, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror))
+        fileSystemSnapshotter = new DefaultFileSystemSnapshotter(fileHasher, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror)
+        fileCollectionSnapshotter = new DefaultGenericFileCollectionSnapshotter(stringInterner, TestFiles.directoryFileTreeFactory(), fileSystemSnapshotter)
         def classLoaderHierarchyHasher = Mock(ConfigurableClassLoaderHierarchyHasher) {
             getClassLoaderHash(_) >> HashCode.fromInt(123)
         }
@@ -109,6 +111,10 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
             TestFiles.fileCollectionFactory(),
             buildScopeId)
         repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, DirectInstantiator.INSTANCE, taskOutputFilesRepository)
+    }
+
+    def tearDown() {
+        fileSystemSnapshotter.close()
     }
 
     def "artifacts are not up to date when cache is empty"() {
