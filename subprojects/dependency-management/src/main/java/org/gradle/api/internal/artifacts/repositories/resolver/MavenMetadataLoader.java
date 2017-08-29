@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import com.google.common.base.Charsets;
-import com.google.common.hash.Hashing;
 import org.apache.ivy.util.ContextualSAXHandler;
 import org.apache.ivy.util.XMLHelper;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.ErroringAction;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.FileStore;
@@ -63,7 +62,7 @@ class MavenMetadataLoader {
         ExternalResource resource = cacheAwareExternalResourceAccessor.getResource(metadataLocation, new CacheAwareExternalResourceAccessor.ResourceFileStore() {
             @Override
             public LocallyAvailableResource moveIntoCache(File downloadedResource) {
-                String key = Hashing.sha1().hashString(metadataLocation.toString(), Charsets.UTF_8).toString();
+                String key = Hashing.sha1().hashString(metadataLocation.toString()).toString();
                 return resourcesFileStore.move(key, downloadedResource);
             }
         }, null);

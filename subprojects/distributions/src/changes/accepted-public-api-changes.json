@@ -173,6 +173,11 @@
             "member": "Method org.gradle.api.plugins.MavenRepositoryHandlerConvention.mavenInstaller(java.util.Map,org.gradle.api.Action)",
             "changes": ["Method added to interface"],
             "acceptation": "Action<T> overload for Closure accepting method"
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getStreamHasher()",
+            "acceptation": "Injected service"
         }
     ]
 }

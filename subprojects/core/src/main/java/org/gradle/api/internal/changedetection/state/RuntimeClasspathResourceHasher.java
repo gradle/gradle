@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.hash.Funnels;
-import com.google.common.hash.HashCode;
-import com.google.common.hash.Hasher;
-import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
 import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.hash.HashingOutputStream;
+import org.gradle.internal.io.NullOutputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,8 +40,8 @@ public class RuntimeClasspathResourceHasher implements ResourceHasher {
 
     @Override
     public HashCode hash(ZipEntry zipEntry, InputStream zipInput) throws IOException {
-        Hasher hasher = Hashing.md5().newHasher();
-        ByteStreams.copy(zipInput, Funnels.asOutputStream(hasher));
+        HashingOutputStream hasher = new HashingOutputStream(Hashing.md5(), NullOutputStream.INSTANCE);
+        ByteStreams.copy(zipInput, hasher);
         return hasher.hash();
     }
 

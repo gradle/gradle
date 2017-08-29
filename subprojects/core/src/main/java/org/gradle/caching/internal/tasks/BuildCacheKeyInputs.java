@@ -19,7 +19,7 @@ package org.gradle.caching.internal.tasks;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.hash.HashCode;
+import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
 import java.util.List;

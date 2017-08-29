@@ -16,13 +16,12 @@ dependencies {
     implementation libraries.commons_lang
     implementation libraries.commons_io
     implementation libraries.jcip
+
+    jmh libraries.bouncycastle_provider
 }
 
 jmh {
-    threads = 2
-    warmupIterations = 10
-    synchronizeIterations = false
-    fork = 4
+    include = ["HashingAlgorithmsBenchmark"]
 }
 
 task buildReceiptResource(type: Copy) {

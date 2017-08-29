@@ -16,12 +16,10 @@
 
 package org.gradle.api.internal.initialization.loadercache
 
-import com.google.common.base.Charsets
-import com.google.common.hash.HashCode
-import com.google.common.hash.Hashing
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.ClassPath
-
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.Hashing
 /**
  * Creates snapshot based on file paths.
  */
@@ -30,7 +28,7 @@ class FileClasspathHasher implements ClasspathHasher {
     HashCode hash(ClassPath classpath) {
         def hasher = Hashing.md5().newHasher()
         classpath.asFiles*.path.each { String path ->
-            hasher.putString(path, Charsets.UTF_8)
+            hasher.putString(path)
         }
         return hasher.hash();
     }

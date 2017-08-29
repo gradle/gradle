@@ -30,10 +30,10 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.internal.file.collections.SingletonFileTree;
-import org.gradle.internal.hash.FileHasher;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.Chmod;
 import org.gradle.internal.nativeintegration.filesystem.Stat;
 import org.gradle.util.GFileUtils;
@@ -52,16 +52,16 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
     private final Stat stat;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final File tmpDir;
-    private final FileHasher fileHasher;
+    private final StreamHasher streamHasher;
 
-    public TarFileTree(@Nullable File tarFile, ReadableResourceInternal resource, File tmpDir, Chmod chmod, Stat stat, DirectoryFileTreeFactory directoryFileTreeFactory, FileHasher fileHasher) {
+    public TarFileTree(@Nullable File tarFile, ReadableResourceInternal resource, File tmpDir, Chmod chmod, Stat stat, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher) {
         this.tarFile = tarFile;
         this.resource = resource;
         this.chmod = chmod;
         this.stat = stat;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.tmpDir = tmpDir;
-        this.fileHasher = fileHasher;
+        this.streamHasher = streamHasher;
     }
 
     public String getDisplayName() {
@@ -120,7 +120,7 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         InputStream inputStream = null;
         try {
             inputStream = new BufferedInputStream(resource.read());
-            String expandedDirName = resource.getBaseName() + "_" + fileHasher.hash(inputStream);
+            String expandedDirName = resource.getBaseName() + "_" + streamHasher.hash(inputStream);
             return new File(tmpDir, expandedDirName);
         } catch (ResourceException e) {
             throw cannotExpand(e);

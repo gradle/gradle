@@ -43,8 +43,9 @@ import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ParallelismConfigurationManager
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.hash.FileContentHasherFactory
+import org.gradle.internal.hash.ContentHasherFactory
 import org.gradle.internal.hash.FileHasher
+import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.jvm.inspection.JvmVersionDetector
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.events.OutputEventListener
@@ -116,7 +117,8 @@ class GradleUserHomeScopeServicesTest extends Specification {
         expectParentServiceLocated(CrossBuildInMemoryCacheFactory)
         expectParentServiceLocated(ClassLoaderRegistry)
         expectParentServiceLocated(DirectoryFileTreeFactory)
-        expectParentServiceLocated(FileContentHasherFactory)
+        expectParentServiceLocated(ContentHasherFactory)
+        expectParentServiceLocated(StreamHasher)
 
         expect:
         findsAndCachesService(serviceType)

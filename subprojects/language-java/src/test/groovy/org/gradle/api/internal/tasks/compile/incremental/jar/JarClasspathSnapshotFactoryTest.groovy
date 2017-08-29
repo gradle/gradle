@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar
 
-import com.google.common.hash.HashCode
 import org.gradle.api.file.FileTree
+import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -49,8 +49,8 @@ class JarClasspathSnapshotFactoryTest extends Specification {
         def jar1 = stubArchive("f1")
         def jar2 = stubArchive("f2")
 
-        def sn1 = Stub(JarSnapshot) { getHash() >> HashCode.fromString("1234") }
-        def sn2 = Stub(JarSnapshot) { getHash() >> HashCode.fromString("2345") }
+        def sn1 = Stub(JarSnapshot) { getHash() >> HashCode.fromInt(0x1234) }
+        def sn2 = Stub(JarSnapshot) { getHash() >> HashCode.fromInt(0x2345) }
 
         when:
         def s = factory.createSnapshot([jar1, jar2])
@@ -60,15 +60,15 @@ class JarClasspathSnapshotFactoryTest extends Specification {
         1 * snapshotter.createSnapshot(jar2) >> sn2
 
         s.data.jarHashes.size() == 2
-        s.data.jarHashes[new File("f1")] == HashCode.fromString("1234")
-        s.data.jarHashes[new File("f2")] == HashCode.fromString("2345")
+        s.data.jarHashes[new File("f1")] == HashCode.fromInt(0x1234)
+        s.data.jarHashes[new File("f2")] == HashCode.fromInt(0x2345)
     }
 
     def "doesn't call snapshotter if file doesn't exist"() {
         def jar1 = stubArchive("f1", true)
         def jar2 = stubArchive("f2", false)
 
-        def sn1 = Stub(JarSnapshot) { getHash() >> HashCode.fromString("1234") }
+        def sn1 = Stub(JarSnapshot) { getHash() >> HashCode.fromInt(0x1234) }
 
         when:
         factory.createSnapshot([jar1, jar2])

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.cache.Cache;
-import com.google.common.hash.HashCode;
 import com.google.common.util.concurrent.Runnables;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.gradle.api.Transformer;
@@ -26,6 +25,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.internal.MultiProcessSafeAsyncPersistentIndexedCache;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
 import java.util.concurrent.Callable;
