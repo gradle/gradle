@@ -69,6 +69,9 @@ public class HttpBuildCache extends AbstractBuildCache {
         setUrl(url.toURI());
     }
 
+    /**
+     * Sets the URL of the cache. The URL must end in a '/'.
+     */
     public void setUrl(URI url) {
         this.url = url;
     }
