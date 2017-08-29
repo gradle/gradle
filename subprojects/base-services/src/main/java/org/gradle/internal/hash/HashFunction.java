@@ -17,7 +17,8 @@
 package org.gradle.internal.hash;
 
 /**
- * Hash function that can create new {@link Hasher}s on demand. Replacement for Guava's hashing.
+ * Hash function that can create new {@link Hasher}s on demand.
+ * Inspired by the Google Guava project – https://github.com/google/guava.
  */
 public interface HashFunction {
     Hasher newHasher();

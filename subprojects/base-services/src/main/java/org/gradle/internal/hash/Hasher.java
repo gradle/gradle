@@ -18,6 +18,7 @@ package org.gradle.internal.hash;
 
 /**
  * Hasher abstraction that can be fed different kinds of primitives.
+ * Inspired by the Google Guava project – https://github.com/google/guava.
  */
 public interface Hasher {
     void putBytes(byte[] bytes);
