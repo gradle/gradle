@@ -96,6 +96,10 @@ public class HashCode implements Serializable, Comparable<HashCode> {
         return bytes.clone();
     }
 
+    public void appendToHasher(Hasher hasher) {
+        hasher.putBytes(bytes);
+    }
+
     @Override
     public int hashCode() {
         return (bytes[0] & 0xFF)

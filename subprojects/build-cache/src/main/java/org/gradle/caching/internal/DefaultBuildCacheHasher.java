@@ -23,8 +23,7 @@ import org.gradle.internal.hash.Hashing;
 /**
  * A hasher used for build cache keys.
  *
- * In order to avoid collisions we prepend the length of the next bytes to the underlying
- * hasher (see this <a href="http://crypto.stackexchange.com/a/10065">answer</a> on stackexchange).
+ * In order to avoid collisions we prepend the length of the next bytes to the underlying hasher (see this <a href="http://crypto.stackexchange.com/a/10065">answer</a> on stackexchange).
  */
 public class DefaultBuildCacheHasher implements BuildCacheHasher {
     private final Hasher hasher = Hashing.md5().newHasher();
@@ -53,7 +52,7 @@ public class DefaultBuildCacheHasher implements BuildCacheHasher {
     @Override
     public BuildCacheHasher putHash(HashCode hashCode) {
         hasher.putInt(hashCode.length());
-        hasher.putBytes(hashCode.toByteArray());
+        hashCode.appendToHasher(hasher);
         return this;
     }
 
