@@ -18,10 +18,10 @@ package org.gradle.integtests
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.internal.hash.DefaultFileContentHasherFactory
+import org.gradle.internal.hash.DefaultContentHasherFactory
 import org.gradle.internal.hash.DefaultFileHasher
+import org.gradle.internal.hash.DefaultStreamHasher
 import org.gradle.internal.hash.FileHasher
-import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
@@ -35,7 +35,7 @@ import static org.junit.Assert.assertEquals
 class CacheProjectIntegrationTest extends AbstractIntegrationTest {
     static final String TEST_FILE = "build/test.txt"
 
-    final FileHasher fileHasher = new DefaultFileHasher(new DefaultFileContentHasherFactory())
+    final FileHasher fileHasher = new DefaultFileHasher(new DefaultStreamHasher(new DefaultContentHasherFactory()))
 
     @Rule public final HttpServer server = new HttpServer()
 
@@ -71,7 +71,7 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
 
     private void updateCaches() {
         String version = GradleVersion.current().version
-        def hash = HashUtil.compactStringFor(fileHasher.hash(buildFile))
+        def hash = fileHasher.hash(buildFile).toCompactString()
         String dirName = userHomeDir.file("caches/$version/scripts/$hash/proj").list()[0]
         String baseDir = "caches/$version/scripts/$hash/proj/$dirName"
         propertiesFile = userHomeDir.file("$baseDir/cache.properties")

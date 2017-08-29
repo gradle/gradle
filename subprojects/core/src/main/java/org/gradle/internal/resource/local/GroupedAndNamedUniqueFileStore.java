@@ -61,7 +61,7 @@ public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStor
     }
 
     private String getChecksum(File contentFile) {
-        return HashUtil.createHash(contentFile, "SHA1").asHexString();
+        return HashUtil.sha1(contentFile).toString();
     }
 
     public File getTempFile() {

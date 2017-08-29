@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform
 
-import com.google.common.hash.HashCode
 import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.artifacts.transform.ArtifactTransformException
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
@@ -26,8 +25,9 @@ import org.gradle.api.internal.changedetection.state.ArrayValueSnapshot
 import org.gradle.api.internal.changedetection.state.StringValueSnapshot
 import org.gradle.api.internal.changedetection.state.ValueSnapshot
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.api.reflect.ObjectInstantiationException
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
+import org.gradle.internal.hash.HashCode
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule

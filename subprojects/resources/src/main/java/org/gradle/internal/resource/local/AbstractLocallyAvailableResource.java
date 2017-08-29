@@ -15,19 +15,19 @@
  */
 package org.gradle.internal.resource.local;
 
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.HashUtil;
-import org.gradle.internal.hash.HashValue;
 
 public abstract class AbstractLocallyAvailableResource implements LocallyAvailableResource {
     // Calculated on demand
-    private HashValue sha1;
+    private HashCode sha1;
     private Long contentLength;
     private Long lastModified;
 
     protected AbstractLocallyAvailableResource() {
     }
 
-    protected AbstractLocallyAvailableResource(HashValue sha1) {
+    protected AbstractLocallyAvailableResource(HashCode sha1) {
         this.sha1 = sha1;
     }
 
@@ -41,7 +41,7 @@ public abstract class AbstractLocallyAvailableResource implements LocallyAvailab
         return getFile().getPath();
     }
 
-    public HashValue getSha1() {
+    public HashCode getSha1() {
         if (sha1 == null) {
             this.sha1 = HashUtil.sha1(getFile());
         }

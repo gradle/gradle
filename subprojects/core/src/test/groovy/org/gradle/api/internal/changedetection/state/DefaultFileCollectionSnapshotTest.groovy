@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state
 
-import com.google.common.hash.HashCode
 import org.gradle.caching.internal.BuildCacheHasher
+import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
 
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.ORDERED

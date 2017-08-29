@@ -16,10 +16,10 @@
 
 package org.gradle.internal.file;
 
-import com.google.common.hash.HashCode;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -40,9 +40,9 @@ public class JarCache {
      * @return The cached file.
      */
     public File getCachedJar(File original, Factory<File> baseDirFactory) {
-        HashCode hashValue = fileHasher.hash(original);
+        HashCode hashCode = fileHasher.hash(original);
         File baseDir = baseDirFactory.create();
-        File cachedFile = new File(baseDir, hashValue.toString() + '/' + original.getName());
+        File cachedFile = new File(baseDir, hashCode.toString() + '/' + original.getName());
         if (!cachedFile.isFile()) {
             GFileUtils.copyFile(original, cachedFile);
         }

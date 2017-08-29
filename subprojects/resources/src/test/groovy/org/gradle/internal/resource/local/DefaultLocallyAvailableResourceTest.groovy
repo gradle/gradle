@@ -15,8 +15,8 @@
  */
 package org.gradle.internal.resource.local
 
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.internal.hash.HashUtil
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -32,7 +32,7 @@ public class DefaultLocallyAvailableResourceTest extends Specification {
         def DefaultLocallyAvailableResource resource = new DefaultLocallyAvailableResource(origin)
 
         then:
-        resource.sha1 == HashUtil.createHash(origin, 'SHA1')
+        resource.sha1 == HashUtil.sha1(origin)
         resource.contentLength == origin.length()
         resource.lastModified == origin.lastModified()
     }
@@ -54,7 +54,7 @@ public class DefaultLocallyAvailableResourceTest extends Specification {
         origin.setLastModified(11)
 
         then:
-        resource.sha1 != HashUtil.createHash(origin, 'SHA1')
+        resource.sha1 != HashUtil.sha1(origin)
         resource.contentLength != origin.length()
         resource.lastModified != origin.lastModified()
 

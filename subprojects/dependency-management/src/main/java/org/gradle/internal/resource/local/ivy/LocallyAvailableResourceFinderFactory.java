@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
-import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resource.local.CompositeLocallyAvailableResourceFinder;
 import org.gradle.internal.resource.local.FileStoreSearcher;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
@@ -153,7 +153,7 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
                     return true;
                 }
 
-                public LocallyAvailableResource findByHashValue(HashValue hashValue) {
+                public LocallyAvailableResource findByHash(HashCode hashCode) {
                     return null;
                 }
             };

@@ -15,119 +15,102 @@
  */
 package org.gradle.internal.hash;
 
-import com.google.common.hash.HashCode;
+import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.internal.UncheckedException;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 public class HashUtil {
-    public static HashValue createHash(String scriptText, String algorithm) {
-        MessageDigest messageDigest = createMessageDigest(algorithm);
-        messageDigest.update(scriptText.getBytes());
-        return new HashValue(messageDigest.digest());
-    }
-
-    public static HashValue createHash(File file, String algorithm) {
+    public static HashCode createHash(File file, HashFunction hashFunction) {
         try {
-            return createHash(new FileInputStream(file), algorithm);
+            FileInputStream input = new FileInputStream(file);
+            try {
+                return createHash(input, hashFunction);
+            } finally {
+                IOUtils.closeQuietly(input);
+            }
         } catch (UncheckedIOException e) {
             // Catch any unchecked io exceptions and add the file path for troubleshooting
-            throw new UncheckedIOException(String.format("Failed to create %s hash for file %s.", algorithm, file.getAbsolutePath()), e.getCause());
+            throw new UncheckedIOException(String.format("Failed to create %s hash for file %s.", hashFunction, file.getAbsolutePath()), e.getCause());
         } catch (FileNotFoundException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    public static HashValue createHash(InputStream instr, String algorithm) {
-        MessageDigest messageDigest;
+    public static HashCode createHash(InputStream input, HashFunction hashFunction) {
+        Hasher hasher = hashFunction.newHasher();
         try {
-            messageDigest = createMessageDigest(algorithm);
             byte[] buffer = new byte[4096];
-            try {
-                while (true) {
-                    int nread = instr.read(buffer);
-                    if (nread < 0) {
-                        break;
-                    }
-                    messageDigest.update(buffer, 0, nread);
+            while (true) {
+                int nread = input.read(buffer);
+                if (nread < 0) {
+                    break;
                 }
-            } finally {
-                instr.close();
+                hasher.putBytes(buffer, 0, nread);
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        return new HashValue(messageDigest.digest());
+        return hasher.hash();
     }
 
-    private static MessageDigest createMessageDigest(String algorithm) {
-        try {
-            return MessageDigest.getInstance(algorithm);
-        } catch (NoSuchAlgorithmException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+    public static HashCode parse(String inputString) {
+        if (inputString == null || inputString.length() == 0) {
+            return null;
         }
+        String cleaned = inputString.trim().toLowerCase();
+        int spaceIndex = cleaned.indexOf(' ');
+        if (spaceIndex != -1) {
+            String firstPart = cleaned.substring(0, spaceIndex);
+            if (firstPart.startsWith("md") || firstPart.startsWith("sha")) {
+                cleaned = cleaned.substring(cleaned.lastIndexOf(' ') + 1);
+            } else if (firstPart.endsWith(":")) {
+                cleaned = cleaned.substring(spaceIndex + 1).replace(" ", "");
+            } else {
+                cleaned = cleaned.substring(0, spaceIndex);
+            }
+        }
+        return HashCode.fromString(cleaned);
     }
 
     public static String createCompactMD5(String scriptText) {
-        return createHash(scriptText, "MD5").asCompactString();
+        return Hashing.md5().hashString(scriptText).toCompactString();
     }
 
-    public static String compactStringFor(HashCode hashCode) {
-        return compactStringFor(hashCode.asBytes());
+    public static HashCode sha1(byte[] bytes) {
+        return Hashing.sha1().hashBytes(bytes);
     }
 
-    public static String compactStringFor(byte[] digest) {
-        return new HashValue(digest).asCompactString();
+    public static HashCode sha1(InputStream inputStream) {
+        return createHash(inputStream, Hashing.sha1());
     }
 
-    public static HashValue sha1(byte[] bytes) {
-        return createHash(new ByteArrayInputStream(bytes), "SHA1");
+    public static HashCode sha1(File file) {
+        return createHash(file, Hashing.sha1());
     }
 
-    public static HashValue sha1(InputStream inputStream) {
-        return createHash(inputStream, "SHA1");
+    public static HashCode md5(InputStream inputStream) {
+        return createHash(inputStream, Hashing.md5());
     }
 
-    public static HashValue sha1(File file) {
-        return createHash(file, "SHA1");
+    public static HashCode md5(File file) {
+        return createHash(file, Hashing.md5());
     }
 
-    public static HashValue sha256(byte[] bytes) {
-        return createHash(new ByteArrayInputStream(bytes), "SHA-256");
+    public static HashCode sha256(byte[] bytes) {
+        return Hashing.sha256().hashBytes(bytes);
     }
 
-    public static HashValue sha256(InputStream inputStream) {
-        return createHash(inputStream, "SHA-256");
+    public static HashCode sha256(InputStream inputStream) {
+        return createHash(inputStream, Hashing.sha256());
     }
 
-    public static HashValue sha256(File file) {
-        return createHash(file, "SHA-256");
+    public static HashCode sha256(File file) {
+        return createHash(file, Hashing.sha256());
     }
 
-    public static int compareHashCodes(HashCode a, HashCode b) {
-        return compareHashCodes(a.asBytes(), b.asBytes());
-    }
-
-    public static int compareHashCodes(byte[] a, byte[] b) {
-        int result;
-        int len = a.length;
-        result = len - b.length;
-        if (result == 0) {
-            for (int idx = 0; idx < len; idx++) {
-                result = a[idx] - b[idx];
-                if (result != 0) {
-                    break;
-                }
-            }
-        }
-        return result;
-    }
 }

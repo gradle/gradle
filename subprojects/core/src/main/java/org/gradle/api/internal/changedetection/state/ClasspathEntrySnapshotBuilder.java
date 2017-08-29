@@ -20,9 +20,9 @@ import com.google.common.base.Function;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.Ordering;
-import com.google.common.hash.HashCode;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.internal.hash.HashCode;
 
 import java.io.IOException;
 import java.io.InputStream;

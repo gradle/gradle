@@ -16,11 +16,11 @@
 
 package org.gradle.internal.resource.local
 
+import org.gradle.internal.hash.Hashing
 import spock.lang.Specification
-import org.gradle.internal.hash.HashUtil
 
 class CompositeLocallyAvailableResourceFinderTest extends Specification {
-    
+
     def "interrogates composites in turn as needed"() {
         given:
         def f1 = Mock(LocallyAvailableResourceFinder)
@@ -29,7 +29,7 @@ class CompositeLocallyAvailableResourceFinderTest extends Specification {
         def c2 = Mock(LocallyAvailableResourceCandidates)
         def f3 = Mock(LocallyAvailableResourceFinder)
         def c3 = Mock(LocallyAvailableResourceCandidates)
-        def hash = HashUtil.sha1("abc".bytes)
+        def hash = Hashing.sha1().hashBytes("abc".bytes)
 
         def composite = new CompositeLocallyAvailableResourceFinder<String>([f1, f2, f3])
         def criterion = "abc"
@@ -62,13 +62,13 @@ class CompositeLocallyAvailableResourceFinderTest extends Specification {
         0 * c3.isNone()
 
         when:
-        def match = candidates.findByHashValue(hash)
+        def match = candidates.findByHash(hash)
 
         then:
-        1 * c1.findByHashValue(hash) >> null
+        1 * c1.findByHash(hash) >> null
 
         and:
-        1 * c2.findByHashValue(hash) >> Mock(LocallyAvailableResource)
-        0 * c3.findByHashValue(_)
+        1 * c2.findByHash(hash) >> Mock(LocallyAvailableResource)
+        0 * c3.findByHash(_)
     }
 }

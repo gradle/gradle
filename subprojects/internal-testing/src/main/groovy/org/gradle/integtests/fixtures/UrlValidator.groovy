@@ -31,7 +31,7 @@ class UrlValidator {
                 assertUrlIsAvailable(url)
             }
         } catch(Throwable t) {
-            throw new RuntimeException(String.format("Timeout waiting for %s to become available at [%s].", application, theUrl), t);
+            throw new RuntimeException(String.format("Timeout waiting for %s to become available at [%s].", application, theUrl), t)
         }
     }
 
@@ -40,8 +40,8 @@ class UrlValidator {
             try {
                 String content = new URL(theUrl).text
                 Thread.sleep(500)
-                Assert.fail(String.format("Expected url '%s' to be unavailable instead we got:\n%s", theUrl, content));
-            } catch (SocketException ex) {
+                Assert.fail(String.format("Expected url '%s' to be unavailable instead we got:\n%s", theUrl, content))
+            } catch (SocketException ignored) {
             }
         }
     }
@@ -80,6 +80,6 @@ class UrlValidator {
     }
 
     private static boolean compareHashes(InputStream a, InputStream b) {
-        return HashUtil.createHash(a, "MD5").equals(HashUtil.createHash(b, "MD5"))
+        return HashUtil.md5(a) == HashUtil.md5(b)
     }
 }

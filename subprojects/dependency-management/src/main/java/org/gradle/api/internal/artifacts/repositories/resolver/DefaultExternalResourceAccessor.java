@@ -16,8 +16,7 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import com.google.common.base.Charsets;
-import com.google.common.hash.Hashing;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.local.FileStore;
@@ -59,7 +58,7 @@ public class DefaultExternalResourceAccessor implements ExternalResourceAccessor
         LOGGER.debug("Loading {}", resource);
 
         try {
-            final String key = Hashing.sha1().hashString(uri.toASCIIString(), Charsets.UTF_8).toString();
+            final String key = Hashing.sha1().hashString(uri.toASCIIString()).toString();
             return resourceAccessor.getResource(resource, new CacheAwareExternalResourceAccessor.ResourceFileStore() {
                 public LocallyAvailableResource moveIntoCache(File downloadedResource) {
                     return fileStore.move(key, downloadedResource);

@@ -55,6 +55,7 @@ task checkNoIdenticalBuildFiles {
         def files = [:].withDefault { [] }
         buildDir.eachFileRecurse {
             if (it.name.endsWith('.gradle')) {
+                // TODO Replace this with Hashing once wrapper is updated
                 def hash = HashUtil.createHash(it, 'sha1').asHexString()
                 files[hash] << it
             }

@@ -17,12 +17,12 @@
 package org.gradle.internal.resource.ivy
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
+import org.gradle.cache.PersistentIndexedCache
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.resource.cached.CachedArtifact
 import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryCachedArtifactIndex
 import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryKey
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
-import org.gradle.cache.PersistentIndexedCache
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.BuildCommencedTimeProvider
 import org.junit.Rule

@@ -18,6 +18,7 @@ package org.gradle.integtests.resource.gcs.fixtures
 
 import org.gradle.integtests.resource.gcs.fixtures.stub.HttpStub
 import org.gradle.integtests.resource.gcs.fixtures.stub.StubRequest
+import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -33,7 +34,6 @@ import javax.servlet.http.HttpServletResponse
 import java.security.MessageDigest
 
 import static org.apache.commons.codec.binary.Base64.encodeBase64String
-import static org.gradle.internal.hash.HashUtil.createHash
 
 class GcsServer extends HttpServer implements RepositoryServer {
 
@@ -181,7 +181,7 @@ class GcsServer extends HttpServer implements RepositoryServer {
                         "etag": "${calculateEtag(file)}",
                         "size": "0",
                         "updated": "${RCF_3339_DATE_FORMAT.print(file.lastModified())}",
-                        "md5Hash": "${encodeBase64String(createHash(file, "MD5").asByteArray())}"
+                        "md5Hash": "${encodeBase64String(HashUtil.md5(file).toByteArray())}"
                     }
                     """
                 }

@@ -17,8 +17,8 @@
 package org.gradle.internal.resource.local;
 
 import org.gradle.internal.Factory;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.HashUtil;
-import org.gradle.internal.hash.HashValue;
 
 import java.io.File;
 import java.util.List;
@@ -29,7 +29,7 @@ public class LazyLocallyAvailableResourceCandidates implements LocallyAvailableR
     private List<File> files;
 
     public LazyLocallyAvailableResourceCandidates(Factory<List<File>> filesFactory) {
-        this.filesFactory = filesFactory;        
+        this.filesFactory = filesFactory;
     }
 
     protected List<File> getFiles() {
@@ -38,16 +38,16 @@ public class LazyLocallyAvailableResourceCandidates implements LocallyAvailableR
         }
         return files;
     }
-    
+
     public boolean isNone() {
         return getFiles().isEmpty();
     }
 
-    public LocallyAvailableResource findByHashValue(HashValue targetHash) {
-        HashValue thisHash;
+    public LocallyAvailableResource findByHash(HashCode hashCode) {
+        HashCode thisHash;
         for (File file : getFiles()) {
             thisHash = HashUtil.sha1(file);
-            if (thisHash.equals(targetHash)) {
+            if (thisHash.equals(hashCode)) {
                 return new DefaultLocallyAvailableResource(file, thisHash);
             }
         }

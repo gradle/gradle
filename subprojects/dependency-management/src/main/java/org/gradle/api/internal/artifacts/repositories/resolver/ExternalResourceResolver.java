@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.Transformer;
@@ -51,8 +52,9 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleDescriptorArtifactMetadata;
 import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.HashUtil;
-import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
@@ -359,14 +361,14 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     }
 
     private void putChecksum(File source, ExternalResourceName destination) {
-        byte[] checksumFile = createChecksumFile(source, "SHA1", 40);
+        byte[] checksumFile = createChecksumFile(source);
         ExternalResourceName checksumDestination = destination.append(".sha1");
         repository.resource(checksumDestination).put(new ByteArrayReadableContent(checksumFile));
     }
 
-    private byte[] createChecksumFile(File src, String algorithm, int checksumLength) {
-        HashValue hash = HashUtil.createHash(src, algorithm);
-        String formattedHashString = hash.asZeroPaddedHexString(checksumLength);
+    private byte[] createChecksumFile(File src) {
+        HashCode hash = HashUtil.sha1(src);
+        String formattedHashString = Strings.padStart(hash.toString(), 40, '0');
         try {
             return formattedHashString.getBytes("US-ASCII");
         } catch (UnsupportedEncodingException e) {
@@ -547,7 +549,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         if (resolver.isM2compatible()) {
             sb.append("::m2compatible");
         }
-        return HashUtil.createHash(sb.toString(), "MD5").asHexString();
+        return Hashing.md5().hashString(sb.toString()).toString();
     }
 
     private static void joinPatterns(StringBuilder sb, List<ResourcePattern> resourcePatterns) {

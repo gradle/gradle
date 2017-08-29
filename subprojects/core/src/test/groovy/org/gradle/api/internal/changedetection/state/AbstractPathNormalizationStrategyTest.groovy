@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.changedetection.state
 
-import com.google.common.hash.HashCode
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.internal.hash.HashCode
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class AbstractPathNormalizationStrategyTest extends AbstractProjectBuilderSpec {

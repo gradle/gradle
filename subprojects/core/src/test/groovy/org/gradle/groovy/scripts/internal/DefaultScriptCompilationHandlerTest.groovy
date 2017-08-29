@@ -16,9 +16,6 @@
 
 package org.gradle.groovy.scripts.internal
 
-import com.google.common.base.Charsets
-import com.google.common.hash.HashCode
-import com.google.common.hash.Hashing
 import org.codehaus.groovy.ast.ClassHelper
 import org.codehaus.groovy.ast.ClassNode
 import org.codehaus.groovy.ast.CodeVisitorSupport
@@ -40,6 +37,8 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.groovy.scripts.Transformer
 import org.gradle.internal.Actions
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.Hashing
 import org.gradle.internal.resource.TextResource
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Serializer
@@ -504,6 +503,6 @@ Outer.Inner.Deeper weMustGoDeeper = null
     }
 
     private static HashCode hashFor(String scriptText) {
-        Hashing.md5().hashString(scriptText, Charsets.UTF_8)
+        Hashing.md5().hashString(scriptText)
     }
 }

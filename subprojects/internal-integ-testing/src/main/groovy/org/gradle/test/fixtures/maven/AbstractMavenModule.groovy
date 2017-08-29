@@ -24,6 +24,9 @@ import org.gradle.test.fixtures.file.TestFile
 
 import java.text.SimpleDateFormat
 
+import static org.gradle.internal.hash.Hashing.md5
+import static org.gradle.internal.hash.Hashing.sha1
+
 abstract class AbstractMavenModule extends AbstractModule implements MavenModule {
     protected static final String MAVEN_METADATA_FILE = "maven-metadata.xml"
     final TestFile moduleDir
@@ -205,10 +208,10 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     void assertChecksumsPublishedFor(TestFile testFile) {
         def sha1File = sha1File(testFile)
         sha1File.assertIsFile()
-        assert new BigInteger(sha1File.text, 16) == getHash(testFile, "SHA1")
+        assert new BigInteger(sha1File.text, 16) == getHash(testFile, sha1())
         def md5File = md5File(testFile)
         md5File.assertIsFile()
-        assert new BigInteger(md5File.text, 16) == getHash(testFile, "MD5")
+        assert new BigInteger(md5File.text, 16) == getHash(testFile, md5())
     }
 
     MavenPom getParsedPom() {

@@ -17,11 +17,15 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
+import org.gradle.internal.hash.HashCode
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Specification
 
 class ValueSnapshotterTest extends Specification {
-    def snapshotter = new ValueSnapshotter(Stub(ClassLoaderHierarchyHasher))
+    def classLoaderHasher = Stub(ClassLoaderHierarchyHasher) {
+        getClassLoaderHash(_) >> HashCode.fromInt(123)
+    }
+    def snapshotter = new ValueSnapshotter(classLoaderHasher)
 
     def "creates snapshot for string"() {
         expect:
@@ -426,7 +430,9 @@ class ValueSnapshotterTest extends Specification {
     private void areNotTheSame(ValueSnapshot snapshot, Object value) {
         assert snapshotter.snapshot(value, snapshot) != snapshot
         assert snapshotter.snapshot(value) != snapshot
-        assert snapshotter.snapshot(value, snapshot) == snapshotter.snapshot(value)
+        def sn1 = snapshotter.snapshot(value, snapshot)
+        def sn2 = snapshotter.snapshot(value)
+        assert sn1 == sn2
     }
 
     static class Bean implements Serializable {

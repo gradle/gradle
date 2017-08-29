@@ -21,6 +21,7 @@ import com.google.gson.JsonElement
 import groovy.xml.MarkupBuilder
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.internal.hash.HashUtil
+import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.server.ExpectOne
 import org.gradle.test.fixtures.server.ServerExpectation
 import org.gradle.test.fixtures.server.ServerWithExpectations
@@ -56,8 +57,8 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
 
     enum EtagStrategy {
         NONE({ null }),
-        RAW_SHA1_HEX({ HashUtil.sha1(it as byte[]).asHexString() }),
-        NEXUS_ENCODED_SHA1({ "{SHA1{" + HashUtil.sha1(it as byte[]).asHexString() + "}}" })
+        RAW_SHA1_HEX({ Hashing.sha1().hashBytes(it as byte[]).toString() }),
+        NEXUS_ENCODED_SHA1({ "{SHA1{" + Hashing.sha1().hashBytes(it as byte[]) + "}}" })
 
         private final Closure generator
 
@@ -423,7 +424,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
 
         response.setContentType(contentType ?: new MimeTypes().getMimeByExtension(file.name).toString())
         if (sendSha1Header) {
-            response.addHeader("X-Checksum-Sha1", HashUtil.sha1(content).asHexString())
+            response.addHeader("X-Checksum-Sha1", HashUtil.sha1(content).toString())
         }
 
         addEtag(response, content, etags)
