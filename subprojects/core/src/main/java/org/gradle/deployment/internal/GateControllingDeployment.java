@@ -30,7 +30,11 @@ class GateControllingDeployment implements DeploymentInternal {
     @Override
     public Status status() {
         gateKeeper.open();
-        return delegate.status();
+        Status status = delegate.status();
+        if (!status.hasChanged()) {
+            gateKeeper.close();
+        }
+        return status;
     }
 
     @Override
