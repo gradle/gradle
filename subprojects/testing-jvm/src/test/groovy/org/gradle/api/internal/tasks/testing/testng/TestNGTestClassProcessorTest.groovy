@@ -22,19 +22,24 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.api.tasks.testing.TestResult.ResultType
 import org.gradle.api.tasks.testing.testng.TestNGOptions
-import org.gradle.internal.time.TrueTimeProvider
-import org.gradle.internal.id.LongIdGenerator
 import org.gradle.internal.actor.TestActorFactory
+import org.gradle.internal.id.LongIdGenerator
+import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.testng.ITestContext
 import org.testng.ITestListener
 import org.testng.ITestResult
-import org.testng.annotations.*
+import org.testng.annotations.AfterClass
+import org.testng.annotations.AfterMethod
+import org.testng.annotations.BeforeClass
+import org.testng.annotations.BeforeMethod
+import org.testng.annotations.Factory
 import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Subject
 
+@Ignore
 class TestNGTestClassProcessorTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider()
