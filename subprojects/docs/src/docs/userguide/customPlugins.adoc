@@ -105,9 +105,9 @@ The following demonstrates the usage of the type for mapping an extension proper
 
 ++++
 <sample id="mapExtensionPropertiesToTaskProperties" dir="userguide/tasks/mapExtensionPropertiesToTaskProperties" includeLocation="true" title="Mapping extension properties to task properties">
-            <sourcefile file="build.gradle"/>
-            <output args="-q hello"/>
-        </sample>
+    <sourcefile file="build.gradle"/>
+    <output args="-q hello"/>
+</sample>
 ++++
 
 The example above uses instances of api:org.gradle.api.provider.Provider[] and api:org.gradle.api.provider.PropertyState[]. The main difference between these two interfaces is attributed to mutability. A api:org.gradle.api.provider.Provider[] is immutable and can be created with the method api:org.gradle.api.Project#provider(java.util.concurrent.Callable)[]. api:org.gradle.api.provider.PropertyState[] extends the interface api:org.gradle.api.provider.Provider[], represents a mutable value and can be created with the method api:org.gradle.api.Project#property(java.lang.Class)[]. Please note that the provider types are not intended for implementation by build script or plugin authors.
@@ -115,7 +115,7 @@ The example above uses instances of api:org.gradle.api.provider.Provider[] and a
 [NOTE]
 ====
 
-The api:org.gradle.api.Project[] does not provide a specific method signature for creating a provider by passing in a `groovy.lang.Closure` as parameter. When writing a plugin implementation with Groovy, you can use the method signature accepting a `java.util.concurrent.Callable` parameter. Groovy's http://docs.groovy-lang.org/next/html/documentation/core-semantics.html#_assigning_a_closure_to_a_sam_type[Closure to type coercion] will take of the rest.
+The api:org.gradle.api.Project[] does not provide a specific method signature for creating a provider by passing in a `groovy.lang.Closure` as parameter. When writing a plugin implementation with Groovy, you can use the method signature accepting a `java.util.concurrent.Callable` parameter. Groovy's http://docs.groovy-lang.org/next/html/documentation/core-semantics.html#_assigning_a_closure_to_a_sam_type[Closure to type coercion] will take care of the rest.
 
 ====
 
@@ -127,8 +127,8 @@ Now we will move our plugin to a standalone project, so we can publish it and sh
 
 ++++
 <sample id="customPluginStandalone" dir="customPlugin/plugin" title="A build for a custom plugin" includeLocation="true">
-            <sourcefile file="build.gradle" snippet="use-plugin"/>
-        </sample>
+    <sourcefile file="build.gradle" snippet="use-plugin"/>
+</sample>
 ++++
 
 So how does Gradle find the api:org.gradle.api.Plugin[] implementation? The answer is you need to provide a properties file in the jar's `META-INF/gradle-plugins` directory that matches the id of your plugin.
