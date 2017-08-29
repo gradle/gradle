@@ -26,6 +26,11 @@ import org.gradle.testing.performance.generator.tasks.RemoteProject
  'smallJavaMultiProject'].each { template ->
     tasks.create(template, JavaExec) {
         outputs.dir new File(buildDir, template)
+        outputs.cacheIf { true }
+        inputs.property('template', template)
+        inputs.property('args') { // Arguments are covered by the testProjectName and the outputs. We don't want them to contain the absolute path
+            return []
+        }
         classpath = sourceSets.performanceTest.runtimeClasspath
         main = 'org.gradle.performance.generator.TestProjectGenerator'
         args name, buildDir.absolutePath
