@@ -137,9 +137,9 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         def build3 = executer.withArguments("-d").withTasks("help").start()
         poll {
             assert requestReceived
-            assert assertConfirmationCount(build1)
-            assert assertConfirmationCount(build2)
-            assert assertConfirmationCount(build3)
+            assertConfirmationCount(build1)
+            assertConfirmationCount(build2)
+            assertConfirmationCount(build3)
         }
         replaceSocketReceiver { additionalRequests++ }
 
@@ -261,7 +261,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
     }
 
 
-    def assertConfirmationCount(GradleHandle build, DatagramSocket socket = receivingSocket) {
+    void assertConfirmationCount(GradleHandle build, DatagramSocket socket = receivingSocket) {
         assert (build.standardOutput =~ "Gradle process at port ${socket.localPort} confirmed unlock request").count == addressFactory.communicationAddresses.size()
     }
 
