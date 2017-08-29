@@ -20,8 +20,11 @@ import org.gradle.internal.filewatch.PendingChangesListener
 import org.gradle.internal.filewatch.PendingChangesManager
 import org.gradle.internal.filewatch.SingleFirePendingChangesListener
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.TestParticipant
 import org.junit.Rule
 import spock.lang.Unroll
+
+import java.util.concurrent.TimeUnit
 
 class PlayReloadWaitingIntegrationTest extends PlayReloadIntegrationTest {
     @Rule
@@ -202,17 +205,21 @@ class PlayReloadWaitingIntegrationTest extends PlayReloadIntegrationTest {
         addNewRoute("hello")
 
         then:
-        sleep 10000
-
         def op = concurrent.waitsForAsyncCallback().withWaitTime(2000)
+        TestParticipant routeChecker
         op.start {
             op.callbackLater {
-                checkRoute('hello')
+                // Starting the HTTP request releases the build
+                routeChecker = concurrent.start({
+                    checkRoute('hello')
+                })
             }
             block.waitForAllPendingCalls()
             block.releaseAll()
             server.expect("buildFinished")
         }
+        // Request should be complete soon after build completes
+        routeChecker.completesWithin(1, TimeUnit.SECONDS)
     }
 
     def blockBuildWaitingForChanges() {
