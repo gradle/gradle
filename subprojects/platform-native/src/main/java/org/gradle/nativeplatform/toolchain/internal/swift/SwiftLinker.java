@@ -67,8 +67,7 @@ class SwiftLinker extends AbstractCompiler<LinkerSpec> {
             if (spec instanceof SharedLibraryLinkerSpec) {
                 args.add("-emit-library");
             } else if (spec instanceof BundleLinkerSpec) {
-                args.add("-Xlinker");
-                args.add("-bundle");
+                args.add("-Wl,-bundle");
             } else {
                 args.add("-emit-executable");
             }
