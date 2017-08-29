@@ -238,13 +238,7 @@ class ScriptPluginUseIntegrationTest extends AbstractIntegrationSpec {
         succeeds "help", "-q"
 
         then:
-        output.startsWith """
-            handling http request: GET /hello.gradle
-            Hello from the other side
-            handling http request: GET /greetings.gradle
-            
-            Welcome to Gradle
-            """.stripIndent().trim()
+        (~/Hello from the other side/).matcher(output).count == 1
 
         and:
         operations.hasOperation("Apply script plugin 'http://localhost:${server.port}/hello.gradle' to root project 'root'")
