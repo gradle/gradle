@@ -88,7 +88,7 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
         resolvers.add(new CorePluginResolver(documentationRegistry, pluginRegistry));
 
         // Use buildSrc scope
-        ClassLoaderScope scriptPluginsScope = scriptPluginScopeFor(projectRegistry);
+        ClassLoaderScope scriptPluginsScope = ScriptPluginsScope.from(projectRegistry);
         resolvers.add(new ScriptPluginPluginResolver(textResourceLoader, scriptPluginsScope));
 
         if (!injectedClasspathPluginResolver.isClasspathEmpty()) {
@@ -101,11 +101,6 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
         } else {
             addPluginRepositoryResolvers(resolvers, pluginRepositories);
         }
-    }
-
-    // TODO:rbo Dedupe code below
-    private static ClassLoaderScope scriptPluginScopeFor(ProjectRegistry<ProjectInternal> projectRegistry) {
-        return projectRegistry.getRootProject().getClassLoaderScope().getParent();
     }
 
     private ImmutableList<? extends PluginRepository> getPluginRepositories() {

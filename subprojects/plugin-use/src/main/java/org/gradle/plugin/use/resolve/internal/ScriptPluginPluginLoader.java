@@ -24,6 +24,7 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.ScriptPluginFactorySelector;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
+import org.gradle.plugin.use.internal.ScriptPluginsScope;
 
 
 /**
@@ -38,7 +39,7 @@ public class ScriptPluginPluginLoader {
                              ScriptHandler scriptHandler,
                              ScriptPluginFactory scriptPluginFactory) {
 
-        ClassLoaderScope buildSrcScope = projectRegistry.getRootProject().getClassLoaderScope().getParent();
+        ClassLoaderScope buildSrcScope = ScriptPluginsScope.from(projectRegistry);
         ClassLoaderScope scriptPluginScope = buildSrcScope.createChild("script-plugin-" + scriptIdentifier);
 
         ScriptSource scriptSource = new StringScriptSource(scriptDisplayName, scriptContent);
