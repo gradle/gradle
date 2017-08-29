@@ -322,7 +322,7 @@ class ScriptPluginUseIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failureCauseContains("Could not read")
-        failureCauseContains("gradle/other.gradle' as it does not exist.")
+        failureCauseContains("gradle${File.separatorChar}other.gradle' as it does not exist.")
 
         and:
         !operations.hasOperation("Apply script plugin 'gradle/other.gradle' to root project 'root'")
