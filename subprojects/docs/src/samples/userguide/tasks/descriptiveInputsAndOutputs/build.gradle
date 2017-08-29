@@ -1,0 +1,111 @@
+class MyPlugin implements Plugin<Project> {
+    void apply(Project project) {
+
+        Compile compileTask = project.tasks.create("compile", Compile)
+        Package packageTask = project.tasks.create("package", Package)
+        Install installTask = project.tasks.create("install", Install)
+
+        //wire task inputs without defining concrete file system locations
+        packageTask.setBinaries(compileTask.out.asFileTree)
+        installTask.setExecutable(packageTask.dist)
+
+        //define locations - these setters can be called any time before the task executes
+        DirectoryVar buildDir = project.layout.buildDirectory
+        compileTask.sources = project.fileTree("src")
+        compileTask.out = buildDir.dir("compiled")
+        packageTask.dist = buildDir.file("dist/all")
+        installTask.installDirectory = buildDir.dir("install")
+    }
+}
+
+class Compile extends DefaultTask {
+    final ConfigurableFileCollection sources = project.files()
+    final DirectoryVar out = newOutputDirectory()
+
+    @InputFiles
+    FileCollection getSources() {
+        return sources
+    }
+
+    @OutputDirectory
+    DirectoryVar getOut() {
+        return out
+    }
+
+    void setSources(FileCollection sources) {
+        this.sources.setFrom(sources)
+    }
+
+    void setOut(Provider<Directory> out) {
+        this.out.set(out)
+    }
+
+    @TaskAction
+    void doCompileWork() {
+        File outFolder = out.getAsFile().get()
+        outFolder.mkdir()
+        sources.each {
+            new File(outFolder, it.name + ".compiled").createNewFile()
+        }
+    }
+}
+
+class Package extends DefaultTask {
+    final ConfigurableFileCollection binaries = project.files()
+    final RegularFileVar dist = newOutputFile()
+
+    @InputFiles
+    FileCollection getBinaries() {
+        return binaries
+    }
+
+    @OutputFile
+    Provider<RegularFile> getDist() {
+        return dist
+    }
+
+    void setBinaries(FileCollection binaries) {
+        this.binaries.setFrom(binaries)
+    }
+
+    void setDist(Provider<RegularFile> dist) {
+        this.dist.set(dist)
+    }
+
+    @TaskAction
+    void doPackageWork() throws IOException {
+        dist.getAsFile().get().createNewFile()
+    }
+}
+
+class Install extends DefaultTask {
+    final RegularFileVar executable = newInputFile()
+    final DirectoryVar installDirectory = newOutputDirectory()
+
+    @InputFile
+    Provider<RegularFile> getExecutable() {
+        return executable
+    }
+
+    @OutputDirectory
+    DirectoryVar getInstallDirectory() {
+        return installDirectory
+    }
+
+    void setExecutable(Provider<RegularFile> executable) {
+        this.executable.set(executable)
+    }
+    void setInstallDirectory(Provider<Directory> installDirectory) {
+        this.installDirectory.set(installDirectory)
+    }
+
+    @TaskAction
+    void doInstallWork() throws IOException {
+        project.copy {
+            from executable
+            into installDirectory
+        }
+    }
+}
+
+apply plugin: MyPlugin

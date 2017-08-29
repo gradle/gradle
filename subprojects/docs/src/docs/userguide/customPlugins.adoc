@@ -120,6 +120,30 @@ The api:org.gradle.api.Project[] does not provide a specific method signature fo
 ====
 
 
+[[sec:connecting_output_and_input_files_or_folders_of_different_tasks]]
+=== Connecting output and input files or folders of different tasks
+
+Often you will have several tasks in your plugin that depend on each other. This usually means that one task processes outputs of another task as input.
+For these outputs and inputs we need to define locations in the files systems at some point. In <<sec:working_with_files_in_custom_tasks_and_plugins>> we used the plain
+Java File API for this and <<sec:mapping_extension_properties_to_task_properties>> showed how providers are used to evaluate such task properties lazily.
+
+To combine these, Gradle offers convenient APIs for defining files or folders as task inputs and outputs in a descriptive way (i.e. to evaluate them at
+execution time). As an example consider the following plugin with `compile`, `package` and `install` tasks which are wired via inputs and outputs:
+
+++++
+<sample id="descriptiveInputsAndOutputs" dir="userguide/tasks/descriptiveInputsAndOutputs" includeLocation="true" title="Descriptive input and output file declarations">
+    <sourcefile file="build.gradle"/>
+</sample>
+++++
+
+In the example above, the task outputs and inputs are connected before any concrete files system location is defined. This is possible because file locations
+are described by using providers that are created using `newOutputFile()` and `newOutputDirectory()` for outputs as well as `newInputFile()` and `files()` for inputs.
+Note how the corresponding setters work with providers instead of setting concrete file locations. This way the files are only actually resolved when they are
+needed during execution. The setters can be called at any time before the task is executed and the change will automatically affect all related input and output properties.
+
+When configuring the locations, `project.layout.buildDirectory` is used as entry point, which is another provider. This places all files relative to the project's build directory location -
+independent of if and when the build directory is changed during build configuration.
+
 [[sec:custom_plugins_standalone_project]]
 === A standalone project
 
