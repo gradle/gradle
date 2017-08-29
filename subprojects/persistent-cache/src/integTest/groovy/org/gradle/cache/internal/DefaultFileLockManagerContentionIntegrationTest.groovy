@@ -188,7 +188,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
     }
 
     // This test simulates a long running Zic compiler setup by running code similar to ZincScalaCompilerFactory through the worker API.
-    def "If many workers wait for the same exclusive lock, a worker does not time out because several others get the lock before"() {
+    def "if many workers wait for the same exclusive lock, a worker does not time out because several others get the lock before"() {
         given:
         buildFile << """
             import org.gradle.cache.CacheRepository
@@ -262,7 +262,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
 
 
     def assertConfirmationCount(GradleHandle build, DatagramSocket socket = receivingSocket) {
-        (build.standardOutput =~ "Gradle process at port ${socket.localPort} confirmed unlock request").count == addressFactory.communicationAddresses.size()
+        assert (build.standardOutput =~ "Gradle process at port ${socket.localPort} confirmed unlock request").count == addressFactory.communicationAddresses.size()
     }
 
     def assertReceivingSocketEmpty() {
