@@ -68,8 +68,6 @@ public class PlayRun extends ConventionTask {
 
     private PlayToolProvider playToolProvider;
 
-    private boolean rebuildOnRequest;
-
     /**
      * fork options for the running a Play application.
      */
@@ -90,8 +88,7 @@ public class PlayRun extends ConventionTask {
         if (deploymentHandle == null) {
             PlayRunSpec spec = new DefaultPlayRunSpec(runtimeClasspath, changingClasspath, applicationJar, assetsJar, assetsDirs, getProject().getProjectDir(), getForkOptions(), getHttpPort());
             PlayApplicationRunner playApplicationRunner = playToolProvider.get(PlayApplicationRunner.class);
-            DeploymentRegistry.ChangeBehavior changeBehavior = rebuildOnRequest ? DeploymentRegistry.ChangeBehavior.BLOCK_AND_REBUILD : DeploymentRegistry.ChangeBehavior.REBUILD_AND_BLOCK;
-            deploymentHandle = deploymentRegistry.start(deploymentId, changeBehavior, PlayApplicationDeploymentHandle.class, spec, playApplicationRunner);
+            deploymentHandle = deploymentRegistry.start(deploymentId, DeploymentRegistry.ChangeBehavior.BLOCK, PlayApplicationDeploymentHandle.class, spec, playApplicationRunner);
 
             InetSocketAddress playAppAddress = deploymentHandle.getPlayAppAddress();
             String playUrl = "http://localhost:" + playAppAddress.getPort() + "/";
@@ -158,19 +155,6 @@ public class PlayRun extends ConventionTask {
 
     public void setPlayToolProvider(PlayToolProvider playToolProvider) {
         this.playToolProvider = playToolProvider;
-    }
-
-    /**
-     * Specifies whether the play app should rebuild as soon as changes are detected, or if it should only rebuild
-     * when a request is made.
-     */
-    @Internal
-    public boolean isRebuildOnRequest() {
-        return rebuildOnRequest;
-    }
-
-    public void setRebuildOnRequest(boolean rebuildOnRequest) {
-        this.rebuildOnRequest = rebuildOnRequest;
     }
 
     @Inject

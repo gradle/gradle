@@ -62,11 +62,11 @@ public interface DeploymentRegistry {
         BLOCK_AND_REBUILD,
 
         /**
-         * When changes are detected, rebuild immediately and block the deployment until all changes are incorporated.
+         * When changes are detected, block the deployment until all changes are incorporated.
          *
          * The deployment needs to call {@link Deployment#status()} to wait for changes.
          */
-        REBUILD_AND_BLOCK,
+        BLOCK,
 
         /**
          * When changes are incorporated, automatically stop and start the deployment.

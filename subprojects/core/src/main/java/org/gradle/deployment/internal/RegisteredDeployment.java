@@ -38,9 +38,7 @@ class RegisteredDeployment implements Stoppable {
                 return new RegisteredDeployment(id, false, deploymentHandle, new OutOfDateTrackingDeployment());
             case RESTART:
                 return new RegisteredDeployment(id, true, deploymentHandle, new SimpleBlockingDeployment(new OutOfDateTrackingDeployment()));
-            case REBUILD_AND_BLOCK:
-                return new RegisteredDeployment(id, false, deploymentHandle, new SimpleBlockingDeployment(new OutOfDateTrackingDeployment()));
-            case BLOCK_AND_REBUILD:
+            case BLOCK:
                 return new RegisteredDeployment(id, false, deploymentHandle, new GateControllingDeployment(continuousExecutionGate, new SimpleBlockingDeployment(new OutOfDateTrackingDeployment())));
             default:
                 throw new IllegalArgumentException("Unknown changeBehavior " + changeBehavior);
