@@ -26,7 +26,7 @@ import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.TimeProvider;
-import org.testng.IClass;
+import org.testng.IClassListener;
 import org.testng.ISuite;
 import org.testng.ISuiteListener;
 import org.testng.ITestClass;
@@ -40,17 +40,17 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestListener, TestNGConfigurationListener {
+public class TestNGTestResultProcessorAdapter implements ISuiteListener, IClassListener, ITestListener, TestNGConfigurationListener {
     private final TestResultProcessor resultProcessor;
     private final IdGenerator<?> idGenerator;
     private final TimeProvider timeProvider;
     private final Object lock = new Object();
     private final Map<ITestContext, Object> testId = new HashMap<ITestContext, Object>();
     private final Map<ISuite, Object> suiteId = new HashMap<ISuite, Object>();
+    private final Map<ITestClass, Object> testClassId = new HashMap<ITestClass, Object>();
     private final Map<ITestResult, Object> testMethodId = new HashMap<ITestResult, Object>();
     private final Map<ITestNGMethod, Object> testMethodParentId = new HashMap<ITestNGMethod, Object>();
     private final Set<ITestResult> failedConfigurations = new HashSet<ITestResult>();
-    private final Map<ITestClass, TestClassContext> testClasses = new HashMap<ITestClass, TestClassContext>();
 
     public TestNGTestResultProcessorAdapter(TestResultProcessor resultProcessor, IdGenerator<?> idGenerator, TimeProvider timeProvider) {
         this.resultProcessor = resultProcessor;
@@ -87,6 +87,25 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
     }
 
     @Override
+    public void onBeforeClass(ITestClass testClass) {
+        TestDescriptorInternal testInternal;
+        synchronized (lock) {
+            testInternal = new DefaultTestClassDescriptor(idGenerator.generateId(), testClass.getName());
+            testClassId.put(testClass, testInternal.getId());
+        }
+        resultProcessor.started(testInternal, new TestStartEvent(timeProvider.getCurrentTime()));
+    }
+
+    @Override
+    public void onAfterClass(ITestClass testClass) {
+        Object id;
+        synchronized (lock) {
+            id = testClassId.remove(testClass);
+        }
+        resultProcessor.completed(id, new TestCompleteEvent(timeProvider.getCurrentTime()));
+    }
+
+    @Override
     public void onStart(ITestContext iTestContext) {
         TestDescriptorInternal testInternal;
         Object parentId;
@@ -96,20 +115,9 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
             testId.put(iTestContext, testInternal.getId());
             for (ITestNGMethod method : iTestContext.getAllTestMethods()) {
                 testMethodParentId.put(method, testInternal.getId());
-                registerTestClass(method.getTestClass());
             }
         }
         resultProcessor.started(testInternal, new TestStartEvent(iTestContext.getStartDate().getTime(), parentId));
-    }
-
-    private void registerTestClass(ITestClass testClass) {
-        if (!testClasses.containsKey(testClass)) {
-            TestClassContext testClassContext = new TestClassContext(idGenerator.generateId());
-            testClassContext.registerTestMethod();
-            testClasses.put(testClass, testClassContext);
-        } else {
-            testClasses.get(testClass).registerTestMethod();
-        }
     }
 
     @Override
@@ -129,7 +137,6 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
         TestDescriptorInternal testInternal;
         Object parentId;
         synchronized (lock) {
-            startTestClass(iTestResult.getTestClass());
             String name = calculateTestCaseName(iTestResult);
             testInternal = new DefaultTestMethodDescriptor(idGenerator.generateId(), iTestResult.getTestClass().getName(), name);
             Object oldTestId = testMethodId.put(iTestResult, testInternal.getId());
@@ -144,18 +151,6 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
 
         if (iTestResult.getThrowable() instanceof UnrepresentableParameterException) {
             throw (UnrepresentableParameterException) iTestResult.getThrowable();
-        }
-    }
-
-    private void startTestClass(IClass testClass) {
-        if (testClasses.containsKey(testClass)) {
-            TestClassContext testClassStatus = testClasses.get(testClass);
-
-            if (!testClassStatus.isStarted()) {
-                TestDescriptorInternal testClassDescriptor = new DefaultTestClassDescriptor(testClassStatus.getId(), testClass.getName());
-                resultProcessor.started(testClassDescriptor, new TestStartEvent(timeProvider.getCurrentTime()));
-                testClassStatus.setStarted(true);
-            }
         }
     }
 
@@ -233,18 +228,6 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
             resultProcessor.failure(testId, iTestResult.getThrowable());
         }
         resultProcessor.completed(testId, new TestCompleteEvent(iTestResult.getEndMillis(), resultType));
-        finishTestClass(iTestResult.getTestClass());
-    }
-
-    private void finishTestClass(IClass testClass) {
-        if (testClasses.containsKey(testClass)) {
-            TestClassContext testClassContext = testClasses.get(testClass);
-            testClassContext.finishTestMethod();
-
-            if (testClassContext.isFinished()) {
-                resultProcessor.completed(testClassContext.getId(), new TestCompleteEvent(timeProvider.getCurrentTime()));
-            }
-        }
     }
 
     @Override
@@ -273,39 +256,5 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
 
     @Override
     public void beforeConfiguration(ITestResult tr) {
-    }
-
-    private static class TestClassContext {
-        private final Object id;
-        private boolean started;
-        private int testMethods;
-
-        public TestClassContext(Object id) {
-            this.id = id;
-        }
-
-        public Object getId() {
-            return id;
-        }
-
-        public boolean isStarted() {
-            return started;
-        }
-
-        public void setStarted(boolean started) {
-            this.started = started;
-        }
-
-        public void registerTestMethod() {
-            testMethods++;
-        }
-
-        public void finishTestMethod() {
-            testMethods--;
-        }
-
-        public boolean isFinished() {
-            return testMethods == 0;
-        }
     }
 }

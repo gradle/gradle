@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.testng.IClassListener;
 import org.testng.ISuiteListener;
 import org.testng.ITestListener;
 
@@ -55,7 +56,7 @@ class TestNGListenerAdapterFactory {
     }
 
     private ITestListener createProxy(Class<?> configListenerClass, final ITestListener listener) {
-        Class<?>[] interfaces = new Class<?>[]{ITestListener.class, ISuiteListener.class, configListenerClass};
+        Class<?>[] interfaces = new Class<?>[]{ITestListener.class, IClassListener.class, ISuiteListener.class, configListenerClass};
         return (ITestListener) Proxy.newProxyInstance(classLoader, interfaces, new AdaptedListener(listener));
     }
 
