@@ -57,8 +57,6 @@ public class ScriptPluginPluginResolver implements PluginResolver {
     @Override
     public void resolve(ContextAwarePluginRequest pluginRequest, PluginResolutionResult result) {
         if (pluginRequest.getScript() == null) {
-            // TODO:rbo remove this notFound from the list
-            result.notFound(getDescription(), "only script plugin requests are supported by this source");
             return;
         }
         if (pluginRequest.getModule() != null) {
