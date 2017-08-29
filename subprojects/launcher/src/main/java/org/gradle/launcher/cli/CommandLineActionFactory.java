@@ -78,12 +78,12 @@ public class CommandLineActionFactory {
         LoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration();
 
         return new WithLogging(loggingServices,
-            args,
-            loggingConfiguration,
-            new ExceptionReportingAction(
-                new JavaRuntimeValidationAction(
-                    new ParseAndBuildAction(loggingServices, args)),
-                new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData())));
+                args,
+                loggingConfiguration,
+                new ExceptionReportingAction(
+                        new JavaRuntimeValidationAction(
+                                new ParseAndBuildAction(loggingServices, args)),
+                        new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData())));
     }
 
     protected void createActionFactories(ServiceRegistry loggingServices, Collection<CommandLineAction> actions) {

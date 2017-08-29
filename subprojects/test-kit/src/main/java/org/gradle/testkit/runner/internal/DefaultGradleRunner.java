@@ -24,11 +24,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
-import org.gradle.testkit.runner.BuildResult;
-import org.gradle.testkit.runner.GradleRunner;
-import org.gradle.testkit.runner.InvalidRunnerConfigurationException;
-import org.gradle.testkit.runner.UnexpectedBuildFailure;
-import org.gradle.testkit.runner.UnexpectedBuildSuccess;
+import org.gradle.testkit.runner.*;
 import org.gradle.testkit.runner.internal.io.SynchronizedOutputStream;
 
 import java.io.File;
@@ -36,11 +32,7 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.net.URI;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class DefaultGradleRunner extends GradleRunner {
 

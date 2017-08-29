@@ -162,15 +162,30 @@ in the next major Gradle version (Gradle 5.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
 
-<!--
-### Example deprecation
--->
+### Deprecated usage of path separator characters in names
+
+We deprecated the usage of the following characters in domain object names such as project or task names:
+` `, `/`, `\\`, `:`, `<`, `>`, `"`, `?`, `*` and `|`. We also deprecated `.` as leading or trailing character.
+These character represent path separators or have other special semantics in file systems. This caused inconsistent and unexpected behavior in different Gradle features.
+Using these characters in names will be forbidden in Gradle 5.0. 
 
 ## Potential breaking changes
+
+### Removed `TaskFilePropertyBuilder.withPathSensitivity` and `TaskOutputFilePropertyBuilder.withPathSensitivity`
+
+These methods where not meant to be used, since Gradle does not allow to customize the PathSensitivity for output files.
+
+### Upgraded the bndlib to 3.4.0
+
+Gradle previously used `biz.aQute.bnd:biz.aQute.bndlib:3.2.0`, which did not support Java 9.  Gradle now includes [bndlib 3.4.0](https://github.com/bndtools/bnd/wiki/Changes-in-3.4.0).
 
 <!--
 ### Example breaking change
 -->
+
+### FindBugs plugin does not render analysis progress anymore
+
+As observed by many users the FindBugs plugin renders a lot of progress information by default leading to longer, unmanageable logs. The output behavior changes with this release. By default the FindBugs plugin will render no more analysis progress. If you happen to post-process the output and relied on the pre-4.2 behavior, then you can enable the progressing logging with the property `FindBugsExtension.showProgress`.
 
 ## External contributions
 
@@ -178,7 +193,21 @@ We would like to thank the following community members for making contributions 
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
--->
+ -->
+ - [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Use correct signature for Test::useJunit (#2675)
+ - [Marcin Erdmann](https://github.com/erdi) - Add compilationClasspath property to CodeNarc task (#2325)
+ - [Bo Zhang](https://github.com/blindpirate) - Add an option to FindBugs for toggling logging of analysis progress (#2181)
+ - [Josué Lima](https://github.com/josuelima) - Fix typo on S3 AwsImAuthentication log message (#2349)
+ - [Ian Kerins](https://github.com/CannedYerins) - Fix grammar error in logging documentation (#2482)
+ - [Yannick Welsch](https://github.com/ywelsch) - Use GNU-style release flag for Java 9 compiler (#2474)
+ - [Juan Martín Sotuyo Dodero](https://github.com/jsotuyod) - Register classloaders as parallelCapable (#772)
+ - [Lance](https://github.com/uklance) - Fix Maven BOM evaluation order (#2282)
+ - [Jokubas Dargis](https://github.com/eleventigerssc) - Add GCS transport protocol support for declaring dependencies (#2258)
+ - [Thomas Halm](https://github.com/thhalm) - Maintain order of classpath when generating start scripts (#2513)
+ - [Colin Dean](https://github.com/colindean) - Prevent NullPointerException if any of the signing properties is null but signing isn't required (#2268)
+ - [Ben McCann](https://github.com/benmccann) - Add support for Play 2.6 (#1992)
+ - [Ethan Hall](https://github.com/ethankhall) - Cache script plugins loaded via HTTP (#1944)
+ - [Bo Zhang](https://github.com/blindpirate) - Handle null Throwable stack trace to avoid NullPointerException (#2168)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

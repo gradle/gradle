@@ -133,14 +133,14 @@ project.logger.debug("debug logging");
     private ExecutionResult runUsingCommandLine() {
         targetDist.executer(temporaryFolder, getBuildContext())
             .requireGradleDistribution()
-            .withCommandLineGradleOpts("-Dorg.gradle.deprecation.trace=false") //suppress deprecation stack trace
+            .withBuildJvmOpts("-Dorg.gradle.deprecation.trace=false") //suppress deprecation stack trace
             .run()
     }
 
     String normaliseOutput(String output) {
         // Must replace both build result formats for cross compat
         return output
-            .replaceFirst(/ in [.\d]+s/, " in 0s")
+            .replaceFirst(" in .+s", " in 0s")
             .replaceFirst("Total time: .+ secs", "Total time: 0 secs")
     }
 
