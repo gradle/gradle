@@ -42,7 +42,7 @@ class DefaultSwiftXCTestSuiteTest extends Specification {
         testSuite.developmentBinary == testSuite.executable
     }
 
-    def "can change location of Info.plist"() {
+    def "can change location of Info.plist by changing the test suite resource directory location"() {
         def file = tmpDir.createFile("Tests")
 
         expect:
