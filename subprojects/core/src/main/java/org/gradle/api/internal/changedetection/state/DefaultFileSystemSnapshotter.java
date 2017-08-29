@@ -42,6 +42,7 @@ import org.gradle.normalization.internal.InputNormalizationStrategy;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -77,7 +78,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.fileSystemMirror = fileSystemMirror;
         snapshotter = new DefaultGenericFileCollectionSnapshotter(stringInterner, directoryFileTreeFactory, this);
-        this.executorService = Executors.newFixedThreadPool(8, new ThreadFactory() {
+        this.executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors(), new ThreadFactory() {
             @Override
             public Thread newThread(Runnable r) {
                 return new Thread(r, "File system snapshotting");
@@ -222,10 +223,11 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
     }
 
     private class FileVisitorImpl implements FileVisitor {
-        private final static int BATCH_SIZE = 10;
-        private final List<FileSnapshot> fileTreeElements;
+        private final static int BATCH_SIZE = 32;
+        private final ArrayList<FileSnapshot> fileTreeElements;
         private final Runnable[] buffer;
         private int bufferSize;
+        private boolean completed = false;
 
         FileVisitorImpl() {
             this.fileTreeElements = Lists.newArrayList();
@@ -266,8 +268,19 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
         }
 
         public List<FileSnapshot> getElements() {
+            if (completed) {
+                return fileTreeElements;
+            }
             flush();
+            int i = 0;
+            for (FileSnapshot element : fileTreeElements) {
+                if (element instanceof DeferredFileSnapshot) {
+                    fileTreeElements.set(i, ((DeferredFileSnapshot) element).blockUntilAvailable());
+                }
+                i++;
+            }
             return fileTreeElements;
+
         }
 
         private void flush() {
