@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.hash;
 
-import com.google.common.base.Strings;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
 
@@ -59,7 +58,7 @@ public class HashUtil {
         return hasher.hash();
     }
 
-    public static HashCode parse(String inputString, int padToLength) {
+    public static HashCode parse(String inputString) {
         if (inputString == null || inputString.length() == 0) {
             return null;
         }
@@ -74,9 +73,6 @@ public class HashUtil {
             } else {
                 cleaned = cleaned.substring(0, spaceIndex);
             }
-        }
-        if (cleaned.length() < padToLength) {
-            cleaned = Strings.padStart(cleaned, padToLength, '0');
         }
         return HashCode.fromString(cleaned);
     }

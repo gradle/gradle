@@ -164,7 +164,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                 public HashCode transform(InputStream inputStream) {
                     try {
                         String sha = IOUtils.toString(inputStream, "us-ascii");
-                        return HashUtil.parse(sha, 40);
+                        return HashCode.fromString(sha);
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }

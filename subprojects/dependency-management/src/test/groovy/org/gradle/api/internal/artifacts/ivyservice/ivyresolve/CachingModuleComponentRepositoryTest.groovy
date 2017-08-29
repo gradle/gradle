@@ -127,7 +127,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
     def "does not use cache when artifacts for type can be determined locally"() {
         def component = Mock(ComponentResolveMetadata)
         def source = Mock(ModuleSource)
-        def cachingSource = new CachingModuleComponentRepository.CachingModuleSource(HashCode.fromInt(1), false, source)
+        def cachingSource = new CachingModuleComponentRepository.CachingModuleSource(BigInteger.ONE, false, source)
         def artifactType = ArtifactType.JAVADOC
         def result = new DefaultBuildableArtifactSetResolveResult()
 
@@ -146,7 +146,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
     def "does not use cache when component artifacts can be determined locally"() {
         def component = Mock(ComponentResolveMetadata)
         def source = Mock(ModuleSource)
-        def cachingSource = new CachingModuleComponentRepository.CachingModuleSource(HashCode.fromInt(1), false, source)
+        def cachingSource = new CachingModuleComponentRepository.CachingModuleSource(BigInteger.ONE, false, source)
         def result = new DefaultBuildableComponentArtifactsResolveResult()
 
         when:

@@ -19,12 +19,13 @@ import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSource;
-import org.gradle.internal.hash.HashCode;
 import org.gradle.util.BuildCommencedTimeProvider;
+
+import java.math.BigInteger;
 
 class DefaultCachedMetaData implements ModuleMetaDataCache.CachedMetaData {
     private final ModuleSource moduleSource;
-    private final HashCode descriptorHash;
+    private final BigInteger descriptorHash;
     private final long ageMillis;
     private final ModuleComponentResolveMetadata metaData;
 
@@ -55,7 +56,7 @@ class DefaultCachedMetaData implements ModuleMetaDataCache.CachedMetaData {
         return ageMillis;
     }
 
-    public HashCode getDescriptorHash() {
+    public BigInteger getDescriptorHash() {
         return descriptorHash;
     }
 }

@@ -16,12 +16,11 @@
 
 package org.gradle.internal.resource.cached;
 
-import org.gradle.internal.hash.HashCode;
-
+import java.math.BigInteger;
 import java.util.List;
 
 public interface CachedArtifact extends CachedItem {
-    HashCode getDescriptorHash();
+    BigInteger getDescriptorHash();
 
     List<String> attemptedLocations();
 }

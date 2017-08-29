@@ -18,7 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSource;
-import org.gradle.internal.hash.HashCode;
+
+import java.math.BigInteger;
 
 class ModuleMetadataCacheEntry {
     static final byte TYPE_MISSING = 0;
@@ -28,9 +29,9 @@ class ModuleMetadataCacheEntry {
     final boolean isChanging;
     final long createTimestamp;
     final ModuleSource moduleSource;
-    final HashCode moduleDescriptorHash;
+    final BigInteger moduleDescriptorHash;
 
-    ModuleMetadataCacheEntry(byte type, boolean isChanging, long createTimestamp, HashCode moduleDescriptorHash, ModuleSource moduleSource) {
+    ModuleMetadataCacheEntry(byte type, boolean isChanging, long createTimestamp, BigInteger moduleDescriptorHash, ModuleSource moduleSource) {
         this.type = type;
         this.isChanging = isChanging;
         this.createTimestamp = createTimestamp;
@@ -42,7 +43,7 @@ class ModuleMetadataCacheEntry {
         return new MissingModuleCacheEntry(createTimestamp);
     }
 
-    public static ModuleMetadataCacheEntry forMetaData(ModuleComponentResolveMetadata metaData, long createTimestamp, HashCode moduleDescriptorHash) {
+    public static ModuleMetadataCacheEntry forMetaData(ModuleComponentResolveMetadata metaData, long createTimestamp, BigInteger moduleDescriptorHash) {
         return new ModuleMetadataCacheEntry(TYPE_PRESENT, metaData.isChanging(), createTimestamp, moduleDescriptorHash, metaData.getSource());
     }
 

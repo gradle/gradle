@@ -158,6 +158,10 @@ public class HashCode implements Serializable, Comparable<HashCode> {
     }
 
     public String toCompactString() {
-        return new BigInteger(1, bytes).toString(36);
+        return toBigInteger().toString(36);
+    }
+
+    public BigInteger toBigInteger() {
+        return new BigInteger(1, bytes);
     }
 }

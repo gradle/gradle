@@ -104,7 +104,7 @@ abstract class AbstractModule {
     private static TestFile hashFile(TestFile file, HashFunction hashFunction, int len) {
         def hashFile = getHashFile(file, hashFunction)
         def hash = getHash(file, hashFunction)
-        hashFile.text = String.format("%0${len}x", new BigInteger(1, hash.toByteArray()))
+        hashFile.text = String.format("%0${len}x", hash)
         return hashFile
     }
 
@@ -113,6 +113,6 @@ abstract class AbstractModule {
     }
 
     protected static BigInteger getHash(TestFile file, HashFunction hashFunction) {
-        new BigInteger(1, HashUtil.createHash(file, hashFunction).toByteArray())
+        HashUtil.createHash(file, hashFunction).toBigInteger()
     }
 }

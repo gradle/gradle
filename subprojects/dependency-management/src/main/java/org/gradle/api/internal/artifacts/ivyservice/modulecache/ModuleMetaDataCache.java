@@ -20,7 +20,8 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSource;
-import org.gradle.internal.hash.HashCode;
+
+import java.math.BigInteger;
 
 public interface ModuleMetaDataCache {
     CachedMetaData cacheMissing(ModuleComponentRepository repository, ModuleComponentIdentifier id);
@@ -36,7 +37,7 @@ public interface ModuleMetaDataCache {
 
         long getAgeMillis();
 
-        HashCode getDescriptorHash();
+        BigInteger getDescriptorHash();
 
         boolean isMissing();
 

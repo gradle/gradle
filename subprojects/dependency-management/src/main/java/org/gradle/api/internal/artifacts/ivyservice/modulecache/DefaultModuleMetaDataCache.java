@@ -27,7 +27,6 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
-import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resource.local.DefaultPathKeyFileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.serialize.AbstractSerializer;
@@ -36,6 +35,8 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.util.BuildCommencedTimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.math.BigInteger;
 
 public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultModuleMetaDataCache.class);
@@ -102,7 +103,7 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
             @Override
             public CachedMetaData create() {
                 LocallyAvailableResource resource = moduleMetadataStore.putModuleDescriptor(key, metadata);
-                ModuleMetadataCacheEntry entry = createEntry(metadata, resource.getSha1());
+                ModuleMetadataCacheEntry entry = createEntry(metadata, resource.getSha1().toBigInteger());
                 getCache().put(key, entry);
                 return new DefaultCachedMetaData(entry, null, timeProvider);
             }
@@ -113,7 +114,7 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         return new ModuleComponentAtRepositoryKey(repository.getId(), id);
     }
 
-    private ModuleMetadataCacheEntry createEntry(ModuleComponentResolveMetadata metaData, HashCode moduleDescriptorHash) {
+    private ModuleMetadataCacheEntry createEntry(ModuleComponentResolveMetadata metaData, BigInteger moduleDescriptorHash) {
         return ModuleMetadataCacheEntry.forMetaData(metaData, timeProvider.getCurrentTime(), moduleDescriptorHash);
     }
 
