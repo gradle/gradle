@@ -33,12 +33,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>version</td>
-            </tr>
-            <tr>
-                <td>apply</td>
-            </tr>
         </table>
     </section>
 </section>
