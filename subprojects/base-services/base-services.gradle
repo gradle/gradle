@@ -17,6 +17,8 @@ dependencies {
     implementation libraries.commons_io
     implementation libraries.jcip
 
+    testFixturesImplementation project(":internalTesting")
+
     jmh libraries.bouncycastle_provider
 }
 
