@@ -22,7 +22,7 @@ import org.gradle.internal.exceptions.Contextual;
 @Contextual
 public class PluginApplicationException extends GradleException {
 
-    public PluginApplicationException(String pluginIdentity, Throwable cause) {
-        super(String.format("Failed to apply plugin [" + pluginIdentity + "]"), cause);
+    public PluginApplicationException(String pluginDisplayName, Throwable cause) {
+        super(String.format("Failed to apply " + pluginDisplayName), cause);
     }
 }
