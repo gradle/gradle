@@ -24,7 +24,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 /**
- * Some popular hash functions. Replacement for Guava's hashing.
+ * Some popular hash functions. Replacement for Guava's hashing utilities.
+ * Inspired by the Google Guava project – https://github.com/google/guava.
  */
 public class Hashing {
     private Hashing() {}

@@ -22,6 +22,10 @@ import java.io.OutputStream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * Output stream decorator that hashes data written to the stream.
+ * Inspired by the Google Guava project.
+ */
 public final class HashingOutputStream extends FilterOutputStream {
     private final Hasher hasher;
 

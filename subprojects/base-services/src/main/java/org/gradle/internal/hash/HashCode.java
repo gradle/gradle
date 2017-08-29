@@ -22,7 +22,8 @@ import java.io.Serializable;
 import java.math.BigInteger;
 
 /**
- * An immutable hash code. Must be 4-255 bytes long. Replacement for Guava's hashing.
+ * An immutable hash code. Must be 4-255 bytes long.
+ * Inspired by the Google Guava project – https://github.com/google/guava.
  */
 public class HashCode implements Serializable, Comparable<HashCode> {
     private static final int MIN_NUMBER_OF_BYTES = 4;
