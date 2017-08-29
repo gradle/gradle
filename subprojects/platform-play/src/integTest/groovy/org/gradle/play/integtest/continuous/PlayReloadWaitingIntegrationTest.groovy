@@ -16,18 +16,29 @@
 
 package org.gradle.play.integtest.continuous
 
-import org.gradle.deployment.internal.DefaultDeploymentRegistry
 import org.gradle.internal.filewatch.PendingChangesListener
 import org.gradle.internal.filewatch.PendingChangesManager
 import org.gradle.internal.filewatch.SingleFirePendingChangesListener
+import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.junit.Rule
 import spock.lang.Unroll
 
 class PlayReloadWaitingIntegrationTest extends PlayReloadIntegrationTest {
+    @Rule
+    public ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
 
     def setup() {
         server.start()
         addPendingChangesHook()
         buildFile << """
+            if (project.findProperty('rebuildOnRequest') == 'true') {
+                model {
+                    tasks.runPlayBinary {
+                        rebuildOnRequest = 'true'
+                    }
+                }
+            }
+
             gradle.taskGraph.afterTask { task ->
                 if (task.path != ":compilePlayBinaryScala") {
                     return
@@ -149,7 +160,7 @@ class PlayReloadWaitingIntegrationTest extends PlayReloadIntegrationTest {
 
         // Start up the Play app, block waiting for changes before completion
         if (gated) {
-            start("runPlayBinary", "-D${DefaultDeploymentRegistry.EAGER_SYS_PROP}=false")
+            start("runPlayBinary", "-PrebuildOnRequest=true")
         } else {
             start("runPlayBinary")
         }
@@ -166,6 +177,42 @@ class PlayReloadWaitingIntegrationTest extends PlayReloadIntegrationTest {
 
         where:
         gated << [ true, false ]
+    }
+
+    def "wait for request before building changes with gated build"() {
+        file('hooks.gradle') << """
+            gradle.projectsLoaded {
+                ${server.callFromBuild("buildStarted")}
+            }
+            gradle.buildFinished {
+                ${server.callFromBuild("buildFinished")}
+            }
+        """
+        executer.withArguments("-I", file("hooks.gradle").absolutePath)
+
+        when:
+        server.expect("buildStarted")
+        server.expect("buildFinished")
+        succeeds("runPlayBinary", "-PrebuildOnRequest=true")
+        then:
+        appIsRunningAndDeployed()
+
+        when:
+        def block = server.expectAndBlock( "buildStarted")
+        addNewRoute("hello")
+
+        then:
+        sleep 10000
+
+        def op = concurrent.waitsForAsyncCallback().withWaitTime(2000)
+        op.start {
+            op.callbackLater {
+                checkRoute('hello')
+            }
+            block.waitForAllPendingCalls()
+            block.releaseAll()
+            server.expect("buildFinished")
+        }
     }
 
     def blockBuildWaitingForChanges() {

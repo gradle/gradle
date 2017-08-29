@@ -55,11 +55,18 @@ public interface DeploymentRegistry {
     @Incubating
     enum ChangeBehavior {
         /**
-         * When changes are pending, block the deployment until all changes are incorporated.
+         * When changes are detected, wait for a deployment request before rebuilding.
+         *
+         * The deployment needs to call {@link Deployment#status()} to trigger a rebuild wait for changes.
+         */
+        BLOCK_AND_REBUILD,
+
+        /**
+         * When changes are detected, rebuild immediately and block the deployment until all changes are incorporated.
          *
          * The deployment needs to call {@link Deployment#status()} to wait for changes.
          */
-        BLOCK,
+        REBUILD_AND_BLOCK,
 
         /**
          * When changes are incorporated, automatically stop and start the deployment.

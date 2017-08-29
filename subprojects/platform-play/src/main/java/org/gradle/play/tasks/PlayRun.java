@@ -68,6 +68,8 @@ public class PlayRun extends ConventionTask {
 
     private PlayToolProvider playToolProvider;
 
+    private boolean rebuildOnRequest;
+
     /**
      * fork options for the running a Play application.
      */
@@ -148,6 +150,19 @@ public class PlayRun extends ConventionTask {
         this.playToolProvider = playToolProvider;
     }
 
+    /**
+     * Specifies whether the play app should rebuild as soon as changes are detected, or if it should only rebuild
+     * when a request is made.
+     */
+    @Internal
+    public boolean isRebuildOnRequest() {
+        return rebuildOnRequest;
+    }
+
+    public void setRebuildOnRequest(boolean rebuildOnRequest) {
+        this.rebuildOnRequest = rebuildOnRequest;
+    }
+
     @Inject
     public DeploymentRegistry getDeploymentRegistry() {
         throw new UnsupportedOperationException();
@@ -161,7 +176,8 @@ public class PlayRun extends ConventionTask {
             int httpPort = getHttpPort();
             PlayRunSpec spec = new DefaultPlayRunSpec(runtimeClasspath, changingClasspath, applicationJar, assetsJar, assetsDirs, getProject().getProjectDir(), getForkOptions(), httpPort);
             PlayApplicationRunner playApplicationRunner = playToolProvider.get(PlayApplicationRunner.class);
-            deploymentHandle = deploymentRegistry.start(deploymentId, DeploymentRegistry.ChangeBehavior.BLOCK, PlayApplicationDeploymentHandle.class, spec, playApplicationRunner);
+            DeploymentRegistry.ChangeBehavior changeBehavior = rebuildOnRequest ? DeploymentRegistry.ChangeBehavior.BLOCK_AND_REBUILD : DeploymentRegistry.ChangeBehavior.REBUILD_AND_BLOCK;
+            deploymentHandle = deploymentRegistry.start(deploymentId, changeBehavior, PlayApplicationDeploymentHandle.class, spec, playApplicationRunner);
         }
         return deploymentHandle;
     }

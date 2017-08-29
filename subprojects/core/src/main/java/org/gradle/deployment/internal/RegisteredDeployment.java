@@ -32,18 +32,16 @@ class RegisteredDeployment implements Stoppable {
         this.handle = handle;
     }
 
-    static RegisteredDeployment create(String id, DeploymentRegistry.ChangeBehavior changeBehavior, boolean eagerBuild, ContinuousExecutionGate continuousExecutionGate, DeploymentHandle deploymentHandle) {
+    static RegisteredDeployment create(String id, DeploymentRegistry.ChangeBehavior changeBehavior, ContinuousExecutionGate continuousExecutionGate, DeploymentHandle deploymentHandle) {
         switch(changeBehavior) {
             case NONE:
                 return new RegisteredDeployment(id, false, deploymentHandle, new OutOfDateTrackingDeployment());
             case RESTART:
                 return new RegisteredDeployment(id, true, deploymentHandle, new SimpleBlockingDeployment(new OutOfDateTrackingDeployment()));
-            case BLOCK:
-                if (eagerBuild) {
-                    return new RegisteredDeployment(id, false, deploymentHandle, new SimpleBlockingDeployment(new OutOfDateTrackingDeployment()));
-                } else {
-                    return new RegisteredDeployment(id, false, deploymentHandle, new GateControllingDeployment(continuousExecutionGate, new SimpleBlockingDeployment(new OutOfDateTrackingDeployment())));
-                }
+            case REBUILD_AND_BLOCK:
+                return new RegisteredDeployment(id, false, deploymentHandle, new SimpleBlockingDeployment(new OutOfDateTrackingDeployment()));
+            case BLOCK_AND_REBUILD:
+                return new RegisteredDeployment(id, false, deploymentHandle, new GateControllingDeployment(continuousExecutionGate, new SimpleBlockingDeployment(new OutOfDateTrackingDeployment())));
             default:
                 throw new IllegalArgumentException("Unknown changeBehavior " + changeBehavior);
         }
