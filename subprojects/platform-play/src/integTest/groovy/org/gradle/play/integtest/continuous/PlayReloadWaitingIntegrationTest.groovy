@@ -26,7 +26,7 @@ import spock.lang.Unroll
 
 import java.util.concurrent.TimeUnit
 
-class PlayReloadWaitingIntegrationTest extends PlayReloadIntegrationTest {
+class PlayReloadWaitingIntegrationTest extends AbstractPlayReloadIntegrationTest {
     @Rule
     public ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
 
