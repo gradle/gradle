@@ -23,27 +23,24 @@ import org.gradle.cli.ParsedCommandLine;
 import java.util.Map;
 
 /**
- * A build option that takes a string value e.g. {@code "--max-workers=4"}.
+ * A build option that takes a no argument e.g. {@code "--foreground"}.
  *
  * @since 4.2
  */
-public abstract class StringBuildOption<T> extends AbstractBuildOption<T> {
+public abstract class NoArgumentBuildOption<T> extends AbstractBuildOption<T> {
 
-    protected StringBuildOption(Class<T> settingsType, String gradleProperty) {
+    public NoArgumentBuildOption(Class<T> settingsType, String gradleProperty) {
         super(settingsType, gradleProperty);
     }
 
-    public StringBuildOption(Class<T> settingsType, String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
+    public NoArgumentBuildOption(Class<T> settingsType, String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
         super(settingsType, gradleProperty, commandLineOptionConfiguration);
     }
 
-
     @Override
     public void applyFromProperty(Map<String, String> properties, T settings) {
-        String value = properties.get(gradleProperty);
-
-        if (value != null) {
-            applyTo(value, settings);
+        if (properties.get(gradleProperty) != null) {
+            applyTo(settings);
         }
     }
 
@@ -64,16 +61,10 @@ public abstract class StringBuildOption<T> extends AbstractBuildOption<T> {
 
     @Override
     public void applyFromCommandLine(ParsedCommandLine options, T settings) {
-        if (hasCommandLineOption()) {
-            if (options.hasOption(commandLineOptionConfiguration.getOption())) {
-                String value = options.option(commandLineOptionConfiguration.getOption()).getValue();
-
-                if (value != null) {
-                    applyTo(value, settings);
-                }
-            }
+        if (hasCommandLineOption() && options.hasOption(commandLineOptionConfiguration.getOption())) {
+            applyTo(settings);
         }
     }
 
-    public abstract void applyTo(String value, T settings);
+    public abstract void applyTo(T settings);
 }

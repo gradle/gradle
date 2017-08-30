@@ -29,21 +29,8 @@ import java.util.List;
 public class DaemonCommandLineConverter extends AbstractCommandLineConverter<DaemonParameters> {
 
     private List<BuildOption<DaemonParameters>> buildOptions = new DaemonBuildOptionFactory().create();
-    private static final String FOREGROUND = "foreground";
-    private static final String STOP = "stop";
-    private static final String STATUS = "status";
 
     public DaemonParameters convert(ParsedCommandLine args, DaemonParameters target) throws CommandLineArgumentException {
-        if (args.hasOption(FOREGROUND)) {
-            target.setForeground(true);
-        }
-        if (args.hasOption(STOP)) {
-            target.setStop(true);
-        }
-        if (args.hasOption(STATUS)) {
-            target.setStatus(true);
-        }
-
         for (BuildOption<DaemonParameters> option : buildOptions) {
             option.applyFromCommandLine(args, target);
         }
@@ -52,10 +39,6 @@ public class DaemonCommandLineConverter extends AbstractCommandLineConverter<Dae
     }
 
     public void configure(CommandLineParser parser) {
-        parser.option(FOREGROUND).hasDescription("Starts the Gradle Daemon in the foreground.").incubating();
-        parser.option(STOP).hasDescription("Stops the Gradle Daemon if it is running.");
-        parser.option(STATUS).hasDescription("Shows status of running and recently stopped Gradle Daemon(s).");
-
         for (BuildOption<DaemonParameters> option : buildOptions) {
             option.configure(parser);
         }

@@ -23,27 +23,19 @@ import java.util.Map;
 
 /**
  * A build option that takes a boolean value.
+ * <p>
+ * If a command line option is provided, this build option automatically creates a disabled option out-of-the-box e.g. {@code "no-daemon"} for the provided option {@code "daemon"}.
  *
  * @since 4.2
  */
-public abstract class BooleanBuildOption<T> implements BuildOption<T> {
-    protected final Class<T> settingsType;
-    protected final String gradleProperty;
-    protected final CommandLineOptionConfiguration commandLineOptionConfiguration;
+public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T> {
 
     protected BooleanBuildOption(Class<T> settingsType, String gradleProperty) {
-        this(settingsType, gradleProperty, null);
+        super(settingsType, gradleProperty);
     }
 
     public BooleanBuildOption(Class<T> settingsType, String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
-        this.settingsType = settingsType;
-        this.gradleProperty = gradleProperty;
-        this.commandLineOptionConfiguration = commandLineOptionConfiguration;
-    }
-
-    @Override
-    public String getGradleProperty() {
-        return gradleProperty;
+        super(settingsType, gradleProperty, commandLineOptionConfiguration);
     }
 
     @Override
@@ -72,14 +64,6 @@ public abstract class BooleanBuildOption<T> implements BuildOption<T> {
                 applyTo(false, settings);
             }
         }
-    }
-
-    private boolean hasCommandLineOption() {
-        return commandLineOptionConfiguration != null;
-    }
-
-    private boolean isTrue(String value) {
-        return value != null && value.trim().equalsIgnoreCase("true");
     }
 
     public abstract void applyTo(boolean value, T settings);

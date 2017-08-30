@@ -21,6 +21,7 @@ import org.gradle.initialization.option.BooleanBuildOption;
 import org.gradle.initialization.option.BuildOption;
 import org.gradle.initialization.option.BuildOptionFactory;
 import org.gradle.initialization.option.CommandLineOptionConfiguration;
+import org.gradle.initialization.option.NoArgumentBuildOption;
 import org.gradle.initialization.option.StringBuildOption;
 import org.gradle.internal.jvm.JavaHomeException;
 import org.gradle.internal.jvm.JavaInfo;
@@ -41,8 +42,11 @@ public class DaemonBuildOptionFactory implements BuildOptionFactory<DaemonParame
         options.add(new BaseDirOption());
         options.add(new JvmArgsOption());
         options.add(new JavaHomeOption());
-        options.add(new DaemonOption());
         options.add(new DebugOption());
+        options.add(new DaemonOption());
+        options.add(new ForegroundOption());
+        options.add(new StopOption());
+        options.add(new StatusOption());
         return options;
     }
 
@@ -129,6 +133,19 @@ public class DaemonBuildOptionFactory implements BuildOptionFactory<DaemonParame
         }
     }
 
+    public static class DebugOption extends BooleanBuildOption<DaemonParameters> {
+        public static final String GRADLE_PROPERTY = "org.gradle.debug";
+
+        public DebugOption() {
+            super(DaemonParameters.class, GRADLE_PROPERTY);
+        }
+
+        @Override
+        public void applyTo(boolean value, DaemonParameters settings) {
+            settings.setDebug(value);
+        }
+    }
+
     public static class DaemonOption extends BooleanBuildOption<DaemonParameters> {
         public static final String GRADLE_PROPERTY = "org.gradle.daemon";
 
@@ -142,16 +159,36 @@ public class DaemonBuildOptionFactory implements BuildOptionFactory<DaemonParame
         }
     }
 
-    public static class DebugOption extends BooleanBuildOption<DaemonParameters> {
-        public static final String GRADLE_PROPERTY = "org.gradle.debug";
-
-        public DebugOption() {
-            super(DaemonParameters.class, GRADLE_PROPERTY);
+    public static class ForegroundOption extends NoArgumentBuildOption<DaemonParameters> {
+        public ForegroundOption() {
+            super(DaemonParameters.class, null, CommandLineOptionConfiguration.create("foreground", "Starts the Gradle Daemon in the foreground.").incubating());
         }
 
         @Override
-        public void applyTo(boolean value, DaemonParameters settings) {
-            settings.setDebug(value);
+        public void applyTo(DaemonParameters settings) {
+            settings.setForeground(true);
+        }
+    }
+
+    public static class StopOption extends NoArgumentBuildOption<DaemonParameters> {
+        public StopOption() {
+            super(DaemonParameters.class, null, CommandLineOptionConfiguration.create("stop", "Stops the Gradle Daemon if it is running."));
+        }
+
+        @Override
+        public void applyTo(DaemonParameters settings) {
+            settings.setStop(true);
+        }
+    }
+
+    public static class StatusOption extends NoArgumentBuildOption<DaemonParameters> {
+        public StatusOption() {
+            super(DaemonParameters.class, null, CommandLineOptionConfiguration.create("status", "Shows status of running and recently stopped Gradle Daemon(s)."));
+        }
+
+        @Override
+        public void applyTo(DaemonParameters settings) {
+            settings.setStatus(true);
         }
     }
 }
