@@ -48,6 +48,30 @@
             "acceptation": "Removed at not exposed method (`withPathSensitivity`) on an incubating interface"
         },
         {
+            "type": "org.gradle.language.swift.plugins.SwiftBasePlugin",
+            "member": "Field IMPLEMENTATION",
+            "acceptation": "<ADD YOUR CUSTOM REASON HERE>",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.language.swift.plugins.SwiftBasePlugin",
+            "member": "Field API",
+            "acceptation": "<ADD YOUR CUSTOM REASON HERE>",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.language.swift.plugins.SwiftBasePlugin",
+            "member": "Field SWIFT_IMPORT_PATH",
+            "acceptation": "<ADD YOUR CUSTOM REASON HERE>",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.language.swift.plugins.SwiftModulePlugin",
             "member": "Constructor SwiftModulePlugin",
             "acceptation": "Incubating class `SwiftModulePlugin` was renamed to `SwiftLibraryPlugin`",
@@ -72,6 +96,38 @@
             ]
         },
         {
+            "type": "org.gradle.language.cpp.plugins.CppBasePlugin",
+            "member": "Field NATIVE_LINK",
+            "acceptation": "<ADD YOUR CUSTOM REASON HERE>",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.language.cpp.plugins.CppBasePlugin",
+            "member": "Field NATIVE_RUNTIME",
+            "acceptation": "<ADD YOUR CUSTOM REASON HERE>",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.language.cpp.plugins.CppBasePlugin",
+            "member": "Field IMPLEMENTATION",
+            "acceptation": "<ADD YOUR CUSTOM REASON HERE>",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.language.cpp.plugins.CppBasePlugin",
+            "member": "Field CPP_INCLUDE_PATH",
+            "acceptation": "<ADD YOUR CUSTOM REASON HERE>",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.language.cpp.plugins.CppExecutablePlugin",
             "member": "Constructor CppExecutablePlugin",
             "acceptation": "API inspection is broken, it shouldn't have complained about this change",
@@ -83,6 +139,22 @@
             "type": "org.gradle.language.cpp.plugins.CppLibraryPlugin",
             "member": "Constructor CppLibraryPlugin",
             "acceptation": "API inspection is broken, it shouldn't have complained about this change",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.InstallExecutable",
+            "member": "Constructor InstallExecutable",
+            "acceptation": "<ADD YOUR CUSTOM REASON HERE>",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.PrefixHeaderFileGenerateTask",
+            "member": "Constructor PrefixHeaderFileGenerateTask",
+            "acceptation": "<ADD YOUR CUSTOM REASON HERE>",
             "changes": [
                 "Constructor has been removed"
             ]
