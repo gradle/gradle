@@ -73,7 +73,6 @@ class ToolingApiDeprecatedBuildJvmCrossVersionSpec extends ToolingApiSpecificati
         output.toString().count("Support for running Gradle using Java 7 has been deprecated and is scheduled to be removed in Gradle 5.0") == 1
     }
 
-    @ToolingApiVersion(">=1.8")
     @IgnoreIf({ AvailableJavaHomes.jdk7 == null })
     def "warning running action when build is configured to use Java 7"() {
         configureJava7()
@@ -141,7 +140,6 @@ class ToolingApiDeprecatedBuildJvmCrossVersionSpec extends ToolingApiSpecificati
         output.toString().count("Support for running Gradle using Java 7 has been deprecated and is scheduled to be removed in Gradle 5.0") == 0
     }
 
-    @ToolingApiVersion(">=1.8")
     @IgnoreIf({ AvailableJavaHomes.jdk8 == null })
     def "no warning running action when build is configured to use Java 8"() {
         configureJava8()
