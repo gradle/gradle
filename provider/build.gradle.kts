@@ -13,11 +13,13 @@ base {
 dependencies {
     compileOnly(gradleApi())
 
-    compile(project(":compiler-plugin"))
     compile(project(":tooling-models"))
     compile(futureKotlin("stdlib"))
     compile(futureKotlin("reflect"))
     compile(futureKotlin("compiler-embeddable"))
+    compile(futureKotlin("sam-with-receiver-compiler-plugin")) {
+        isTransitive = false
+    }
 
     testCompile(project(":test-fixtures"))
 }

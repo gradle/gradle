@@ -40,7 +40,6 @@ project(":plugins") {
 val publishedProjects =
     listOf(
         project(":provider"),
-        project(":compiler-plugin"),
         project(":tooling-models"),
         project(":tooling-builders"))
 

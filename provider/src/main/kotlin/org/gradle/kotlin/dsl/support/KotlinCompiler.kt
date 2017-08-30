@@ -16,8 +16,6 @@
 
 package org.gradle.kotlin.dsl.support
 
-import org.gradle.kotlin.dsl.compiler.HasImplicitReceiverPlugin
-
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
@@ -34,6 +32,7 @@ import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoots
 import org.jetbrains.kotlin.codegen.CompilationException
 
 import org.jetbrains.kotlin.com.intellij.openapi.Disposable
+import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.dispose
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.newDisposable
 
@@ -44,7 +43,12 @@ import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.*
 import org.jetbrains.kotlin.config.addKotlinSourceRoots
 
+import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor.Companion.registerExtension
+
+import org.jetbrains.kotlin.samWithReceiver.CliSamWithReceiverComponentContributor
+
 import org.jetbrains.kotlin.script.KotlinScriptDefinition
+
 import org.jetbrains.kotlin.utils.PathUtil
 
 import org.slf4j.Logger
@@ -74,12 +78,25 @@ fun compileKotlinScriptToDirectory(
                 classPath.forEach { addJvmClasspathRoot(it) }
             }
             val environment = kotlinCoreEnvironmentFor(configuration, rootDisposable).apply {
-                HasImplicitReceiverPlugin.apply(project)
+                HasImplicitReceiverCompilerPlugin.apply(project)
             }
             return compileScript(environment, classLoader)
                 ?: throw IllegalStateException("Internal error: unable to compile script, see log for details")
         }
     }
+}
+
+
+private
+object HasImplicitReceiverCompilerPlugin {
+
+    fun apply(project: Project) {
+        registerExtension(project, samWithReceiverComponentContributor)
+    }
+
+    val samWithReceiverComponentContributor =
+        CliSamWithReceiverComponentContributor(
+            listOf("org.gradle.api.HasImplicitReceiver"))
 }
 
 
