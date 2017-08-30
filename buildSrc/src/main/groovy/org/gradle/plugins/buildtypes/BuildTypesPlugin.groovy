@@ -47,7 +47,7 @@ class BuildTypesPlugin implements Plugin<Project> {
                     if (subproject.empty || project.findProject(subproject)) {
                         buildType.tasks.reverse().each {
                             def path = subproject + it
-                            if (project.tasks.findByPath(path)) {
+                            if (subproject.empty || project.tasks.findByPath(path)) {
                                 taskNames.add(index, path)
                             } else {
                                 println "Skipping task '${path}' requested by build type ${name}, as it does not exist."
