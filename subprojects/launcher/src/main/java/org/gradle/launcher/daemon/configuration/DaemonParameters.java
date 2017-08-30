@@ -168,12 +168,7 @@ public class DaemonParameters {
 
     public void setDebug(boolean debug) {
         userDefinedImmutableJvmArgs = userDefinedImmutableJvmArgs || debug;
-
-        if (userDefinedImmutableJvmArgs) {
-            jvmOptions.setDebug(true);
-        } else {
-            jvmOptions.setDebug(debug);
-        }
+        jvmOptions.setDebug(debug);
     }
 
     public DaemonParameters setBaseDir(File baseDir) {
