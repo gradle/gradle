@@ -17,8 +17,8 @@
 package org.gradle.language.swift
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftApp
-import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftAppWithLib
+import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftModifyExpectedOutputApp
+import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftModifyExpectedOutputAppWithLib
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -26,10 +26,10 @@ import org.gradle.util.TestPrecondition
 class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "rebuilds application when a single source file changes"() {
         settingsFile << "rootProject.name = 'app'"
-        def app = new IncrementalSwiftApp()
+        def app = new IncrementalSwiftModifyExpectedOutputApp()
 
         given:
-        app.app.writeToProject(testDirectory)
+        app.writeToProject(testDirectory)
 
         and:
         buildFile << """
@@ -40,18 +40,18 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         succeeds "assemble"
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
-        result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
-        executable("build/exe/main/debug/App").exec().out == app.app.expectedOutput
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installMain", ":assemble")
+        result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":installMain", ":assemble")
+        executable("build/exe/main/debug/App").exec().out == app.expectedOutput
 
         when:
-        app.alternateApp.files.first().writeToDir(file('src/main'))
+        app.applyChangesToProject(testDirectory)
         succeeds "assemble"
 
         then:
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
         result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
-        executable("build/exe/main/debug/App").exec().out == app.alternateApp.expectedOutput
+        executable("build/exe/main/debug/App").exec().out == app.expectedAlternateOutput
 
         when:
         succeeds "assemble"
@@ -63,7 +63,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
 
     def "rebuilds application when a single source file in library changes"() {
         settingsFile << "include 'app', 'greeter'"
-        def app = new IncrementalSwiftAppWithLib()
+        def app = new IncrementalSwiftModifyExpectedOutputAppWithLib()
 
         given:
         buildFile << """
@@ -89,7 +89,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
 
         when:
-        app.alternateLibrary.files.first().writeToDir(file('greeter/src/main/'))
+        app.library.applyChangesToProject(file('greeter'))
         succeeds ":app:assemble"
 
         then:
