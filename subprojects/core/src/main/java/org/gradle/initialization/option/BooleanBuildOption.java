@@ -56,20 +56,28 @@ public abstract class BooleanBuildOption<T> implements BuildOption<T> {
 
     @Override
     public void configure(CommandLineParser parser) {
-        parser.option(commandLineOption).hasDescription(description);
-        parser.option("no-" + commandLineOption).hasDescription("Disables option --" + commandLineOption + ".");
-        parser.allowOneOf(commandLineOption, "no-" + commandLineOption);
+        if (hasCommandLineOption()) {
+            parser.option(commandLineOption).hasDescription(description);
+            parser.option("no-" + commandLineOption).hasDescription("Disables option --" + commandLineOption + ".");
+            parser.allowOneOf(commandLineOption, "no-" + commandLineOption);
+        }
     }
 
     @Override
     public void applyFromCommandLine(ParsedCommandLine options, T settings) {
-        if (options.hasOption(commandLineOption)) {
-            applyTo(true, settings);
-        }
+        if (hasCommandLineOption()) {
+            if (options.hasOption(commandLineOption)) {
+                applyTo(true, settings);
+            }
 
-        if (options.hasOption("no-" + commandLineOption)) {
-            applyTo(false, settings);
+            if (options.hasOption("no-" + commandLineOption)) {
+                applyTo(false, settings);
+            }
         }
+    }
+
+    private boolean hasCommandLineOption() {
+        return commandLineOption != null && description != null;
     }
 
     private boolean isTrue(String value) {

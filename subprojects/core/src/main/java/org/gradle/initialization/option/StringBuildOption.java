@@ -63,22 +63,30 @@ public abstract class StringBuildOption<T> implements BuildOption<T> {
 
     @Override
     public void configure(CommandLineParser parser) {
-        CommandLineOption option = parser.option(commandLineOption).hasDescription(description);
+        if (hasCommandLineOption()) {
+            CommandLineOption option = parser.option(commandLineOption).hasDescription(description);
 
-        if (hasArgument) {
-            option.hasArgument();
+            if (hasArgument) {
+                option.hasArgument();
+            }
         }
     }
 
     @Override
     public void applyFromCommandLine(ParsedCommandLine options, T settings) {
-        if (options.hasOption(commandLineOption)) {
-            String value = options.option(commandLineOption).getValue();
+        if (hasCommandLineOption()) {
+            if (options.hasOption(commandLineOption)) {
+                String value = options.option(commandLineOption).getValue();
 
-            if (value != null) {
-                applyTo(value, settings);
+                if (value != null) {
+                    applyTo(value, settings);
+                }
             }
         }
+    }
+
+    private boolean hasCommandLineOption() {
+        return commandLineOption != null && description != null;
     }
 
     public abstract void applyTo(String value, T settings);
