@@ -16,7 +16,6 @@
 
 package org.gradle.internal.service.scopes;
 
-import com.google.common.hash.HashCode;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
@@ -63,9 +62,11 @@ import org.gradle.internal.classpath.CachedJarFileStore;
 import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.JarCache;
+import org.gradle.internal.hash.ContentHasherFactory;
 import org.gradle.internal.hash.DefaultFileHasher;
-import org.gradle.internal.hash.FileContentHasherFactory;
 import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -114,13 +115,13 @@ public class GradleUserHomeScopeServices {
         return timeStampInspector;
     }
 
-    FileHasher createCachingFileHasher(StringInterner stringInterner, CrossBuildFileHashCache fileStore, FileSystem fileSystem, GlobalScopeFileTimeStampInspector fileTimeStampInspector, FileContentHasherFactory hasherFactory) {
-        CachingFileHasher fileHasher = new CachingFileHasher(new DefaultFileHasher(hasherFactory), fileStore, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem);
+    FileHasher createCachingFileHasher(StringInterner stringInterner, CrossBuildFileHashCache fileStore, FileSystem fileSystem, GlobalScopeFileTimeStampInspector fileTimeStampInspector, StreamHasher streamHasher) {
+        CachingFileHasher fileHasher = new CachingFileHasher(new DefaultFileHasher(streamHasher), fileStore, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem);
         fileTimeStampInspector.attach(fileHasher);
         return fileHasher;
     }
 
-    ScriptSourceHasher createScriptSourceHasher(FileHasher fileHasher, FileContentHasherFactory contentHasherFactory) {
+    ScriptSourceHasher createScriptSourceHasher(FileHasher fileHasher, ContentHasherFactory contentHasherFactory) {
         return new DefaultScriptSourceHasher(fileHasher, contentHasherFactory);
     }
 

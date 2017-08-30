@@ -16,8 +16,6 @@
 
 package org.gradle.caching.internal.tasks
 
-import com.google.common.hash.Hashing
-import com.google.common.io.Files
 import groovy.io.FileType
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.DirContentSnapshot
@@ -27,9 +25,11 @@ import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputT
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter
-import org.gradle.internal.hash.TestFileHasher
+import org.gradle.internal.hash.DefaultStreamHasher
+import org.gradle.internal.hash.Hashing
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import org.gradle.test.fixtures.file.CleanupTestDirectory
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -48,9 +48,9 @@ class TarTaskOutputPackerTest extends Specification {
     def writeOrigin = Stub(TaskOutputOriginWriter)
 
     def fileSystem = Mock(FileSystem)
-    def fileHasher = new TestFileHasher()
+    def streamHasher = new DefaultStreamHasher({ Hashing.md5().newHasher() })
     def stringInterner = new StringInterner()
-    def packer = new TarTaskOutputPacker(fileSystem, fileHasher, stringInterner)
+    def packer = new TarTaskOutputPacker(fileSystem, streamHasher, stringInterner)
 
     @Unroll
     def "can pack single task output file with file mode #mode"() {
@@ -275,7 +275,7 @@ class TarTaskOutputPackerTest extends Specification {
                     if (output == null || !output.exists()) {
                         return [:]
                     }
-                    return [(output.absolutePath): new FileHashSnapshot(Files.hash(output, Hashing.md5()))]
+                    return [(output.absolutePath): new FileHashSnapshot(TestFile.md5(output))]
                 })
             case DIRECTORY:
                 return new PropertyDefinition(new ResolvedTaskOutputFilePropertySpec(name, DIRECTORY, output), {
@@ -289,7 +289,7 @@ class TarTaskOutputPackerTest extends Specification {
                         if (file.isDirectory()) {
                             snapshot = DirContentSnapshot.INSTANCE
                         } else {
-                            snapshot = new FileHashSnapshot(Files.hash(file, Hashing.md5()))
+                            snapshot = new FileHashSnapshot(TestFile.md5(file))
                         }
                         return [(file.absolutePath): snapshot]
                     }

@@ -31,7 +31,7 @@ import org.gradle.caching.internal.controller.BuildCacheControllerFactory.BuildC
 import org.gradle.caching.internal.controller.BuildCacheControllerFactory.RemoteAccessMode;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.os.OperatingSystem;
@@ -52,7 +52,7 @@ import static org.gradle.caching.internal.controller.BuildCacheControllerFactory
 
 public class BuildCacheTaskServices {
 
-    TaskOutputPacker createTaskResultPacker(FileSystem fileSystem, FileHasher fileHasher, StringInterner stringInterner) {
+    TaskOutputPacker createTaskResultPacker(FileSystem fileSystem, StreamHasher fileHasher, StringInterner stringInterner) {
         return new GZipTaskOutputPacker(new TarTaskOutputPacker(fileSystem, fileHasher, stringInterner));
     }
 

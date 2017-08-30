@@ -16,11 +16,11 @@
 
 package org.gradle.cache.internal;
 
-import com.google.common.hash.Hashing;
 import org.gradle.cache.CacheRepository;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.util.GradleVersion;
 
 import javax.annotation.Nullable;

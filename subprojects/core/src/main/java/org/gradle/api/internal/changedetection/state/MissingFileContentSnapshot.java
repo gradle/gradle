@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.base.Charsets;
-import com.google.common.hash.HashCode;
-import com.google.common.hash.Hashing;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hashing;
 
 public class MissingFileContentSnapshot implements FileContentSnapshot {
     public static final MissingFileContentSnapshot INSTANCE = new MissingFileContentSnapshot();
-    private static final HashCode SIGNATURE = Hashing.md5().hashString(MissingFileContentSnapshot.class.getName(), Charsets.UTF_8);
+    private static final HashCode SIGNATURE = Hashing.md5().hashString(MissingFileContentSnapshot.class.getName());
 
     private MissingFileContentSnapshot() {
     }

@@ -24,6 +24,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
 
+@Fork(4)
+@Threads(2)
+@Warmup(iterations = 10)
 @State(Scope.Benchmark)
 public class CachedConstructorsBenchmark {
 

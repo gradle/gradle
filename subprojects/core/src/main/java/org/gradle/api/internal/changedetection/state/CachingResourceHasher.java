@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.hash.HashCode;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.internal.hash.HashCode;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,7 +39,7 @@ public class CachingResourceHasher implements ResourceHasher {
         this.resourceSnapshotterCacheService = resourceSnapshotterCacheService;
         BuildCacheHasher hasher = new DefaultBuildCacheHasher();
         delegate.appendConfigurationToHasher(hasher);
-        this.delegateConfigurationHash = hasher.hash().asBytes();
+        this.delegateConfigurationHash = hasher.hash().toByteArray();
     }
 
     @Override

@@ -16,8 +16,6 @@
 
 package org.gradle.groovy.scripts.internal
 
-import com.google.common.base.Charsets
-import com.google.common.hash.Hashing
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId
 import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
 import org.gradle.api.internal.project.ProjectScript
@@ -25,6 +23,7 @@ import org.gradle.configuration.ImportsReader
 import org.gradle.configuration.ScriptTarget
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.internal.Actions
+import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -54,7 +53,7 @@ class BuildScriptTransformerSpec extends Specification {
 
     private CompiledScript<Script, BuildScriptData> parse(String script) {
         def source = new StringScriptSource("test script", script)
-        def sourceHashCode = Hashing.md5().hashString(script, Charsets.UTF_8)
+        def sourceHashCode = Hashing.md5().hashString(script)
         def target = Mock(ScriptTarget) {
             getClasspathBlockName() >> "buildscript"
         }

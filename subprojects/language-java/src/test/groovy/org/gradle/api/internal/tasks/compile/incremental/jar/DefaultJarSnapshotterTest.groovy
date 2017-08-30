@@ -18,7 +18,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar
 
-import com.google.common.hash.HashCode
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.DefaultFileVisitDetails
@@ -26,7 +25,8 @@ import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis
-import org.gradle.internal.hash.FileHasher
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.StreamHasher
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
@@ -38,7 +38,7 @@ class DefaultJarSnapshotterTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
 
-    def hasher = Mock(FileHasher)
+    def hasher = Mock(StreamHasher)
     def classDependenciesAnalyzer = Mock(ClassDependenciesAnalyzer)
     @Subject snapshotter = new DefaultJarSnapshotter(hasher, classDependenciesAnalyzer)
 

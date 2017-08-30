@@ -17,9 +17,9 @@
 package org.gradle.api.internal.changedetection.state
 
 import com.google.common.collect.Lists
-import com.google.common.hash.HashCode
 import org.gradle.api.internal.changedetection.rules.FileChange
 import org.gradle.internal.file.FileType
+import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -143,8 +143,8 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
     def "non-trivial modification (#strategy, include added: #includeAdded)"() {
         expect:
         changes(strategy, includeAdded,
-            ["one-new": snapshot("one"), "two-new": snapshot("two", "9876cafe")],
-            ["one-old": snapshot("one"), "two-old": snapshot("two", "face1234")]
+            ["one-new": snapshot("one"), "two-new": snapshot("two", 0x9876cafe)],
+            ["one-old": snapshot("one"), "two-old": snapshot("two", 0xface1234)]
         ) == [modified("two-new", FileType.RegularFile, FileType.RegularFile)]
 
         where:
@@ -159,8 +159,8 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
     def "non-trivial modification with absolute paths (#strategy, include added: #includeAdded)"() {
         expect:
         changesUsingAbsolutePaths(strategy, includeAdded,
-            ["one": snapshot("one"), "two": snapshot("two", "9876cafe")],
-            ["one": snapshot("one"), "two": snapshot("two", "face1234")]
+            ["one": snapshot("one"), "two": snapshot("two", 0x9876cafe)],
+            ["one": snapshot("one"), "two": snapshot("two", 0xface1234)]
         ) == [modified("two", FileType.RegularFile, FileType.RegularFile)]
 
         where:
@@ -287,8 +287,8 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         Lists.newArrayList(strategy.iterateContentChangesSince(current, previous, "test", true, includeAdded))
     }
 
-    def snapshot(String normalizedPath, String hashCode = "1234abcd") {
-        return new DefaultNormalizedFileSnapshot(normalizedPath, new FileHashSnapshot(HashCode.fromString(hashCode)))
+    def snapshot(String normalizedPath, def hashCode = 0x1234abcd) {
+        return new DefaultNormalizedFileSnapshot(normalizedPath, new FileHashSnapshot(HashCode.fromInt((int) hashCode)))
     }
 
     def added(String path) {

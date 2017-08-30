@@ -75,8 +75,10 @@ import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.DefaultFileWatcherFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
-import org.gradle.internal.hash.DefaultFileContentHasherFactory;
-import org.gradle.internal.hash.FileContentHasherFactory;
+import org.gradle.internal.hash.ContentHasherFactory;
+import org.gradle.internal.hash.DefaultContentHasherFactory;
+import org.gradle.internal.hash.DefaultStreamHasher;
+import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -350,7 +352,11 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return new DefaultBuildOperationIdFactory();
     }
 
-    FileContentHasherFactory createFileHasherFactory() {
-        return new DefaultFileContentHasherFactory();
+    ContentHasherFactory createHasherFactory() {
+        return new DefaultContentHasherFactory();
+    }
+
+    StreamHasher createStreamHasher(ContentHasherFactory hasherFactory) {
+        return new DefaultStreamHasher(hasherFactory);
     }
 }

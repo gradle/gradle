@@ -15,11 +15,10 @@
  */
 package org.gradle.internal.classloader;
 
-import com.google.common.base.Charsets;
-import com.google.common.hash.HashCode;
-import com.google.common.hash.Hasher;
-import com.google.common.hash.Hashing;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -94,7 +93,7 @@ public class DefaultHashingClassLoaderFactory extends DefaultClassLoaderFactory 
         Arrays.sort(sortedItems);
         for (String item : sortedItems) {
             hasher.putInt(0);
-            hasher.putString(item, Charsets.UTF_8);
+            hasher.putString(item);
         }
     }
 }

@@ -18,7 +18,6 @@ package org.gradle.caching.internal.tasks
 
 import com.google.common.collect.ImmutableListMultimap
 import com.google.common.collect.ImmutableSortedMap
-import com.google.common.hash.HashCode
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.cache.StringInterner
@@ -34,6 +33,7 @@ import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.time.Timer
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

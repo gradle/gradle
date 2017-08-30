@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.changedetection.state
 
-import com.google.common.base.Charsets
-import com.google.common.hash.Hashing
 import org.gradle.api.file.FileTreeElement
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.CachingFileHasher.FileInfo
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.PersistentIndexedCache
 import org.gradle.internal.hash.FileHasher
+import org.gradle.internal.hash.Hashing
 import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -36,8 +35,8 @@ class CachingFileHasherTest extends Specification {
     def cache = Mock(PersistentIndexedCache)
     def cacheAccess = Mock(TaskHistoryStore)
     def timeStampInspector = Mock(FileTimeStampInspector)
-    def hash = Hashing.md5().hashString("hello", Charsets.UTF_8)
-    def oldHash = Hashing.md5().hashString("hi", Charsets.UTF_8)
+    def hash = Hashing.md5().hashString("hello")
+    def oldHash = Hashing.md5().hashString("hi")
     def file = tmpDir.createFile("testfile")
     def fileSystem = TestFiles.fileSystem()
     CachingFileHasher hasher

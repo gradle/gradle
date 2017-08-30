@@ -45,7 +45,7 @@ public class TarFileTreeTest {
     private final TestFile tarFile = tmpDir.getTestDirectory().file("test.tar");
     private final TestFile rootDir = tmpDir.getTestDirectory().file("root");
     private final TestFile expandDir = tmpDir.getTestDirectory().file("tmp");
-    private final TarFileTree tree = new TarFileTree(tarFile, new MaybeCompressedFileResource(new LocalResourceAdapter(TestFiles.fileRepository().localResource(tarFile))), expandDir, fileSystem(), fileSystem(), directoryFileTreeFactory(), fileHasher());
+    private final TarFileTree tree = new TarFileTree(tarFile, new MaybeCompressedFileResource(new LocalResourceAdapter(TestFiles.fileRepository().localResource(tarFile))), expandDir, fileSystem(), fileSystem(), directoryFileTreeFactory(), streamHasher());
 
     @Test
     public void displayName() {
@@ -71,7 +71,7 @@ public class TarFileTreeTest {
         rootDir.tgzTo(tgz);
 
         MaybeCompressedFileResource resource = new MaybeCompressedFileResource(new LocalResourceAdapter(TestFiles.fileRepository().localResource(tgz)));
-        TarFileTree tree = new TarFileTree(tarFile, resource, expandDir, fileSystem(), fileSystem(), directoryFileTreeFactory(), fileHasher());
+        TarFileTree tree = new TarFileTree(tarFile, resource, expandDir, fileSystem(), fileSystem(), directoryFileTreeFactory(), streamHasher());
 
         assertVisits(tree, toList("subdir/file1.txt", "subdir2/file2.txt"), toList("subdir", "subdir2"));
         assertSetContainsForAllTypes(tree, toList("subdir/file1.txt", "subdir2/file2.txt"));
@@ -86,7 +86,7 @@ public class TarFileTreeTest {
         rootDir.tbzTo(tbz2);
 
         MaybeCompressedFileResource resource = new MaybeCompressedFileResource(new LocalResourceAdapter(TestFiles.fileRepository().localResource(tbz2)));
-        TarFileTree tree = new TarFileTree(tarFile, resource, expandDir, fileSystem(), fileSystem(), directoryFileTreeFactory(), fileHasher());
+        TarFileTree tree = new TarFileTree(tarFile, resource, expandDir, fileSystem(), fileSystem(), directoryFileTreeFactory(), streamHasher());
 
         assertVisits(tree, toList("subdir/file1.txt", "subdir2/file2.txt"), toList("subdir", "subdir2"));
         assertSetContainsForAllTypes(tree, toList("subdir/file1.txt", "subdir2/file2.txt"));

@@ -16,20 +16,21 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
-import com.google.common.hash.HashCode;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.StreamHasher;
 
 public class CachingJarSnapshotter implements JarSnapshotter {
 
     private final DefaultJarSnapshotter snapshotter;
-    private final FileHasher hasher;
+    private final FileHasher fileHasher;
     private final JarSnapshotCache cache;
 
-    public CachingJarSnapshotter(FileHasher hasher, ClassDependenciesAnalyzer analyzer, JarSnapshotCache cache) {
-        this.snapshotter = new DefaultJarSnapshotter(hasher, analyzer);
-        this.hasher = hasher;
+    public CachingJarSnapshotter(StreamHasher streamHasher, FileHasher fileHasher, ClassDependenciesAnalyzer analyzer, JarSnapshotCache cache) {
+        this.snapshotter = new DefaultJarSnapshotter(streamHasher, analyzer);
+        this.fileHasher = fileHasher;
         this.cache = cache;
     }
 
@@ -44,6 +45,6 @@ public class CachingJarSnapshotter implements JarSnapshotter {
     }
 
     private HashCode getHash(JarArchive jarArchive) {
-        return hasher.hash(jarArchive.file);
+        return fileHasher.hash(jarArchive.file);
     }
 }

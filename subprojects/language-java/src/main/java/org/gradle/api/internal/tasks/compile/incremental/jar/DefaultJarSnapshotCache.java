@@ -17,10 +17,10 @@
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import com.google.common.collect.Maps;
-import com.google.common.hash.HashCode;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.MinimalPersistentCache;
 import org.gradle.internal.Factory;
+import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
 import java.util.Map;

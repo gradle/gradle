@@ -16,17 +16,18 @@
 
 package org.gradle.internal.hash;
 
-import com.google.common.base.Charsets;
-import com.google.common.hash.Hasher;
-import com.google.common.hash.Hashing;
-
-public class DefaultFileContentHasherFactory implements FileContentHasherFactory {
-    private static final byte[] SIGNATURE = Hashing.md5().hashString(DefaultFileContentHasherFactory.class.getName(), Charsets.UTF_8).asBytes();
-
-    @Override
-    public Hasher create() {
-        Hasher hasher = Hashing.md5().newHasher();
-        hasher.putBytes(SIGNATURE);
-        return hasher;
-    }
+/**
+ * Hasher abstraction that can be fed different kinds of primitives.
+ * Inspired by the Google Guava project – https://github.com/google/guava.
+ */
+public interface Hasher {
+    void putBytes(byte[] bytes);
+    void putBytes(byte[] bytes, int off, int len);
+    void putByte(byte value);
+    void putInt(int value);
+    void putLong(long value);
+    void putDouble(double value);
+    void putBoolean(boolean value);
+    void putString(CharSequence value);
+    HashCode hash();
 }

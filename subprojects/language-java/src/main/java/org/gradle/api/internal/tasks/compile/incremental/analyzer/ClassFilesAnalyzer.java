@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
-import com.google.common.hash.HashCode;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependentsAccumulator;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.hash.HashCode;
 
 public class ClassFilesAnalyzer implements FileVisitor {
     private final ClassDependenciesAnalyzer analyzer;

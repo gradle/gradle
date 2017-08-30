@@ -16,8 +16,12 @@
 
 package org.gradle.internal.hash;
 
-import com.google.common.hash.Hasher;
-import org.gradle.internal.Factory;
-
-public interface FileContentHasherFactory extends Factory<Hasher> {
+/**
+ * Hash function that can create new {@link Hasher}s on demand.
+ * Inspired by the Google Guava project – https://github.com/google/guava.
+ */
+public interface HashFunction {
+    Hasher newHasher();
+    HashCode hashBytes(byte[] bytes);
+    HashCode hashString(CharSequence string);
 }
