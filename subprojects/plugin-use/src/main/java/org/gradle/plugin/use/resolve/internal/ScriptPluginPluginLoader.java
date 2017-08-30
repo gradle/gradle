@@ -24,7 +24,6 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.ScriptPluginFactorySelector;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
-import org.gradle.plugin.use.internal.ScriptPluginsScope;
 
 
 /**
