@@ -12,6 +12,8 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test
 
+import java.io.File
+
 
 class KotlinDslPluginTest : AbstractPluginTest() {
 
@@ -171,11 +173,11 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
                     // and:
                     System.setProperty("org.gradle.daemon.idletimeout", "1000")
-                    System.setProperty("org.gradle.daemon.registry.base", "${customDaemonRegistry()}")
+                    System.setProperty("org.gradle.daemon.registry.base", "${escapedPathOf(customDaemonRegistry())}")
 
                     // and:
                     val runner = GradleRunner.create()
-                        .withGradleInstallation(File("${customInstallation()}"))
+                        .withGradleInstallation(File("${escapedPathOf(customInstallation())}"))
                         .withProjectDir(projectRoot)
                         .withPluginClasspath()
                         .forwardOutput()
@@ -229,4 +231,9 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
         assertThat(result.outcomeOf(":compileKotlin"), equalTo(TaskOutcome.SUCCESS))
     }
+
+    private
+    fun escapedPathOf(file: File) =
+        file.absolutePath.replace("\\", "\\\\")
+
 }
