@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.initialization.option.BooleanBuildOption;
 import org.gradle.initialization.option.BuildOption;
 import org.gradle.initialization.option.BuildOptionFactory;
+import org.gradle.initialization.option.CommandLineOptionConfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +39,7 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
         public static final String GRADLE_PROPERTY = "org.gradle.configureondemand";
 
         public ConfigureOnDemandOption() {
-            super(StartParameter.class, GRADLE_PROPERTY, "configure-on-demand", "Configure necessary projects only. Gradle will attempt to reduce configuration time for large multi-project builds.");
+            super(StartParameter.class, GRADLE_PROPERTY, CommandLineOptionConfiguration.create("configure-on-demand", "Configure necessary projects only. Gradle will attempt to reduce configuration time for large multi-project builds.").incubating());
         }
 
         @Override
@@ -51,7 +52,7 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
         public static final String GRADLE_PROPERTY = "org.gradle.caching";
 
         public BuildCacheOption() {
-            super(StartParameter.class, GRADLE_PROPERTY, "build-cache", "Enables the Gradle build cache. Gradle will try to reuse outputs from previous builds.");
+            super(StartParameter.class, GRADLE_PROPERTY, CommandLineOptionConfiguration.create("build-cache", "Enables the Gradle build cache. Gradle will try to reuse outputs from previous builds.").incubating());
         }
 
         @Override

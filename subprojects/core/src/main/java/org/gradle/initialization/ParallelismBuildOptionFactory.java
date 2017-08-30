@@ -20,6 +20,7 @@ import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.option.BooleanBuildOption;
 import org.gradle.initialization.option.BuildOption;
 import org.gradle.initialization.option.BuildOptionFactory;
+import org.gradle.initialization.option.CommandLineOptionConfiguration;
 import org.gradle.initialization.option.StringBuildOption;
 
 import java.util.ArrayList;
@@ -39,7 +40,7 @@ public class ParallelismBuildOptionFactory implements BuildOptionFactory<Paralle
         public static final String GRADLE_PROPERTY = "org.gradle.parallel";
 
         public ParallelOption() {
-            super(ParallelismConfiguration.class, GRADLE_PROPERTY, "parallel", "Build projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.");
+            super(ParallelismConfiguration.class, GRADLE_PROPERTY, CommandLineOptionConfiguration.create("parallel", "Build projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.").incubating());
         }
 
         @Override
@@ -52,7 +53,7 @@ public class ParallelismBuildOptionFactory implements BuildOptionFactory<Paralle
         public static final String GRADLE_PROPERTY = "org.gradle.workers.max";
 
         public MaxWorkersOption() {
-            super(ParallelismConfiguration.class, GRADLE_PROPERTY, "max-workers", "Configure the number of concurrent workers Gradle is allowed to use.", true);
+            super(ParallelismConfiguration.class, GRADLE_PROPERTY, CommandLineOptionConfiguration.create("max-workers", "Configure the number of concurrent workers Gradle is allowed to use.").incubating().hasArgument());
         }
 
         @Override
@@ -69,7 +70,7 @@ public class ParallelismBuildOptionFactory implements BuildOptionFactory<Paralle
         }
 
         private void invalidMaxWorkersSwitchValue(String value) {
-            throw new IllegalArgumentException(String.format("Argument value '%s' given for system property %s or --%s option is invalid (must be a positive, non-zero, integer)", value, gradleProperty, commandLineOption));
+            throw new IllegalArgumentException(String.format("Argument value '%s' given for system property %s or --%s option is invalid (must be a positive, non-zero, integer)", value, gradleProperty, commandLineOptionConfiguration));
         }
     }
 }

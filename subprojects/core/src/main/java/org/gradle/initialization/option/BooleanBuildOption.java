@@ -29,18 +29,16 @@ import java.util.Map;
 public abstract class BooleanBuildOption<T> implements BuildOption<T> {
     protected final Class<T> settingsType;
     protected final String gradleProperty;
-    protected final String commandLineOption;
-    protected final String description;
+    protected final CommandLineOptionConfiguration commandLineOptionConfiguration;
 
     protected BooleanBuildOption(Class<T> settingsType, String gradleProperty) {
-        this(settingsType, gradleProperty, null, null);
+        this(settingsType, gradleProperty, null);
     }
 
-    public BooleanBuildOption(Class<T> settingsType, String gradleProperty, String commandLineOption, String description) {
+    public BooleanBuildOption(Class<T> settingsType, String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
         this.settingsType = settingsType;
         this.gradleProperty = gradleProperty;
-        this.commandLineOption = commandLineOption;
-        this.description = description;
+        this.commandLineOptionConfiguration = commandLineOptionConfiguration;
     }
 
     @Override
@@ -57,27 +55,27 @@ public abstract class BooleanBuildOption<T> implements BuildOption<T> {
     @Override
     public void configure(CommandLineParser parser) {
         if (hasCommandLineOption()) {
-            parser.option(commandLineOption).hasDescription(description);
-            parser.option("no-" + commandLineOption).hasDescription("Disables option --" + commandLineOption + ".");
-            parser.allowOneOf(commandLineOption, "no-" + commandLineOption);
+            parser.option(commandLineOptionConfiguration.getOption()).hasDescription(commandLineOptionConfiguration.getDescription());
+            parser.option("no-" + commandLineOptionConfiguration.getOption()).hasDescription("Disables option --" + commandLineOptionConfiguration.getOption() + ".");
+            parser.allowOneOf(commandLineOptionConfiguration.getOption(), "no-" + commandLineOptionConfiguration.getOption());
         }
     }
 
     @Override
     public void applyFromCommandLine(ParsedCommandLine options, T settings) {
         if (hasCommandLineOption()) {
-            if (options.hasOption(commandLineOption)) {
+            if (options.hasOption(commandLineOptionConfiguration.getOption())) {
                 applyTo(true, settings);
             }
 
-            if (options.hasOption("no-" + commandLineOption)) {
+            if (options.hasOption("no-" + commandLineOptionConfiguration.getOption())) {
                 applyTo(false, settings);
             }
         }
     }
 
     private boolean hasCommandLineOption() {
-        return commandLineOption != null && description != null;
+        return commandLineOptionConfiguration != null;
     }
 
     private boolean isTrue(String value) {

@@ -20,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.initialization.option.BooleanBuildOption;
 import org.gradle.initialization.option.BuildOption;
 import org.gradle.initialization.option.BuildOptionFactory;
+import org.gradle.initialization.option.CommandLineOptionConfiguration;
 import org.gradle.initialization.option.StringBuildOption;
 import org.gradle.internal.jvm.JavaHomeException;
 import org.gradle.internal.jvm.JavaInfo;
@@ -132,7 +133,7 @@ public class DaemonBuildOptionFactory implements BuildOptionFactory<DaemonParame
         public static final String GRADLE_PROPERTY = "org.gradle.daemon";
 
         public DaemonOption() {
-            super(DaemonParameters.class, GRADLE_PROPERTY, "daemon", "Uses the Gradle Daemon to run the build. Starts the Daemon if not running.");
+            super(DaemonParameters.class, GRADLE_PROPERTY, CommandLineOptionConfiguration.create("daemon", "Uses the Gradle Daemon to run the build. Starts the Daemon if not running."));
         }
 
         @Override

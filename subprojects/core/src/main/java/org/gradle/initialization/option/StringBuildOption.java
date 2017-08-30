@@ -31,20 +31,16 @@ public abstract class StringBuildOption<T> implements BuildOption<T> {
 
     protected final Class<T> settingsType;
     protected final String gradleProperty;
-    protected final String commandLineOption;
-    protected final String description;
-    private final boolean hasArgument;
+    protected final CommandLineOptionConfiguration commandLineOptionConfiguration;
 
     protected StringBuildOption(Class<T> settingsType, String gradleProperty) {
-        this(settingsType, gradleProperty, null, null, false);
+        this(settingsType, gradleProperty, null);
     }
 
-    public StringBuildOption(Class<T> settingsType, String gradleProperty, String commandLineOption, String description, boolean hasArgument) {
+    public StringBuildOption(Class<T> settingsType, String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
         this.settingsType = settingsType;
         this.gradleProperty = gradleProperty;
-        this.commandLineOption = commandLineOption;
-        this.description = description;
-        this.hasArgument = hasArgument;
+        this.commandLineOptionConfiguration = commandLineOptionConfiguration;
     }
 
     @Override
@@ -64,9 +60,13 @@ public abstract class StringBuildOption<T> implements BuildOption<T> {
     @Override
     public void configure(CommandLineParser parser) {
         if (hasCommandLineOption()) {
-            CommandLineOption option = parser.option(commandLineOption).hasDescription(description);
+            CommandLineOption option = parser.option(commandLineOptionConfiguration.getOption()).hasDescription(commandLineOptionConfiguration.getDescription());
 
-            if (hasArgument) {
+            if (commandLineOptionConfiguration.isIncubating()) {
+                option.incubating();
+            }
+
+            if (commandLineOptionConfiguration.isArgument()) {
                 option.hasArgument();
             }
         }
@@ -75,8 +75,8 @@ public abstract class StringBuildOption<T> implements BuildOption<T> {
     @Override
     public void applyFromCommandLine(ParsedCommandLine options, T settings) {
         if (hasCommandLineOption()) {
-            if (options.hasOption(commandLineOption)) {
-                String value = options.option(commandLineOption).getValue();
+            if (options.hasOption(commandLineOptionConfiguration.getOption())) {
+                String value = options.option(commandLineOptionConfiguration.getOption()).getValue();
 
                 if (value != null) {
                     applyTo(value, settings);
@@ -86,7 +86,7 @@ public abstract class StringBuildOption<T> implements BuildOption<T> {
     }
 
     private boolean hasCommandLineOption() {
-        return commandLineOption != null && description != null;
+        return commandLineOptionConfiguration != null;
     }
 
     public abstract void applyTo(String value, T settings);
