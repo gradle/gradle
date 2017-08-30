@@ -25,7 +25,7 @@ abstract class AbstractFileChangeMutator extends BuildExperimentListenerAdapter 
     protected final String sourceFilePath
     private String originalText
     private long timestamp
-    protected int counter
+    private int counter
 
     protected AbstractFileChangeMutator(String sourceFilePath) {
         this.sourceFilePath = sourceFilePath
@@ -36,12 +36,16 @@ abstract class AbstractFileChangeMutator extends BuildExperimentListenerAdapter 
         this.timestamp = timestamp
     }
 
+    protected int getCounter() {
+        return counter
+    }
+
     /**
      * Returns some text that is unlikely to have been included in any previous version of the target source file.
      * The string can be used as a Java identifier.
      */
     protected String getUniqueText() {
-        return "_" + String.valueOf(timestamp) + "_" + counter
+        return "_" + String.valueOf(timestamp) + "_" + getCounter()
     }
 
     @Override
