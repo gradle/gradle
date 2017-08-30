@@ -16,12 +16,15 @@
 
 package org.gradle.internal.scan;
 
+import org.gradle.StartParameter;
 import org.gradle.internal.scan.clock.BuildScanTimeProvider;
 import org.gradle.internal.scan.clock.DefaultBuildScanTimeProvider;
 import org.gradle.internal.scan.config.BuildScanConfigServices;
+import org.gradle.internal.scan.config.BuildScanPluginAutoApply;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.time.TimeProvider;
+import org.gradle.plugin.management.internal.PluginRequestsTransformer;
 
 public class BuildScanServices extends AbstractPluginServiceRegistry {
 
@@ -30,6 +33,15 @@ public class BuildScanServices extends AbstractPluginServiceRegistry {
         registration.addProvider(new Object() {
             BuildScanTimeProvider createTimeProvider(TimeProvider timeProvider) {
                 return new DefaultBuildScanTimeProvider(timeProvider);
+            }
+        });
+    }
+
+    @Override
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+        registration.addProvider(new Object() {
+            PluginRequestsTransformer createBuildScanAutoApply(StartParameter startParameter) {
+                return new BuildScanPluginAutoApply(startParameter);
             }
         });
     }
