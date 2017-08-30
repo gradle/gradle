@@ -15,12 +15,13 @@
  */
 
 
-package org.gradle.integtests.tooling
+package org.gradle.integtests.tooling.r42
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.r18.NullAction
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.TestExecutionException
 import org.gradle.tooling.model.GradleProject
