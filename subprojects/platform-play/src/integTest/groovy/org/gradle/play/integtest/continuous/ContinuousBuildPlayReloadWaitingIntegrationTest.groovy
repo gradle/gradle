@@ -16,9 +16,6 @@
 
 package org.gradle.play.integtest.continuous
 
-import org.gradle.internal.filewatch.PendingChangesListener
-import org.gradle.internal.filewatch.PendingChangesManager
-import org.gradle.internal.filewatch.SingleFirePendingChangesListener
 import spock.lang.Unroll
 /**
  * Test that app requests block while a build is in progress when using `--continuous`.
@@ -28,39 +25,6 @@ class ContinuousBuildPlayReloadWaitingIntegrationTest extends AbstractPlayReload
     def setup() {
         server.start()
         addPendingChangesHook()
-        buildFile << """
-            gradle.taskGraph.afterTask { task ->
-                if (task.path != ":compilePlayBinaryScala") {
-                    return
-                }
-                def markerFile = file('wait-for-changes')
-                if (markerFile.exists()) {
-                    println "WAITING FOR CHANGES"
-                    def pendingChanges = new java.util.concurrent.atomic.AtomicBoolean(false)
-                    def pendingChangesManager = gradle.services.get(${PendingChangesManager.canonicalName})
-                    def pendingChangesListener = new ${SingleFirePendingChangesListener.canonicalName}({
-                        synchronized(pendingChanges) {
-                            println "Pending changes detected"
-                            pendingChanges.set(true)
-                            pendingChanges.notifyAll()
-                        }
-                    } as ${PendingChangesListener.canonicalName})
-
-                    pendingChangesManager.addListener pendingChangesListener
-                    
-                    // Signal we are listening for changes
-                    ${server.callFromBuild("rebuild")}
-
-                    synchronized(pendingChanges) {
-                        while(!pendingChanges.get()) {
-                            pendingChanges.wait()
-                        }
-                    }
-                    
-                    markerFile.delete()
-                }
-            }
-        """
     }
 
     def "wait for changes to be built when a request comes in during a build"() {
@@ -161,11 +125,6 @@ class ContinuousBuildPlayReloadWaitingIntegrationTest extends AbstractPlayReload
         then:
         appIsRunningAndDeployed()
         checkRoute 'hello'
-    }
-
-    def blockBuildWaitingForChanges() {
-        file('wait-for-changes').touch()
-        return server.expectAndBlock("rebuild")
     }
 
     void checkRoute(String route) {

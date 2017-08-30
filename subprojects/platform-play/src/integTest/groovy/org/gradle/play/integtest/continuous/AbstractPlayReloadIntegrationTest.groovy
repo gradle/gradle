@@ -77,27 +77,59 @@ abstract class AbstractPlayReloadIntegrationTest extends AbstractMultiVersionPla
 
     protected void addPendingChangesHook() {
         buildFile << """
-            ext.pendingChanges = new java.util.concurrent.atomic.AtomicBoolean(false)
-
-            void addPendingChangeListener(Closure action={}) {
-                def pendingChangesManager = gradle.services.get(${PendingChangesManager.canonicalName})
-                pendingChangesManager.addListener new ${SingleFirePendingChangesListener.canonicalName}({
-                    synchronized(pendingChanges) {
-                        println "Pending changes detected"
-                        pendingChanges.set(true)
-                        pendingChanges.notifyAll()
-                        action()
+            def pendingChangesManager = gradle.services.get(${PendingChangesManager.canonicalName})
+            pendingChangesManager.addListener {
+                def reportChangesMarker = file('report-changes')
+                if (reportChangesMarker.exists()) {
+                    Thread.start {
+                        ${server.callFromBuild("pendingChange")}
                     }
-                } as ${PendingChangesListener.canonicalName})
+                    reportChangesMarker.delete()
+                }
             }
 
-            void waitForPendingChanges() {
-                synchronized(pendingChanges) {
-                    while(!pendingChanges.get()) {
-                        pendingChanges.wait()
+            gradle.taskGraph.afterTask { task ->
+                if (task.path != ":compilePlayBinaryScala") {
+                    return
+                }
+
+                def waitForChangesMarker = file('wait-for-changes')
+                if (waitForChangesMarker.exists()) {
+                    println "WAITING FOR CHANGES"
+                    def pendingChanges = new java.util.concurrent.atomic.AtomicBoolean(false)
+                    def pendingChangesListener = new ${SingleFirePendingChangesListener.canonicalName}({
+                        synchronized(pendingChanges) {
+                            println "Pending changes detected"
+                            pendingChanges.set(true)
+                            pendingChanges.notifyAll()
+                        }
+                    } as ${PendingChangesListener.canonicalName})
+
+                    pendingChangesManager.addListener pendingChangesListener
+                    
+                    // Signal we are listening for changes
+                    ${server.callFromBuild("rebuild")}
+
+                    synchronized(pendingChanges) {
+                        while(!pendingChanges.get()) {
+                            pendingChanges.wait()
+                        }
                     }
+                    
+                    waitForChangesMarker.delete()
                 }
             }
         """
+
+    }
+
+    def blockBuildWaitingForChanges() {
+        file('wait-for-changes').touch()
+        return server.expectAndBlock("rebuild")
+    }
+
+    def changesReported() {
+        file('report-changes').touch()
+        return server.expectAndBlock("pendingChange")
     }
 }
