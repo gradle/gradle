@@ -23,6 +23,7 @@ import org.gradle.initialization.option.BooleanBuildOption;
 import org.gradle.initialization.option.BuildOption;
 import org.gradle.initialization.option.BuildOptionFactory;
 import org.gradle.initialization.option.CommandLineOptionConfiguration;
+import org.gradle.initialization.option.NoArgumentBuildOption;
 import org.gradle.initialization.option.StringBuildOption;
 
 import java.io.File;
@@ -35,6 +36,12 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
     public List<BuildOption<StartParameter>> create() {
         List<BuildOption<StartParameter>> options = new ArrayList<BuildOption<StartParameter>>();
         options.add(new ProjectCacheDirOption());
+        options.add(new RerunTasksOption());
+        options.add(new RecompileScriptsOption());
+        options.add(new ProfileOption());
+        options.add(new ContinueOption());
+        options.add(new OfflineOption());
+        options.add(new RefreshDependenciesOption());
         options.add(new ConfigureOnDemandOption());
         options.add(new BuildCacheOption());
         options.add(new BuildScanOption());
@@ -50,6 +57,72 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
         public void applyTo(String value, StartParameter settings) {
             Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
             settings.setProjectCacheDir(resolver.transform(value));
+        }
+    }
+
+    public static class RerunTasksOption extends NoArgumentBuildOption<StartParameter> {
+        public RerunTasksOption() {
+            super(StartParameter.class, null, CommandLineOptionConfiguration.create("rerun-tasks", "Ignore previously cached task results."));
+        }
+
+        @Override
+        public void applyTo(StartParameter settings) {
+            settings.setRerunTasks(true);
+        }
+    }
+
+    public static class RecompileScriptsOption extends NoArgumentBuildOption<StartParameter> {
+        public RecompileScriptsOption() {
+            super(StartParameter.class, null, CommandLineOptionConfiguration.create("recompile-scripts", "Force build script recompiling."));
+        }
+
+        @Override
+        public void applyTo(StartParameter settings) {
+            settings.setRecompileScripts(true);
+        }
+    }
+
+    public static class ProfileOption extends NoArgumentBuildOption<StartParameter> {
+        public ProfileOption() {
+            super(StartParameter.class, null, CommandLineOptionConfiguration.create("profile", "Profile build execution time and generates a report in the <build_dir>/reports/profile directory."));
+        }
+
+        @Override
+        public void applyTo(StartParameter settings) {
+            settings.setProfile(true);
+        }
+    }
+
+    public static class ContinueOption extends NoArgumentBuildOption<StartParameter> {
+        public ContinueOption() {
+            super(StartParameter.class, null, CommandLineOptionConfiguration.create("continue", "Continue task execution after a task failure."));
+        }
+
+        @Override
+        public void applyTo(StartParameter settings) {
+            settings.setContinueOnFailure(true);
+        }
+    }
+
+    public static class OfflineOption extends NoArgumentBuildOption<StartParameter> {
+        public OfflineOption() {
+            super(StartParameter.class, null, CommandLineOptionConfiguration.create("offline", "Execute the build without accessing network resources."));
+        }
+
+        @Override
+        public void applyTo(StartParameter settings) {
+            settings.setOffline(true);
+        }
+    }
+
+    public static class RefreshDependenciesOption extends NoArgumentBuildOption<StartParameter> {
+        public RefreshDependenciesOption() {
+            super(StartParameter.class, null, CommandLineOptionConfiguration.create("refresh-dependencies", "Refresh the state of dependencies."));
+        }
+
+        @Override
+        public void applyTo(StartParameter settings) {
+            settings.setRefreshDependencies(true);
         }
     }
 

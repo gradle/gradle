@@ -43,13 +43,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     public static final String INIT_SCRIPT = "I";
     private static final String SETTINGS_FILE = "c";
     private static final String DRY_RUN = "m";
-    private static final String RERUN_TASKS = "rerun-tasks";
     private static final String EXCLUDE_TASK = "x";
-    private static final String PROFILE = "profile";
-    private static final String CONTINUE = "continue";
-    private static final String OFFLINE = "offline";
-    private static final String REFRESH_DEPENDENCIES = "refresh-dependencies";
-    private static final String RECOMPILE_SCRIPTS = "recompile-scripts";
 
     private static final String CONTINUOUS = "continuous";
     private static final String CONTINUOUS_SHORT_FLAG = "t";
@@ -80,13 +74,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(SETTINGS_FILE, "settings-file").hasArgument().hasDescription("Specify the settings file.");
         parser.option(BUILD_FILE, "build-file").hasArgument().hasDescription("Specify the build file.");
         parser.option(NO_PROJECT_DEPENDENCY_REBUILD, "no-rebuild").hasDescription("Do not rebuild project dependencies.");
-        parser.option(RERUN_TASKS).hasDescription("Ignore previously cached task results.");
-        parser.option(RECOMPILE_SCRIPTS).hasDescription("Force build script recompiling.");
         parser.option(EXCLUDE_TASK, "exclude-task").hasArguments().hasDescription("Specify a task to be excluded from execution.");
-        parser.option(PROFILE).hasDescription("Profile build execution time and generates a report in the <build_dir>/reports/profile directory.");
-        parser.option(CONTINUE).hasDescription("Continue task execution after a task failure.");
-        parser.option(OFFLINE).hasDescription("Execute the build without accessing network resources.");
-        parser.option(REFRESH_DEPENDENCIES).hasDescription("Refresh the state of dependencies.");
         parser.option(CONTINUOUS, CONTINUOUS_SHORT_FLAG).hasDescription("Enables continuous build. Gradle does not exit and will re-execute tasks when task file inputs change.").incubating();
         parser.option(INCLUDE_BUILD).hasArguments().hasDescription("Include the specified build in the composite.").incubating();
 
@@ -140,32 +128,8 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
             startParameter.setDryRun(true);
         }
 
-        if (options.hasOption(RERUN_TASKS)) {
-            startParameter.setRerunTasks(true);
-        }
-
-        if (options.hasOption(RECOMPILE_SCRIPTS)) {
-            startParameter.setRecompileScripts(true);
-        }
-
         if (options.hasOption(EXCLUDE_TASK)) {
             startParameter.setExcludedTaskNames(options.option(EXCLUDE_TASK).getValues());
-        }
-
-        if (options.hasOption(PROFILE)) {
-            startParameter.setProfile(true);
-        }
-
-        if (options.hasOption(CONTINUE)) {
-            startParameter.setContinueOnFailure(true);
-        }
-
-        if (options.hasOption(OFFLINE)) {
-            startParameter.setOffline(true);
-        }
-
-        if (options.hasOption(REFRESH_DEPENDENCIES)) {
-            startParameter.setRefreshDependencies(true);
         }
 
         if (options.hasOption(CONTINUOUS)) {
