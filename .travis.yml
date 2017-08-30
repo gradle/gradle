@@ -5,11 +5,9 @@ matrix:
     - os: linux
       sudo: false
       jdk: oraclejdk8
-      addons:
-        apt:
-          packages:
-            - oracle-java8-installer
-            - oracle-java8-set-default
+    - os: linux
+      sudo: false
+      jdk: openjdk8
 
 script: ./gradlew :provider:check --info --stacktrace --console=plain --max-workers=1 --no-daemon -Dkotlin.compiler.execution.strategy=in-proces -Dkotlin.colors.enabled=false
 
