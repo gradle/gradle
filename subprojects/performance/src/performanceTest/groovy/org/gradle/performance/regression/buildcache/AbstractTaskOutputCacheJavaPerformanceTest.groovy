@@ -16,10 +16,10 @@
 
 package org.gradle.performance.regression.buildcache
 
+import org.gradle.initialization.StartParameterBuildOptionFactory
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 
-import static org.gradle.initialization.option.GradleBuildOptions.BUILD_CACHE
 import static org.gradle.performance.fixture.BuildExperimentRunner.Phase.MEASUREMENT
 import static org.gradle.performance.fixture.BuildExperimentRunner.Phase.WARMUP
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
@@ -32,7 +32,7 @@ class AbstractTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPer
         runner.warmUpRuns = 5
         runner.runs = 13
         runner.cleanTasks = ["clean"]
-        runner.args = ["-D${BUILD_CACHE.gradleProperty}=true"]
+        runner.args = ["-D${StartParameterBuildOptionFactory.BuildCacheOption.GRADLE_PROPERTY}=true"]
         runner.minimumVersion = "3.5"
         runner.targetVersions = ["4.2-20170817235727+0000"]
     }

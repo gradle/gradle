@@ -16,37 +16,22 @@
 
 package org.gradle.launcher.cli.converter;
 
-import org.gradle.StartParameter;
 import org.gradle.concurrent.ParallelismConfiguration;
+import org.gradle.initialization.option.BuildOption;
+import org.gradle.initialization.ParallelismBuildOptionFactory;
 
+import java.util.List;
 import java.util.Map;
 
-import static org.gradle.initialization.option.GradleBuildOptions.*;
-
 public class PropertiesToParallelismConfigurationConverter {
-    public ParallelismConfiguration convert(Map<String, String> properties, ParallelismConfiguration parallelismConfiguration) {
-        String parallel = properties.get(PARALLEL.getGradleProperty());
-        if (isTrue(parallel)) {
-            parallelismConfiguration.setParallelProjectExecutionEnabled(true);
-        }
 
-        String workers = properties.get(MAX_WORKERS.getGradleProperty());
-        if (workers != null) {
-            try {
-                int workerCount = Integer.parseInt(workers);
-                if (workerCount < 1) {
-                    invalidMaxWorkersPropValue(workers);
-                }
-                parallelismConfiguration.setMaxWorkerCount(workerCount);
-            } catch (NumberFormatException e) {
-                invalidMaxWorkersPropValue(workers);
-            }
+    private List<BuildOption<ParallelismConfiguration>> buildOptions = new ParallelismBuildOptionFactory().create();
+
+    public ParallelismConfiguration convert(Map<String, String> properties, ParallelismConfiguration parallelismConfiguration) {
+        for (BuildOption<ParallelismConfiguration> option : buildOptions) {
+            option.applyFromProperty(properties, parallelismConfiguration);
         }
 
         return parallelismConfiguration;
-    }
-
-    private StartParameter invalidMaxWorkersPropValue(String value) {
-        throw new IllegalArgumentException(String.format("Value '%s' given for %s system property is invalid (must be a positive, non-zero, integer)", value, MAX_WORKERS.getGradleProperty()));
     }
 }

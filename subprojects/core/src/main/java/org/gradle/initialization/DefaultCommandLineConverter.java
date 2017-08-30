@@ -27,15 +27,15 @@ import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.ProjectPropertiesCommandLineConverter;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.concurrent.ParallelismConfiguration;
+import org.gradle.initialization.option.BuildOption;
 import org.gradle.internal.logging.LoggingCommandLineConverter;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.gradle.StartParameter.GRADLE_USER_HOME_PROPERTY_KEY;
-import static org.gradle.initialization.option.GradleBuildOptions.BUILD_CACHE;
-import static org.gradle.initialization.option.GradleBuildOptions.CONFIGURE_ON_DEMAND;
 
 public class DefaultCommandLineConverter extends AbstractCommandLineConverter<StartParameter> {
     private static final String NO_PROJECT_DEPENDENCY_REBUILD = "a";
@@ -64,6 +64,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private final CommandLineConverter<ParallelismConfiguration> parallelConfigurationCommandLineConverter = new ParallelismConfigurationCommandLineConverter();
     private final SystemPropertiesCommandLineConverter systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
     private final ProjectPropertiesCommandLineConverter projectPropertiesCommandLineConverter = new ProjectPropertiesCommandLineConverter();
+    private List<BuildOption<StartParameter>> buildOptions = new StartParameterBuildOptionFactory().create();
     private final LayoutCommandLineConverter layoutCommandLineConverter;
 
     public DefaultCommandLineConverter() {
@@ -91,7 +92,6 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(CONTINUE).hasDescription("Continue task execution after a task failure.");
         parser.option(OFFLINE).hasDescription("Execute the build without accessing network resources.");
         parser.option(REFRESH_DEPENDENCIES).hasDescription("Refresh the state of dependencies.");
-        CONFIGURE_ON_DEMAND.getCommandLineOption().registerOption(parser);
         parser.option(CONTINUOUS, CONTINUOUS_SHORT_FLAG).hasDescription("Enables continuous build. Gradle does not exit and will re-execute tasks when task file inputs change.").incubating();
 
         parser.option(BUILDSCAN).hasDescription("Creates a build scan. Gradle will emit a warning if the build scan plugin has not been applied. (https://gradle.com/build-scans)").incubating();
@@ -99,7 +99,9 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
         parser.option(INCLUDE_BUILD).hasArguments().hasDescription("Include the specified build in the composite.").incubating();
 
-        BUILD_CACHE.getCommandLineOption().registerOption(parser);
+        for (BuildOption<StartParameter> option : buildOptions) {
+            option.configure(parser);
+        }
     }
 
     public StartParameter convert(final ParsedCommandLine options, final StartParameter startParameter) throws CommandLineArgumentException {
@@ -179,10 +181,6 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
             startParameter.setRefreshDependencies(true);
         }
 
-        if (options.hasOption(CONFIGURE_ON_DEMAND.getCommandLineOption().getOption())) {
-            startParameter.setConfigureOnDemand(true);
-        }
-
         if (options.hasOption(CONTINUOUS)) {
             startParameter.setContinuous(true);
         }
@@ -198,16 +196,12 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
             startParameter.setNoBuildScan(true);
         }
 
-        if (options.hasOption(BUILD_CACHE.getCommandLineOption().getEnabledOption())) {
-            startParameter.setBuildCacheEnabled(true);
-        }
-
-        if (options.hasOption(BUILD_CACHE.getCommandLineOption().getDisabledOption())) {
-            startParameter.setBuildCacheEnabled(false);
-        }
-
         for (String includedBuild : options.option(INCLUDE_BUILD).getValues()) {
             startParameter.includeBuild(resolver.transform(includedBuild));
+        }
+
+        for (BuildOption<StartParameter> option : buildOptions) {
+            option.applyFromCommandLine(options, startParameter);
         }
 
         return startParameter;

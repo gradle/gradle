@@ -20,20 +20,35 @@ import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
 import org.gradle.initialization.BuildLayoutParameters;
-import org.gradle.initialization.option.GradleBuildOption;
-import org.gradle.initialization.option.GradleBuildOptions;
+import org.gradle.initialization.ParallelismBuildOptionFactory;
+import org.gradle.initialization.StartParameterBuildOptionFactory;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.initialization.option.BuildOption;
+import org.gradle.launcher.daemon.configuration.DaemonBuildOptionFactory;
+import org.gradle.launcher.logging.configuration.LoggingConfigurationBuildOptionFactory;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 public class LayoutToPropertiesConverter {
+
+    private final List<BuildOption<?>> allBuildOptions = new ArrayList<BuildOption<?>>();
+
+    public LayoutToPropertiesConverter() {
+        allBuildOptions.addAll(new StartParameterBuildOptionFactory().create());
+        allBuildOptions.addAll(new LoggingConfigurationBuildOptionFactory().create());
+        allBuildOptions.addAll(new DaemonBuildOptionFactory().create());
+        allBuildOptions.addAll(new ParallelismBuildOptionFactory().create());
+    }
+
     public Map<String, String> convert(BuildLayoutParameters layout, Map<String, String> properties) {
         configureFromBuildDir(layout.getSearchDir(), layout.getSearchUpwards(), properties);
         configureFromGradleUserHome(layout.getGradleUserHomeDir(), properties);
@@ -79,12 +94,13 @@ public class LayoutToPropertiesConverter {
         }
 
         for (final Object key : properties.keySet()) {
-            GradleBuildOption validOption = CollectionUtils.findFirst(GradleBuildOptions.ALL, new Spec<GradleBuildOption>() {
+            BuildOption<?> validOption = CollectionUtils.findFirst(allBuildOptions, new Spec<BuildOption<?>>() {
                 @Override
-                public boolean isSatisfiedBy(GradleBuildOption option) {
-                    return option.getGradleProperty().equals(key.toString());
+                public boolean isSatisfiedBy(BuildOption<?> option) {
+                    return option.getGradleProperty() != null ? option.getGradleProperty().equals(key.toString()) : false;
                 }
             });
+
             if (validOption != null) {
                 result.put(key.toString(), properties.get(key).toString());
             }

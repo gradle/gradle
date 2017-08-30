@@ -17,26 +17,24 @@
 package org.gradle.launcher.cli.converter;
 
 import org.gradle.StartParameter;
+import org.gradle.initialization.StartParameterBuildOptionFactory;
+import org.gradle.initialization.option.BuildOption;
 
+import java.util.List;
 import java.util.Map;
-
-import static org.gradle.initialization.option.GradleBuildOptions.*;
 
 public class PropertiesToStartParameterConverter {
     private final PropertiesToParallelismConfigurationConverter propertiesToParallelismConfigurationConverter = new PropertiesToParallelismConfigurationConverter();
     private final PropertiesToLogLevelConfigurationConverter propertiesToLogLevelConfigurationConverter = new PropertiesToLogLevelConfigurationConverter();
+    private final List<BuildOption<StartParameter>> buildOptions = new StartParameterBuildOptionFactory().create();
 
     public StartParameter convert(Map<String, String> properties, StartParameter startParameter) {
-        startParameter.setConfigureOnDemand(isTrue(properties.get(CONFIGURE_ON_DEMAND.getGradleProperty())));
+        for (BuildOption<StartParameter> option : buildOptions) {
+            option.applyFromProperty(properties, startParameter);
+        }
 
         propertiesToParallelismConfigurationConverter.convert(properties, startParameter);
         propertiesToLogLevelConfigurationConverter.convert(properties, startParameter);
-
-        // If they use both, the newer property wins.
-        String buildCacheEnabled = properties.get(BUILD_CACHE.getGradleProperty());
-        if (buildCacheEnabled != null) {
-            startParameter.setBuildCacheEnabled(isTrue(buildCacheEnabled));
-        }
 
         return startParameter;
     }

@@ -21,39 +21,25 @@ import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.concurrent.ParallelismConfiguration;
+import org.gradle.initialization.option.BuildOption;
 
-import static org.gradle.initialization.option.GradleBuildOptions.PARALLEL;
-import static org.gradle.initialization.option.GradleBuildOptions.MAX_WORKERS;
+import java.util.List;
 
 public class ParallelismConfigurationCommandLineConverter extends AbstractCommandLineConverter<ParallelismConfiguration> {
 
-    public ParallelismConfiguration convert(ParsedCommandLine options, ParallelismConfiguration target) throws CommandLineArgumentException {
-        if (options.hasOption(PARALLEL.getCommandLineOption().getOption())) {
-            target.setParallelProjectExecutionEnabled(true);
-        }
+    private List<BuildOption<ParallelismConfiguration>> buildOptions = new ParallelismBuildOptionFactory().create();
 
-        if (options.hasOption(MAX_WORKERS.getCommandLineOption().getOption())) {
-            String value = options.option(MAX_WORKERS.getCommandLineOption().getOption()).getValue();
-            try {
-                int workerCount = Integer.parseInt(value);
-                if (workerCount < 1) {
-                    invalidMaxWorkersSwitchValue(value);
-                }
-                target.setMaxWorkerCount(workerCount);
-            } catch (NumberFormatException e) {
-                invalidMaxWorkersSwitchValue(value);
-            }
+    public ParallelismConfiguration convert(ParsedCommandLine options, ParallelismConfiguration target) throws CommandLineArgumentException {
+        for (BuildOption<ParallelismConfiguration> option : buildOptions) {
+            option.applyFromCommandLine(options, target);
         }
 
         return target;
     }
 
-    private ParallelismConfiguration invalidMaxWorkersSwitchValue(String value) {
-        throw new CommandLineArgumentException(String.format("Argument value '%s' given for --%s option is invalid (must be a positive, non-zero, integer)", value, MAX_WORKERS.getCommandLineOption().getOption()));
-    }
-
     public void configure(CommandLineParser parser) {
-        PARALLEL.getCommandLineOption().registerOption(parser);
-        MAX_WORKERS.getCommandLineOption().registerOption(parser);
+        for (BuildOption<ParallelismConfiguration> option : buildOptions) {
+            option.configure(parser);
+        }
     }
 }

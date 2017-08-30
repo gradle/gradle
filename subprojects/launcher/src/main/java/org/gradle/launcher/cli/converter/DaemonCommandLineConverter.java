@@ -20,13 +20,15 @@ import org.gradle.cli.AbstractCommandLineConverter;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
-import org.gradle.initialization.option.GradleBuildBooleanOption;
-import org.gradle.initialization.option.GradleBuildOptions;
+import org.gradle.initialization.option.BuildOption;
+import org.gradle.launcher.daemon.configuration.DaemonBuildOptionFactory;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
+
+import java.util.List;
 
 public class DaemonCommandLineConverter extends AbstractCommandLineConverter<DaemonParameters> {
 
-    private static final GradleBuildBooleanOption.CommandLineBooleanOption DAEMON = GradleBuildOptions.DAEMON.getCommandLineOption();
+    private List<BuildOption<DaemonParameters>> buildOptions = new DaemonBuildOptionFactory().create();
     private static final String FOREGROUND = "foreground";
     private static final String STOP = "stop";
     private static final String STATUS = "status";
@@ -42,11 +44,10 @@ public class DaemonCommandLineConverter extends AbstractCommandLineConverter<Dae
             target.setStatus(true);
         }
 
-        if (args.hasOption(DAEMON.getDisabledOption())) {
-            target.setEnabled(false);
-        } else if (args.hasOption(DAEMON.getEnabledOption())) {
-            target.setEnabled(true);
+        for (BuildOption<DaemonParameters> option : buildOptions) {
+            option.applyFromCommandLine(args, target);
         }
+
         return target;
     }
 
@@ -54,6 +55,9 @@ public class DaemonCommandLineConverter extends AbstractCommandLineConverter<Dae
         parser.option(FOREGROUND).hasDescription("Starts the Gradle Daemon in the foreground.").incubating();
         parser.option(STOP).hasDescription("Stops the Gradle Daemon if it is running.");
         parser.option(STATUS).hasDescription("Shows status of running and recently stopped Gradle Daemon(s).");
-        DAEMON.registerOption(parser);
+
+        for (BuildOption<DaemonParameters> option : buildOptions) {
+            option.configure(parser);
+        }
     }
 }
