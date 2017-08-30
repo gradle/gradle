@@ -162,6 +162,12 @@ in the next major Gradle version (Gradle 5.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
 
+### Deprecated support for Java 7
+
+Java 7 has reached end of life in April 2015. Now we deprecated support for running Gradle on Java 7 and the support will be removed in Gradle 5.0.
+We highly recommend migrating to Java 8 as soon as possible to get better experience and support. 
+However, in Gradle 5.x, you will still be able to compile, test, generate Javadoc and execute applications for Java 6 and Java 7 by [cross-compilation](https://docs.gradle.org/current/userguide/java_plugin.html#sec:java_cross_compilation).
+
 ### Deprecated usage of path separator characters in names
 
 We deprecated the usage of the following characters in domain object names such as project or task names:
