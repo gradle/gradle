@@ -28,6 +28,7 @@ import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction
 import org.gradle.api.tasks.WorkResult
+import org.gradle.api.tasks.WorkResults
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.logging.TestOutputEventListener
 import org.gradle.internal.nativeintegration.filesystem.FileSystem

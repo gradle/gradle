@@ -22,6 +22,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.tasks.WorkResults
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.nativeplatform.toolchain.Clang
 import org.gradle.nativeplatform.toolchain.Gcc
