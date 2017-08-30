@@ -17,14 +17,11 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Plugin;
-import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.plugins.ObjectConfigurationAction;
 import org.gradle.api.plugins.PluginAware;
-import org.gradle.configuration.ScriptPlugin;
-import org.gradle.configuration.ScriptPluginFactory;
+import org.gradle.configuration.ScriptApplicator;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.internal.resource.TextResource;
@@ -38,20 +35,18 @@ import java.util.Set;
 public class DefaultObjectConfigurationAction implements ObjectConfigurationAction {
 
     private final FileResolver resolver;
-    private final ScriptPluginFactory configurerFactory;
-    private final ScriptHandlerFactory scriptHandlerFactory;
+    private final ScriptApplicator scriptApplicator;
     private final Set<Object> targets = new LinkedHashSet<Object>();
     private final Set<Runnable> actions = new LinkedHashSet<Runnable>();
     private final ClassLoaderScope classLoaderScope;
     private final TextResourceLoader resourceLoader;
     private final Object defaultTarget;
 
-    public DefaultObjectConfigurationAction(FileResolver resolver, ScriptPluginFactory configurerFactory,
-                                            ScriptHandlerFactory scriptHandlerFactory, ClassLoaderScope classLoaderScope,
+    public DefaultObjectConfigurationAction(FileResolver resolver, ScriptApplicator scriptApplicator,
+                                            ClassLoaderScope classLoaderScope,
                                             TextResourceLoader resourceLoader, Object defaultTarget) {
         this.resolver = resolver;
-        this.configurerFactory = configurerFactory;
-        this.scriptHandlerFactory = scriptHandlerFactory;
+        this.scriptApplicator = scriptApplicator;
         this.classLoaderScope = classLoaderScope;
         this.resourceLoader = resourceLoader;
         this.defaultTarget = defaultTarget;
@@ -100,14 +95,14 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
 
     private void applyScript(Object script) {
         URI scriptUri = resolver.resolveUri(script);
+        ScriptSource scriptSource = loadScriptSource(scriptUri);
+        ClassLoaderScope classLoaderScopeChild = classLoaderScope.createChild("script-" + scriptUri);
+        scriptApplicator.applyTo(targets, scriptSource, classLoaderScopeChild, classLoaderScope);
+    }
+
+    private ScriptSource loadScriptSource(URI scriptUri) {
         TextResource resource = resourceLoader.loadUri("script", scriptUri);
-        ScriptSource scriptSource = new TextResourceScriptSource(resource);
-        ClassLoaderScope classLoaderScopeChild = classLoaderScope.createChild("script-" + scriptUri.toString());
-        ScriptHandler scriptHandler = scriptHandlerFactory.create(scriptSource, classLoaderScopeChild);
-        ScriptPlugin configurer = configurerFactory.create(scriptSource, scriptHandler, classLoaderScopeChild, classLoaderScope, false);
-        for (Object target : targets) {
-            configurer.apply(target);
-        }
+        return new TextResourceScriptSource(resource);
     }
 
     private void applyPlugin(Class<? extends Plugin> pluginClass) {

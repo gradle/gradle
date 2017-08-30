@@ -59,7 +59,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.configuration.ConfigurationTargetIdentifier
-import org.gradle.configuration.ScriptPluginFactory
+import org.gradle.configuration.ScriptApplicator
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.configuration.project.ProjectEvaluator
 import org.gradle.groovy.scripts.EmptyScript
@@ -105,7 +105,7 @@ class DefaultProjectTest {
     @Rule
     public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    Task testTask;
+    Task testTask
 
     DefaultProject project, child1, child2, childchild
 
@@ -203,7 +203,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get((Type) FileOperations); will(returnValue(fileOperationsMock))
             allowing(serviceRegistryMock).get((Type) ProviderFactory); will(returnValue(propertyStateFactoryMock))
             allowing(serviceRegistryMock).get((Type) ProcessOperations); will(returnValue(processOperationsMock))
-            allowing(serviceRegistryMock).get((Type) ScriptPluginFactory); will(returnValue([toString: { -> "script plugin factory" }] as ScriptPluginFactory))
+            allowing(serviceRegistryMock).get((Type) ScriptApplicator); will(returnValue([toString: { -> "script applicator" }] as ScriptApplicator))
             allowing(serviceRegistryMock).get((Type) ScriptHandlerFactory); will(returnValue([toString: { -> "script plugin factory" }] as ScriptHandlerFactory))
             allowing(serviceRegistryMock).get((Type) ProjectConfigurationActionContainer); will(returnValue(configureActions))
             allowing(serviceRegistryMock).get((Type) PluginManagerInternal); will(returnValue(pluginManager))

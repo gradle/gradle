@@ -15,37 +15,33 @@
  */
 package org.gradle.configuration;
 
-import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
 
 import java.net.URI;
 
+import static org.gradle.configuration.ScriptApplicator.Extensions.applyScriptTo;
+
 /**
  * Processes (and runs) an init script for a specified build.  Handles defining
  * the classpath based on the initscript {} configuration closure.
  */
 public class DefaultInitScriptProcessor implements InitScriptProcessor {
-    private final ScriptPluginFactory configurerFactory;
-    private final ScriptHandlerFactory scriptHandlerFactory;
     private final IdGenerator<Long> idGenerator = new LongIdGenerator();
+    private final ScriptApplicator scriptApplicator;
 
-    public DefaultInitScriptProcessor(ScriptPluginFactory configurerFactory, ScriptHandlerFactory scriptHandlerFactory) {
-        this.configurerFactory = configurerFactory;
-        this.scriptHandlerFactory = scriptHandlerFactory;
+    public DefaultInitScriptProcessor(ScriptApplicator scriptApplicator) {
+        this.scriptApplicator = scriptApplicator;
     }
 
-    public void process(final ScriptSource initScript, GradleInternal gradle) {
-        ClassLoaderScope baseScope = gradle.getClassLoaderScope();
+    public void process(ScriptSource initScript, GradleInternal gradle) {
         URI uri = initScript.getResource().getLocation().getURI();
         String id = uri == null ? idGenerator.generateId().toString() : uri.toString();
+        ClassLoaderScope baseScope = gradle.getClassLoaderScope();
         ClassLoaderScope scriptScope = baseScope.createChild("init-" + id);
-        ScriptHandler scriptHandler = scriptHandlerFactory.create(initScript, scriptScope);
-        ScriptPlugin configurer = configurerFactory.create(initScript, scriptHandler, scriptScope, baseScope, true);
-        configurer.apply(gradle);
+        applyScriptTo(gradle, scriptApplicator, initScript, scriptScope, baseScope, true);
     }
 }

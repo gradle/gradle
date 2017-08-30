@@ -75,8 +75,10 @@ import org.gradle.composite.internal.IncludedBuildFactory;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.DefaultBuildConfigurer;
 import org.gradle.configuration.DefaultInitScriptProcessor;
+import org.gradle.configuration.DefaultScriptApplicator;
 import org.gradle.configuration.DefaultScriptPluginFactory;
 import org.gradle.configuration.ImportsReader;
+import org.gradle.configuration.ScriptApplicator;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.ScriptPluginFactorySelector;
 import org.gradle.configuration.project.BuildScriptProcessor;
@@ -219,10 +221,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    protected ProjectEvaluator createProjectEvaluator(BuildOperationExecutor buildOperationExecutor, CachingServiceLocator cachingServiceLocator, ScriptPluginFactory scriptPluginFactory) {
+    protected ProjectEvaluator createProjectEvaluator(BuildOperationExecutor buildOperationExecutor, CachingServiceLocator cachingServiceLocator, ScriptApplicator scriptApplicator) {
         ConfigureActionsProjectEvaluator withActionsEvaluator = new ConfigureActionsProjectEvaluator(
             PluginsProjectConfigureActions.from(cachingServiceLocator),
-            new BuildScriptProcessor(scriptPluginFactory),
+            new BuildScriptProcessor(scriptApplicator),
             new DelayedConfigurationActions()
         );
         return new LifecycleProjectEvaluator(buildOperationExecutor, withActionsEvaluator);
@@ -278,10 +280,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             classLoaderHierarchyHasher);
     }
 
-    protected ScriptPluginFactory createScriptPluginFactory(ScriptingLanguages scriptingLanguages, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor) {
+    protected ScriptPluginFactorySelector createScriptPluginFactory(ScriptingLanguages scriptingLanguages, InstantiatorFactory instantiatorFactory) {
         DefaultScriptPluginFactory defaultScriptPluginFactory = defaultScriptPluginFactory();
         ScriptPluginFactorySelector.ProviderInstantiator instantiator = ScriptPluginFactorySelector.defaultProviderInstantiatorFor(instantiatorFactory.inject(this));
-        ScriptPluginFactorySelector scriptPluginFactorySelector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, scriptingLanguages, instantiator, buildOperationExecutor);
+        ScriptPluginFactorySelector scriptPluginFactorySelector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, scriptingLanguages, instantiator);
         defaultScriptPluginFactory.setScriptPluginFactory(scriptPluginFactorySelector);
         return scriptPluginFactorySelector;
     }
@@ -329,29 +331,31 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    protected InitScriptHandler createInitScriptHandler(ScriptPluginFactory scriptPluginFactory, ScriptHandlerFactory scriptHandlerFactory, BuildOperationExecutor buildOperationExecutor) {
+    protected InitScriptHandler createInitScriptHandler(ScriptApplicator scriptApplicator, BuildOperationExecutor buildOperationExecutor) {
         return new InitScriptHandler(
-            new DefaultInitScriptProcessor(
-                scriptPluginFactory,
-                scriptHandlerFactory
-            ),
+            new DefaultInitScriptProcessor(scriptApplicator),
             buildOperationExecutor
         );
     }
 
-    protected SettingsProcessor createSettingsProcessor(ScriptPluginFactory scriptPluginFactory, ScriptHandlerFactory scriptHandlerFactory, Instantiator instantiator,
-                                                        ServiceRegistryFactory serviceRegistryFactory, IGradlePropertiesLoader propertiesLoader, BuildOperationExecutor buildOperationExecutor) {
+    protected ScriptApplicator createScriptApplicator(ScriptPluginFactory scriptFactory, ScriptHandlerFactory scriptHandlerFactory, BuildOperationExecutor buildOperationExecutor) {
+        return new DefaultScriptApplicator(scriptFactory, scriptHandlerFactory, buildOperationExecutor);
+    }
+
+    protected SettingsProcessor createSettingsProcessor(Instantiator instantiator,
+                                                        ServiceRegistryFactory serviceRegistryFactory,
+                                                        IGradlePropertiesLoader propertiesLoader,
+                                                        BuildOperationExecutor buildOperationExecutor,
+                                                        ScriptApplicator scriptApplicator) {
         return new NotifyingSettingsProcessor(
             new PropertiesLoadingSettingsProcessor(
                 new ScriptEvaluatingSettingsProcessor(
-                    scriptPluginFactory,
-                    scriptHandlerFactory,
                     new SettingsFactory(
                         instantiator,
                         serviceRegistryFactory
                     ),
-                    propertiesLoader
-                ),
+                    propertiesLoader,
+                    scriptApplicator),
                 propertiesLoader
             ),
             buildOperationExecutor);

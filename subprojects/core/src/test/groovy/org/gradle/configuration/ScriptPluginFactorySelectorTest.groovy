@@ -20,7 +20,6 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.scripts.ScriptingLanguages
 import org.gradle.scripts.ScriptingLanguage
@@ -29,16 +28,17 @@ import spock.lang.Unroll
 
 class ScriptPluginFactorySelectorTest extends Specification {
 
-    def scriptingLanguages = Mock(ScriptingLanguages)
-    def providerInstantiator = Mock(ScriptPluginFactorySelector.ProviderInstantiator)
-    def defaultScriptPluginFactory = Mock(ScriptPluginFactory)
-    def selector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, scriptingLanguages, providerInstantiator, new TestBuildOperationExecutor())
-
     def scriptHandler = Mock(ScriptHandler)
     def targetScope = Mock(ClassLoaderScope)
     def baseScope = Mock(ClassLoaderScope)
 
     def defaultScriptPlugin = Mock(ScriptPlugin)
+    def defaultScriptPluginFactory = Mock(ScriptPluginFactory)
+
+    def scriptingLanguages = Mock(ScriptingLanguages)
+    def providerInstantiator = Mock(ScriptPluginFactorySelector.ProviderInstantiator)
+
+    def subject = new ScriptPluginFactorySelector(defaultScriptPluginFactory, scriptingLanguages, providerInstantiator)
 
     def setup() {
         _ * defaultScriptPluginFactory.create(*_) >> defaultScriptPlugin
@@ -48,17 +48,15 @@ class ScriptPluginFactorySelectorTest extends Specification {
     def "selects default scripting support short circuiting provider lookup for #fileName"() {
         given:
         0 * scriptingLanguages._
-        def scriptSource = scriptSourceFor(fileName)
         def target = new Object()
 
         when:
-        def scriptPlugin = selector.create(scriptSource, scriptHandler, targetScope, baseScope, false)
+        def scriptPlugin = createScriptPlugin(fileName)
 
         and:
         scriptPlugin.apply(target)
 
         then:
-        1 * defaultScriptPlugin.source >> scriptSource
         1 * defaultScriptPlugin.apply(target)
 
         where:
@@ -68,17 +66,15 @@ class ScriptPluginFactorySelectorTest extends Specification {
     def "given no scripting provider then falls back to default scripting support for any extension"() {
         given:
         1 * scriptingLanguages.iterator() >> [].iterator()
-        def scriptSource = scriptSourceFor('build.any')
         def target = new Object()
 
         when:
-        def scriptPlugin = selector.create(scriptSource, scriptHandler, targetScope, baseScope, false)
+        def scriptPlugin = createScriptPlugin('build.any')
 
         and:
         scriptPlugin.apply(target)
 
         then:
-        1 * defaultScriptPlugin.source >> scriptSource
         1 * defaultScriptPlugin.apply(target)
     }
 
@@ -93,30 +89,32 @@ class ScriptPluginFactorySelectorTest extends Specification {
         1 * scriptingLanguages.iterator() >> [fooLanguage].iterator()
         1 * providerInstantiator.instantiate(fooLanguage.getProvider()) >> fooScriptPluginFactory
 
-        def scriptSource = scriptSourceFor('build.foo')
         def target = new Object()
 
         when:
-        def scriptPlugin = selector.create(scriptSource, scriptHandler, targetScope, baseScope, false)
+        def scriptPlugin = createScriptPlugin('build.foo')
 
         and:
         scriptPlugin.apply(target)
 
         then:
-        1 * fooScriptPlugin.source >> scriptSource
         1 * fooScriptPlugin.apply(target)
+    }
+
+    private ScriptPlugin createScriptPlugin(String fileName) {
+        subject.create(scriptSourceFor(fileName), scriptHandler, targetScope, baseScope, false)
     }
 
     private ScriptSource scriptSourceFor(String fileName, String content = '') {
         def resource = new StringTextResource(fileName, content)
-        return Mock(ScriptSource) {
+        Mock(ScriptSource) {
             getFileName() >> fileName
             getResource() >> resource
         }
     }
 
     private ScriptPluginFactory scriptPluginFactoryFor(ScriptPlugin scriptPluginMock) {
-        return Mock(ScriptPluginFactory) {
+        Mock(ScriptPluginFactory) {
             create(*_) >> scriptPluginMock
         }
     }

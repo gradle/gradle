@@ -57,7 +57,6 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
@@ -73,7 +72,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.configuration.ScriptPluginFactory;
+import org.gradle.configuration.ScriptApplicator;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -1224,7 +1223,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getBaseClassLoaderScope(), getResourceLoader(), this);
+        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptApplicator(), getBaseClassLoaderScope(), getResourceLoader(), this);
     }
 
     @Inject
@@ -1240,13 +1239,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Inject
-    protected ScriptPluginFactory getScriptPluginFactory() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected ScriptHandlerFactory getScriptHandlerFactory() {
+    protected ScriptApplicator getScriptApplicator() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }

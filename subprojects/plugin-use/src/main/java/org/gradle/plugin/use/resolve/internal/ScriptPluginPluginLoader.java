@@ -21,7 +21,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
-import org.gradle.configuration.ScriptPluginFactorySelector;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
 
@@ -42,6 +41,6 @@ public class ScriptPluginPluginLoader {
         ClassLoaderScope scriptPluginScope = buildSrcScope.createChild("script-plugin-" + scriptIdentifier);
 
         ScriptSource scriptSource = new StringScriptSource(scriptDisplayName, scriptContent);
-        return ((ScriptPluginFactorySelector) scriptPluginFactory).createRaw(scriptSource, scriptHandler, scriptPluginScope, buildSrcScope, false);
+        return scriptPluginFactory.create(scriptSource, scriptHandler, scriptPluginScope, buildSrcScope, false);
     }
 }

@@ -18,24 +18,21 @@ package org.gradle.configuration.project
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.configuration.ScriptPlugin
-import org.gradle.configuration.ScriptPluginFactory
+import org.gradle.configuration.ScriptApplicator
 import org.gradle.groovy.scripts.ScriptSource
 import spock.lang.Specification
 
-public class BuildScriptProcessorTest extends Specification {
+class BuildScriptProcessorTest extends Specification {
     def project = Mock(ProjectInternal)
     def scriptSource = Mock(ScriptSource)
-    def configurerFactory = Mock(ScriptPluginFactory)
-    def scriptPlugin = Mock(ScriptPlugin)
+    def scriptApplicator = Mock(ScriptApplicator)
     def targetScope = Mock(ClassLoaderScope)
     def baseScope = Mock(ClassLoaderScope)
-    def BuildScriptProcessor buildScriptProcessor = new BuildScriptProcessor(configurerFactory)
-    private ScriptHandler scriptHandler;
+    def scriptHandler = Mock(ScriptHandler)
+    def buildScriptProcessor = new BuildScriptProcessor(scriptApplicator)
 
     def "setup"() {
         _ * project.buildScriptSource >> scriptSource
-        scriptHandler = Mock(ScriptHandler)
         project.getBuildscript() >> scriptHandler
         project.getClassLoaderScope() >> targetScope
         project.getBaseClassLoaderScope() >> baseScope
@@ -46,7 +43,6 @@ public class BuildScriptProcessorTest extends Specification {
         buildScriptProcessor.execute(project)
 
         then:
-        1 * configurerFactory.create(scriptSource, scriptHandler, targetScope, baseScope, true) >> scriptPlugin
-        1 * scriptPlugin.apply(project)
+        1 * scriptApplicator.applyTo(project, scriptSource, scriptHandler, targetScope, baseScope, true)
     }
 }

@@ -17,28 +17,23 @@ package org.gradle.api.internal.plugins
 
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.api.internal.initialization.ScriptHandlerFactory
-import org.gradle.api.internal.initialization.ScriptHandlerInternal
-import org.gradle.configuration.ScriptPlugin
-import org.gradle.configuration.ScriptPluginFactory
+import org.gradle.configuration.ScriptApplicator
+import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.resource.TextResourceLoader
 import org.junit.Test
 import spock.lang.Specification
 
 class DefaultObjectConfigurationActionTest extends Specification {
-    Object target = new Object()
-    URI file = new URI('script:something')
+    def defaultTarget = new Object()
+    def file = new URI('script:something')
 
     def resolver = Mock(FileResolver)
-    def scriptPluginFactory = Mock(ScriptPluginFactory)
-    def scriptHandlerFactory = Mock(ScriptHandlerFactory)
-    def scriptHandler = Mock(ScriptHandlerInternal)
+    def scriptApplicator = Mock(ScriptApplicator)
     def scriptCompileScope = Mock(ClassLoaderScope)
     def parentCompileScope = Mock(ClassLoaderScope)
     def textResourceLoader = Mock(TextResourceLoader)
-    def configurer = Mock(ScriptPlugin)
 
-    DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(resolver, scriptPluginFactory, scriptHandlerFactory, parentCompileScope, textResourceLoader, target)
+    def action = new DefaultObjectConfigurationAction(resolver, scriptApplicator, parentCompileScope, textResourceLoader, defaultTarget)
 
     void doesNothingWhenNothingSpecified() {
         expect:
@@ -46,12 +41,11 @@ class DefaultObjectConfigurationActionTest extends Specification {
     }
 
     @Test
-    public void appliesScriptsToDefaultTargetObject() {
+    void appliesScriptsToDefaultTargetObject() {
         given:
         1 * resolver.resolveUri('script') >> file
         1 * parentCompileScope.createChild("script-$file") >> scriptCompileScope
-        1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandler
-        1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, parentCompileScope, false) >> configurer
+        1 * scriptApplicator.applyTo(setOf(defaultTarget), _ as ScriptSource, scriptCompileScope, parentCompileScope)
 
         when:
         action.from('script')
@@ -61,15 +55,12 @@ class DefaultObjectConfigurationActionTest extends Specification {
     }
 
     @Test
-    public void appliesScriptsToTargetObjects() {
+    void appliesScriptsToTargetObjects() {
         when:
-        Object target1 = new Object()
-        Object target2 = new Object()
+        def target1 = new Object()
+        def target2 = new Object()
         1 * resolver.resolveUri('script') >> file
-        1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandler
-        1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, parentCompileScope, false) >> configurer
-        1 * configurer.apply(target1)
-        1 * configurer.apply(target2)
+        1 * scriptApplicator.applyTo(setOf(target1, target2), _ as ScriptSource, scriptCompileScope, parentCompileScope)
         1 * parentCompileScope.createChild("script-$file") >> scriptCompileScope
 
         then:
@@ -80,21 +71,22 @@ class DefaultObjectConfigurationActionTest extends Specification {
     }
 
     @Test
-    public void flattensCollections() {
+    void flattensCollections() {
         when:
-        Object target1 = new Object()
-        Object target2 = new Object()
+        def target1 = new Object()
+        def target2 = new Object()
         1 * resolver.resolveUri('script') >> file
-        1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandler
-        1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, parentCompileScope, false) >> configurer
-        1 * configurer.apply(target1)
-        1 * configurer.apply(target2)
+        1 * scriptApplicator.applyTo(setOf(target1, target2), _ as ScriptSource, scriptCompileScope, parentCompileScope)
         1 * parentCompileScope.createChild("script-$file") >> scriptCompileScope
 
         then:
         action.from('script')
         action.to([[target1], target2])
         action.execute()
+    }
+
+    static Set<Object> setOf(Object... xs) {
+        xs as Set<Object>
     }
 
 }

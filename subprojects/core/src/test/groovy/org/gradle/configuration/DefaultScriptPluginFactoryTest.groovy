@@ -105,8 +105,7 @@ class DefaultScriptPluginFactoryTest extends Specification {
         final Object target = new Object()
 
         when:
-        def configurer = factory.create(scriptSource, scriptHandler, targetScope, baseScope, false)
-        configurer.apply(target)
+        applyScriptTo(target, false)
 
         then:
         1 * loggingManagerFactory.create() >> loggingManager
@@ -125,8 +124,7 @@ class DefaultScriptPluginFactoryTest extends Specification {
         def target = Mock(ProjectInternal)
 
         when:
-        def configurer = factory.create(scriptSource, scriptHandler, targetScope, baseScope, true)
-        configurer.apply(target)
+        applyScriptTo(target, true)
 
         then:
         1 * loggingManagerFactory.create() >> loggingManager
@@ -149,8 +147,7 @@ class DefaultScriptPluginFactoryTest extends Specification {
         def target = Mock(ProjectInternal)
 
         when:
-        def configurer = factory.create(scriptSource, scriptHandler, targetScope, baseScope, true)
-        configurer.apply(target)
+        applyScriptTo(target, true)
 
         then:
         1 * loggingManagerFactory.create() >> loggingManager
@@ -172,8 +169,7 @@ class DefaultScriptPluginFactoryTest extends Specification {
         def target = Mock(ProjectInternal)
 
         when:
-        def configurer = factory.create(scriptSource, scriptHandler, targetScope, baseScope, true)
-        configurer.apply(target)
+        applyScriptTo(target, true)
 
         then:
         1 * loggingManagerFactory.create() >> loggingManager
@@ -195,8 +191,7 @@ class DefaultScriptPluginFactoryTest extends Specification {
         def target = Mock(ProjectInternal)
 
         when:
-        def configurer = factory.create(scriptSource, scriptHandler, targetScope, baseScope, true)
-        configurer.apply(target)
+        applyScriptTo(target, true)
 
         then:
         1 * loggingManagerFactory.create() >> loggingManager
@@ -217,8 +212,7 @@ class DefaultScriptPluginFactoryTest extends Specification {
         def target = Mock(ProjectInternal)
 
         when:
-        def configurer = factory.create(scriptSource, scriptHandler, targetScope, baseScope, true)
-        configurer.apply(target)
+        applyScriptTo(target, true)
 
         then:
         1 * loggingManagerFactory.create() >> loggingManager
@@ -239,8 +233,7 @@ class DefaultScriptPluginFactoryTest extends Specification {
         final Object target = new Object()
 
         when:
-        def configurer = factory.create(scriptSource, scriptHandler, targetScope, baseScope, false)
-        configurer.apply(target)
+        applyScriptTo(target, false)
 
         then:
         1 * loggingManagerFactory.create() >> loggingManager
@@ -253,4 +246,10 @@ class DefaultScriptPluginFactoryTest extends Specification {
         1 * scriptRunner.run(target, { scriptServices -> scriptServices.get(ScriptPluginFactory) == otherScriptPluginFactory })
         0 * scriptRunner._
     }
+
+    void applyScriptTo(Object target, Boolean topLevelScript) {
+        def configurer = factory.create(scriptSource, scriptHandler, targetScope, baseScope, topLevelScript)
+        configurer.apply(target)
+    }
+
 }
