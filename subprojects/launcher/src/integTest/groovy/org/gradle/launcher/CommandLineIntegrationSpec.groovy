@@ -41,7 +41,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         fails "help"
 
         and:
-        errorOutput.trim().readLines()[0] == "Argument value '$value' given for --max-workers option is invalid (must be a positive, non-zero, integer)"
+        failure.assertHasDescription "Argument value '$value' given for system property org.gradle.workers.max or --max-workers option is invalid (must be a positive, non-zero, integer)"
 
         where:
         value << ["-1", "0", "foo", " 1"]
@@ -59,7 +59,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         fails "help"
 
         and:
-        failure.assertHasDescription "Value '$value' given for org.gradle.workers.max system property is invalid (must be a positive, non-zero, integer)"
+        failure.assertHasDescription "Argument value '$value' given for system property org.gradle.workers.max or --max-workers option is invalid (must be a positive, non-zero, integer"
 
         where:
         value << ["-1", "0", "foo", " 1"]
