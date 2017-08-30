@@ -93,9 +93,9 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
         """)
 
-        val result = buildWithPlugin("test", "-i")
-
-        assertThat(result.output, containsString("Plugin Using Embedded Kotlin "))
+        assertThat(
+            outputOf("test", "-i"),
+            containsString("Plugin Using Embedded Kotlin "))
     }
 
     @Test
@@ -131,15 +131,12 @@ class KotlinDslPluginTest : AbstractPluginTest() {
         withFile("src/main/kotlin/my/code.kt", """
             package my
 
-            import org.gradle.api.Plugin
-            import org.gradle.api.Project
+            import org.gradle.api.*
             import org.gradle.kotlin.dsl.*
 
             class MyPlugin : Plugin<Project> {
                 override fun apply(project: Project) {
-                    project.run {
-                        println("Plugin Using Embedded Kotlin " + embeddedKotlinVersion)
-                    }
+                    println("Plugin Using Embedded Kotlin " + embeddedKotlinVersion)
                 }
             }
         """)
@@ -162,8 +159,9 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
                 @JvmField @Rule val temporaryFolder = TemporaryFolder()
 
-                val projectRoot: File
-                    get() = File(temporaryFolder.root, "test").apply { mkdirs() }
+                val projectRoot by lazy {
+                    File(temporaryFolder.root, "test").apply { mkdirs() }
+                }
 
                 @Test
                 fun `my test`() {
@@ -193,9 +191,9 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
         """)
 
-        val result = buildWithPlugin("test", "-i")
-
-        assertThat(result.output, containsString("Plugin Using Embedded Kotlin "))
+        assertThat(
+            outputOf("test", "-i"),
+            containsString("Plugin Using Embedded Kotlin "))
     }
 
     @Test
@@ -236,4 +234,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     fun escapedPathOf(file: File) =
         file.absolutePath.replace("\\", "\\\\")
 
+    private
+    fun outputOf(vararg arguments: String) =
+        buildWithPlugin(*arguments).output
 }
