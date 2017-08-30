@@ -55,7 +55,6 @@ task block {
         stopsSingleDaemon()
         failure.assertHasDescription(DaemonStoppedException.MESSAGE)
 
-        blockingHandler.releaseAll()
         build.waitForFailure()
     }
 
@@ -84,7 +83,6 @@ task block {
         stopsSingleDaemon()
         out.contains(DaemonMessages.NO_DAEMONS_RUNNING)
 
-        blockingHandler.releaseAll()
         build.waitForFailure()
     }
 
