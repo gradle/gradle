@@ -15,20 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.component.ArtifactType;
-import org.gradle.internal.component.external.descriptor.Artifact;
-import org.gradle.internal.component.external.descriptor.MavenScope;
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
-import org.gradle.internal.component.external.model.MavenDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
@@ -43,7 +36,6 @@ import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 
 import java.io.File;
-import java.util.ArrayList;
 
 /**
  * ParserSettings that control the scope of searches carried out during parsing.
@@ -59,24 +51,17 @@ public class ExternalResourceResolverDescriptorParseContext implements Descripto
         this.fileResourceRepository = fileResourceRepository;
     }
 
+    @Override
     public LocallyAvailableExternalResource getMetaDataArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ArtifactType artifactType) {
-        moduleComponentIdentifier = resolveDynamicVersionIfNecessary(moduleComponentIdentifier);
         File resolvedArtifactFile = resolveMetaDataArtifactFile(moduleComponentIdentifier, mainResolvers.getComponentResolver(), mainResolvers.getArtifactResolver(), artifactType);
         return fileResourceRepository.resource(resolvedArtifactFile);
     }
 
-    private ModuleComponentIdentifier resolveDynamicVersionIfNecessary(ModuleComponentIdentifier moduleComponentIdentifier) {
-        ModuleVersionSelector selector = DefaultModuleVersionSelector.newSelector(moduleComponentIdentifier.getGroup(),
-            moduleComponentIdentifier.getModule(),
-            moduleComponentIdentifier.getVersion());
-        DependencyMetadata metadata = new MavenDependencyMetadata(MavenScope.Compile, false, selector, new ArrayList<Artifact>(), new ArrayList<Exclude>());
+    @Override
+    public LocallyAvailableExternalResource getMetaDataArtifact(DependencyMetadata dependencyMetadata, ArtifactType artifactType) {
         BuildableComponentIdResolveResult idResolveResult = new DefaultBuildableComponentIdResolveResult();
-        mainResolvers.getComponentIdResolver().resolve(metadata, idResolveResult);
-
-        moduleComponentIdentifier = new DefaultModuleComponentIdentifier(moduleComponentIdentifier.getGroup(),
-            moduleComponentIdentifier.getModule(),
-            idResolveResult.getModuleVersionId().getVersion());
-        return moduleComponentIdentifier;
+        mainResolvers.getComponentIdResolver().resolve(dependencyMetadata, idResolveResult);
+        return getMetaDataArtifact((ModuleComponentIdentifier) idResolveResult.getId(), artifactType);
     }
 
     private File resolveMetaDataArtifactFile(ModuleComponentIdentifier moduleComponentIdentifier, ComponentMetaDataResolver componentResolver,
