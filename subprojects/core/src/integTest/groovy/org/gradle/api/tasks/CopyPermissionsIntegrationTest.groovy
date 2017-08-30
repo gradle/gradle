@@ -198,10 +198,10 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
     @Issue('https://github.com/gradle/gradle/issues/2639')
     def "excluded files' permissions should be ignored"() {
         given:
-        getTestDirectory().createFile('src/unauthorized')
+        getTestDirectory().createFile('src/unauthorized/file')
         getTestDirectory().createFile('src/authorized')
         getTestDirectory().createDir('dest')
-        file('src/unauthorized').mode = 0222
+        file('src/unauthorized').mode = 0000
 
         and:
         buildFile << """
@@ -215,9 +215,11 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         run "copy"
-        file('src/unauthorized').mode = 0666
 
         then:
         file('dest').assertHasDescendants('authorized')
+
+        cleanup:
+        file('src/unauthorized').mode = 0777
     }
 }
