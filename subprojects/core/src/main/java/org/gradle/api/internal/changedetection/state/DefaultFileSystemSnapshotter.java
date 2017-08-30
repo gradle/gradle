@@ -117,7 +117,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
                     fileCollectionSnapshot.appendToHasher(hasher);
                     HashCode hashCode = hasher.hash();
                     snapshot = new HashBackedSnapshot(hashCode);
-                    String internedPath = getPath(file);
+                    String internedPath = internPath(file);
                     fileSystemMirror.putContent(internedPath, snapshot);
                 }
                 return snapshot;
@@ -176,18 +176,18 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
     }
 
     private FileTreeSnapshot doSnapshot(DirectoryFileTree directoryTree) {
-        String path = getPath(directoryTree.getDir());
+        String path = internPath(directoryTree.getDir());
         FileVisitorImpl visitor = new FileVisitorImpl();
         directoryTree.visit(visitor);
         return new DirectoryTreeDetails(path, ImmutableList.copyOf(visitor.getElements()));
     }
 
-    private String getPath(File file) {
+    private String internPath(File file) {
         return stringInterner.intern(file.getAbsolutePath());
     }
 
     private FileSnapshot calculateDetails(File file) {
-        String path = getPath(file);
+        String path = internPath(file);
         FileMetadataSnapshot stat = fileSystem.stat(file);
         switch (stat.getType()) {
             case Missing:
@@ -236,7 +236,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
 
         @Override
         public void visitDir(FileVisitDetails dirDetails) {
-            fileTreeElements.add(new DirectoryFileSnapshot(getPath(dirDetails.getFile()), dirDetails.getRelativePath(), false));
+            fileTreeElements.add(new DirectoryFileSnapshot(internPath(dirDetails.getFile()), dirDetails.getRelativePath(), false));
         }
 
         @Override
@@ -249,19 +249,8 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
         }
 
         private void visitFileBuffered(final FileVisitDetails fileDetails) {
-            final DeferredFileSnapshot deferred = new DeferredFileSnapshot();
-            Runnable task = new Runnable() {
-                @Override
-                public void run() {
-                    RegularFileSnapshot snapshot = null;
-                    try {
-                        snapshot = new RegularFileSnapshot(getPath(fileDetails.getFile()), fileDetails.getRelativePath(), false, fileSnapshot(fileDetails));
-                    } finally {
-                        deferred.setResult(snapshot);
-                    }
-                }
-            };
-            buffer[bufferSize++] = task;
+            final DeferredFileSnapshot deferred = new DeferredFileSnapshot(fileDetails);
+            buffer[bufferSize++] = deferred;
             fileTreeElements.add(deferred);
             if (bufferSize == BATCH_SIZE) {
                 flush();
@@ -269,7 +258,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
         }
 
         private void visitFileDirect(final FileVisitDetails fileDetails) {
-            fileTreeElements.add(new RegularFileSnapshot(getPath(fileDetails.getFile()), fileDetails.getRelativePath(), false, fileSnapshot(fileDetails)));
+            fileTreeElements.add(new RegularFileSnapshot(internPath(fileDetails.getFile()), fileDetails.getRelativePath(), false, fileSnapshot(fileDetails)));
         }
 
         public List<FileSnapshot> getElements() {
@@ -280,7 +269,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
             int i = 0;
             for (FileSnapshot element : fileTreeElements) {
                 if (element instanceof DeferredFileSnapshot) {
-                    fileTreeElements.set(i, ((DeferredFileSnapshot) element).blockUntilAvailable());
+                    fileTreeElements.set(i, ((DeferredFileSnapshot) element).getResult());
                 }
                 i++;
             }
@@ -328,15 +317,16 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
         executorService.shutdown();
     }
 
-    private static class DeferredFileSnapshot implements FileSnapshot {
+    private class DeferredFileSnapshot implements FileSnapshot, Runnable {
         private final Object lock = new Object();
+        private final FileVisitDetails details;
         private FileSnapshot delegate;
 
-        private DeferredFileSnapshot() {
-
+        private DeferredFileSnapshot(FileVisitDetails details) {
+            this.details = details;
         }
 
-        private FileSnapshot blockUntilAvailable() {
+        private FileSnapshot getResult() {
             while (delegate == null) {
                 synchronized (lock) {
                     try {
@@ -349,47 +339,54 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
             return delegate;
         }
 
-        void setResult(FileSnapshot snapshot) {
-            synchronized (lock) {
-                delegate = snapshot;
-                lock.notifyAll();
-            }
+        private IllegalStateException shouldNotBeCalled() {
+            return new IllegalStateException("Method called before the snapshot has been computed.");
         }
-
 
         @Override
         public String getPath() {
-            return blockUntilAvailable().getPath();
+            throw shouldNotBeCalled();
         }
 
         @Override
         public String getName() {
-            return blockUntilAvailable().getName();
+            throw shouldNotBeCalled();
         }
 
         @Override
         public FileType getType() {
-            return blockUntilAvailable().getType();
+            throw shouldNotBeCalled();
         }
 
         @Override
         public boolean isRoot() {
-            return blockUntilAvailable().isRoot();
+            throw shouldNotBeCalled();
         }
 
         @Override
         public RelativePath getRelativePath() {
-            return blockUntilAvailable().getRelativePath();
+            throw shouldNotBeCalled();
         }
 
         @Override
         public FileContentSnapshot getContent() {
-            return blockUntilAvailable().getContent();
+            throw shouldNotBeCalled();
         }
 
         @Override
         public FileSnapshot withContentHash(HashCode contentHash) {
-            return blockUntilAvailable().withContentHash(contentHash);
+            throw shouldNotBeCalled();
+        }
+
+        @Override
+        public void run() {
+            try {
+                delegate = new RegularFileSnapshot(internPath(details.getFile()), details.getRelativePath(), false, fileSnapshot(details));
+            } finally {
+                synchronized (lock) {
+                    lock.notifyAll();
+                }
+            }
         }
     }
 }
