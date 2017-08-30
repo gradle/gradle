@@ -49,7 +49,6 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String CONTINUE = "continue";
     private static final String OFFLINE = "offline";
     private static final String REFRESH_DEPENDENCIES = "refresh-dependencies";
-    private static final String PROJECT_CACHE_DIR = "project-cache-dir";
     private static final String RECOMPILE_SCRIPTS = "recompile-scripts";
 
     private static final String CONTINUOUS = "continuous";
@@ -76,7 +75,6 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         layoutCommandLineConverter.configure(parser);
 
         parser.allowMixedSubcommandsAndOptions();
-        parser.option(PROJECT_CACHE_DIR).hasArgument().hasDescription("Specify the project-specific cache directory. Defaults to .gradle in the root project directory.");
         parser.option(DRY_RUN, "dry-run").hasDescription("Run the builds with all task actions disabled.");
         parser.option(INIT_SCRIPT, "init-script").hasArguments().hasDescription("Specify an initialization script.");
         parser.option(SETTINGS_FILE, "settings-file").hasArgument().hasDescription("Specify the settings file.");
@@ -128,10 +126,6 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
         for (String script : options.option(INIT_SCRIPT).getValues()) {
             startParameter.addInitScript(resolver.transform(script));
-        }
-
-        if (options.hasOption(PROJECT_CACHE_DIR)) {
-            startParameter.setProjectCacheDir(resolver.transform(options.option(PROJECT_CACHE_DIR).getValue()));
         }
 
         if (options.hasOption(NO_PROJECT_DEPENDENCY_REBUILD)) {

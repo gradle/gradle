@@ -17,11 +17,15 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.api.Transformer;
+import org.gradle.api.internal.file.BasicFileResolver;
 import org.gradle.initialization.option.BooleanBuildOption;
 import org.gradle.initialization.option.BuildOption;
 import org.gradle.initialization.option.BuildOptionFactory;
 import org.gradle.initialization.option.CommandLineOptionConfiguration;
+import org.gradle.initialization.option.StringBuildOption;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,10 +34,23 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
     @Override
     public List<BuildOption<StartParameter>> create() {
         List<BuildOption<StartParameter>> options = new ArrayList<BuildOption<StartParameter>>();
+        options.add(new ProjectCacheDirOption());
         options.add(new ConfigureOnDemandOption());
         options.add(new BuildCacheOption());
         options.add(new BuildScanOption());
         return options;
+    }
+
+    public static class ProjectCacheDirOption extends StringBuildOption<StartParameter> {
+        public ProjectCacheDirOption() {
+            super(StartParameter.class, null, CommandLineOptionConfiguration.create("project-cache-dir", "Specify the project-specific cache directory. Defaults to .gradle in the root project directory.").hasArgument());
+        }
+
+        @Override
+        public void applyTo(String value, StartParameter settings) {
+            Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
+            settings.setProjectCacheDir(resolver.transform(value));
+        }
     }
 
     public static class ConfigureOnDemandOption extends BooleanBuildOption<StartParameter> {
