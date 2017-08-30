@@ -49,7 +49,7 @@ class RetryRuleUtil {
             println "Cause   (caught during test): " + failure?.cause
         }
 
-        println "Daemons (potentially used): ${daemonsFixture?.daemons?.collect { it.context?.pid }} - ${daemonsFixture?.daemonBaseDir}"
+        println "Daemons (potentially used): ${daemonsFixture?.allDaemons?.collect { it.context?.pid }} - ${daemonsFixture?.daemonBaseDir}"
 
         if (releasedGradleVersion == null) {
             println "Can not retry cross version test because 'gradleVersion' is unknown"
@@ -129,11 +129,8 @@ class RetryRuleUtil {
                 getRootCauseMessage(failure) == "An established connection was aborted by the software in your host machine" ||
                 getRootCauseMessage(failure) == "Connection refused: no further information") {
 
-                for (def daemon : daemonsFixture.daemons) {
-                    if (daemon.log.contains("java.net.SocketException: Socket operation on nonsocket:")
-                        || daemon.log.contains("java.io.IOException: An operation was attempted on something that is not a socket")
-                        || daemon.log.contains("java.io.IOException: An existing connection was forcibly closed by the remote host")) {
-
+                for (def daemon : daemonsFixture.allDaemons) {
+                    if (daemonStoppedWithSocketExceptionOnWindows(daemon)) {
                         println "Retrying test because socket disappeared. Check log of daemon with PID " + daemon.context.pid
                         return retryWithCleanProjectDir(specification)
                     }
@@ -141,6 +138,12 @@ class RetryRuleUtil {
             }
         }
         false
+    }
+
+    static daemonStoppedWithSocketExceptionOnWindows(daemon) {
+        runsOnWindowsAndJava7or8() && (daemon.log.contains("java.net.SocketException: Socket operation on nonsocket:")
+        || daemon.log.contains("java.io.IOException: An operation was attempted on something that is not a socket")
+        || daemon.log.contains("java.io.IOException: An existing connection was forcibly closed by the remote host"))
     }
 
     static String getRootCauseMessage(Throwable throwable) {
