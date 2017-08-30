@@ -102,6 +102,8 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
     }
 
     /**
+     * Injects and returns an instance of {@link ObjectFactory}.
+     *
      * @since 4.2
      */
     @Inject

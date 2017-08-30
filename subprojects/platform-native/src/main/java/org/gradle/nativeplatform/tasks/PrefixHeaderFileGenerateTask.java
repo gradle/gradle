@@ -41,6 +41,8 @@ public class PrefixHeaderFileGenerateTask extends DefaultTask {
     private final WorkerExecutor workerExecutor;
 
     /**
+     * Injects a {@link WorkerExecutor} instance.
+     *
      * @since 4.2
      */
     @Inject

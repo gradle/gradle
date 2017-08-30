@@ -50,6 +50,8 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
     private final FileOperations fileOperations;
 
     /**
+     * Injects a {@link FileOperations} instance.
+     *
      * @since 4.2
      */
     @Inject

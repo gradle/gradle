@@ -154,6 +154,8 @@ public class JavaCompile extends AbstractCompile {
     }
 
     /**
+     * Injects and returns an instance of {@link StreamHasher}.
+     *
      * @since 4.2
      */
     @Inject

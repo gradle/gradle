@@ -57,6 +57,8 @@ public class InstallExecutable extends DefaultTask {
     private final WorkerLeaseService workerLeaseService;
 
     /**
+     * Injects a {@link WorkerLeaseService} instance.
+     *
      * @since 4.2
      */
     @Inject

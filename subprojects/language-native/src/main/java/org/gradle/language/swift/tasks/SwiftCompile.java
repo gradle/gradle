@@ -71,6 +71,8 @@ public class SwiftCompile extends AbstractNativeCompileTask {
     }
 
     /**
+     * Sets the moduleName property through a {@link Provider}.
+     *
      * @since 4.2
      */
     public void setModuleName(Provider<String> moduleName) {

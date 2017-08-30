@@ -55,6 +55,8 @@ public class EarPlugin implements Plugin<Project> {
     private final FileResolver fileResolver;
 
     /**
+     * Injects an {@link ObjectFactory} and a {@link FileResolver} instance.
+     *
      * @since 4.2
      */
     @Inject

@@ -60,6 +60,8 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
     private final FileOperations fileOperations;
 
     /**
+     * Injects a {@link FileOperations} instance.
+     *
      * @since 4.2
      */
     @Inject
