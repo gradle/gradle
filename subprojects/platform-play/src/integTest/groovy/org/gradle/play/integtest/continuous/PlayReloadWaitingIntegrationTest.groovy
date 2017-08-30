@@ -16,13 +16,11 @@
 
 package org.gradle.play.integtest.continuous
 
-import org.gradle.internal.filewatch.PendingChangesListener
 import org.gradle.internal.filewatch.PendingChangesManager
-import org.gradle.internal.filewatch.SingleFirePendingChangesListener
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.TestParticipant
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
-import spock.lang.Unroll
 
 import java.util.concurrent.TimeUnit
 
@@ -30,175 +28,33 @@ class PlayReloadWaitingIntegrationTest extends AbstractPlayReloadIntegrationTest
     @Rule
     public ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
 
+    TestFile hooksFile
+
     def setup() {
+        withoutContinuousBuild()
+
         server.start()
-        addPendingChangesHook()
+        hooksFile = file('hooks.gradle') << """
+            gradle.projectsLoaded {
+                ${server.callFromBuild("buildStarted")}
+            }
+            gradle.buildFinished {
+                ${server.callFromBuild("buildFinished")}
+            }
+        """
         buildFile << """
-            if (project.findProperty('rebuildOnRequest') == 'true') {
-                model {
-                    tasks.runPlayBinary {
-                        rebuildOnRequest = 'true'
-                    }
-                }
-            }
-
-            gradle.taskGraph.afterTask { task ->
-                if (task.path != ":compilePlayBinaryScala") {
-                    return
-                }
-                def markerFile = file('wait-for-changes')
-                if (markerFile.exists()) {
-                    println "WAITING FOR CHANGES"
-                    def pendingChanges = new java.util.concurrent.atomic.AtomicBoolean(false)
-                    def pendingChangesManager = gradle.services.get(${PendingChangesManager.canonicalName})
-                    def pendingChangesListener = new ${SingleFirePendingChangesListener.canonicalName}({
-                        synchronized(pendingChanges) {
-                            println "Pending changes detected"
-                            pendingChanges.set(true)
-                            pendingChanges.notifyAll()
-                        }
-                    } as ${PendingChangesListener.canonicalName})
-
-                    pendingChangesManager.addListener pendingChangesListener
-                    
-                    // Signal we are listening for changes
-                    ${server.callFromBuild("rebuild")}
-
-                    synchronized(pendingChanges) {
-                        while(!pendingChanges.get()) {
-                            pendingChanges.wait()
-                        }
-                    }
-                    
-                    markerFile.delete()
+            tasks.withType(PlayRun) {
+                doLast {
+                    ${server.callFromBuild("appStarted")}
                 }
             }
         """
     }
 
-    def "wait for changes to be built when a request comes in during a build"() {
-        file('hooks.gradle') << """
-            gradle.projectsLoaded {
-                ${server.callFromBuild("buildStarted")}
-            }
-            gradle.buildFinished {
-                ${server.callFromBuild("buildFinished")}
-            }
-        """
-        executer.withArguments("-I", file("hooks.gradle").absolutePath)
-
-        when:
-        server.expect("buildStarted")
-        server.expect("buildFinished")
-        succeeds("runPlayBinary")
-        then:
-        appIsRunningAndDeployed()
-
-        when:
-        def block = server.expectAndBlock( "buildStarted")
-        addNewRoute("hello")
-        block.waitForAllPendingCalls()
-        block.releaseAll()
-
-        then:
-        server.expect("buildFinished")
-        checkRoute 'hello'
-    }
-
-    def "wait for pending changes to be built if a request comes in during a build and there are pending changes"() {
-        when:
-        succeeds("runPlayBinary")
-        then:
-        appIsRunningAndDeployed()
-
-        when:
-        def block = blockBuildWaitingForChanges()
-
-        // Make a change that triggers the build
-        addNewRoute("hello")
-
-        // Wait for the build to be blocked waiting for next change
-        block.waitForAllPendingCalls()
-
-        // Trigger another change
-        addNewRoute("goodbye")
-        block.releaseAll()
-
-        then:
-        // goodbye route is added by second change, so if it's available, we know we've blocked
-        checkRoute 'goodbye'
-        checkRoute 'hello'
-     }
-
-    def "wait for pending changes to be built if a request comes in during a failing build and there are pending changes"() {
-        when:
-        succeeds("runPlayBinary")
-        then:
-        appIsRunningAndDeployed()
-
-        when:
-        def block = blockBuildWaitingForChanges()
-
-        // Trigger a change that breaks the build
-        addBadCode()
-
-        // Wait for the build to be blocked waiting for next change
-        block.waitForAllPendingCalls()
-
-        // Trigger another change during the build that works
-        fixBadCode()
-        block.releaseAll()
-
-        then:
-        checkRoute 'hello'
-    }
-
-    @Unroll
-    def "wait for changes to be built when a request comes in during initial app startup and there are pending changes and build is gated=#gated"() {
+    def "waits for app request before building changes"() {
         given:
-        // prebuild so the build doesn't timeout waiting for rebuild signal
-        executer.withTasks("playBinary").run()
-        when:
-        def rebuild = blockBuildWaitingForChanges()
-
-        // Start up the Play app, block waiting for changes before completion
-        if (gated) {
-            start("runPlayBinary", "-PrebuildOnRequest=true")
-        } else {
-            start("runPlayBinary")
-        }
-
-        rebuild.waitForAllPendingCalls()
-
-        // Trigger a change
-        addNewRoute('hello')
-        rebuild.releaseAll()
-
-        then:
-        appIsRunningAndDeployed()
-        checkRoute 'hello'
-
-        where:
-        gated << [ true, false ]
-    }
-
-    def "wait for request before building changes with gated build"() {
-        file('hooks.gradle') << """
-            gradle.projectsLoaded {
-                ${server.callFromBuild("buildStarted")}
-            }
-            gradle.buildFinished {
-                ${server.callFromBuild("buildFinished")}
-            }
-        """
-        executer.withArguments("-I", file("hooks.gradle").absolutePath)
-
-        when:
-        server.expect("buildStarted")
-        server.expect("buildFinished")
-        succeeds("runPlayBinary", "-PrebuildOnRequest=true")
-        then:
-        appIsRunningAndDeployed()
+        executer.withArguments("-I", hooksFile.absolutePath)
+        waitForStartup()
 
         when:
         def block = server.expectAndBlock( "buildStarted")
@@ -216,18 +72,106 @@ class PlayReloadWaitingIntegrationTest extends AbstractPlayReloadIntegrationTest
             }
             block.waitForAllPendingCalls()
             block.releaseAll()
+            server.expect("appStarted")
             server.expect("buildFinished")
         }
         // Request should be complete soon after build completes
         routeChecker.completesWithin(1, TimeUnit.SECONDS)
     }
 
-    def blockBuildWaitingForChanges() {
-        file('wait-for-changes').touch()
-        return server.expectAndBlock("rebuild")
+    def "wait for changes to be built when a request comes in during initial app startup"() {
+        given:
+        // prebuild so the build doesn't timeout waiting for rebuild signal
+        executer.withTasks("playBinary").run()
+
+        when:
+        executer.withArguments("-I", hooksFile.absolutePath)
+        server.expect("buildStarted")
+        def onRun = server.expectAndBlock("appStarted")
+
+        start("runPlayBinary")
+
+        onRun.waitForAllPendingCalls()
+        def routeChecker = concurrent.start({
+            checkRoute('hello')
+        })
+
+        // Add a new route and expect a rebuild
+        addNewRoute('hello')
+
+        // Allow the first build to complete
+        onRun.releaseAll()
+        server.expect("buildFinished")
+        expectBuild()
+
+        then:
+        routeChecker.completesWithin(5, TimeUnit.SECONDS)
+    }
+
+    def "wait for changes to be built when a change occurs during a build"() {
+        given:
+        buildFile << """
+            def pendingChangesManager = gradle.services.get(${PendingChangesManager.canonicalName})
+            pendingChangesManager.addListener {
+                Thread.start {
+                    ${server.callFromBuild("pendingChange")}
+                }
+            }
+"""
+        executer.withArguments("-I", hooksFile.absolutePath)
+        waitForStartup()
+
+        when:
+        // Add a new route and wait for it to be detected
+        server.expect("pendingChange")
+        def changeDelivered = server.expectAndBlock("pendingChange")
+        addNewRoute("ignored")
+        changeDelivered.waitForAllPendingCalls()
+
+        // Open an HTTP connection to the App: will block until all changes built and incorporated
+        def routeChecker = concurrent.start({
+            checkRoute('important')
+        })
+        changeDelivered.releaseAll()
+
+        // After the app starts (but before the build finishes) add another route
+        server.expect( "buildStarted")
+        def afterAppStarted = server.expectAndBlock("appStarted")
+        afterAppStarted.waitForAllPendingCalls()
+        addNewRoute("important")
+
+        server.expect("pendingChange")
+        server.expect("pendingChange")
+        server.expect("pendingChange")
+        // TODO:DAZ Find a better way to ensure this change is 'delivered'
+        sleep 10000
+
+        afterAppStarted.releaseAll()
+
+        server.expect("buildFinished")
+
+        expectBuild()
+
+        then:
+        routeChecker.completesWithin(5, TimeUnit.SECONDS)
+    }
+
+    private void waitForStartup() {
+        2.times {
+            expectBuild()
+        }
+        succeeds("runPlayBinary")
+        appIsRunningAndDeployed()
+    }
+
+    private void expectBuild() {
+        server.expect("buildStarted")
+        server.expect("appStarted")
+        server.expect("buildFinished")
     }
 
     void checkRoute(String route) {
+        runningApp.initialize(gradle)
         assert runningApp.playUrl(route).text == route + ' world'
     }
 }

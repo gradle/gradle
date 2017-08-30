@@ -19,6 +19,8 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.api.Action;
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.deployment.internal.Deployment;
+import org.gradle.deployment.internal.DeploymentInternal;
 import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.execution.CancellableOperationManager;
 import org.gradle.execution.DefaultCancellableOperationManager;
@@ -95,8 +97,12 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
     private void waitForDeployments(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters, ServiceRegistry contextServices, CancellableOperationManager cancellableOperationManager) {
         final DeploymentRegistryInternal deploymentRegistry = contextServices.get(DeploymentRegistryInternal.class);
         if (!deploymentRegistry.getRunningDeployments().isEmpty()) {
-            logger.println().println("Reloadable deployment detected. Entering continuous build.");
+            // Deployments are considered outOfDate until initial execution with file watching
+            for (Deployment deployment : deploymentRegistry.getRunningDeployments()) {
+                ((DeploymentInternal) deployment).outOfDate();
+            }
             requestContext.getBuildTimeClock().reset();
+            logger.println().println("Reloadable deployment detected. Entering continuous build.");
             ContinuousExecutionGate deploymentRequestExecutionGate = deploymentRegistry.getExecutionGate();
             executeMultipleBuilds(action, requestContext, actionParameters, contextServices, cancellableOperationManager, deploymentRequestExecutionGate);
         }
