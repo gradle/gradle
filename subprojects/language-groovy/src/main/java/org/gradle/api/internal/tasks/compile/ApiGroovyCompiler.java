@@ -35,6 +35,7 @@ import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classloader.FilteringClassLoader;
@@ -184,7 +185,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             compileClasspathLoader.shutdown();
         }
 
-        return WorkResult.didWork(true);
+        return WorkResults.didWork(true);
     }
 
     private boolean shouldProcessAnnotations(GroovyJavaJointCompileSpec spec) {

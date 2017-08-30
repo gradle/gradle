@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.tasks;
 
 /**
- * Provides information about some work which was performed.
+ * Helps create {@link WorkResult} objects.
  */
-public interface WorkResult {
-    boolean getDidWork();
+public class WorkResults {
+    private static final WorkResult DID_WORK = new WorkResult() {
+        @Override
+        public boolean getDidWork() {
+            return true;
+        }
+    };
+    private static final WorkResult DID_NO_WORK = new WorkResult() {
+        @Override
+        public boolean getDidWork() {
+            return false;
+        }
+    };
+
+    private WorkResults() {}
+
+    public static WorkResult didWork(boolean didWork) {
+        return didWork ? DID_WORK : DID_NO_WORK;
+    }
 }

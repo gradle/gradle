@@ -26,6 +26,7 @@ import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopyActionProcessingStream;
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 
@@ -69,7 +70,7 @@ public class TarCopyAction implements CopyAction {
             }
         });
 
-        return WorkResult.didWork(true);
+        return WorkResults.didWork(true);
     }
 
     private class StreamAction implements CopyActionProcessingStreamAction {

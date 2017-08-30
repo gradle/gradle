@@ -25,6 +25,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
@@ -59,7 +60,7 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> extends Abstra
 
         super.execute(spec);
 
-        return WorkResult.didWork(!transformedSpec.getSourceFiles().isEmpty());
+        return WorkResults.didWork(!transformedSpec.getSourceFiles().isEmpty());
     }
 
     // TODO(daniel): Should support in a better way multi file invocation.

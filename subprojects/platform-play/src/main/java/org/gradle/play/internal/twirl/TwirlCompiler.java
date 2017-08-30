@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.FileUtils;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.twirl.TwirlTemplateFormat;
@@ -64,7 +65,7 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
             }
         }
 
-        return WorkResult.didWork(!outputFiles.isEmpty());
+        return WorkResults.didWork(!outputFiles.isEmpty());
     }
 
     private ScalaMethod getCompileMethod(ClassLoader cl) {

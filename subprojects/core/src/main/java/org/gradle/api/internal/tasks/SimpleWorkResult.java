@@ -19,19 +19,19 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.util.DeprecationLogger;
 
 /**
- * @deprecated Use {@link WorkResult.didWork(boolean)} instead.
+ * @deprecated Use {@link org.gradle.api.tasks.WorkResults#didWork(boolean)} instead.
  */
 @Deprecated
-public class SimpleWorkResult extends WorkResult {
+public class SimpleWorkResult implements WorkResult {
 
     private final boolean didWork;
 
     /**
-     * @deprecated Use {@link WorkResult#didWork(boolean)} instead.
+     * @deprecated Use {@link org.gradle.api.tasks.WorkResults#didWork(boolean)} instead.
      */
     @Deprecated
     public SimpleWorkResult(boolean didWork) {
-        DeprecationLogger.nagUserOfDiscontinuedApi("SimpleWorkResult type", "Please use WorkResult.didWork() instead.");
+        DeprecationLogger.nagUserOfDiscontinuedApi("SimpleWorkResult type", "Please use WorkResults.didWork() instead.");
         this.didWork = didWork;
     }
 

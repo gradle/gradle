@@ -22,6 +22,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.WorkResults;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.CollectionUtils;
 
@@ -101,7 +102,7 @@ public class NormalizingJavaCompiler implements Compiler<JavaCompileSpec> {
                 throw e;
             }
             LOGGER.debug("Ignoring compilation failure.");
-            return WorkResult.didWork(false);
+            return WorkResults.didWork(false);
         }
     }
 }

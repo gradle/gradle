@@ -20,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.WorkResults;
 import org.gradle.external.javadoc.internal.JavadocExecHandleBuilder;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.internal.ExecAction;
@@ -57,6 +58,6 @@ public class JavadocGenerator implements Compiler<JavadocSpec> {
             throw new GradleException(String.format("Javadoc generation failed. Generated Javadoc options file (useful for troubleshooting): '%s'", spec.getOptionsFile()), e);
         }
 
-        return WorkResult.didWork(true);
+        return WorkResults.didWork(true);
     }
 }

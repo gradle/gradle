@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.WorkResults;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 
@@ -38,7 +39,7 @@ public class OutputCleaningCompiler<T extends NativeCompileSpec> implements Comp
     public WorkResult execute(T spec) {
         boolean didRemove = deleteOutputsForRemovedSources(spec);
         boolean didCompile = compileSources(spec);
-        return WorkResult.didWork(didRemove || didCompile);
+        return WorkResults.didWork(didRemove || didCompile);
     }
 
     private boolean compileSources(T spec) {

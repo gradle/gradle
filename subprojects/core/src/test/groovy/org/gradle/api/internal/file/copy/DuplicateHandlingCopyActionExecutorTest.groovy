@@ -45,7 +45,7 @@ class DuplicateHandlingCopyActionExecutorTest extends Specification {
     def delegate = new CopyAction() {
         WorkResult execute(CopyActionProcessingStream stream) {
             stream.process(delegateAction)
-            return WorkResult.didWork(true);
+            return WorkResults.didWork(true);
         }
     }
 

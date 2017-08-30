@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.WorkResults;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -46,7 +47,7 @@ public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec>, Seria
         ExecHandle handle = createCompilerHandle(executable, spec);
         executeCompiler(handle);
 
-        return WorkResult.didWork(true);
+        return WorkResults.didWork(true);
     }
 
     private ExecHandle createCompilerHandle(String executable, JavaCompileSpec spec) {

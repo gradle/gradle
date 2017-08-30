@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -83,7 +84,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
             }
             LOGGER.info("Completed Scala compilation: {}", timer.getElapsed());
 
-            return WorkResult.didWork(true);
+            return WorkResults.didWork(true);
         }
 
         private static IncOptions getIncOptions() {
