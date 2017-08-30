@@ -32,6 +32,7 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
         List<BuildOption<StartParameter>> options = new ArrayList<BuildOption<StartParameter>>();
         options.add(new ConfigureOnDemandOption());
         options.add(new BuildCacheOption());
+        options.add(new BuildScanOption());
         return options;
     }
 
@@ -58,6 +59,17 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
         @Override
         public void applyTo(boolean value, StartParameter settings) {
             settings.setBuildCacheEnabled(value);
+        }
+    }
+
+    public static class BuildScanOption extends BooleanBuildOption<StartParameter> {
+        public BuildScanOption() {
+            super(StartParameter.class, null, CommandLineOptionConfiguration.create("scan", "Creates a build scan. Gradle will emit a warning if the build scan plugin has not been applied. (https://gradle.com/build-scans)").incubating());
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameter settings) {
+            settings.setBuildScan(value);
         }
     }
 }

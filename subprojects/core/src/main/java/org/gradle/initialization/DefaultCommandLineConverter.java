@@ -55,9 +55,6 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String CONTINUOUS = "continuous";
     private static final String CONTINUOUS_SHORT_FLAG = "t";
 
-    private static final String BUILDSCAN = "scan";
-    private static final String NO_BUILDSCAN = "no-scan";
-
     private static final String INCLUDE_BUILD = "include-build";
 
     private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new LoggingCommandLineConverter();
@@ -93,10 +90,6 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(OFFLINE).hasDescription("Execute the build without accessing network resources.");
         parser.option(REFRESH_DEPENDENCIES).hasDescription("Refresh the state of dependencies.");
         parser.option(CONTINUOUS, CONTINUOUS_SHORT_FLAG).hasDescription("Enables continuous build. Gradle does not exit and will re-execute tasks when task file inputs change.").incubating();
-
-        parser.option(BUILDSCAN).hasDescription("Creates a build scan. Gradle will emit a warning if the build scan plugin has not been applied. (https://gradle.com/build-scans)").incubating();
-        parser.option(NO_BUILDSCAN).hasDescription("Disables the creation of a build scan. (https://gradle.com/build-scans)").incubating();
-
         parser.option(INCLUDE_BUILD).hasArguments().hasDescription("Include the specified build in the composite.").incubating();
 
         for (BuildOption<StartParameter> option : buildOptions) {
@@ -183,17 +176,6 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
         if (options.hasOption(CONTINUOUS)) {
             startParameter.setContinuous(true);
-        }
-
-        if (options.hasOption(BUILDSCAN)) {
-            startParameter.setBuildScan(true);
-        }
-
-        if (options.hasOption(NO_BUILDSCAN)) {
-            if(options.hasOption(BUILDSCAN)){
-                throw new CommandLineArgumentException("Command line switches '--scan' and '--no-scan' are mutually exclusive and must not be used together.");
-            }
-            startParameter.setNoBuildScan(true);
         }
 
         for (String includedBuild : options.option(INCLUDE_BUILD).getValues()) {
