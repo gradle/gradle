@@ -65,7 +65,8 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         xcodeWorkspace("${rootProjectName}.xcworkspace")
             .contentFile.assertHasProjects([file("${rootProjectName}.xcodeproj"), file('greeter/greeter.xcodeproj')]*.absolutePath)
 
-        buildSettings(xcodeProject("${rootProjectName}.xcodeproj").projectFile).HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("src/main/headers"), file("greeter/src/main/public"))
+        def project = xcodeProject("${rootProjectName}.xcodeproj").projectFile
+        project.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("src/main/headers"), file("greeter/src/main/public"))
     }
 
     def "create xcode project C++ executable"() {
@@ -96,6 +97,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         xcodeWorkspace("${rootProjectName}.xcworkspace")
             .contentFile.assertHasProjects([file("${rootProjectName}.xcodeproj"), file('app/app.xcodeproj'), file('greeter/greeter.xcodeproj')]*.absolutePath)
 
-        buildSettings(xcodeProject("app/app.xcodeproj").projectFile).HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("app/src/main/headers"), file("greeter/src/main/public"))
+        def project = xcodeProject("app/app.xcodeproj").projectFile
+        project.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("app/src/main/headers"), file("greeter/src/main/public"))
     }
 }

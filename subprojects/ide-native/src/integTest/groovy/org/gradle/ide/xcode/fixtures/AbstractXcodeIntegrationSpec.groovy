@@ -19,7 +19,6 @@ package org.gradle.ide.xcode.fixtures
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.CollectionUtils
 
 class AbstractXcodeIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
@@ -51,26 +50,5 @@ rootProject.name = "${rootProjectName}"
 
     protected XcodeWorkspacePackage xcodeWorkspace(String path) {
         new XcodeWorkspacePackage(file(path))
-    }
-
-    protected void assertProjectHasEqualsNumberOfGradleAndIndexTargets(def targets) {
-        assert targets.findAll(gradleTargets()).size() == targets.size() / 2
-        assert targets.findAll(indexTargets()).size() == targets.size() / 2
-    }
-
-    protected static def gradleTargets() {
-        return {
-            it.isa == 'PBXLegacyTarget'
-        }
-    }
-
-    protected static def indexTargets() {
-        return {
-            it.isa == 'PBXNativeTarget'
-        }
-    }
-
-    protected def buildSettings(def project) {
-        return CollectionUtils.single(project.targets.find(indexTargets()).buildConfigurationList.buildConfigurations).buildSettings
     }
 }

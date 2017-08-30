@@ -38,16 +38,23 @@ apply plugin: 'swift-executable'
 
         def project = xcodeProject("app.xcodeproj").projectFile
         project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
+        project.buildConfigurationList.buildConfigurations.name == ["Debug", "Release"]
         project.targets.size() == 2
         project.assertTargetsAreTools()
         project.targets.every { it.productName == 'App' }
+
         project.targets[0].name == 'App Executable'
         project.targets[0].productReference.path == exe("build/exe/main/debug/App").absolutePath
+        project.targets[0].buildConfigurationList.buildConfigurations.name == ["Debug", "Release"]
+        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("build/exe/main/debug").absolutePath
+        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("build/exe/main/release").absolutePath
+
         project.targets[1].name == '[INDEXING ONLY] App Executable'
+        project.targets[1].buildConfigurationList.buildConfigurations.name == ["Debug"]
+        project.targets[1].buildConfigurationList.buildConfigurations[0].buildSettings.SWIFT_INCLUDE_PATHS == null
+
         project.products.children.size() == 1
         project.products.children[0].path == exe("build/exe/main/debug/App").absolutePath
-
-        assertProjectHasEqualsNumberOfGradleAndIndexTargets(project.targets)
     }
 
     def "create xcode project library"() {
@@ -66,16 +73,23 @@ apply plugin: 'swift-library'
 
         def project = xcodeProject("app.xcodeproj").projectFile
         project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
+        project.buildConfigurationList.buildConfigurations.name == ["Debug", "Release"]
         project.targets.size() == 2
         project.assertTargetsAreDynamicLibraries()
         project.targets.every { it.productName == "App" }
+
         project.targets[0].name == 'App SharedLibrary'
         project.targets[0].productReference.path == sharedLib("build/lib/main/debug/App").absolutePath
+        project.targets[0].buildConfigurationList.buildConfigurations.name == ["Debug", "Release"]
+        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/debug").absolutePath
+        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/release").absolutePath
+
         project.targets[1].name == '[INDEXING ONLY] App SharedLibrary'
+        project.targets[1].buildConfigurationList.buildConfigurations.name == ["Debug"]
+        project.targets[1].buildConfigurationList.buildConfigurations[0].buildSettings.SWIFT_INCLUDE_PATHS == null
+
         project.products.children.size() == 1
         project.products.children[0].path == sharedLib("build/lib/main/debug/App").absolutePath
-
-        assertProjectHasEqualsNumberOfGradleAndIndexTargets(project.targets)
     }
 
     def "new source files are included in the project"() {
@@ -193,6 +207,8 @@ executable.module = 'TestApp'
         project.targets.every { it.productName == 'App' }
         project.targets[0].name == 'App Executable'
         project.targets[0].productReference.path == exe("output/exe/main/debug/TestApp").absolutePath
+        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("output/exe/main/debug").absolutePath
+        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("output/exe/main/release").absolutePath
         project.targets[1].name == '[INDEXING ONLY] App Executable'
         project.products.children.size() == 1
         project.products.children[0].path == exe("output/exe/main/debug/TestApp").absolutePath
@@ -219,10 +235,10 @@ library.module = 'TestLib'
         project.targets.every { it.productName == "App" }
         project.targets[0].name == 'App SharedLibrary'
         project.targets[0].productReference.path == sharedLib("output/lib/main/debug/TestLib").absolutePath
+        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("output/lib/main/debug").absolutePath
+        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("output/lib/main/release").absolutePath
         project.targets[1].name == '[INDEXING ONLY] App SharedLibrary'
         project.products.children.size() == 1
         project.products.children[0].path == sharedLib("output/lib/main/debug/TestLib").absolutePath
-
-        assertProjectHasEqualsNumberOfGradleAndIndexTargets(project.targets)
     }
 }
