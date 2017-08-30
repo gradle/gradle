@@ -27,7 +27,6 @@ import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction
-import org.gradle.api.internal.tasks.SimpleWorkResult
 import org.gradle.api.tasks.WorkResult
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.logging.TestOutputEventListener
@@ -46,7 +45,7 @@ class DuplicateHandlingCopyActionExecutorTest extends Specification {
     def delegate = new CopyAction() {
         WorkResult execute(CopyActionProcessingStream stream) {
             stream.process(delegateAction)
-            return new SimpleWorkResult(true)
+            return WorkResult.didWork(true);
         }
     }
 

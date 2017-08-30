@@ -44,10 +44,6 @@ public class RhinoCoffeeScriptCompiler implements CoffeeScriptCompiler {
 
         compiler.process(new SerializableCoffeeScriptCompileSpec(spec));
 
-        return new WorkResult() {
-            public boolean getDidWork() {
-                return true;
-            }
-        };
+        return WorkResult.didWork(true);
     }
 }

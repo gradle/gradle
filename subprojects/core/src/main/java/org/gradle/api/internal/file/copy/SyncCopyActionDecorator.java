@@ -22,7 +22,6 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
-import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -70,7 +69,7 @@ public class SyncCopyActionDecorator implements CopyAction {
         walker.visit(fileVisitor);
         visited.clear();
 
-        return new SimpleWorkResult(didWork.getDidWork() || fileVisitor.didWork);
+        return WorkResult.didWork(didWork.getDidWork() || fileVisitor.didWork);
     }
 
     private static class SyncCopyActionDecoratorFileVisitor implements FileVisitor {

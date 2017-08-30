@@ -19,7 +19,6 @@ package org.gradle.play.internal.javascript;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.file.RelativeFile;
-import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -63,7 +62,7 @@ public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, S
         }
 
         if (allErrors.isEmpty()) {
-            return new SimpleWorkResult(true);
+            return WorkResult.didWork(true);
         } else {
             throw new SourceTransformationException(String.format("Minification failed with the following errors:\n\t%s", StringUtils.join(allErrors, "\n\t")), null);
         }

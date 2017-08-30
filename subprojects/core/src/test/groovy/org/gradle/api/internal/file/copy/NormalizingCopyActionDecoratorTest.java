@@ -18,7 +18,6 @@ package org.gradle.api.internal.file.copy;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
-import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
@@ -39,7 +38,7 @@ public class NormalizingCopyActionDecoratorTest {
     private final CopyAction delegate = new CopyAction() {
         public WorkResult execute(CopyActionProcessingStream stream) {
             stream.process(delegateAction);
-            return new SimpleWorkResult(true);
+            return WorkResult.didWork(true);
         }
     };
     private final NormalizingCopyActionDecorator decorator = new NormalizingCopyActionDecorator(delegate, fileSystem());

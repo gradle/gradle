@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile;
 import com.google.common.base.Joiner;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
@@ -102,7 +101,7 @@ public class NormalizingJavaCompiler implements Compiler<JavaCompileSpec> {
                 throw e;
             }
             LOGGER.debug("Ignoring compilation failure.");
-            return new SimpleWorkResult(false);
+            return WorkResult.didWork(false);
         }
     }
 }

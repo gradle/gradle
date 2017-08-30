@@ -22,7 +22,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.tasks.SimpleWorkResult
+import org.gradle.api.tasks.WorkResult
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.nativeplatform.toolchain.Clang
 import org.gradle.nativeplatform.toolchain.Gcc
@@ -89,7 +89,7 @@ class IncrementalNativeCompilerTest extends Specification {
         1 * spec.getObjectFileDir() >> outputFile.parentFile
         1 * outputs.previousOutputFiles >> Sets.newHashSet(outputFile)
         0 * spec._
-        1 * delegateCompiler.execute(spec) >> new SimpleWorkResult(false)
+        1 * delegateCompiler.execute(spec) >> WorkResult.didWork(false)
 
         and:
         result.didWork

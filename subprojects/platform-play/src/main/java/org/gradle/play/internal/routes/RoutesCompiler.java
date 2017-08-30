@@ -17,7 +17,6 @@
 package org.gradle.play.internal.routes;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.scala.internal.reflect.ScalaMethod;
@@ -59,7 +58,7 @@ public class RoutesCompiler implements Compiler<RoutesCompileSpec>, Serializable
             didWork = ret || didWork;
         }
 
-        return new SimpleWorkResult(didWork);
+        return WorkResult.didWork(didWork);
     }
 
     private Boolean compile(File sourceFile, RoutesCompileSpec spec) {

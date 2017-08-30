@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.scala;
 import com.google.common.collect.ImmutableList;
 import com.typesafe.zinc.IncOptions;
 import com.typesafe.zinc.Inputs;
-import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.CompilationFailedException;
 import org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder;
 import org.gradle.api.logging.Logger;
@@ -84,7 +83,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
             }
             LOGGER.info("Completed Scala compilation: {}", timer.getElapsed());
 
-            return new SimpleWorkResult(true);
+            return WorkResult.didWork(true);
         }
 
         private static IncOptions getIncOptions() {

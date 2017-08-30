@@ -20,7 +20,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -60,7 +59,7 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> extends Abstra
 
         super.execute(spec);
 
-        return new SimpleWorkResult(!transformedSpec.getSourceFiles().isEmpty());
+        return WorkResult.didWork(!transformedSpec.getSourceFiles().isEmpty());
     }
 
     // TODO(daniel): Should support in a better way multi file invocation.

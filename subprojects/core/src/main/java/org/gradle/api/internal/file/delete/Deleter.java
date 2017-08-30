@@ -19,7 +19,6 @@ import org.gradle.api.Action;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.UnableToDeleteFileException;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
@@ -65,7 +64,7 @@ public class Deleter {
             didWork = true;
             doDeleteInternal(file, deleteSpec);
         }
-        return new SimpleWorkResult(didWork);
+        return WorkResult.didWork(didWork);
     }
 
     private void doDeleteInternal(File file, DeleteSpecInternal deleteSpec) {

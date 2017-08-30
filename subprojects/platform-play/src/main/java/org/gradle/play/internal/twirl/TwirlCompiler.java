@@ -19,7 +19,6 @@ package org.gradle.play.internal.twirl;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.file.RelativeFile;
-import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.FileUtils;
@@ -65,7 +64,7 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
             }
         }
 
-        return new SimpleWorkResult(!outputFiles.isEmpty());
+        return WorkResult.didWork(!outputFiles.isEmpty());
     }
 
     private ScalaMethod getCompileMethod(ClassLoader cl) {
