@@ -86,16 +86,6 @@ fi]]></param>
         <artifact sourcePath="distributions/*-all.zip =&gt; incoming-distributions&#xA;build-receipt.properties =&gt; incoming-distributions" />
       </dependency>
     </artifact-dependencies>
-    <dependencies>
-      <depend-on sourceBuildTypeId="Gradle_Check_Stage_QuickFeedback_Trigger">
-        <options>
-          <option name="run-build-if-dependency-failed" value="CANCEL" />
-          <option name="run-build-if-dependency-failed-to-start" value="CANCEL" />
-          <option name="take-started-build-with-same-revisions" value="true" />
-          <option name="take-successful-builds-only" value="true" />
-        </options>
-      </depend-on>
-    </dependencies>
     <cleanup />
   </settings>
 </build-type>
