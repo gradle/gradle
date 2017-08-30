@@ -153,6 +153,9 @@ public class JavaCompile extends AbstractCompile {
         };
     }
 
+    /**
+     * @since 4.2
+     */
     @Inject
     protected StreamHasher getStreamHasher() {
         throw new UnsupportedOperationException();

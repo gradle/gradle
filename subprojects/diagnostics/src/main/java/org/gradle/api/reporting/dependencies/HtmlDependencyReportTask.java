@@ -95,6 +95,9 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
         return reports;
     }
 
+    /**
+     * @since 4.2
+     */
     @Inject
     public ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();

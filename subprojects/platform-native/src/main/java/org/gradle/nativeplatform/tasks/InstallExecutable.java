@@ -56,6 +56,9 @@ public class InstallExecutable extends DefaultTask {
     private final ConfigurableFileCollection libs;
     private final WorkerLeaseService workerLeaseService;
 
+    /**
+     * @since 4.2
+     */
     @Inject
     public InstallExecutable(WorkerLeaseService workerLeaseService) {
         this.workerLeaseService = workerLeaseService;

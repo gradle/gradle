@@ -49,6 +49,9 @@ import java.util.concurrent.Callable;
 public class CppExecutablePlugin implements Plugin<ProjectInternal> {
     private final FileOperations fileOperations;
 
+    /**
+     * @since 4.2
+     */
     @Inject
     public CppExecutablePlugin(FileOperations fileOperations) {
         this.fileOperations = fileOperations;

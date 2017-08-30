@@ -40,6 +40,9 @@ public class PrefixHeaderFileGenerateTask extends DefaultTask {
     private File prefixHeaderFile;
     private final WorkerExecutor workerExecutor;
 
+    /**
+     * @since 4.2
+     */
     @Inject
     public PrefixHeaderFileGenerateTask(WorkerExecutor workerExecutor) {
         this.workerExecutor = workerExecutor;

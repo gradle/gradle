@@ -54,6 +54,9 @@ public class EarPlugin implements Plugin<Project> {
     private final ObjectFactory objectFactory;
     private final FileResolver fileResolver;
 
+    /**
+     * @since 4.2
+     */
     @Inject
     public EarPlugin(ObjectFactory objectFactory, FileResolver fileResolver) {
         this.objectFactory = objectFactory;

@@ -70,6 +70,9 @@ public class SwiftCompile extends AbstractNativeCompileTask {
         this.moduleName.set(moduleName);
     }
 
+    /**
+     * @since 4.2
+     */
     public void setModuleName(Provider<String> moduleName) {
         this.moduleName.set(moduleName);
     }

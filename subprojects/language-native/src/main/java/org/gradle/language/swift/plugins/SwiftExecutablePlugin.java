@@ -53,6 +53,9 @@ import java.util.concurrent.Callable;
 public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
     private final FileOperations fileOperations;
 
+    /**
+     * @since 4.2
+     */
     @Inject
     public SwiftExecutablePlugin(FileOperations fileOperations) {
         this.fileOperations = fileOperations;

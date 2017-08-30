@@ -65,7 +65,7 @@ public interface ObjectFactory {
      * </ul>
      *
      * @throws ObjectInstantiationException On failure to create the new instance.
-     * @since 4.1
+     * @since 4.2
      */
     <T> T newInstance(Class<? extends T> type, Object... parameters) throws ObjectInstantiationException;
 }
