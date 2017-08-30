@@ -177,7 +177,7 @@ public class DaemonParameters {
     }
 
     public boolean getDebug() {
-        return jvmOptions.getDebug();
+        return userDefinedImmutableJvmArgs ? true : jvmOptions.getDebug();
     }
 
     public boolean isForeground() {
