@@ -294,12 +294,19 @@ public class FindBugsExtension extends CodeQualityExtension {
      * <p>
      * Arguments can contain general JVM flags like {@code -Xdebug} and also FindBugs system properties like {@code -Dfindbugs.loadPropertiesFrom=...}
      *
-     * @since 3.2
+     * @since 4.3
      */
     public Collection<String> getJvmArgs() {
         return jvmArgs;
     }
 
+    /**
+     * Any additional arguments to be passed along to FindBugs JVM process.
+     * <p>
+     * Arguments can contain general JVM flags like {@code -Xdebug} and also FindBugs system properties like {@code -Dfindbugs.loadPropertiesFrom=...}
+     *
+     * @since 4.3
+     */
     public void setJvmArgs(Collection<String> jvmArgs) {
         this.jvmArgs = jvmArgs;
     }
