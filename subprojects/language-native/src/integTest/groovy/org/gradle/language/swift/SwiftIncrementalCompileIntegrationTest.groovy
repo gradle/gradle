@@ -19,6 +19,7 @@ package org.gradle.language.swift
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftAppWithLib
+import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
