@@ -101,6 +101,11 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Injects and returns an instance of {@link ObjectFactory}.
+     *
+     * @since 4.2
+     */
     @Inject
     protected ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();

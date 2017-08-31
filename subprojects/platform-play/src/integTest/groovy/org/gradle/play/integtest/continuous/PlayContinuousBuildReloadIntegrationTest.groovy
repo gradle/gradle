@@ -16,7 +16,33 @@
 
 package org.gradle.play.integtest.continuous
 
-class PlayReloadSmokeIntegrationTest extends PlayReloadIntegrationTest {
+import org.gradle.internal.filewatch.PendingChangesManager
+import org.gradle.test.fixtures.ConcurrentTestUtil
+
+/**
+ * Test Play reload with `--continuous`
+ */
+class PlayContinuousBuildReloadIntegrationTest extends AbstractPlayReloadIntegrationTest {
+
+    int pendingChangesMarker
+
+    def setup() {
+        buildFile << """
+                def pendingChangesManager = gradle.services.get(${PendingChangesManager.canonicalName})
+                pendingChangesManager.addListener {
+                    println "Pending changes detected"
+                }
+        """
+    }
+
+    private int waitForChangesToBePickedUp() {
+        def buildOutput = ''
+        ConcurrentTestUtil.poll {
+            buildOutput = buildOutputSoFar()
+            assert buildOutput.substring(pendingChangesMarker).contains("Pending changes detected")
+        }
+        pendingChangesMarker = buildOutput.length()
+    }
 
     def "should reload modified scala controller and routes"() {
         when:
@@ -27,9 +53,9 @@ class PlayReloadSmokeIntegrationTest extends PlayReloadIntegrationTest {
 
         when:
         addNewRoute('hello')
+        waitForChangesToBePickedUp()
 
         then:
-        succeeds()
         runningApp.playUrl('hello').text == 'hello world'
     }
 
@@ -41,17 +67,20 @@ class PlayReloadSmokeIntegrationTest extends PlayReloadIntegrationTest {
 
         when:
         addBadCode()
+        waitForChangesToBePickedUp()
+
         then:
-        fails()
-        !executedTasks.contains('runPlayBinary')
+        println "CHECKING ERROR PAGE"
         errorPageHasTaskFailure("compilePlayBinaryScala")
+        !executedTasks.contains('runPlayBinary')
 
         when:
         fixBadCode()
-        then:
-        succeeds()
-        appIsRunningAndDeployed()
+        waitForChangesToBePickedUp()
+        println "CHANGES DETECTED IN BUILD"
 
+        then:
+        appIsRunningAndDeployed()
     }
 
     def "should reload modified coffeescript"() {
@@ -68,9 +97,9 @@ class PlayReloadSmokeIntegrationTest extends PlayReloadIntegrationTest {
 message = "Hello coffeescript"
 alert message
 '''
+        waitForChangesToBePickedUp()
 
         then:
-        succeeds()
         runningApp.playUrl('assets/javascripts/test.js').text.contains('Hello coffeescript')
         runningApp.playUrl('assets/javascripts/test.min.js').text.contains('Hello coffeescript')
     }
@@ -86,9 +115,9 @@ alert message
         file("app/assets/javascripts/helloworld.js") << '''
 var message = "Hello JS";
 '''
+        waitForChangesToBePickedUp()
 
         then:
-        succeeds()
         runningApp.playUrl('assets/javascripts/helloworld.js').text.contains('Hello JS')
         runningApp.playUrl('assets/javascripts/helloworld.min.js').text.contains('Hello JS')
     }
@@ -105,10 +134,10 @@ var message = "Hello JS";
         file("app/models/DataType.java").with {
             text = text.replaceFirst(~/"%s:%s"/, '"Hello %s:%s !"')
         }
+        waitForChangesToBePickedUp()
 
         then:
-        succeeds()
-        assert runningApp.playUrl().text.contains("<li>Hello foo:1 !</li>")
+        runningApp.playUrl().text.contains("<li>Hello foo:1 !</li>")
     }
 
     def "should reload twirl template"() {
@@ -122,10 +151,10 @@ var message = "Hello JS";
         file("app/views/index.scala.html").with {
             text = text.replaceFirst(~/Welcome to Play/, 'Welcome to Play with Gradle')
         }
+        waitForChangesToBePickedUp()
 
         then:
-        succeeds()
-        assert runningApp.playUrl().text.contains("Welcome to Play with Gradle")
+        runningApp.playUrl().text.contains("Welcome to Play with Gradle")
     }
 
     def "should reload with exception when task that depends on runPlayBinary fails"() {
@@ -148,10 +177,10 @@ task otherTask {
 
         when:
         addNewRoute('hello')
+        waitForChangesToBePickedUp()
 
         then:
-        fails()
-        !executedTasks.contains('runPlayBinary')
         errorPageHasTaskFailure("otherTask")
+        !executedTasks.contains('runPlayBinary')
     }
 }

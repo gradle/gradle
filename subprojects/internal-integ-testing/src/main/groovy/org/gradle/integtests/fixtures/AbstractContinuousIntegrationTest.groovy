@@ -53,6 +53,7 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
     int shutdownTimeout = WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS
     boolean killToStop
     boolean ignoreShutdownTimeoutException
+    boolean withoutContinuousArg
     List<ExecutionResult> results = []
 
     public void turnOnDebug() {
@@ -90,6 +91,10 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
 
     protected int getMinimumBuildTimeMillis() {
         2000
+    }
+
+    protected void withoutContinuousBuild() {
+        withoutContinuousArg = true
     }
 
     def waitAtEndOfBuildForQuietPeriod(def quietPeriodMillis) {
@@ -149,12 +154,14 @@ ${result.error}
         stopGradle()
         standardOutputBuildMarker = 0
         errorOutputBuildMarker = 0
-        gradle = executer.withStdinPipe()
+        executer.withStdinPipe()
             .withTasks(tasks)
             .withForceInteractive(true)
             .withArgument("--full-stacktrace")
-            .withArgument("--continuous")
-            .start()
+        if (!withoutContinuousArg) {
+            executer.withArgument("--continuous")
+        }
+        gradle = executer.start()
     }
 
     protected OutputStream getStdinPipe() {

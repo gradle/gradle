@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativeplatform.test;
 
-import org.gradle.api.Incubating;
-import org.gradle.nativeplatform.NativeComponentSpec;
-import org.gradle.testing.base.TestSuiteSpec;
+package org.gradle.internal.scan.clock;
 
-/**
- * A component representing a suite of tests that will be executed together.
- *
- * @since 4.2
- */
-@Incubating
-public interface NativeTestSuiteSpec extends TestSuiteSpec, NativeComponentSpec {
+import org.gradle.internal.time.TimeProvider;
+
+public class DefaultBuildScanTimeProvider implements BuildScanTimeProvider {
+
+    private final TimeProvider timeProvider;
+
+    public DefaultBuildScanTimeProvider(TimeProvider timeProvider) {
+        this.timeProvider = timeProvider;
+    }
+
     @Override
-    NativeComponentSpec getTestedComponent();
+    public long getCurrentTime() {
+        return timeProvider.getCurrentTime();
+    }
+
 }

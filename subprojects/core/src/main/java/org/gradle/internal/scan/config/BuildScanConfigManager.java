@@ -79,7 +79,7 @@ class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProv
         listenerManager.addListener(new BuildAdapter() {
             @Override
             public void projectsEvaluated(Gradle gradle) {
-                if (!collected) {
+                if (gradle.getParent() == null && !collected) {
                     LOGGER.warn(
                         "Build scan cannot be created because the build scan plugin was not applied.\n"
                             + "For more information on how to apply the build scan plugin, please visit " + HELP_LINK + "."

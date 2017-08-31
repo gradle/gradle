@@ -27,4 +27,9 @@ class ApiChange {
     static ApiChange parse(Object json) {
         new ApiChange(json.type, json.member, json.changes ?: [])
     }
+
+    String toString() {
+        def formattedMember = member - "$type."
+        "$type - $formattedMember - $changes"
+    }
 }
