@@ -1,41 +1,42 @@
 dependencies {
     integTestCompile libraries.groovy
-
-    integTestCompile project(':toolingApi')
-    integTestCompile project(':launcher')
-    integTestCompile project(':dependencyManagement')
-    integTestCompile project(':scala')
-    integTestCompile project(':ear')
-    integTestCompile project(':codeQuality')
-    integTestCompile project(':signing')
-    integTestCompile project(':ide')
     integTestCompile libraries.ant
     integTestCompile libraries.jsoup
 
     integTestRuntime rootProject.configurations.testRuntime.allDependencies
+
+    crossVersionTestCompile project(':scala')
+    crossVersionTestCompile project(':ide')
+    crossVersionTestCompile project(':codeQuality')
+    crossVersionTestCompile project(':signing')
+
+    crossVersionTestRuntime rootProject.configurations.testRuntime.allDependencies
 }
 useTestFixtures(sourceSet: 'integTest', project: ':diagnostics')
 useTestFixtures(sourceSet: 'integTest', project: ':platformNative')
 
-integTestTasks.all {
-    dependsOn({ project(':toolingApi').publishLocalArchives }, ':docs:userguideDocbook')
+integTestTasks.all { task ->
+    project.tasks.findByName("configure${task.name.capitalize()}").configure {
+        requiresSamples = true
+        requiresLibsRepo = true
 
 
-    def userguideOutput = new File(project(':docs').samplesSrcDir, "userguideOutput")
-    inputs.files(fileTree(userguideOutput))
+        doLast {
+            configure(task) {
+                def userguideOutput = new File(project(':docs').samplesSrcDir, "userguideOutput")
+                samplesXml = new File(project(':docs').docbookSrc, 'samples.xml')
+                userGuideOutputDir = userguideOutput
 
-    doFirst {
-        systemProperties['integTest.userGuideInfoDir'] = project(':docs').docbookSrc
-        systemProperties['integTest.userGuideOutputDir'] = userguideOutput.absolutePath
+                // You can exclude the userguide samples by their ids by specifying this system property.
+                // E.g. ./gradlew integTest:integTest -D:integTest:integTest.single=UserGuideSamplesIntegrationTest -Dorg.gradle.userguide.samples.exclude=completeCUnitExample,nativeComponentReport
+                systemProperty "org.gradle.userguide.samples.exclude", System.getProperty("org.gradle.userguide.samples.exclude")
+
+                // You can filter the userguide samples to be run by specifying this system property.
+                // E.g. ./gradlew integTest:integTest -D:integTest:integTest.single=UserGuideSamplesIntegrationTest -Dorg.gradle.userguide.samples.filter=signing/.+
+                systemProperty "org.gradle.userguide.samples.filter", System.getProperty("org.gradle.userguide.samples.filter")
+            }
+        }
     }
-
-    // You can exclude the userguide samples by their ids by specifying this system property.
-    // E.g. ./gradlew integTest:integTest -D:integTest:integTest.single=UserGuideSamplesIntegrationTest -Dorg.gradle.userguide.samples.exclude=completeCUnitExample,nativeComponentReport
-    systemProperty "org.gradle.userguide.samples.exclude", System.getProperty("org.gradle.userguide.samples.exclude")
-
-    // You can filter the userguide samples to be run by specifying this system property.
-    // E.g. ./gradlew integTest:integTest -D:integTest:integTest.single=UserGuideSamplesIntegrationTest -Dorg.gradle.userguide.samples.filter=signing/.+
-    systemProperty "org.gradle.userguide.samples.filter", System.getProperty("org.gradle.userguide.samples.filter")
 }
 
 parallelIntegTest {

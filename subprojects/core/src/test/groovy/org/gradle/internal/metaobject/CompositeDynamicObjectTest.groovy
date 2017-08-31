@@ -39,8 +39,8 @@ class CompositeDynamicObjectTest extends Specification {
         result == 12
 
         and:
-        1 * obj1.getProperty("p", _)
-        1 * obj2.getProperty("p", _) >> { String name, GetPropertyResult r -> r.result(12) }
+        1 * obj1.tryGetProperty("p") >> DynamicInvokeResult.notFound()
+        1 * obj2.tryGetProperty("p") >> DynamicInvokeResult.found(12)
         0 * _
     }
 
@@ -57,8 +57,8 @@ class CompositeDynamicObjectTest extends Specification {
         result == null
 
         and:
-        1 * obj1.getProperty("p", _)
-        1 * obj2.getProperty("p", _) >> { String name, GetPropertyResult r -> r.result(null) }
+        1 * obj1.tryGetProperty("p") >> DynamicInvokeResult.notFound()
+        1 * obj2.tryGetProperty("p") >> DynamicInvokeResult.found(null)
         0 * _
     }
 
@@ -73,6 +73,9 @@ class CompositeDynamicObjectTest extends Specification {
 
         then:
         def e = thrown(MissingPropertyException)
+        1 * obj1.tryGetProperty("p") >> DynamicInvokeResult.notFound()
+        1 * obj2.tryGetProperty("p") >> DynamicInvokeResult.notFound()
+        1 * obj3.tryGetProperty("p") >> DynamicInvokeResult.notFound()
         e.message == "Could not get unknown property 'p' for <obj>."
     }
 
@@ -86,16 +89,14 @@ class CompositeDynamicObjectTest extends Specification {
         obj.setProperty("p", "value")
 
         then:
-        1 * obj1.setProperty("p", "value", _)
-        1 * obj2.setProperty("p", "value", _) >> { String name, def value, SetPropertyResult r -> r.found() }
+        1 * obj1.trySetProperty("p", "value") >> DynamicInvokeResult.notFound()
+        1 * obj2.trySetProperty("p", "value") >> DynamicInvokeResult.found()
         0 * _
     }
 
     def "set property fails when property cannot be found"() {
         def obj1 = Mock(DynamicObject)
-        def obj2 = Mock(DynamicObject)
-        def obj3 = Mock(DynamicObject)
-        obj.setObjects(obj1, obj2, obj3)
+        obj.setObjects(obj1)
 
         when:
         obj.setProperty("p", "value")
@@ -103,6 +104,9 @@ class CompositeDynamicObjectTest extends Specification {
         then:
         def e = thrown(MissingPropertyException)
         e.message == "Could not set unknown property 'p' for <obj>."
+
+        and:
+        1 * obj1.trySetProperty("p", "value") >> DynamicInvokeResult.notFound()
     }
 
     def "invokes method on first delegate that has method"() {
@@ -118,8 +122,8 @@ class CompositeDynamicObjectTest extends Specification {
         result == "result"
 
         and:
-        1 * obj1.invokeMethod("m", _, ["value"] as Object[])
-        1 * obj2.invokeMethod("m", _, ["value"] as Object[]) >> { String name, InvokeMethodResult r, def args -> r.result("result") }
+        1 * obj1.tryInvokeMethod("m", ["value"] as Object[]) >> DynamicInvokeResult.notFound()
+        1 * obj2.tryInvokeMethod("m", ["value"] as Object[]) >> DynamicInvokeResult.found("result")
         0 * _
     }
 
@@ -136,8 +140,8 @@ class CompositeDynamicObjectTest extends Specification {
         result == null
 
         and:
-        1 * obj1.invokeMethod("m", _, _)
-        1 * obj2.invokeMethod("m", _, _) >> { String name, InvokeMethodResult r, def args -> r.result(null) }
+        1 * obj1.tryInvokeMethod("m", _) >> DynamicInvokeResult.notFound()
+        1 * obj2.tryInvokeMethod("m", _) >> DynamicInvokeResult.found()
         0 * _
     }
 

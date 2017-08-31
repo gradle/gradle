@@ -18,12 +18,12 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
-import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.nativeplatform.internal.StaticLibraryArchiverSpec;
+import org.gradle.nativeplatform.toolchain.internal.AbstractCompiler;
 import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
@@ -35,40 +35,38 @@ import java.util.List;
 
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.EscapeUserArgs.escapeUserArgs;
 
-class LibExeStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
-    private final CommandLineToolInvocationWorker commandLineToolInvocationWorker;
+class LibExeStaticLibraryArchiver extends AbstractCompiler<StaticLibraryArchiverSpec> {
     private final Transformer<StaticLibraryArchiverSpec, StaticLibraryArchiverSpec> specTransformer;
 
-    private final ArgsTransformer<StaticLibraryArchiverSpec> argsTransformer;
-    private final CommandLineToolContext invocationContext;
-    private final BuildOperationProcessor buildOperationProcessor;
-
-    LibExeStaticLibraryArchiver(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, Transformer<StaticLibraryArchiverSpec, StaticLibraryArchiverSpec> specTransformer) {
-        this.buildOperationProcessor = buildOperationProcessor;
+    LibExeStaticLibraryArchiver(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, Transformer<StaticLibraryArchiverSpec, StaticLibraryArchiverSpec> specTransformer, WorkerLeaseService workerLeaseService) {
+        super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new LibExeSpecToArguments(), true, workerLeaseService);
         this.specTransformer = specTransformer;
-        this.argsTransformer = new LibExeSpecToArguments();
-        this.commandLineToolInvocationWorker = commandLineToolInvocationWorker;
-        this.invocationContext = invocationContext;
     }
 
     @Override
     public WorkResult execute(final StaticLibraryArchiverSpec spec) {
         final StaticLibraryArchiverSpec transformedSpec = specTransformer.transform(spec);
-        final List<String> args = argsTransformer.transform(transformedSpec);
-        invocationContext.getArgAction().execute(args);
-        new VisualCppOptionsFileArgsWriter(spec.getTempDir()).execute(args);
-        final CommandLineToolInvocation invocation = invocationContext.createInvocation(
-                "archiving " + spec.getOutputFile().getName(), args, spec.getOperationLogger());
 
-        buildOperationProcessor.run(commandLineToolInvocationWorker, new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
+        return super.execute(transformedSpec);
+    }
+
+    @Override
+    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(final StaticLibraryArchiverSpec spec, List<String> args) {
+        final CommandLineToolInvocation invocation = newInvocation(
+            "archiving " + spec.getOutputFile().getName(), spec.getOutputFile().getParentFile(), args, spec.getOperationLogger());
+
+        return new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
             @Override
             public void execute(BuildOperationQueue<CommandLineToolInvocation> buildQueue) {
                 buildQueue.setLogLocation(spec.getOperationLogger().getLogLocation());
                 buildQueue.add(invocation);
             }
-        });
+        };
+    }
 
-        return new SimpleWorkResult(true);
+    @Override
+    protected void addOptionsFileArgs(List<String> args, File tempDir) {
+        new VisualCppOptionsFileArgsWriter(tempDir).execute(args);
     }
 
     private static class LibExeSpecToArguments implements ArgsTransformer<StaticLibraryArchiverSpec> {

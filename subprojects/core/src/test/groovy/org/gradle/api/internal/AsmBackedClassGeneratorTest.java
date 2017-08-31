@@ -22,12 +22,15 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.junit.Test;
 import spock.lang.Issue;
 
@@ -58,6 +61,13 @@ import static org.junit.Assert.*;
 
 public class AsmBackedClassGeneratorTest {
     private final AbstractClassGenerator generator = new AsmBackedClassGenerator();
+
+    @Test
+    public void mixesInGeneratedSubclassInterface() throws Exception {
+        Class<? extends Bean> generatedClass = generator.generate(Bean.class);
+        assertTrue(GeneratedSubclasses.is(generatedClass));
+        assertEquals(Bean.class, GeneratedSubclasses.unpack(generatedClass));
+    }
 
     @Test
     public void mixesInConventionAwareInterface() throws Exception {
@@ -156,7 +166,7 @@ public class AsmBackedClassGeneratorTest {
         assertThat(parameterizedType.getActualTypeArguments()[0], instanceOf(WildcardType.class));
         WildcardType wildcard = (WildcardType) parameterizedType.getActualTypeArguments()[0];
         assertThat(wildcard.getUpperBounds().length, equalTo(1));
-        assertThat(wildcard.getUpperBounds()[0], equalTo((Type)String.class));
+        assertThat(wildcard.getUpperBounds()[0], equalTo((Type) String.class));
         assertThat(wildcard.getLowerBounds().length, equalTo(0));
 
         // Callable<? super String>
@@ -167,9 +177,9 @@ public class AsmBackedClassGeneratorTest {
         assertThat(parameterizedType.getActualTypeArguments()[0], instanceOf(WildcardType.class));
         wildcard = (WildcardType) parameterizedType.getActualTypeArguments()[0];
         assertThat(wildcard.getUpperBounds().length, equalTo(1));
-        assertThat(wildcard.getUpperBounds()[0], equalTo((Type)Object.class));
+        assertThat(wildcard.getUpperBounds()[0], equalTo((Type) Object.class));
         assertThat(wildcard.getLowerBounds().length, equalTo(1));
-        assertThat(wildcard.getLowerBounds()[0], equalTo((Type)String.class));
+        assertThat(wildcard.getLowerBounds()[0], equalTo((Type) String.class));
 
         // Callable<?>
         paramType = constructor.getGenericParameterTypes()[4];
@@ -179,7 +189,7 @@ public class AsmBackedClassGeneratorTest {
         assertThat(parameterizedType.getActualTypeArguments()[0], instanceOf(WildcardType.class));
         wildcard = (WildcardType) parameterizedType.getActualTypeArguments()[0];
         assertThat(wildcard.getUpperBounds().length, equalTo(1));
-        assertThat(wildcard.getUpperBounds()[0], equalTo((Type)Object.class));
+        assertThat(wildcard.getUpperBounds()[0], equalTo((Type) Object.class));
         assertThat(wildcard.getLowerBounds().length, equalTo(0));
 
         // Callable<? extends Callable<?>>
@@ -782,8 +792,14 @@ public class AsmBackedClassGeneratorTest {
         assertThat(call("{def value; it.doStuff { value = it }; return value }", bean), equalTo((Object) "[value]"));
     }
 
-    @Test public void generatesDslObjectCompatibleObject() throws Exception {
-        new DslObject(generator.generate(Bean.class).newInstance());
+    @Test
+    public void generatesDslObjectCompatibleObject() throws Exception {
+        DslObject dslObject = new DslObject(generator.generate(Bean.class).newInstance());
+        assertEquals(Bean.class, dslObject.getDeclaredType());
+        assertNotNull(dslObject.getConventionMapping());
+        assertNotNull(dslObject.getConvention());
+        assertNotNull(dslObject.getExtensions());
+        assertNotNull(dslObject.getAsDynamicObject());
     }
 
     @Test
@@ -793,15 +809,65 @@ public class AsmBackedClassGeneratorTest {
         BeanAnnotation annotation = generatedClass.getAnnotation(BeanAnnotation.class);
         assertThat(annotation, notNullValue());
         assertThat(annotation.value(), equalTo("test"));
-        assertThat(annotation.values(), equalTo(new String[] {"1", "2"}));
+        assertThat(annotation.values(), equalTo(new String[]{"1", "2"}));
         assertThat(annotation.enumValue(), equalTo(AnnotationEnum.A));
-        assertThat(annotation.enumValues(), equalTo(new AnnotationEnum[] {AnnotationEnum.A, AnnotationEnum.B}));
+        assertThat(annotation.enumValues(), equalTo(new AnnotationEnum[]{AnnotationEnum.A, AnnotationEnum.B}));
         assertThat(annotation.number(), equalTo(1));
-        assertThat(annotation.numbers(), equalTo(new int[] {1, 2}));
+        assertThat(annotation.numbers(), equalTo(new int[]{1, 2}));
         assertThat(annotation.clazz().equals(Integer.class), equalTo(true));
-        assertThat(annotation.classes(), equalTo(new Class<?>[] {Integer.class}));
+        assertThat(annotation.classes(), equalTo(new Class<?>[]{Integer.class}));
         assertThat(annotation.annotation().value(), equalTo("nested"));
         assertThat(annotation.annotations()[0].value(), equalTo("nested array"));
+    }
+
+    @Test
+    public void generatedTypeIsMarkedSynthetic() {
+        assertTrue(generator.generate(Bean.class).isSynthetic());
+    }
+
+    @Test
+    public void addsSetterMethodsForPropertyWhoseTypeIsPropertyState() throws Exception {
+        DefaultProviderFactory providerFactory = new DefaultProviderFactory();
+        BeanWithPropertyState bean = generator.newInstance(BeanWithPropertyState.class, providerFactory);
+
+        DynamicObject dynamicObject = ((DynamicObjectAware) bean).getAsDynamicObject();
+
+        dynamicObject.setProperty("prop", "value");
+        assertEquals("value", bean.getProp().get());
+
+        dynamicObject.setProperty("prop", providerFactory.provider(new Callable<String>() {
+            int count;
+            @Override
+            public String call() throws Exception {
+                return "[" + String.valueOf(++count) + "]";
+            }
+        }));
+        assertEquals("[1]", bean.getProp().get());
+        assertEquals("[2]", bean.getProp().get());
+    }
+
+    @Test
+    public void doesNotAddSetterMethodsForPropertyWhoseTypeIsPropertyStateWhenTheyAlreadyExist() throws Exception {
+        DefaultProviderFactory providerFactory = new DefaultProviderFactory();
+        BeanWithPropertyState bean = generator.newInstance(BeanWithPropertyState.class, providerFactory);
+
+        DynamicObject dynamicObject = ((DynamicObjectAware) bean).getAsDynamicObject();
+
+        dynamicObject.setProperty("prop2", "value");
+        assertEquals("[value]", bean.getProp2().get());
+
+        dynamicObject.setProperty("prop2", 12);
+        assertEquals("[12]", bean.getProp2().get());
+
+        dynamicObject.setProperty("prop2", providerFactory.provider(new Callable<String>() {
+            int count;
+            @Override
+            public String call() throws Exception {
+                return "[" + String.valueOf(++count) + "]";
+            }
+        }));
+        assertEquals("[1]", bean.getProp2().get());
+        assertEquals("[2]", bean.getProp2().get());
     }
 
     public static class Bean {
@@ -913,18 +979,18 @@ public class AsmBackedClassGeneratorTest {
 
     public static class BeanWithComplexConstructor {
         public <T extends IOException, S extends Callable<String>, V> BeanWithComplexConstructor(
-                Callable rawValue,
-                Callable<String> value,
-                Callable<? extends String> subType,
-                Callable<? super String> superType,
-                Callable<?> wildcard,
-                Callable<? extends Callable<?>> nested,
-                Callable<S> typeVar,
-                Callable<? extends T> typeVarWithBounds,
-                V genericVar,
-                String[] array,
-                List<? extends String>[] genericArray,
-                boolean primitive
+            Callable rawValue,
+            Callable<String> value,
+            Callable<? extends String> subType,
+            Callable<? super String> superType,
+            Callable<?> wildcard,
+            Callable<? extends Callable<?>> nested,
+            Callable<S> typeVar,
+            Callable<? extends T> typeVarWithBounds,
+            V genericVar,
+            String[] array,
+            List<? extends String>[] genericArray,
+            boolean primitive
         ) throws Exception, T {
         }
     }
@@ -1259,29 +1325,65 @@ public class AsmBackedClassGeneratorTest {
     @Target(ElementType.TYPE)
     public static @interface BeanAnnotation {
         String value();
+
         String[] values();
+
         AnnotationEnum enumValue();
+
         AnnotationEnum[] enumValues();
+
         int number();
+
         int[] numbers();
+
         Class<?> clazz();
+
         Class<?>[] classes();
+
         NestedBeanAnnotation annotation();
+
         NestedBeanAnnotation[] annotations();
     }
 
     @BeanAnnotation(
-            value = "test",
-            values = {"1", "2"},
-            enumValue = AnnotationEnum.A,
-            enumValues = {AnnotationEnum.A, AnnotationEnum.B},
-            number = 1,
-            numbers = {1, 2},
-            clazz = Integer.class,
-            classes = {Integer.class},
-            annotation = @NestedBeanAnnotation("nested"),
-            annotations = {@NestedBeanAnnotation("nested array")}
+        value = "test",
+        values = {"1", "2"},
+        enumValue = AnnotationEnum.A,
+        enumValues = {AnnotationEnum.A, AnnotationEnum.B},
+        number = 1,
+        numbers = {1, 2},
+        clazz = Integer.class,
+        classes = {Integer.class},
+        annotation = @NestedBeanAnnotation("nested"),
+        annotations = {@NestedBeanAnnotation("nested array")}
     )
     public static class AnnotatedBean {
     }
+
+    public static class BeanWithPropertyState {
+        private final PropertyState<String> prop;
+        private final PropertyState<String> prop2;
+
+        public BeanWithPropertyState(ProviderFactory factory) {
+            this.prop = factory.property(String.class);
+            this.prop2 = factory.property(String.class);
+        }
+
+        public PropertyState<String> getProp() {
+            return prop;
+        }
+
+        public PropertyState<String> getProp2() {
+            return prop2;
+        }
+
+        public void setProp2(String value) {
+            prop2.set("[" + value + "]");
+        }
+
+        public void setProp2(int value) {
+            prop2.set("[" + value + "]");
+        }
+    }
+
 }

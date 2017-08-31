@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,42 +18,24 @@ package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
+import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+@UsedByScanPlugin
 public class StyledTextOutputEvent extends RenderableOutputEvent {
     private final List<Span> spans;
 
-    public StyledTextOutputEvent(long timestamp, String category, String text) {
-        this(timestamp, category, StyledTextOutput.Style.Normal, text);
+    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable Object buildOperationIdentifier, String text) {
+        this(timestamp, category, logLevel, buildOperationIdentifier, Collections.singletonList(new Span(StyledTextOutput.Style.Normal, text)));
     }
 
-    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, String text) {
-        this(timestamp, category, logLevel, StyledTextOutput.Style.Normal, text);
-    }
-
-    public StyledTextOutputEvent(long timestamp, String category, StyledTextOutput.Style style, String text) {
-        this(timestamp, category, null, style, text);
-    }
-
-    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, StyledTextOutput.Style style, String text) {
-        this(timestamp, category, logLevel, Collections.singletonList(new Span(style, text)));
-    }
-
-    public StyledTextOutputEvent(long timestamp, String category, List<Span> spans) {
-        this(timestamp, category, null, spans);
-    }
-
-    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, Span... spans) {
-        this(timestamp, category, logLevel, Arrays.asList(spans));
-    }
-
-    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, List<Span> spans) {
-        super(timestamp, category, logLevel);
+    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable Object buildOperationIdentifier, List<Span> spans) {
+        super(timestamp, category, logLevel, buildOperationIdentifier);
         this.spans = new ArrayList<Span>(spans);
     }
 
@@ -75,7 +57,7 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
     }
 
     public StyledTextOutputEvent withLogLevel(LogLevel logLevel) {
-        return new StyledTextOutputEvent(getTimestamp(), getCategory(), logLevel, spans);
+        return new StyledTextOutputEvent(getTimestamp(), getCategory(), logLevel, getBuildOperationId(), spans);
     }
 
     public List<Span> getSpans() {
@@ -90,6 +72,7 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
         }
     }
 
+    @UsedByScanPlugin
     public static class Span implements Serializable {
         private final String text;
         private final StyledTextOutput.Style style;

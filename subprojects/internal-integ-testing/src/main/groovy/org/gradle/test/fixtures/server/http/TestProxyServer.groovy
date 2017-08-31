@@ -17,11 +17,17 @@ package org.gradle.test.fixtures.server.http
 
 import io.netty.channel.ChannelHandlerContext
 import io.netty.handler.codec.http.HttpRequest
+import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.util.ports.FixedAvailablePortAllocator
 import org.junit.rules.ExternalResource
-import org.littleshoot.proxy.*
+import org.littleshoot.proxy.HttpFilters
+import org.littleshoot.proxy.HttpFiltersSourceAdapter
+import org.littleshoot.proxy.HttpProxyServer
+import org.littleshoot.proxy.ProxyAuthenticator
 import org.littleshoot.proxy.impl.DefaultHttpProxyServer
 
+import java.util.concurrent.atomic.AtomicInteger
 /**
  * A Proxy Server used for testing that http proxies are correctly supported.
  */
@@ -30,19 +36,23 @@ class TestProxyServer extends ExternalResource {
     private portFinder = FixedAvailablePortAllocator.getInstance()
 
     int port
-    int requestCount
+    AtomicInteger requestCountInternal = new AtomicInteger()
 
     @Override
     protected void after() {
         stop()
     }
 
-    void start(final String expectedUsername=null, final String expectedPassword=null) {
+    int getRequestCount() {
+        requestCountInternal.get()
+    }
+
+    void start(final String expectedUsername = null, final String expectedPassword = null) {
         port = portFinder.assignPort()
 
         def filters = new HttpFiltersSourceAdapter() {
             HttpFilters filterRequest(HttpRequest originalRequest, ChannelHandlerContext ctx) {
-                requestCount++
+                requestCountInternal.incrementAndGet()
                 return super.filterRequest(originalRequest, ctx)
             }
         }
@@ -67,6 +77,24 @@ class TestProxyServer extends ExternalResource {
     void stop() {
         proxyServer?.stop()
         portFinder.releasePort(port)
+    }
+
+    void configureProxy(GradleExecuter executer, String proxyScheme, String userName = null, String password = null) {
+        configureProxyHost(executer, proxyScheme)
+
+        if (userName) {
+            executer.withArgument("-D${proxyScheme}.proxyUser=${userName}")
+        }
+        if (password) {
+            executer.withArgument("-D${proxyScheme}.proxyPassword=${password}")
+        }
+    }
+
+    void configureProxyHost(GradleExecuter executer, String proxyScheme) {
+        executer.withArgument("-D${proxyScheme}.proxyHost=localhost")
+        executer.withArgument("-D${proxyScheme}.proxyPort=${port}")
+        // use proxy even when accessing localhost
+        executer.withArgument("-Dhttp.nonProxyHosts=${JavaVersion.current() >= JavaVersion.VERSION_1_7 ? '' : '~localhost'}")
     }
 }
 

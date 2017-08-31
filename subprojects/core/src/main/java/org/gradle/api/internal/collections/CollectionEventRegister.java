@@ -16,65 +16,15 @@
 package org.gradle.api.internal.collections;
 
 import org.gradle.api.Action;
-import org.gradle.internal.Actions;
-import org.gradle.api.specs.Specs;
-import org.gradle.listener.ActionBroadcast;
 
-public class CollectionEventRegister<T> {
+public interface CollectionEventRegister<T> {
+    Action<T> getAddAction();
 
-    private final ActionBroadcast<T> addActions;
-    private final ActionBroadcast<T> removeActions;
+    Action<T> getRemoveAction();
 
-    public CollectionEventRegister() {
-        this(new ActionBroadcast<T>(), new ActionBroadcast<T>());
-    }
+    Action<? super T> registerAddAction(Action<? super T> addAction);
 
-    public CollectionEventRegister(ActionBroadcast<T> addActions, ActionBroadcast<T> removeActions) {
-        this.addActions = addActions;
-        this.removeActions = removeActions;
-    }
+    Action<? super T> registerRemoveAction(Action<? super T> removeAction);
 
-    public Action<T> getAddAction() {
-        return addActions;
-    }   
-    
-    public Action<T> getRemoveAction() {
-        return removeActions;
-    }
-    
-    public Action<? super T> registerAddAction(Action<? super T> addAction) {
-        this.addActions.add(addAction);
-        return addAction;
-    }
-
-    public Action<? super T> registerRemoveAction(Action<? super T> removeAction) {
-        this.removeActions.add(removeAction);
-        return removeAction;
-    }
-
-    public <S extends T> CollectionEventRegister<S> filtered(CollectionFilter<S> filter) {
-        return new FilteringCollectionEventRegister<S>(filter, (ActionBroadcast)addActions, (ActionBroadcast)removeActions);
-    }
-
-    private static class FilteringCollectionEventRegister<S> extends CollectionEventRegister<S> {
-        private final CollectionFilter<? super S> filter;
-
-        public FilteringCollectionEventRegister(CollectionFilter<? super S> filter, ActionBroadcast<S> addActions, ActionBroadcast<S> removeActions) {
-            super(addActions, removeActions);
-            this.filter = filter;
-        }
-
-        public Action<? super S> registerAddAction(Action<? super S> addAction) {
-            return super.registerAddAction(Actions.<S>filter(addAction, filter));
-        }
-
-        public Action<? super S> registerRemoveAction(Action<? super S> removeAction) {
-            return super.registerRemoveAction(Actions.<S>filter(removeAction, filter));
-        }
-
-        public <K extends S> CollectionEventRegister<K> filtered(CollectionFilter<K> filter) {
-            return super.filtered(new CollectionFilter<K>(filter.getType(), Specs.<K>intersect(filter, this.filter)));
-        }
-    }
-
+    <S extends T> CollectionEventRegister<S> filtered(CollectionFilter<S> filter);
 }

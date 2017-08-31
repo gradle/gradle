@@ -17,10 +17,13 @@
 package org.gradle.api.internal.tasks.testing.logging;
 
 import com.google.common.collect.Maps;
-
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.tasks.testing.logging.*;
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat;
+import org.gradle.api.tasks.testing.logging.TestLogEvent;
+import org.gradle.api.tasks.testing.logging.TestLogging;
+import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
+import org.gradle.api.tasks.testing.logging.TestStackTraceFilter;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.util.EnumSet;
@@ -138,117 +141,136 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
 
     @Override
     public Set<TestLogEvent> getEvents() {
-        return getLifecycle().getEvents();
+        return getDefaultTestLogging().getEvents();
+    }
+
+    @Override
+    public void setEvents(Set<TestLogEvent> events) {
+        getDefaultTestLogging().setEvents(events);
     }
 
     @Override
     public void setEvents(Iterable<?> events) {
-        getLifecycle().setEvents(events);
+        getDefaultTestLogging().setEvents(events);
     }
 
     @Override
     public void events(Object... events) {
-        getLifecycle().events(events);
+        getDefaultTestLogging().events(events);
     }
 
     @Override
     public int getMinGranularity() {
-        return getLifecycle().getMinGranularity();
+        return getDefaultTestLogging().getMinGranularity();
     }
 
     @Override
     public void setMinGranularity(int granularity) {
-        getLifecycle().setMinGranularity(granularity);
+        getDefaultTestLogging().setMinGranularity(granularity);
     }
 
     @Override
     public int getMaxGranularity() {
-        return getLifecycle().getMaxGranularity();
+        return getDefaultTestLogging().getMaxGranularity();
     }
 
     @Override
     public void setMaxGranularity(int granularity) {
-        getLifecycle().setMaxGranularity(granularity);
+        getDefaultTestLogging().setMaxGranularity(granularity);
     }
 
     @Override
     public int getDisplayGranularity() {
-        return getLifecycle().getDisplayGranularity();
+        return getDefaultTestLogging().getDisplayGranularity();
     }
 
     @Override
     public void setDisplayGranularity(int granularity) {
-        getLifecycle().setDisplayGranularity(granularity);
+        getDefaultTestLogging().setDisplayGranularity(granularity);
     }
 
     @Override
     public boolean getShowExceptions() {
-        return getLifecycle().getShowExceptions();
+        return getDefaultTestLogging().getShowExceptions();
     }
 
     @Override
     public void setShowExceptions(boolean flag) {
-        getLifecycle().setShowExceptions(flag);
+        getDefaultTestLogging().setShowExceptions(flag);
     }
 
     @Override
     public boolean getShowCauses() {
-        return getLifecycle().getShowCauses();
+        return getDefaultTestLogging().getShowCauses();
     }
 
     @Override
     public void setShowCauses(boolean flag) {
-        getLifecycle().setShowCauses(flag);
+        getDefaultTestLogging().setShowCauses(flag);
     }
 
     @Override
     public boolean getShowStackTraces() {
-        return getLifecycle().getShowStackTraces();
+        return getDefaultTestLogging().getShowStackTraces();
     }
 
     @Override
     public void setShowStackTraces(boolean flag) {
-        getLifecycle().setShowStackTraces(flag);
+        getDefaultTestLogging().setShowStackTraces(flag);
     }
 
     @Override
     public TestExceptionFormat getExceptionFormat() {
-        return getLifecycle().getExceptionFormat();
+        return getDefaultTestLogging().getExceptionFormat();
+    }
+
+    @Override
+    public void setExceptionFormat(TestExceptionFormat exceptionFormat) {
+        setExceptionFormat((Object) exceptionFormat);
     }
 
     @Override
     public void setExceptionFormat(Object exceptionFormat) {
-        getLifecycle().setExceptionFormat(exceptionFormat);
+        getDefaultTestLogging().setExceptionFormat(exceptionFormat);
     }
 
     @Override
     public Set<TestStackTraceFilter> getStackTraceFilters() {
-        return getLifecycle().getStackTraceFilters();
+        return getDefaultTestLogging().getStackTraceFilters();
+    }
+
+    @Override
+    public void setStackTraceFilters(Set<TestStackTraceFilter> stackTraces) {
+        getDefaultTestLogging().setStackTraceFilters(stackTraces);
     }
 
     @Override
     public void setStackTraceFilters(Iterable<?> stackTraces) {
-        getLifecycle().setStackTraceFilters(stackTraces);
+        getDefaultTestLogging().setStackTraceFilters(stackTraces);
     }
 
     @Override
     public void stackTraceFilters(Object... stackTraces) {
-        getLifecycle().stackTraceFilters(stackTraces);
+        getDefaultTestLogging().stackTraceFilters(stackTraces);
     }
 
     @Override
     public boolean getShowStandardStreams() {
-        return getLifecycle().getShowStandardStreams();
+        return getDefaultTestLogging().getShowStandardStreams();
     }
 
     @Override
     public TestLoggingContainer setShowStandardStreams(boolean flag) {
-        getLifecycle().setShowStandardStreams(flag);
+        getDefaultTestLogging().setShowStandardStreams(flag);
         return this;
     }
 
     @Override
     public TestLogging get(LogLevel level) {
         return perLevelTestLogging.get(level);
+    }
+
+    private TestLogging getDefaultTestLogging() {
+        return getLifecycle();
     }
 }

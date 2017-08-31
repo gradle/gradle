@@ -23,10 +23,4 @@ public class TaskGeneratedSingleFileReport extends TaskGeneratedReport implement
     public TaskGeneratedSingleFileReport(String name, Task task) {
         super(name, OutputType.FILE, task);
     }
-
-    @Override
-    public void setDestination(Object destination) {
-        // super implementation is protected, we are promoting
-        super.setDestination(destination);
-    }
 }

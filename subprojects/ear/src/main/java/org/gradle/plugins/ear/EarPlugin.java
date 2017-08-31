@@ -26,12 +26,12 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 
 import javax.inject.Inject;
@@ -48,21 +48,29 @@ public class EarPlugin implements Plugin<Project> {
 
     public static final String DEPLOY_CONFIGURATION_NAME = "deploy";
     public static final String EARLIB_CONFIGURATION_NAME = "earlib";
-    private final Instantiator instantiator;
+
+    static final String DEFAULT_LIB_DIR_NAME = "lib";
+
+    private final ObjectFactory objectFactory;
     private final FileResolver fileResolver;
 
+    /**
+     * Injects an {@link ObjectFactory} and a {@link FileResolver} instance.
+     *
+     * @since 4.2
+     */
     @Inject
-    public EarPlugin(Instantiator instantiator, FileResolver fileResolver) {
-        this.instantiator = instantiator;
+    public EarPlugin(ObjectFactory objectFactory, FileResolver fileResolver) {
+        this.objectFactory = objectFactory;
         this.fileResolver = fileResolver;
     }
 
     public void apply(final Project project) {
         project.getPluginManager().apply(BasePlugin.class);
 
-        final EarPluginConvention earPluginConvention = instantiator.newInstance(EarPluginConvention.class, fileResolver, instantiator);
+        final EarPluginConvention earPluginConvention = objectFactory.newInstance(EarPluginConvention.class, fileResolver, objectFactory);
         project.getConvention().getPlugins().put("ear", earPluginConvention);
-        earPluginConvention.setLibDirName("lib");
+        earPluginConvention.setLibDirName(DEFAULT_LIB_DIR_NAME);
         earPluginConvention.setAppDirName("src/main/application");
 
         wireEarTaskConventions(project, earPluginConvention);

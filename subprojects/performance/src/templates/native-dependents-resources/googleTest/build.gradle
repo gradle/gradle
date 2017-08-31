@@ -1,6 +1,18 @@
 apply plugin: 'cpp'
 
 model {
+    // google test libs are only built for 32-bit
+    platforms {
+        x86 {
+            architecture "x86"
+        }
+    }
+    components {
+        all {
+            targetPlatform "x86"
+        }
+    }
+
     repositories {
         libs(PrebuiltLibraries) {
             googleTest {

@@ -23,9 +23,19 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
  */
 public interface Version {
     /**
+     * Returns the original {@link String} representation of the version.
+     */
+    String getSource();
+
+    /**
      * Returns all the parts of this version. e.g. 1.2.3 returns [1,2,3] or 1.2-beta4 returns [1,2,beta,4].
      */
     String[] getParts();
+
+    /**
+     * Returns all the numeric parts of this version as {@link Long}, with nulls in non-numeric positions. eg. 1.2.3 returns [1,2,3] or 1.2-beta4 returns [1,2,null,4].
+     */
+    Long[] getNumericParts();
 
     /**
      * Returns the base version for this version, which removes any qualifiers. Generally this is the first '.' separated parts of this version.

@@ -30,15 +30,17 @@ import java.util.regex.Pattern
  * Produces the snippets files for a set of sample source files.
  */
 @CacheableTask
-public class ExtractSnippetsTask extends SourceTask {
+class ExtractSnippetsTask extends SourceTask {
+
     @OutputDirectory
     File destDir
+
     @OutputDirectory
     File snippetsDir
 
     @Override
     @PathSensitive(PathSensitivity.RELATIVE)
-    public FileTree getSource() {
+    FileTree getSource() {
         return super.getSource()
     }
 
@@ -51,8 +53,7 @@ public class ExtractSnippetsTask extends SourceTask {
                 destDir.mkdirs()
                 destDir = new File(snippetsDir, name)
                 destDir.mkdirs()
-            }
-            else {
+            } else {
                 File srcFile = details.file
                 File destFile = new File(destDir, name)
 
@@ -110,48 +111,5 @@ public class ExtractSnippetsTask extends SourceTask {
                 }
             }
         }
-    }
-}
-
-class SnippetWriter {
-
-    private final File dest
-    private final String displayName
-    private boolean appendToFile
-    private PrintWriter writer
-
-    def SnippetWriter(String displayName, File dest) {
-        this.dest = dest
-        this.displayName = displayName
-    }
-
-    def start() {
-        if (writer) {
-            throw new RuntimeException("$displayName is already started.")
-        }
-        dest.parentFile.mkdirs()
-        writer = new PrintWriter(dest.newWriter(appendToFile), false)
-        appendToFile = true
-        this
-    }
-
-    def println(String line) {
-        if (writer) {
-            writer.println(line)
-        }
-    }
-
-    def end() {
-        if (!writer) {
-            throw new RuntimeException("$displayName was not started.")
-        }
-        close()
-    }
-
-    def close() {
-        if (writer) {
-            writer.close()
-        }
-        writer = null
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.initialization.buildsrc
 
 import org.gradle.StartParameter
+import org.gradle.api.Action
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.component.BuildableJavaComponent
 import org.gradle.api.internal.component.ComponentRegistry
@@ -61,5 +62,16 @@ class BuildSrcBuildListenerFactoryTest extends Specification {
 
         then:
         1 * startParameter.setTaskNames(['barBuild'])
+    }
+
+    def "executes buildSrc configuration action after projects are loaded"() {
+        def action = Mock(Action)
+        def listener = new BuildSrcBuildListenerFactory(action).create(true)
+
+        when:
+        listener.projectsLoaded(gradle)
+
+        then:
+        1 * action.execute(project)
     }
 }

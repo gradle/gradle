@@ -38,9 +38,7 @@ class JDependRelocationIntegrationTest extends AbstractTaskRelocationIntegration
         """
             apply plugin: "jdepend"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             task compile(type: JavaCompile) {
                 sourceCompatibility = JavaVersion.current()
@@ -52,7 +50,7 @@ class JDependRelocationIntegrationTest extends AbstractTaskRelocationIntegration
 
             task jdepend(type: JDepend) {
                 dependsOn compile
-                classesDir = file("$classesDir")
+                classesDirs = files("$classesDir")
             }
         """
     }

@@ -14,6 +14,7 @@ dependencies {
     integTestRuntime project(":compositeBuilds")
     integTestRuntime project(":idePlay")
     testFixturesCompile project(":internalIntegTesting")
+    testFixturesCompile libraries.commons_httpclient
 }
 
 useTestFixtures()
@@ -27,3 +28,22 @@ useTestFixtures(project: ':platformBase')
 
 useClassycle()
 strictCompile()
+
+integTest {
+    exclude 'org/gradle/play/prepare/**'
+}
+
+task integTestPrepare(type: org.gradle.testing.IntegrationTest) {
+    systemProperties['org.gradle.integtest.executer'] = 'embedded'
+    if (isCiServer) {
+        systemProperties['org.gradle.integtest.multiversion'] = 'all'
+    }
+    include 'org/gradle/play/prepare/**'
+    maxParallelForks = 1
+}
+
+tasks.withType(org.gradle.testing.IntegrationTest) { task ->
+    if (task != integTestPrepare) {
+        task.dependsOn(integTestPrepare)
+    }
+}

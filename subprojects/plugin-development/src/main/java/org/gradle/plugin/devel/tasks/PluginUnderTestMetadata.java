@@ -22,13 +22,12 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.hash.DefaultFileHasher;
-import org.gradle.api.internal.initialization.loadercache.HashClassPathSnapshotter;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import java.io.BufferedOutputStream;
@@ -38,6 +37,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Properties;
+
+import static java.util.Collections.emptyList;
+import static org.gradle.util.CollectionUtils.collect;
 
 /**
  * Custom task for generating the metadata for a plugin user test.
@@ -81,32 +83,52 @@ public class PluginUnderTestMetadata extends DefaultTask {
     public void generate() {
         Properties properties = new Properties();
 
-        if (!getPluginClasspath().isEmpty()) {
-            List<String> paths = CollectionUtils.collect(getPluginClasspath(), new Transformer<String, File>() {
-                @Override
-                public String transform(File file) {
-                    return file.getAbsolutePath().replaceAll("\\\\", "/");
-                }
-            });
-            StringBuilder implementationClasspath = new StringBuilder();
-            Joiner.on(File.pathSeparator).appendTo(implementationClasspath, paths);
-            properties.setProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY, implementationClasspath.toString());
-
-            // As these files are inputs into this task, they have just been snapshotted by the task up-to-date checking.
-            // We should be reusing those persistent snapshots to avoid reading into memory again.
-            HashClassPathSnapshotter classPathSnapshotter = new HashClassPathSnapshotter(new DefaultFileHasher());
-            String hash = classPathSnapshotter.snapshot(new DefaultClassPath(getPluginClasspath())).getStrongHash().toString();
-            properties.setProperty(IMPLEMENTATION_CLASSPATH_HASH_PROP_KEY, hash);
+        if (getPluginClasspath() != null && !getPluginClasspath().isEmpty()) {
+            properties.setProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY, implementationClasspath());
+            properties.setProperty(IMPLEMENTATION_CLASSPATH_HASH_PROP_KEY, implementationClasspathHash());
         }
 
         File outputFile = new File(getOutputDirectory(), METADATA_FILE_NAME);
+        saveProperties(properties, outputFile);
+    }
 
+    private String implementationClasspath() {
+        StringBuilder implementationClasspath = new StringBuilder();
+        Joiner.on(File.pathSeparator).appendTo(implementationClasspath, getPaths());
+        return implementationClasspath.toString();
+    }
+
+    private String implementationClasspathHash() {
+        // As these files are inputs into this task, they have just been snapshotted by the task up-to-date checking.
+        // We should be reusing those persistent snapshots to avoid reading into memory again.
+        ClasspathHasher classpathHasher = getServices().get(ClasspathHasher.class);
+        return classpathHasher.hash(new DefaultClassPath(getPluginClasspath())).toString();
+    }
+
+    private void saveProperties(Properties properties, File outputFile) {
         try {
             OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(outputFile));
             GUtil.savePropertiesNoDateComment(properties, outputStream);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    @Input
+    private List<String> getPaths() {
+        return collect(classpathFiles(), new Transformer<String, File>() {
+            @Override
+            public String transform(File file) {
+                return file.getAbsolutePath().replaceAll("\\\\", "/");
+            }
+        });
+    }
+
+    private Iterable<File> classpathFiles() {
+        if (getPluginClasspath() != null) {
+            return getPluginClasspath();
+        }
+        return emptyList();
     }
 
 }

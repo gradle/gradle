@@ -15,8 +15,11 @@
  */
 package org.gradle.internal.exceptions;
 
+import org.gradle.internal.scan.UsedByScanPlugin;
+
 import java.util.List;
 
+@UsedByScanPlugin
 public interface MultiCauseException {
     List<? extends Throwable> getCauses();
 }

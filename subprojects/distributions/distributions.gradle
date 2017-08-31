@@ -23,21 +23,16 @@ tasks.remove(jar)
 
 tasks.withType(AbstractArchiveTask) {
     baseName "gradle"
+    version = baseVersion
 
     // The CI server looks for the distributions at this location
     destinationDir = rootProject.distsDir
     clean.delete archivePath
 }
 
-dependencies {
-    testCompile libraries.groovy
-}
-
 configurations {
     dists
 }
-
-daemonIntegTest.enabled = false
 
 evaluationDependsOn ":docs"
 
@@ -46,13 +41,7 @@ ext {
 
     binDistImage = copySpec {
         from("$rootDir/LICENSE")
-        from('src/toplevel') {
-            exclude 'media/**'
-            expand(version: version)
-        }
-        from('src/toplevel') {
-            include 'media/**'
-        }
+        from('src/toplevel')
         from project(':docs').outputs.distDocs
         into('bin') {
             from { project(':launcher').startScripts.outputs.files }
@@ -108,6 +97,7 @@ task srcZip(type: Zip) {
                 spec.include "$it/*.gradle"
                 spec.include "$it/src/"
             }
+            include 'gradle.properties'
             include 'config/'
             include 'gradle/'
             include 'src/'
@@ -121,7 +111,9 @@ task srcZip(type: Zip) {
 
 task outputsZip(type: Zip) {
     archiveName "outputs.zip"
-    from rootProject.createBuildReceipt
+    from {
+        tasks.getByPath(':createBuildReceipt')
+    }
     ["all", "bin", "src"].each { from(tasks["${it}Zip"]) }
 }
 
@@ -129,10 +121,10 @@ artifacts {
     dists allZip, binZip, srcZip
 }
 
-integTest {
-    inputs.files allZip, binZip, srcZip
+integTestTasks.all {
+    requiresDists = true
+    systemProperty 'org.gradle.public.api.includes', publicApiIncludes.join(':')
+    systemProperty 'org.gradle.public.api.excludes', publicApiExcludes.join(':')
 }
 
-java9IntegTest {
-    inputs.files allZip, binZip, srcZip
-}
+apply from: 'binary-compatibility.gradle'

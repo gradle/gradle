@@ -16,9 +16,11 @@
 
 package org.gradle.jvm.internal.toolchain;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.platform.base.internal.toolchain.ToolChainInternal;
 
 public interface JavaToolChainInternal extends JavaToolChain, ToolChainInternal<JavaPlatform> {
+    JavaVersion getJavaVersion();
 }

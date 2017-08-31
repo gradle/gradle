@@ -1,4 +1,4 @@
-:core:clean
+:core:clean UP-TO-DATE
 :server:clean UP-TO-DATE
 :core:compileMainJava6JarMainJava
 :core:compileMainJava6JarMainJava6JarJava
@@ -7,4 +7,5 @@
 :core:mainJava6ApiJar
 :core:mainJava6Jar
 
-BUILD SUCCESSFUL
+BUILD SUCCESSFUL in 0s
+7 actionable tasks: 5 executed, 2 up-to-date

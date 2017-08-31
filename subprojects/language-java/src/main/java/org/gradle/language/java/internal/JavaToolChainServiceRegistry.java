@@ -16,64 +16,51 @@
 
 package org.gradle.language.java.internal;
 
-import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.tasks.DefaultJavaToolChain;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.tasks.CurrentJvmJavaToolChain;
+import org.gradle.api.internal.tasks.JavaToolChainFactory;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.JavaHomeBasedJavaCompilerFactory;
-import org.gradle.api.internal.tasks.compile.daemon.CompilerClientsManager;
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonStarter;
 import org.gradle.internal.Factory;
+import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.process.internal.ExecActionFactory;
-import org.gradle.process.internal.worker.WorkerProcessFactory;
+import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
+import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import javax.tools.JavaCompiler;
 
-public class JavaToolChainServiceRegistry implements PluginServiceRegistry {
-    @Override
-    public void registerGlobalServices(ServiceRegistration registration) {
-    }
-
+public class JavaToolChainServiceRegistry extends AbstractPluginServiceRegistry {
     @Override
     public void registerBuildSessionServices(ServiceRegistration registration) {
         registration.addProvider(new BuildSessionScopeCompileServices());
     }
-
-    @Override
-    public void registerBuildServices(ServiceRegistration registration) {
-    }
-
-    @Override
-    public void registerGradleServices(ServiceRegistration registration) {
-    }
-
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
         registration.addProvider(new ProjectScopeCompileServices());
     }
 
     private static class BuildSessionScopeCompileServices {
-        CompilerDaemonManager createCompilerDaemonManager(WorkerProcessFactory workerFactory, StartParameter startParameter) {
-            return new CompilerDaemonManager(new CompilerClientsManager(new CompilerDaemonStarter(workerFactory, startParameter)));
-        }
-
         Factory<JavaCompiler> createJavaHomeBasedJavaCompilerFactory() {
             return new JavaHomeBasedJavaCompilerFactory();
         }
     }
 
     private static class ProjectScopeCompileServices {
-        JavaCompilerFactory createJavaCompilerFactory(GradleInternal gradle, CompilerDaemonManager compilerDaemonManager, Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory) {
-            return new DefaultJavaCompilerFactory(gradle.getRootProject().getProjectDir(), compilerDaemonManager, javaHomeBasedJavaCompilerFactory);
+        JavaCompilerFactory createJavaCompilerFactory(GradleInternal gradle, WorkerDaemonFactory workerDaemonFactory, Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory, FileResolver fileResolver, WorkerDirectoryProvider workerDirectoryProvider) {
+            return new DefaultJavaCompilerFactory(workerDirectoryProvider.getIdleWorkingDirectory(), workerDaemonFactory, javaHomeBasedJavaCompilerFactory, fileResolver);
         }
 
         JavaToolChainInternal createJavaToolChain(JavaCompilerFactory compilerFactory, ExecActionFactory execActionFactory) {
-            return new DefaultJavaToolChain(compilerFactory, execActionFactory);
+            return new CurrentJvmJavaToolChain(compilerFactory, execActionFactory);
+        }
+
+        JavaToolChainFactory createJavaToolChainFactory(JavaCompilerFactory compilerFactory, ExecActionFactory execActionFactory, JvmVersionDetector jvmVersionDetector) {
+            return new JavaToolChainFactory(compilerFactory, execActionFactory, jvmVersionDetector);
         }
     }
 }

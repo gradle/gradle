@@ -33,4 +33,11 @@ public interface ConsoleMetaData {
      * @return The number of columns available in the console. If no information is available return 0.
      */
     int getCols();
+
+    /**
+     * <p>Returns the number of rows available in the console.</p>
+     *
+     * @return The height of the console (rows). If no information is available return 0.
+     */
+    int getRows();
 }

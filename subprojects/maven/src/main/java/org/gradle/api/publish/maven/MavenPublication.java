@@ -55,7 +55,7 @@ import org.gradle.internal.HasInternalProtocol;
  * of the POM returned via the {@link #getPom()} method, or directly by an action (or closure) passed into {@link #pom(org.gradle.api.Action)}.
  * </p>
  * <h4>Example of publishing a java module with a source artifact and custom POM description</h4>
- * <pre autoTested="true">
+ * <pre class='autoTested'>
  * apply plugin: "java"
  * apply plugin: "maven-publish"
  *
@@ -111,7 +111,7 @@ public interface MavenPublication extends Publication {
      * For any individual MavenPublication, only a single component can be provided in this way.
      *
      * The following example demonstrates how to publish the 'java' component to a Maven repository.
-     * <pre autoTested="true">
+     * <pre class='autoTested'>
      * apply plugin: "java"
      * apply plugin: "maven-publish"
      *
@@ -142,7 +142,7 @@ public interface MavenPublication extends Publication {
      * </ul>
      *
      * The following example demonstrates the addition of various custom artifacts.
-     * <pre autoTested="true">
+     * <pre class='autoTested'>
      * apply plugin: "maven-publish"
      *
      * task sourceJar(type: Jar) {
@@ -171,7 +171,7 @@ public interface MavenPublication extends Publication {
      * The created {@link MavenArtifact} is then configured using the supplied action, which can override the extension or classifier of the artifact.
      * This method also accepts the configure action as a closure argument, by type coercion.
      *
-     * <pre autoTested="true">
+     * <pre class='autoTested'>
      * apply plugin: "maven-publish"
      *
      * task sourceJar(type: Jar) {
@@ -205,7 +205,7 @@ public interface MavenPublication extends Publication {
      * Each supplied source is interpreted as per {@link #artifact(Object)}.
      *
      * For example, to exclude the dependencies declared by a component and instead use a custom set of artifacts:
-     * <pre autoTested="true">
+     * <pre class='autoTested'>
      * apply plugin: "java"
      * apply plugin: "maven-publish"
      *

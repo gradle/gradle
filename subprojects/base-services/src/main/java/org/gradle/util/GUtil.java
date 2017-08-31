@@ -18,17 +18,37 @@ package org.gradle.util;
 
 import com.google.common.base.Charsets;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.LineBufferingOutputStream;
 import org.gradle.internal.io.SkipFirstTextStream;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.io.WriterTextStream;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.EnumSet;
+import java.util.Formatter;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -237,6 +257,20 @@ public class GUtil {
         }
     }
 
+
+    public static void savePropertiesNoDateComment(Properties properties, File propertyFile) {
+        try {
+            FileOutputStream propertiesFileOutputStream = new FileOutputStream(propertyFile);
+            try {
+                savePropertiesNoDateComment(properties, propertiesFileOutputStream);
+            } finally {
+                propertiesFileOutputStream.close();
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     public static void savePropertiesNoDateComment(Properties properties, OutputStream outputStream) {
         saveProperties(properties,
             new LineBufferingOutputStream(
@@ -404,4 +438,58 @@ public class GUtil {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
+
+    public static <T extends Enum<T>> T toEnum(Class<? extends T> enumType, Object value) {
+        if (enumType.isInstance(value)) {
+            return enumType.cast(value);
+        }
+        if (value instanceof CharSequence) {
+            final String literal = value.toString();
+            T match = findEnumValue(enumType, literal);
+            if (match != null) {
+                return match;
+            }
+
+            final String alternativeLiteral = toWords(literal, '_');
+            match = findEnumValue(enumType, alternativeLiteral);
+            if (match != null) {
+                return match;
+            }
+
+            throw new IllegalArgumentException(
+                String.format("Cannot convert string value '%s' to an enum value of type '%s' (valid case insensitive values: %s)",
+                    literal, enumType.getName(), CollectionUtils.join(", ", CollectionUtils.collect(Arrays.asList(enumType.getEnumConstants()), new Transformer<String, T>() {
+                        @Override
+                        public String transform(T t) {
+                            return t.name();
+                        }
+                    }))
+                )
+            );
+        }
+        throw new IllegalArgumentException(String.format("Cannot convert value '%s' of type '%s' to enum type '%s'",
+            value, value.getClass().getName(), enumType.getName()));
+    }
+
+    private static <T extends Enum<T>> T findEnumValue(Class<? extends T> enumType, final String literal) {
+        List<? extends T> enumConstants = Arrays.asList(enumType.getEnumConstants());
+        return CollectionUtils.findFirst(enumConstants, new Spec<T>() {
+            public boolean isSatisfiedBy(T enumValue) {
+                return enumValue.name().equalsIgnoreCase(literal);
+            }
+        });
+    }
+
+    public static <T extends Enum<T>> EnumSet<T> toEnumSet(Class<T> enumType, Object[] values) {
+        return toEnumSet(enumType, Arrays.asList(values));
+    }
+
+    public static <T extends Enum<T>> EnumSet<T> toEnumSet(Class<T> enumType, Iterable<?> values) {
+        EnumSet<T> result = EnumSet.noneOf(enumType);
+        for (Object value : values) {
+            result.add(toEnum(enumType, value));
+        }
+        return result;
+    }
+
 }

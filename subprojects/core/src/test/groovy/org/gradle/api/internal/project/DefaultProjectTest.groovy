@@ -33,6 +33,7 @@ import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.component.SoftwareComponentContainer
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.AsmBackedClassGenerator
@@ -42,8 +43,10 @@ import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.artifacts.Module
 import org.gradle.api.internal.artifacts.ProjectBackedModule
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
+import org.gradle.api.internal.file.DefaultProjectLayout
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.RootClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
@@ -52,8 +55,10 @@ import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.project.ant.AntLoggingAdapter
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.tasks.TaskContainerInternal
-import org.gradle.api.invocation.Gradle
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.PluginContainer
+import org.gradle.api.provider.ProviderFactory
+import org.gradle.configuration.ConfigurationTargetIdentifier
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.configuration.project.ProjectEvaluator
@@ -63,15 +68,20 @@ import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factory
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.metaobject.BeanDynamicObject
+import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.StringTextResource
+import org.gradle.internal.resource.TextResourceLoader
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory
 import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import org.gradle.model.internal.registry.ModelRegistry
+import org.gradle.normalization.InputNormalizationHandler
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.JUnit4GroovyMockery
+import org.gradle.util.Path
 import org.gradle.util.TestClosure
 import org.gradle.util.TestUtil
 import org.jmock.integration.junit4.JMock
@@ -104,6 +114,7 @@ class DefaultProjectTest {
     ProjectRegistry projectRegistry
 
     File rootDir
+    File buildFile
 
     groovy.lang.Script testScript
 
@@ -121,17 +132,24 @@ class DefaultProjectTest {
     ComponentMetadataHandler moduleHandlerMock = context.mock(ComponentMetadataHandler)
     ScriptHandler scriptHandlerMock = context.mock(ScriptHandler)
     DependencyMetaDataProvider dependencyMetaDataProviderMock = context.mock(DependencyMetaDataProvider)
-    Gradle build = context.mock(GradleInternal)
+    GradleInternal build = context.mock(GradleInternal)
+    ConfigurationTargetIdentifier configurationTargetIdentifier = context.mock(ConfigurationTargetIdentifier)
     FileOperations fileOperationsMock = context.mock(FileOperations)
+    ProviderFactory propertyStateFactoryMock = context.mock(ProviderFactory)
     ProcessOperations processOperationsMock = context.mock(ProcessOperations)
     LoggingManagerInternal loggingManagerMock = context.mock(LoggingManagerInternal.class)
     Instantiator instantiatorMock = context.mock(Instantiator)
     SoftwareComponentContainer softwareComponentsMock = context.mock(SoftwareComponentContainer.class)
+    InputNormalizationHandler inputNormalizationHandler = context.mock(InputNormalizationHandler.class)
     ProjectConfigurationActionContainer configureActions = context.mock(ProjectConfigurationActionContainer.class)
     PluginManagerInternal pluginManager = context.mock(PluginManagerInternal.class)
     PluginContainer pluginContainer = context.mock(PluginContainer.class)
     ManagedProxyFactory managedProxyFactory = context.mock(ManagedProxyFactory.class)
     AntLoggingAdapter antLoggingAdapter = context.mock(AntLoggingAdapter.class)
+    AttributesSchema attributesSchema = context.mock(AttributesSchema)
+    TextResourceLoader textResourceLoader = context.mock(TextResourceLoader)
+    BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
+    CrossProjectConfigurator crossProjectConfigurator = new BuildOperationCrossProjectConfigurator(buildOperationExecutor)
 
     ClassLoaderScope baseClassLoaderScope = new RootClassLoaderScope(getClass().classLoader, getClass().classLoader, new DummyClassLoaderCache())
     ClassLoaderScope rootProjectClassLoaderScope = baseClassLoaderScope.createChild("root-project")
@@ -139,6 +157,7 @@ class DefaultProjectTest {
     @Before
     void setUp() {
         rootDir = new File("/path/root").absoluteFile
+        buildFile = new File(rootDir, TEST_BUILD_FILE_NAME)
 
         testAntBuilder = new DefaultAntBuilder(null, antLoggingAdapter)
 
@@ -147,7 +166,7 @@ class DefaultProjectTest {
             allowing(script).getDisplayName(); will(returnValue('[build file]'))
             allowing(script).getClassName(); will(returnValue('scriptClass'))
             allowing(script).getResource(); will(returnValue(new StringTextResource("", "")))
-            allowing(scriptHandlerMock).getSourceFile(); will(returnValue(new File(rootDir, TEST_BUILD_FILE_NAME)))
+            allowing(scriptHandlerMock).getSourceFile(); will(returnValue(buildFile))
         }
 
         testScript = new EmptyScript()
@@ -170,7 +189,9 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(ArtifactHandler); will(returnValue(context.mock(ArtifactHandler)))
             allowing(serviceRegistryMock).get(DependencyHandler); will(returnValue(dependencyHandlerMock))
             allowing(serviceRegistryMock).get((Type) ComponentMetadataHandler); will(returnValue(moduleHandlerMock))
+            allowing(serviceRegistryMock).get((Type) ConfigurationTargetIdentifier); will(returnValue(configurationTargetIdentifier))
             allowing(serviceRegistryMock).get((Type) SoftwareComponentContainer); will(returnValue(softwareComponentsMock))
+            allowing(serviceRegistryMock).get((Type) InputNormalizationHandler); will(returnValue(inputNormalizationHandler))
             allowing(serviceRegistryMock).get(ProjectEvaluator); will(returnValue(projectEvaluator))
             allowing(serviceRegistryMock).getFactory(AntBuilder); will(returnValue(antBuilderFactoryMock))
             allowing(serviceRegistryMock).get((Type) ScriptHandler); will(returnValue(scriptHandlerMock))
@@ -180,12 +201,17 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(FileResolver); will(returnValue([toString: { -> "file resolver" }] as FileResolver))
             allowing(serviceRegistryMock).get(Instantiator); will(returnValue(instantiatorMock))
             allowing(serviceRegistryMock).get((Type) FileOperations); will(returnValue(fileOperationsMock))
+            allowing(serviceRegistryMock).get((Type) ProviderFactory); will(returnValue(propertyStateFactoryMock))
             allowing(serviceRegistryMock).get((Type) ProcessOperations); will(returnValue(processOperationsMock))
             allowing(serviceRegistryMock).get((Type) ScriptPluginFactory); will(returnValue([toString: { -> "script plugin factory" }] as ScriptPluginFactory))
             allowing(serviceRegistryMock).get((Type) ScriptHandlerFactory); will(returnValue([toString: { -> "script plugin factory" }] as ScriptHandlerFactory))
             allowing(serviceRegistryMock).get((Type) ProjectConfigurationActionContainer); will(returnValue(configureActions))
             allowing(serviceRegistryMock).get((Type) PluginManagerInternal); will(returnValue(pluginManager))
+            allowing(serviceRegistryMock).get((Type) TextResourceLoader); will(returnValue(textResourceLoader))
             allowing(serviceRegistryMock).get(ManagedProxyFactory); will(returnValue(managedProxyFactory))
+            allowing(serviceRegistryMock).get(AttributesSchema) ; will(returnValue(attributesSchema))
+            allowing(serviceRegistryMock).get(BuildOperationExecutor) ; will(returnValue(buildOperationExecutor))
+            allowing(serviceRegistryMock).get((Type) CrossProjectConfigurator) ; will(returnValue(crossProjectConfigurator))
             allowing(pluginManager).getPluginContainer(); will(returnValue(pluginContainer))
 
             allowing(serviceRegistryMock).get((Type) DeferredProjectConfiguration); will(returnValue(context.mock(DeferredProjectConfiguration)))
@@ -203,25 +229,41 @@ class DefaultProjectTest {
             ignoring(modelSchemaStore)
             allowing(serviceRegistryMock).get((Type) ModelSchemaStore); will(returnValue(modelSchemaStore))
             allowing(serviceRegistryMock).get(ModelSchemaStore); will(returnValue(modelSchemaStore))
+            allowing(serviceRegistryMock).get((Type) DefaultProjectLayout); will(returnValue(new DefaultProjectLayout(rootDir, TestFiles.resolver(rootDir))))
 
             Object listener = context.mock(ProjectEvaluationListener)
             ignoring(listener)
             allowing(build).getProjectEvaluationBroadcaster();
             will(returnValue(listener))
+
+            allowing(build).getParent()
+            will(returnValue(null))
+
+            allowing(build).findIdentityPath()
+            will(returnValue(Path.ROOT))
+            allowing(build).getIdentityPath()
+            will(returnValue(Path.ROOT))
+            allowing(attributesSchema).attribute(withParam(notNullValue()), withParam(notNullValue()));
+
+            allowing(serviceRegistryMock).get((Type) ObjectFactory); will(returnValue(context.mock(ObjectFactory)))
         }
 
         AsmBackedClassGenerator classGenerator = new AsmBackedClassGenerator()
-        project = classGenerator.newInstance(DefaultProject.class, 'root', null, rootDir, script, build, projectServiceRegistryFactoryMock, rootProjectClassLoaderScope, baseClassLoaderScope);
+        project = defaultProject(classGenerator, 'root', null, rootDir, rootProjectClassLoaderScope);
         def child1ClassLoaderScope = rootProjectClassLoaderScope.createChild("project-child1")
-        child1 = classGenerator.newInstance(DefaultProject.class, "child1", project, new File("child1"), script, build, projectServiceRegistryFactoryMock, child1ClassLoaderScope, baseClassLoaderScope)
+        child1 = defaultProject(classGenerator, "child1", project, new File("child1"), child1ClassLoaderScope)
         project.addChildProject(child1)
-        childchild = classGenerator.newInstance(DefaultProject.class, "childchild", child1, new File("childchild"), script, build, projectServiceRegistryFactoryMock, child1ClassLoaderScope.createChild("project-childchild"), baseClassLoaderScope)
+        childchild = defaultProject(classGenerator, "childchild", child1, new File("childchild"), child1ClassLoaderScope.createChild("project-childchild"))
         child1.addChildProject(childchild)
-        child2 = classGenerator.newInstance(DefaultProject.class, "child2", project, new File("child2"), script, build, projectServiceRegistryFactoryMock, rootProjectClassLoaderScope.createChild("project-child2"), baseClassLoaderScope)
+        child2 = defaultProject(classGenerator, "child2", project, new File("child2"), rootProjectClassLoaderScope.createChild("project-child2"))
         project.addChildProject(child2)
         [project, child1, childchild, child2].each {
             projectRegistry.addProject(it)
         }
+    }
+
+    private DefaultProject defaultProject(AsmBackedClassGenerator classGenerator, String name, def parent, File rootDir, ClassLoaderScope scope) {
+        classGenerator.newInstance(DefaultProject.class, name, parent, rootDir, new File(rootDir, 'build.gradle'), script, build, this.projectServiceRegistryFactoryMock, scope, baseClassLoaderScope)
     }
 
     Type getProjectRegistryType() {
@@ -551,6 +593,16 @@ class DefaultProjectTest {
     }
 
     @Test
+    void testGetProjectWithAction() {
+        def child1 = project.project("child1")
+        def action = context.mock(Action)
+        context.checking {
+            one(action).execute(child1)
+        }
+        assert child1 == project.project("child1", action)
+    }
+
+    @Test
     void testMethodMissing() {
         boolean closureCalled = false
         Closure testConfigureClosure = { closureCalled = true }
@@ -654,6 +706,7 @@ def scriptMethod(Closure closure) {
         context.checking {
             allowing(dependencyMetaDataProviderMock).getModule(); will(returnValue({} as Module))
             ignoring(fileOperationsMock)
+            ignoring(propertyStateFactoryMock)
             ignoring(taskContainerMock)
             allowing(serviceRegistryMock).get(ServiceRegistryFactory); will(returnValue({} as ServiceRegistryFactory))
         }
@@ -704,19 +757,10 @@ def scriptMethod(Closure closure) {
 
     @Test
     void testBuildDir() {
-        File dir = new File(rootDir, 'dir')
-        context.checking {
-            allowing(fileOperationsMock).file(Project.DEFAULT_BUILD_DIR_NAME)
-            will(returnValue(dir))
-        }
-        assertEquals(dir, child1.buildDir)
+        assertEquals(new File(rootDir, "build"), project.buildDir)
 
-        child1.buildDir = 12
-        context.checking {
-            one(fileOperationsMock).file(12)
-            will(returnValue(dir))
-        }
-        assertEquals(dir, child1.buildDir)
+        project.buildDir = "abc"
+        assertEquals(new File(rootDir, "abc"), child1.buildDir)
     }
 
     @Test
@@ -773,13 +817,6 @@ def scriptMethod(Closure closure) {
     @Test
     void testConfigureProjects() {
         checkConfigureProject('configure', [project, child1] as Set)
-    }
-
-    @Test
-    void testHasUsefulToString() {
-        assertEquals('root project \'root\'', project.toString())
-        assertEquals('project \':child1\'', child1.toString())
-        assertEquals('project \':child1:childchild\'', childchild.toString())
     }
 
     private void checkConfigureProject(String configureMethod, Set projectsToCheck) {

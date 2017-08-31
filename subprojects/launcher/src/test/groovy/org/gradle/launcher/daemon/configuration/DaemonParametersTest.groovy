@@ -76,20 +76,20 @@ class DaemonParametersTest extends Specification {
         parameters.effectiveJvmArgs.intersect(parameters.DEFAULT_JVM_ARGS).empty
     }
 
-    def "can apply defaults for Java 8 and earlier"() {
+    def "can apply defaults for Java 7 and earlier"() {
         when:
-        parameters.applyDefaultsFor(JavaVersion.VERSION_1_8)
+        parameters.applyDefaultsFor(JavaVersion.VERSION_1_7)
 
         then:
         parameters.effectiveJvmArgs.containsAll(DaemonParameters.DEFAULT_JVM_ARGS)
     }
 
-    def "can apply defaults for Java 9"() {
+    def "can apply defaults for Java 8 and later"() {
         when:
         parameters.applyDefaultsFor(JavaVersion.VERSION_1_9)
 
         then:
-        parameters.effectiveJvmArgs.containsAll(DaemonParameters.DEFAULT_JVM_9_ARGS)
+        parameters.effectiveJvmArgs.containsAll(DaemonParameters.DEFAULT_JVM_8_ARGS)
         !parameters.effectiveJvmArgs.containsAll(DaemonParameters.DEFAULT_JVM_ARGS)
     }
 

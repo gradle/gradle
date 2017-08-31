@@ -22,6 +22,7 @@ import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.tasks.TaskState
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -48,12 +49,14 @@ class BuildProgressFilterTest extends Specification {
 
         when:
         f.buildStarted(gradle)
+        f.afterStart()
         f.settingsEvaluated(settings)
         f.projectsLoaded(gradle)
         f.beforeEvaluate(project)
         f.afterEvaluate(project, null)
         f.graphPopulated(graph)
-        f.afterExecute(task, null)
+        f.afterExecute(task, Mock(TaskState))
+        f.beforeComplete()
         f.buildFinished(result)
 
         then: 1 * logger.buildStarted()
@@ -62,12 +65,25 @@ class BuildProgressFilterTest extends Specification {
         then: 1 * logger.beforeEvaluate(":foo:bar")
         then: 1 * logger.afterEvaluate(":foo:bar")
         then: 1 * logger.graphPopulated(3)
-        then: 1 * logger.afterExecute()
-        then: 1 * logger.buildFinished()
+        then: 1 * logger.afterExecute(false)
+        then: 1 * logger.beforeComplete()
         then: 0 * logger._
     }
 
-    def "does not delegate when building nested projects"() {
+    def "delegates task graph population and execution when building nested projects"() {
+        gradle.getParent() >> Stub(Gradle)
+
+        when:
+        f.graphPopulated(graph)
+        f.afterExecute(task, Mock(TaskState))
+
+        then:
+        1 * logger.nestedTaskGraphPopulated(3)
+        1 * logger.afterNestedExecute(false)
+        0 * logger._
+    }
+
+    def "does not delegate when configuring nested builds"() {
         gradle.getParent() >> Stub(Gradle)
 
         when:
@@ -76,8 +92,6 @@ class BuildProgressFilterTest extends Specification {
         f.projectsLoaded(gradle)
         f.beforeEvaluate(project)
         f.afterEvaluate(project, null)
-        f.graphPopulated(graph)
-        f.afterExecute(task, null)
         f.buildFinished(result)
 
         then:

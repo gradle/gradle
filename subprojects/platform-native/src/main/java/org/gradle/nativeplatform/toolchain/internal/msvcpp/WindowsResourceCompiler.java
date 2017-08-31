@@ -17,7 +17,9 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import com.google.common.collect.Iterables;
 import org.gradle.api.Transformer;
-import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.WindowsResourceCompileSpec;
@@ -26,8 +28,8 @@ import java.util.List;
 
 class WindowsResourceCompiler extends VisualCppNativeCompiler<WindowsResourceCompileSpec> {
 
-    WindowsResourceCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer, String objectFileExtension, boolean useCommandFile) {
-        super(buildOperationProcessor, commandLineTool, invocationContext, new RcCompilerArgsTransformer(), specTransformer, objectFileExtension, useCommandFile);
+    WindowsResourceCompiler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer, String objectFileExtension, boolean useCommandFile, WorkerLeaseService workerLeaseService) {
+        super(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, invocationContext, new RcCompilerArgsTransformer(), specTransformer, objectFileExtension, useCommandFile, workerLeaseService);
     }
 
     @Override

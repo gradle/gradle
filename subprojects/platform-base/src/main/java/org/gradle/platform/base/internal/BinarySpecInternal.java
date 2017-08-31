@@ -16,10 +16,11 @@
 
 package org.gradle.platform.base.internal;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpec;
+
+import javax.annotation.Nullable;
 
 public interface BinarySpecInternal extends BinarySpec {
     /**

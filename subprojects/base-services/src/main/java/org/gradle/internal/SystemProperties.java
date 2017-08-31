@@ -16,51 +16,54 @@
 package org.gradle.internal;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static com.google.common.collect.ImmutableSet.of;
 
 /**
  * Provides access to frequently used system properties.
  */
 public class SystemProperties {
-    private static final Set<String> STANDARD_PROPERTIES = of(
-            "java.version",
-            "java.vendor",
-            "java.vendor.url",
-            "java.home",
-            "java.vm.specification.version",
-            "java.vm.specification.vendor",
-            "java.vm.specification.name",
-            "java.vm.version",
-            "java.vm.vendor",
-            "java.vm.name",
-            "java.specification.version",
-            "java.specification.vendor",
-            "java.specification.name",
-            "java.class.version",
-            "java.class.path",
-            "java.library.path",
-            "java.io.tmpdir",
-            "java.compiler",
-            "java.ext.dirs",
-            "os.name",
-            "os.arch",
-            "os.version",
-            "file.separator",
-            "path.separator",
-            "line.separator",
-            "user.name",
-            "user.home",
-            "user.dir"
-    );
+    private static final Set<String> STANDARD_PROPERTIES;
 
-    private static final Set<String> IMPORTANT_NON_STANDARD_PROPERTIES = of(
-            "java.runtime.version"
-    );
+    static {
+        Set<String> standardProperties = new HashSet<String>();
+        standardProperties.add("java.version");
+        standardProperties.add("java.vendor");
+        standardProperties.add("java.vendor.url");
+        standardProperties.add("java.home");
+        standardProperties.add("java.vm.specification.version");
+        standardProperties.add("java.vm.specification.vendor");
+        standardProperties.add("java.vm.specification.name");
+        standardProperties.add("java.vm.version");
+        standardProperties.add("java.vm.vendor");
+        standardProperties.add("java.vm.name");
+        standardProperties.add("java.specification.version");
+        standardProperties.add("java.specification.vendor");
+        standardProperties.add("java.specification.name");
+        standardProperties.add("java.class.version");
+        standardProperties.add("java.class.path");
+        standardProperties.add("java.library.path");
+        standardProperties.add("java.io.tmpdir");
+        standardProperties.add("java.compiler");
+        standardProperties.add("java.ext.dirs");
+        standardProperties.add("os.name");
+        standardProperties.add("os.arch");
+        standardProperties.add("os.version");
+        standardProperties.add("file.separator");
+        standardProperties.add("path.separator");
+        standardProperties.add("line.separator");
+        standardProperties.add("user.name");
+        standardProperties.add("user.home");
+        standardProperties.add("user.dir");
+        STANDARD_PROPERTIES = Collections.unmodifiableSet(standardProperties);
+    }
+
+    private static final Set<String> IMPORTANT_NON_STANDARD_PROPERTIES = Collections.singleton("java.runtime.version");
 
     private static final SystemProperties INSTANCE = new SystemProperties();
     private final Lock lock = new ReentrantLock();

@@ -18,8 +18,12 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.launcher.continuous.Java7RequiringContinuousIntegrationTest
 
-
 abstract class AbstractCompilerContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+
+    def setup() {
+        executer.withWorkerDaemonsExpirationDisabled()
+    }
+
     def cleanup() {
         gradle.cancel()
     }
@@ -40,14 +44,19 @@ abstract class AbstractCompilerContinuousIntegrationTest extends Java7RequiringC
         buildFile << """
             ${applyAndConfigure}
 
-            import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager
-            import org.gradle.api.internal.tasks.compile.daemon.DaemonForkOptions
+            import org.gradle.workers.internal.WorkerDaemonClientsManager
+            import org.gradle.workers.internal.DaemonForkOptions
 
             tasks.withType(${compileTaskType}) {
                 doLast { task ->
                     def compilerDaemonIdentityFile = file("$compilerDaemonIdentityFileName")
-                    def daemonFactory = services.get(CompilerDaemonManager)
-                    compilerDaemonIdentityFile << daemonFactory.clientsManager.allClients.collect { System.identityHashCode(it) }.sort().join(" ") + "\\n"
+                    compilerDaemonIdentityFile << services.get(WorkerDaemonClientsManager).allClients.collect { System.identityHashCode(it) }.sort().join(" ") + "\\n"
+                }
+            }
+            
+            task verifyNoDaemons {
+                doLast {
+                    assert services.get(WorkerDaemonClientsManager).allClients.size() == 0
                 }
             }
         """
@@ -69,5 +78,14 @@ abstract class AbstractCompilerContinuousIntegrationTest extends Java7RequiringC
         compilerDaemonSets.size() == 2
         compilerDaemonSets[0].split(" ").size() > 0
         compilerDaemonSets[0] == compilerDaemonSets[1]
+
+        when:
+        sendEOT()
+
+        then:
+        cancelsAndExits()
+
+        and:
+        succeeds("verifyNoDaemons")
     }
 }

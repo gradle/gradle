@@ -15,27 +15,28 @@
  */
 package org.gradle.launcher.daemon.registry
 
+import org.gradle.cache.FileLockManager
 import org.gradle.cache.internal.DefaultFileLockManager
-import org.gradle.cache.internal.FileLockManager
 import org.gradle.cache.internal.ProcessMetaDataProvider
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler
 import org.gradle.internal.nativeintegration.filesystem.Chmod
+import org.gradle.internal.remote.internal.inet.SocketInetAddress
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
-import org.gradle.internal.remote.internal.inet.SocketInetAddress
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle
 
 class DaemonRegistryServicesTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
     def parent = Mock(ServiceRegistry) {
         get(FileLockManager) >> new DefaultFileLockManager(Stub(ProcessMetaDataProvider), Stub(FileLockContentionHandler))
         get(Chmod) >> Stub(Chmod)
+        hasService(_) >> true
     }
 
     def registry(baseDir) {

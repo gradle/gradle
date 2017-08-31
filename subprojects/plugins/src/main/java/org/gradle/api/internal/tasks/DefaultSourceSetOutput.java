@@ -21,33 +21,45 @@ import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.SourceSetOutput;
+import org.gradle.util.CollectionUtils;
+import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
 public class DefaultSourceSetOutput extends CompositeFileCollection implements SourceSetOutput {
+    public static final String SINGLE_CLASSES_DIR_DEPRECATION_MESSAGE = "Gradle now uses separate output directories for each JVM language, but this build assumes a single directory for all classes from a source set";
     private final DefaultConfigurableFileCollection outputDirectories;
-    private Object classesDir;
     private Object resourcesDir;
+    private Object classesDir;
+
+    private final DefaultConfigurableFileCollection classesDirs;
     private final DefaultConfigurableFileCollection dirs;
     private final FileResolver fileResolver;
 
-    public DefaultSourceSetOutput(String sourceSetDisplayName, FileResolver fileResolver, TaskResolver taskResolver) {
+    public DefaultSourceSetOutput(String sourceSetDisplayName, final FileResolver fileResolver, TaskResolver taskResolver) {
         this.fileResolver = fileResolver;
         String displayName = sourceSetDisplayName + " classes";
-        outputDirectories = new DefaultConfigurableFileCollection(displayName, fileResolver, taskResolver, new Callable() {
+
+        this.classesDirs = new DefaultConfigurableFileCollection("classesDirs", fileResolver, taskResolver);
+        // TODO: This should be more specific to just the tasks that create the class files?
+        classesDirs.builtBy(this);
+
+        this.outputDirectories = new DefaultConfigurableFileCollection(displayName, fileResolver, taskResolver, new Callable() {
             public Object call() throws Exception {
-                return getClassesDir();
+                return classesDirs;
             }
         }, new Callable() {
             public Object call() throws Exception {
                 return getResourcesDir();
             }
         });
-        dirs = new DefaultConfigurableFileCollection("dirs", fileResolver, taskResolver);
+
+        this.dirs = new DefaultConfigurableFileCollection("dirs", fileResolver, taskResolver);
     }
 
     @Override
@@ -60,17 +72,52 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
         return outputDirectories.getDisplayName();
     }
 
+    @Override
     public File getClassesDir() {
-        if (classesDir == null) {
-            return null;
+        if (isLegacyLayout()) {
+            return fileResolver.resolve(classesDir);
         }
-        return fileResolver.resolve(classesDir);
+        SingleMessageLogger.nagUserOfDeprecatedBehaviour(SINGLE_CLASSES_DIR_DEPRECATION_MESSAGE);
+        Object firstClassesDir = CollectionUtils.findFirst(classesDirs.getFrom(), Specs.SATISFIES_ALL);
+        if (firstClassesDir!=null) {
+            return fileResolver.resolve(firstClassesDir);
+        }
+        return null;
     }
 
+    @Override
+    public void setClassesDir(File classesDir) {
+        setClassesDir((Object)classesDir);
+    }
+
+    @Override
     public void setClassesDir(Object classesDir) {
+        SingleMessageLogger.nagUserOfDeprecatedBehaviour(SINGLE_CLASSES_DIR_DEPRECATION_MESSAGE);
         this.classesDir = classesDir;
+        this.classesDirs.setFrom(classesDir);
     }
 
+    @Override
+    public FileCollection getClassesDirs() {
+        return classesDirs;
+    }
+
+
+    /**
+     * Adds a new classes directory that compiled classes are assembled into.
+     *
+     * @param classesDir the classes dir. Should not be null.
+     */
+    public void addClassesDir(Callable<File> classesDir) {
+        classesDirs.from(classesDir);
+    }
+
+    @Override
+    public boolean isLegacyLayout() {
+        return classesDir!=null;
+    }
+
+    @Override
     public File getResourcesDir() {
         if (resourcesDir == null) {
             return null;
@@ -78,18 +125,26 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
         return fileResolver.resolve(resourcesDir);
     }
 
+    @Override
+    public void setResourcesDir(File resourcesDir) {
+        this.resourcesDir = resourcesDir;
+    }
+
+    @Override
     public void setResourcesDir(Object resourcesDir) {
        this.resourcesDir = resourcesDir;
     }
 
-    public void builtBy(Object ... taskPaths) {
+    public void builtBy(Object... taskPaths) {
         outputDirectories.builtBy(taskPaths);
     }
 
+    @Override
     public void dir(Object dir) {
-        this.dir(new HashMap<String, Object>(), dir);
+        this.dir(Collections.<String, Object>emptyMap(), dir);
     }
 
+    @Override
     public void dir(Map<String, Object> options, Object dir) {
         this.dirs.from(dir);
         this.outputDirectories.from(dir);
@@ -101,6 +156,7 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
         }
     }
 
+    @Override
     public FileCollection getDirs() {
         return dirs;
     }

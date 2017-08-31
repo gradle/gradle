@@ -20,6 +20,7 @@ import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.tooling.internal.consumer.LoggingProvider
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
+import org.gradle.tooling.internal.consumer.parameters.FailsafeBuildProgressListenerAdapter
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1
 import spock.lang.Specification
 
@@ -28,6 +29,7 @@ class ProgressLoggingConsumerActionExecutorTest extends Specification {
     final ConsumerAction<String> action = Mock()
     final ConsumerOperationParameters params = Mock()
     final ProgressListenerVersion1 listener = Mock()
+    final FailsafeBuildProgressListenerAdapter buildListener = Mock()
     final ProgressLogger progressLogger = Mock()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
     final ListenerManager listenerManager = Mock()
@@ -49,6 +51,7 @@ class ProgressLoggingConsumerActionExecutorTest extends Specification {
         1 * progressLogger.completed()
         1 * listenerManager.removeListener(!null)
         _ * params.progressListener >> listener
+        _ * params.buildProgressListener >> buildListener
         _ * action.parameters >> params
         0 * _._
     }

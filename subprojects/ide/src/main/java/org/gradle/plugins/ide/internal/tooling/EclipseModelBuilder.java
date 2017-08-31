@@ -21,7 +21,9 @@ import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.specs.Spec;
+import org.gradle.composite.internal.IncludedBuildInternal;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
@@ -106,7 +108,10 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
         for (Project p : allProjects) {
             p.getPluginManager().apply(EclipsePlugin.class);
         }
-        root.getPlugins().getPlugin(EclipsePlugin.class).performPostEvaluationActions();
+        for (IncludedBuild includedBuild : root.getGradle().getIncludedBuilds()) {
+            IncludedBuildInternal includedBuildInternal = (IncludedBuildInternal) includedBuild;
+            applyEclipsePlugin(includedBuildInternal.getConfiguredBuild().getRootProject());
+        }
     }
 
     private DefaultEclipseProject buildHierarchy(Project project) {
@@ -170,7 +175,7 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
                 externalDependencies.add(dependency);
             } else if (entry instanceof ProjectDependency) {
                 final ProjectDependency projectDependency = (ProjectDependency) entry;
-                // TODO:DAZ By removing the leading "/", this is no longer a "path" as defined by Eclipse
+                // By removing the leading "/", this is no longer a "path" as defined by Eclipse
                 final String path = StringUtils.removeStart(projectDependency.getPath(), "/");
                 DefaultEclipseProjectDependency dependency = new DefaultEclipseProjectDependency(path, projectDependency.isExported(), createAttributes(projectDependency), createAccessRules(projectDependency));
                 // Find the EclipseProject model, if it's in the same build. May be null for a composite.
@@ -272,9 +277,24 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
     private static List<DefaultAccessRule> createAccessRules(AbstractClasspathEntry classpathEntry) {
         List<DefaultAccessRule> result = Lists.newArrayList();
         for(AccessRule accessRule : classpathEntry.getAccessRules()) {
-            result.add(new DefaultAccessRule(Integer.parseInt(accessRule.getKind()), accessRule.getPattern()));
+            result.add(createAccessRule(accessRule));
         }
         return result;
+    }
+
+    private static DefaultAccessRule createAccessRule(AccessRule accessRule) {
+        int kindCode;
+        String kind = accessRule.getKind();
+        if (kind.equals("accessible") || kind.equals("0")) {
+            kindCode = 0;
+        } else if (kind.equals("nonaccessible") || kind.equals("1")) {
+            kindCode = 1;
+        }  else if (kind.equals("discouraged") || kind.equals("2")) {
+            kindCode = 2;
+        } else {
+            kindCode = 0;
+        }
+        return new DefaultAccessRule(kindCode, accessRule.getPattern());
     }
 
     /*

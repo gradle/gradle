@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.logging.LoggingManagerInternal
@@ -30,9 +31,12 @@ import org.gradle.internal.logging.services.LoggingServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.BuildScopeServices
+import org.gradle.internal.service.scopes.BuildSessionScopeServices
+import org.gradle.internal.service.scopes.BuildTreeScopeServices
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry
 import org.gradle.internal.service.scopes.ProjectScopeServices
+import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.TestUtil
@@ -87,11 +91,24 @@ class ToolingApiDistributionResolver {
         startParameter.gradleUserHomeDir = new IntegrationTestBuildContext().gradleUserHomeDir
         def userHomeScopeServiceRegistry = globalRegistry.get(GradleUserHomeScopeServiceRegistry)
         def gradleUserHomeServices = userHomeScopeServiceRegistry.getServicesFor(startParameter.gradleUserHomeDir)
-        def topLevelRegistry = BuildScopeServices.singleSession(gradleUserHomeServices, startParameter)
+        def buildSessionServices = new BuildSessionScopeServices(gradleUserHomeServices, startParameter, ClassPath.EMPTY)
+        def buildTreeScopeServices = new BuildTreeScopeServices(buildSessionServices)
+        def topLevelRegistry = new BuildScopeServices(buildTreeScopeServices)
         def projectRegistry = new ProjectScopeServices(topLevelRegistry, TestUtil.create(TestNameTestDirectoryProvider.newInstance()).rootProject(), topLevelRegistry.getFactory(LoggingManagerInternal))
+
+        def workerLeaseService = buildSessionServices.get(WorkerLeaseService)
+        def workerLeaseCompletion = workerLeaseService.getWorkerLease().start()
+        stopLater.add(new Stoppable() {
+            @Override
+            void stop() {
+                workerLeaseCompletion.leaseFinish()
+            }
+        })
 
         stopLater.add(projectRegistry)
         stopLater.add(topLevelRegistry)
+        stopLater.add(buildTreeScopeServices)
+        stopLater.add(buildSessionServices)
         stopLater.add(new Stoppable() {
             @Override
             void stop() {

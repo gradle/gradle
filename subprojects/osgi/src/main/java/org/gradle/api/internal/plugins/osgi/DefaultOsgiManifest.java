@@ -311,7 +311,7 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
         modelledInstructions.put(Analyzer.BUNDLE_NAME, createListFromPropertyString(name));
         modelledInstructions.put(Analyzer.BUNDLE_VERSION, createListFromPropertyString(version));
         modelledInstructions.put(Analyzer.BUNDLE_DESCRIPTION, createListFromPropertyString(description));
-        modelledInstructions.put(Analyzer.BUNDLE_LICENSE, createListFromPropertyString(description));
+        modelledInstructions.put(Analyzer.BUNDLE_LICENSE, createListFromPropertyString(license));
         modelledInstructions.put(Analyzer.BUNDLE_VENDOR, createListFromPropertyString(vendor));
         modelledInstructions.put(Analyzer.BUNDLE_DOCURL, createListFromPropertyString(docURL));
 

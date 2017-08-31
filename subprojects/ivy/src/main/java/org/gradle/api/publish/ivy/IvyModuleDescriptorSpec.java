@@ -18,9 +18,10 @@ package org.gradle.api.publish.ivy;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 import org.gradle.api.XmlProvider;
 import org.gradle.internal.HasInternalProtocol;
+
+import javax.annotation.Nullable;
 
 /**
  * The descriptor of any Ivy publication.
@@ -38,7 +39,7 @@ public interface IvyModuleDescriptorSpec {
     /**
      * Allow configuration of the descriptor, after it has been generated according to the input data.
      *
-     * <pre autoTested="">
+     * <pre class='autoTested'>
      * apply plugin: "ivy-publish"
      *
      * publishing {

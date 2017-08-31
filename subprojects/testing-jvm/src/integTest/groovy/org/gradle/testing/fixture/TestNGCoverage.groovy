@@ -16,7 +16,9 @@
 
 package org.gradle.testing.fixture
 
-import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.Jvm
+
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository;
 
 class TestNGCoverage {
     final static String NEWEST = Jvm.current().javaVersion.java7Compatible ? '6.9.9' : '6.8.7'
@@ -30,7 +32,7 @@ class TestNGCoverage {
     static void enableTestNG(File buildFile) {
         buildFile << """
             apply plugin: 'java'
-            repositories { jcenter() }
+            ${jcenterRepository()}
             dependencies { testCompile "org.testng:testng:${NEWEST}" }
             test.useTestNG()
         """

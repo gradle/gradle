@@ -132,6 +132,14 @@ uploadArchives {
     }
 }
 
+def foo = Attribute.of('foo', String)
+def baz = Attribute.of('baz', String)
+dependencies {
+    attributesSchema {
+        attribute(foo)
+        attribute(baz)
+    }
+}
 configurations {
     compile {
         $attributes
@@ -158,9 +166,9 @@ configurations {
 
         where:
         attributes << [
-                '', // no attributes
-                'attribute "foo", "bar"', // single attribute
-                'attributes foo:"bar", baz: "baz"' // multiple attributes
+            '', // no attributes
+            'attributes.attribute(foo, "bar")', // single attribute
+            'attributes { attribute(foo, "bar"); attribute(baz, "baz") }' // multiple attributes
         ]
     }
 
@@ -183,8 +191,14 @@ uploadArchives {
     }
 }
 
+def foo = Attribute.of('foo', String)
+def baz = Attribute.of('baz', String)
 dependencies {
     compile project(':b')
+    attributesSchema {
+        attribute(foo)
+        attribute(baz)
+    }
 }
 
 configurations {
@@ -201,6 +215,15 @@ apply plugin: 'java'
 
 group = 'org.gradle.test'
 version = '1.2'
+
+def foo = Attribute.of('foo', String)
+def baz = Attribute.of('baz', String)
+dependencies {
+    attributesSchema {
+        attribute(foo)
+        attribute(baz)
+    }
+}
 
 configurations {
     compile {
@@ -237,8 +260,80 @@ configurations {
         where:
         attributes << [
             '', // no attributes
-            'attribute "foo", "bar"', // single attribute
-            'attributes foo:"bar", baz: "baz"' // multiple attributes
+            'attributes.attribute(foo, "bar")', // single attribute
+            'attributes { attribute(foo, "bar"); attribute(baz, "baz") }' // multiple attributes
         ]
+    }
+
+
+    @Unroll("'#gradleConfiguration' dependencies end up in '#mavenScope' scope with '#plugin' plugin")
+    def "maps dependencies in the correct Maven scope"() {
+        file("settings.gradle") << 'include "b"'
+        buildFile << """
+apply plugin: "$plugin"
+apply plugin: "maven"
+
+group = "org.gradle.test"
+version = 1.1
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "${mavenRepo.uri}")
+            pom.artifactId = 'something'
+        }
+    }
+}
+
+dependencies {
+    $gradleConfiguration project(':b')
+}
+
+        """
+
+        file('b/build.gradle') << """
+apply plugin: 'java'
+
+group = 'org.gradle.test'
+version = '1.2'
+
+"""
+
+        when:
+        run "uploadArchives"
+
+        then:
+        def mavenModule = mavenRepo.module('org.gradle.test', 'something', '1.1')
+        def pom = normaliseLineSeparators(mavenModule.pomFile.text)
+        assert pom == normaliseLineSeparators("""<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.gradle.test</groupId>
+  <artifactId>something</artifactId>
+  <version>1.1</version>
+  <dependencies>
+    <dependency>
+      <groupId>org.gradle.test</groupId>
+      <artifactId>b</artifactId>
+      <version>1.2</version>
+      <scope>$mavenScope</scope>
+    </dependency>
+  </dependencies>
+</project>
+""")
+
+        where:
+        plugin         | gradleConfiguration  | mavenScope
+        'java'         | 'compile'            | 'compile'
+        'java'         | 'implementation'     | 'runtime'
+        'java'         | 'testCompile'        | 'test'
+        'java'         | 'testImplementation' | 'test'
+
+        'java-library' | 'api'                | 'compile'
+        'java-library' | 'compile'            | 'compile'
+        'java-library' | 'implementation'     | 'runtime'
+        'java-library' | 'testCompile'        | 'test'
+        'java-library' | 'testImplementation' | 'test'
     }
 }

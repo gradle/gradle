@@ -25,6 +25,7 @@ import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.IgnoreIf
 
 class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
     @Rule Sample sourceSetsPlaySample = new Sample(temporaryFolder, "play/sourcesets")
@@ -58,6 +59,7 @@ class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @IgnoreIf({ !AbstractPlaySampleIntegrationTest.portForWithBrowserTestIsFree() })
     def "compiler sample is buildable" () {
         when:
         sample compilerPlaySample

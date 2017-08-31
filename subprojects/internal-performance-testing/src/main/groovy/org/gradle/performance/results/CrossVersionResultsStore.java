@@ -20,21 +20,18 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.internal.UncheckedException;
-import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.util.GradleVersion;
 import org.joda.time.LocalDate;
 
 import java.io.Closeable;
-import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.sql.Types;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -83,7 +80,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                     ResultSet keys = null;
 
                     try {
-                        statement = connection.prepareStatement("insert into testExecution(testId, startTime, endTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit, channel) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                        statement = connection.prepareStatement("insert into testExecution(testId, startTime, endTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit, channel, host, cleanTasks) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                         statement.setString(1, results.getTestId());
                         statement.setTimestamp(2, new Timestamp(results.getStartTime()));
                         statement.setTimestamp(3, new Timestamp(results.getEndTime()));
@@ -99,6 +96,8 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                         String vcs = results.getVcsCommits() == null ? null :  Joiner.on(",").join(results.getVcsCommits());
                         statement.setString(13, vcs);
                         statement.setString(14, results.getChannel());
+                        statement.setString(15, results.getHost());
+                        statement.setObject(16, toArray(results.getCleanTasks()));
                         statement.execute();
                         keys = statement.getGeneratedKeys();
                         keys.next();
@@ -108,7 +107,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                         closeResultSet(keys);
                     }
                     try {
-                        statement = connection.prepareStatement("insert into testOperation(testExecution, version, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes, compileTotalTime, gcTotalTime) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                        statement = connection.prepareStatement("insert into testOperation(testExecution, version, totalTime) values (?, ?, ?)");
                         addOperations(statement, testId, null, results.getCurrent());
                         for (BaselineVersion baselineVersion : results.getBaselineVersions()) {
                             addOperations(statement, testId, baselineVersion.getVersion(), baselineVersion.getResults());
@@ -140,23 +139,6 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
             statement.setLong(1, testId);
             statement.setString(2, version);
             statement.setBigDecimal(3, operation.getTotalTime().toUnits(Duration.MILLI_SECONDS).getValue());
-            statement.setBigDecimal(4, operation.getConfigurationTime().toUnits(Duration.MILLI_SECONDS).getValue());
-            statement.setBigDecimal(5, operation.getExecutionTime().toUnits(Duration.MILLI_SECONDS).getValue());
-            statement.setBigDecimal(6, operation.getTotalMemoryUsed().toUnits(DataAmount.BYTES).getValue());
-            statement.setBigDecimal(7, operation.getTotalHeapUsage().toUnits(DataAmount.BYTES).getValue());
-            statement.setBigDecimal(8, operation.getMaxHeapUsage().toUnits(DataAmount.BYTES).getValue());
-            statement.setBigDecimal(9, operation.getMaxUncollectedHeap().toUnits(DataAmount.BYTES).getValue());
-            statement.setBigDecimal(10, operation.getMaxCommittedHeap().toUnits(DataAmount.BYTES).getValue());
-            if (operation.getCompileTotalTime() != null) {
-                statement.setBigDecimal(11, operation.getCompileTotalTime().toUnits(Duration.MILLI_SECONDS).getValue());
-            } else {
-                statement.setNull(11, Types.DECIMAL);
-            }
-            if (operation.getGcTotalTime() != null) {
-                statement.setBigDecimal(12, operation.getGcTotalTime().toUnits(Duration.MILLI_SECONDS).getValue());
-            } else {
-                statement.setNull(12, Types.DECIMAL);
-            }
             statement.addBatch();
         }
     }
@@ -214,7 +196,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                     ResultSet operations = null;
 
                     try {
-                        executionsForName = connection.prepareStatement("select top ? id, startTime, endTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit, channel from testExecution where testId = ? and startTime >= ? and channel = ? order by startTime desc");
+                        executionsForName = connection.prepareStatement("select top ? id, startTime, endTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit, channel, host, cleanTasks from testExecution where testId = ? and startTime >= ? and channel = ? order by startTime desc");
                         executionsForName.setFetchSize(mostRecentN);
                         executionsForName.setInt(1, mostRecentN);
                         executionsForName.setString(2, testName);
@@ -240,12 +222,13 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                             performanceResults.setVcsBranch(testExecutions.getString(12).trim());
                             performanceResults.setVcsCommits(ResultsStoreHelper.split(testExecutions.getString(13)));
                             performanceResults.setChannel(testExecutions.getString(14));
+                            performanceResults.setHost(testExecutions.getString(15));
+                            performanceResults.setCleanTasks(ResultsStoreHelper.toList(testExecutions.getObject(16)));
                             results.put(id, performanceResults);
                             allBranches.add(performanceResults.getVcsBranch());
                         }
 
-                        operationsForExecution = connection.prepareStatement("select version, testExecution, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, "
-                                + "maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes, compileTotalTime, gcTotalTime from testOperation "
+                        operationsForExecution = connection.prepareStatement("select version, testExecution, totalTime from testOperation "
                                 + "where testExecution in (select top ? id from testExecution where testId = ? and startTime >= ? and channel = ? order by startTime desc)");
                         operationsForExecution.setFetchSize(10 * results.size());
                         operationsForExecution.setInt(1, mostRecentN);
@@ -263,21 +246,6 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                             }
                             MeasuredOperation operation = new MeasuredOperation();
                             operation.setTotalTime(Duration.millis(operations.getBigDecimal(3)));
-                            operation.setConfigurationTime(Duration.millis(operations.getBigDecimal(4)));
-                            operation.setExecutionTime(Duration.millis(operations.getBigDecimal(5)));
-                            operation.setTotalMemoryUsed(DataAmount.bytes(operations.getBigDecimal(6)));
-                            operation.setTotalHeapUsage(DataAmount.bytes(operations.getBigDecimal(7)));
-                            operation.setMaxHeapUsage(DataAmount.bytes(operations.getBigDecimal(8)));
-                            operation.setMaxUncollectedHeap(DataAmount.bytes(operations.getBigDecimal(9)));
-                            operation.setMaxCommittedHeap(DataAmount.bytes(operations.getBigDecimal(10)));
-                            BigDecimal compileTotalTime = operations.getBigDecimal(11);
-                            if (compileTotalTime != null) {
-                                operation.setCompileTotalTime(Duration.millis(compileTotalTime));
-                            }
-                            BigDecimal gcTotalTime = operations.getBigDecimal(12);
-                            if (gcTotalTime != null) {
-                                operation.setGcTotalTime(Duration.millis(gcTotalTime));
-                            }
 
                             if (version == null) {
                                 result.getCurrent().add(operation);
@@ -323,62 +291,45 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
 
             try {
                 statement = connection.createStatement();
-                statement.execute("create table if not exists testExecution (id bigint identity not null, testId varchar not null, executionTime timestamp not null, targetVersion varchar not null, testProject varchar not null, tasks array not null, args array not null, operatingSystem varchar not null, jvm varchar not null)");
-                statement.execute("create table if not exists testOperation (testExecution bigint not null, version varchar, executionTimeMs decimal not null, heapUsageBytes decimal not null, foreign key(testExecution) references testExecution(id))");
+                statement.execute("create table if not exists testExecution (id bigint identity not null, testId varchar not null, startTime timestamp not null, targetVersion varchar not null, testProject varchar not null, tasks array not null, args array not null, operatingSystem varchar not null, jvm varchar not null)");
+                statement.execute("create table if not exists testOperation (testExecution bigint not null, version varchar, totalTime decimal not null, foreign key(testExecution) references testExecution(id))");
                 statement.execute("alter table testExecution add column if not exists vcsBranch varchar not null default 'master'");
                 statement.execute("alter table testExecution add column if not exists vcsCommit varchar");
                 statement.execute("alter table testExecution add column if not exists gradleOpts array");
                 statement.execute("alter table testExecution add column if not exists daemon boolean");
-                statement.execute("alter table testOperation add column if not exists totalHeapUsageBytes decimal");
-                statement.execute("alter table testOperation add column if not exists maxHeapUsageBytes decimal");
-                statement.execute("alter table testOperation add column if not exists maxUncollectedHeapBytes decimal");
-                statement.execute("alter table testOperation add column if not exists maxCommittedHeapBytes decimal");
-                statement.execute("alter table testOperation add column if not exists compileTotalTime decimal");
-                statement.execute("alter table testOperation add column if not exists gcTotalTime decimal");
-                if (columnExists(connection, "TESTOPERATION", "EXECUTIONTIMEMS")) {
+                if (DataBaseSchemaUtil.columnExists(connection, "TESTOPERATION", "EXECUTIONTIMEMS")) {
                     statement.execute("alter table testOperation alter column executionTimeMs rename to totalTime");
-                    statement.execute("alter table testOperation add column executionTime decimal");
-                    statement.execute("update testOperation set executionTime = 0");
-                    statement.execute("alter table testOperation alter column executionTime set not null");
-                    statement.execute("alter table testOperation add column configurationTime decimal");
-                    statement.execute("update testOperation set configurationTime = 0");
-                    statement.execute("alter table testOperation alter column configurationTime set not null");
                 }
-                statement.execute("create index if not exists testExecution_testId on testExecution (testId)");
-                statement.execute("create index if not exists testExecution_executionTime on testExecution (executionTime desc)");
-                if (columnExists(connection, "TESTEXECUTION", "EXECUTIONTIME")) {
+                if (DataBaseSchemaUtil.columnExists(connection, "TESTEXECUTION", "EXECUTIONTIME")) {
                     statement.execute("alter table testExecution alter column executionTime rename to startTime");
                 }
-                if (!columnExists(connection, "TESTEXECUTION", "ENDTIME")) {
+                if (!DataBaseSchemaUtil.columnExists(connection, "TESTEXECUTION", "ENDTIME")) {
                     statement.execute("alter table testExecution add column endTime timestamp");
                     statement.execute("update testExecution set endTime = startTime");
                     statement.execute("alter table testExecution alter column endTime set not null");
                 }
-                if (!columnExists(connection, "TESTEXECUTION", "CHANNEL")) {
+                if (!DataBaseSchemaUtil.columnExists(connection, "TESTEXECUTION", "CHANNEL")) {
                     statement.execute("alter table testExecution add column if not exists channel varchar");
                     statement.execute("update testExecution set channel='commits'");
                     statement.execute("alter table testExecution alter column channel set not null");
                     statement.execute("create index if not exists testExecution_channel on testExecution (channel)");
                 }
+                if (!DataBaseSchemaUtil.columnExists(connection, "TESTEXECUTION", "HOST")) {
+                    statement.execute("alter table testExecution add column if not exists host varchar");
+                }
+                statement.execute("create index if not exists testExecution_testId on testExecution (testId)");
+                statement.execute("create index if not exists testExecution_executionTime on testExecution (startTime desc)");
+
+                if (!DataBaseSchemaUtil.columnExists(connection, "TESTEXECUTION", "CLEANTASKS")) {
+                    statement.execute("alter table testExecution add column if not exists cleanTasks array");
+                }
+
+                DataBaseSchemaUtil.removeOutdatedColumnsFromTestDB(connection, statement);
             } finally {
                 closeStatement(statement);
             }
 
             return null;
-        }
-
-        private boolean columnExists(Connection connection, String table, String column) throws SQLException {
-            ResultSet columns = null;
-            boolean exists;
-
-            try {
-                columns = connection.getMetaData().getColumns(null, null, table, column);
-                exists = columns.next();
-            } finally {
-                closeResultSet(columns);
-            }
-
-            return exists;
         }
     }
 

@@ -23,6 +23,5 @@
 :shared:buildNeeded
 :api:buildNeeded
 
-BUILD SUCCESSFUL
-
-Total time: 1 secs
+BUILD SUCCESSFUL in 0s
+12 actionable tasks: 12 executed

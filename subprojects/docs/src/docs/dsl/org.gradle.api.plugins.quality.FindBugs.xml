@@ -10,7 +10,7 @@
             </thead>
             <tr>
                 <td>classes</td>
-                <td><literal><replaceable>sourceSet</replaceable>.output</literal></td>
+                <td><literal><replaceable>sourceSet</replaceable>.output.classesDirs</literal></td>
             </tr>
             <tr>
                 <td>classpath</td>
@@ -67,6 +67,10 @@
             <tr>
                 <td>excludeFilter</td>
                 <td><literal>project.findbugs.excludeFilter</literal></td>
+            </tr>
+            <tr>
+                <td>showProgress</td>
+                <td><literal>project.findbugs.showProgress</literal></td>
             </tr>
             <tr>
                 <td>reports</td>

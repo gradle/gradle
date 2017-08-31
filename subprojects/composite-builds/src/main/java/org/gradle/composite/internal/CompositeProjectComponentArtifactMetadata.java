@@ -18,13 +18,17 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.tasks.AbstractTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
 import java.util.Set;
 
-class CompositeProjectComponentArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier {
+class CompositeProjectComponentArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier, DisplayName {
     private final ProjectComponentIdentifier componentIdentifier;
     private final IvyArtifactName ivyArtifactName;
     private final File artifactFile;
@@ -57,7 +61,6 @@ class CompositeProjectComponentArtifactMetadata implements LocalComponentArtifac
         return componentIdentifier;
     }
 
-
     @Override
     public String getDisplayName() {
         StringBuilder builder = new StringBuilder();
@@ -69,12 +72,29 @@ class CompositeProjectComponentArtifactMetadata implements LocalComponentArtifac
     }
 
     @Override
+    public String getCapitalizedDisplayName() {
+        return getDisplayName();
+    }
+
+    @Override
     public File getFile() {
         return artifactFile;
     }
 
     public Set<String> getTasks() {
         return tasks;
+    }
+
+    @Override
+    public TaskDependency getBuildDependencies() {
+        return new AbstractTaskDependency() {
+            @Override
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                for (String task : tasks) {
+                    context.add(new IncludedBuildTaskReference(componentIdentifier.getBuild().getName(), task));
+                }
+            }
+        };
     }
 
     @Override

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.component.ArtifactType;
@@ -27,14 +28,13 @@ import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 class InMemoryArtifactsCache {
-    private final Map<ComponentArtifactIdentifier, File> artifacts = new HashMap<ComponentArtifactIdentifier, File>();
-    private final Map<ComponentIdentifier, ComponentArtifacts> componentArtifacts = new HashMap<ComponentIdentifier, ComponentArtifacts>();
-    private final Map<TypedArtifactsKey, Set<ComponentArtifactMetadata>> typedArtifacts = new HashMap<TypedArtifactsKey, Set<ComponentArtifactMetadata>>();
+    private final Map<ComponentArtifactIdentifier, File> artifacts = Maps.newConcurrentMap();
+    private final Map<ComponentIdentifier, ComponentArtifacts> componentArtifacts = Maps.newConcurrentMap();
+    private final Map<TypedArtifactsKey, Set<ComponentArtifactMetadata>> typedArtifacts = Maps.newConcurrentMap();
 
     public boolean supplyArtifact(ComponentArtifactIdentifier id, BuildableArtifactResolveResult result) {
         File fromCache = artifacts.get(id);
@@ -43,6 +43,7 @@ class InMemoryArtifactsCache {
             return true;
         }
         return false;
+
     }
 
     public void newArtifact(ComponentArtifactIdentifier id, BuildableArtifactResolveResult result) {

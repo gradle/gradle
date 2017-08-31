@@ -22,36 +22,49 @@ import com.google.common.collect.Sets;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.plugins.*;
+import org.gradle.api.plugins.AppliedPlugin;
+import org.gradle.api.plugins.InvalidPluginException;
+import org.gradle.api.plugins.PluginContainer;
+import org.gradle.api.plugins.PluginInstantiationException;
+import org.gradle.api.plugins.UnknownPluginException;
+import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.internal.Cast;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.reflect.ObjectInstantiationException;
-import org.gradle.plugin.internal.PluginId;
+import org.gradle.api.reflect.ObjectInstantiationException;
+import org.gradle.plugin.use.PluginId;
+import org.gradle.plugin.use.internal.DefaultPluginId;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 @NotThreadSafe
 public class DefaultPluginManager implements PluginManagerInternal {
 
-    public static final String CORE_PLUGIN_NAMESPACE = "org" + PluginId.SEPARATOR + "gradle";
-    public static final String CORE_PLUGIN_PREFIX = CORE_PLUGIN_NAMESPACE + PluginId.SEPARATOR;
+    public static final String CORE_PLUGIN_NAMESPACE = "org" + DefaultPluginId.SEPARATOR + "gradle";
+    public static final String CORE_PLUGIN_PREFIX = CORE_PLUGIN_NAMESPACE + DefaultPluginId.SEPARATOR;
 
     private final Instantiator instantiator;
-    private final PluginApplicator applicator;
+    private final PluginTarget target;
     private final PluginRegistry pluginRegistry;
     private final DefaultPluginContainer pluginContainer;
     private final Map<Class<?>, PluginImplementation<?>> plugins = Maps.newHashMap();
     private final Map<Class<?>, Plugin<?>> instances = Maps.newHashMap();
     private final Map<PluginId, DomainObjectSet<PluginWithId>> idMappings = Maps.newHashMap();
 
-    public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginApplicator applicator) {
+    private final BuildOperationExecutor buildOperationExecutor;
+
+    public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginTarget target, BuildOperationExecutor buildOperationExecutor) {
         this.instantiator = instantiator;
-        this.applicator = applicator;
+        this.target = target;
         this.pluginRegistry = pluginRegistry;
         this.pluginContainer = new DefaultPluginContainer(pluginRegistry, this);
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     private <T> T instantiatePlugin(Class<T> type) {
@@ -105,7 +118,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
     }
 
     public void apply(String pluginId) {
-        PluginImplementation<?> plugin = pluginRegistry.lookup(PluginId.unvalidated(pluginId));
+        PluginImplementation<?> plugin = pluginRegistry.lookup(DefaultPluginId.unvalidated(pluginId));
         if (plugin == null) {
             throw new UnknownPluginException("Plugin with id '" + pluginId + "' not found.");
         }
@@ -116,7 +129,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         doApply(pluginRegistry.inspect(type));
     }
 
-    private void doApply(PluginImplementation<?> plugin) {
+    private void doApply(final PluginImplementation<?> plugin) {
         PluginId pluginId = plugin.getPluginId();
         String pluginIdStr = pluginId == null ? null : pluginId.toString();
         Class<?> pluginClass = plugin.asClass();
@@ -126,27 +139,9 @@ public class DefaultPluginManager implements PluginManagerInternal {
             if (plugin.getType().equals(PotentialPlugin.Type.UNKNOWN)) {
                 throw new InvalidPluginException("'" + pluginClass.getName() + "' is neither a plugin or a rule source and cannot be applied.");
             } else {
-                boolean imperative = plugin.isImperative();
                 Runnable adder = addPluginInternal(plugin);
                 if (adder != null) {
-                    if (imperative) {
-                        Plugin<?> pluginInstance = producePluginInstance(pluginClass);
-                        instances.put(pluginClass, pluginInstance);
-
-                        if (plugin.isHasRules()) {
-                            applicator.applyImperativeRulesHybrid(pluginIdStr, pluginInstance);
-                        } else {
-                            applicator.applyImperative(pluginIdStr, pluginInstance);
-                        }
-
-                        // Important not to add until after it has been applied as there can be
-                        // plugins.withType() callbacks waiting to build on what the plugin did
-                        pluginContainer.add(pluginInstance);
-                    } else {
-                        applicator.applyRules(pluginIdStr, pluginClass);
-                    }
-
-                    adder.run();
+                    buildOperationExecutor.run(new AddPluginBuildOperation(adder, plugin, pluginIdStr, pluginClass));
                 }
             }
         } catch (PluginApplicationException e) {
@@ -156,6 +151,28 @@ public class DefaultPluginManager implements PluginManagerInternal {
         } finally {
             Thread.currentThread().setContextClassLoader(contextClassLoader);
         }
+    }
+
+    private void addPlugin(Runnable adder, PluginImplementation<?> plugin, String pluginId, Class<?> pluginClass) {
+        boolean imperative = plugin.isImperative();
+        if (imperative) {
+            Plugin<?> pluginInstance = producePluginInstance(pluginClass);
+            instances.put(pluginClass, pluginInstance);
+
+            if (plugin.isHasRules()) {
+                target.applyImperativeRulesHybrid(pluginId, pluginInstance);
+            } else {
+                target.applyImperative(pluginId, pluginInstance);
+            }
+
+            // Important not to add until after it has been applied as there can be
+            // plugins.withType() callbacks waiting to build on what the plugin did
+            pluginContainer.add(pluginInstance);
+        } else {
+            target.applyRules(pluginId, pluginClass);
+        }
+
+        adder.run();
     }
 
     private Plugin<?> producePluginInstance(Class<?> pluginClass) {
@@ -180,7 +197,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
     }
 
     public DomainObjectSet<PluginWithId> pluginsForId(String id) {
-        PluginId pluginId = PluginId.unvalidated(id);
+        PluginId pluginId = DefaultPluginId.unvalidated(id);
         DomainObjectSet<PluginWithId> pluginsForId = idMappings.get(pluginId);
         if (pluginsForId == null) {
             pluginsForId = new DefaultDomainObjectSet<PluginWithId>(PluginWithId.class, Sets.<PluginWithId>newLinkedHashSet());
@@ -216,5 +233,84 @@ public class DefaultPluginManager implements PluginManagerInternal {
         pluginsForId(id).all(wrappedAction);
     }
 
+    private class AddPluginBuildOperation implements RunnableBuildOperation {
+
+        private final Runnable adder;
+        private final PluginImplementation<?> plugin;
+        private final String pluginId;
+        private final Class<?> pluginClass;
+
+        private AddPluginBuildOperation(Runnable adder, PluginImplementation<?> plugin, String pluginId, Class<?> pluginClass) {
+            this.adder = adder;
+            this.plugin = plugin;
+            this.pluginId = pluginId;
+            this.pluginClass = pluginClass;
+        }
+
+        @Override
+        public void run(BuildOperationContext context) {
+            addPlugin(adder, plugin, pluginId, pluginClass);
+            context.setResult(OPERATION_RESULT);
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return computeApplyPluginBuildOperationDetails(plugin);
+        }
+
+        private BuildOperationDescriptor.Builder computeApplyPluginBuildOperationDetails(final PluginImplementation<?> pluginImplementation) {
+            String pluginIdentifier;
+            if (pluginImplementation.getPluginId() != null) {
+                pluginIdentifier = pluginImplementation.getPluginId().toString();
+            } else {
+                pluginIdentifier = pluginImplementation.asClass().getName();
+            }
+            String name = "Apply plugin " + pluginIdentifier;
+            return BuildOperationDescriptor.displayName(name + " to " + target.toString())
+                .name(name)
+                .details(new OperationDetails(pluginImplementation, target.getConfigurationTargetIdentifier()));
+        }
+    }
+
+    private static class OperationDetails implements ApplyPluginBuildOperationType.Details {
+
+        private final PluginImplementation<?> pluginImplementation;
+        private final ConfigurationTargetIdentifier targetIdentifier;
+
+        private OperationDetails(PluginImplementation<?> pluginImplementation, ConfigurationTargetIdentifier targetIdentifier) {
+            this.pluginImplementation = pluginImplementation;
+            this.targetIdentifier = targetIdentifier;
+        }
+
+        @Nullable
+        public String getPluginId() {
+            PluginId pluginId = pluginImplementation.getPluginId();
+            return pluginId == null ? null : pluginId.getId();
+        }
+
+        @Override
+        public Class<?> getPluginClass() {
+            return pluginImplementation.asClass();
+        }
+
+        @Override
+        public String getTargetType() {
+            return targetIdentifier.getTargetType().label;
+        }
+
+        @Nullable
+        @Override
+        public String getTargetPath() {
+            return targetIdentifier.getTargetPath();
+        }
+
+        @Override
+        public String getBuildPath() {
+            return targetIdentifier.getBuildPath();
+        }
+    }
+
+    private static final ApplyPluginBuildOperationType.Result OPERATION_RESULT = new ApplyPluginBuildOperationType.Result() {
+    };
 }
 

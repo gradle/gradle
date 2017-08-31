@@ -35,7 +35,7 @@ public class BuildScriptTransformer implements Transformer, Factory<BuildScriptD
     private final ImperativeStatementDetectingTransformer imperativeStatementDetectingTransformer = new ImperativeStatementDetectingTransformer();
 
     public BuildScriptTransformer(ScriptSource scriptSource, ScriptTarget scriptTarget) {
-        final List<String> blocksToIgnore = Arrays.asList(scriptTarget.getClasspathBlockName(), InitialPassStatementTransformer.PLUGINS, InitialPassStatementTransformer.PLUGIN_REPOS);
+        final List<String> blocksToIgnore = Arrays.asList(scriptTarget.getClasspathBlockName(), InitialPassStatementTransformer.PLUGINS, InitialPassStatementTransformer.PLUGIN_MANAGEMENT);
         this.filter = new Spec<Statement>() {
             @Override
             public boolean isSatisfiedBy(Statement statement) {

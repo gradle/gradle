@@ -15,22 +15,22 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
+
 public class VersionInfo implements Versioned {
-    private final String version;
+    private final Version version;
 
     public VersionInfo(String version) {
-        this.version = version;
+        this.version = VersionParser.INSTANCE.transform(version);
     }
 
-    public String getVersion() {
+    public Version getVersion() {
         return version;
     }
 
     public boolean equals(Object other) {
-        if (!(other instanceof VersionInfo)) {
-            return false;
-        }
-        return version.equals(((VersionInfo) other).getVersion());
+        return other instanceof VersionInfo && version.equals(((VersionInfo) other).getVersion());
     }
 
     public int hashCode() {

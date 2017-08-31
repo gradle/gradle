@@ -27,68 +27,98 @@ import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskState;
+import org.gradle.initialization.RootBuildLifecycleListener;
 
 //Filters out nested projects
-public class BuildProgressFilter implements BuildListener, TaskExecutionGraphListener, TaskExecutionListener, ProjectEvaluationListener {
+public class BuildProgressFilter implements RootBuildLifecycleListener, BuildListener, TaskExecutionGraphListener, TaskExecutionListener, ProjectEvaluationListener {
 
-    private Gradle gradle;
+    private Gradle rootGradle;
     private BuildProgressLogger logger;
 
     public BuildProgressFilter(BuildProgressLogger logger) {
         this.logger = logger;
     }
 
+    @Override
     public void buildStarted(Gradle gradle) {
         if (gradle.getParent() == null) {
-            this.gradle = gradle;
+            this.rootGradle = gradle;
             logger.buildStarted();
         }
     }
 
+    @Override
+    public void afterStart() {}
+
+    @Override
     public void settingsEvaluated(Settings settings) {
-        if (settings.getGradle() == gradle) {
+        if (settings.getGradle() == rootGradle) {
             logger.settingsEvaluated();
         }
     }
 
+    @Override
     public void projectsLoaded(Gradle gradle) {
-        if (gradle == this.gradle) {
+        if (gradle == this.rootGradle) {
             logger.projectsLoaded(gradle.getRootProject().getAllprojects().size());
         }
     }
 
+    @Override
     public void graphPopulated(TaskExecutionGraph graph) {
-        if (gradle != null && graph == gradle.getTaskGraph()) {
+        if (isRootTaskGraph(graph)) {
             logger.graphPopulated(graph.getAllTasks().size());
+        } else {
+            logger.nestedTaskGraphPopulated(graph.getAllTasks().size());
         }
     }
 
+    @Override
     public void beforeEvaluate(Project project) {
-        if (project.getGradle() == gradle) {
+        if (project.getGradle() == rootGradle) {
             logger.beforeEvaluate(project.getPath());
         }
     }
 
+    @Override
     public void afterEvaluate(Project project, ProjectState state) {
-        if (project.getGradle() == gradle) {
+        if (project.getGradle() == rootGradle) {
             logger.afterEvaluate(project.getPath());
         }
     }
 
+    @Override
     public void projectsEvaluated(Gradle gradle) {}
 
-    public void beforeExecute(Task task) {}
-
-    public void afterExecute(Task task, TaskState state) {
-        if (task.getProject().getGradle() == gradle) {
-            logger.afterExecute();
+    @Override
+    public void beforeExecute(Task task) {
+        if (task.getProject().getGradle() == rootGradle) {
+            logger.beforeExecute();
         }
     }
 
-    public void buildFinished(BuildResult result) {
-        if (result.getGradle() == gradle) {
-            gradle = null;
-            logger.buildFinished();
+    @Override
+    public void afterExecute(Task task, TaskState state) {
+        if (task.getProject().getGradle() == rootGradle) {
+            logger.afterExecute(state.getFailure() != null);
+        } else {
+            logger.afterNestedExecute(state.getFailure() != null);
         }
+    }
+
+    @Override
+    public void beforeComplete() {
+        logger.beforeComplete();
+    }
+
+    @Override
+    public void buildFinished(BuildResult result) {
+        if (result.getGradle() == rootGradle) {
+            rootGradle = null;
+        }
+    }
+
+    private boolean isRootTaskGraph(TaskExecutionGraph graph) {
+        return rootGradle != null && graph == rootGradle.getTaskGraph();
     }
 }

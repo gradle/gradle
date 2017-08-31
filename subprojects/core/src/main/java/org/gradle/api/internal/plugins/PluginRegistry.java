@@ -17,9 +17,10 @@
 package org.gradle.api.internal.plugins;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.plugin.internal.PluginId;
+import org.gradle.plugin.use.PluginId;
+
+import javax.annotation.Nullable;
 
 @ThreadSafe
 public interface PluginRegistry {

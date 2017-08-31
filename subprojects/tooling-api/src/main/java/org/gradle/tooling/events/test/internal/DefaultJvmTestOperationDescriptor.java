@@ -16,11 +16,12 @@
 
 package org.gradle.tooling.events.test.internal;
 
-import org.gradle.api.Nullable;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.test.JvmTestKind;
 import org.gradle.tooling.events.test.JvmTestOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
+
+import javax.annotation.Nullable;
 
 /**
  * Implementation of the {@code JvmTestOperationDescriptor} interface.

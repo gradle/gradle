@@ -17,13 +17,13 @@ package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
+import org.gradle.api.Action;
 import org.gradle.api.file.*;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
-import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
 import java.util.LinkedHashMap;
@@ -31,6 +31,8 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.gradle.util.ConfigureUtil.configure;
 
 public abstract class AbstractFileTree extends AbstractFileCollection implements FileTreeInternal {
     public Set<File> getFiles() {
@@ -56,8 +58,13 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     }
 
     public FileTree matching(Closure filterConfigClosure) {
+        return matching(configure(filterConfigClosure, new PatternSet()));
+    }
+
+    @Override
+    public FileTree matching(Action<? super PatternFilterable> filterConfigAction) {
         PatternSet patternSet = new PatternSet();
-        ConfigureUtil.configure(filterConfigClosure, patternSet);
+        filterConfigAction.execute(patternSet);
         return matching(patternSet);
     }
 
@@ -110,7 +117,26 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     }
 
     public FileTree visit(Closure closure) {
-        return visit(DefaultGroovyMethods.asType(closure, FileVisitor.class));
+        return visit(fileVisitorFrom(closure));
+    }
+
+    static FileVisitor fileVisitorFrom(Closure closure) {
+        return DefaultGroovyMethods.asType(closure, FileVisitor.class);
+    }
+
+    @Override
+    public FileTree visit(final Action<? super FileVisitDetails> visitor) {
+        return visit(new FileVisitor() {
+            @Override
+            public void visitDir(FileVisitDetails dirDetails) {
+                visitor.execute(dirDetails);
+            }
+
+            @Override
+            public void visitFile(FileVisitDetails fileDetails) {
+                visitor.execute(fileDetails);
+            }
+        });
     }
 
     @Override

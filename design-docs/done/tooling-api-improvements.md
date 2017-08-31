@@ -52,7 +52,7 @@ The logging output should be received through the stream attached to `LongRunnin
 
 ## Story: Expose the publications of a project (DONE)
 
-This story allows an IDE to map dependencies between different Gradle builds and and between Gradle and non-Gradle builds.
+This story allows an IDE to map dependencies between different Gradle builds and between Gradle and non-Gradle builds.
 For incoming dependencies, the Gradle coordinates of a given library are already exposed through `ExternalDependency`. This
 story exposes the outgoing publications of a Gradle project.
 

@@ -55,6 +55,14 @@ class LoggingCommandLineConverterTest extends Specification {
         checkConversion(['--quiet'])
     }
 
+    def convertsWarnLevel() {
+         expectedConfig.logLevel = LogLevel.WARN
+
+         expect:
+         checkConversion(['-w'])
+         checkConversion(['--warn'])
+     }
+
     def convertsConsole() {
         expectedConfig.consoleOutput = consoleOutput
 
@@ -104,8 +112,8 @@ class LoggingCommandLineConverterTest extends Specification {
 
     def providesLogLevelOptions() {
         expect:
-        converter.logLevelOptions == ["d", "q", "i"] as Set
-        converter.logLevels == [LogLevel.DEBUG, LogLevel.INFO, LogLevel.LIFECYCLE, LogLevel.QUIET] as Set
+        converter.logLevelOptions == ['d', 'q', 'i', 'w'] as Set
+        converter.logLevels == [LogLevel.DEBUG, LogLevel.INFO, LogLevel.LIFECYCLE, LogLevel.QUIET, LogLevel.WARN] as Set
     }
 
     void checkConversion(List<String> args) {

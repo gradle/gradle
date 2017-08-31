@@ -20,20 +20,17 @@ public enum TaskExecutionOutcome {
     FROM_CACHE(true, true, "FROM-CACHE"),
     UP_TO_DATE(true, true, "UP-TO-DATE"),
     SKIPPED(true, false, "SKIPPED"),
-    EXECUTED(false, false);
+    NO_SOURCE(true, false, "NO-SOURCE"),
+    EXECUTED(false, false, null);
 
     private final boolean skipped;
     private final boolean upToDate;
-    private final String skippedMessage;
+    private final String message;
 
-    TaskExecutionOutcome(boolean skipped, boolean upToDate) {
-        this(skipped, upToDate, null);
-    }
-
-    TaskExecutionOutcome(boolean skipped, boolean upToDate, String skippedMessage) {
+    TaskExecutionOutcome(boolean skipped, boolean upToDate, String message) {
         this.skipped = skipped;
         this.upToDate = upToDate;
-        this.skippedMessage = skippedMessage;
+        this.message = message;
     }
 
     public boolean isSkipped() {
@@ -42,8 +39,7 @@ public enum TaskExecutionOutcome {
     public boolean isUpToDate() {
         return upToDate;
     }
-
-    public String getSkippedMessage() {
-        return skippedMessage;
+    public String getMessage() {
+        return message;
     }
 }

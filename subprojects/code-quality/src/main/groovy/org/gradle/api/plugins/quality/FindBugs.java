@@ -27,6 +27,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.FindBugsReportsImpl;
 import org.gradle.api.plugins.quality.internal.FindBugsReportsInternal;
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsClasspathValidator;
@@ -51,7 +52,6 @@ import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
 import org.gradle.internal.logging.ConsoleRenderer;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import javax.inject.Inject;
@@ -98,15 +98,23 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
 
     private Collection<String> jvmArgs = new ArrayList<String>();
 
+    private boolean showProgress;
+
     @Nested
     private final FindBugsReportsInternal reports;
 
     public FindBugs() {
-        reports = getInstantiator().newInstance(FindBugsReportsImpl.class, this);
+        reports = getObjectFactory().newInstance(FindBugsReportsImpl.class, this);
     }
 
+    /**
+     * Injects and returns an instance of {@link org.gradle.api.model.ObjectFactory}.
+     *
+     * @since 4.2
+     */
+    @Incubating
     @Inject
-    public Instantiator getInstantiator() {
+    public ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -254,6 +262,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
             .withExcludeBugsFilter(getExcludeBugsFilter())
             .withExtraArgs(getExtraArgs())
             .withJvmArgs(getJvmArgs())
+            .withShowProgress(getShowProgress())
             .configureReports(getReports());
 
         return specBuilder.build();
@@ -287,6 +296,14 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
 
     }
 
+    /**
+     * Any additional arguments (not covered here more explicitly like {@code effort}) to be passed along to FindBugs. <p> Extra arguments are passed to FindBugs after the arguments Gradle understands
+     * (like {@code effort} but before the list of classes to analyze. This should only be used for arguments that cannot be provided by Gradle directly. Gradle does not try to interpret or validate
+     * the arguments before passing them to FindBugs. <p> See the <a href="https://code.google.com/p/findbugs/source/browse/findbugs/src/java/edu/umd/cs/findbugs/TextUICommandLine.java">FindBugs
+     * TextUICommandLine source</a> for available options.
+     *
+     * @since 2.6
+     */
     public FindBugs extraArgs(Iterable<String> arguments) {
         for (String argument : arguments) {
             extraArgs.add(argument);
@@ -295,6 +312,14 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
         return this;
     }
 
+    /**
+     * Any additional arguments (not covered here more explicitly like {@code effort}) to be passed along to FindBugs. <p> Extra arguments are passed to FindBugs after the arguments Gradle understands
+     * (like {@code effort} but before the list of classes to analyze. This should only be used for arguments that cannot be provided by Gradle directly. Gradle does not try to interpret or validate
+     * the arguments before passing them to FindBugs. <p> See the <a href="https://code.google.com/p/findbugs/source/browse/findbugs/src/java/edu/umd/cs/findbugs/TextUICommandLine.java">FindBugs
+     * TextUICommandLine source</a> for available options.
+     *
+     * @since 2.6
+     */
     public FindBugs extraArgs(String... arguments) {
         extraArgs.addAll(Arrays.asList(arguments));
         return this;
@@ -328,10 +353,24 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     @SkipWhenEmpty
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
+    protected FileCollection getCandidateClassFiles() {
+        // We need to resolve the classes into a set of files so @SkipWhenEmpty will work
+        // Otherwise, a collection of empty directories is not seen as "empty"
+        return getClasses().getAsFileTree();
+    }
+
+    /**
+     * The class directories to be analyzed.
+     */
+    @Internal
     public FileCollection getClasses() {
         return classes;
     }
 
+
+    /**
+     * The class directories to be analyzed.
+     */
     public void setClasses(FileCollection classes) {
         this.classes = classes;
     }
@@ -344,6 +383,9 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
         return classpath;
     }
 
+    /**
+     * Compile class path for the classes to be analyzed. The classes on this class path are used during analysis but aren't analyzed themselves.
+     */
     public void setClasspath(FileCollection classpath) {
         this.classpath = classpath;
     }
@@ -356,6 +398,9 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
         return findbugsClasspath;
     }
 
+    /**
+     * Class path holding the FindBugs library.
+     */
     public void setFindbugsClasspath(FileCollection findbugsClasspath) {
         this.findbugsClasspath = findbugsClasspath;
     }
@@ -368,12 +413,15 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
         return pluginClasspath;
     }
 
+    /**
+     * Class path holding any additional FindBugs plugins.
+     */
     public void setPluginClasspath(FileCollection pluginClasspath) {
         this.pluginClasspath = pluginClasspath;
     }
 
     /**
-     * Whether or not to allow the build to continue if there are warnings.
+     * Whether to allow the build to continue if there are warnings.
      */
     @Input
     @Override
@@ -381,6 +429,9 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
         return ignoreFailures;
     }
 
+    /**
+     * Whether to allow the build to continue if there are warnings.
+     */
     public void setIgnoreFailures(boolean ignoreFailures) {
         this.ignoreFailures = ignoreFailures;
     }
@@ -395,6 +446,10 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
         return effort;
     }
 
+    /**
+     * The analysis effort level. The value specified should be one of {@code min}, {@code default}, or {@code max}. Higher levels increase precision and find more bugs at the expense of running time
+     * and memory consumption.
+     */
     public void setEffort(String effort) {
         this.effort = effort;
     }
@@ -409,6 +464,10 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
         return reportLevel;
     }
 
+    /**
+     * The priority threshold for reporting bugs. If set to {@code low}, all bugs are reported. If set to {@code medium} (the default), medium and high priority bugs are reported. If set to {@code
+     * high}, only high priority bugs are reported.
+     */
     public void setReportLevel(String reportLevel) {
         this.reportLevel = reportLevel;
     }
@@ -422,6 +481,9 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
         return maxHeapSize;
     }
 
+    /**
+     * The maximum heap size for the forked findbugs process (ex: '1g').
+     */
     public void setMaxHeapSize(String maxHeapSize) {
         this.maxHeapSize = maxHeapSize;
     }
@@ -436,6 +498,10 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
         return visitors;
     }
 
+    /**
+     * The bug detectors which should be run. The bug detectors are specified by their class names, without any package qualification. By default, all detectors which are not disabled by default are
+     * run.
+     */
     public void setVisitors(Collection<String> visitors) {
         this.visitors = visitors;
     }
@@ -449,6 +515,9 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
         return omitVisitors;
     }
 
+    /**
+     * Similar to {@code visitors} except that it specifies bug detectors which should not be run. By default, no visitors are omitted.
+     */
     public void setOmitVisitors(Collection<String> omitVisitors) {
         this.omitVisitors = omitVisitors;
     }
@@ -465,6 +534,12 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
         return includeFilterConfig;
     }
 
+    /**
+     * A filter specifying which bugs are reported. Replaces the {@code includeFilter} property.
+     *
+     * @since 2.2
+     */
+    @Incubating
     public void setIncludeFilterConfig(TextResource includeFilterConfig) {
         this.includeFilterConfig = includeFilterConfig;
     }
@@ -481,12 +556,20 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
         return excludeFilterConfig;
     }
 
+    /**
+     * A filter specifying bugs to exclude from being reported. Replaces the {@code excludeFilter} property.
+     *
+     * @since 2.2
+     */
+    @Incubating
     public void setExcludeFilterConfig(TextResource excludeFilterConfig) {
         this.excludeFilterConfig = excludeFilterConfig;
     }
 
     /**
      * A filter specifying baseline bugs to exclude from being reported.
+     *
+     * @since 2.4
      */
     @Incubating
     @Nested
@@ -495,6 +578,12 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
         return excludeBugsFilterConfig;
     }
 
+    /**
+     * A filter specifying baseline bugs to exclude from being reported.
+     *
+     * @since 2.4
+     */
+    @Incubating
     public void setExcludeBugsFilterConfig(TextResource excludeBugsFilterConfig) {
         this.excludeBugsFilterConfig = excludeBugsFilterConfig;
     }
@@ -513,8 +602,37 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
         return extraArgs;
     }
 
+    /**
+     * Any additional arguments (not covered here more explicitly like {@code effort}) to be passed along to FindBugs. <p> Extra arguments are passed to FindBugs after the arguments Gradle understands
+     * (like {@code effort} but before the list of classes to analyze. This should only be used for arguments that cannot be provided by Gradle directly. Gradle does not try to interpret or validate
+     * the arguments before passing them to FindBugs. <p> See the <a href="https://code.google.com/p/findbugs/source/browse/findbugs/src/java/edu/umd/cs/findbugs/TextUICommandLine.java">FindBugs
+     * TextUICommandLine source</a> for available options.
+     *
+     * @since 2.6
+     */
     public void setExtraArgs(Collection<String> extraArgs) {
         this.extraArgs = extraArgs;
+    }
+
+    /**
+     * Indicates whether analysis progress should be rendered on standard output. Defaults to false.
+     *
+     * @since 4.2
+     */
+    @Incubating
+    @Input
+    public boolean getShowProgress() {
+        return showProgress;
+    }
+
+    /**
+     * Indicates whether analysis progress should be rendered on standard output.
+     *
+     * @since 4.2
+     */
+    @Incubating
+    public void setShowProgress(boolean showProgress) {
+        this.showProgress = showProgress;
     }
 
     /**

@@ -26,25 +26,26 @@ import org.codehaus.groovy.runtime.GeneratedClosure;
  */
 public abstract class MixInClosurePropertiesAsMethodsDynamicObject extends CompositeDynamicObject {
     @Override
-    public void invokeMethod(String name, InvokeMethodResult result, Object... arguments) {
-        super.invokeMethod(name, result, arguments);
+    public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
+        DynamicInvokeResult result = super.tryInvokeMethod(name, arguments);
         if (result.isFound()) {
-            return;
+            return result;
         }
 
-        GetPropertyResult propertyLookup = new GetPropertyResult();
-        getProperty(name, propertyLookup);
-        if (propertyLookup.isFound()) {
-            Object property = propertyLookup.getValue();
+        DynamicInvokeResult propertyResult = tryGetProperty(name);
+        if (propertyResult.isFound()) {
+            Object property = propertyResult.getValue();
             if (property instanceof Closure) {
                 Closure closure = (Closure) property;
                 closure.setResolveStrategy(Closure.DELEGATE_FIRST);
                 BeanDynamicObject dynamicObject = new BeanDynamicObject(closure);
-                dynamicObject.invokeMethod("doCall", result, arguments);
+                result = dynamicObject.tryInvokeMethod("doCall", arguments);
                 if (!result.isFound() && !(closure instanceof GeneratedClosure)) {
-                    result.result(closure.call(arguments));
+                    return DynamicInvokeResult.found(closure.call(arguments));
                 }
+                return result;
             }
         }
+        return DynamicInvokeResult.notFound();
     }
 }

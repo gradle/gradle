@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.javadoc;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -27,7 +28,6 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
@@ -40,6 +40,7 @@ import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
@@ -53,7 +54,7 @@ import java.util.List;
  * <p>
  * If you create your own Javadoc tasks remember to specify the 'source' property!
  * Without source the Javadoc task will not create any documentation. Example:
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  *
  * task myJavadocs(type: Javadoc) {
@@ -63,7 +64,7 @@ import java.util.List;
  *
  * <p>
  * An example how to create a task that runs a custom doclet implementation:
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  *
  * configurations {
@@ -84,7 +85,6 @@ import java.util.List;
  * </pre>
  */
 @CacheableTask
-@ParallelizableTask
 public class Javadoc extends SourceTask {
     private File destinationDir;
 
@@ -94,7 +94,7 @@ public class Javadoc extends SourceTask {
 
     private String maxMemory;
 
-    private MinimalJavadocOptions options = new StandardJavadocDocletOptions();
+    private StandardJavadocDocletOptions options = new StandardJavadocDocletOptions();
 
     private FileCollection classpath = getProject().files();
 
@@ -103,6 +103,8 @@ public class Javadoc extends SourceTask {
     @TaskAction
     protected void generate() {
         final File destinationDir = getDestinationDir();
+
+        StandardJavadocDocletOptions options = new StandardJavadocDocletOptions((StandardJavadocDocletOptions) getOptions());
 
         if (options.getDestinationDirectory() == null) {
             options.destinationDirectory(destinationDir);
@@ -113,13 +115,11 @@ public class Javadoc extends SourceTask {
         if (!GUtil.isTrue(options.getWindowTitle()) && GUtil.isTrue(getTitle())) {
             options.windowTitle(getTitle());
         }
-        if (options instanceof StandardJavadocDocletOptions) {
-            StandardJavadocDocletOptions docletOptions = (StandardJavadocDocletOptions) options;
-            if (!GUtil.isTrue(docletOptions.getDocTitle()) && GUtil.isTrue(getTitle())) {
-                docletOptions.setDocTitle(getTitle());
-            }
+        if (!GUtil.isTrue(options.getDocTitle()) && GUtil.isTrue(getTitle())) {
+            options.setDocTitle(getTitle());
         }
 
+        String maxMemory = getMaxMemory();
         if (maxMemory != null) {
             final List<String> jFlags = options.getJFlags();
             final Iterator<String> jFlagsIt = jFlags.iterator();
@@ -141,14 +141,14 @@ public class Javadoc extends SourceTask {
         }
         options.setSourceNames(sourceNames);
 
-        executeExternalJavadoc();
+        executeExternalJavadoc(options);
     }
 
-    private void executeExternalJavadoc() {
+    private void executeExternalJavadoc(StandardJavadocDocletOptions options) {
         JavadocSpec spec = new JavadocSpec();
-        spec.setExecutable(executable);
+        spec.setExecutable(getExecutable());
         spec.setOptions(options);
-        spec.setIgnoreFailures(!failOnError);
+        spec.setIgnoreFailures(!isFailOnError());
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setOptionsFile(getOptionsFile());
 
@@ -301,21 +301,22 @@ public class Javadoc extends SourceTask {
     }
 
     /**
-     * Sets the Javadoc generation options.
-     *
-     * @param options The options. Must not be null.
-     */
-    public void setOptions(MinimalJavadocOptions options) {
-        this.options = options;
-    }
-
-    /**
      * Convenience method for configuring Javadoc generation options.
      *
      * @param block The configuration block for Javadoc generation options.
      */
     public void options(Closure<?> block) {
-        getProject().configure(getOptions(), block);
+        ConfigureUtil.configure(block, getOptions());
+    }
+
+    /**
+     * Convenience method for configuring Javadoc generation options.
+     *
+     * @param action The action for Javadoc generation options.
+     * @since 3.5
+     */
+    public void options(Action<? super MinimalJavadocOptions> action) {
+        action.execute(getOptions());
     }
 
     /**

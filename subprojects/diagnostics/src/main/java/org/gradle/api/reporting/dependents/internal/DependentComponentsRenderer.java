@@ -18,7 +18,6 @@ package org.gradle.api.reporting.dependents.internal;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -30,11 +29,10 @@ import org.gradle.platform.base.internal.dependents.DependentBinariesResolutionR
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolver;
 import org.gradle.reporting.ReportRenderer;
 
+import javax.annotation.Nullable;
 import java.util.LinkedHashSet;
 
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
 
 public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, TextReportBuilder> {
 

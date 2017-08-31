@@ -15,11 +15,15 @@
  */
 package org.gradle.language.nativeplatform.tasks;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -43,8 +47,10 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
@@ -55,15 +61,17 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private NativeToolChainInternal toolChain;
     private NativePlatformInternal targetPlatform;
     private boolean positionIndependentCode;
-    private File objectFileDir;
-    private ConfigurableFileCollection includes;
-    private ConfigurableFileCollection source;
+    private final DirectoryVar objectFileDir;
+    private final ConfigurableFileCollection includes;
+    private final ConfigurableFileCollection source;
     private Map<String, String> macros;
     private List<String> compilerArgs;
+    private ImmutableList<String> includePaths;
 
     public AbstractNativeCompileTask() {
         includes = getProject().files();
         source = getProject().files();
+        objectFileDir = newOutputDirectory();
         getInputs().property("outputType", new Callable<String>() {
             @Override
             public String call() throws Exception {
@@ -74,12 +82,12 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     }
 
     @Inject
-    public IncrementalCompilerBuilder getIncrementalCompilerBuilder() {
+    protected IncrementalCompilerBuilder getIncrementalCompilerBuilder() {
         throw new UnsupportedOperationException();
     }
 
     @Inject
-    public BuildOperationLoggerFactory getOperationLoggerFactory() {
+    protected BuildOperationLoggerFactory getOperationLoggerFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -156,22 +164,53 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
 
     /**
      * The directory where object files will be generated.
+     *
+     * @since 4.1
      */
     @OutputDirectory
-    public File getObjectFileDir() {
+    public DirectoryVar getObjectFileDirectory() {
         return objectFileDir;
     }
 
+    @Internal
+    public File getObjectFileDir() {
+        return objectFileDir.getAsFile().getOrNull();
+    }
+
     public void setObjectFileDir(File objectFileDir) {
-        this.objectFileDir = objectFileDir;
+        this.objectFileDir.set(objectFileDir);
+    }
+
+    /**
+     * Sets the object file directory to output generated object file by the compilation process via a {@link Provider}.
+     *
+     * @param objectFileDir the object file directory provider to use
+     * @see #setObjectFileDir(File)
+     * @since 4.1
+     */
+    public void setObjectFileDir(Provider<? extends Directory> objectFileDir) {
+        this.objectFileDir.set(objectFileDir);
     }
 
     /**
      * Returns the header directories to be used for compilation.
      */
-    @Input
+    @Internal("The paths for include directories are tracked via the includePaths property, the contents are tracked via discovered inputs")
     public FileCollection getIncludes() {
         return includes;
+    }
+
+    @Input
+    protected Collection<String> getIncludePaths() {
+        if (includePaths == null) {
+            Set<File> roots = includes.getFiles();
+            ImmutableList.Builder<String> builder = ImmutableList.builder();
+            for (File root : roots) {
+                builder.add(root.getAbsolutePath());
+            }
+            includePaths = builder.build();
+        }
+        return includePaths;
     }
 
     /**

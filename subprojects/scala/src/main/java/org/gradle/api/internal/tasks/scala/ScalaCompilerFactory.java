@@ -17,28 +17,31 @@
 package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerFactory;
+import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import java.io.File;
 import java.util.Set;
 
 public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompileSpec> {
-    private final CompilerDaemonFactory compilerDaemonFactory;
+    private final WorkerDaemonFactory workerDaemonFactory;
     private FileCollection scalaClasspath;
     private FileCollection zincClasspath;
-    private final File rootProjectDirectory;
+    private final File daemonWorkingDir;
     private final File gradleUserHomeDir;
+    private final FileResolver fileResolver;
 
     public ScalaCompilerFactory(
-        File rootProjectDirectory, CompilerDaemonFactory compilerDaemonFactory, FileCollection scalaClasspath,
-        FileCollection zincClasspath, File gradleUserHomeDir) {
-        this.rootProjectDirectory = rootProjectDirectory;
-        this.compilerDaemonFactory = compilerDaemonFactory;
+        File daemonWorkingDir, WorkerDaemonFactory workerDaemonFactory, FileCollection scalaClasspath,
+        FileCollection zincClasspath, File gradleUserHomeDir, FileResolver fileResolver) {
+        this.daemonWorkingDir = daemonWorkingDir;
+        this.workerDaemonFactory = workerDaemonFactory;
         this.scalaClasspath = scalaClasspath;
         this.zincClasspath = zincClasspath;
         this.gradleUserHomeDir = gradleUserHomeDir;
+        this.fileResolver = fileResolver;
     }
 
     public Compiler<ScalaJavaJointCompileSpec> newCompiler(ScalaJavaJointCompileSpec spec) {
@@ -47,8 +50,8 @@ public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompi
 
         // currently, we leave it to ZincScalaCompiler to also compile the Java code
         Compiler<ScalaJavaJointCompileSpec> scalaCompiler = new DaemonScalaCompiler<ScalaJavaJointCompileSpec>(
-            rootProjectDirectory, new ZincScalaCompiler(scalaClasspathFiles, zincClasspathFiles, gradleUserHomeDir),
-            compilerDaemonFactory, zincClasspathFiles);
+            daemonWorkingDir, new ZincScalaCompiler(scalaClasspathFiles, zincClasspathFiles, gradleUserHomeDir),
+            workerDaemonFactory, zincClasspathFiles, fileResolver);
         return new NormalizingScalaCompiler(scalaCompiler);
     }
 }

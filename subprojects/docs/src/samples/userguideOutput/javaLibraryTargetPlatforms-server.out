@@ -1,4 +1,4 @@
-:core:clean
+:core:clean UP-TO-DATE
 :server:clean UP-TO-DATE
 :core:compileMainJava5JarMainJava
 :core:processMainJava5JarMainResources
@@ -19,4 +19,5 @@
 :server:check UP-TO-DATE
 :server:build
 
-BUILD SUCCESSFUL
+BUILD SUCCESSFUL in 0s
+15 actionable tasks: 13 executed, 2 up-to-date

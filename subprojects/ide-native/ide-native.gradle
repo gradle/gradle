@@ -21,6 +21,9 @@ dependencies {
     compile project(':platformNative')
     compile project(':languageNative')
     compile project(':testingNative')
+    compile libraries.plist
+
+    testFixturesCompile project(':internalTesting')
 }
 
 useTestFixtures()

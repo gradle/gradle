@@ -1,19 +1,21 @@
 /*
  * A set of general-purpose resource abstractions.
  */
-apply plugin: "groovy"
+apply plugin: 'java-library'
 
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies {
-    compile libraries.slf4j_api
-    compile project(':baseServices')
-    compile project(':messaging')
-    compile libraries.commons_io
-    testCompile libraries.groovy
-    integTestCompile project(':internalIntegTesting')
+    api project(':baseServices')
+    api project(':messaging')
+    api project(':native')
+    api project(':modelCore')
+
+    implementation libraries.guava
+    implementation libraries.commons_io
+
+    integTestImplementation project(':internalIntegTesting')
 }
 
 useTestFixtures()
 useClassycle()
-

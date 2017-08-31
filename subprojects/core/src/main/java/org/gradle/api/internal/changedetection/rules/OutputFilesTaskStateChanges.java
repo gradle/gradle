@@ -16,56 +16,31 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
-import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 
-import java.util.Map;
+import javax.annotation.Nullable;
+import java.util.Iterator;
 
 public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
-    private final OutputFilesSnapshotter outputSnapshotter;
 
-    public OutputFilesTaskStateChanges(TaskExecution previous, TaskExecution current, TaskInternal task, FileCollectionSnapshotterRegistry snapshotterRegistry, OutputFilesSnapshotter outputSnapshotter) {
-        super(task.getName(), previous, current, snapshotterRegistry, "Output", task.getOutputs().getFileProperties());
-        this.outputSnapshotter = outputSnapshotter;
+    public OutputFilesTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current, TaskInternal task) {
+        super(previous, current, task, "Output");
     }
 
     @Override
-    public Map<String, FileCollectionSnapshot> getPrevious() {
-        return previous.getOutputFilesSnapshot();
+    protected ImmutableSortedMap<String, FileCollectionSnapshot> getSnapshot(TaskExecution execution) {
+        return execution.getOutputFilesSnapshot();
     }
 
     @Override
-    public void saveCurrent() {
-        final Map<String, FileCollectionSnapshot> outputFilesAfter = buildSnapshots(getTaskName(), getSnapshotterRegistry(), getTitle(), getFileProperties());
-
-        ImmutableMap.Builder<String, FileCollectionSnapshot> builder = ImmutableMap.builder();
-        for (TaskFilePropertySpec propertySpec : fileProperties) {
-            String propertyName = propertySpec.getPropertyName();
-            FileCollectionSnapshot beforeExecution = getCurrent().get(propertyName);
-            FileCollectionSnapshot afterExecution = outputFilesAfter.get(propertyName);
-            FileCollectionSnapshot afterPreviousExecution = getSnapshotAfterPreviousExecution(propertyName);
-            FileCollectionSnapshot outputSnapshot = outputSnapshotter.createOutputSnapshot(afterPreviousExecution, beforeExecution, afterExecution);
-            builder.put(propertyName, outputSnapshot);
-        }
-
-        current.setOutputFilesSnapshot(builder.build());
+    public Iterator<TaskStateChange> iterator() {
+        return getFileChanges(false);
     }
 
-    private FileCollectionSnapshot getSnapshotAfterPreviousExecution(String propertyName) {
-        if (previous != null) {
-            Map<String, FileCollectionSnapshot> previousSnapshots = previous.getOutputFilesSnapshot();
-            if (previousSnapshots != null) {
-                FileCollectionSnapshot afterPreviousExecution = previousSnapshots.get(propertyName);
-                if (afterPreviousExecution != null) {
-                    return afterPreviousExecution;
-                }
-            }
-        }
-        return FileCollectionSnapshot.EMPTY;
+    public boolean hasAnyChanges() {
+        return getFileChanges(true).hasNext();
     }
 }

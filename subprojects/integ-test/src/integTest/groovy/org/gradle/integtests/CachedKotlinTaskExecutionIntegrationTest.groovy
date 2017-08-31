@@ -17,20 +17,17 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.LocalTaskCacheFixture
+import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import spock.lang.IgnoreIf
-import spock.lang.Issue
 
-import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
-import static org.gradle.util.TestPrecondition.NOT_JDK_IBM
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 import static org.gradle.util.TestPrecondition.NOT_WINDOWS
 
-@Issue("https://github.com/gradle/gradle-script-kotlin/issues/154")
-@Requires([FIX_TO_WORK_ON_JAVA9, NOT_JDK_IBM, NOT_WINDOWS])
-class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements LocalTaskCacheFixture {
+@Requires([KOTLIN_SCRIPT, NOT_WINDOWS])
+class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     @Override
     protected String getDefaultBuildFileName() {
@@ -39,6 +36,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
     def setup() {
         settingsFile << "rootProject.buildFileName = '$defaultBuildFileName'"
+        file("buildSrc/settings.gradle") << localCacheConfiguration()
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
@@ -53,7 +51,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
             }
         """
         when:
-        withTaskCache().succeeds "customTask"
+        withBuildCache().succeeds "customTask"
         then:
         skippedTasks.empty
 
@@ -62,7 +60,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("buildSrc/.gradle").deleteDir()
         cleanBuildDir()
 
-        withTaskCache().succeeds "customTask"
+        withBuildCache().succeeds "customTask"
         then:
         skippedTasks.contains ":customTask"
     }
@@ -72,7 +70,6 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         withKotlinBuildSrc()
         def taskSourceFile = file("buildSrc/src/main/kotlin/CustomTask.kt")
         taskSourceFile << customKotlinTask()
-        taskSourceFile.makeOlder()
         file("input.txt") << "input"
         buildFile << """
             task<CustomTask>("customTask") {
@@ -81,7 +78,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
             }
         """
         when:
-        withTaskCache().succeeds "customTask"
+        withBuildCache().succeeds "customTask"
         then:
         skippedTasks.empty
         file("build/output.txt").text == "input"
@@ -90,22 +87,15 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         taskSourceFile.text = customKotlinTask(" modified")
 
         cleanBuildDir()
-        withTaskCache().succeeds "customTask"
+        withBuildCache().succeeds "customTask"
         then:
         nonSkippedTasks.contains ":customTask"
         file("build/output.txt").text == "input modified"
     }
 
     def withKotlinBuildSrc() {
-        file("buildSrc/settings.gradle")  << "rootProject.buildFileName = 'build.gradle.kts'"
         file("buildSrc/build.gradle.kts") << """
-            buildscript {
-                repositories { gradleScriptKotlin() }
-                dependencies { classpath(kotlinModule("gradle-plugin")) }
-            }
-            apply { plugin("kotlin") }
-            repositories { gradleScriptKotlin() }
-            dependencies { compile(gradleScriptKotlinApi()) }
+            plugins { `kotlin-dsl` }
         """
     }
 

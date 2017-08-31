@@ -20,7 +20,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.entity.ContentType;
-import org.gradle.internal.resource.local.LocalResource;
+import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.transfer.ExternalResourceUploader;
 
 import java.io.IOException;
@@ -34,7 +34,7 @@ public class HttpResourceUploader implements ExternalResourceUploader {
         this.http = http;
     }
 
-    public void upload(LocalResource resource, URI destination) throws IOException {
+    public void upload(ReadableContent resource, URI destination) throws IOException {
         HttpPut method = new HttpPut(destination);
         final RepeatableInputStreamEntity entity = new RepeatableInputStreamEntity(resource, ContentType.APPLICATION_OCTET_STREAM);
         method.setEntity(entity);

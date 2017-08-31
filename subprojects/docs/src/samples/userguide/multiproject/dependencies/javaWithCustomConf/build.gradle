@@ -13,7 +13,6 @@ project(':api') {
     }
     task spiJar(type: Jar) {
         baseName = 'api-spi'
-        dependsOn classes
         from sourceSets.main.output
         include('org/gradle/sample/api/**')
     }

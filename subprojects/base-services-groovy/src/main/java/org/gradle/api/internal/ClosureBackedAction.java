@@ -26,9 +26,10 @@ import org.gradle.util.Configurable;
  * NOTE: You should use {@link ConfigureUtil} instead of this class when adding a closure backed method to the DSL, whether statically or dynamically added. {@link ConfigureUtil} is much more efficient and takes care of applying consistent DSL behaviour when closures are nested.
  */
 public class ClosureBackedAction<T> implements Action<T> {
+
     private final Closure closure;
-    private final boolean configureableAware;
     private final int resolveStrategy;
+    private final boolean configureableAware;
 
     public static <T> ClosureBackedAction<T> of(Closure<?> closure) {
         return new ClosureBackedAction<T>(closure);
@@ -44,8 +45,8 @@ public class ClosureBackedAction<T> implements Action<T> {
 
     public ClosureBackedAction(Closure closure, int resolveStrategy, boolean configureableAware) {
         this.closure = closure;
-        this.configureableAware = configureableAware;
         this.resolveStrategy = resolveStrategy;
+        this.configureableAware = configureableAware;
     }
 
     public static <T> void execute(T delegate, Closure<?> closure) {
@@ -88,18 +89,9 @@ public class ClosureBackedAction<T> implements Action<T> {
         }
 
         ClosureBackedAction that = (ClosureBackedAction) o;
-
-        if (configureableAware != that.configureableAware) {
-            return false;
-        }
-        if (resolveStrategy != that.resolveStrategy) {
-            return false;
-        }
-        if (!closure.equals(that.closure)) {
-            return false;
-        }
-
-        return true;
+        return configureableAware == that.configureableAware
+            && resolveStrategy == that.resolveStrategy
+            && closure.equals(that.closure);
     }
 
     @Override

@@ -16,21 +16,22 @@
 
 package org.gradle.tooling.internal.provider
 
-import org.gradle.api.execution.internal.TaskInputsListener
+import org.gradle.api.execution.internal.DefaultTaskInputsListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.deployment.internal.DeploymentRegistryInternal
 import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.initialization.DefaultBuildRequestContext
 import org.gradle.initialization.NoOpBuildEventConsumer
 import org.gradle.initialization.ReportedException
 import org.gradle.internal.concurrent.DefaultExecutorFactory
-import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.filewatch.FileSystemChangeWaiter
 import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory
+import org.gradle.internal.filewatch.PendingChangesListener
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.launcher.exec.BuildActionParameters
@@ -54,17 +55,23 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def actionParameters = Stub(BuildActionParameters)
     def waiterFactory = Mock(FileSystemChangeWaiterFactory)
     def waiter = Mock(FileSystemChangeWaiter)
-    def listenerManager = new DefaultListenerManager()
+    def inputsListener = new DefaultTaskInputsListener()
     @AutoCleanup("stop")
     def executorFactory = new DefaultExecutorFactory()
     def globalServices = Stub(ServiceRegistry)
+    def listenerManager = Stub(ListenerManager)
+    def pendingChangesListener = Mock(PendingChangesListener)
+    def deploymentRegistry = Mock(DeploymentRegistryInternal)
     def executer = executer()
 
     private File file = new File('file')
 
     def setup() {
+        globalServices.get(ListenerManager) >> listenerManager
+        listenerManager.getBroadcaster(PendingChangesListener) >> pendingChangesListener
         requestMetadata.getBuildTimeClock() >> clock
-        waiterFactory.createChangeWaiter(_) >> waiter
+        waiterFactory.createChangeWaiter(_, _, _) >> waiter
+        globalServices.get(DeploymentRegistryInternal) >> deploymentRegistry
         waiter.isWatching() >> true
     }
 
@@ -75,6 +82,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
 
         then:
         1 * delegate.execute(action, requestContext, actionParameters, _)
+        1 * deploymentRegistry.runningDeployments >> []
         0 * waiterFactory._
     }
 
@@ -177,11 +185,10 @@ class ContinuousBuildActionExecuterTest extends Specification {
     }
 
     private void declareInput(File file) {
-        listenerManager.getBroadcaster(TaskInputsListener).onExecute(Mock(TaskInternal), new SimpleFileCollection(file))
+        inputsListener.onExecute(Mock(TaskInternal), new SimpleFileCollection(file))
     }
 
     private ContinuousBuildActionExecuter executer() {
-        new ContinuousBuildActionExecuter(delegate, listenerManager, new TestStyledTextOutputFactory(), OperatingSystem.current(), executorFactory, waiterFactory)
+        new ContinuousBuildActionExecuter(delegate, waiterFactory, inputsListener, new TestStyledTextOutputFactory(), executorFactory)
     }
-
 }

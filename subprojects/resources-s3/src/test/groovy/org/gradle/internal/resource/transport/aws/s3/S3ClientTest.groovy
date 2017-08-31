@@ -88,6 +88,20 @@ class S3ClientTest extends Specification {
         s3Client.amazonS3Client.endpoint == someEndpoint.get()
     }
 
+    def "should apply endpoint override with path style access without credentials"() {
+        setup:
+        Optional<URI> someEndpoint = Optional.of(new URI("http://someEndpoint"))
+        S3ConnectionProperties s3Properties = Stub()
+        s3Properties.getEndpoint() >> someEndpoint
+
+        when:
+        S3Client s3Client = new S3Client(s3Properties)
+
+        then:
+        s3Client.amazonS3Client.clientOptions.pathStyleAccess == true
+        s3Client.amazonS3Client.endpoint == someEndpoint.get()
+    }
+
     def "should configure HTTPS proxy"() {
         setup:
         S3ConnectionProperties s3Properties = Mock()

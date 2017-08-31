@@ -17,59 +17,44 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.tasks.SimpleWorkResult;
-import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
-import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.SharedLibraryLinkerSpec;
 import org.gradle.nativeplatform.platform.OperatingSystem;
+import org.gradle.nativeplatform.toolchain.internal.AbstractCompiler;
 import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
-import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-class GccLinker implements Compiler<LinkerSpec> {
-
-    private final CommandLineToolInvocationWorker commandLineToolInvocationWorker;
-    private final ArgsTransformer<LinkerSpec> argsTransformer;
-    private final CommandLineToolContext invocationContext;
-    private final boolean useCommandFile;
-    private final BuildOperationProcessor buildOperationProcessor;
-
-
-    GccLinker(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, boolean useCommandFile) {
-        this.buildOperationProcessor = buildOperationProcessor;
-        this.argsTransformer = new GccLinkerArgsTransformer();
-        this.invocationContext = invocationContext;
-        this.useCommandFile = useCommandFile;
-        this.commandLineToolInvocationWorker = commandLineToolInvocationWorker;
+class GccLinker extends AbstractCompiler<LinkerSpec> {
+    GccLinker(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, boolean useCommandFile, WorkerLeaseService workerLeaseService) {
+        super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new GccLinkerArgsTransformer(), useCommandFile, workerLeaseService);
     }
 
     @Override
-    public WorkResult execute(final LinkerSpec spec) {
-        List<String> args = argsTransformer.transform(spec);
-        invocationContext.getArgAction().execute(args);
-        if (useCommandFile) {
-            new GccOptionsFileArgsWriter(spec.getTempDir()).execute(args);
-        }
-        final CommandLineToolInvocation invocation = invocationContext.createInvocation(
-                "linking " + spec.getOutputFile().getName(), args, spec.getOperationLogger());
+    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(final LinkerSpec spec, List<String> args) {
+        final CommandLineToolInvocation invocation = newInvocation(
+            "linking " + spec.getOutputFile().getName(), spec.getOutputFile().getParentFile(), args, spec.getOperationLogger());
 
-        buildOperationProcessor.run(commandLineToolInvocationWorker, new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
+        return new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
             @Override
             public void execute(BuildOperationQueue<CommandLineToolInvocation> buildQueue) {
                 buildQueue.setLogLocation(spec.getOperationLogger().getLogLocation());
                 buildQueue.add(invocation);
             }
-        });
+        };
+    }
 
-        return new SimpleWorkResult(true);
+    @Override
+    protected void addOptionsFileArgs(List<String> args, File tempDir) {
+        new GccOptionsFileArgsWriter(tempDir).execute(args);
     }
 
     private static class GccLinkerArgsTransformer implements ArgsTransformer<LinkerSpec> {

@@ -33,7 +33,15 @@ gradle.addListener(new TaskExecutionAdapter() {
         }
         def outputs = task.outputs.fileProperties
             .findAll { it instanceof CacheableTaskOutputFilePropertySpec }
-            .findAll { it.outputFile != null }
+            .findAll {
+                try {
+                    it.outputFile != null
+                } catch (Exception ignored) {
+                    // Sometimes for some non-cacheable tasks some non-optional outputs can be null
+                    // and throw an error when tried to be resolved
+                    return false
+                }
+            }
             .collectEntries { [it.propertyName, it.outputFile] }
 
         def info = new TaskOutputInfo(

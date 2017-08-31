@@ -26,7 +26,7 @@ public class CacheBackedFileSnapshotRepository implements FileSnapshotRepository
 
     public CacheBackedFileSnapshotRepository(TaskHistoryStore cacheAccess, Serializer<FileCollectionSnapshot> serializer, IdGenerator<Long> idGenerator) {
         this.idGenerator = idGenerator;
-        cache = cacheAccess.createCache("fileSnapshots", Long.class, serializer);
+        cache = cacheAccess.createCache("fileSnapshots", Long.class, serializer, 12000, false);
     }
 
     public Long add(FileCollectionSnapshot snapshot) {
@@ -36,7 +36,11 @@ public class CacheBackedFileSnapshotRepository implements FileSnapshotRepository
     }
 
     public FileCollectionSnapshot get(Long id) {
-        return cache.get(id);
+        FileCollectionSnapshot snapshot = cache.get(id);
+        if (snapshot == null) {
+            throw new IllegalArgumentException("Cannot find snapshot for id: " + id);
+        }
+        return snapshot;
     }
 
     public void remove(Long id) {

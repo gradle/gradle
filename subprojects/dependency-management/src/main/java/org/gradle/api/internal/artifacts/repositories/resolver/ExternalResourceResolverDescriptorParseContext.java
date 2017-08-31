@@ -29,10 +29,8 @@ import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
-import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource;
-import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
+import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
-import org.gradle.internal.resource.local.LocallyAvailableResource;
 
 import java.io.File;
 
@@ -43,15 +41,16 @@ import java.io.File;
  */
 public class ExternalResourceResolverDescriptorParseContext implements DescriptorParseContext {
     private final ComponentResolvers mainResolvers;
+    private final FileResourceRepository fileResourceRepository;
 
-    public ExternalResourceResolverDescriptorParseContext(ComponentResolvers mainResolvers) {
+    public ExternalResourceResolverDescriptorParseContext(ComponentResolvers mainResolvers, FileResourceRepository fileResourceRepository) {
         this.mainResolvers = mainResolvers;
+        this.fileResourceRepository = fileResourceRepository;
     }
 
     public LocallyAvailableExternalResource getMetaDataArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ArtifactType artifactType) {
         File resolvedArtifactFile = resolveMetaDataArtifactFile(moduleComponentIdentifier, mainResolvers.getComponentResolver(), mainResolvers.getArtifactResolver(), artifactType);
-        LocallyAvailableResource localResource = new DefaultLocallyAvailableResource(resolvedArtifactFile);
-        return new DefaultLocallyAvailableExternalResource(resolvedArtifactFile.toURI(), localResource);
+        return fileResourceRepository.resource(resolvedArtifactFile);
     }
 
     private File resolveMetaDataArtifactFile(ModuleComponentIdentifier moduleComponentIdentifier, ComponentMetaDataResolver componentResolver,

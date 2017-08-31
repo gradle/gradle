@@ -45,22 +45,21 @@ class DefaultIsolatedAntBuilderTest {
     private final DefaultIsolatedAntBuilder builder = new DefaultIsolatedAntBuilder(registry, new DefaultClassLoaderFactory(), moduleRegistry)
     private final TestOutputEventListener outputEventListener = new TestOutputEventListener()
     @Rule
-    public final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
+    public final ConfigureLogging logging = new ConfigureLogging(outputEventListener, LogLevel.INFO)
     private Collection<File> classpath
 
     @Before
-    public void attachAppender() {
+    void attachAppender() {
         classpath = moduleRegistry.getExternalModule("groovy-all").getClasspath().asFiles
-        logging.setLevel(LogLevel.INFO)
     }
 
     @After
-    public void cleanup() {
+    void cleanup() {
         builder.stop()
     }
 
     @Test
-    public void executesNestedClosures() {
+    void executesNestedClosures() {
         String propertyValue = null
         Object task = null
         builder.execute {
@@ -77,7 +76,7 @@ class DefaultIsolatedAntBuilderTest {
     }
 
     @Test
-    public void canAccessAntBuilderFromWithinClosures() {
+    void canAccessAntBuilderFromWithinClosures() {
         builder.execute {
             assertThat(ant, sameInstance(delegate))
 
@@ -87,17 +86,17 @@ class DefaultIsolatedAntBuilderTest {
     }
 
     @Test
-    public void attachesLogger() {
+    void attachesLogger() {
         builder.execute {
             property(name: 'message', value: 'a message')
             echo('${message}')
         }
 
-        assertThat(outputEventListener.toString(), equalTo('[WARN [ant:echo] a message]'))
+        assertThat(outputEventListener.toString(), equalTo('[[WARN] [org.gradle.api.internal.project.ant.AntLoggingAdapter] [ant:echo] a message]'))
     }
 
     @Test
-    public void bridgesLogging() {
+    void bridgesLogging() {
         def classpath = ClasspathUtil.getClasspathForClass(TestAntTask)
 
         builder.withClasspath([classpath]).execute {
@@ -105,20 +104,20 @@ class DefaultIsolatedAntBuilderTest {
             loggingTask()
         }
 
-        assertThat(outputEventListener.toString(), containsString('[INFO a jcl log message]'))
-        assertThat(outputEventListener.toString(), containsString('[INFO an slf4j log message]'))
-        assertThat(outputEventListener.toString(), containsString('[INFO a log4j log message]'))
+        assertThat(outputEventListener.toString(), containsString('[[INFO] [ant-test] a jcl log message]'))
+        assertThat(outputEventListener.toString(), containsString('[[INFO] [ant-test] an slf4j log message]'))
+        assertThat(outputEventListener.toString(), containsString('[[INFO] [ant-test] a log4j log message]'))
     }
 
     @Test
-    public void addsToolsJarToClasspath() {
+    void addsToolsJarToClasspath() {
         builder.execute {
             delegate.builder.class.classLoader.loadClass('com.sun.tools.javac.Main')
         }
     }
 
     @Test
-    public void reusesAntGroovyClassloader() {
+    void reusesAntGroovyClassloader() {
         ClassLoader antClassLoader = null
         builder.withClasspath([new File("no-existo.jar")]).execute {
             antClassLoader = project.class.classLoader
@@ -132,7 +131,7 @@ class DefaultIsolatedAntBuilderTest {
     }
 
     @Test
-    public void reusesClassloaderForImplementation() {
+    void reusesClassloaderForImplementation() {
         ClassLoader loader1 = null
         ClassLoader loader2 = null
         def classpath = [new File("no-existo.jar")]
@@ -156,7 +155,7 @@ class DefaultIsolatedAntBuilderTest {
     }
 
     @Test
-    public void setsContextClassLoader() {
+    void setsContextClassLoader() {
         ClassLoader originalLoader = Thread.currentThread().contextClassLoader
         ClassLoader contextLoader = null
         Object antProject = null
@@ -171,7 +170,7 @@ class DefaultIsolatedAntBuilderTest {
     }
 
     @Test
-    public void gradleClassesAreNotVisibleToAnt() {
+    void gradleClassesAreNotVisibleToAnt() {
         ClassLoader loader = null
         builder.execute {
             loader = antProject.getClass().classLoader

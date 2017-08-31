@@ -26,7 +26,6 @@ import java.util.concurrent.Callable;
  * A project extension named "reporting" that provides basic reporting settings and utilities.
  * <p>
  * Example usage:
- * <p>
  * <pre>
  * reporting {
  *     baseDir "$buildDir/our-reports"
@@ -72,6 +71,16 @@ public class ReportingExtension {
      */
     public File getBaseDir() {
         return project.file(baseDir);
+    }
+
+    /**
+     * Sets the base directory to use for all reports
+     *
+     * @param baseDir The base directory to use for all reports
+     * @since 4.0
+     */
+    public void setBaseDir(File baseDir) {
+        setBaseDir((Object) baseDir);
     }
 
     /**

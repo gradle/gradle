@@ -78,6 +78,500 @@ eclipse {
         assert jdt.contains('source=1.4')
     }
 
+    void "allows custom matcher resource filter"() {
+        given:
+        buildScript """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+eclipse {
+  project {
+    resourceFilter {
+      appliesTo = 'FILES_AND_FOLDERS'
+      type = 'EXCLUDE_ALL'
+      matcher {
+        id = 'org.eclipse.some.custom.matcher'
+        arguments = 'foobar'
+      }
+    }
+  }
+}
+        """
+        when:
+        run("eclipse")
+        then:
+
+        def resourceFilterXml = '''
+        <filteredResources>
+                <filter>
+                        <id>1</id>
+                        <type>30</type>
+                        <name/>
+                        <matcher>
+                                <id>org.eclipse.some.custom.matcher</id>
+                                <arguments>foobar</arguments>
+                        </matcher>
+                </filter>
+        </filteredResources>
+
+        '''
+        project.assertHasResourceFilterXml(resourceFilterXml)
+    }
+
+    void "allows configuring multiple resource filters"() {
+        given:
+        buildScript """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+eclipse {
+  project {
+    resourceFilter {
+      appliesTo = 'FILES_AND_FOLDERS'
+      type = 'EXCLUDE_ALL'
+      matcher {
+        id = 'org.eclipse.some.custom.matcher'
+        arguments = 'foobar'
+      }
+    }
+    resourceFilter {
+      appliesTo = 'FILES_AND_FOLDERS'
+      type = 'EXCLUDE_ALL'
+      matcher {
+        id = 'org.eclipse.some.custom.matcher'
+        arguments = 'barfoo'
+      }
+    }
+  }
+}
+        """
+        when:
+        run("eclipse")
+        then:
+
+        def resourceFilterXml = '''
+        <filteredResources>
+                <filter>
+                        <id>1</id>
+                        <type>30</type>
+                        <name/>
+                        <matcher>
+                                <id>org.eclipse.some.custom.matcher</id>
+                                <arguments>foobar</arguments>
+                        </matcher>
+                </filter>
+                <filter>
+                        <id>2</id>
+                        <type>30</type>
+                        <name/>
+                        <matcher>
+                                <id>org.eclipse.some.custom.matcher</id>
+                                <arguments>barfoo</arguments>
+                        </matcher>
+                </filter>
+        </filteredResources>
+
+        '''
+        project.assertHasResourceFilterXml(resourceFilterXml)
+    }
+
+    void "allows 'include only' type resource filter"() {
+        given:
+        buildScript """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+eclipse {
+  project {
+    resourceFilter {
+      appliesTo = 'FILES_AND_FOLDERS'
+      type = 'INCLUDE_ONLY'
+      matcher {
+        id = 'org.eclipse.some.custom.matcher'
+        arguments = 'foobar'
+      }
+    }
+  }
+}
+        """
+        when:
+        run("eclipse")
+        then:
+
+        def resourceFilterXml = '''
+        <filteredResources>
+                <filter>
+                        <id>1</id>
+                        <type>29</type>
+                        <name/>
+                        <matcher>
+                                <id>org.eclipse.some.custom.matcher</id>
+                                <arguments>foobar</arguments>
+                        </matcher>
+                </filter>
+        </filteredResources>
+
+        '''
+        project.assertHasResourceFilterXml(resourceFilterXml)
+    }
+
+    void "allows resource filter for files"() {
+        given:
+        buildScript """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+eclipse {
+  project {
+    resourceFilter {
+      appliesTo = 'FILES'
+      type = 'INCLUDE_ONLY'
+      matcher {
+        id = 'org.eclipse.some.custom.matcher'
+        arguments = 'foobar'
+      }
+    }
+  }
+}
+        """
+        when:
+        run("eclipse")
+        then:
+
+        def resourceFilterXml = '''
+        <filteredResources>
+                <filter>
+                        <id>1</id>
+                        <type>21</type>
+                        <name/>
+                        <matcher>
+                                <id>org.eclipse.some.custom.matcher</id>
+                                <arguments>foobar</arguments>
+                        </matcher>
+                </filter>
+        </filteredResources>
+
+        '''
+        project.assertHasResourceFilterXml(resourceFilterXml)
+    }
+
+    void "allows resource filter for folders"() {
+        given:
+        buildScript """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+eclipse {
+  project {
+    resourceFilter {
+      appliesTo = 'FOLDERS'
+      type = 'INCLUDE_ONLY'
+      matcher {
+        id = 'org.eclipse.some.custom.matcher'
+        arguments = 'foobar'
+      }
+    }
+  }
+}
+        """
+        when:
+        run("eclipse")
+        then:
+
+        def resourceFilterXml = '''
+        <filteredResources>
+                <filter>
+                        <id>1</id>
+                        <type>25</type>
+                        <name/>
+                        <matcher>
+                                <id>org.eclipse.some.custom.matcher</id>
+                                <arguments>foobar</arguments>
+                        </matcher>
+                </filter>
+        </filteredResources>
+
+        '''
+        project.assertHasResourceFilterXml(resourceFilterXml)
+    }
+
+    void "allows non-recursive resource filter"() {
+        given:
+        buildScript """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+eclipse {
+  project {
+    resourceFilter {
+      appliesTo = 'FOLDERS'
+      type = 'INCLUDE_ONLY'
+      recursive = false
+      matcher {
+        id = 'org.eclipse.some.custom.matcher'
+        arguments = 'foobar'
+      }
+    }
+  }
+}
+        """
+        when:
+        run("eclipse")
+        then:
+
+        def resourceFilterXml = '''
+        <filteredResources>
+                <filter>
+                        <id>1</id>
+                        <type>9</type>
+                        <name/>
+                        <matcher>
+                                <id>org.eclipse.some.custom.matcher</id>
+                                <arguments>foobar</arguments>
+                        </matcher>
+                </filter>
+        </filteredResources>
+
+        '''
+        project.assertHasResourceFilterXml(resourceFilterXml)
+    }
+
+    void "existing resource filters are not duplicated"() {
+        given:
+        def projectFile = file('.project')
+        projectFile << '''<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+        <name>root</name>
+        <filteredResources>
+                <filter>
+                        <id>1</id>
+                        <type>9</type>
+                        <name/>
+                        <matcher>
+                                <id>org.eclipse.some.custom.matcher</id>
+                                <arguments>foobar</arguments>
+                        </matcher>
+                </filter>
+        </filteredResources>
+</projectDescription>'''
+
+        and:
+        buildScript """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+eclipse {
+  project {
+    // this filter is equivalent to the one that exists in .project already
+    resourceFilter {
+      appliesTo = 'FOLDERS'
+      type = 'INCLUDE_ONLY'
+      recursive = false
+      matcher {
+        id = 'org.eclipse.some.custom.matcher'
+        arguments = 'foobar'
+      }
+    }
+    resourceFilter {
+      appliesTo = 'FILES_AND_FOLDERS'
+      type = 'EXCLUDE_ALL'
+      matcher {
+        id = 'org.eclipse.some.custom.matcher'
+        arguments = 'barfoo'
+      }
+    }
+  }
+}
+        """
+        when:
+        run("eclipse")
+        then:
+
+        def resourceFilterXml = '''
+        <filteredResources>
+                <filter>
+                        <id>1</id>
+                        <type>9</type>
+                        <name/>
+                        <matcher>
+                                <id>org.eclipse.some.custom.matcher</id>
+                                <arguments>foobar</arguments>
+                        </matcher>
+                </filter>
+                <filter>
+                        <id>2</id>
+                        <type>30</type>
+                        <name/>
+                        <matcher>
+                                <id>org.eclipse.some.custom.matcher</id>
+                                <arguments>barfoo</arguments>
+                        </matcher>
+                </filter>
+        </filteredResources>
+
+        '''
+        project.assertHasResourceFilterXml(resourceFilterXml)
+    }
+
+    void "existing project file with equivalent resource filters is unchanged"() {
+        given:
+        def projectFile = file('.project')
+        def projectFileOriginalText = '''<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>root</name>
+	<comment></comment>
+	<projects/>
+	<natures>
+		<nature>org.eclipse.jdt.core.javanature</nature>
+	</natures>
+	<buildSpec>
+		<buildCommand>
+			<name>org.eclipse.jdt.core.javabuilder</name>
+			<arguments/>
+		</buildCommand>
+	</buildSpec>
+	<linkedResources/>
+	<filteredResources>
+		<filter>
+			<id>1</id>
+			<type>9</type>
+			<name/>
+			<matcher>
+				<id>org.eclipse.some.custom.matcher</id>
+				<arguments>foobar</arguments>
+			</matcher>
+		</filter>
+		<filter>
+			<id>2</id>
+			<type>30</type>
+			<name/>
+			<matcher>
+				<id>org.eclipse.some.custom.matcher</id>
+				<arguments>barfoo</arguments>
+			</matcher>
+		</filter>
+	</filteredResources>
+</projectDescription>
+'''
+
+        projectFile << projectFileOriginalText
+
+        and:
+        buildScript """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+eclipse {
+  project {
+    // these filters are equivalent to those already in the .project
+    resourceFilter {
+      appliesTo = 'FOLDERS'
+      type = 'INCLUDE_ONLY'
+      recursive = false
+      matcher {
+        id = 'org.eclipse.some.custom.matcher'
+        arguments = 'foobar'
+      }
+    }
+    resourceFilter {
+      appliesTo = 'FILES_AND_FOLDERS'
+      type = 'EXCLUDE_ALL'
+      matcher {
+        id = 'org.eclipse.some.custom.matcher'
+        arguments = 'barfoo'
+      }
+    }
+  }
+}
+        """
+        when:
+        run("eclipse")
+        then:
+
+        def resourceFilterXml = '''
+        <filteredResources>
+                <filter>
+                        <id>1</id>
+                        <type>9</type>
+                        <name/>
+                        <matcher>
+                                <id>org.eclipse.some.custom.matcher</id>
+                                <arguments>foobar</arguments>
+                        </matcher>
+                </filter>
+                <filter>
+                        <id>2</id>
+                        <type>30</type>
+                        <name/>
+                        <matcher>
+                                <id>org.eclipse.some.custom.matcher</id>
+                                <arguments>barfoo</arguments>
+                        </matcher>
+                </filter>
+        </filteredResources>
+
+        '''
+        project.assertHasResourceFilterXml(resourceFilterXml)
+        projectFileOriginalText == projectFile.text.normalize()
+    }
+
+    void "allows nested matcher"() {
+        given:
+        buildScript """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+eclipse {
+  project {
+    resourceFilter {
+      appliesTo = 'FOLDERS'
+      type = 'INCLUDE_ONLY'
+      recursive = false
+      matcher {
+        id = 'org.eclipse.ui.ide.orFilterMatcher'
+        matcher {
+          id = 'org.eclipse.ui.ide.multiFilter'
+          arguments = '1.0-name-matches-false-false-node_modules'
+        }
+        matcher {
+          id = 'org.eclipse.ui.ide.multiFilter'
+          arguments = '1.0-name-matches-false-false-target'
+        }
+      }
+    }
+  }
+}
+        """
+        when:
+        run("eclipse")
+        then:
+
+        def resourceFilterXml = '''
+        <filteredResources>
+                <filter>
+                        <id>1</id>
+                        <type>9</type>
+                        <name/>
+			<matcher>
+				<id>org.eclipse.ui.ide.orFilterMatcher</id>
+				<arguments>
+					<matcher>
+						<id>org.eclipse.ui.ide.multiFilter</id>
+						<arguments>1.0-name-matches-false-false-node_modules</arguments>
+					</matcher>
+					<matcher>
+						<id>org.eclipse.ui.ide.multiFilter</id>
+						<arguments>1.0-name-matches-false-false-target</arguments>
+					</matcher>
+				</arguments>
+			</matcher>
+                </filter>
+        </filteredResources>
+
+        '''
+        project.assertHasResourceFilterXml(resourceFilterXml)
+    }
+
     void enablesBeforeAndWhenHooksForProject() {
         given:
         def projectFile = file('.project')

@@ -42,7 +42,7 @@ public interface GradleDistribution {
     /**
      * Creates an executer which will use this distribution.
      */
-    GradleExecuter executer(TestDirectoryProvider testDirectoryProvider);
+    GradleExecuter executer(TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext);
 
     /**
      * Returns true if this distribution supports the given JVM.

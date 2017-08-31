@@ -15,9 +15,58 @@
  */
 package org.gradle.groovy.compile
 
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.jvm.Jvm
+import org.junit.Assume
+
+import static org.gradle.util.TextUtil.normaliseFileSeparators
+
 class DaemonGroovyCompilerIntegrationTest extends ApiGroovyCompilerIntegrationSpec {
+    def "respects fork options settings and ignores executable"() {
+        Jvm differentJvm = AvailableJavaHomes.differentJdkWithValidJre
+        Assume.assumeNotNull(differentJvm)
+        def differentJavacExecutablePath = normaliseFileSeparators(differentJvm.javacExecutable.absolutePath)
+
+        file("src/main/groovy/JavaThing.java") << "public class JavaThing {}"
+        file("src/main/groovy/AbstractThing.groovy") << "class AbstractThing {}"
+        file("src/main/groovy/Thing.groovy") << "class Thing extends AbstractThing {}"
+
+        buildFile << """
+            import org.gradle.workers.internal.WorkerDaemonClientsManager
+            import org.gradle.internal.jvm.Jvm
+
+            apply plugin: "groovy"
+            ${mavenCentralRepository()}
+            tasks.withType(GroovyCompile) {
+                options.forkOptions.executable = "${differentJavacExecutablePath}"
+                options.forkOptions.memoryInitialSize = "128m"
+                options.forkOptions.memoryMaximumSize = "256m"
+                options.forkOptions.jvmArgs = ["-Dfoo=bar"]
+                
+                doLast {
+                    assert services.get(WorkerDaemonClientsManager).idleClients.find { 
+                        new File(it.forkOptions.javaForkOptions.executable).canonicalPath == Jvm.current().javaExecutable.canonicalPath &&
+                        it.forkOptions.javaForkOptions.minHeapSize == "128m" &&
+                        it.forkOptions.javaForkOptions.maxHeapSize == "256m" &&
+                        it.forkOptions.javaForkOptions.systemProperties['foo'] == "bar"
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds "compileGroovy"
+        groovyClassFile("Thing.class").exists()
+        groovyClassFile("JavaThing.class").exists()
+    }
+
     @Override
     String compilerConfiguration() {
         "tasks.withType(GroovyCompile) { groovyOptions.fork = true }"
+    }
+
+    @Override
+    String checkCompileOutput(String errorMessage) {
+        true
     }
 }

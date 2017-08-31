@@ -23,7 +23,6 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.io.StreamByteBuffer;
@@ -76,7 +75,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
         List<File> searchClassPath;
         if (gradleInstallation == null) {
             // When not running from a Gradle distro, need runtime impl for launcher plus the search path to look for other modules
-            classpath = new DefaultClassPath();
+            classpath = ClassPath.EMPTY;
             for (Module module : registry.getModule("gradle-launcher").getAllRequiredModules()) {
                 classpath = classpath.plus(module.getClasspath());
             }
@@ -136,7 +135,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
     }
 
     private DaemonStartupInfo startProcess(List<String> args, File workingDir, InputStream stdInput) {
-        LOGGER.info("Starting daemon process: workingDir = {}, daemonArgs: {}", workingDir, args);
+        LOGGER.debug("Starting daemon process: workingDir = {}, daemonArgs: {}", workingDir, args);
         Timer clock = Timers.startTimer();
         try {
             GFileUtils.mkdirs(workingDir);

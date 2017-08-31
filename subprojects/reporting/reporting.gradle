@@ -13,7 +13,7 @@ repositories {
 dependencies {
     compile libraries.groovy
     compile project(':core')
-    compile 'com.googlecode.jatl:jatl:0.2.2'
+    compile libraries.jatl
 
     testCompile libraries.jsoup
     integTestRuntime project(':codeQuality')

@@ -37,6 +37,7 @@ class ZipTestFixture extends ArchiveTestFixture {
                 if (!entry.directory) {
                     add(entry.name, content)
                 }
+                addMode(entry.name, entry.getUnixMode())
             }
         } finally {
             zipFile.close();

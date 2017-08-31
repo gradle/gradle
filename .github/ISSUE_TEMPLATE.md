@@ -1,4 +1,5 @@
 <!--- Provide a brief summary of the issue in the title above -->
+<!--- We kindly ask you to open any issues related to the Gradle Android plugin or Android Studio on the Android Issue Tracker at `https://source.android.com/source/report-bugs` -->
 
 ### Expected Behavior
 <!--- If you're describing a bug, tell us what should happen -->
@@ -18,5 +19,5 @@
 
 ### Your Environment
 <!--- Include as many relevant details about the environment you experienced the bug in -->
-<!--- A build scan `https://scans.gradle.com/get-started?type=project` is ideal -->
+<!--- A build scan `https://gradle.com/scans/get-started` is ideal -->
  * Build scan URL: 

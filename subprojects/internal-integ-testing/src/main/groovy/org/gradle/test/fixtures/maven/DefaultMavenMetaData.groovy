@@ -16,10 +16,12 @@
 
 package org.gradle.test.fixtures.maven
 
+import org.gradle.test.fixtures.file.TestFile
+
 /**
  * http://maven.apache.org/ref/3.0.1/maven-repository-metadata/repository-metadata.html
  */
-class DefaultMavenMetaData implements MavenMetaData{
+class DefaultMavenMetaData implements MavenMetaData {
 
     String text
 
@@ -29,8 +31,16 @@ class DefaultMavenMetaData implements MavenMetaData{
 
     List<String> versions = []
     String lastUpdated
+    final String path
+    final TestFile file
 
-    DefaultMavenMetaData(File file) {
+    DefaultMavenMetaData(String path, TestFile file) {
+        this.file = file
+        this.path = path
+        if (!file.exists()) {
+            return
+        }
+
         text = file.text
         def xml = new XmlParser().parseText(text)
 

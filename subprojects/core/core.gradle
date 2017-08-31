@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+apply plugin: 'java-library'
 apply from: "$rootDir/gradle/taskProperties.gradle"
 
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
@@ -23,59 +23,67 @@ configurations {
 }
 
 classpathManifest {
-    optionalProjects = ['gradle-script-kotlin']
+    optionalProjects = ['gradle-kotlin-dsl']
 }
 
 dependencies {
-    compile libraries.groovy
+    api project(":baseServices")
+    api project(":baseServicesGroovy")
+    api project(":messaging")
+    api project(":logging")
+    api project(":resources")
+    api project(":cli")
+    api project(":native")
+    api project(":persistentCache")
+    api project(":buildCache")
+    api project(":coreApi")
 
-    publishCompile libraries.slf4j_api
-    publishCompile project(":baseServices")
-    publishCompile project(":baseServicesGroovy"), {
-        exclude group: "org.codehaus.groovy", module: "groovy-all"
-    }
-    publishCompile project(":messaging")
-    publishCompile project(":logging")
-    publishCompile project(":resources")
+    api project(":processServices")
+    api project(":jvmServices")
+    api project(":modelCore")
+    api libraries.groovy
+    api libraries.ant
+    api libraries.guava
+    api libraries.inject
 
-    compile project(":processServices")
-    compile project(":jvmServices")
-    compile project(":modelCore")
-    compile project(":modelGroovy")
-    compile libraries.asm
-    compile libraries.ant
-    compile libraries.commons_collections
-    compile libraries.commons_io
-    compile libraries.commons_lang
-    compile libraries.guava
-    compile libraries.jcip
-    compile libraries.inject
+    implementation project(":modelGroovy")
+    implementation libraries.asm
+    implementation libraries.slf4j_api
+    implementation libraries.commons_collections
+    implementation libraries.commons_io
+    implementation libraries.commons_lang
+    implementation libraries.jcip
+    implementation libraries.nativePlatform
+    implementation libraries.commons_compress
 
-    compile project(":cli")
-    compile project(":native")
+    runtimeOnly project(":docs")
 
-    runtime project(":docs")
+    testImplementation libraries.jsoup
+    testImplementation libraries.log4j_to_slf4j
 
-    testCompile libraries.jsoup
+    testRuntimeOnly libraries.xerces
+    testRuntimeOnly project(":diagnostics")
+    testRuntimeOnly project(":compositeBuilds")
 
-    testRuntime libraries.xerces
-    testRuntime project(":diagnostics")
+    testFixturesImplementation project(":internalTesting")
+    testFixturesImplementation libraries.ivy
 
-    testFixturesCompile project(":internalTesting")
-    testFixturesCompile libraries.ivy
-
+    testFixturesRuntime project(':workers')
     testFixturesRuntime project(':dependencyManagement')
     testFixturesRuntime project(':pluginUse')
+    testFixturesRuntime project(':runtimeApiInfo')
 
-    integTestCompile project(":internalIntegTesting")
+    integTestImplementation project(":internalIntegTesting")
 
-    integTestRuntime project(":plugins")
+    integTestRuntimeOnly project(":plugins")
 }
 
 useTestFixtures()
+useTestFixtures(project: ":coreApi")
 useTestFixtures(project: ":messaging")
 useTestFixtures(project: ":modelCore")
 useTestFixtures(project: ":logging")
+useTestFixtures(project: ":baseServices")
 
 test {
     forkEvery = 200
@@ -83,16 +91,22 @@ test {
 
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 
-task buildReceiptResource(type: Copy, dependsOn: rootProject.createBuildReceipt) {
-    into "$generatedResourcesDir/org/gradle"
-    from rootProject.createBuildReceipt.receiptFile
+task pluginsManifest(type: WriteProperties) {
+    property("plugins") {
+        project.pluginProjects.collect { it.archivesBaseName }.sort().join(',')
+    }
+    outputFile = new File(project.generatedResourcesDir, "gradle-plugins.properties")
 }
 
-sourceSets.main.output.dir generatedResourcesDir, builtBy: buildReceiptResource
-
-import org.gradle.build.PluginsManifest
-task pluginsManifest(type: PluginsManifest)
-
 sourceSets.main.output.dir generatedResourcesDir, builtBy: pluginsManifest
+
+task implementationPluginsManifest(type: WriteProperties) {
+    property("plugins") {
+        project.implementationPluginProjects.collect { it.archivesBaseName }.sort().join(',')
+    }
+    outputFile = new File(project.generatedResourcesDir, "gradle-implementation-plugins.properties")
+}
+
+sourceSets.main.output.dir generatedResourcesDir, builtBy: implementationPluginsManifest
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false

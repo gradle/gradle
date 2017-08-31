@@ -13,10 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
-
 package org.gradle.api.internal.tasks
 
 import org.gradle.api.GradleException
@@ -26,7 +22,7 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
 class TaskStateInternalTest {
-    private final TaskStateInternal state = new TaskStateInternal('task-description')
+    private final TaskStateInternal state = new TaskStateInternal()
 
     @Test
     public void defaultValues() {
@@ -38,6 +34,8 @@ class TaskStateInternalTest {
         assertFalse(state.getSkipped())
         assertThat(state.getSkipMessage(), nullValue())
         assertFalse(state.upToDate)
+        assertFalse(state.taskOutputCaching.enabled)
+        assertTrue(state.actionable)
     }
 
     @Test
@@ -134,7 +132,7 @@ class TaskStateInternalTest {
             state.rethrowFailure()
             fail()
         } catch (GradleException e) {
-            assertThat(e.message, equalTo('Task-description failed with an exception.'))
+            assertThat(e.message, equalTo('Task failed with an exception.'))
             assertThat(e.cause, sameInstance(failure))
         }
     }

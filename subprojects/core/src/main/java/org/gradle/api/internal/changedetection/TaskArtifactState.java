@@ -15,11 +15,17 @@
  */
 package org.gradle.api.internal.changedetection;
 
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.TaskExecutionHistory;
-import org.gradle.api.internal.tasks.cache.TaskCacheKey;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
+import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.id.UniqueId;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * Encapsulates the state of the task when its outputs were last generated.
@@ -40,27 +46,48 @@ public interface TaskArtifactState {
     boolean isAllowedToUseCachedResults();
 
     /**
-     * Returns the calculated cache key for the task's current state, or {@code null} if the task is not cacheable.
+     * Returns the calculated cache key for the task's current state.
      */
-    TaskCacheKey calculateCacheKey();
+    TaskOutputCachingBuildCacheKey calculateCacheKey();
 
     /**
-     * Called before the task is to be executed. Note that {@link #isUpToDate(java.util.Collection)} may not necessarily have been called.
+     * Ensure snapshot is taken of the task's inputs and outputs before it is executed.
      */
-    void beforeTask();
+    void ensureSnapshotBeforeTask();
 
     /**
-     * Called on successful completion of task execution.
+     * Retakes output file snapshots and prevents the task from executing in an incremental fashion.
      */
-    void afterTask();
+    void afterOutputsRemovedBeforeTask();
 
     /**
-     * Called when this state is finished with.
+     * Called on completion of task execution.
      */
-    void finished();
+    void snapshotAfterTaskExecution(Throwable failure);
+
+    /**
+     * Called on task being loaded from cache.
+     */
+    void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot);
 
     /**
      * Returns the history for this task.
      */
     TaskExecutionHistory getExecutionHistory();
+
+    /**
+     * Returns the current output file content snapshots indexed by property name.
+     */
+    Map<String, Map<String, FileContentSnapshot>> getOutputContentSnapshots();
+
+    /**
+     * The ID of the build that created the outputs that might be reused.
+     * Null if there are no previous executions, or outputs must not be reused (e.g. --rerun-tasks).
+     * Never null if {@link #isUpToDate(Collection)} returns true.
+     *
+     * TODO: should this move to getExecutionHistory()?
+     * @since 4.0
+     */
+    @Nullable
+    UniqueId getOriginBuildInvocationId();
 }

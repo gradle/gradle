@@ -33,7 +33,7 @@ public class EffectiveClassPath extends DefaultClassPath {
     }
 
     private static List<File> findAvailableClasspathFiles(ClassLoader classLoader) {
-        List<URL> rawClasspath = ClasspathUtil.getClasspath(classLoader);
+        List<URL> rawClasspath = ClasspathUtil.getClasspath(classLoader).getAsURLs();
         List<File> classpathFiles = new ArrayList<File>();
         for (URL url : rawClasspath) {
             if (url.getProtocol().equals("file")) {

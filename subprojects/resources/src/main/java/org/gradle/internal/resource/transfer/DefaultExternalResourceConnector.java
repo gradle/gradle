@@ -16,10 +16,10 @@
 
 package org.gradle.internal.resource.transfer;
 
-import org.gradle.api.Nullable;
-import org.gradle.internal.resource.local.LocalResource;
+import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -71,7 +71,7 @@ public class DefaultExternalResourceConnector implements ExternalResourceConnect
     }
 
     @Override
-    public void upload(LocalResource resource, URI destination) throws IOException {
+    public void upload(ReadableContent resource, URI destination) throws IOException {
         STATS.upload(destination);
         uploader.upload(resource, destination);
     }

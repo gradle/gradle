@@ -20,7 +20,7 @@ import groovy.transform.TupleConstructor
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 
-import static org.gradle.internal.filewatch.ChangeReporter.SHOW_INDIVIDUAL_CHANGES_LIMIT
+import static org.gradle.internal.filewatch.DefaultFileWatcherEventListener.SHOW_INDIVIDUAL_CHANGES_LIMIT
 import static org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory.QUIET_PERIOD_SYSPROP
 
 // Developer is able to easily determine the file(s) that triggered a rebuild
@@ -156,7 +156,6 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         changesCount << [1, changesLimit, 11]
     }
 
-
     def "should report the changes when multiple changes are made at once"() {
         given:
         def inputFiles = (1..11).collect { inputDir.file("input${it}.txt") }
@@ -200,6 +199,21 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
             assert it.executedTasks == [':theTask']
         }
         assertReportsChanges([new ChangeEntry("new file", file("inputDir/input.txt"))])
+    }
+
+    def "should report changes when quiet logging used"() {
+        given:
+        def inputFile = inputDir.file("input.txt")
+
+        when:
+        executer.withArgument("-q")
+        succeeds("theTask")
+        inputFile.text = 'New input file'
+
+        then:
+        succeeds()
+        sendEOT()
+        assertReportsChanges([new ChangeEntry('new file', inputFile)])
     }
 
     @TupleConstructor

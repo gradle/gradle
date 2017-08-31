@@ -20,12 +20,12 @@ import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultClientModule extends AbstractExternalModuleDependency implements ClientModule {
 
-    private Set<ModuleDependency> dependencies = new HashSet<ModuleDependency>();
+    private Set<ModuleDependency> dependencies = new LinkedHashSet<ModuleDependency>();
 
     public DefaultClientModule(String group, String name, String version) {
         this(group, name, version, null);

@@ -16,8 +16,12 @@
 
 package org.gradle.internal.nativeintegration.filesystem;
 
+import org.gradle.internal.file.FileMetadataSnapshot;
+
 import java.io.File;
 
 public interface Stat {
-    public int getUnixMode(File f) throws FileException;
+    int getUnixMode(File f) throws FileException;
+
+    FileMetadataSnapshot stat(File f) throws FileException;
 }

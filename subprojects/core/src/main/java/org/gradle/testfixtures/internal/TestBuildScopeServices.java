@@ -20,8 +20,11 @@ import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.DefaultBuildCancellationToken;
+import org.gradle.initialization.GradleLauncher;
+import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
+import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
@@ -30,8 +33,8 @@ import java.io.File;
 public class TestBuildScopeServices extends BuildScopeServices {
     private final File homeDir;
 
-    public TestBuildScopeServices(ServiceRegistry parent, StartParameter startParameter, File homeDir) {
-        super(parent, startParameter);
+    public TestBuildScopeServices(ServiceRegistry parent, File homeDir) {
+        super(parent);
         this.homeDir = homeDir;
     }
 
@@ -45,5 +48,19 @@ public class TestBuildScopeServices extends BuildScopeServices {
 
     protected CurrentGradleInstallation createCurrentGradleInstallation() {
         return new CurrentGradleInstallation(new GradleInstallation(homeDir));
+    }
+
+    protected NestedBuildFactory createNestedBuildFactory() {
+        return new NestedBuildFactory() {
+            @Override
+            public GradleLauncher nestedInstance(StartParameter startParameter) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public BuildController nestedBuildController(StartParameter startParameter) {
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 }

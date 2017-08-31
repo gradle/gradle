@@ -15,7 +15,8 @@
  */
 package org.gradle.api.internal.tasks.testing.filter;
 
-import com.google.common.base.Splitter;
+
+import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,18 +25,25 @@ import java.util.regex.Pattern;
 
 public class TestSelectionMatcher {
 
-    private final List<Pattern> includePatterns;
+    private final List<Pattern> buildScriptIncludePatterns;
+    private final List<Pattern> commandLineIncludePatterns;
 
-    public TestSelectionMatcher(Collection<String> includedTests) {
-        includePatterns = new ArrayList<Pattern>(includedTests.size());
+    public TestSelectionMatcher(Collection<String> includedTests, Collection<String> includedTestsCommandLine) {
+        buildScriptIncludePatterns = preparePatternList(includedTests);
+        commandLineIncludePatterns = preparePatternList(includedTestsCommandLine);
+    }
+
+    private List<Pattern> preparePatternList(Collection<String> includedTests) {
+        List<Pattern> includePatterns = new ArrayList<Pattern>(includedTests.size());
         for (String includedTest : includedTests) {
             includePatterns.add(preparePattern(includedTest));
         }
+        return includePatterns;
     }
 
     private Pattern preparePattern(String input) {
         StringBuilder pattern = new StringBuilder();
-        Iterable<String> split = Splitter.on('*').split(input);
+        String[] split = StringUtils.splitPreserveAllTokens(input, '*');
         for (String s : split) {
             if (s.equals("")) {
                 pattern.append(".*"); //replace wildcard '*' with '.*'
@@ -50,6 +58,14 @@ public class TestSelectionMatcher {
     }
 
     public boolean matchesTest(String className, String methodName) {
+        return matchesPattern(buildScriptIncludePatterns, className, methodName)
+            && matchesPattern(commandLineIncludePatterns, className, methodName);
+    }
+
+    private boolean matchesPattern(List<Pattern> includePatterns, String className, String methodName) {
+        if (includePatterns.isEmpty()) {
+            return true;
+        }
         String fullName = className + "." + methodName;
         for (Pattern pattern : includePatterns) {
             if (methodName != null && pattern.matcher(fullName).matches()) {

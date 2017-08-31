@@ -16,10 +16,14 @@
 
 package org.gradle.internal.logging.progress;
 
+import org.gradle.internal.progress.BuildOperationDescriptor;
+
 /**
  * Thread-safe, however the progress logger instances created are not.
  */
 public interface ProgressLoggerFactory {
+    long ROOT_PROGRESS_OPERATION_ID = 1;
+
     /**
      * Creates a new long-running operation which has not been started.
      *
@@ -35,6 +39,16 @@ public interface ProgressLoggerFactory {
      * @return The progress logger for the operation.
      */
     ProgressLogger newOperation(Class<?> loggerCategory);
+
+    /**
+     * Creates a new long-running operation which has not been started, associated
+     * with the given build operation id.
+     *
+     * @param loggerCategory The logger category.
+     * @param buildOperationDescriptor descriptor for the build operation associated with this logger.
+     * @return the progress logger for the operation.
+     */
+    ProgressLogger newOperation(Class<?> loggerCategory, BuildOperationDescriptor buildOperationDescriptor);
 
     ProgressLogger newOperation(Class<?> loggerClass, ProgressLogger parent);
 }

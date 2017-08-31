@@ -22,6 +22,7 @@ public class DefaultAwsCredentials implements AwsCredentials {
 
     private String accessKey;
     private String secretKey;
+    private String sessionToken;
 
     public String getAccessKey() {
         return accessKey;
@@ -37,5 +38,13 @@ public class DefaultAwsCredentials implements AwsCredentials {
 
     public void setSecretKey(String secretKey) {
         this.secretKey = secretKey;
+    }
+
+    public String getSessionToken() {
+        return sessionToken;
+    }
+
+    public void setSessionToken(String token) {
+        this.sessionToken = token;
     }
 }

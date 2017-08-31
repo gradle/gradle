@@ -133,7 +133,7 @@ For a local component that is a module version, this will look something like
     +- project :some:path (group:name:1.2) -> group:other:1.2
 
 1. Change the `RenderableDependency` hierarchy to use the component id and module version id, if not null.
-2. Update the the dependency report tests as appropriate.
+2. Update the dependency report tests as appropriate.
 
 The HTML dependency report should change in a similar way.
 

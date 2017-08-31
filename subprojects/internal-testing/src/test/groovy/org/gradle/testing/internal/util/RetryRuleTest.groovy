@@ -25,12 +25,12 @@ import static org.gradle.testing.internal.util.RetryRule.retryIf
 class RetryRuleTest extends Specification {
 
     @Rule
-    RetryRule retryRule = retryIf({ t -> t instanceof IOException });
+    RetryRule retryRule = retryIf({ t -> t instanceof IOException })
 
     @Rule
-    ExpectedFailureRule expectedFailureRule = new ExpectedFailureRule();
+    ExpectedFailureRule expectedFailureRule = new ExpectedFailureRule()
 
-    int iteration = 0;
+    int iteration = 0
 
     def "should pass when expected exception happens once"() {
         given:
@@ -56,7 +56,7 @@ class RetryRuleTest extends Specification {
 
     def "should retry and pass when spock expects a specific exception"() {
         given:
-        iteration++;
+        iteration++
 
         when:
         throwWhen(new IOException(), iteration == 1)
@@ -95,7 +95,7 @@ class RetryRuleTest extends Specification {
     @ExpectedFailure(expected = RetryFailure.class)
     def "should fail when expected exception happens consistently"() {
         when:
-        throw new IOException();
+        throw new IOException()
 
         then:
         true
@@ -115,7 +115,7 @@ class RetryRuleTest extends Specification {
 
     private static void throwWhen(Throwable throwable, boolean condition) {
         if (condition) {
-            throw throwable;
+            throw throwable
         }
     }
 }

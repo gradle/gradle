@@ -16,10 +16,15 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.api.Nullable;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelAction;
+import org.gradle.model.internal.core.ModelActionRole;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelSpec;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.registry.ModelReferenceNode;
 import org.gradle.model.internal.registry.ModelRegistry;
+
+import javax.annotation.Nullable;
 
 public class RuleExtractorUtils {
     public static void configureRuleAction(MethodModelRuleApplicationContext context, RuleApplicationScope ruleApplicationScope, ModelActionRole role, MethodRuleAction ruleAction) {

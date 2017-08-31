@@ -54,12 +54,12 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
 
     public SettingsInternal process(GradleInternal gradle,
                                     SettingsLocation settingsLocation,
-                                    ClassLoaderScope baseClassLoaderScope,
+                                    ClassLoaderScope buildRootClassLoaderScope,
                                     StartParameter startParameter) {
         Timer settingsProcessingClock = Timers.startTimer();
         Map<String, String> properties = propertiesLoader.mergeProperties(Collections.<String, String>emptyMap());
         SettingsInternal settings = settingsFactory.createSettings(gradle, settingsLocation.getSettingsDir(),
-                settingsLocation.getSettingsScriptSource(), properties, startParameter, baseClassLoaderScope);
+                settingsLocation.getSettingsScriptSource(), properties, startParameter, buildRootClassLoaderScope);
         applySettingsScript(settingsLocation, settings);
         LOGGER.debug("Timing: Processing settings took: {}", settingsProcessingClock.getElapsed());
         return settings;

@@ -25,6 +25,7 @@ import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
@@ -33,10 +34,10 @@ import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenLocalRepository
+import org.gradle.testing.internal.util.Specification
 import org.hamcrest.CoreMatchers
 import org.hamcrest.Matcher
 import org.junit.Rule
-import spock.lang.Specification
 
 import static org.gradle.util.Matchers.normalizedLineSeparators
 
@@ -50,9 +51,13 @@ class AbstractIntegrationSpec extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    GradleDistribution distribution = new UnderDevelopmentGradleDistribution()
-    GradleExecuter executer = new GradleContextualExecuter(distribution, temporaryFolder)
+    GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext())
+    GradleExecuter executer = new GradleContextualExecuter(distribution, temporaryFolder, getBuildContext())
     BuildTestFixture buildTestFixture = new BuildTestFixture(temporaryFolder)
+
+    IntegrationTestBuildContext getBuildContext() {
+        return IntegrationTestBuildContext.INSTANCE;
+    }
 
 //    @Rule
     M2Installation m2 = new M2Installation(temporaryFolder)
@@ -104,6 +109,22 @@ class AbstractIntegrationSpec extends Specification {
             return path[0] as TestFile
         }
         getTestDirectory().file(path);
+    }
+
+    TestFile javaClassFile(String fqcn) {
+        classFile("java", "main", fqcn)
+    }
+
+    TestFile groovyClassFile(String fqcn) {
+        classFile("groovy", "main", fqcn)
+    }
+
+    TestFile scalaClassFile(String fqcn) {
+        classFile("scala", "main", fqcn)
+    }
+
+    TestFile classFile(String language, String sourceSet, String fqcn) {
+        file("build/classes/", language, sourceSet, fqcn)
     }
 
     protected GradleExecuter sample(Sample sample) {
@@ -200,6 +221,11 @@ class AbstractIntegrationSpec extends Specification {
         }
     }
 
+    protected void assertTaskOrder(Object... tasks) {
+        assertHasResult()
+        result.assertTaskOrder(tasks)
+    }
+
     protected void failureHasCause(String cause) {
         failure.assertHasCause(cause)
     }
@@ -233,9 +259,22 @@ class AbstractIntegrationSpec extends Specification {
     }
 
     ArtifactBuilder artifactBuilder() {
-        def executer = distribution.executer(temporaryFolder)
+        def executer = distribution.executer(temporaryFolder, getBuildContext())
         executer.withGradleUserHomeDir(this.executer.getGradleUserHomeDir())
-        return new GradleBackedArtifactBuilder(executer, getTestDirectory().file("artifacts"))
+        for (int i = 1; ; i++) {
+            def dir = getTestDirectory().file("artifacts-$i")
+            if (!dir.exists()) {
+                return new GradleBackedArtifactBuilder(executer, dir)
+            }
+        }
+    }
+
+    def jarWithClasses(Map<String, String> javaSourceFiles, TestFile jarFile) {
+        def builder = artifactBuilder()
+        for (Map.Entry<String, String> entry : javaSourceFiles.entrySet()) {
+            builder.sourceFile(entry.key + ".java").text = entry.value
+        }
+        builder.buildJar(jarFile)
     }
 
     public MavenFileRepository maven(TestFile repo) {
@@ -295,6 +334,7 @@ class AbstractIntegrationSpec extends Specification {
         TestFile zip = file(name)
         zipRoot.create(cl)
         zipRoot.zipTo(zip)
+        return zip
     }
 
     def createDir(String name, Closure cl) {
@@ -302,8 +342,40 @@ class AbstractIntegrationSpec extends Specification {
         root.create(cl)
     }
 
+    /**
+     * Replaces the given text in the build script with new value, asserting that the change was actually applied (ie the text was present).
+     */
+    void editBuildFile(String oldText, String newText) {
+        def newContent = buildFile.text.replace(oldText, newText)
+        assert newContent != buildFile.text
+        buildFile.text = newContent
+    }
+
+    /**
+     * Creates a JAR that is unique to the test. The uniqueness is achieved via a properties file with a value containing the path to the test itself.
+     */
+    def createJarWithProperties(String path, Map<String, ?> properties = [source: 1]) {
+        def props = new Properties()
+        def sw = new StringWriter()
+        props.putAll(properties.collectEntries { k, v -> [k, String.valueOf(v)] })
+        props.setProperty(path, testDirectory.path)
+        props.store(sw, null)
+        file(path).delete()
+        createZip(path) {
+            file("data.properties") << sw.toString()
+        }
+    }
+
     void outputContains(String string) {
         assertHasResult()
         result.assertOutputContains(string.trim())
+    }
+
+    static String jcenterRepository() {
+        RepoScriptBlockUtil.jcenterRepository()
+    }
+
+    static String mavenCentralRepository() {
+        RepoScriptBlockUtil.mavenCentralRepository()
     }
 }

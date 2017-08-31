@@ -26,6 +26,12 @@
             <tr>
                 <td>defaultImports</td>
             </tr>
+            <tr>
+                <td>userTemplateFormats</td>
+            </tr>
+            <tr>
+                <td>additionalImports</td>
+            </tr>
         </table>
     </section>
     <section>
@@ -36,6 +42,9 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>addUserTemplateFormat</td>
+            </tr>
         </table>
     </section>
 </section>

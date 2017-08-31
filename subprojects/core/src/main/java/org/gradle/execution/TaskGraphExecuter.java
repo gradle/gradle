@@ -19,6 +19,8 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.specs.Spec;
 
+import java.util.Set;
+
 public interface TaskGraphExecuter extends TaskExecutionGraph {
     /**
      * Sets the filter to use when adding tasks to this graph. Only those tasks which are accepted by the given filter
@@ -33,6 +35,11 @@ public interface TaskGraphExecuter extends TaskExecutionGraph {
     void addTasks(Iterable<? extends Task> tasks);
 
     /**
+     * Does the work to populate the task graph based on tasks that have been added. Does not fire events.
+     */
+    void populate();
+
+    /**
      * Executes the tasks in this graph. Discards the contents of this graph when completed.
      */
     void execute();
@@ -41,4 +48,15 @@ public interface TaskGraphExecuter extends TaskExecutionGraph {
      * Sets the handler to use when a task fails.
      */
     void useFailureHandler(TaskFailureHandler handler);
+
+    /**
+     * Set of requested tasks.
+     */
+    Set<Task> getRequestedTasks();
+
+
+    /**
+     * Set of requested tasks.
+     */
+    Set<Task> getFilteredTasks();
 }

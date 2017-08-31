@@ -42,9 +42,11 @@ import java.util.*;
  * @since 2.12
  */
 public class GradleResolveVisitor extends ResolveVisitor {
-    private ClassNode currentClass;
     // note: BigInteger and BigDecimal are also imported by default
-    public static final String[] DEFAULT_IMPORTS = {"java.lang.", "java.io.", "java.net.", "java.util.", "groovy.lang.", "groovy.util."};
+    private static final String[] DEFAULT_IMPORTS = {"java.lang.", "java.io.", "java.net.", "java.util.", "groovy.lang.", "groovy.util."};
+    private static final String SCRIPTS_PACKAGE = "org.gradle.groovy.scripts";
+
+    private ClassNode currentClass;
     private final Map<String, List<String>> simpleNameToFQN;
     private final String[] gradlePublicPackages;
     private CompilationUnit compilationUnit;
@@ -370,9 +372,14 @@ public class GradleResolveVisitor extends ResolveVisitor {
         // GROOVY-4043: Do this check up the hierarchy, if needed
         Map<String, ClassNode> hierClasses = new LinkedHashMap<String, ClassNode>();
         ClassNode val;
-        for (ClassNode classToCheck = currentClass; classToCheck != ClassHelper.OBJECT_TYPE;
+        for (ClassNode classToCheck = currentClass;
+            /*
+             * We know that DefaultScript & friends don't have user-visible nested types,
+             * so don't try to look up nonsensical types like org.gradle.Script#sourceCompatibility
+             */
+             classToCheck != null && classToCheck != ClassHelper.OBJECT_TYPE && !SCRIPTS_PACKAGE.equals(classToCheck.getPackageName());
              classToCheck = classToCheck.getSuperClass()) {
-            if (classToCheck == null || hierClasses.containsKey(classToCheck.getName())) {
+            if (hierClasses.containsKey(classToCheck.getName())) {
                 break;
             }
             hierClasses.put(classToCheck.getName(), classToCheck);

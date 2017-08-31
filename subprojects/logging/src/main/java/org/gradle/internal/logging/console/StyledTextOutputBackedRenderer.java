@@ -18,11 +18,11 @@ package org.gradle.internal.logging.console;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
-import org.gradle.internal.logging.text.AbstractLineChoppingStyledTextOutput;
-import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.RenderableOutputEvent;
+import org.gradle.internal.logging.text.AbstractLineChoppingStyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -32,8 +32,8 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 
 public class StyledTextOutputBackedRenderer implements OutputEventListener {
     private final OutputEventTextOutputImpl textOutput;
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
     private boolean debugOutput;
+    private SimpleDateFormat dateFormat;
     private RenderableOutputEvent lastEvent;
 
     public StyledTextOutputBackedRenderer(StyledTextOutput textOutput) {
@@ -44,6 +44,9 @@ public class StyledTextOutputBackedRenderer implements OutputEventListener {
         if (event instanceof LogLevelChangeEvent) {
             LogLevelChangeEvent changeEvent = (LogLevelChangeEvent) event;
             debugOutput = changeEvent.getNewLogLevel() == LogLevel.DEBUG;
+            if (debugOutput && dateFormat == null) {
+                dateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
+            }
         }
         if (event instanceof RenderableOutputEvent) {
             RenderableOutputEvent outputEvent = (RenderableOutputEvent) event;

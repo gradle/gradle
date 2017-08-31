@@ -20,7 +20,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
@@ -28,6 +27,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.toolchain.Clang;
 import org.gradle.nativeplatform.toolchain.Gcc;
+import org.gradle.nativeplatform.toolchain.Swiftc;
 import org.gradle.nativeplatform.toolchain.VisualCpp;
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.GccVersionDeterminer;
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.GccVersionResult;
@@ -37,18 +37,19 @@ import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioLocator;
 import org.gradle.nativeplatform.toolchain.plugins.ClangCompilerPlugin;
 import org.gradle.nativeplatform.toolchain.plugins.GccCompilerPlugin;
 import org.gradle.nativeplatform.toolchain.plugins.MicrosoftVisualCppCompilerPlugin;
+import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.VersionNumber;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static org.gradle.nativeplatform.fixtures.VisualStudioVersion.VISUALSTUDIO_2012;
-import static org.gradle.nativeplatform.fixtures.VisualStudioVersion.VISUALSTUDIO_2013;
+import static org.gradle.nativeplatform.fixtures.VisualStudioVersion.*;
 
 public class AvailableToolChains {
     private static List<ToolChainCandidate> toolChains;
@@ -95,6 +96,7 @@ public class AvailableToolChains {
             } else {
                 compilers.add(findGcc());
                 compilers.add(findClang());
+                compilers.add(findSwiftc());
             }
             toolChains = compilers;
         }
@@ -185,6 +187,20 @@ public class AvailableToolChains {
         return new UnavailableToolChain("gcc");
     }
 
+    static ToolChainCandidate findSwiftc() {
+        File compilerExe = new File("/opt/swift/latest/usr/bin/swiftc");
+        if (compilerExe.isFile()) {
+            return new InstalledSwiftc("swiftc").inPath(compilerExe.getParentFile());
+        }
+
+        List<File> swiftcCandidates = OperatingSystem.current().findAllInPath("swiftc");
+        if (!swiftcCandidates.isEmpty()) {
+            return new InstalledSwiftc("swiftc");
+        }
+
+        return new UnavailableToolChain("swiftc");
+    }
+
     public static abstract class ToolChainCandidate {
         @Override
         public String toString() {
@@ -241,6 +257,10 @@ public class AvailableToolChains {
 
         public ExecutableFixture executable(Object path) {
             return new ExecutableFixture(new TestFile(OperatingSystem.current().getExecutableName(path.toString())), this);
+        }
+
+        public LinkerOptionsFixture linkerOptionsFor(Object path) {
+            return new LinkerOptionsFixture(new TestFile(path.toString()));
         }
 
         public TestFile objectFile(Object path) {
@@ -300,6 +320,15 @@ public class AvailableToolChains {
         public List<String> getRuntimeEnv() {
             // Toolchains should be linking against stuff in the standard locations
             return Collections.emptyList();
+        }
+
+        protected List<String> toRuntimeEnv() {
+            if (pathEntries.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            String path = Joiner.on(File.pathSeparator).join(pathEntries) + File.pathSeparator + System.getenv(pathVarName);
+            return Collections.singletonList(pathVarName + "=" + path);
         }
 
         public String getId() {
@@ -389,13 +418,9 @@ public class AvailableToolChains {
         /**
          * The environment required to execute a binary created by this toolchain.
          */
+        @Override
         public List<String> getRuntimeEnv() {
-            if (pathEntries.isEmpty()) {
-                return Collections.emptyList();
-            }
-
-            String path = Joiner.on(File.pathSeparator).join(pathEntries) + File.pathSeparator + System.getenv(pathVarName);
-            return Collections.singletonList(pathVarName + "=" + path);
+            return toRuntimeEnv();
         }
 
         @Override
@@ -407,6 +432,54 @@ public class AvailableToolChains {
                 return "cygwin";
             }
             return "UNKNOWN";
+        }
+    }
+
+    public static class InstalledSwiftc extends InstalledToolChain {
+        public InstalledSwiftc(String displayName) {
+            super(displayName);
+        }
+
+        /**
+         * The environment required to execute a binary created by this toolchain.
+         */
+        @Override
+        public List<String> getRuntimeEnv() {
+            return toRuntimeEnv();
+        }
+
+        @Override
+        public String getInstanceDisplayName() {
+            return String.format("Tool chain '%s' (Swiftc)", getId());
+        }
+
+        @Override
+        public String getBuildScriptConfig() {
+            String config = String.format("%s(%s)\n", getId(), getImplementationClass());
+            for (File pathEntry : getPathEntries()) {
+                config += String.format("%s.path file('%s')", getId(), pathEntry.toURI());
+            }
+            return config;
+        }
+
+        @Override
+        public String getImplementationClass() {
+            return Swiftc.class.getSimpleName();
+        }
+
+        @Override
+        public String getPluginClass() {
+            return SwiftCompilerPlugin.class.getSimpleName();
+        }
+
+        @Override
+        public String getUnitTestPlatform() {
+            return null;
+        }
+
+        @Override
+        public boolean meets(ToolChainRequirement requirement) {
+            return requirement == ToolChainRequirement.SWIFT || requirement == ToolChainRequirement.AVAILABLE;
         }
     }
 
@@ -443,6 +516,10 @@ public class AvailableToolChains {
                     return version.equals(VISUALSTUDIO_2013.getVisualCppVersion());
                 case VISUALCPP_2013_OR_NEWER:
                     return version.compareTo(VISUALSTUDIO_2013.getVisualCppVersion()) >= 0;
+                case VISUALCPP_2015:
+                    return version.equals(VISUALSTUDIO_2015.getVisualCppVersion());
+                case VISUALCPP_2015_OR_NEWER:
+                    return version.compareTo(VISUALSTUDIO_2015.getVisualCppVersion()) >= 0;
                 default:
                     return false;
             }
@@ -488,6 +565,8 @@ public class AvailableToolChains {
             switch (version.getMajor()) {
                 case 12:
                     return "vs2013";
+                case 14:
+                    return "vs2015";
                 default:
                     return "UNKNOWN";
             }

@@ -20,13 +20,13 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.gradle.api.Action;
+import org.gradle.api.Describable;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.ClassLoaderAwareTaskAction;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
-import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.Factory;
@@ -52,7 +52,6 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
                 TaskClassValidator validator = validatorExtractor.extractValidator(type);
                 taskClassInfo.setValidator(validator);
 
-                taskClassInfo.setCacheable(type.isAnnotationPresent(CacheableTask.class));
                 return taskClassInfo;
             }
         });
@@ -70,12 +69,12 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
         Set<String> methods = new HashSet<String>();
         for (Class current = type; current != null; current = current.getSuperclass()) {
             for (Method method : current.getDeclaredMethods()) {
-                attachTaskAction(method, taskClassInfo, methods);
+                attachTaskAction(type, method, taskClassInfo, methods);
             }
         }
     }
 
-    private void attachTaskAction(final Method method, TaskClassInfo taskClassInfo, Collection<String> processedMethods) {
+    private void attachTaskAction(Class<? extends Task> type, final Method method, TaskClassInfo taskClassInfo, Collection<String> processedMethods) {
         if (method.getAnnotation(TaskAction.class) == null) {
             return;
         }
@@ -104,26 +103,28 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
         if (processedMethods.contains(method.getName())) {
             return;
         }
-        taskClassInfo.getTaskActions().add(createActionFactory(method, parameterTypes));
+        taskClassInfo.getTaskActions().add(createActionFactory(type, method, parameterTypes));
         processedMethods.add(method.getName());
     }
 
-    private Factory<Action<Task>> createActionFactory(final Method method, final Class<?>[] parameterTypes) {
+    private Factory<Action<Task>> createActionFactory(final Class<? extends Task> type, final Method method, final Class<?>[] parameterTypes) {
         return new Factory<Action<Task>>() {
             public Action<Task> create() {
                 if (parameterTypes.length == 1) {
-                    return new IncrementalTaskAction(method);
+                    return new IncrementalTaskAction(type, method);
                 } else {
-                    return new StandardTaskAction(method);
+                    return new StandardTaskAction(type, method);
                 }
             }
         };
     }
 
-    private static class StandardTaskAction implements ClassLoaderAwareTaskAction {
+    private static class StandardTaskAction implements ClassLoaderAwareTaskAction, Describable {
+        private final Class<? extends Task> type;
         private final Method method;
 
-        public StandardTaskAction(Method method) {
+        public StandardTaskAction(Class<? extends Task> type, Method method) {
+            this.type = type;
             this.method = method;
         }
 
@@ -145,23 +146,37 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
         public ClassLoader getClassLoader() {
             return method.getDeclaringClass().getClassLoader();
         }
+
+        @Override
+        public String getActionClassName() {
+            return type.getName();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "Execute " + method.getName();
+        }
     }
 
     private static class IncrementalTaskAction extends StandardTaskAction implements ContextAwareTaskAction {
 
         private TaskArtifactState taskArtifactState;
 
-        public IncrementalTaskAction(Method method) {
-            super(method);
+        public IncrementalTaskAction(Class<? extends Task> type, Method method) {
+            super(type, method);
         }
 
         public void contextualise(TaskExecutionContext context) {
-            this.taskArtifactState = context == null ? null : context.getTaskArtifactState();
+            this.taskArtifactState = context.getTaskArtifactState();
+        }
+
+        @Override
+        public void releaseContext() {
+            this.taskArtifactState = null;
         }
 
         protected void doExecute(Task task, String methodName) {
             JavaReflectionUtil.method(task, Object.class, methodName, IncrementalTaskInputs.class).invoke(task, taskArtifactState.getInputChanges());
-            taskArtifactState = null;
         }
     }
 }

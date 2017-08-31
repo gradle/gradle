@@ -64,4 +64,16 @@ public class JUnitCategoriesIntegrationSpec extends AbstractIntegrationSpec {
         def result = new DefaultTestExecutionResult(testDirectory)
         result.testClass("org.gradle.SomeTest").assertTestFailed("initializationError", startsWith("org.gradle.api.GradleException: JUnit Categories defined but declared JUnit version does not support Categories."))
     }
+
+    def supportsCategoriesAndNullTestClassDescription() {
+        when:
+        succeeds("test")
+
+        then:
+        ":test" in nonSkippedTasks
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
+        def testClass = result.testClass("Not a real class name")
+        testClass.assertTestCount(1, 0, 0)
+        testClass.assertTestPassed("someTest")
+    }
 }

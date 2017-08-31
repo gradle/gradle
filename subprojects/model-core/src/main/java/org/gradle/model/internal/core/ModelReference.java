@@ -19,9 +19,10 @@ package org.gradle.model.internal.core;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.type.ModelType;
+
+import javax.annotation.Nullable;
 
 /**
  * A model reference is a speculative reference to a potential model element.

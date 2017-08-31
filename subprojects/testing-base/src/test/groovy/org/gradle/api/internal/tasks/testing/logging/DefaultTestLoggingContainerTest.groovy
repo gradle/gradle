@@ -16,16 +16,15 @@
 
 package org.gradle.api.internal.tasks.testing.logging
 
+import org.gradle.api.Action
 import org.gradle.api.logging.LogLevel
-import org.gradle.api.tasks.testing.logging.TestLogEvent
-import org.gradle.api.tasks.testing.logging.TestStackTraceFilter
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.gradle.api.tasks.testing.logging.TestLogging
+import org.gradle.api.tasks.testing.logging.TestStackTraceFilter
 import org.gradle.internal.reflect.DirectInstantiator
-
 import spock.lang.Specification
 import spock.lang.Unroll
-import org.gradle.api.Action
-import org.gradle.api.tasks.testing.logging.TestLogging
 
 class DefaultTestLoggingContainerTest extends Specification {
     DefaultTestLoggingContainer container = new DefaultTestLoggingContainer(DirectInstantiator.INSTANCE)
@@ -55,13 +54,7 @@ class DefaultTestLoggingContainerTest extends Specification {
         def logging = container.get(LogLevel.LIFECYCLE)
 
         expect:
-        logging.events == [TestLogEvent.FAILED] as Set
-        logging.minGranularity == -1
-        logging.maxGranularity == -1
-        logging.exceptionFormat == TestExceptionFormat.SHORT
-        logging.showExceptions
-        logging.showCauses
-        logging.stackTraceFilters == [TestStackTraceFilter.TRUNCATE] as Set
+        assertDefaultSettings(logging)
     }
 
     def "sets defaults for level INFO"() {
@@ -127,6 +120,16 @@ class DefaultTestLoggingContainerTest extends Specification {
         logging.exceptionFormat == TestExceptionFormat.FULL
         logging.showExceptions
         logging.showCauses
+        assert logging.stackTraceFilters == [TestStackTraceFilter.TRUNCATE] as Set
+    }
+
+    static void assertDefaultSettings(TestLogging logging) {
+        assert logging.events == [TestLogEvent.FAILED] as Set
+        assert logging.minGranularity == -1
+        assert logging.maxGranularity == -1
+        assert logging.exceptionFormat == TestExceptionFormat.SHORT
+        assert logging.showExceptions
+        assert logging.showCauses
         assert logging.stackTraceFilters == [TestStackTraceFilter.TRUNCATE] as Set
     }
 }

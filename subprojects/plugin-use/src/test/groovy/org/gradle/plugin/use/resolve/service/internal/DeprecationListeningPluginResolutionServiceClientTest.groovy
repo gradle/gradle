@@ -17,8 +17,8 @@
 package org.gradle.plugin.use.resolve.service.internal
 
 import org.gradle.groovy.scripts.StringScriptSource
-import org.gradle.plugin.use.internal.DefaultPluginRequest
-import org.gradle.plugin.use.internal.PluginRequest
+import org.gradle.plugin.management.internal.DefaultPluginRequest
+import org.gradle.plugin.management.internal.PluginRequestInternal
 import spock.lang.Specification
 
 import static org.gradle.plugin.use.resolve.service.internal.DeprecationListeningPluginResolutionServiceClient.toMessage
@@ -26,7 +26,7 @@ import static org.gradle.plugin.use.resolve.service.internal.DeprecationListenin
 class DeprecationListeningPluginResolutionServiceClientTest extends Specification {
 
     public static final String PORTAL_URL_1 = "http://foo"
-    public static final PluginRequest REQUEST_1 = request("foo")
+    public static final PluginRequestInternal REQUEST_1 = request("foo")
     public static final String PLUGIN_URL_1 = "$PORTAL_URL_1/foo/1"
     public static final PluginUseMetaData PLUGIN_METADATA_1 = new PluginUseMetaData("foo", "1", [foo: "bar"], "implType", false)
     public static final ClientStatus CLIENT_STATUS_1 = new ClientStatus("One")
@@ -91,7 +91,7 @@ class DeprecationListeningPluginResolutionServiceClientTest extends Specificatio
         msgs.isEmpty()
     }
 
-    static PluginRequest request(String id, String version = "1") {
+    static PluginRequestInternal request(String id, String version = "1") {
         new DefaultPluginRequest(id, version, true, 1, new StringScriptSource("test", "test"))
     }
 }

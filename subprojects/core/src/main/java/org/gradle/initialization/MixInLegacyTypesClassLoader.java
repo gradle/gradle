@@ -21,11 +21,9 @@ import groovy.lang.GroovySystem;
 import groovy.lang.MetaClass;
 import groovy.lang.MetaClassRegistry;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Nullable;
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.reflect.PropertyAccessorType;
-import org.gradle.util.internal.Java9ClassReader;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -35,6 +33,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -73,6 +72,15 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
 
     private LegacyTypesSupport legacyTypesSupport;
 
+    static {
+        try {
+            //noinspection Since15
+            ClassLoader.registerAsParallelCapable();
+        } catch (NoSuchMethodError ignore) {
+            // Not supported on Java 6
+        }
+    }
+
     public MixInLegacyTypesClassLoader(ClassLoader parent, ClassPath classPath, LegacyTypesSupport legacyTypesSupport) {
         super(parent, classPath);
         this.legacyTypesSupport = legacyTypesSupport;
@@ -94,7 +102,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
 
     @Override
     protected byte[] transform(String className, byte[] bytes) {
-        ClassReader classReader = new Java9ClassReader(bytes);
+        ClassReader classReader = new ClassReader(bytes);
         ClassWriter classWriter = new ClassWriter(0);
         classReader.accept(new TransformingAdapter(classWriter), 0);
         bytes = classWriter.toByteArray();
@@ -114,7 +122,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
         private Set<String> booleanIsGetters = new HashSet<String>();
 
         TransformingAdapter(ClassVisitor cv) {
-            super(Opcodes.ASM5, cv);
+            super(Opcodes.ASM6, cv);
         }
 
         @Override

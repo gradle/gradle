@@ -21,6 +21,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
@@ -29,12 +30,13 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.language.scala.ScalaPlatform;
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.resolver.UnresolvedDependenciesLogger;
-import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+
+import static org.gradle.util.ConfigureUtil.configure;
 
 /**
  * Enables fine-tuning module details (*.iml file) of the IDEA plugin.
@@ -42,18 +44,18 @@ import java.util.Set;
  * Example of use with a blend of most possible properties.
  * Typically you don't have to configure this model directly because Gradle configures it for you.
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  * apply plugin: 'idea'
  *
- * //for the sake of this example, let's introduce a 'provided' configuration
+ * //for the sake of this example, let's introduce a 'performanceTestCompile' configuration
  * configurations {
- *   provided
- *   provided.extendsFrom(compile)
+ *   performanceTestCompile
+ *   performanceTestCompile.extendsFrom(testCompile)
  * }
  *
  * dependencies {
- *   //provided "some.interesting:dependency:1.0"
+ *   //performanceTestCompile "some.interesting:dependency:1.0"
  * }
  *
  * idea {
@@ -85,8 +87,8 @@ import java.util.Set;
  *     //if you prefer different SDK than the one inherited from IDEA project
  *     jdkName = '1.6'
  *
- *     //if you need to put 'provided' dependencies on the classpath
- *     scopes.PROVIDED.plus += [ configurations.provided ]
+ *     //put our custom test dependencies onto IDEA's TEST scope
+ *     scopes.TEST.plus += [ configurations.performanceTestCompile ]
  *
  *     //if 'content root' (as IDEA calls it) of the module is different
  *     contentRoot = file('my-module-content-root')
@@ -108,7 +110,7 @@ import java.util.Set;
  * <p>
  * Examples of advanced configuration:
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  * apply plugin: 'idea'
  *
@@ -127,14 +129,14 @@ import java.util.Set;
  *
  *       //closure executed after *.iml content is loaded from existing file
  *       //but before gradle build information is merged
- *       beforeMerged { module ->
+ *       beforeMerged { module -&gt;
  *         //if you want skip merging exclude dirs
  *         module.excludeFolders.clear()
  *       }
  *
  *       //closure executed after *.iml content is loaded from existing file
  *       //and after gradle build information is merged
- *       whenMerged { module ->
+ *       whenMerged { module -&gt;
  *         //you can tinker with {@link Module}
  *       }
  *     }
@@ -239,23 +241,23 @@ public class IdeaModule {
      * The values of those keys are collections of {@link org.gradle.api.artifacts.Configuration} objects. The files of the
      * plus configurations are added minus the files from the minus configurations. See example below...
      * <p>
-     * Example how to use scopes property to enable 'provided' dependencies in the output *.iml file:
-     * <pre autoTested=''>
+     * Example how to use scopes property to enable 'performanceTestCompile' dependencies in the output *.iml file:
+     * <pre class='autoTested'>
      * apply plugin: 'java'
      * apply plugin: 'idea'
      *
      * configurations {
-     *   provided
-     *   provided.extendsFrom(compile)
+     *   performanceTestCompile
+     *   performanceTestCompile.extendsFrom(testCompile)
      * }
      *
      * dependencies {
-     *   //provided "some.interesting:dependency:1.0"
+     *   //performanceTestCompile "some.interesting:dependency:1.0"
      * }
      *
      * idea {
      *   module {
-     *     scopes.PROVIDED.plus += [ configurations.provided ]
+     *     scopes.TEST.plus += [ configurations.performanceTestCompile ]
      *   }
      * }
      * </pre>
@@ -313,7 +315,7 @@ public class IdeaModule {
     }
 
     /**
-     * {@link org.gradle.api.dsl.ConventionProperty} for the directories to be excluded. <p> For example see docs for {@link IdeaModule}
+     * Directories to be excluded. <p> For example see docs for {@link IdeaModule}
      */
     public Set<File> getExcludeDirs() {
         return excludeDirs;
@@ -441,7 +443,7 @@ public class IdeaModule {
     }
 
     /**
-     * See {@link #iml(Closure)}
+     * See {@link #iml(Action)}
      */
     public IdeaModuleIml getIml() {
         return iml;
@@ -490,7 +492,18 @@ public class IdeaModule {
      * For example see docs for {@link IdeaModule}.
      */
     public void iml(Closure closure) {
-        ConfigureUtil.configure(closure, getIml());
+        configure(closure, getIml());
+    }
+
+    /**
+     * Enables advanced configuration like tinkering with the output XML or affecting the way existing *.iml content is merged with gradle build information.
+     * <p>
+     * For example see docs for {@link IdeaModule}.
+     *
+     * @since 3.5
+     */
+    public void iml(Action<? super IdeaModuleIml> action) {
+        action.execute(getIml());
     }
 
     /**

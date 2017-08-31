@@ -30,9 +30,11 @@ dependencies {
     compile libraries.inject
 
     testCompile libraries.xmlunit
+    testCompile libraries.equalsVerifier
     testCompile project(':dependencyManagement')
-
 }
 
 useTestFixtures()
 useTestFixtures(project: ":dependencyManagement")
+
+verifyTestFilesCleanup.errorWhenNotEmpty = false

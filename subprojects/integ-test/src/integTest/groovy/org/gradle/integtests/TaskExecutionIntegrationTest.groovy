@@ -22,9 +22,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.*
 import static org.hamcrest.Matchers.startsWith
 
-public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
+class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     def taskCanAccessTaskGraph() {
         buildFile << """
@@ -123,9 +124,9 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         // project defaults
-        executer.withArguments("-m").run().assertTasksExecuted(":a", ":b");
+        executer.withArguments("-m").run().normalizedOutput.contains(":a SKIPPED\n:b SKIPPED")
         // named tasks
-        executer.withArguments("-m").withTasks("b").run().assertTasksExecuted(":a", ":b");
+        executer.withArguments("-m").withTasks("b").run().normalizedOutput.contains(":a SKIPPED\n:b SKIPPED")
     }
 
     def executesTaskActionsInCorrectEnvironment() {
@@ -323,7 +324,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         succeeds 'c', 'd'
 
         then:
-        result.assertTasksExecuted(':d', ':b', ':a', ':c')
+        result.assertTasksExecutedInOrder(any(':d', ':b', ':a'), ':c')
     }
 
     def "finalizer task is executed if a finalized task is executed"() {
@@ -419,21 +420,19 @@ task someTask(dependsOn: [someDep, someOtherDep])
 
     def "honours shouldRunAfter task ordering"() {
         buildFile << """
-
-    class NotParallel extends DefaultTask {}
-
-    task a(type: NotParallel) {
+    task a() {
         dependsOn 'b'
     }
-    task b(type: NotParallel) {
+    task b() {
         shouldRunAfter 'c'
     }
-    task c(type: NotParallel)
-    task d(type: NotParallel) {
+    task c()
+    task d() {
         dependsOn 'c'
     }
 """
         when:
+        args("--max-workers=1")
         succeeds 'a', 'd'
 
         then:
@@ -442,35 +441,34 @@ task someTask(dependsOn: [someDep, someOtherDep])
 
     def "multiple should run after ordering can be ignored for one execution plan"() {
         buildFile << """
-    class NotParallel extends DefaultTask {}
-
-    task a(type: NotParallel) {
+    task a() {
         dependsOn 'b', 'h'
     }
-    task b(type: NotParallel) {
+    task b() {
         dependsOn 'c'
     }
-    task c(type: NotParallel) {
+    task c() {
         dependsOn 'g'
         shouldRunAfter 'd'
     }
-    task d(type: NotParallel) {
+    task d() {
         finalizedBy 'e'
         dependsOn 'f'
     }
-    task e(type: NotParallel)
-    task f(type: NotParallel) {
+    task e()
+    task f() {
         dependsOn 'c'
     }
-    task g(type: NotParallel) {
+    task g() {
         shouldRunAfter 'h'
     }
-    task h(type: NotParallel) {
+    task h() {
         dependsOn 'b'
     }
 """
 
         when:
+        args("--max-workers=1")
         succeeds 'a', 'd'
 
         then:
@@ -480,96 +478,149 @@ task someTask(dependsOn: [someDep, someOtherDep])
     @Issue("GRADLE-3575")
     def "honours task ordering with finalizers on finalizers"() {
         buildFile << """
-            class NotParallel extends DefaultTask {}
-
-            task a(type: NotParallel) {
+            task a() {
                 dependsOn 'c', 'g'
             }
 
-            task b(type: NotParallel) {
+            task b() {
                 dependsOn 'd'
                 finalizedBy 'e'
             }
 
-            task c(type: NotParallel) {
+            task c() {
                 dependsOn 'd'
             }
 
-            task d(type: NotParallel) {
+            task d() {
                 dependsOn 'f'
             }
 
-            task e(type: NotParallel) {
+            task e() {
                 finalizedBy 'h'
             }
 
-            task f(type: NotParallel) {
+            task f() {
                 finalizedBy 'h'
             }
 
-            task g(type: NotParallel) {
+            task g() {
                 dependsOn 'd'
             }
 
-            task h(type: NotParallel)
+            task h()
         """
 
         when:
         succeeds 'a'
 
         then:
-        executedTasks == [':f', ':h', ':d', ':c', ':g', ':a']
+        result.assertTasksExecutedInOrder(
+            any(
+                exact(':f', ':h'),
+                exact(any(':c', ':g'), ':a'),
+                exact(':f', ':d', ':c')
+            )
+        )
 
         when:
         succeeds 'b'
 
         then:
-        executedTasks == [':f', ':d', ':b', ':e', ':h']
+        result.assertTasksExecutedInOrder(
+            any(
+                exact(':f', ':h'),
+                exact(':b', ':e'),
+                exact(':f', ':d', ':b')
+            )
+        )
 
         when:
         succeeds 'a', 'b'
 
         then:
-        executedTasks == [':f', ':d', ':c', ':g', ':a', ':b', ':e', ':h']
+        result.assertTasksExecutedInOrder(
+            any(
+                exact(':f', ':h'),
+                exact(':b', ':e'),
+                exact(':f', ':d', any(':b', ':c')),
+                exact(any(':c', ':g'), ':a'),
+            )
+        )
 
         when:
         succeeds 'b', 'a'
 
         then:
-        executedTasks == [':f', ':d', ':b', ':e', ':h', ':c', ':g', ':a']
+        result.assertTasksExecutedInOrder(
+            any(
+                exact(':f', ':h'),
+                exact(':b', ':e'),
+                exact(':f', ':d', any(':b', ':c')),
+                exact(any(':c', ':g'), ':a'),
+            )
+        )
     }
 
-    @Ignore("Re-enable once serious effort have been put to fix this issue")
-    @NotYetImplemented
-    @Issue("gradle/gradle#769")
+    @Issue("gradle/gradle#783")
+    def "executes finalizer task as soon as possible after finalized task"() {
+        buildFile << """
+            project(":a") {
+                task jar() {
+                  dependsOn "compileJava"
+                }
+                task compileJava() {
+                  dependsOn ":b:jar"
+                  finalizedBy "compileFinalizer"
+                }
+                task compileFinalizer()
+            }
+
+            project(":b") {
+                task jar()
+            }
+
+            task build() {
+              dependsOn ":a:jar"
+              dependsOn ":b:jar"
+            }
+        """
+        settingsFile << "include 'a', 'b'"
+
+        when:
+        succeeds ':build'
+
+        then:
+        result.assertTasksExecutedInOrder(':b:jar', ':a:compileJava', ':a:compileFinalizer', ':a:jar', ':build')
+    }
+
+    @Issue(["gradle/gradle#769", "gradle/gradle#841"])
     def "execution succeed in presence of long dependency chain"() {
         def count = 9000
         buildFile << """
-            class NotParallel extends DefaultTask {}
-
-            task a(type: NotParallel) {
+            task a() {
                 finalizedBy 'f'
             }
 
-            task f(type: NotParallel) {
+            task f() {
                 dependsOn "d_0"
             }
 
             def nextIndex
             ${count}.times {
                 nextIndex = it + 1
-                task "d_\$it"(type: NotParallel) { task ->
+                task "d_\$it"() { task ->
                     dependsOn "d_\$nextIndex"
                 }
             }
-            task "d_\$nextIndex"(type: NotParallel)
+            task "d_\$nextIndex"()
         """
 
         when:
         succeeds 'a'
 
         then:
-        executedTasks.size == count+3
+
+        result.assertTasksExecutedInOrder(([':a'] + (count..0).collect { ":d_$it" } + [':f']) as String[])
     }
 
     @NotYetImplemented
@@ -594,4 +645,69 @@ task someTask(dependsOn: [someDep, someOtherDep])
         thrown(CircularReferenceException)
     }
 
+    def "produces a sensible error when a task declares both outputs and destroys"() {
+        buildFile << """
+            task a {
+                outputs.file('foo')
+                destroyables.file('bar')
+            }
+        """
+        file('foo') << 'foo'
+        file('bar') << 'bar'
+
+        when:
+        fails 'a'
+
+        then:
+        failure.assertHasDescription('Task :a has both outputs and destroyables defined.  A task can define either outputs or destroyables, but not both.')
+    }
+
+    def "produces a sensible error when a task declares both inputs and destroys"() {
+        buildFile << """
+            task a {
+                inputs.file('foo')
+                destroyables.file('bar')
+            }
+        """
+        file('foo') << 'foo'
+        file('bar') << 'bar'
+
+        when:
+        fails 'a'
+
+        then:
+        failure.assertHasDescription('Task :a has both inputs and destroyables defined.  A task can define either inputs or destroyables, but not both.')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/2401")
+    def "re-run task does not query inputs after execution"() {
+        buildFile << """
+            class CustomTask extends DefaultTask {
+                private boolean executed
+
+                @InputDirectory
+                @Optional
+                File getInputDirectory() {
+                    if (!executed) {
+                        return null
+                    }
+                    throw new NullPointerException("Busted")
+                }
+
+                @OutputFile File outputFile
+
+                @TaskAction
+                void doStuff() {
+                    executed = true
+                }
+            }
+
+            task custom(type: CustomTask) {
+                outputFile = file("output.txt")
+            }
+        """
+
+        expect:
+        succeeds "custom", "--rerun-tasks"
+    }
 }

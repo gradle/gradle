@@ -31,12 +31,13 @@ class HonestProfilerCollector implements DataCollector {
     // if set, this system property must point to the directory where log files will be copied
     // and flame graphs generated
     public static final String HONESTPROFILER_KEY = "org.gradle.performance.honestprofiler"
+    public static final String SAMPLING_INTERVAL_KEY = "org.gradle.performance.samplinginterval"
 
     boolean enabled = System.getProperty(HONESTPROFILER_KEY) != null
     int honestProfilerPort = AvailablePortFinder.getNextAvailable(18080)
     String honestProfilerHost = '127.0.0.1'
     int maxFrames = 1024
-    int interval = 7
+    int interval = Integer.getInteger(SAMPLING_INTERVAL_KEY, 7)
     boolean initiallyStopped = true
     boolean autoStartStop = true
     private File logFile

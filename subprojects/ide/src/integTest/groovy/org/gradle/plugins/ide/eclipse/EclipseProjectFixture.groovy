@@ -16,6 +16,8 @@
 
 package org.gradle.plugins.ide.eclipse
 
+import groovy.xml.XmlUtil
+import org.custommonkey.xmlunit.XMLUnit
 import org.gradle.test.fixtures.file.TestFile
 
 class EclipseProjectFixture {
@@ -40,10 +42,25 @@ class EclipseProjectFixture {
         return this.project.'comment'.text()
     }
 
+    Node getFilteredResourcesNode() {
+        def r = this.project.filteredResources
+        return r ? r[0] : null
+    }
+
     void assertHasReferencedProjects(String... referencedProjects) {
         assert this.project.projects.project*.text() == referencedProjects as List
     }
 
+    void assertHasResourceFilterXml(String expectedFilteredResourcesXml) {
+        def actualFilteredResourcesXml = XmlUtil.serialize(this.project.filteredResources[0])
+        def xmlUnitIgnoreWhitespaceOriginal = XMLUnit.getIgnoreWhitespace()
+        XMLUnit.setIgnoreWhitespace(true)
+        try {
+            assert XMLUnit.compareXML(expectedFilteredResourcesXml, actualFilteredResourcesXml).similar()
+        } finally {
+            XMLUnit.setIgnoreWhitespace(xmlUnitIgnoreWhitespaceOriginal)
+        }
+    }
 
     void assertHasJavaFacetNatures() {
         assertHasNatures("org.eclipse.jdt.core.javanature",

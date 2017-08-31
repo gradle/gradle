@@ -126,7 +126,7 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
 
     private class NonBlockingActor implements Actor {
         private final Dispatch<MethodInvocation> dispatch;
-        private final StoppableExecutor executor;
+        private final ManagedExecutor executor;
         private final ExceptionTrackingFailureHandler failureHandler;
 
         public NonBlockingActor(Object targetObject) {
@@ -135,7 +135,7 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
             dispatch = new AsyncDispatch<MethodInvocation>(executor,
                     new FailureHandlingDispatch<MethodInvocation>(
                             new ReflectionDispatch(targetObject),
-                            failureHandler));
+                            failureHandler), Integer.MAX_VALUE);
         }
 
         public <T> T getProxy(Class<T> type) {

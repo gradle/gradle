@@ -20,20 +20,17 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
 import org.joda.time.LocalDate;
 
 import java.io.Closeable;
-import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.sql.Types;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -55,7 +52,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
             db.withConnection(new ConnectionAction<Void>() {
                 public Void execute(Connection connection) throws SQLException {
                     long executionId;
-                    PreparedStatement statement = connection.prepareStatement("insert into testExecution(testId, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, resultType, channel) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    PreparedStatement statement = connection.prepareStatement("insert into testExecution(testId, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, resultType, channel, host) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     try {
                         statement.setString(1, results.getTestId());
                         statement.setTimestamp(2, new Timestamp(results.getStartTime()));
@@ -68,6 +65,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                         statement.setString(9, results.getTestGroup());
                         statement.setString(10, resultType);
                         statement.setString(11, results.getChannel());
+                        statement.setString(12, results.getHost());
                         statement.execute();
                         ResultSet keys = statement.getGeneratedKeys();
                         keys.next();
@@ -75,7 +73,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                     } finally {
                         statement.close();
                     }
-                    statement = connection.prepareStatement("insert into testOperation(testExecution, testProject, displayName, tasks, args, gradleOpts, daemon, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes, compileTotalTime, gcTotalTime) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    statement = connection.prepareStatement("insert into testOperation(testExecution, testProject, displayName, tasks, args, gradleOpts, daemon, totalTime, cleanTasks) values (?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     try {
                         for (BuildDisplayInfo displayInfo : results.getBuilds()) {
                             addOperations(statement, executionId, displayInfo, results.buildResult(displayInfo));
@@ -102,23 +100,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
             statement.setObject(6, toArray(displayInfo.getGradleOpts()));
             statement.setObject(7, displayInfo.getDaemon());
             statement.setBigDecimal(8, operation.getTotalTime().toUnits(Duration.MILLI_SECONDS).getValue());
-            statement.setBigDecimal(9, operation.getConfigurationTime().toUnits(Duration.MILLI_SECONDS).getValue());
-            statement.setBigDecimal(10, operation.getExecutionTime().toUnits(Duration.MILLI_SECONDS).getValue());
-            statement.setBigDecimal(11, operation.getTotalMemoryUsed().toUnits(DataAmount.BYTES).getValue());
-            statement.setBigDecimal(12, operation.getTotalHeapUsage().toUnits(DataAmount.BYTES).getValue());
-            statement.setBigDecimal(13, operation.getMaxHeapUsage().toUnits(DataAmount.BYTES).getValue());
-            statement.setBigDecimal(14, operation.getMaxUncollectedHeap().toUnits(DataAmount.BYTES).getValue());
-            statement.setBigDecimal(15, operation.getMaxCommittedHeap().toUnits(DataAmount.BYTES).getValue());
-            if (operation.getCompileTotalTime() != null) {
-                statement.setBigDecimal(16, operation.getCompileTotalTime().toUnits(Duration.MILLI_SECONDS).getValue());
-            } else {
-                statement.setNull(16, Types.DECIMAL);
-            }
-            if (operation.getGcTotalTime() != null) {
-                statement.setBigDecimal(17, operation.getGcTotalTime().toUnits(Duration.MILLI_SECONDS).getValue());
-            } else {
-                statement.setNull(17, Types.DECIMAL);
-            }
+            statement.setObject(9, toArray(displayInfo.getCleanTasks()));
             statement.addBatch();
         }
     }
@@ -168,8 +150,8 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                             return o1.getDisplayName().compareTo(o2.getDisplayName());
                         }
                     });
-                    PreparedStatement executionsForName = connection.prepareStatement("select top ? id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, channel from testExecution where testId = ? and startTime >= ? and channel = ? order by startTime desc");
-                    PreparedStatement operationsForExecution = connection.prepareStatement("select testProject, displayName, tasks, args, gradleOpts, daemon, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes, compileTotalTime, gcTotalTime from testOperation where testExecution = ?");
+                    PreparedStatement executionsForName = connection.prepareStatement("select top ? id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, channel, host from testExecution where testId = ? and startTime >= ? and channel = ? order by startTime desc");
+                    PreparedStatement operationsForExecution = connection.prepareStatement("select testProject, displayName, tasks, args, gradleOpts, daemon, totalTime, cleanTasks from testOperation where testExecution = ?");
                     executionsForName.setInt(1, mostRecentN);
                     executionsForName.setString(2, testName);
                     Timestamp minDate = new Timestamp(LocalDate.now().minusDays(maxDaysOld).toDate().getTime());
@@ -189,6 +171,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                         performanceResults.setVcsCommits(split(testExecutions.getString(8)));
                         performanceResults.setTestGroup(testExecutions.getString(9));
                         performanceResults.setChannel(testExecutions.getString(10));
+                        performanceResults.setHost(testExecutions.getString(11));
 
                         if (ignore(performanceResults)) {
                             continue;
@@ -199,32 +182,17 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                         operationsForExecution.setLong(1, id);
                         ResultSet resultSet = operationsForExecution.executeQuery();
                         while (resultSet.next()) {
-                            BuildDisplayInfo displayInfo = new BuildDisplayInfo(
-                                resultSet.getString(1),
-                                resultSet.getString(2),
-                                toList(resultSet.getObject(3)),
-                                toList(resultSet.getObject(4)),
-                                toList(resultSet.getObject(5)),
-                                (Boolean)resultSet.getObject(6)
-                            );
+                            String projectName = resultSet.getString(1);
+                            String displayName = resultSet.getString(2);
+                            List<String> tasksToRun = toList(resultSet.getObject(3));
+                            List<String> cleanTasks = toList(resultSet.getObject(8));
+                            List<String> args = toList(resultSet.getObject(4));
+                            List<String> gradleOpts = toList(resultSet.getObject(5));
+                            Boolean daemon = (Boolean) resultSet.getObject(6);
+                            BuildDisplayInfo displayInfo = new BuildDisplayInfo(projectName, displayName, tasksToRun, cleanTasks, args, gradleOpts, daemon);
 
                             MeasuredOperation operation = new MeasuredOperation();
                             operation.setTotalTime(Duration.millis(resultSet.getBigDecimal(7)));
-                            operation.setConfigurationTime(Duration.millis(resultSet.getBigDecimal(8)));
-                            operation.setExecutionTime(Duration.millis(resultSet.getBigDecimal(9)));
-                            operation.setTotalMemoryUsed(DataAmount.bytes(resultSet.getBigDecimal(10)));
-                            operation.setTotalHeapUsage(DataAmount.bytes(resultSet.getBigDecimal(11)));
-                            operation.setMaxHeapUsage(DataAmount.bytes(resultSet.getBigDecimal(12)));
-                            operation.setMaxUncollectedHeap(DataAmount.bytes(resultSet.getBigDecimal(13)));
-                            operation.setMaxCommittedHeap(DataAmount.bytes(resultSet.getBigDecimal(14)));
-                            BigDecimal compileTotalTime = resultSet.getBigDecimal(15);
-                            if (compileTotalTime != null) {
-                                operation.setCompileTotalTime(Duration.millis(compileTotalTime));
-                            }
-                            BigDecimal gcTotalTime = resultSet.getBigDecimal(16);
-                            if (gcTotalTime != null) {
-                                operation.setGcTotalTime(Duration.millis(gcTotalTime));
-                            }
                             performanceResults.buildResult(displayInfo).add(operation);
                             builds.add(displayInfo);
                         }
@@ -262,52 +230,47 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
         @Override
         public Void execute(Connection connection) throws SQLException {
             Statement statement = connection.createStatement();
-            statement.execute("create table if not exists testExecution (id bigint identity not null, testId varchar not null, executionTime timestamp not null, versionUnderTest varchar not null, operatingSystem varchar not null, jvm varchar not null, vcsBranch varchar not null, vcsCommit varchar)");
-            statement.execute("create table if not exists testOperation (testExecution bigint not null, testProject varchar not null, displayName varchar not null, tasks array not null, args array not null, executionTimeMs decimal not null, heapUsageBytes decimal not null, totalHeapUsageBytes decimal, maxHeapUsageBytes decimal, maxUncollectedHeapBytes decimal, maxCommittedHeapBytes decimal, foreign key(testExecution) references testExecution(id))");
+            statement.execute("create table if not exists testExecution (id bigint identity not null, testId varchar not null, startTime timestamp not null, versionUnderTest varchar not null, operatingSystem varchar not null, jvm varchar not null, vcsBranch varchar not null, vcsCommit varchar)");
+            statement.execute("create table if not exists testOperation (testExecution bigint not null, testProject varchar not null, displayName varchar not null, tasks array not null, args array not null, totalTime decimal not null, foreign key(testExecution) references testExecution(id))");
             statement.execute("alter table testExecution add column if not exists testGroup varchar");
             statement.execute("update testExecution set testGroup = 'old vs new java plugin' where testGroup is null and testId like '%old vs new java plugin%'");
             statement.execute("update testExecution set testGroup = 'project using variants' where testGroup is null and testId like '%project using variants%'");
             statement.execute("update testExecution set testGroup = testId where testGroup is null");
             statement.execute("alter table testExecution alter column testGroup set not null");
-            if (columnExists(connection, "TESTOPERATION", "EXECUTIONTIMEMS")) {
+            if (DataBaseSchemaUtil.columnExists(connection, "TESTOPERATION", "EXECUTIONTIMEMS")) {
                 statement.execute("alter table testOperation alter column executionTimeMs rename to totalTime");
-                statement.execute("alter table testOperation add column executionTime decimal");
-                statement.execute("update testOperation set executionTime = 0");
-                statement.execute("alter table testOperation alter column executionTime set not null");
-                statement.execute("alter table testOperation add column configurationTime decimal");
-                statement.execute("update testOperation set configurationTime = 0");
-                statement.execute("alter table testOperation alter column configurationTime set not null");
             }
             statement.execute("alter table testOperation add column if not exists gradleOpts array");
             statement.execute("alter table testOperation add column if not exists daemon boolean");
             statement.execute("alter table testExecution add column if not exists resultType varchar not null default 'cross-build'");
-            statement.execute("alter table testOperation add column if not exists compileTotalTime decimal");
-            statement.execute("alter table testOperation add column if not exists gcTotalTime decimal");
-            statement.execute("create index if not exists testExecution_executionTime on testExecution (executionTime desc)");
-            statement.execute("create index if not exists testExecution_testGroup on testExecution (testGroup)");
-            if (columnExists(connection, "TESTEXECUTION", "EXECUTIONTIME")) {
+            if (DataBaseSchemaUtil.columnExists(connection, "TESTEXECUTION", "EXECUTIONTIME")) {
                 statement.execute("alter table testExecution alter column executionTime rename to startTime");
             }
-            if (!columnExists(connection, "TESTEXECUTION", "ENDTIME")) {
+            if (!DataBaseSchemaUtil.columnExists(connection, "TESTEXECUTION", "ENDTIME")) {
                 statement.execute("alter table testExecution add column endTime timestamp");
                 statement.execute("update testExecution set endTime = startTime");
                 statement.execute("alter table testExecution alter column endTime set not null");
             }
-            if (!columnExists(connection, "TESTEXECUTION", "CHANNEL")) {
+            if (!DataBaseSchemaUtil.columnExists(connection, "TESTEXECUTION", "CHANNEL")) {
                 statement.execute("alter table testExecution add column if not exists channel varchar");
                 statement.execute("update testExecution set channel='commits'");
                 statement.execute("alter table testExecution alter column channel set not null");
                 statement.execute("create index if not exists testExecution_channel on testExecution (channel)");
             }
+            if (!DataBaseSchemaUtil.columnExists(connection, "TESTEXECUTION", "HOST")) {
+                statement.execute("alter table testExecution add column if not exists host varchar");
+            }
+            statement.execute("create index if not exists testExecution_executionTime on testExecution (startTime desc)");
+            statement.execute("create index if not exists testExecution_testGroup on testExecution (testGroup)");
+
+            if (!DataBaseSchemaUtil.columnExists(connection, "TESTOPERATION", "CLEANTASKS")) {
+                statement.execute("alter table testOperation add column if not exists cleanTasks array");
+            }
+
+            DataBaseSchemaUtil.removeOutdatedColumnsFromTestDB(connection, statement);
+
             statement.close();
             return null;
-        }
-
-        private boolean columnExists(Connection connection, String table, String column) throws SQLException {
-            ResultSet columns = connection.getMetaData().getColumns(null, null, table, column);
-            boolean exists = columns.next();
-            columns.close();
-            return exists;
         }
     }
 }

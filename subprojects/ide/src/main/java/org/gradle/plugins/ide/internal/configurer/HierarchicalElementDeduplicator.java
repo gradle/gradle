@@ -51,9 +51,9 @@ import java.util.Set;
  */
 public class HierarchicalElementDeduplicator<T> {
 
-    private final NameDeduplicationAdapter<T> adapter;
+    private final HierarchicalElementAdapter<T> adapter;
 
-    public HierarchicalElementDeduplicator(NameDeduplicationAdapter<T> adapter) {
+    public HierarchicalElementDeduplicator(HierarchicalElementAdapter<T> adapter) {
         this.adapter = adapter;
     }
 
@@ -63,7 +63,7 @@ public class HierarchicalElementDeduplicator<T> {
      * @param elements the elements with possibly duplicated names
      * @return a Map containing the new name for each element that has to be renamed
      */
-    public Map<T, String> deduplicate(Iterable<T> elements) {
+    public Map<T, String> deduplicate(Iterable<? extends T> elements) {
         return new StatefulDeduplicator(elements).getNewNames();
     }
 
@@ -77,7 +77,7 @@ public class HierarchicalElementDeduplicator<T> {
         private final Map<T, String> newNames;
         private final Map<T, T> prefixes;
 
-        private StatefulDeduplicator(Iterable<T> elements) {
+        private StatefulDeduplicator(Iterable<? extends T> elements) {
             this.elements = Lists.newArrayList(elements);
             this.elementsByName = LinkedHashMultimap.create();
             this.newNames = Maps.newHashMap();

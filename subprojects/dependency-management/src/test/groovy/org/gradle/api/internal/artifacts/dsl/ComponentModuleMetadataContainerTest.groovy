@@ -17,14 +17,21 @@
 package org.gradle.api.internal.artifacts.dsl
 
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import spock.lang.Specification
 import spock.lang.Subject
 
 import static org.gradle.api.internal.artifacts.DefaultModuleIdentifier.newId
 
 class ComponentModuleMetadataContainerTest extends Specification {
+    final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock() {
+        module(_, _) >> { args ->
+            DefaultModuleIdentifier.newId(*args)
+        }
+    }
 
-    @Subject replacements = new ComponentModuleMetadataContainer()
+    @Subject replacements = new ComponentModuleMetadataContainer(moduleIdentifierFactory)
 
     def "keeps track of replacements"() {
         replacements.module("com.google.collections:google-collections").replacedBy("com.google.guava:guava");

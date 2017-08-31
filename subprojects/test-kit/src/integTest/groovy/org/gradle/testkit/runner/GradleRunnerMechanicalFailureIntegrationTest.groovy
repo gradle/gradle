@@ -23,6 +23,7 @@ import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
 import org.gradle.testkit.runner.fixtures.InspectsExecutedTasks
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.tooling.GradleConnectionException
+import org.gradle.util.GradleVersion
 
 class GradleRunnerMechanicalFailureIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
@@ -110,12 +111,19 @@ class GradleRunnerMechanicalFailureIntegrationTest extends BaseGradleRunnerInteg
 
         then:
         def t = thrown(UnexpectedBuildFailure)
-        t.message.contains("Project directory '$nonExistentWorkingDir.absolutePath' does not exist.")
+        t.message.contains(missingProjectDirError(nonExistentWorkingDir))
         !t.message.contains(':helloWorld')
         def result = t.buildResult
         result.output.contains('BUILD FAILED')
-        result.output.contains("Project directory '$nonExistentWorkingDir.absolutePath' does not exist.")
+        result.output.contains(missingProjectDirError(nonExistentWorkingDir))
         result.tasks.empty
+    }
+
+    private String missingProjectDirError(File nonExistentWorkingDir) {
+        if (gradleVersion < GradleVersion.version("4.0")) {
+            return "Project directory '$nonExistentWorkingDir.absolutePath' does not exist."
+        }
+        return "The specified project directory '$nonExistentWorkingDir.absolutePath' does not exist."
     }
 
     @NoDebug
@@ -149,7 +157,8 @@ class GradleRunnerMechanicalFailureIntegrationTest extends BaseGradleRunnerInteg
         """
 
         when:
-        runner('helloWorld').build()
+        def runner = runner('helloWorld')
+        runner.build()
 
         then:
         def t = thrown IllegalStateException
@@ -157,7 +166,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends BaseGradleRunnerInteg
         t.cause.cause.class.name == DaemonDisappearedException.name // not the same class because it's coming from the tooling client
 
         and:
-        OutputScrapingExecutionResult.normalize(t.message) == """An error occurred executing build with args 'helloWorld' in directory '$testDirectory.canonicalPath'. Output before error:
+        OutputScrapingExecutionResult.normalize(t.message) == """An error occurred executing build with args '${runner.arguments.join(' ')}' in directory '$testDirectory.canonicalPath'. Output before error:
 :helloWorld
 Hello world!
 """

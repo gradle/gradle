@@ -18,8 +18,10 @@ package org.gradle.plugin.repository
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.test.fixtures.Repository
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.test.fixtures.maven.MavenRepository
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -30,7 +32,11 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
     private static final String MAVEN = 'maven'
     private static final String IVY = 'ivy'
 
-    private enum PathType { ABSOLUTE, RELATIVE }
+    private enum PathType {
+        ABSOLUTE, RELATIVE
+    }
+
+    private Repository repo
 
     private publishTestPlugin(String repoType) {
         def pluginBuilder = new PluginBuilder(testDirectory.file("plugin"))
@@ -41,27 +47,24 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         pluginBuilder.addPluginWithPrintlnTask(taskName, message, "org.example.plugin")
 
         if (repoType == IVY) {
-            pluginBuilder.publishAs("org.example.plugin:plugin:1.0", ivyRepo, executer)
+            repo = ivyRepo
         } else if (repoType == MAVEN) {
-            pluginBuilder.publishAs("org.example.plugin:plugin:1.0", mavenRepo, executer)
+            repo = mavenRepo
         }
+        pluginBuilder.publishAs("org.example.plugin:plugin:1.0", repo, executer)
     }
 
-    private String useCustomRepository(String repoType, PathType pathType) {
-        def repoUrl = 'Nothing'
-        if (repoType == MAVEN) {
-            repoUrl = PathType.ABSOLUTE.equals(pathType) ? mavenRepo.uri : mavenRepo.getRootDir().name
-        } else if (repoType == IVY) {
-            repoUrl = PathType.ABSOLUTE.equals(pathType) ? ivyRepo.uri : ivyRepo.getRootDir().name
-        }
+    private String useCustomRepository(PathType pathType) {
         settingsFile << """
-          pluginRepositories {
-              ${repoType} {
-                  url "${repoUrl}"
+          pluginManagement {
+            repositories {
+              ${repo instanceof MavenRepository ? "maven" : "ivy"} {
+                  url "${PathType.ABSOLUTE.equals(pathType) ? repo.uri : repo.rootDir.name}"
               }
+            }
           }
         """
-        return repoUrl
+        repo.uri
     }
 
     @Unroll
@@ -75,7 +78,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         """
 
         and:
-        useCustomRepository(repoType, pathType)
+        useCustomRepository(pathType)
 
         when:
         succeeds("pluginTask")
@@ -105,7 +108,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         """
 
         and:
-        useCustomRepository(repoType, PathType.ABSOLUTE)
+        useCustomRepository(PathType.ABSOLUTE)
 
         when:
         succeeds("pluginTask")
@@ -132,7 +135,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         """
 
         and:
-        useCustomRepository(repoType, PathType.ABSOLUTE)
+        useCustomRepository(PathType.ABSOLUTE)
         settingsFile << """
             include 'sub'
         """
@@ -176,7 +179,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         """
 
         and:
-        def repoUrl = useCustomRepository(repoType, PathType.ABSOLUTE)
+        def repoUrl = useCustomRepository(PathType.ABSOLUTE)
 
         when:
         fails("pluginTask")
@@ -204,7 +207,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         """
 
         and:
-        useCustomRepository(repoType, PathType.RELATIVE)
+        useCustomRepository(PathType.RELATIVE)
 
         and:
         settingsFile << """
@@ -231,9 +234,11 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         and:
         def initScript = file('definePluginRepo.gradle')
         initScript << """
-          pluginRepositories {
-            maven {
-              url "${mavenRepo.uri}"
+          pluginManagement {
+            repositories {
+                maven {
+                  url "${mavenRepo.uri}"
+                }
             }
           }
         """
@@ -263,7 +268,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         """
 
         and:
-        useCustomRepository(MAVEN, PathType.ABSOLUTE)
+        useCustomRepository(PathType.ABSOLUTE)
 
         when:
         succeeds("pluginTask")
@@ -282,7 +287,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         """
 
         and:
-        useCustomRepository(MAVEN, PathType.ABSOLUTE)
+        useCustomRepository(PathType.ABSOLUTE)
 
         expect:
         fails("helloWorld")

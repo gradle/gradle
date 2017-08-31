@@ -17,7 +17,6 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
@@ -28,6 +27,7 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
@@ -46,10 +46,10 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     @Nullable
     private List<ModuleComponentArtifactMetadata> artifacts;
 
-    protected AbstractMutableModuleComponentResolveMetadata(ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState moduleDescriptor, Map<String, Configuration> configurations, List<? extends DependencyMetadata> dependencies) {
+    protected AbstractMutableModuleComponentResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState moduleDescriptor, Map<String, Configuration> configurations, List<? extends DependencyMetadata> dependencies) {
         this.descriptor = moduleDescriptor;
         this.componentId = componentIdentifier;
-        this.id = DefaultModuleVersionIdentifier.newId(componentIdentifier);
+        this.id = id;
         this.status = moduleDescriptor.getStatus();
         this.dependencies = dependencies;
         this.configurationDefinitions = configurations;
@@ -136,7 +136,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
 
     @Override
     public ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier) {
-        IvyArtifactName ivyArtifactName = DefaultIvyArtifactName.of(getId().getName(), type, extension, classifier);
+        IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(getId().getName(), type, extension, classifier);
         return new DefaultModuleComponentArtifactMetadata(getComponentId(), ivyArtifactName);
     }
 

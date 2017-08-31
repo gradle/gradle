@@ -21,15 +21,15 @@ import org.gradle.launcher.daemon.client.ReportDaemonStatusClient
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.launcher.daemon.registry.DaemonStopEvent
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus
-import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
 class DaemonReportStatusIntegrationSpec extends DaemonIntegrationSpec {
-    @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
+    @Rule BlockingHttpServer server = new BlockingHttpServer()
 
     def "shows default message if no daemons are running"() {
         when:
-        def out = executer.withArguments("--status").run().output
+        def out = executer.withArguments("--status").run().normalizedOutput
 
         then:
         out =~ """^$DaemonMessages.NO_DAEMONS_RUNNING
@@ -39,22 +39,25 @@ $ReportDaemonStatusClient.STATUS_FOOTER.*""".toString()
 
     def "reports idle, busy and stopped statuses of daemons"() {
         given:
+        server.start()
         buildFile << """
 task block {
     doLast {
-        new URL("$server.uri").text
+        ${server.callFromBuild("block")}
     }
 }
 """
         daemons.getRegistry().storeStopEvent(new DaemonStopEvent(new Date(), 12346L, DaemonExpirationStatus.GRACEFUL_EXPIRE, "GRACEFUL_EXPIRE_REASON"))
+        def block = server.expectAndBlock("block")
         def build = executer.withTasks("block").start()
-        server.waitFor()
+        block.waitForAllPendingCalls()
+
         daemons.daemon.assertBusy()
         executer.withBuildJvmOpts('-Xmx128m')
         executer.run()
 
         when:
-        def out = executer.withArguments("--status").run().output
+        def out = executer.withArguments("--status").run().normalizedOutput
 
         then:
         daemons.daemons.size() == 2
@@ -64,8 +67,8 @@ task block {
         out =~ /\n\s*12346\s+STOPPED\s+\(GRACEFUL_EXPIRE_REASON\)/
 
         cleanup:
-        server.release()
-        build.waitForFinish()
+        block?.releaseAll()
+        build?.waitForFinish()
     }
 
     def "reports stopped status of recently stopped daemons"() {
@@ -75,7 +78,7 @@ task block {
         daemons.getRegistry().storeStopEvent(new DaemonStopEvent(new Date(), 12346L, DaemonExpirationStatus.GRACEFUL_EXPIRE, "GRACEFUL_EXPIRE_REASON"))
 
         when:
-        def out = executer.withArguments("--status").run().output
+        def out = executer.withArguments("--status").run().normalizedOutput
 
         then:
         out.startsWith(DaemonMessages.NO_DAEMONS_RUNNING)

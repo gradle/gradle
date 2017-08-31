@@ -16,14 +16,21 @@
 
 package org.gradle.test.fixtures.file;
 
+import com.google.common.io.Files;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.apache.commons.io.FileUtils;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.Zip;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
+import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.hash.HashingOutputStream;
+import org.gradle.internal.io.NullOutputStream;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.testing.internal.util.RetryUtil;
 import org.hamcrest.Matcher;
 
 import java.io.BufferedReader;
@@ -36,7 +43,6 @@ import java.io.ObjectStreamException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Formatter;
@@ -256,7 +262,7 @@ public class TestFile extends File {
                 FileUtils.copyDirectory(this, target);
             } catch (IOException e) {
                 throw new RuntimeException(String.format("Could not copy test directory '%s' to '%s'", this,
-                        target), e);
+                    target), e);
             }
         } else {
             try {
@@ -271,12 +277,18 @@ public class TestFile extends File {
         new TestFile(target).copyTo(this);
     }
 
-    public void copyFrom(URL resource) {
-        try {
-            FileUtils.copyURLToFile(resource, this);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public void copyFrom(final URL resource) {
+        final TestFile testFile = this;
+        RetryUtil.retry(new Closure(null, null) {
+            @SuppressWarnings("UnusedDeclaration")
+            void doCall() {
+                try {
+                    FileUtils.copyURLToFile(resource, testFile);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
+        });
     }
 
     public void moveToDirectory(File target) {
@@ -351,6 +363,18 @@ public class TestFile extends File {
         return write(formatter);
     }
 
+    /**
+     * Replaces the given text in the file with new value, asserting that the change was actually applied (ie the text was present).
+     */
+    public void replace(String oldText, String newText) {
+        String original = getText();
+        String newContent = original.replace(oldText, newText);
+        if (original.equals(newContent)) {
+            throw new AssertionError("File " + this + " does not contain the expected text.");
+        }
+        setText(newContent);
+    }
+
     public TestFile assertExists() {
         assertTrue(String.format("%s does not exist", this), exists());
         return this;
@@ -384,7 +408,7 @@ public class TestFile extends File {
         assertIsFile();
         other.assertIsFile();
         assertEquals(String.format("%s is not the same length as %s", this, other), other.length(), this.length());
-        assertTrue(String.format("%s does not have the same content as %s", this, other), Arrays.equals(getHash("MD5"), other.getHash("MD5")));
+        assertTrue(String.format("%s does not have the same content as %s", this, other), getMd5Hash().equals(other.getMd5Hash()));
         return this;
     }
 
@@ -395,14 +419,18 @@ public class TestFile extends File {
         return this;
     }
 
-    private byte[] getHash(String algorithm) {
+    public String getMd5Hash() {
+        return md5(this).toString();
+    }
+
+    public static HashCode md5(File file) {
+        HashingOutputStream hashingStream = new HashingOutputStream(Hashing.md5(), NullOutputStream.INSTANCE);
         try {
-            MessageDigest messageDigest = MessageDigest.getInstance(algorithm);
-            messageDigest.update(FileUtils.readFileToByteArray(this));
-            return messageDigest.digest();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            Files.copy(file, hashingStream);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
+        return hashingStream.hash();
     }
 
     public void createLink(File target) {
@@ -411,6 +439,15 @@ public class TestFile extends File {
 
     public void createLink(String target) {
         NativeServices.getInstance().get(FileSystem.class).createSymbolicLink(this, new File(target));
+        clearCanonCaches();
+    }
+
+    private void clearCanonCaches() {
+        try {
+            File.createTempFile("doesnt", "matter").delete();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     public String readLink() {
@@ -518,7 +555,7 @@ public class TestFile extends File {
             return this;
         }
         throw new AssertionError("Problems creating dir: " + this
-                + ". Diagnostics: exists=" + this.exists() + ", isFile=" + this.isFile() + ", isDirectory=" + this.isDirectory());
+            + ". Diagnostics: exists=" + this.exists() + ", isFile=" + this.isFile() + ", isDirectory=" + this.isDirectory());
     }
 
     public TestFile createDir(Object path) {
@@ -532,6 +569,7 @@ public class TestFile extends File {
 
     /**
      * Attempts to delete this directory, ignoring failures to do so.
+     *
      * @return this
      */
     public TestFile maybeDeleteDir() {
@@ -617,28 +655,28 @@ public class TestFile extends File {
 
     public Snapshot snapshot() {
         assertIsFile();
-        return new Snapshot(lastModified(), getHash("MD5"));
+        return new Snapshot(lastModified(), md5(this));
     }
 
     public void assertHasChangedSince(Snapshot snapshot) {
         Snapshot now = snapshot();
-        assertTrue(String.format("contents or modification time of %s have not changed", this), now.modTime != snapshot.modTime || !Arrays.equals(now.hash, snapshot.hash));
+        assertTrue(String.format("contents or modification time of %s have not changed", this), now.modTime != snapshot.modTime || !now.hash.equals(snapshot.hash));
     }
 
     public void assertContentsHaveChangedSince(Snapshot snapshot) {
         Snapshot now = snapshot();
-        assertTrue(String.format("contents of %s have not changed", this), !Arrays.equals(now.hash, snapshot.hash));
+        assertNotEquals(String.format("contents of %s have not changed", this), snapshot.hash, now.hash);
     }
 
     public void assertContentsHaveNotChangedSince(Snapshot snapshot) {
         Snapshot now = snapshot();
-        assertArrayEquals(String.format("contents of %s has changed", this), snapshot.hash, now.hash);
+        assertEquals(String.format("contents of %s has changed", this), snapshot.hash, now.hash);
     }
 
     public void assertHasNotChangedSince(Snapshot snapshot) {
         Snapshot now = snapshot();
         assertEquals(String.format("last modified time of %s has changed", this), snapshot.modTime, now.modTime);
-        assertArrayEquals(String.format("contents of %s has changed", this), snapshot.hash, now.hash);
+        assertEquals(String.format("contents of %s has changed", this), snapshot.hash, now.hash);
     }
 
     public void writeProperties(Map<?, ?> properties) {
@@ -670,9 +708,9 @@ public class TestFile extends File {
 
     public class Snapshot {
         private final long modTime;
-        private final byte[] hash;
+        private final HashCode hash;
 
-        public Snapshot(long modTime, byte[] hash) {
+        public Snapshot(long modTime, HashCode hash) {
             this.modTime = modTime;
             this.hash = hash;
         }

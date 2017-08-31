@@ -1,5 +1,3 @@
-import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
-
 allprojects {
     apply plugin: "idea"
 
@@ -62,7 +60,6 @@ idea {
         vcs = 'Git'
         ipr {
             withXml { provider ->
-                // Exclude resource directories from compilation and add them back in as classpath resources
                 def node = provider.asNode()
                 def compilerConfig = node.component.find { it.'@name' == 'CompilerConfiguration' }
                 def exclude = compilerConfig.excludeFromCompile
@@ -70,12 +67,6 @@ idea {
                     compilerConfig.remove(exclude)
                 }
                 exclude = compilerConfig.appendNode('excludeFromCompile')
-                Collection resourceFolder = groovyProjects.collect { project -> project.sourceSets*.resources*.srcDirs }.flatten()
-                resourceFolder.each {
-                    if (it.exists()) {
-                        exclude.appendNode('directory', [url: "file://\$PROJECT_DIR\$/${rootProject.relativePath(it)}", includeSubdirectories: true])
-                    }
-                }
 
                 // exclude java version specific classes from compilation when not compilable with current java version
                 def excludeSource = { version, sourceFolder ->
@@ -95,30 +86,6 @@ idea {
                 // set compiler heap space
                 compilerConfig.appendNode('option', [name: 'BUILD_PROCESS_HEAP_SIZE', value: '2048'])
 
-                // Nullability annotations
-                def nullableManager = node.component.find { it.'@name' == 'NullableNotNullManager' }
-                if (nullableManager) {
-                    nullableManager.parent().remove(nullableManager)
-                }
-
-                node.append(new XmlParser().parseText("""
-          <component name="NullableNotNullManager">
-            <option name="myDefaultNullable" value="org.gradle.api.Nullable" />
-            <option name="myDefaultNotNull" value="" />
-            <option name="myNullables">
-              <value>
-                <list size="1">
-                  <item index="0" class="java.lang.String" itemvalue="org.gradle.api.Nullable" />
-                </list>
-              </value>
-            </option>
-            <option name="myNotNulls">
-              <value>
-                <list size="0" />
-              </value>
-            </option>
-          </component>
-        """))
                 // license header
                 def copyrightManager = node.component.find { it.'@name' == 'CopyrightManager' }
                 copyrightManager.@default = "ASL2"
@@ -185,6 +152,20 @@ idea {
                   type(id: 'android')
                   type(id: 'web')
                 })
+
+                def buildSrcModuleFile = 'buildSrc/buildSrc.iml'
+                if (file(buildSrcModuleFile).exists()) {
+                    def projects = node.component.find { it.@name == 'ProjectModuleManager' }
+                    if (projects) {
+                        def buildSrc = projects.modules.module.find { it.@filepath.contains('buildSrc') }
+                        if (!buildSrc) {
+                            projects.modules.find().appendNode('module', [
+                                fileurl: "file://\$PROJECT_DIR\$/${buildSrcModuleFile}",
+                                filepath: "\$PROJECT_DIR\$/${buildSrcModuleFile}"
+                            ])
+                        }
+                    }
+                }
             }
         }
     }
@@ -216,6 +197,10 @@ idea {
                 "-DintegTest.distsDir=${rootProject.distsDir.absolutePath}",
                 "-Dorg.gradle.integtest.executer=embedded",
                 "-Dorg.gradle.integtest.versions=latest",
+                "-Dorg.gradle.integtest.multiversion=default",
+                "-Dorg.gradle.integtest.testkit.compatibility=current",
+                "-Dorg.gradle.public.api.includes=${publicApiIncludes.join(':')}",
+                "-Dorg.gradle.public.api.excludes=${publicApiExcludes.join(':')}",
                 "-ea",
                 "-Xmx512m"
         ]
@@ -263,9 +248,8 @@ idea {
         '''))
 
         def gradleRunners = [
-                "Quick Check (precommit)": "quickCheck --daemon",
-                "Regenerate IDEA metadata": "idea --daemon",
-                "Regenerate Int Test Image": "prepareVersionsInfo intTestImage publishLocalArchives --daemon"
+                "Regenerate IDEA metadata": "idea",
+                "Regenerate Int Test Image": "prepareVersionsInfo intTestImage publishLocalArchives"
         ]
 
         def runnerClass = "org.gradle.testing.internal.util.GradlewRunner"
@@ -286,7 +270,9 @@ idea {
                   <option name='ENV_VARIABLES' />
                   <option name='PASS_PARENT_ENVS' value='true' />
                   <module name='${runnerClassModule}' />
-                  <envs />
+                  <envs>
+                    <env name="TERM" value="xterm" />
+                  </envs>
                   <method>
                     <option name="Make" enabled="false" />
                   </method>
@@ -317,3 +303,4 @@ idea {
         """))
     }
 }
+

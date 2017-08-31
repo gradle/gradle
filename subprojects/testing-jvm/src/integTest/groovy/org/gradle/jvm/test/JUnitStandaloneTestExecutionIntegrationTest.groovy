@@ -268,7 +268,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         fails 'check'
 
         then:
-        result.assertTasksExecuted ':compileMyTestBinaryMyTestJava', ':myTestBinaryTest' // only
+        result.assertTasksExecutedInOrder ':compileMyTestBinaryMyTestJava', ':myTestBinaryTest' // only
 
         and:
         def result = new DefaultTestExecutionResult(testDirectory, 'build', 'myTest')
@@ -293,7 +293,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         succeeds 'myTestBinary'
 
         then:
-        result.assertTasksExecuted ':compileMyTestBinaryMyTestJava', ':myTestBinary' // only
+        result.assertTasksExecutedInOrder ':compileMyTestBinaryMyTestJava', ':myTestBinary' // only
     }
 
     @NotYetImplemented

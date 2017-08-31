@@ -15,13 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice
 
-import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.internal.artifacts.ConfigurationResolver
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor
 import org.gradle.api.specs.Specs
 import spock.lang.Specification
 
@@ -32,9 +34,14 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
     def dependencies = Stub(DependencySet)
     def componentIdentifierFactory = Mock(ComponentIdentifierFactory)
     def results = new DefaultResolverResults()
-    def dependencyResolver = new ShortCircuitEmptyConfigurationResolver(delegate, componentIdentifierFactory);
+    def moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
+
+    def dependencyResolver = new ShortCircuitEmptyConfigurationResolver(delegate, componentIdentifierFactory, moduleIdentifierFactory);
 
     def "returns empty build dependencies when no dependencies"() {
+        def depVisitor = Stub(BuildDependenciesVisitor)
+        def artifactVisitor = Stub(ArtifactVisitor)
+
         given:
         dependencies.isEmpty() >> true
         configuration.getAllDependencies() >> dependencies
@@ -43,15 +50,24 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         dependencyResolver.resolveBuildDependencies(configuration, results)
 
         then:
-        def result = results.resolvedLocalComponents
-        result.componentBuildDependencies.getDependencies(Stub(Task)).empty
-        result.resolvedProjectConfigurations as List == []
+        def localComponentsResult = results.resolvedLocalComponents
+        localComponentsResult.resolvedProjectConfigurations as List == []
+
+        def visitedArtifacts = results.visitedArtifacts
+        def artifactSet = visitedArtifacts.select(Specs.satisfyAll(), null, Specs.satisfyAll(), true)
+        artifactSet.collectBuildDependencies(depVisitor)
+        artifactSet.visitArtifacts(artifactVisitor, true)
 
         and:
+        0 * depVisitor._
+        0 * artifactVisitor._
         0 * delegate._
     }
 
     def "returns empty graph when no dependencies"() {
+        def depVisitor = Stub(BuildDependenciesVisitor)
+        def artifactVisitor = Stub(ArtifactVisitor)
+
         given:
         dependencies.isEmpty() >> true
         configuration.getAllDependencies() >> dependencies
@@ -65,11 +81,17 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         result.allDependencies.empty
 
         and:
-        def localComponents = results.resolvedLocalComponents
-        localComponents.componentBuildDependencies.getDependencies(Stub(Task)).empty
-        localComponents.resolvedProjectConfigurations as List == []
+        def localComponentsResult = results.resolvedLocalComponents
+        localComponentsResult.resolvedProjectConfigurations as List == []
+
+        def visitedArtifacts = results.visitedArtifacts
+        def artifactSet = visitedArtifacts.select(Specs.satisfyAll(), null, Specs.satisfyAll(), true)
+        artifactSet.collectBuildDependencies(depVisitor)
+        artifactSet.visitArtifacts(artifactVisitor, true)
 
         and:
+        0 * depVisitor._
+        0 * artifactVisitor._
         0 * delegate._
     }
 

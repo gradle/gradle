@@ -17,74 +17,72 @@
 package org.gradle.composite.internal;
 
 import org.gradle.StartParameter;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.composite.CompositeBuildContext;
+import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
 import org.gradle.api.internal.tasks.TaskReferenceResolver;
 import org.gradle.initialization.BuildIdentity;
-import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.initialization.IncludedBuildExecuter;
-import org.gradle.initialization.IncludedBuildFactory;
-import org.gradle.initialization.IncludedBuilds;
+import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.composite.CompositeContextBuilder;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.work.WorkerLeaseService;
 
-public class CompositeBuildServices implements PluginServiceRegistry {
+public class CompositeBuildServices extends AbstractPluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.addProvider(new CompositeBuildGlobalScopeServices());
     }
 
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-        registration.addProvider(new CompositeBuildSessionScopeServices());
+    public void registerBuildTreeServices(ServiceRegistration registration) {
+        registration.addProvider(new CompositeBuildTreeScopeServices());
     }
 
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new CompositeBuildBuildScopeServices());
     }
 
-    public void registerGradleServices(ServiceRegistration registration) {
-    }
-
-    public void registerProjectServices(ServiceRegistration registration) {
-    }
-
     private static class CompositeBuildGlobalScopeServices {
-        public TaskReferenceResolver createResolver() {
-            return new IncludedBuildTaskReferenceResolver();
-        }
     }
 
-    private static class CompositeBuildSessionScopeServices {
-        public IncludedBuildFactory createIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, GradleLauncherFactory gradleLauncherFactory, ServiceRegistry serviceRegistry) {
-            return new DefaultIncludedBuildFactory(instantiator, startParameter, gradleLauncherFactory, serviceRegistry);
-        }
-
+    private static class CompositeBuildTreeScopeServices {
         public DefaultIncludedBuilds createIncludedBuilds() {
             return new DefaultIncludedBuilds();
         }
 
-        public CompositeBuildContext createCompositeBuildContext(IncludedBuilds includedBuilds) {
-            return new DefaultBuildableCompositeBuildContext(includedBuilds);
+        public CompositeBuildContext createCompositeBuildContext(IncludedBuilds includedBuilds, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+            return new DefaultBuildableCompositeBuildContext(includedBuilds, moduleIdentifierFactory);
         }
 
-        public CompositeContextBuilder createCompositeContextBuilder(DefaultIncludedBuilds includedBuilds, CompositeBuildContext context) {
-            return new DefaultCompositeContextBuilder(includedBuilds, context);
+        public DefaultProjectPathRegistry createProjectPathRegistry() {
+            return new DefaultProjectPathRegistry();
         }
 
-        public IncludedBuildExecuter createIncludedBuildExecuter(IncludedBuilds includedBuilds) {
-            return new DefaultIncludedBuildExecuter(includedBuilds);
+        public CompositeContextBuilder createCompositeContextBuilder(DefaultIncludedBuilds includedBuilds, DefaultProjectPathRegistry projectRegistry, CompositeBuildContext context) {
+            return new DefaultCompositeContextBuilder(includedBuilds, projectRegistry, context);
         }
 
-        public IncludedBuildArtifactBuilder createIncludedBuildArtifactBuilder(IncludedBuildExecuter includedBuildExecuter) {
-            return new IncludedBuildArtifactBuilder(includedBuildExecuter);
+        public IncludedBuildControllers createIncludedBuildControllers(ExecutorFactory executorFactory, IncludedBuilds includedBuilds) {
+            return new DefaultIncludedBuildControllers(executorFactory, includedBuilds);
+        }
+
+        public IncludedBuildTaskGraph createIncludedBuildTaskGraph(IncludedBuildControllers controllers) {
+            return new DefaultIncludedBuildTaskGraph(controllers);
         }
     }
 
     private static class CompositeBuildBuildScopeServices {
-        public ProjectArtifactBuilder createProjectArtifactBuilder(IncludedBuildArtifactBuilder builder, BuildIdentity buildIdentity) {
-            return new CompositeProjectArtifactBuilder(builder, buildIdentity);
+        public IncludedBuildFactory createIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, NestedBuildFactory nestedBuildFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, WorkerLeaseService workerLeaseService) {
+            return new DefaultIncludedBuildFactory(instantiator, startParameter, nestedBuildFactory, moduleIdentifierFactory, workerLeaseService);
+        }
+
+        public TaskReferenceResolver createResolver(IncludedBuildTaskGraph includedBuilds, BuildIdentity buildIdentity) {
+            return new IncludedBuildTaskReferenceResolver(includedBuilds, buildIdentity);
+        }
+
+        public ScriptClassPathInitializer createCompositeBuildClasspathResolver(IncludedBuilds includedBuilds, IncludedBuildTaskGraph includedBuildTaskGraph, ServiceRegistry serviceRegistry) {
+            return new CompositeBuildClassPathInitializer(includedBuilds, includedBuildTaskGraph, serviceRegistry);
         }
     }
 

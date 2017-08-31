@@ -17,14 +17,20 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.typeconversion.*;
+import org.gradle.internal.typeconversion.NotationConvertResult;
+import org.gradle.internal.typeconversion.NotationConverter;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.NotationParserBuilder;
+import org.gradle.internal.typeconversion.TypeConversionException;
 
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -51,12 +57,23 @@ public class FileOrUriNotationConverter implements NotationConverter<Object, Obj
         visitor.candidate("A String or CharSequence path").example("'src/main/java' or '/usr/include'");
         visitor.candidate("A String or CharSequence URI").example("'file:/usr/include'");
         visitor.candidate("A File instance.");
+        visitor.candidate("A Path instance.");
+        visitor.candidate("A Directory instance.");
+        visitor.candidate("A RegularFile instance.");
         visitor.candidate("A URI or URL instance.");
     }
 
     public void convert(Object notation, NotationConvertResult<? super Object> result) throws TypeConversionException {
         if (notation instanceof File) {
             result.converted(notation);
+            return;
+        }
+        if (notation instanceof Path) {
+            result.converted(((Path)notation).toFile());
+            return;
+        }
+        if (notation instanceof FileSystemLocation) {
+            result.converted(((FileSystemLocation)notation).getAsFile());
             return;
         }
         if (notation instanceof URL) {

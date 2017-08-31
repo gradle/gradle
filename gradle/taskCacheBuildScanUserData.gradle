@@ -1,0 +1,150 @@
+/*
+ * Copyright 2017 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.internal.file.FileCollectionVisitor
+import org.gradle.api.internal.file.FileTreeInternal
+import org.gradle.api.internal.file.collections.DirectoryFileTree
+import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType
+import org.gradle.internal.execution.ExecuteTaskBuildOperationType
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
+import org.gradle.internal.classloader.ClassLoaderVisitor
+import org.gradle.internal.progress.BuildOperationDescriptor
+import org.gradle.internal.progress.BuildOperationListener
+import org.gradle.internal.progress.OperationFinishEvent
+import org.gradle.internal.progress.OperationStartEvent
+import org.gradle.util.Path
+
+import java.util.regex.Pattern
+
+pluginManager.withPlugin("com.gradle.build-scan") {
+    if (gradle.startParameter.buildCacheEnabled) {
+        buildScan.tag 'CACHED'
+
+        ext.tasksToInvestigateForCacheWithPaths = project.hasProperty('cache.investigate.tasks.paths') ? project.getProperty('cache.investigate.tasks.paths').split(',') : [
+            ':baseServices:classpathManifest'
+        ]
+        ext.taskPropertiesWithFullFileSnapshot = [
+            ':baseServices:compileJava': ['classpath']
+        ]
+
+        project.buildScan.buildFinished(new Action() {
+            public void execute(result) {
+                for (Task task : (allprojects*.tasks).flatten()) {
+                    if (task.state.executed && (tasksToInvestigateForCacheWithPaths.contains(task.getPath())
+                        || taskPropertiesWithFullFileSnapshot.keySet().contains(task.getPath()))) {
+                        def buildScan = task.project.buildScan
+                        def fileProperties = task.inputs.fileProperties
+                        fileProperties.each { inputProperty ->
+                            def name = inputProperty.propertyName
+                            def snapshotter = gradle.services.get(inputProperty.snapshotter)
+                            def snapshot = snapshotter.snapshot(inputProperty.getPropertyFiles(), inputProperty.getPathNormalizationStrategy(), task.project.normalization.buildFinalStrategy())
+                            def prefix = "${task.path}-input-${name}"
+                            if (tasksToInvestigateForCacheWithPaths.contains(task.path)) {
+                                publishPaths(inputProperty.propertyFiles, prefix)
+                            }
+                            if (name in taskPropertiesWithFullFileSnapshot[task.getPath()]) {
+                                publishIndividualFileHashes(snapshot, prefix)
+                            }
+                        }
+                        if (tasksToInvestigateForCacheWithPaths.contains(task.path)) {
+                            def hasher = gradle.services.get(ClassLoaderHierarchyHasher)
+                            new Visitor(task.project.buildScan, hasher, task).visit(task.getClass().getClassLoader())
+                        }
+                    }
+                }
+            }
+
+            private publishIndividualFileHashes(snapshot, prefix) {
+                int idx = 0
+                snapshot.snapshots.each { path, normalizedSnapshot ->
+                    def normalizedPath = normalizedSnapshot.normalizedPath
+                    buildScan.value("${prefix}-snapshot-${String.format('%04d', idx)}-filename", new File(path).name)
+                    if (normalizedPath) {
+                        buildScan.value("${prefix}-snapshot-${String.format('%04d', idx)}-path", normalizedPath)
+                    }
+                    buildScan.value("${prefix}-snapshot-${String.format('%04d', idx++)}-hash", normalizedSnapshot.snapshot.contentMd5.toString())
+                }
+            }
+
+            private publishPaths(propertyFiles, String prefix) {
+                int idx = 0
+                propertyFiles.visitRootElements(new FileCollectionVisitor() {
+                    void visitCollection(FileCollectionInternal fileCollection) {
+                        buildScan.value "${prefix}-${idx}-fileCollection", fileCollection.toString()
+                        buildScan.value "${prefix}-${idx}-fileCollection-path", String.valueOf(fileCollection.files)
+                        idx++
+                    }
+
+                    void visitTree(FileTreeInternal fileTree) {
+                        buildScan.value "${prefix}-${idx}-fileTree", fileTree.toString()
+                        idx++
+                    }
+
+                    void visitDirectoryTree(DirectoryFileTree directoryTree) {
+                        buildScan.value "${prefix}-${idx}-dirTree", directoryTree.toString()
+                        idx++
+                    }
+                })
+            }
+
+            private static String hashKey(some) {
+                def builder = new org.gradle.caching.internal.DefaultBuildCacheHasher()
+                some.appendToHasher(builder)
+                builder.hash().toString()
+            }
+        })
+    }
+}
+
+class Visitor extends ClassLoaderVisitor {
+    final buildScan
+    final ClassLoaderHierarchyHasher hasher
+    final String prefix
+    int counter
+
+    Visitor(buildScan, ClassLoaderHierarchyHasher hasher, Task task) {
+        this(buildScan, hasher, "${task.path}-classloader")
+    }
+
+    Visitor(buildScan, ClassLoaderHierarchyHasher hasher, String prefix) {
+        this.buildScan = buildScan
+        this.hasher = hasher
+        this.prefix = prefix
+    }
+
+    private String classloaderHash(ClassLoader loader) {
+        def hash = hasher.getClassLoaderHash(loader)
+        if (hash != null) {
+            return hash.toString()
+        } else {
+            null
+        }
+    }
+
+    @Override
+    void visit(ClassLoader classLoader) {
+        def hash = classloaderHash(classLoader)
+        if (hash) {
+            def classloaderName = classLoader.getClass().getSimpleName()
+            buildScan.value("${prefix}-${counter++}-${ classloaderName}-hash", hash)
+            if ((counter <= 2) && (classLoader instanceof URLClassLoader && (!classloaderName.contains('ExtClassLoader')))) {
+                buildScan.value("${prefix}-${counter - 1}-classpath", classLoader.getURLs().join(':'))
+            }
+        }
+        super.visit(classLoader)
+    }
+}

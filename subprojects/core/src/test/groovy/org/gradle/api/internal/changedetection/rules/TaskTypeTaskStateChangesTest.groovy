@@ -16,78 +16,155 @@
 
 package org.gradle.api.internal.changedetection.rules
 
-import com.google.common.hash.HashCode
-import com.google.common.hash.Hashing
+import com.google.common.collect.ImmutableList
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
+import org.gradle.api.Task
+import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.changedetection.state.ImplementationSnapshot
 import org.gradle.api.internal.changedetection.state.TaskExecution
+import org.gradle.api.internal.tasks.ContextAwareTaskAction
+import org.gradle.api.internal.tasks.TaskExecutionContext
+import org.gradle.internal.Cast
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
+import org.gradle.internal.hash.HashCode
+import org.gradle.util.Path
 import spock.lang.Specification
 
 class TaskTypeTaskStateChangesTest extends Specification {
-    def taskLoaderHash = HashCode.fromLong(123)
-    def taskActionsLoaderHash = Hashing.md5().hashBytes(taskLoaderHash.asBytes())
+    def taskLoaderHash = HashCode.fromInt(123)
     def taskLoader = SimpleTask.getClassLoader()
+    def task = Stub(TaskInternal) {
+        getIdentityPath() >> Path.path(":test")
+    }
     def hasher = Mock(ClassLoaderHierarchyHasher) {
-        getStrictHash(taskLoader) >> taskLoaderHash
+        getClassLoaderHash(taskLoader) >> taskLoaderHash
+    }
+
+    TaskExecution mockExecution(ImplementationSnapshot impl, ImplementationSnapshot... actions) {
+        return Mock(TaskExecution) {
+            getTaskImplementation() >> impl
+            getTaskActionImplementations() >> ImmutableList.copyOf(actions)
+        }
     }
 
     def "up-to-date when task is the same"() {
-        def previous = Mock(TaskExecution) {
-            getTaskClass() >> SimpleTask.name
-            getTaskClassLoaderHash() >> taskLoaderHash
-            getTaskActionsClassLoaderHash() >> taskActionsLoaderHash
-        }
-        def current = Mock(TaskExecution)
+        def previous = mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, taskLoaderHash))
+        def current =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, taskLoaderHash))
 
-        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [taskLoader], hasher))
+        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, task))
 
         expect:
         changes.empty
     }
 
     def "not up-to-date when task name changed"() {
-        def previous = Mock(TaskExecution) {
-            getTaskClass() >> PreviousTask.name
-            getTaskClassLoaderHash() >> taskLoaderHash
-            getTaskActionsClassLoaderHash() >> taskActionsLoaderHash
-        }
-        def current = Mock(TaskExecution)
+        def previous = mockExecution(impl(PreviousTask, taskLoaderHash), impl(TestAction, taskLoaderHash))
+        def current =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, taskLoaderHash))
 
-        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [taskLoader], hasher))
+        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, task))
 
         expect:
         changes == ["Task ':test' has changed type from '$PreviousTask.name' to '$SimpleTask.name'." as String]
     }
 
     def "not up-to-date when class-loader has changed"() {
-        def previousHash = HashCode.fromLong(987)
-        def previous = Mock(TaskExecution) {
-            getTaskClass() >> SimpleTask.name
-            getTaskClassLoaderHash() >> previousHash
-            getTaskActionsClassLoaderHash() >> taskActionsLoaderHash
-        }
-        def current = Mock(TaskExecution)
+        def previousHash = HashCode.fromInt(987)
+        def previous =  mockExecution(impl(SimpleTask, previousHash), impl(TestAction, taskLoaderHash))
+        def current =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, taskLoaderHash))
 
-        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [taskLoader], hasher))
+        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, task))
 
         expect:
-        changes == ["Task ':test' class path has changed from ${previousHash} to ${taskLoaderHash}."]
+        changes == ["Task ':test' class path has changed from ${previousHash} to ${taskLoaderHash}." as String]
     }
 
     def "not up-to-date when action class-loader has changed"() {
-        def previousHash = HashCode.fromLong(987)
-        def previous = Mock(TaskExecution) {
-            getTaskClass() >> SimpleTask.name
-            getTaskClassLoaderHash() >> taskLoaderHash
-            getTaskActionsClassLoaderHash() >> previousHash
-        }
-        def current = Mock(TaskExecution)
+        def previousHash = HashCode.fromInt(987)
+        def previous =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, previousHash))
+        def current =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, taskLoaderHash))
 
-        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, ":test", SimpleTask, [taskLoader], hasher))
+        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, task))
 
         expect:
-        changes == ["Task ':test' additional action class path has changed from ${previousHash} to ${taskActionsLoaderHash}."]
+        changes == ["Task ':test' has additional actions that have changed"]
+    }
+
+    def "not up-to-date when action is added"() {
+        def previous =  mockExecution(impl(SimpleTask, taskLoaderHash))
+        def current =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, taskLoaderHash))
+
+        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, task))
+
+        expect:
+        changes == ["Task ':test' has additional actions that have changed"]
+    }
+
+    def "not up-to-date when action is removed"() {
+        def previous =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, taskLoaderHash))
+        def current =  mockExecution(impl(SimpleTask, taskLoaderHash))
+
+        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, task))
+
+        expect:
+        changes == ["Task ':test' has additional actions that have changed"]
+    }
+
+    def "not up-to-date when action with same class-loader is added"() {
+        def previous =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, taskLoaderHash))
+        def current =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, taskLoaderHash), impl(TestAction, taskLoaderHash))
+
+        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, task))
+
+        expect:
+        changes == ["Task ':test' has additional actions that have changed"]
+    }
+
+    def "not up-to-date when task is loaded with an unknown classloader"() {
+        def taskClassLoader = new GroovyClassLoader(getClass().getClassLoader())
+        Class<? extends TaskInternal> simpleTaskClass = Cast.uncheckedCast(taskClassLoader.parseClass("""
+            import org.gradle.api.*
+
+            class SimpleTask extends DefaultTask {}
+        """))
+
+        def previous =  mockExecution(impl(simpleTaskClass, null), impl(TestAction, taskLoaderHash))
+        def current =  mockExecution(impl(simpleTaskClass, null), impl(TestAction, taskLoaderHash))
+
+        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, task))
+
+        expect:
+        changes == ["Task ':test' was loaded with an unknown classloader"]
+    }
+
+    def "not up-to-date when task action is loaded with an unknown classloader"() {
+        def previous =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, taskLoaderHash))
+        def current =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, null))
+
+        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, task))
+
+        expect:
+        changes == ["Task ':test' has an additional action that was loaded with an unknown classloader"]
+    }
+
+    def "not up-to-date when task was previously loaded with an unknown classloader"() {
+        def previous =  mockExecution(impl(SimpleTask, null), impl(TestAction, taskLoaderHash))
+        def current =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, taskLoaderHash))
+
+        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, task))
+
+        expect:
+        changes == ["Task ':test' was loaded with an unknown classloader during the previous execution"]
+    }
+
+    def "not up-to-date when task action was previously loaded with an unknown classloader"() {
+        def previous =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, null))
+        def current =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, taskLoaderHash))
+
+        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, task))
+
+        expect:
+        changes == ["Task ':test' had an additional action that was loaded with an unknown classloader during the previous execution"]
     }
 
     List<String> collectChanges(TaskTypeTaskStateChanges stateChanges) {
@@ -96,11 +173,46 @@ class TaskTypeTaskStateChangesTest extends Specification {
         return changes*.message
     }
 
+    private static ImplementationSnapshot impl(Class<?> type, HashCode classLoaderHash) {
+        new ImplementationSnapshot(type.getName(), classLoaderHash)
+    }
+
     private class SimpleTask extends DefaultTask {}
     private class PreviousTask extends DefaultTask {}
     private class SimpleAction implements Action<Void> {
         @Override
         void execute(Void value) {
+        }
+    }
+
+    private static class TestAction implements ContextAwareTaskAction {
+        final ClassLoader classLoader
+        final String actionClassName
+
+        TestAction() {
+            this(TestAction, TestAction.classLoader)
+        }
+
+        TestAction(Class<?> actionType, ClassLoader classLoader) {
+            this.actionClassName = actionType.name
+            this.classLoader = classLoader
+        }
+
+        @Override
+        void contextualise(TaskExecutionContext context) {
+        }
+
+        @Override
+        void releaseContext() {
+        }
+
+        @Override
+        void execute(Task task) {
+        }
+
+        @Override
+        String getDisplayName() {
+            return "Execute test action"
         }
     }
 }

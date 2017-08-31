@@ -17,8 +17,6 @@
 package org.gradle.internal
 
 import org.gradle.api.Action
-import org.gradle.api.Named
-import org.gradle.api.Namer
 import spock.lang.Specification
 
 import static org.gradle.internal.Transformers.*
@@ -55,21 +53,6 @@ class TransformersTest extends Specification {
         toURL().transform(new URI("http://localhost:80/path")) == new URL("http://localhost:80/path")
     }
 
-    def "naming"() {
-        expect:
-        name().transform(named("foo")) == "foo"
-        name().transform(named(null)) == null
-
-        and:
-        def namer = new Namer() {
-            String determineName(Object object) {
-                object.toString()
-            }
-        }
-
-        name(namer).transform(3) == "3"
-    }
-
     def "by type"() {
         expect:
         type().transform("foo") == String
@@ -103,13 +86,5 @@ class TransformersTest extends Specification {
         def foo = "foo"
         expect:
         constant(foo).transform(null).is(foo)
-    }
-
-    Named named(String name) {
-        new Named() {
-            String getName() {
-                name
-            }
-        }
     }
 }

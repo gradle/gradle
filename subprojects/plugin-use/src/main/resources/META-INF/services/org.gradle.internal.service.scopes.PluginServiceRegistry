@@ -1,1 +1,1 @@
-org.gradle.plugin.use.internal.PluginUsePluginServiceRegistry
+org.gradle.plugin.internal.PluginUsePluginServiceRegistry

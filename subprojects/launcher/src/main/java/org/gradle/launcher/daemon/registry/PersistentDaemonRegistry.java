@@ -19,9 +19,9 @@ package org.gradle.launcher.daemon.registry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
+import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.cache.internal.FileIntegrityViolationSuppressingPersistentStateCacheDecorator;
-import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.internal.OnDemandFileAccess;
 import org.gradle.cache.internal.SimpleStateCache;
 import org.gradle.internal.nativeintegration.filesystem.Chmod;
@@ -52,15 +52,15 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
     public PersistentDaemonRegistry(File registryFile, FileLockManager fileLockManager, Chmod chmod) {
         this.registryFile = registryFile;
         cache = new FileIntegrityViolationSuppressingPersistentStateCacheDecorator<DaemonRegistryContent>(
-                new SimpleStateCache<DaemonRegistryContent>(
-                        registryFile,
-                        new OnDemandFileAccess(
-                                registryFile,
-                                "daemon addresses registry",
-                                fileLockManager),
-                        DaemonRegistryContent.SERIALIZER,
-                        chmod
-                ));
+            new SimpleStateCache<DaemonRegistryContent>(
+                registryFile,
+                new OnDemandFileAccess(
+                    registryFile,
+                    "daemon addresses registry",
+                    fileLockManager),
+                DaemonRegistryContent.SERIALIZER,
+                chmod
+            ));
     }
 
     public List<DaemonInfo> getAll() {

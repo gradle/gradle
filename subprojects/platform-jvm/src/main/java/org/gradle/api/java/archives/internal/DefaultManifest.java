@@ -26,7 +26,6 @@ import org.gradle.api.java.archives.ManifestMergeSpec;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.SingleMessageLogger;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -34,7 +33,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -186,27 +184,6 @@ public class DefaultManifest implements ManifestInternal {
             resultManifest = ((DefaultManifestMergeSpec) manifestMergeSpec).merge(resultManifest, fileResolver);
         }
         return resultManifest;
-    }
-
-    @Deprecated
-    @Override
-    public DefaultManifest writeTo(Writer writer) {
-        SingleMessageLogger.nagUserOfDeprecated("Manifest.writeTo(Writer)", "Please use Manifest.writeTo(Object) instead");
-        try {
-            Manifest javaManifest = generateJavaManifest(getEffectiveManifest());
-            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-            javaManifest.write(buffer);
-            String manifestContent = buffer.toString(DEFAULT_CONTENT_CHARSET);
-            if (!DEFAULT_CONTENT_CHARSET.equals(contentCharset)) {
-                // Convert the UTF-8 manifest bytes to the requested content charset
-                manifestContent = new String(manifestContent.getBytes(contentCharset), contentCharset);
-            }
-            writer.write(manifestContent);
-            writer.flush();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-        return this;
     }
 
     @Override

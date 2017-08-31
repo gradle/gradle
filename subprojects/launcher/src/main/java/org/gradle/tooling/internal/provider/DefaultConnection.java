@@ -16,7 +16,6 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.api.Nullable;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.DefaultBuildCancellationToken;
@@ -61,6 +60,7 @@ import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 public class DefaultConnection implements ConnectionVersion4, InternalConnection, BuildActionRunner,
@@ -239,6 +239,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
         if (!supportedConsumerVersion) {
             throw unsupportedConnectionException();
         }
+
         return adapter.builder(ProviderOperationParameters.class).mixInTo(ProviderOperationParameters.class, BuildLogLevelMixIn.class).build(buildParameters);
     }
 }

@@ -17,8 +17,15 @@
 package org.gradle.process.internal.worker.request;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.AsmBackedClassGenerator;
+import org.gradle.api.internal.DefaultInstantiatorFactory;
+import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.event.DefaultListenerManager;
+import org.gradle.internal.operations.BuildOperationIdentifierRegistry;
 import org.gradle.internal.remote.ObjectConnection;
+import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 
 import java.io.Serializable;
@@ -26,13 +33,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.concurrent.CountDownLatch;
 
-public class WorkerAction implements Action<WorkerProcessContext>, Serializable, RequestProtocol {
+public class WorkerAction implements Action<WorkerProcessContext>, Serializable, RequestProtocol, StreamFailureHandler {
     private final String workerImplementationName;
     private transient CountDownLatch completed;
     private transient ResponseProtocol responder;
     private transient Throwable failure;
     private transient Class<?> workerImplementation;
     private transient Object implementation;
+    private InstantiatorFactory instantiatorFactory;
 
     public WorkerAction(Class<?> workerImplementation) {
         this.workerImplementationName = workerImplementation.getName();
@@ -42,8 +50,11 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
     public void execute(WorkerProcessContext workerProcessContext) {
         completed = new CountDownLatch(1);
         try {
+            if (instantiatorFactory == null) {
+                instantiatorFactory = new DefaultInstantiatorFactory(new AsmBackedClassGenerator(), new CrossBuildInMemoryCacheFactory(new DefaultListenerManager()));
+            }
             workerImplementation = Class.forName(workerImplementationName);
-            implementation = workerImplementation.newInstance();
+            implementation = instantiatorFactory.inject(workerProcessContext.getServiceRegistry()).newInstance(workerImplementation);
         } catch (Throwable e) {
             failure = e;
         }
@@ -63,25 +74,27 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
     @Override
     public void stop() {
         completed.countDown();
+        BuildOperationIdentifierRegistry.clearCurrentOperationIdentifier();
     }
 
     @Override
-    public void runThenStop(String methodName, Class<?>[] paramTypes, Object[] args) {
+    public void runThenStop(String methodName, Class<?>[] paramTypes, Object[] args, Object operationIdentifier) {
         try {
-            run(methodName, paramTypes, args);
+            run(methodName, paramTypes, args, operationIdentifier);
         } finally {
             stop();
         }
     }
 
     @Override
-    public void run(String methodName, Class<?>[] paramTypes, Object[] args) {
+    public void run(String methodName, Class<?>[] paramTypes, Object[] args, Object operationIdentifier) {
         if (failure != null) {
             responder.infrastructureFailed(failure);
             return;
         }
         try {
             Method method = workerImplementation.getDeclaredMethod(methodName, paramTypes);
+            BuildOperationIdentifierRegistry.setCurrentOperationIdentifier(operationIdentifier);
             Object result;
             try {
                 result = method.invoke(implementation, args);
@@ -98,6 +111,13 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
             responder.completed(result);
         } catch (Throwable t) {
             responder.infrastructureFailed(t);
+        } finally {
+            BuildOperationIdentifierRegistry.clearCurrentOperationIdentifier();
         }
+    }
+
+    @Override
+    public void handleStreamFailure(Throwable t) {
+        responder.failed(t);
     }
 }

@@ -22,13 +22,11 @@ import org.gradle.internal.Factory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class TaskClassInfo {
     private TaskClassValidator validator;
     private final List<Factory<Action<Task>>> taskActions = new ArrayList<Factory<Action<Task>>>();
     private boolean incremental;
-    private boolean cacheable;
 
     public TaskClassValidator getValidator() {
         return validator;
@@ -50,15 +48,7 @@ public class TaskClassInfo {
         this.incremental = incremental;
     }
 
-    public Set<String> getNonAnnotatedPropertyNames() {
-        return validator.getNonAnnotatedPropertyNames();
-    }
-
     public boolean isCacheable() {
-        return cacheable;
-    }
-
-    public void setCacheable(boolean cacheable) {
-        this.cacheable = cacheable;
+        return validator.isCacheable();
     }
 }

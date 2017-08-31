@@ -19,6 +19,7 @@ package org.gradle.api.publish.maven
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
+import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
@@ -109,7 +110,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         module.rootMetaData.versions == ["2"]
 
         where:
-        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST, HttpServer.AuthScheme.NTLM]
+        authScheme << [AuthScheme.BASIC, AuthScheme.DIGEST, AuthScheme.NTLM]
     }
 
     @Unroll
@@ -126,14 +127,13 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         fails 'publish'
 
         then:
-        failure.assertHasDescription('Execution failed for task \':publishMavenPublicationToMavenRepository\'.')
-        failure.assertHasCause('Failed to publish publication \'maven\' to repository \'maven\'')
-        failure.assertHasCause("Failed to deploy artifacts: Could not transfer artifact org.gradle:publish:jar:2 from/to remote (http://localhost:${server.port}/repo): Could not write to resource 'org/gradle/publish/2/publish-2.jar'")
-        // Cause goes missing through the maven classes, but does end up logged to stderr
-        failure.error.contains("Could not PUT '${module.artifact.uri}'. Received status code 401 from server: Unauthorized")
+        failure.assertHasDescription("Execution failed for task ':publishMavenPublicationToMavenRepository'.")
+        failure.assertHasCause("Failed to publish publication 'maven' to repository 'maven'")
+        failure.assertHasCause("Could not write to resource '${module.artifact.uri}")
+        failure.assertHasCause("Could not PUT '${module.artifact.uri}'. Received status code 401 from server: Unauthorized")
 
         where:
-        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST, HttpServer.AuthScheme.NTLM]
+        authScheme << [AuthScheme.BASIC, AuthScheme.DIGEST, AuthScheme.NTLM]
     }
 
     @Unroll
@@ -148,14 +148,13 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         fails 'publish'
 
         then:
-        failure.assertHasDescription('Execution failed for task \':publishMavenPublicationToMavenRepository\'.')
-        failure.assertHasCause('Failed to publish publication \'maven\' to repository \'maven\'')
-        failure.assertHasCause("Failed to deploy artifacts: Could not transfer artifact org.gradle:publish:jar:2 from/to remote (http://localhost:${server.port}/repo): Could not write to resource 'org/gradle/publish/2/publish-2.jar'")
-        // Cause goes missing through the maven classes, but does end up logged to stderr
-        failure.error.contains("Could not PUT '${module.artifact.uri}'. Received status code 401 from server: Unauthorized")
+        failure.assertHasDescription("Execution failed for task ':publishMavenPublicationToMavenRepository'.")
+        failure.assertHasCause("Failed to publish publication 'maven' to repository 'maven'")
+        failure.assertHasCause("Could not write to resource '${module.artifact.uri}")
+        failure.assertHasCause("Could not PUT '${module.artifact.uri}'. Received status code 401 from server: Unauthorized")
 
         where:
-        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST, HttpServer.AuthScheme.NTLM]
+        authScheme << [AuthScheme.BASIC, AuthScheme.DIGEST, AuthScheme.NTLM]
     }
 
     @Issue("GRADLE-3312")
@@ -213,6 +212,52 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
         module.rootMetaData.verifyChecksums()
         module.rootMetaData.versions == ["2"]
+    }
+
+    @Issue("gradle/gradle#1641")
+    def "can publish a new version of a module already present in the target repository"() {
+        given:
+        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
+        expectModulePublish(module)
+
+        when:
+        succeeds 'publish'
+
+        and:
+        buildFile.text = publicationBuild("3", group, mavenRemoteRepo.uri)
+        module = mavenRemoteRepo.module(group, name, "3")
+
+        then:
+        module.artifact.expectPut()
+        module.artifact.sha1.expectPut()
+        module.artifact.md5.expectPut()
+        module.pom.expectPut()
+        module.pom.sha1.expectPut()
+        module.pom.md5.expectPut()
+
+        and:
+        module.rootMetaData.expectGet()
+        module.rootMetaData.sha1.expectGet()
+        module.rootMetaData.expectGet()
+        module.rootMetaData.sha1.expectGet()
+        module.rootMetaData.expectPut()
+        module.rootMetaData.sha1.expectPut()
+        module.rootMetaData.md5.expectPut()
+
+        and:
+        succeeds 'publish'
+
+        then:
+        def localPom = file("build/publications/maven/pom-default.xml").assertIsFile()
+        def localArtifact3 = file("build/libs/publish-3.jar").assertIsFile()
+
+        module.pomFile.assertIsCopyOf(localPom)
+        module.pom.verifyChecksums()
+        module.artifactFile.assertIsCopyOf(localArtifact3)
+        module.artifact.verifyChecksums()
+
+        module.rootMetaData.verifyChecksums()
+        module.rootMetaData.versions == ["2", "3"]
     }
 
     private String publicationBuild(String version, String group, URI uri, PasswordCredentials credentials = null) {

@@ -25,6 +25,9 @@ import java.io.File;
  * Provides values that are set during the build, or defaulted when not running in a build context (e.g. IDE).
  */
 public class IntegrationTestBuildContext {
+    // Collect this early, as the process' current directory can change during embedded test execution
+    public static final TestFile TEST_DIR = new TestFile(new File(".").toURI());
+    public static final IntegrationTestBuildContext INSTANCE = new IntegrationTestBuildContext();
 
     public TestFile getGradleHomeDir() {
         return file("integTest.gradleHomeDir", null);
@@ -70,9 +73,19 @@ public class IntegrationTestBuildContext {
         return GradleVersion.current();
     }
 
+    /**
+     * The timestamped version used in the docs and the bin and all zips. This should be different to {@link GradleVersion#getVersion()}.
+     * Note that the binary distribution used for testing (testBinZip and intTestImage) has {@link GradleVersion#getVersion()} as version.
+     *
+     * @return timestamped version
+     */
+    public GradleVersion getDistZipVersion() {
+        return GradleVersion.version(System.getProperty("integTest.distZipVersion", GradleVersion.current().getVersion()));
+    }
+
     public TestFile getFatToolingApiJar() {
         TestFile toolingApiShadedJarDir = file("integTest.toolingApiShadedJarDir", "subprojects/tooling-api/build/shaded-jar");
-        TestFile fatToolingApiJar = new TestFile(toolingApiShadedJarDir, String.format("gradle-tooling-api-shaded-%s.jar", getVersion().getVersion()));
+        TestFile fatToolingApiJar = new TestFile(toolingApiShadedJarDir, String.format("gradle-tooling-api-shaded-%s.jar", getVersion().getBaseVersion().getVersion()));
 
         if (!fatToolingApiJar.exists()) {
             throw new IllegalStateException(String.format("The fat Tooling API JAR file does not exist: %s", fatToolingApiJar.getAbsolutePath()));
@@ -86,17 +99,25 @@ public class IntegrationTestBuildContext {
             return new UnderDevelopmentGradleDistribution();
         }
         TestFile previousVersionDir = getGradleUserHomeDir().getParentFile().file("previousVersion");
-        if(version.startsWith("#")){
+        if (version.startsWith("#")) {
             return new BuildServerGradleDistribution(version, previousVersionDir.file(version));
         }
         return new ReleasedGradleDistribution(version, previousVersionDir.file(version));
     }
 
-    private static TestFile file(String propertyName, String defaultFile) {
-        String path = System.getProperty(propertyName, defaultFile);
+    protected static TestFile file(String propertyName, String defaultFile) {
+        String defaultPath;
+        if (defaultFile == null) {
+            defaultPath = null;
+        } else if (new File(defaultFile).isAbsolute()) {
+            defaultPath = defaultFile;
+        } else {
+            defaultPath = TEST_DIR.file(defaultFile).getAbsolutePath();
+        }
+        String path = System.getProperty(propertyName, defaultPath);
         if (path == null) {
             throw new RuntimeException(String.format("You must set the '%s' property to run the integration tests. The default passed was: '%s'",
-                    propertyName, defaultFile));
+                propertyName, defaultFile));
         }
         return new TestFile(new File(path));
     }

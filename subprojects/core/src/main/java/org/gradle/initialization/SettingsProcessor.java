@@ -26,6 +26,6 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 public interface SettingsProcessor {
     SettingsInternal process(GradleInternal gradle,
                              SettingsLocation settingsLocation,
-                             ClassLoaderScope baseClassLoaderScope,
+                             ClassLoaderScope buildRootClassLoaderScope,
                              StartParameter startParameter);
 }

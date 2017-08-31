@@ -31,4 +31,9 @@ public class FallbackConsoleMetaData implements ConsoleMetaData {
     public int getCols() {
         return 0;
     }
+
+    @Override
+    public int getRows() {
+        return 0;
+    }
 }

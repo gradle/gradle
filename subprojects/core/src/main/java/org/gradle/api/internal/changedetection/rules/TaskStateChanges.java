@@ -17,9 +17,4 @@
 package org.gradle.api.internal.changedetection.rules;
 
 public interface TaskStateChanges extends Iterable<TaskStateChange> {
-    /**
-     * Snapshot any final state after the task has executed. This method is executed only if the task is to be executed.
-     * Any persistent state should be added to the {@link org.gradle.api.internal.changedetection.state.TaskExecution} object for the current execution.
-     */
-    void snapshotAfterTask();
 }

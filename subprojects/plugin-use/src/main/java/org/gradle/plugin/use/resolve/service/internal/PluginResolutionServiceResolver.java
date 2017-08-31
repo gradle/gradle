@@ -35,10 +35,15 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.exceptions.Contextual;
-import org.gradle.plugin.internal.PluginId;
-import org.gradle.plugin.use.internal.InvalidPluginRequestException;
-import org.gradle.plugin.use.internal.PluginRequest;
-import org.gradle.plugin.use.resolve.internal.*;
+import org.gradle.plugin.use.PluginId;
+import org.gradle.plugin.use.internal.DefaultPluginId;
+import org.gradle.plugin.management.internal.PluginRequestInternal;
+import org.gradle.plugin.management.internal.InvalidPluginRequestException;
+import org.gradle.plugin.use.resolve.internal.ClassPathPluginResolution;
+import org.gradle.plugin.use.resolve.internal.PluginResolution;
+import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
+import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
+import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
 import java.io.File;
 import java.util.Set;
@@ -72,39 +77,43 @@ public class PluginResolutionServiceResolver implements PluginResolver {
         return System.getProperty(OVERRIDE_URL_PROPERTY, DEFAULT_API_URL);
     }
 
-    public void resolve(PluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
+    public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
+        if (pluginRequest.getModule() != null) {
+            result.notFound(getDescription(), "explicit artifact coordinates are not supported by this source");
+            return;
+        }
         if (pluginRequest.getVersion() == null) {
             result.notFound(getDescription(), "plugin dependency must include a version number for this source");
+            return;
+        }
+        if (pluginRequest.getVersion().endsWith("-SNAPSHOT")) {
+            result.notFound(getDescription(), "snapshot plugin versions are not supported");
+        } else if (isDynamicVersion(pluginRequest.getVersion())) {
+            result.notFound(getDescription(), "dynamic plugin versions are not supported");
         } else {
-            if (pluginRequest.getVersion().endsWith("-SNAPSHOT")) {
-                result.notFound(getDescription(), "snapshot plugin versions are not supported");
-            } else if (isDynamicVersion(pluginRequest.getVersion())) {
-                result.notFound(getDescription(), "dynamic plugin versions are not supported");
-            } else {
-                HttpPluginResolutionServiceClient.Response<PluginUseMetaData> response = portalClient.queryPluginMetadata(getUrl(), startParameter.isRefreshDependencies(), pluginRequest);
-                if (response.isError()) {
-                    ErrorResponse errorResponse = response.getErrorResponse();
-                    if (response.getStatusCode() == 404) {
-                        result.notFound(getDescription(), errorResponse.message);
-                    } else {
-                        throw new GradleException(String.format("Plugin resolution service returned HTTP %d with message '%s' (url: %s)", response.getStatusCode(), errorResponse.message, response.getUrl()));
-                    }
+            HttpPluginResolutionServiceClient.Response<PluginUseMetaData> response = portalClient.queryPluginMetadata(getUrl(), startParameter.isRefreshDependencies(), pluginRequest);
+            if (response.isError()) {
+                ErrorResponse errorResponse = response.getErrorResponse();
+                if (response.getStatusCode() == 404) {
+                    result.notFound(getDescription(), errorResponse.message);
                 } else {
-                    PluginUseMetaData metaData = response.getResponse();
-                    if (metaData.legacy) {
-                        handleLegacy(metaData, result);
-                    } else {
-                        ClassPath classPath = resolvePluginDependencies(metaData);
-                        PluginResolution resolution = new ClassPathPluginResolution(pluginRequest.getId(), parentScope, Factories.constant(classPath), pluginInspector);
-                        result.found(getDescription(), resolution);
-                    }
+                    throw new GradleException(String.format("Plugin resolution service returned HTTP %d with message '%s' (url: %s)", response.getStatusCode(), errorResponse.message, response.getUrl()));
+                }
+            } else {
+                PluginUseMetaData metaData = response.getResponse();
+                if (metaData.legacy) {
+                    handleLegacy(metaData, result);
+                } else {
+                    ClassPath classPath = resolvePluginDependencies(metaData);
+                    PluginResolution resolution = new ClassPathPluginResolution(pluginRequest.getId(), parentScope, Factories.constant(classPath), pluginInspector);
+                    result.found(getDescription(), resolution);
                 }
             }
         }
     }
 
     private void handleLegacy(final PluginUseMetaData metadata, PluginResolutionResult result) {
-        final PluginId pluginId = PluginId.of(metadata.id);
+        final PluginId pluginId = DefaultPluginId.of(metadata.id);
         result.found(getDescription(), new PluginResolution() {
             @Override
             public PluginId getPluginId() {

@@ -38,13 +38,13 @@ import org.gradle.api.publish.Publication;
  *
  * <p>
  * The Ivy module identifying attributes of the publication are mapped as follows:
+ * </p>
  * <ul>
  * <li>{@code module} - {@code project.name}</li>
  * <li>{@code organisation} - {@code project.group}</li>
  * <li>{@code revision} - {@code project.version}</li>
  * <li>{@code status} - {@code project.status}</li>
  * </ul>
- * </p>
  *
  * <p>
  * For certain common use cases, it's often sufficient to specify the component to publish, using ({@link #from(org.gradle.api.component.SoftwareComponent)}.
@@ -61,7 +61,7 @@ import org.gradle.api.publish.Publication;
  * </p>
  * <h4>Example of publishing a java component with an added source jar and custom module description</h4>
  *
- * <pre autoTested="true">
+ * <pre class='autoTested'>
  * apply plugin: "java"
  * apply plugin: "ivy-publish"
  *
@@ -121,7 +121,7 @@ public interface IvyPublication extends Publication {
      * For any individual IvyPublication, only a single component can be provided in this way.
      *
      * The following example demonstrates how to publish the 'java' component to a ivy repository.
-     * <pre autoTested="true">
+     * <pre class='autoTested'>
      * apply plugin: "java"
      * apply plugin: "ivy-publish"
      *
@@ -142,7 +142,7 @@ public interface IvyPublication extends Publication {
      * Defines some {@link IvyConfiguration}s that should be included in the published ivy module descriptor file.
      *
      * The following example demonstrates how to add a "testCompile" configuration, and a "testRuntime" configuration that extends it.
-     * <pre autoTested="true">
+     * <pre class='autoTested'>
      * apply plugin: "java"
      * apply plugin: "ivy-publish"
      *
@@ -184,7 +184,7 @@ public interface IvyPublication extends Publication {
      * </ul>
      *
      * The following example demonstrates the addition of various custom artifacts.
-     * <pre autoTested="true">
+     * <pre class='autoTested'>
      * apply plugin: "ivy-publish"
      *
      * task sourceJar(type: Jar) {
@@ -219,7 +219,7 @@ public interface IvyPublication extends Publication {
      * The created {@link IvyArtifact} is then configured using the supplied action.
      * This method also accepts the configure action as a closure argument, by type coercion.
      *
-     * <pre autoTested="true">
+     * <pre class='autoTested'>
      * apply plugin: "ivy-publish"
      *
      * task sourceJar(type: Jar) {
@@ -239,7 +239,7 @@ public interface IvyPublication extends Publication {
      *         // These values will be used instead of the values from the task. The task values will not be updated.
      *         classifier "src"
      *         extension "zip"
-     *         conf "runtime->default"
+     *         conf "runtime-&gt;default"
      *       }
      *       artifact("my-docs-file.htm") {
      *         type "documentation"
@@ -264,7 +264,7 @@ public interface IvyPublication extends Publication {
      * Each supplied source is interpreted as per {@link #artifact(Object)}.
      *
      * For example, to exclude the dependencies declared by a component and instead use a custom set of artifacts:
-     * <pre autoTested="true">
+     * <pre class='autoTested'>
      * apply plugin: "java"
      * apply plugin: "ivy-publish"
      *

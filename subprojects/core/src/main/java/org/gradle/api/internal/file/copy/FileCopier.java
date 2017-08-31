@@ -19,6 +19,7 @@ import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -28,11 +29,13 @@ public class FileCopier {
     private final Instantiator instantiator;
     private final FileResolver fileResolver;
     private final FileLookup fileLookup;
+    private final DirectoryFileTreeFactory directoryFileTreeFactory;
 
-    public FileCopier(Instantiator instantiator, FileResolver fileResolver, FileLookup fileLookup) {
+    public FileCopier(Instantiator instantiator, FileResolver fileResolver, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this.instantiator = instantiator;
         this.fileResolver = fileResolver;
         this.fileLookup = fileLookup;
+        this.directoryFileTreeFactory = directoryFileTreeFactory;
     }
 
     private DestinationRootCopySpec createCopySpec(Action<? super CopySpec> action) {
@@ -52,7 +55,7 @@ public class FileCopier {
     public WorkResult sync(Action<? super CopySpec> action) {
         DestinationRootCopySpec copySpec = createCopySpec(action);
         File destinationDir = copySpec.getDestinationDir();
-        return doCopy(copySpec, new SyncCopyActionDecorator(destinationDir, getCopyVisitor(destinationDir)));
+        return doCopy(copySpec, new SyncCopyActionDecorator(destinationDir, getCopyVisitor(destinationDir), directoryFileTreeFactory));
     }
 
     private FileCopyAction getCopyVisitor(File destination) {
@@ -60,7 +63,7 @@ public class FileCopier {
     }
 
     private WorkResult doCopy(CopySpecInternal copySpec, CopyAction visitor) {
-        CopyActionExecuter visitorDriver = new CopyActionExecuter(instantiator, fileLookup.getFileSystem());
+        CopyActionExecuter visitorDriver = new CopyActionExecuter(instantiator, fileLookup.getFileSystem(), false);
         return visitorDriver.execute(copySpec, visitor);
     }
 

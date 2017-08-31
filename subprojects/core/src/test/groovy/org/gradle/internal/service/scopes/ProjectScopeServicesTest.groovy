@@ -21,9 +21,8 @@ import org.gradle.api.RecordingAntBuildListener
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.ClassGenerator
-import org.gradle.api.internal.ClassGeneratorBackedInstantiator
-import org.gradle.api.internal.DependencyInjectingInstantiator
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.InstantiatorFactory
 import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
@@ -37,6 +36,7 @@ import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.DefaultScriptHandler
+import org.gradle.api.internal.initialization.ScriptClassPathResolver
 import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.api.internal.project.DefaultAntBuilderFactory
 import org.gradle.api.internal.project.ProjectInternal
@@ -49,6 +49,8 @@ import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factory
+import org.gradle.internal.hash.FileHasher
+import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.reflect.DirectInstantiator
@@ -81,6 +83,7 @@ class ProjectScopeServicesTest extends Specification {
     def classLoaderScope = Mock(ClassLoaderScope)
     DependencyResolutionServices dependencyResolutionServices = Stub()
     Factory<LoggingManagerInternal> loggingManagerInternalFactory = Mock()
+    InstantiatorFactory instantiatorFactory = Mock()
 
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
@@ -104,8 +107,12 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(DirectoryFileTreeFactory) >> Stub(DirectoryFileTreeFactory)
         parent.get(ModelRuleSourceDetector) >> modelRuleSourceDetector
         parent.get(ModelRuleExtractor) >> Stub(ModelRuleExtractor)
-        parent.get(DependencyInjectingInstantiator.ConstructorCache) >> Stub(DependencyInjectingInstantiator.ConstructorCache)
         parent.get(ToolingModelBuilderRegistry) >> Mock(ToolingModelBuilderRegistry)
+        parent.get(InstantiatorFactory) >> instantiatorFactory
+        parent.get(ScriptClassPathResolver) >> Mock(ScriptClassPathResolver)
+        parent.get(StreamHasher) >> Mock(StreamHasher)
+        parent.get(FileHasher) >> Mock(FileHasher)
+        parent.hasService(_) >> true
         registry = new ProjectScopeServices(parent, project, loggingManagerInternalFactory)
     }
 
@@ -125,7 +132,9 @@ class ProjectScopeServicesTest extends Specification {
     }
 
     def "provides a TaskContainerFactory"() {
-        1 * taskFactory.createChild({ it.is project }, { it instanceof ClassGeneratorBackedInstantiator }) >> Stub(ITaskFactory)
+        def instantiator = Stub(Instantiator)
+        1 * instantiatorFactory.injectAndDecorate(registry) >> instantiator
+        1 * taskFactory.createChild({ it.is project }, instantiator) >> Stub(ITaskFactory)
 
         expect:
         registry.getFactory(TaskContainerInternal) instanceof DefaultTaskContainerFactory

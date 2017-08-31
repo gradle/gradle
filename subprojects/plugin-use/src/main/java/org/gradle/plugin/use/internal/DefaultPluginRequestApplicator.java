@@ -17,11 +17,8 @@
 package org.gradle.plugin.use.internal;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
@@ -35,21 +32,23 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.UnknownPluginException;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.exceptions.LocationAwareException;
-import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
-import org.gradle.plugin.internal.PluginId;
+import org.gradle.plugin.management.internal.PluginRequestInternal;
+import org.gradle.plugin.management.internal.PluginRequests;
+import org.gradle.plugin.management.internal.PluginResolutionStrategyInternal;
 import org.gradle.plugin.repository.PluginRepository;
-import org.gradle.plugin.repository.internal.BackedByArtifactRepository;
+import org.gradle.plugin.repository.internal.BackedByArtifactRepositories;
+import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
+import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.resolve.internal.NotNonCorePluginOnClasspathCheckPluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
-import java.util.ArrayList;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Formatter;
 import java.util.LinkedList;
@@ -57,19 +56,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.util.CollectionUtils.any;
+import static com.google.common.collect.Maps.newLinkedHashMap;
+import static com.google.common.collect.Sets.newHashSet;
+import static com.google.common.collect.Sets.newLinkedHashSet;
 import static org.gradle.util.CollectionUtils.collect;
 
 public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     private final PluginRegistry pluginRegistry;
     private final PluginResolverFactory pluginResolverFactory;
-    private PluginRepositoryRegistry pluginRepositoryRegistry;
+    private final PluginRepositoryRegistry pluginRepositoryRegistry;
+    private final PluginResolutionStrategyInternal pluginResolutionStrategy;
     private final CachedClasspathTransformer cachedClasspathTransformer;
 
-    public DefaultPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolver, PluginRepositoryRegistry pluginRepositoryRegistry, CachedClasspathTransformer cachedClasspathTransformer) {
+    public DefaultPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolver, PluginRepositoryRegistry pluginRepositoryRegistry, PluginResolutionStrategyInternal pluginResolutionStrategy, CachedClasspathTransformer cachedClasspathTransformer) {
         this.pluginRegistry = pluginRegistry;
         this.pluginResolverFactory = pluginResolver;
         this.pluginRepositoryRegistry = pluginRepositoryRegistry;
+        this.pluginResolutionStrategy = pluginResolutionStrategy;
         this.cachedClasspathTransformer = cachedClasspathTransformer;
     }
 
@@ -85,34 +88,24 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
         final PluginResolver effectivePluginResolver = wrapInNotInClasspathCheck(classLoaderScope);
 
-        List<Result> results = collect(requests, new Transformer<Result, PluginRequest>() {
-            public Result transform(PluginRequest request) {
-                return resolveToFoundResult(effectivePluginResolver, request);
+        List<Result> results = collect(requests, new Transformer<Result, PluginRequestInternal>() {
+            public Result transform(PluginRequestInternal request) {
+                PluginRequestInternal configuredRequest = pluginResolutionStrategy.applyTo(request);
+                return resolveToFoundResult(effectivePluginResolver, configuredRequest);
             }
         });
 
         // Could be different to ids in the requests as they may be unqualified
-        final Map<Result, PluginId> legacyActualPluginIds = Maps.newLinkedHashMap();
-        final Map<Result, PluginImplementation<?>> pluginImpls = Maps.newLinkedHashMap();
-        final Map<Result, PluginImplementation<?>> pluginImplsFromOtherLoaders = Maps.newLinkedHashMap();
+        final Map<Result, PluginId> legacyActualPluginIds = newLinkedHashMap();
+        final Map<Result, PluginImplementation<?>> pluginImpls = newLinkedHashMap();
+        final Map<Result, PluginImplementation<?>> pluginImplsFromOtherLoaders = newLinkedHashMap();
 
         if (!results.isEmpty()) {
             final RepositoryHandler repositories = scriptHandler.getRepositories();
 
-            List<ArtifactRepository> pluginArtifactRepositories = new ArrayList<ArtifactRepository>();
-            pluginRepositoryRegistry.lock();
-            for (PluginRepository pluginRepository : pluginRepositoryRegistry.getPluginRepositories()) {
-                if (pluginRepository instanceof BackedByArtifactRepository) {
-                    pluginArtifactRepositories.add(((BackedByArtifactRepository) pluginRepository).createArtifactRepository(repositories));
-                }
-            }
+            createPluginArtifactRepositories(repositories);
 
-            // The plugin repositories were appended as they were added, but we want them at the front.
-            repositories.removeAll(pluginArtifactRepositories);
-            repositories.addAll(0, pluginArtifactRepositories);
-
-            final List<MavenArtifactRepository> mavenRepos = repositories.withType(MavenArtifactRepository.class);
-            final Set<String> repoUrls = Sets.newLinkedHashSet();
+            final Set<String> repoUrls = newLinkedHashSet();
 
             for (final Result result : results) {
                 applyPlugin(result.request, result.found.getPluginId(), new Runnable() {
@@ -144,20 +137,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
                 });
             }
 
-            for (final String m2RepoUrl : repoUrls) {
-                boolean repoExists = any(mavenRepos, new Spec<MavenArtifactRepository>() {
-                    public boolean isSatisfiedBy(MavenArtifactRepository element) {
-                        return element.getUrl().toString().equals(m2RepoUrl);
-                    }
-                });
-                if (!repoExists) {
-                    repositories.maven(new Action<MavenArtifactRepository>() {
-                        public void execute(MavenArtifactRepository mavenArtifactRepository) {
-                            mavenArtifactRepository.setUrl(m2RepoUrl);
-                        }
-                    });
-                }
-            }
+            addMissingMavenRepositories(repositories, repoUrls);
         }
 
         defineScriptHandlerClassScope(scriptHandler, classLoaderScope, pluginImplsFromOtherLoaders.values());
@@ -166,7 +146,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         // Because we are only build.gradle files right now, this holds.
         // It won't for arbitrary scripts though.
         for (final Map.Entry<Result, PluginId> entry : legacyActualPluginIds.entrySet()) {
-            final PluginRequest request = entry.getKey().request;
+            final PluginRequestInternal request = entry.getKey().request;
             final PluginId id = entry.getValue();
             applyPlugin(request, id, new Runnable() {
                 public void run() {
@@ -182,11 +162,49 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             applyPlugin(result.request, result.found.getPluginId(), new Runnable() {
                 public void run() {
                     if (result.request.isApply()) {
-                      target.apply(entry.getValue());
+                        target.apply(entry.getValue());
                     }
                 }
             });
         }
+    }
+
+    private void createPluginArtifactRepositories(RepositoryHandler repositories) {
+        for (PluginRepository pluginRepository : pluginRepositoryRegistry.getPluginRepositories()) {
+            if (pluginRepository instanceof BackedByArtifactRepositories) {
+                ((BackedByArtifactRepositories) pluginRepository).createArtifactRepositories(repositories);
+            }
+        }
+    }
+
+    private void addMissingMavenRepositories(RepositoryHandler repositories, Set<String> repoUrls) {
+        if (repoUrls.isEmpty()) {
+            return;
+        }
+        final Set<String> existingMavenUrls = existingMavenUrls(repositories);
+        for (final String repoUrl : repoUrls) {
+            if (!existingMavenUrls.contains(repoUrl)) {
+                maven(repositories, repoUrl);
+            }
+        }
+    }
+
+    private void maven(RepositoryHandler repositories, final String m2RepoUrl) {
+        repositories.maven(new Action<MavenArtifactRepository>() {
+            public void execute(MavenArtifactRepository mavenArtifactRepository) {
+                mavenArtifactRepository.setUrl(m2RepoUrl);
+            }
+        });
+    }
+
+    private Set<String> existingMavenUrls(RepositoryHandler repositories) {
+        Set<String> mavenUrls = newHashSet();
+        for (ArtifactRepository repo : repositories) {
+            if (repo instanceof MavenArtifactRepository) {
+                mavenUrls.add(((MavenArtifactRepository) repo).getUrl().toString());
+            }
+        }
+        return mavenUrls;
     }
 
     private void defineScriptHandlerClassScope(ScriptHandlerInternal scriptHandler, ClassLoaderScope classLoaderScope, Iterable<PluginImplementation<?>> pluginsFromOtherLoaders) {
@@ -206,29 +224,35 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         return new NotNonCorePluginOnClasspathCheckPluginResolver(pluginResolverFactory.create(), pluginRegistry, scriptClasspathPluginDescriptorLocator);
     }
 
-    private void applyPlugin(PluginRequest request, PluginId id, Runnable applicator) {
+    private void applyPlugin(PluginRequestInternal request, PluginId id, Runnable applicator) {
         try {
             try {
                 applicator.run();
             } catch (UnknownPluginException e) {
-                throw new InvalidPluginException(
-                    String.format(
-                        "Could not apply requested plugin %s as it does not provide a plugin with id '%s'."
-                            + " This is caused by an incorrect plugin implementation."
-                            + " Please contact the plugin author(s).",
-                        request, id
-                    ),
-                    e
-                );
+                throw couldNotApply(request, id, e);
             } catch (Exception e) {
-                throw new InvalidPluginException(String.format("An exception occurred applying plugin request %s", request), e);
+                throw exceptionOccurred(request, e);
             }
         } catch (Exception e) {
             throw new LocationAwareException(e, request.getScriptDisplayName(), request.getLineNumber());
         }
     }
 
-    private Result resolveToFoundResult(PluginResolver effectivePluginResolver, PluginRequest request) {
+    private InvalidPluginException couldNotApply(PluginRequestInternal request, PluginId id, UnknownPluginException cause) {
+        return new InvalidPluginException(
+            String.format(
+                "Could not apply requested plugin %s as it does not provide a plugin with id '%s'."
+                    + " This is caused by an incorrect plugin implementation."
+                    + " Please contact the plugin author(s).",
+                request, id),
+            cause);
+    }
+
+    private InvalidPluginException exceptionOccurred(PluginRequestInternal request, Exception e) {
+        return new InvalidPluginException(String.format("An exception occurred applying plugin request %s", request), e);
+    }
+
+    private Result resolveToFoundResult(PluginResolver effectivePluginResolver, PluginRequestInternal request) {
         Result result = new Result(request);
         try {
             effectivePluginResolver.resolve(request, result);
@@ -247,7 +271,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         return result;
     }
 
-    private String buildNotFoundMessage(PluginRequest pluginRequest, Result result) {
+    private String buildNotFoundMessage(PluginRequestInternal pluginRequest, Result result) {
         if (result.notFoundList.isEmpty()) {
             // this shouldn't happen, resolvers should call notFound()
             return String.format("Plugin %s was not found", pluginRequest.getDisplayName());
@@ -278,10 +302,10 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
     private static class Result implements PluginResolutionResult {
         private final List<NotFound> notFoundList = new LinkedList<NotFound>();
-        private final PluginRequest request;
+        private final PluginRequestInternal request;
         private PluginResolution found;
 
-        public Result(PluginRequest request) {
+        public Result(PluginRequestInternal request) {
             this.request = request;
         }
 

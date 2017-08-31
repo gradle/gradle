@@ -16,6 +16,7 @@
 package org.gradle.internal.service;
 
 import org.gradle.internal.Factory;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -33,6 +34,7 @@ public interface ServiceRegistry {
      * @throws UnknownServiceException When there is no service of the given type available.
      * @throws ServiceLookupException On failure to lookup the specified service.
      */
+    @UsedByScanPlugin
     <T> T get(Class<T> serviceType) throws UnknownServiceException, ServiceLookupException;
 
     /**
@@ -75,4 +77,7 @@ public interface ServiceRegistry {
      * @throws ServiceLookupException On failure to lookup the specified service factory.
      */
     <T> T newInstance(Class<T> type) throws UnknownServiceException, ServiceLookupException;
+
+    boolean hasService(Class<?> serviceType);
+
 }

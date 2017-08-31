@@ -15,26 +15,23 @@
  */
 package org.gradle.groovy.scripts.internal;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.hash.HashCode;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
-import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
+import org.gradle.cache.internal.CrossBuildInMemoryCache;
+import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Cast;
+import org.gradle.internal.hash.HashCode;
 
 public class CrossBuildInMemoryCachingScriptClassCache {
+    private final CrossBuildInMemoryCache<ScriptCacheKey, CachedCompiledScript> cachedCompiledScripts;
+    private final ScriptSourceHasher hasher;
 
-    private final Cache<ScriptCacheKey, CachedCompiledScript> cachedCompiledScripts =
-        CacheBuilder.newBuilder().maximumSize(100).recordStats().build();
-
-    private final FileHasher hasher;
-
-    public CrossBuildInMemoryCachingScriptClassCache(FileHasher hasher) {
+    public CrossBuildInMemoryCachingScriptClassCache(ScriptSourceHasher hasher, CrossBuildInMemoryCacheFactory cacheFactory) {
         this.hasher = hasher;
+        cachedCompiledScripts = cacheFactory.newCache();
     }
 
     public <T extends Script, M> CompiledScript<T, M> getOrCompile(ScriptSource source, ClassLoader classLoader,
@@ -44,8 +41,8 @@ public class CrossBuildInMemoryCachingScriptClassCache {
                                                                    Action<? super ClassNode> verifier,
                                                                    ScriptClassCompiler delegate) {
         ScriptCacheKey key = new ScriptCacheKey(source.getClassName(), classLoader, operation.getId());
-        CachedCompiledScript cached = cachedCompiledScripts.getIfPresent(key);
-        HashCode hash = hasher.hash(source.getResource());
+        CachedCompiledScript cached = cachedCompiledScripts.get(key);
+        HashCode hash = hasher.hash(source);
         if (cached != null) {
             if (hash.equals(cached.hash)) {
                 return Cast.uncheckedCast(cached.compiledScript);

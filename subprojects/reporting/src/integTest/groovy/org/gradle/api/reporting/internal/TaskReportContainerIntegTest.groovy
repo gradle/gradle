@@ -21,9 +21,9 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
 class TaskReportContainerIntegTest extends AbstractIntegrationSpec {
-    
+
     def task = ":createReports"
-    
+
     def setup() {
         buildFile << """
             import org.gradle.api.reporting.*
@@ -64,10 +64,10 @@ class TaskReportContainerIntegTest extends AbstractIntegrationSpec {
                 inputs.property "foo", { project.value }
                 reports.all {
                     it.enabled true
-                    destination it.outputType == Report.OutputType.DIRECTORY ? it.name : "\$it.name/file"
+                    destination it.outputType == Report.OutputType.DIRECTORY ? file(it.name) : file("\$it.name/file")
                 }
             }
-        """ 
+        """
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})

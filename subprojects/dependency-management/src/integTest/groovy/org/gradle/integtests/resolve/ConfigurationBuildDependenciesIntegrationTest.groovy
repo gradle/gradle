@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import spock.lang.Unroll
 
@@ -70,7 +69,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         run taskName
 
         then:
-        result.assertTasksExecuted(":lib", ":child:jar", ":child:lib", ":$taskName");
+        executed ":lib", ":child:jar", ":child:lib", ":$taskName"
 
         where:
         taskName               | _
@@ -85,13 +84,20 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
     }
 
     @Unroll
-    def "builds correct artifacts when there is a cycle in dependency graph - fluid: #fluid"() {
+    def "builds correct artifacts when there is a project cycle in dependency graph - fluid: #fluid"() {
         makeFluid(fluid)
+
+        // A graph from root compile -> child default -> root default, so not an actual cycle here
+        // Graph includes artifact and file dependencies on each node, should build all of them
         buildFile << """
             allprojects { 
                 task jar 
+                task lib
                 artifacts {
                     compile file: file("\${project.name}.jar"), builtBy: jar
+                }
+                dependencies {
+                    compile files("\${project.name}-lib.jar") { builtBy lib }
                 }
             }
             dependencies {
@@ -99,7 +105,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
             }
             project(':child') {
                 dependencies {
-                    compile project(':')
+                    compile project(':') // references 'default' not 'compile' so there is not _actually_ a cycle here
                 }
             }
 """
@@ -108,14 +114,51 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         run("useCompileConfiguration")
 
         then:
-        result.assertTasksExecuted(":jar", ":child:jar", ":useCompileConfiguration")
+        executed ":jar", ":lib", ":child:jar", ":child:lib", ":useCompileConfiguration"
 
         where:
         fluid << [true, false]
     }
 
     @Unroll
-    def "reports failure to calculate build dependencies of artifact - fluid: #fluid"() {
+    def "builds correct artifacts when there is a cycle in dependency graph - fluid: #fluid"() {
+        makeFluid(fluid)
+
+        // A graph from root compile -> child default -> root compile
+        // Graph includes artifact and file dependencies on each node, should build all of them
+        buildFile << """
+            allprojects { 
+                task jar 
+                task lib
+                artifacts {
+                    compile file: file("\${project.name}.jar"), builtBy: jar
+                }
+                dependencies {
+                    compile files("\${project.name}-lib.jar") { builtBy lib }
+                }
+            }
+            dependencies {
+                compile project(':child')
+            }
+            project(':child') {
+                dependencies {
+                    compile project(path: ':', configuration: 'compile')
+                }
+            }
+"""
+
+        when:
+        run("useCompileConfiguration")
+
+        then:
+        executed ":jar", ":lib", ":child:jar", ":child:lib", ":useCompileConfiguration"
+
+        where:
+        fluid << [true, false]
+    }
+
+    @Unroll
+    def "reports failure to calculate build dependencies when artifact build dependencies cannot be queried - fluid: #fluid"() {
         makeFluid(fluid)
         buildFile << """
             dependencies {
@@ -129,6 +172,11 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
 """
 
         expect:
+        executer.withArgument("--dry-run")
+        fails("useCompileConfiguration")
+        failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
+        failure.assertHasCause('broken')
+
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
         failure.assertHasCause('broken')
@@ -138,7 +186,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
     }
 
     @Unroll
-    def "reports failure to calculate build dependencies of file dependency - fluid: #fluid"() {
+    def "reports failure to calculate build dependencies when file dependency cannot be resolved - fluid: #fluid"() {
         makeFluid(fluid)
         buildFile << """
             dependencies {
@@ -152,6 +200,11 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
 """
 
         expect:
+        executer.withArgument("--dry-run")
+        fails("useCompileConfiguration")
+        failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
+        failure.assertHasCause('broken')
+
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
         failure.assertHasCause('broken')
@@ -160,8 +213,66 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         fluid << [true, false]
     }
 
-    @NotYetImplemented
-    def "reports failure to find build dependencies of file dependency when using fluid dependencies"() {
+    @Unroll
+    def "reports failure to calculate build dependencies when local configuration cannot be selected - fluid: #fluid"() {
+        makeFluid(fluid)
+        buildFile << """
+            dependencies {
+                compile project(':child')
+            }
+            project(':child') {
+                configurations.default.canBeConsumed = false
+            }
+"""
+
+        expect:
+        executer.withArgument("--dry-run")
+        fails("useCompileConfiguration")
+        failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
+        failure.assertHasCause("Selected configuration 'default' on 'project :child' but it can't be used as a project dependency because it isn't intended for consumption by other components.")
+
+        fails("useCompileConfiguration")
+        failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
+        failure.assertHasCause("Selected configuration 'default' on 'project :child' but it can't be used as a project dependency because it isn't intended for consumption by other components.")
+
+        where:
+        fluid << [true, false]
+    }
+
+    @Unroll
+    def "reports failure to calculate build dependencies when local variant cannot be selected - fluid: #fluid"() {
+        makeFluid(fluid)
+        buildFile << """
+            dependencies {
+                compile project(':child')
+            }
+            project(':child') {
+                configurations.default.outgoing.variants {
+                    v1 { }
+                    v2 { }
+                }
+            }
+"""
+
+        expect:
+        executer.withArgument("--dry-run")
+        fails("useCompileConfiguration")
+        failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
+        failure.assertHasCause("More than one variant of project :child matches the consumer attributes:")
+
+        fails("useCompileConfiguration")
+        failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
+        failure.assertHasCause("More than one variant of project :child matches the consumer attributes:")
+
+        where:
+        fluid << [true, false]
+    }
+
+    def "reports failure to find build dependencies for broken external component when using fluid dependencies"() {
         def module = mavenHttpRepo.module("test", "test", "1.0").publish()
         makeFluid(true)
         buildFile << """
@@ -183,9 +294,19 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
 
         expect:
         module.pom.expectGetBroken()
+
+        executer.withArgument("--dry-run")
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
+        failure.assertHasCause("Could not resolve test:test:1.0.")
+        failure.assertHasCause("Could not get resource '${module.pom.uri}'")
+
+        module.pom.expectGetBroken()
+        fails("useCompileConfiguration")
+        failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
+        failure.assertHasCause("Could not resolve test:test:1.0.")
         failure.assertHasCause("Could not get resource '${module.pom.uri}'")
     }
 
@@ -228,7 +349,50 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         run 'useCompileConfiguration'
 
         then:
-        result.assertTasksExecuted(":child:jar", ":useCompileConfiguration")
+        executed ":child:jar", ":useCompileConfiguration"
+    }
+
+    def "does not download artifacts when task dependencies are calculated for configuration that is used as a task input when using fluid dependencies"() {
+        def module = mavenHttpRepo.module("test", "test", "1.0").publish()
+        makeFluid(true)
+        buildFile << """
+            allprojects {
+                repositories {
+                    maven { url '$mavenHttpRepo.uri' }
+                }
+            }
+            
+            dependencies {
+                compile project(':child')
+            }
+            project(':child') {
+                task jar { 
+                    outputs.files file('thing.jar')
+                }
+                artifacts {
+                    compile file: jar.outputs.files.singleFile, builtBy: jar
+                }
+                dependencies {
+                    compile 'test:test:1.0'
+                }                
+            }
+"""
+
+        when:
+        module.pom.expectGet()
+        executer.withArgument("--dry-run")
+        run 'useCompileConfiguration'
+
+        then:
+        server.resetExpectations()
+
+        when:
+        // Expect downloads when task executed
+        module.artifact.expectGet()
+        run 'useCompileConfiguration'
+
+        then:
+        executed ":child:jar", ":useCompileConfiguration"
     }
 
     void makeFluid(boolean fluid) {

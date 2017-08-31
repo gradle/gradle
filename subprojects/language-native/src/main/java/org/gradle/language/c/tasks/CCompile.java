@@ -16,7 +16,6 @@
 package org.gradle.language.c.tasks;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.language.c.internal.DefaultCCompileSpec;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
@@ -25,7 +24,6 @@ import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
  * Compiles C source files into object files.
  */
 @Incubating
-@ParallelizableTask
 public class CCompile extends AbstractNativeSourceCompileTask {
     @Override
     protected NativeCompileSpec createCompileSpec() {

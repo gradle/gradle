@@ -57,7 +57,6 @@ public @interface Model {
      * If the value is the empty string, the exact name of the annotated method will be used.
      * <p>
      * The value must:
-     * <p>
      * <ul>
      * <li>Start with a lower case letter</li>
      * <li>Contain only ASCII letters, numbers and the '_' character</li>

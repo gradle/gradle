@@ -17,10 +17,10 @@
 package org.gradle.internal.serialize.kryo;
 
 import com.esotericsoftware.kryo.io.Output;
-import org.gradle.api.Nullable;
 import org.gradle.internal.serialize.AbstractEncoder;
 import org.gradle.internal.serialize.FlushableEncoder;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.OutputStream;
 
@@ -75,7 +75,7 @@ public class KryoBackedEncoder extends AbstractEncoder implements FlushableEncod
     }
 
     /**
-     * Returns the total number of bytes written by this encoder, some of which is may still be buffered.
+     * Returns the total number of bytes written by this encoder, some of which may still be buffered.
      */
     public int getWritePosition() {
         return output.total();

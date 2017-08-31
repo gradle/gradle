@@ -18,16 +18,18 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.api.Action;
 
 import java.io.File;
 import java.util.Map;
+
+import static org.gradle.util.ConfigureUtil.configure;
 
 /**
  * DSL-friendly model of the Eclipse project information.
  * First point of entry for customizing Eclipse project generation.
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  * apply plugin: 'eclipse'
  * apply plugin: 'eclipse-wtp' //for web projects only
@@ -117,11 +119,29 @@ public class EclipseModel {
      * Configures eclipse project information
      * <p>
      * For examples see docs for {@link EclipseProject}
-     *
-     * @param closure
      */
     public void project(Closure closure) {
-        ConfigureUtil.configure(closure, project);
+        configure(closure, project);
+    }
+
+    /**
+     * Configures eclipse project information
+     * <p>
+     * For examples see docs for {@link EclipseProject}
+     *
+     * @since 3.5
+     */
+    public void project(Action<? super EclipseProject> action) {
+        action.execute(project);
+    }
+
+    /**
+     * Configures eclipse classpath information
+     * <p>
+     * For examples see docs for {@link EclipseClasspath}
+     */
+    public void classpath(Closure closure) {
+        configure(closure, classpath);
     }
 
     /**
@@ -129,10 +149,19 @@ public class EclipseModel {
      * <p>
      * For examples see docs for {@link EclipseClasspath}
      *
-     * @param closure
+     * @since 3.5
      */
-    public void classpath(Closure closure) {
-        ConfigureUtil.configure(closure, classpath);
+    public void classpath(Action<? super EclipseClasspath> action) {
+        action.execute(classpath);
+    }
+
+    /**
+     * Configures eclipse wtp information
+     * <p>
+     * For examples see docs for {@link EclipseWtp}
+     */
+    public void wtp(Closure closure) {
+        configure(closure, wtp);
     }
 
     /**
@@ -140,10 +169,19 @@ public class EclipseModel {
      * <p>
      * For examples see docs for {@link EclipseWtp}
      *
-     * @param closure
+     * @since 3.5
      */
-    public void wtp(Closure closure) {
-        ConfigureUtil.configure(closure, wtp);
+    public void wtp(Action<? super EclipseWtp> action) {
+        action.execute(wtp);
+    }
+
+    /**
+     * Configures eclipse java compatibility information (jdt)
+     * <p>
+     * For examples see docs for {@link EclipseProject}
+     */
+    public void jdt(Closure closure) {
+        configure(closure, jdt);
     }
 
     /**
@@ -151,10 +189,10 @@ public class EclipseModel {
      * <p>
      * For examples see docs for {@link EclipseProject}
      *
-     * @param closure
+     * @since 3.5
      */
-    public void jdt(Closure closure) {
-        ConfigureUtil.configure(closure, jdt);
+    public void jdt(Action<? super EclipseJdt> action) {
+        action.execute(jdt);
     }
 
     /**
@@ -165,7 +203,7 @@ public class EclipseModel {
      * <p>
      * For example see docs for {@link EclipseModel}
      *
-     * @param pathVariables A map with String->File pairs.
+     * @param pathVariables A map with String-&gt;File pairs.
      */
     public void pathVariables(Map<String, File> pathVariables) {
         Preconditions.checkNotNull(pathVariables);

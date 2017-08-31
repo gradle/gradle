@@ -17,6 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.api.GradleException;
+import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -82,16 +83,10 @@ public class DefaultLegacyTypesSupport implements LegacyTypesSupport {
     @Override
     public void injectEmptyInterfacesIntoClassLoader(ClassLoader classLoader) {
         try {
-            java.lang.reflect.Method defineClassMethod =
-                ClassLoader.class.getDeclaredMethod("defineClass", String.class, byte[].class, int.class, int.class);
-            defineClassMethod.setAccessible(true);
-
             for (String name : syntheticClasses) {
                 byte[] bytes = generateSyntheticClass(name);
-                defineClassMethod.invoke(classLoader, name, bytes, 0, bytes.length);
+                ClassLoaderUtils.define(classLoader, name, bytes);
             }
-
-            defineClassMethod.setAccessible(false);
         } catch (Exception e) {
             throw new GradleException("Could not inject synthetic classes.", e);
         }

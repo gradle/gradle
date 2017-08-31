@@ -18,10 +18,8 @@ package org.gradle.plugin.devel.impldeps
 
 import groovy.transform.TupleConstructor
 import org.gradle.api.Action
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.ErroringAction
 import org.gradle.internal.IoActions
-import spock.lang.Shared
 import spock.lang.Unroll
 
 import java.util.zip.ZipEntry
@@ -30,9 +28,6 @@ import java.util.zip.ZipInputStream
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsIntegrationTest {
-
-    @Shared
-    IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 
     def "TestKit dependency artifacts contain Gradle API artifact"() {
         given:

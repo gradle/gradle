@@ -16,18 +16,12 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.Action;
-import org.gradle.api.Task;
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
-
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.project.taskfactory.PropertyAnnotationUtils.getPathSensitivity;
 import static org.gradle.internal.Cast.uncheckedCast;
 import static org.gradle.util.GUtil.uncheckedCall;
 
@@ -43,20 +37,11 @@ public abstract class AbstractPluralOutputPropertyAnnotationHandler extends Abst
     protected abstract void doValidate(String propertyName, File file, Collection<String> messages);
 
     @Override
-    protected void update(final TaskPropertyActionContext context, final TaskInternal task, final Callable<Object> futureValue) {
-        TaskOutputFilePropertyBuilder propertyBuilder = createPropertyBuilder(context, task, futureValue);
-        propertyBuilder.withPropertyName(context.getName());
-        propertyBuilder.withPathSensitivity(getPathSensitivity(context));
-        task.prependParallelSafeAction(new Action<Task>() {
-            public void execute(Task task) {
-                for (File file : toFiles(uncheckedCall(futureValue))) {
-                    doEnsureExists(file);
-                }
-            }
-        });
+    protected void beforeTask(final Callable<Object> futureValue) {
+        for (File file : toFiles(uncheckedCall(futureValue))) {
+            doEnsureExists(file);
+        }
     }
-
-    protected abstract TaskOutputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, Callable<Object> futureValue);
 
     protected abstract void doEnsureExists(File file);
 

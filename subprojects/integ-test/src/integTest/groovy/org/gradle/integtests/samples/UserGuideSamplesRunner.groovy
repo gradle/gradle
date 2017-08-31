@@ -18,6 +18,7 @@ package org.gradle.integtests.samples
 import com.google.common.collect.ArrayListMultimap
 import groovy.io.PlatformLineWriter
 import org.apache.tools.ant.taskdefs.Delete
+import org.apache.tools.ant.types.FileSet
 import org.gradle.api.JavaVersion
 import org.gradle.api.Transformer
 import org.gradle.api.reporting.components.JvmComponentReportOutputFormatter
@@ -53,7 +54,7 @@ class UserGuideSamplesRunner extends Runner {
     private TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     private GradleDistribution dist = new UnderDevelopmentGradleDistribution()
     private IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
-    private GradleExecuter executer = new GradleContextualExecuter(dist, temporaryFolder)
+    private GradleExecuter executer = new GradleContextualExecuter(dist, temporaryFolder, buildContext)
     private Pattern dirFilter
     private List excludes
     private TestFile baseExecutionDir = temporaryFolder.testDirectory
@@ -134,8 +135,8 @@ class UserGuideSamplesRunner extends Runner {
             File rootProjectDir = temporaryFolder.testDirectory.file(singleRun.subDir)
             if (rootProjectDir.exists()) {
                 def delete = new Delete()
-                delete.dir = rootProjectDir
-                delete.includes = "**/.gradle/** **/build/**"
+                delete.includeEmptyDirs = true
+                delete.addFileset(new FileSet(dir: rootProjectDir, includes: "**/.gradle/** **/build/**"))
                 AntUtil.execute(delete)
             }
         }
@@ -168,6 +169,13 @@ class UserGuideSamplesRunner extends Runner {
                 }
                 expectedResult = replaceWithPlatformNewLines(expectedResult)
                 expectedResult = replaceWithRealSamplesDir(expectedResult)
+
+                def matcher = Pattern.compile("BUILD SUCCESSFUL in \\d+s").matcher(result.output)
+                if (matcher.find()) {
+                    String buildSuccessMessage = matcher.group()
+                    expectedResult = expectedResult.replace("BUILD SUCCESSFUL in 0s", buildSuccessMessage)
+                }
+
                 try {
                     result.assertOutputEquals(expectedResult, run.ignoreExtraLines, run.ignoreLineOrder)
                 } catch (AssertionError e) {
@@ -208,6 +216,43 @@ class UserGuideSamplesRunner extends Runner {
         return text.replaceAll(Pattern.quote('/home/user/gradle/samples'), normalisedSamplesDir)
     }
 
+    private configureJava6CrossCompilationForGroovyAndScala(ArrayListMultimap<String,GradleRun> samplesByDir){
+        def java6CrossCompilation = ['groovy', 'scala'].collectMany {
+            samplesByDir.get(it + '/crossCompilation')
+        }
+
+        def java6jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_6)
+        if (!java6jdk || OperatingSystem.current().isWindows()) {
+            java6CrossCompilation*.expectFailure = true
+        } else {
+            java6CrossCompilation*.args = ['build', "-Pjava6Home=${java6jdk.javaHome.absolutePath}"]
+        }
+    }
+
+    private configureJava67CrossCompilationForJava(ArrayListMultimap<String, GradleRun> samplesByDir) {
+        List<GradleRun> javaCrossCompilation = samplesByDir.get('java/crossCompilation')
+
+        configureJavaCrossCompilationWithJdk(JavaVersion.VERSION_1_6, javaCrossCompilation[0])
+        configureJavaCrossCompilationWithJdk(JavaVersion.VERSION_1_7, javaCrossCompilation[1])
+    }
+
+    private configureJavaCrossCompilationWithJdk(JavaVersion version, GradleRun crossCompilation) {
+        def jdk = AvailableJavaHomes.getJdk(version)
+        if (!jdk || OperatingSystem.current().isWindows()) {
+            crossCompilation.expectFailure = true
+        } else {
+            crossCompilation.args = ['build', "-PjavaHome=${jdk.javaHome.absolutePath}", "-PtargetJavaVersion=${version.toString()}"]
+        }
+    }
+
+    private GradleRun createRun(String id, Map params, Node sample) {
+        def run = new GradleRun(params)
+        run.id = id
+        sample.file.each { file -> run.files << file.'@path' }
+        sample.dir.each { file -> run.dirs << file.'@path' }
+        run
+    }
+
     private Collection<SampleRun> getScriptsForSamples(File userguideInfoDir) {
         def samplesXml = new File(userguideInfoDir, 'samples.xml')
         assertSamplesGenerated(samplesXml.exists())
@@ -226,19 +271,20 @@ class UserGuideSamplesRunner extends Runner {
             boolean ignoreLineOrder = Boolean.valueOf(sample.'@ignoreLineOrder')
             boolean expectFailure = Boolean.valueOf(sample.'@expectFailure')
 
-            def run = new GradleRun(id: id)
-            run.subDir = dir
-            run.args = args ? args.split('\\s+') as List : []
-            run.outputFile = outputFile
-            run.ignoreExtraLines = ignoreExtraLines
-            run.ignoreLineOrder = ignoreLineOrder
-            run.expectFailure = expectFailure
-            run.index = index
+            Map params = [subDir          : dir,
+                          args            : args ? args.split('\\s+') as List : [],
+                          outputFile      : outputFile,
+                          ignoreExtraLines: ignoreExtraLines,
+                          ignoreLineOrder : ignoreLineOrder,
+                          expectFailure   : expectFailure,
+                          index           : index]
 
-            sample.file.each { file -> run.files << file.'@path' }
-            sample.dir.each { file -> run.dirs << file.'@path' }
-
-            samplesByDir.put(dir, run)
+            if (id == 'javaCrossCompilation') {
+                samplesByDir.put(dir, createRun('java6CrossCompilation', params, sample))
+                samplesByDir.put(dir, createRun('java7CrossCompilation', params, sample))
+            } else {
+                samplesByDir.put(dir, createRun(id, params, sample))
+            }
         }
 
         // Some custom values
@@ -249,19 +295,13 @@ class UserGuideSamplesRunner extends Runner {
         samplesByDir.get('userguide/multiproject/dependencies/firstMessages/messages')*.brokenForParallel = true
         samplesByDir.get('userguide/multiproject/dependencies/messagesHack/messages')*.brokenForParallel = true
         samplesByDir.get('userguide/tutorial/helloShortcut')*.allowDeprecation = true
-        samplesByDir.get('webApplication/customized')*.allowDeprecation = true
-        samplesByDir.get('webApplication/quickstart')*.allowDeprecation = true
-
-        def java6CrossCompilation = ['java', 'groovy', 'scala'].collectMany {
-            samplesByDir.get(it + '/crossCompilation')
+        samplesByDir.values().findAll() { it.subDir.startsWith('buildCache/') }.each {
+            it.args = ['--build-cache', 'help']
         }
 
-        def java6jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_6)
-        if (!java6jdk || OperatingSystem.current().isWindows()) {
-            java6CrossCompilation*.expectFailure = true
-        } else {
-            java6CrossCompilation*.args = ['build', "-Pjava6Home=${java6jdk.javaHome.absolutePath}"]
-        }
+        configureJava6CrossCompilationForGroovyAndScala(samplesByDir)
+
+        configureJava67CrossCompilationForJava(samplesByDir)
 
         Map<String, SampleRun> samplesById = new TreeMap<String, SampleRun>()
 
@@ -303,7 +343,7 @@ class UserGuideSamplesRunner extends Runner {
 
     private void assertSamplesGenerated(boolean assertion) {
         assert assertion: """Couldn't find any samples. Most likely, samples.xml was not generated.
-Please run 'gradle docs:userguideDocbook' first"""
+Please run 'gradle docs:extractSamples' first"""
     }
 
     private class GradleRun {

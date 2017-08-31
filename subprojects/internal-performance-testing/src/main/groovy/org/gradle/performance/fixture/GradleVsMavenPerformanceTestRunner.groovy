@@ -16,11 +16,13 @@
 package org.gradle.performance.fixture
 
 import groovy.transform.CompileStatic
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.GradleVsMavenBuildPerformanceResults
 import org.gradle.performance.results.MeasuredOperationList
+import org.gradle.performance.util.Git
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.util.GradleVersion
@@ -30,8 +32,19 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
 
     final M2Installation m2
 
-    GradleVsMavenPerformanceTestRunner(TestDirectoryProvider testDirectoryProvider, GradleVsMavenBuildExperimentRunner experimentRunner, DataReporter<GradleVsMavenBuildPerformanceResults> dataReporter) {
-        super(experimentRunner, dataReporter)
+    String testProject
+    List<String> gradleTasks
+    List<String> gradleCleanTasks = []
+    List<String> equivalentMavenTasks
+    List<String> equivalentMavenCleanTasks = []
+    List<Object> jvmOpts = []
+    List<Object> mvnArgs = []
+
+    int warmUpRuns = 4
+    int runs = 12
+
+    GradleVsMavenPerformanceTestRunner(TestDirectoryProvider testDirectoryProvider, GradleVsMavenBuildExperimentRunner experimentRunner, DataReporter<GradleVsMavenBuildPerformanceResults> dataReporter, IntegrationTestBuildContext buildContext) {
+        super(experimentRunner, dataReporter, buildContext)
         m2 = new M2Installation(testDirectoryProvider)
     }
 
@@ -43,7 +56,27 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
         }
     }
 
-    public void mavenBuildSpec(@DelegatesTo(MavenBuildExperimentSpec.MavenBuilder) Closure<?> configureAction) {
+    @Override
+    GradleVsMavenBuildPerformanceResults run() {
+        def commonBaseDisplayName = "${gradleTasks.join(' ')} on $testProject"
+        baseline {
+            warmUpCount = warmUpRuns
+            invocationCount = runs
+            projectName(testProject).displayName("Gradle $commonBaseDisplayName").invocation {
+                tasksToRun(gradleTasks).cleanTasks(gradleCleanTasks).useDaemon().gradleOpts(jvmOpts.collect {it.toString()})
+            }
+        }
+        mavenBuildSpec {
+            warmUpCount = warmUpRuns
+            invocationCount = runs
+            projectName(testProject).displayName("Maven $commonBaseDisplayName").invocation {
+                tasksToRun(equivalentMavenTasks).cleanTasks(equivalentMavenCleanTasks).mavenOpts(jvmOpts.collect {it.toString()}).args(mvnArgs.collect {it.toString()})
+            }
+        }
+        super.run()
+    }
+
+    protected void mavenBuildSpec(@DelegatesTo(MavenBuildExperimentSpec.MavenBuilder) Closure<?> configureAction) {
         configureAndAddSpec(MavenBuildExperimentSpec.builder(), configureAction)
     }
 
@@ -64,7 +97,7 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
                     localRepoPath = localRepoPath.replace("\\", "\\\\").replace(" ", "\\ ")
                     invocation.args.add("-Dmaven.repo.local=${localRepoPath}".toString())
                 } else {
-                    invocation.args.add("-Dmaven.repo.local=\"${localRepoPath}\"".toString())
+                    invocation.args.add("-Dmaven.repo.local=${localRepoPath}".toString())
                 }
             }
             if (!invocation.mavenHome) {
@@ -85,6 +118,7 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
             testId: testId,
             testGroup: testGroup,
             jvm: Jvm.current().toString(),
+            host: InetAddress.getLocalHost().getHostName(),
             operatingSystem: OperatingSystem.current().toString(),
             versionUnderTest: GradleVersion.current().getVersion(),
             vcsBranch: Git.current().branchName,

@@ -59,13 +59,13 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets.create('custom')
         new TestFile(project.file("src/custom/java/File.java")) << "foo"
-        new TestFile(project.file("src/custom/resouces/resource.txt")) << "foo"
+        new TestFile(project.file("src/custom/resources/resource.txt")) << "foo"
 
         then:
         SourceSet set = project.sourceSets.custom
         set.java.srcDirs == toLinkedSet(project.file('src/custom/java'))
         set.resources.srcDirs == toLinkedSet(project.file('src/custom/resources'))
-        set.output.classesDir == new File(project.buildDir, 'classes/custom')
+        set.java.outputDir == new File(project.buildDir, 'classes/java/custom')
         set.output.resourcesDir == new File(project.buildDir, 'resources/custom')
 
         def processResources = project.tasks['processCustomResources']
@@ -81,7 +81,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         compileJava instanceof JavaCompile
         TaskDependencyMatchers.dependsOn().matches(compileJava)
         compileJava.classpath.is(project.sourceSets.custom.compileClasspath)
-        compileJava.destinationDir == new File(project.buildDir, 'classes/custom')
+        compileJava.destinationDir == new File(project.buildDir, 'classes/java/custom')
 
         def sources = compileJava.source
         sources.files == project.sourceSets.custom.java.files
@@ -102,7 +102,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         SourceSet set = project.sourceSets.main
         set.java.srcDirs == toLinkedSet(project.file('src/main/java'))
         set.resources.srcDirs == toLinkedSet(project.file('src/main/resources'))
-        set.output.classesDir == new File(project.buildDir, 'classes/main')
+        set.java.outputDir == new File(project.buildDir, 'classes/java/main')
         set.output.resourcesDir == new File(project.buildDir, 'resources/main')
 
         def processResources = project.tasks.processResources
@@ -160,34 +160,60 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         compile.transitive
         !compile.visible
         compile.extendsFrom == [] as Set
-        compile.description == "Dependencies for source set 'custom'."
+        compile.description == "Dependencies for source set 'custom' (deprecated, use 'customImplementation ' instead)."
+
+        then:
+        def implementation = project.configurations.customImplementation
+        !implementation.visible
+        implementation.extendsFrom == [compile] as Set
+        implementation.description == "Implementation only dependencies for source set 'custom'."
+        !implementation.canBeConsumed
+        !implementation.canBeResolved
 
         and:
         def runtime = project.configurations.customRuntime
         runtime.transitive
         !runtime.visible
         runtime.extendsFrom == [compile] as Set
-        runtime.description == "Runtime dependencies for source set 'custom'."
+        runtime.description == "Runtime dependencies for source set 'custom' (deprecated, use 'customRuntimeOnly ' instead)."
+
+        and:
+        def runtimeOnly = project.configurations.customRuntimeOnly
+        runtimeOnly.transitive
+        !runtimeOnly.visible
+        !runtimeOnly.canBeConsumed
+        !runtimeOnly.canBeResolved
+        runtimeOnly.extendsFrom == [] as Set
+        runtimeOnly.description == "Runtime only dependencies for source set 'custom'."
+
+        and:
+        def runtimeClasspath = project.configurations.customRuntimeClasspath
+        runtimeClasspath.transitive
+        !runtimeClasspath.visible
+        !runtimeClasspath.canBeConsumed
+        runtimeClasspath.canBeResolved
+        runtimeClasspath.extendsFrom == [runtimeOnly, runtime, implementation] as Set
+        runtimeClasspath.description == "Runtime classpath of source set 'custom'."
 
         and:
         def compileOnly = project.configurations.customCompileOnly
         compileOnly.transitive
         !compileOnly.visible
-        compileOnly.extendsFrom ==  [compile] as Set
-        compileOnly.description == "Compile dependencies for source set 'custom'."
+        compileOnly.extendsFrom == [] as Set
+        compileOnly.description == "Compile only dependencies for source set 'custom'."
 
         and:
         def compileClasspath = project.configurations.customCompileClasspath
         compileClasspath.transitive
         !compileClasspath.visible
-        compileClasspath.extendsFrom ==  [compileOnly] as Set
+        compileClasspath.extendsFrom == [compileOnly, implementation] as Set
         compileClasspath.description == "Compile classpath for source set 'custom'."
 
         and:
         def sourceSetRuntimeClasspath = sourceSet.runtimeClasspath
         def sourceSetCompileClasspath = sourceSet.compileClasspath
         sourceSetCompileClasspath == compileClasspath
-        sourceSetRuntimeClasspath sameCollection(sourceSet.output + runtime)
+        sourceSetRuntimeClasspath sameCollection(sourceSet.output + runtimeClasspath)
     }
 
     void appliesMappingsToTasksDefinedByBuildScript() {
@@ -233,32 +259,6 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         def buildNeeded = project.tasks[JavaBasePlugin.BUILD_NEEDED_TASK_NAME]
         TaskDependencyMatchers.dependsOn(JavaBasePlugin.BUILD_TASK_NAME).matches(buildNeeded)
-    }
-
-    def configuresTestTaskWhenDebugSystemPropertyIsSet() {
-        project.pluginManager.apply(JavaBasePlugin)
-        def task = project.tasks.create('test', Test.class)
-
-        when:
-        System.setProperty("test.debug", "true")
-        project.projectEvaluationBroadcaster.afterEvaluate(project, null)
-
-        then:
-        task.debug
-    }
-
-    def "configures test task when test.single is used"() {
-        project.pluginManager.apply(JavaBasePlugin)
-        def task = project.tasks.create('test', Test.class)
-        task.include 'ignoreme'
-
-        when:
-        System.setProperty("test.single", "pattern")
-        project.projectEvaluationBroadcaster.afterEvaluate(project, null)
-
-        then:
-        task.includes == ['**/pattern*.class'] as Set
-        task.inputs.getSourceFiles().empty
     }
 
     def "adds language source sets for each source set added to the 'sourceSets' container"() {

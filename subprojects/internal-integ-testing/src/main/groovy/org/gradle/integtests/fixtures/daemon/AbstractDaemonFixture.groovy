@@ -35,7 +35,7 @@ abstract class AbstractDaemonFixture implements DaemonFixture {
         if(!this.context) {
             println "Could not parse daemon log: \n$daemonLog.text"
         }
-        if (this.context.pid == null) {
+        if (this.context?.pid == null) {
             println "PID in daemon log ($daemonLog.absolutePath) is null."
             println "daemon.log exists: ${daemonLog.exists()}"
 
@@ -91,5 +91,10 @@ abstract class AbstractDaemonFixture implements DaemonFixture {
     @Override
     void kill() {
         new ProcessFixture(context.pid).kill(true);
+    }
+
+    @Override
+    String toString() {
+        "Daemon with context $context"
     }
 }

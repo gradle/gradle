@@ -17,18 +17,18 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.AbstractIterator;
-import org.gradle.api.internal.changedetection.rules.ChangeType;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
-import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
+import org.gradle.caching.internal.BuildCacheHasher;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 
 class OrderSensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyCompareStrategy.Impl {
 
     @Override
-    public Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, final String fileType, boolean isPathAbsolute) {
+    public Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, final String fileType, boolean isPathAbsolute, final boolean includeAdded) {
         final Iterator<Map.Entry<String, NormalizedFileSnapshot>> currentEntries = current.entrySet().iterator();
         final Iterator<Map.Entry<String, NormalizedFileSnapshot>> previousEntries = previous.entrySet().iterator();
         return new AbstractIterator<TaskStateChange>() {
@@ -45,30 +45,35 @@ class OrderSensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyC
                 while (true) {
                     if (currentEntries.hasNext()) {
                         Map.Entry<String, NormalizedFileSnapshot> current = currentEntries.next();
-                        String absolutePath = current.getKey();
+                        String currentAbsolutePath = current.getKey();
                         if (previousEntries.hasNext()) {
-                            Map.Entry<String, NormalizedFileSnapshot> other = previousEntries.next();
-                            NormalizedFileSnapshot normalizedSnapshot = current.getValue();
-                            NormalizedFileSnapshot otherNormalizedSnapshot = other.getValue();
-                            String normalizedPath = normalizedSnapshot.getNormalizedPath();
-                            String otherNormalizedPath = otherNormalizedSnapshot.getNormalizedPath();
-                            if (normalizedPath.equals(otherNormalizedPath)) {
-                                if (normalizedSnapshot.getSnapshot().isContentUpToDate(otherNormalizedSnapshot.getSnapshot())) {
-                                    continue;
-                                } else {
-                                    return new FileChange(absolutePath, ChangeType.MODIFIED, fileType);
+                            Map.Entry<String, NormalizedFileSnapshot> previous = previousEntries.next();
+                            NormalizedFileSnapshot currentNormalizedSnapshot = current.getValue();
+                            NormalizedFileSnapshot previousNormalizedSnapshot = previous.getValue();
+                            String currentNormalizedPath = currentNormalizedSnapshot.getNormalizedPath();
+                            String previousNormalizedPath = previousNormalizedSnapshot.getNormalizedPath();
+                            if (currentNormalizedPath.equals(previousNormalizedPath)) {
+                                if (!currentNormalizedSnapshot.getSnapshot().isContentUpToDate(previousNormalizedSnapshot.getSnapshot())) {
+                                    return FileChange.modified(currentAbsolutePath, fileType,
+                                        previousNormalizedSnapshot.getSnapshot().getType(),
+                                        currentNormalizedSnapshot.getSnapshot().getType());
                                 }
                             } else {
-                                String otherAbsolutePath = other.getKey();
-                                remaining = new FileChange(absolutePath, ChangeType.ADDED, fileType);
-                                return new FileChange(otherAbsolutePath, ChangeType.REMOVED, fileType);
+                                String previousAbsolutePath = previous.getKey();
+                                if (includeAdded) {
+                                    remaining = FileChange.added(currentAbsolutePath, fileType, currentNormalizedSnapshot.getSnapshot().getType());
+                                }
+                                return FileChange.removed(previousAbsolutePath, fileType, previousNormalizedSnapshot.getSnapshot().getType());
                             }
                         } else {
-                            return new FileChange(absolutePath, ChangeType.ADDED, fileType);
+                            if (includeAdded) {
+                                return FileChange.added(currentAbsolutePath, fileType, current.getValue().getSnapshot().getType());
+                            }
                         }
                     } else {
                         if (previousEntries.hasNext()) {
-                            return new FileChange(previousEntries.next().getKey(), ChangeType.REMOVED, fileType);
+                            Map.Entry<String, NormalizedFileSnapshot> previousEntry = previousEntries.next();
+                            return FileChange.removed(previousEntry.getKey(), fileType, previousEntry.getValue().getSnapshot().getType());
                         } else {
                             return endOfData();
                         }
@@ -79,15 +84,9 @@ class OrderSensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyC
     }
 
     @Override
-    public void appendToCacheKey(TaskCacheKeyBuilder builder, Map<String, NormalizedFileSnapshot> snapshots) {
-        for (Map.Entry<String, NormalizedFileSnapshot> entry : snapshots.entrySet()) {
-            NormalizedFileSnapshot normalizedSnapshot = entry.getValue();
-            normalizedSnapshot.appendToCacheKey(builder);
+    public void appendToHasher(BuildCacheHasher hasher, Collection<NormalizedFileSnapshot> snapshots) {
+        for (NormalizedFileSnapshot normalizedSnapshot : snapshots) {
+            normalizedSnapshot.appendToHasher(hasher);
         }
-    }
-
-    @Override
-    public boolean isIncludeAdded() {
-        return true;
     }
 }

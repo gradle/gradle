@@ -72,7 +72,7 @@ class JDependPluginTest extends AbstractProjectBuilderSpec {
         task.with {
             assert description == "Run JDepend analysis for ${sourceSet.name} classes"
             assert jdependClasspath == project.configurations.jdepend
-            assert classesDir == sourceSet.output.classesDir
+            assert classesDirs == sourceSet.output.classesDirs
             assert reports.xml.destination == project.file("build/reports/jdepend/${sourceSet.name}.xml")
         }
     }
@@ -82,7 +82,7 @@ class JDependPluginTest extends AbstractProjectBuilderSpec {
 
         expect:
         task.description == null
-        task.classesDir == null
+        task.classesDirs == null
         task.jdependClasspath == project.configurations.jdepend
         task.reports.xml.destination == project.file("build/reports/jdepend/custom.xml")
     }
@@ -129,7 +129,7 @@ class JDependPluginTest extends AbstractProjectBuilderSpec {
 
         expect:
         task.description == null
-        task.classesDir == null
+        task.classesDirs == null
         task.jdependClasspath == project.configurations.jdepend
         task.reports.xml.destination == project.file("jdepend-reports/custom.xml")
     }
@@ -146,7 +146,7 @@ class JDependPluginTest extends AbstractProjectBuilderSpec {
             text {
                 enabled true
             }
-            xml.destination "foo"
+            xml.destination project.file("foo")
         }
 
         then:
@@ -159,7 +159,7 @@ class JDependPluginTest extends AbstractProjectBuilderSpec {
         task.with {
             assert description == "Run JDepend analysis for ${sourceSet.name} classes"
             assert jdependClasspath == project.configurations.jdepend
-            assert classesDir == sourceSet.output.classesDir
+            assert classesDirs == sourceSet.output.classesDirs
             assert reports.xml.destination == project.file("jdepend-reports/${sourceSet.name}.xml")
         }
     }

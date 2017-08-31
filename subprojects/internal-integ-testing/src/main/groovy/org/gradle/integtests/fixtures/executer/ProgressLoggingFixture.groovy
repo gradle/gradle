@@ -53,7 +53,7 @@ class ProgressLoggingFixture extends InitScriptExecuterFixture {
                     } else if (event instanceof ProgressEvent) {
                         outputFile << "[\$event.status]\\n"
                     } else if (event instanceof ProgressCompleteEvent) {
-                        outputFile << "[END \$event.description]\\n"
+                        outputFile << "[END \$event.status]\\n"
                     }
                 }
            }

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.service
 
+import com.google.common.reflect.TypeToken
 import org.gradle.api.Action
 import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.Stoppable
@@ -49,6 +50,7 @@ class DefaultServiceRegistryTest extends Specification {
         result == value
 
         and:
+        _ * parent.hasService(BigDecimal) >> true
         1 * parent.get(BigDecimal) >> value
     }
 
@@ -66,6 +68,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         and:
         1 * parent1.get(BigDecimal) >> { throw new UnknownServiceException(BigDecimal, "fail") }
+        _ * parent2.hasService(BigDecimal) >> true
         1 * parent2.get(BigDecimal) >> value
     }
 
@@ -213,6 +216,7 @@ class DefaultServiceRegistryTest extends Specification {
         result == '123'
 
         and:
+        _ * parent.hasService(Number) >> true
         1 * parent.get(Number) >> 123
     }
 
@@ -669,6 +673,21 @@ class DefaultServiceRegistryTest extends Specification {
         registry.getAll(Number) == [12]
     }
 
+    def canGetAllServicesOfAGivenTypeUsingCollectionType() {
+        registry.addProvider(new Object() {
+            String createOtherString() {
+                return "hi"
+            }
+        })
+
+        expect:
+        registry.get(new TypeToken<List<String>>() {}.type) == ["12", "hi"]
+        registry.get(new TypeToken<List<Number>>() {}.type) == [12]
+        registry.get(new TypeToken<List<?>>() {}.type) == registry.getAll(Object)
+        registry.get(new TypeToken<List<? extends CharSequence>>() {}.type) == ["12", "hi"]
+        registry.get(new TypeToken<List<? extends Number>>() {}.type) == [12]
+    }
+
     def canGetAllServicesOfARawType() {
         def registry = new DefaultServiceRegistry()
         registry.addProvider(new Object() {
@@ -706,11 +725,72 @@ class DefaultServiceRegistryTest extends Specification {
         });
 
         given:
+        _ * parent1.hasService(Number) >> true
+        _ * parent2.hasService(Number) >> true
         _ * parent1.getAll(Number) >> [123L]
         _ * parent2.getAll(Number) >> [456]
 
         expect:
         registry.getAll(Number) == [12, 123L, 456]
+    }
+
+    def injectsAllServicesOfAGivenTypeIntoServiceImplementation() {
+        def parent = new DefaultServiceRegistry()
+        parent.register { ServiceRegistration registration ->
+            registration.add(TestServiceImpl)
+        }
+        def registry = new DefaultServiceRegistry(parent)
+        registry.register { ServiceRegistration registration ->
+            registration.add(ServiceWithMultipleDependencies)
+            registration.add(TestServiceImpl)
+        }
+
+        expect:
+        registry.get(ServiceWithMultipleDependencies).services.size() == 2
+        registry.get(ServiceWithMultipleDependencies).services == registry.getAll(TestServiceImpl)
+        registry.get(ServiceWithMultipleDependencies).services == [registry.get(TestService), parent.get(TestService)]
+    }
+
+    def injectsEmptyListWhenNoServicesOfGivenType() {
+        def parent = new DefaultServiceRegistry()
+        def registry = new DefaultServiceRegistry(parent)
+        registry.register { ServiceRegistration registration ->
+            registration.add(ServiceWithMultipleDependencies)
+        }
+
+        expect:
+        registry.get(ServiceWithMultipleDependencies).services.empty
+    }
+
+    def canUseWildcardsToInjectAllServicesWithType() {
+        def parent = new DefaultServiceRegistry()
+        parent.register { ServiceRegistration registration ->
+            registration.add(TestServiceImpl)
+        }
+        def registry = new DefaultServiceRegistry(parent)
+        registry.register { ServiceRegistration registration ->
+            registration.add(ServiceWithWildCardDependencies)
+            registration.add(TestServiceImpl)
+        }
+
+        expect:
+        registry.get(ServiceWithWildCardDependencies).services.size() == 2
+        registry.get(ServiceWithWildCardDependencies).services == registry.getAll(TestService)
+    }
+
+    def cannotUseLowerBoundWildcardToInjectAllServicesWithType() {
+        def registry = new DefaultServiceRegistry()
+
+        given:
+        registry.addProvider(new UnsupportedWildcardProvider())
+
+        when:
+        registry.get(Number)
+
+        then:
+        def e = thrown(ServiceCreationException)
+        e.message == 'Cannot create service of type Number using UnsupportedWildcardProvider.create() as there is a problem with parameter #1 of type List<? super java.lang.String>.'
+        e.cause.message == 'Locating services with type ? super java.lang.String is not supported.'
     }
 
     def canGetServiceAsFactoryWhenTheServiceImplementsFactoryInterface() {
@@ -932,6 +1012,41 @@ class DefaultServiceRegistryTest extends Specification {
         0 * _._
     }
 
+    def closeClosesServicesInDependencyOrderWhenServicesWithTypeInjected() {
+        def service1 = Mock(TestStopService)
+        def service2 = Mock(TestCloseService)
+        def service3 = Mock(TestCloseService)
+        def registry = new DefaultServiceRegistry()
+
+        given:
+        registry.addProvider(new Object() {
+            TestCloseService createService2() {
+                return service2
+            }
+
+            TestCloseService createService3() {
+                return service3
+            }
+        })
+        registry.addProvider(new Object() {
+            TestStopService createService1(List<TestCloseService> services) {
+                return service1
+            }
+        })
+        registry.get(TestStopService)
+
+        when:
+        registry.close()
+
+        then:
+        1 * service1.stop()
+
+        then:
+        1 * service2.close()
+        1 * service3.close()
+        0 * _._
+    }
+
     def closeContinuesToCloseServicesAfterFailingToStopSomeService() {
         def service1 = Mock(TestCloseService)
         def service2 = Mock(TestStopService)
@@ -1141,6 +1256,22 @@ class DefaultServiceRegistryTest extends Specification {
         }
     }
 
+    private static class ServiceWithMultipleDependencies {
+        final List<TestService> services
+
+        ServiceWithMultipleDependencies(List<TestService> services) {
+            this.services = services
+        }
+    }
+
+    private static class ServiceWithWildCardDependencies {
+        final List<?> services
+
+        ServiceWithWildCardDependencies(List<? extends TestService> services) {
+            this.services = services
+        }
+    }
+
     private interface StringFactory extends Factory<String> {
     }
 
@@ -1211,6 +1342,12 @@ class DefaultServiceRegistryTest extends Specification {
 
     private static class UnsupportedInjectionProvider {
         Number create(String[] values) {
+            return values.length
+        }
+    }
+
+    private static class UnsupportedWildcardProvider {
+        Number create(List<? super String> values) {
             return values.length
         }
     }

@@ -18,8 +18,6 @@ package org.gradle.integtests.resolve
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.hamcrest.core.StringContains.containsString
-
 class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
 
     def "can attach a directory as output of a configuration"() {
@@ -220,74 +218,12 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
-    def "fails gracefully if trying to publish a directory with ivy"() {
-
-        given:
-        file('someDir/a.txt') << 'some text'
-        buildFile << """
-
-        apply plugin: 'base'
-
-        configurations {
-            archives
-        }
-
-        artifacts {
-            archives file("someDir")
-        }
-
-        """
-
-        when:
-        fails 'uploadArchives'
-
-        then:
-        failure.assertHasCause "Could not publish configuration 'archives'"
-        failure.assertThatCause(containsString('Cannot publish a directory'))
-
-    }
-
-    def "fails gracefully if trying to publish a directory with Maven"() {
-
-        given:
-        file('someDir/a.txt') << 'some text'
-        buildFile << """
-
-        apply plugin: 'base'
-        apply plugin: 'maven'
-
-        uploadArchives {
-            repositories {
-                mavenDeployer {
-                    repository(url: "${mavenRepo.uri.toURL()}")
-                }
-            }
-        }
-
-        configurations {
-            archives
-        }
-
-        artifacts {
-            archives file("someDir")
-        }
-
-        """
-
-        when:
-        fails 'uploadArchives'
-
-        then:
-        failure.assertHasCause "Could not publish configuration 'archives'"
-        failure.assertThatCause(containsString('Cannot publish a directory'))
-    }
-
     def "can avoid building a jar when compiling against another project with transitive dependencies"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
-        file('a/build.gradle') << '''
+        file('a/build.gradle') << """
 
-        repositories { jcenter() }
+        ${jcenterRepository()}
 
         apply plugin: 'java'
 
@@ -295,7 +231,7 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
             compile project(path: ':b', configuration: 'compile_output')
         }
 
-        '''
+        """
         file('a/src/main/java/World.java') << '''import org.apache.commons.lang3.StringUtils;
 
         public class World extends Hello {
@@ -306,11 +242,11 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
 
         '''
 
-        file('b/build.gradle') << '''
+        file('b/build.gradle') << """
 
         apply plugin: 'java'
 
-        repositories { jcenter() }
+        ${jcenterRepository()}
 
         configurations {
             compile_output {
@@ -325,7 +261,7 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
         artifacts {
             compile_output file:compileJava.destinationDir, builtBy: compileJava
         }
-        '''
+        """
         file('b/src/main/java/Hello.java') << '''import org.apache.commons.lang3.StringUtils;
             public class Hello {
                 String greet(String name) { return "Hello, " + StringUtils.capitalize(name); }

@@ -43,4 +43,9 @@ public class NativePlatformConsoleMetaData implements ConsoleMetaData {
     public int getCols() {
         return terminal.getTerminalSize().getCols();
     }
+
+    @Override
+    public int getRows() {
+        return terminal.getTerminalSize().getRows();
+    }
 }

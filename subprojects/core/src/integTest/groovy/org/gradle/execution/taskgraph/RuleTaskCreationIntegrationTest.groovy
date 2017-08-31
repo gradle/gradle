@@ -18,6 +18,7 @@ package org.gradle.execution.taskgraph
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.model.internal.core.ModelPath
 
 class RuleTaskCreationIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
     def setup() {
@@ -57,7 +58,7 @@ class RuleTaskCreationIntegrationTest extends AbstractIntegrationSpec implements
         """
 
         when:
-        succeeds "tasks"
+        succeeds "tasks", "--all"
 
         then:
         output.contains "a - task a"
@@ -84,7 +85,7 @@ class RuleTaskCreationIntegrationTest extends AbstractIntegrationSpec implements
         """
 
         when:
-        succeeds "tasks"
+        succeeds "tasks", "--all"
 
         then:
         output.contains "a - task a"
@@ -567,15 +568,24 @@ foo configured
     }
 
     def "can create task with invalid model space name"() {
+        given:
+        def taskName = "-"
+
         when:
         buildFile << """
-            tasks.create(".").doFirst {}
+            tasks.create('$taskName').doFirst {}
         """
 
-        run "."
+        run taskName
 
         then:
-        ":." in executedTasks
+        executed ":$taskName"
+
+        when:
+        ModelPath.validateName(taskName)
+
+        then:
+        thrown(ModelPath.InvalidNameException)
     }
 
     def "tasks are visible to rules using their public type"(){

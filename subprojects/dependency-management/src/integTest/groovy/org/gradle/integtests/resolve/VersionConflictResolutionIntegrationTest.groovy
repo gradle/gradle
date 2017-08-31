@@ -21,7 +21,7 @@ import spock.lang.Issue
 
 import static org.hamcrest.Matchers.containsString
 
-public class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
+class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
 
     void "strict conflict resolution should fail due to conflict"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
@@ -150,9 +150,11 @@ project(':tool') {
         resolve.expectGraph {
             root(":tool", "test:tool:") {
                 project(":api", "test:api:") {
+                    configuration = "runtimeElements"
                     edge("org:foo:1.3.3", "org:foo:1.4.4")
                 }
                 project(":impl", "test:impl:") {
+                    configuration = "runtimeElements"
                     module("org:foo:1.4.4").byConflictResolution()
                 }
             }
@@ -217,7 +219,7 @@ dependencies {
 }
 task checkDeps(dependsOn: configurations.compile) {
     doLast {
-        assert configurations.compile*.name == ['child-2.jar', 'dep-2.jar', 'parent-2.jar']
+        assert configurations.compile*.name == ['dep-2.jar', 'parent-2.jar', 'child-2.jar']
         configurations.compile.resolvedConfiguration.firstLevelModuleDependencies*.name
         configurations.compile.incoming.resolutionResult.allComponents*.id
     }
@@ -451,7 +453,7 @@ task checkDeps {
             }
             task checkDeps {
                 doLast {
-                    assert configurations.conf*.name == ['a-2.0.jar', 'b-2.0.jar']
+                    assert configurations.conf*.name == ['b-2.0.jar', 'a-2.0.jar']
                     def result = configurations.conf.incoming.resolutionResult
                     assert result.allComponents.size() == 3
                     def root = result.root
@@ -508,7 +510,7 @@ task checkDeps {
 
         task checkDeps {
             doLast {
-                assert configurations.conf*.name == ['a-1.0.jar', 'b-1.0.jar', 'b-child-1.0.jar', 'target-1.0.jar', 'in-conflict-2.0.jar', 'target-child-1.0.jar']
+                assert configurations.conf*.name == ['a-1.0.jar', 'b-1.0.jar', 'b-child-1.0.jar', 'in-conflict-2.0.jar', 'target-1.0.jar', 'target-child-1.0.jar']
                 def result = configurations.conf.incoming.resolutionResult
                 assert result.allComponents.size() == 7
                 def a = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'a' }
@@ -699,7 +701,7 @@ dependencies {
 
 task checkDeps(dependsOn: configurations.compile) {
     doLast {
-        assert configurations.compile*.name == ['a-2.jar', 'c-2.jar', 'b-1.jar']
+        assert configurations.compile*.name.sort() == ['a-2.jar', 'b-1.jar', 'c-2.jar']
         assert configurations.compile.incoming.resolutionResult.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'b' }.dependencies.size() == 1
     }
 }

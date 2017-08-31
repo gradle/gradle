@@ -22,13 +22,17 @@ import org.gradle.api.reporting.Report;
 import org.gradle.reporting.HtmlPageBuilder;
 import org.gradle.reporting.HtmlReportRenderer;
 import org.gradle.reporting.ReportRenderer;
-import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.RelativePathUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.*;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class BuildDashboardGenerator extends ReportRenderer<Collection<Report>, File> {
     private Set<Report> reports;
@@ -73,7 +77,7 @@ public class BuildDashboardGenerator extends ReportRenderer<Collection<Report>, 
                         for (Report report : reports) {
                             li();
                             if (report.getDestination().exists()) {
-                                a().href(GFileUtils.relativePath(outputFile.getParentFile(), getHtmlLinkedFileFromReport(report))).text(report.getDisplayName());
+                                a().href(RelativePathUtil.relativePath(outputFile.getParentFile(), getHtmlLinkedFileFromReport(report))).text(report.getDisplayName());
                             } else {
                                 span().classAttr("unavailable").text(report.getDisplayName());
                             }

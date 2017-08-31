@@ -89,6 +89,14 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    public T setArgs(List<String> arguments) {
+        execAction.setArgs(arguments);
+        return taskType.cast(this);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public T setArgs(Iterable<?> arguments) {
         execAction.setArgs(arguments);
         return taskType.cast(this);
@@ -108,6 +116,13 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     @Internal
     public List<String> getCommandLine() {
         return execAction.getCommandLine();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setCommandLine(List<String> args) {
+        execAction.setCommandLine(args);
     }
 
     /**
@@ -135,6 +150,13 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    public void setExecutable(String executable) {
+        execAction.setExecutable(executable);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public void setExecutable(Object executable) {
         execAction.setExecutable(executable);
     }
@@ -154,6 +176,13 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     // TODO:LPTR Should be a content-less @InputDirectory
     public File getWorkingDir() {
         return execAction.getWorkingDir();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setWorkingDir(File dir) {
+        execAction.setWorkingDir(dir);
     }
 
     /**

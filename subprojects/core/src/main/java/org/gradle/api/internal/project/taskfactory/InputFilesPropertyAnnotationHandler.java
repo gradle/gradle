@@ -17,29 +17,23 @@ package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.OrderSensitive;
-import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 
 import java.lang.annotation.Annotation;
+import java.util.Collection;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.project.taskfactory.PropertyAnnotationUtils.getPathSensitivity;
-
-public class InputFilesPropertyAnnotationHandler implements PropertyAnnotationHandler {
+public class InputFilesPropertyAnnotationHandler extends AbstractInputPropertyAnnotationHandler {
     public Class<? extends Annotation> getAnnotationType() {
         return InputFiles.class;
     }
 
-    public void attachActions(final TaskPropertyActionContext context) {
-        context.setConfigureAction(new UpdateAction() {
-            public void update(TaskInternal task, Callable<Object> futureValue) {
-                task.getInputs().files(futureValue)
-                    .withPropertyName(context.getName())
-                    .skipWhenEmpty(context.isAnnotationPresent(SkipWhenEmpty.class))
-                    .orderSensitive(context.isAnnotationPresent(OrderSensitive.class))
-                    .withPathSensitivity(getPathSensitivity(context));
-            }
-        });
+    @Override
+    protected void validate(String propertyName, Object value, Collection<String> messages) {
+        // no-op
     }
 
+    protected TaskInputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, Callable<Object> futureValue) {
+        return task.getInputs().files(futureValue);
+    }
 }

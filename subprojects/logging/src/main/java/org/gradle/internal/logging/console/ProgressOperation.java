@@ -16,17 +16,26 @@
 
 package org.gradle.internal.logging.console;
 
+import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.util.GUtil;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class ProgressOperation {
 
     private final String shortDescription;
     private String status;
+    private final String category;
+    private final OperationIdentifier operationId;
     private ProgressOperation parent;
+    private Set<ProgressOperation> children;
 
-    public ProgressOperation(String shortDescription, String status, ProgressOperation parent) {
+    public ProgressOperation(String shortDescription, String status, String category, OperationIdentifier operationId, ProgressOperation parent) {
         this.shortDescription = shortDescription;
         this.status = status;
+        this.category = category;
+        this.operationId = operationId;
         this.parent = parent;
     }
 
@@ -44,7 +53,33 @@ public class ProgressOperation {
         return null;
     }
 
+    public String getCategory() {
+        return category;
+    }
+
+    public OperationIdentifier getOperationId() {
+        return operationId;
+    }
+
     public ProgressOperation getParent() {
         return parent;
+    }
+
+    public boolean addChild(ProgressOperation operation) {
+        if (children == null) {
+            children = new HashSet<ProgressOperation>();
+        }
+        return children.add(operation);
+    }
+
+    public boolean removeChild(ProgressOperation operation) {
+        if (children == null) {
+            throw new IllegalStateException(String.format("Cannot remove child operation [%s] from operation with no children [%s]", operation.getMessage(), getMessage()));
+        }
+        return children.remove(operation);
+    }
+
+    public boolean hasChildren() {
+        return children != null && !children.isEmpty();
     }
 }

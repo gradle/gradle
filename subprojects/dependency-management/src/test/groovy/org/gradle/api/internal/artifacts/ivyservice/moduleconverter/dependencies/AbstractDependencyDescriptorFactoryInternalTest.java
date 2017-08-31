@@ -16,11 +16,15 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
+import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
+import org.apache.ivy.core.module.id.ModuleId;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
@@ -28,7 +32,6 @@ import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.util.TestUtil;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -37,6 +40,7 @@ import org.junit.Before;
 import org.junit.runner.RunWith;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
@@ -52,13 +56,21 @@ public abstract class AbstractDependencyDescriptorFactoryInternalTest {
     protected static final ExcludeRule TEST_EXCLUDE_RULE = new org.gradle.api.internal.artifacts.DefaultExcludeRule("testOrg", null);
     protected static final Exclude TEST_IVY_EXCLUDE_RULE = getTestExcludeRule();
     protected ExcludeRuleConverter excludeRuleConverterStub = context.mock(ExcludeRuleConverter.class);
-    protected final DefaultModuleDescriptor moduleDescriptor = TestUtil.createModuleDescriptor(WrapUtil.toSet(TEST_CONF));
+    protected final DefaultModuleDescriptor moduleDescriptor = createModuleDescriptor(WrapUtil.toSet(TEST_CONF));
     private DefaultDependencyArtifact artifact = new DefaultDependencyArtifact("name", "type", null, null, null);
     private DefaultDependencyArtifact artifactWithClassifiers = new DefaultDependencyArtifact("name2", "type2", "ext2", "classifier2", "http://www.url2.com");
 
     @Before
     public void setUp() {
         expectExcludeRuleConversion(TEST_EXCLUDE_RULE, TEST_IVY_EXCLUDE_RULE);
+    }
+
+    static DefaultModuleDescriptor createModuleDescriptor(Set<String> confs) {
+        DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(new ModuleRevisionId(new ModuleId("org", "name"), "rev"), "status", null);
+        for (String conf : confs) {
+            moduleDescriptor.addConfiguration(new Configuration(conf));
+        }
+        return moduleDescriptor;
     }
 
     protected void expectExcludeRuleConversion(final ExcludeRule excludeRule, final Exclude exclude) {
@@ -113,7 +125,7 @@ public abstract class AbstractDependencyDescriptorFactoryInternalTest {
     }
 
     private static DefaultExclude getTestExcludeRule() {
-        return new DefaultExclude("org", "testOrg", new String[0], PatternMatchers.EXACT);
+        return new DefaultExclude(DefaultModuleIdentifier.newId("org", "testOrg"), new String[0], PatternMatchers.EXACT);
     }
 }
 

@@ -69,6 +69,7 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-1762")
+    @Requires(TestPrecondition.JDK8_OR_EARLIER) //modifies environment variables
     def "build uses environment variables from where the build was launched"() {
         file('build.gradle') << "println System.getenv('foo')"
 
@@ -156,7 +157,7 @@ org.gradle.java.home=${TextUtil.escapeString(alternateJavaHome.canonicalPath)}
         file('build.gradle') << "println 'javaHome=' + org.gradle.internal.jvm.Jvm.current().javaHome.absolutePath"
 
         when:
-        def out = executer.useDefaultBuildJvmArgs().run().output
+        def out = executer.useOnlyRequestedJvmOpts().run().output
 
         then:
         out.contains("javaHome=" + alternateJavaHome.canonicalPath)
@@ -171,7 +172,7 @@ assert System.getProperty('some-prop') == 'some-value'
 """
 
         when:
-        executer.requireGradleDistribution().useDefaultBuildJvmArgs().run()
+        executer.requireGradleDistribution().useOnlyRequestedJvmOpts().run()
 
         then:
         noExceptionThrown()

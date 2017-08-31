@@ -21,15 +21,19 @@ import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import groovy.util.Node;
 import groovy.util.XmlParser;
-import org.gradle.api.Nullable;
+import org.gradle.api.Action;
+import org.gradle.api.XmlProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.xml.XmlTransformer;
 
+import javax.annotation.Nullable;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import static org.gradle.util.ConfigureUtil.configureUsing;
 
 /**
  * A {@link org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject}
@@ -75,6 +79,14 @@ public abstract class XmlPersistableConfigurationObject extends AbstractPersista
     }
 
     public void transformAction(Closure action) {
+        transformAction(configureUsing(action));
+    }
+
+    /**
+     * @param action transform action
+     * @since 3.5
+     */
+    public void transformAction(Action<? super XmlProvider> action) {
         xmlTransformer.addAction(action);
     }
 

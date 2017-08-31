@@ -15,20 +15,20 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.Action;
-import org.gradle.api.Task;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
+import org.gradle.util.DeferredUtil;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.tasks.TaskOutputsUtil.validateDirectory;
 import static org.gradle.api.internal.tasks.TaskOutputsUtil.ensureDirectoryExists;
-import static org.gradle.internal.Cast.uncheckedCast;
-import static org.gradle.util.GUtil.uncheckedCall;
+import static org.gradle.api.internal.tasks.TaskOutputsUtil.validateDirectory;
 
 public class OutputDirectoryPropertyAnnotationHandler extends AbstractOutputPropertyAnnotationHandler {
 
@@ -40,20 +40,31 @@ public class OutputDirectoryPropertyAnnotationHandler extends AbstractOutputProp
     @Override
     protected void validate(String propertyName, Object value, Collection<String> messages) {
         if (value != null) {
-            validateDirectory(propertyName, (File) value, messages);
+            validateDirectory(propertyName, toFile(value), messages);
         }
     }
 
     @Override
-    protected void update(TaskPropertyActionContext context, TaskInternal task, final Callable<Object> futureValue) {
-        task.getOutputs().dir(futureValue).withPropertyName(context.getName()).optional(context.getOptional());
-        task.prependParallelSafeAction(new Action<Task>() {
-            public void execute(Task task) {
-                File directory = uncheckedCast(uncheckedCall(futureValue));
-                if (directory != null) {
-                    ensureDirectoryExists(directory);
-                }
-            }
-        });
+    protected TaskOutputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, Callable<Object> futureValue) {
+        return task.getOutputs().dir(futureValue);
+    }
+
+    @Override
+    protected void beforeTask(final Callable<Object> futureValue) {
+        File directory = toFile(futureValue);
+        if (directory != null) {
+            ensureDirectoryExists(directory);
+        }
+    }
+
+    private File toFile(Object value) {
+        Object unpacked = DeferredUtil.unpack(value);
+        if (unpacked instanceof Path) {
+            return ((Path) unpacked).toFile();
+        }
+        if (unpacked instanceof FileSystemLocation) {
+            return ((FileSystemLocation) unpacked).getAsFile();
+        }
+        return (File) unpacked;
     }
 }

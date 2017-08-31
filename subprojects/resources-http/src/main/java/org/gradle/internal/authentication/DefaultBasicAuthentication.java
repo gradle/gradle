@@ -23,4 +23,9 @@ public class DefaultBasicAuthentication extends AbstractAuthentication implement
     public DefaultBasicAuthentication(String name) {
         super(name, BasicAuthentication.class, PasswordCredentials.class);
     }
+
+    @Override
+    public boolean requiresCredentials() {
+        return true;
+    }
 }

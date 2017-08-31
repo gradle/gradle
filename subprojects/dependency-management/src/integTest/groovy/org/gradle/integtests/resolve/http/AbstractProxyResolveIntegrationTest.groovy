@@ -15,9 +15,8 @@
  */
 package org.gradle.integtests.resolve.http
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.TestProxyServer
@@ -70,7 +69,7 @@ repositories {
 }
 """
         when:
-        configureProxy()
+        proxyServer.configureProxy(executer, proxyScheme)
         module.allowAll()
 
         then:
@@ -97,7 +96,7 @@ repositories {
 }
 """
         when:
-        configureProxy()
+        proxyServer.configureProxy(executer, proxyScheme)
         module.allowAll()
 
         then:
@@ -122,7 +121,7 @@ repositories {
 }
 """
         when:
-        configureProxy(proxyUserName, proxyPassword)
+        proxyServer.configureProxy(executer, proxyScheme, proxyUserName, proxyPassword)
         module.allowAll()
 
         then:
@@ -149,7 +148,7 @@ repositories {
 }
 """
         when:
-        configureProxy(proxyUserName, "not-the-password")
+        proxyServer.configureProxy(executer, proxyScheme, proxyUserName, "not-the-password")
         module.allowAll()
 
         then:
@@ -173,9 +172,9 @@ repositories {
 }
 """
         when:
-        configureProxy()
-        configureProxyHostFor("http")
-        configureProxyHostFor("https")
+        proxyServer.configureProxy(executer, proxyScheme)
+        proxyServer.configureProxyHost(executer, "http")
+        proxyServer.configureProxyHost(executer, "https")
         module.allowAll()
 
         then:
@@ -198,7 +197,7 @@ repositories {
 """
 
         when:
-        configureProxyHostFor(proxyScheme == 'https' ? 'http' : 'https')
+        proxyServer.configureProxyHost(executer, proxyScheme == 'https' ? 'http' : 'https')
         module.allowAll()
 
         then:
@@ -231,7 +230,7 @@ repositories {
 
         when:
         server.authenticationScheme = authScheme
-        configureProxy(proxyUserName, proxyPassword)
+        proxyServer.configureProxy(executer, proxyScheme, proxyUserName, proxyPassword)
 
         and:
         module.pom.expectGet(repoUserName, repoPassword)
@@ -246,26 +245,9 @@ repositories {
         proxyServer.requestCount == (tunnel ? 1 : requestCount)
 
         where:
-        authScheme                   | requestCount
-        HttpServer.AuthScheme.BASIC  | 3
-        HttpServer.AuthScheme.DIGEST | 3
-        HttpServer.AuthScheme.NTLM   | 4
-    }
-
-    def configureProxyHostFor(String scheme) {
-        executer.withArgument("-D${scheme}.proxyHost=localhost")
-        executer.withArgument("-D${scheme}.proxyPort=${proxyServer.port}")
-        // use proxy even when accessing localhost
-        executer.withArgument("-Dhttp.nonProxyHosts=${JavaVersion.current() >= JavaVersion.VERSION_1_7 ? '' : '~localhost'}")
-    }
-
-    def configureProxy(String userName=null, String password=null) {
-        configureProxyHostFor(proxyScheme)
-        if (userName) {
-            executer.withArgument("-D${proxyScheme}.proxyUser=${userName}")
-        }
-        if (password) {
-            executer.withArgument("-D${proxyScheme}.proxyPassword=${password}")
-        }
+        authScheme        | requestCount
+        AuthScheme.BASIC  | 3
+        AuthScheme.DIGEST | 3
+        AuthScheme.NTLM   | 4
     }
 }

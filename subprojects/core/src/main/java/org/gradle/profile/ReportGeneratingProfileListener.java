@@ -17,6 +17,10 @@ package org.gradle.profile;
 
 import org.gradle.BuildAdapter;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.logging.ConsoleRenderer;
+import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -24,7 +28,12 @@ import java.util.Date;
 
 public class ReportGeneratingProfileListener extends BuildAdapter implements ProfileListener {
     private static final SimpleDateFormat FILE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+    private final StyledTextOutputFactory textOutputFactory;
     private File buildDir;
+
+    public ReportGeneratingProfileListener(StyledTextOutputFactory textOutputFactory) {
+        this.textOutputFactory = textOutputFactory;
+    }
 
     @Override
     public void projectsEvaluated(Gradle gradle) {
@@ -35,6 +44,14 @@ public class ReportGeneratingProfileListener extends BuildAdapter implements Pro
         ProfileReportRenderer renderer = new ProfileReportRenderer();
         File file = new File(buildDir, "reports/profile/profile-" + FILE_DATE_FORMAT.format(new Date(buildProfile.getBuildStarted())) + ".html");
         renderer.writeTo(buildProfile, file);
+        renderReportUrl(file);
+    }
+
+    private void renderReportUrl(File reportFile) {
+        StyledTextOutput textOutput = textOutputFactory.create(ReportGeneratingProfileListener.class, LogLevel.LIFECYCLE);
+        textOutput.println();
+        String reportUrl = new ConsoleRenderer().asClickableFileUrl(reportFile);
+        textOutput.formatln("See the profiling report at: %s", reportUrl);
     }
 }
 

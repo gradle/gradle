@@ -21,29 +21,41 @@ import org.gradle.internal.classpath.CachedJarFileStore;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 public class DefaultArtifactCacheMetaData implements ArtifactCacheMetaData, CachedJarFileStore {
 
     public static final VersionNumber CACHE_LAYOUT_VERSION = CacheLayout.META_DATA.getVersion();
     private final File cacheDir;
+    private final File transformsDir;
 
     public DefaultArtifactCacheMetaData(CacheScopeMapping cacheScopeMapping) {
         cacheDir = cacheScopeMapping.getBaseDirectory(null, CacheLayout.ROOT.getKey(), VersionStrategy.SharedCache);
+        transformsDir = cacheScopeMapping.getBaseDirectory(null, CacheLayout.TRANSFORMS.getKey(), VersionStrategy.SharedCache);
     }
 
+    @Override
     public File getCacheDir() {
         return cacheDir;
     }
 
     @Override
-    public File getJarFileStoreDirectory() {
-        return getFileStoreDirectory();
+    public File getTransformsStoreDirectory() {
+        return transformsDir;
     }
 
+    @Override
+    public List<File> getFileStoreRoots() {
+        return Arrays.asList(getFileStoreDirectory(), getTransformsStoreDirectory());
+    }
+
+    @Override
     public File getFileStoreDirectory() {
         return createCacheRelativeDir(CacheLayout.FILE_STORE);
     }
 
+    @Override
     public File getMetaDataStoreDirectory() {
         return new File(createCacheRelativeDir(CacheLayout.META_DATA), "descriptors");
     }

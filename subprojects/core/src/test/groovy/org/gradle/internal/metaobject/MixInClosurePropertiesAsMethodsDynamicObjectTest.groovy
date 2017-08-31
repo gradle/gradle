@@ -39,22 +39,21 @@ class MixInClosurePropertiesAsMethodsDynamicObjectTest extends Specification {
         result == "result"
 
         and:
-        1 * obj1.invokeMethod("m", _, ["value"] as Object[])
-        1 * obj2.invokeMethod("m", _, ["value"] as Object[])
-        1 * obj3.invokeMethod("m", _, ["value"] as Object[])
-        1 * obj1.getProperty("m", _)
-        1 * obj2.getProperty("m", _) >> { String name, GetPropertyResult r -> r.result({ it -> "result" }) }
+        1 * obj1.tryInvokeMethod("m", ["value"] as Object[]) >> DynamicInvokeResult.notFound()
+        1 * obj2.tryInvokeMethod("m", ["value"] as Object[]) >> DynamicInvokeResult.notFound()
+        1 * obj3.tryInvokeMethod("m", ["value"] as Object[]) >> DynamicInvokeResult.notFound()
+        1 * obj1.tryGetProperty("m") >> DynamicInvokeResult.notFound()
+        1 * obj2.tryGetProperty("m") >> DynamicInvokeResult.found({ it -> "result" })
         0 * _
     }
 
     def "fails when first closure property does not accept the given parameters"() {
         def obj1 = Mock(DynamicObject)
-        def obj2 = Mock(DynamicObject)
-        def obj3 = Mock(DynamicObject)
-        obj.setObjects(obj1, obj2, obj3)
+        obj.setObjects(obj1)
 
         given:
-        obj3.getProperty("m", _) >> { String name, GetPropertyResult r -> r.result({ Number a -> "result 3" }) }
+        obj1.tryGetProperty("m") >> DynamicInvokeResult.found({ Number a -> "result 3" })
+        obj1.tryInvokeMethod(_, _) >> DynamicInvokeResult.notFound()
 
         expect:
         obj.invokeMethod("m", [12] as Object[]) == "result 3"
@@ -76,12 +75,11 @@ class MixInClosurePropertiesAsMethodsDynamicObjectTest extends Specification {
         }
 
         def obj1 = Mock(DynamicObject)
-        def obj2 = Mock(DynamicObject)
-        def obj3 = Mock(DynamicObject)
-        obj.setObjects(obj1, obj2, obj3)
+        obj.setObjects(obj1)
 
         given:
-        obj3.getProperty("m", _) >> { String name, GetPropertyResult r -> r.result(cl) }
+        obj1.tryInvokeMethod(_, _) >> DynamicInvokeResult.notFound()
+        obj1.tryGetProperty("m") >> DynamicInvokeResult.found(cl)
 
         expect:
         obj.invokeMethod("m", [12] as Object[]) == "result"
@@ -91,12 +89,11 @@ class MixInClosurePropertiesAsMethodsDynamicObjectTest extends Specification {
         def cl = { String result, Number n -> "$result: $n" }.curry("result")
 
         def obj1 = Mock(DynamicObject)
-        def obj2 = Mock(DynamicObject)
-        def obj3 = Mock(DynamicObject)
-        obj.setObjects(obj1, obj2, obj3)
+        obj.setObjects(obj1)
 
         given:
-        obj3.getProperty("m", _) >> { String name, GetPropertyResult r -> r.result(cl) }
+        obj1.tryInvokeMethod(_, _) >> DynamicInvokeResult.notFound()
+        obj1.tryGetProperty("m") >> DynamicInvokeResult.found(cl)
 
         expect:
         obj.invokeMethod("m", [12] as Object[]) == "result: 12"
@@ -106,12 +103,11 @@ class MixInClosurePropertiesAsMethodsDynamicObjectTest extends Specification {
         def cl = { String result, Number n -> "$result: $n" }.curry("result")
 
         def obj1 = Mock(DynamicObject)
-        def obj2 = Mock(DynamicObject)
-        def obj3 = Mock(DynamicObject)
-        obj.setObjects(obj1, obj2, obj3)
+        obj.setObjects(obj1)
 
         given:
-        obj3.getProperty("m", _) >> { String name, GetPropertyResult r -> r.result(cl) }
+        obj1.tryInvokeMethod(_, _) >> DynamicInvokeResult.notFound()
+        obj1.tryGetProperty("m") >> DynamicInvokeResult.found(cl)
 
         when:
         obj.invokeMethod("m", ["not-a-number"] as Object[])

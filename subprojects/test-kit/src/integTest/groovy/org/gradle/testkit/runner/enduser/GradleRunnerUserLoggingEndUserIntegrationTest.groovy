@@ -24,9 +24,7 @@ class GradleRunnerUserLoggingEndUserIntegrationTest extends BaseTestKitEndUserIn
     def "can use user slfj logging in tests using testkit"() {
         when:
         buildFile << """
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             apply plugin: "groovy"
 

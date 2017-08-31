@@ -452,36 +452,34 @@ task resolveChildFirst {
         succeeds("resolveChildFirst")
     }
 
-    def "does not allow adding attribute to a configuration that has been resolved"() {
-        buildFile << """
-            configurations { a }
-            configurations.a.resolve()
-            configurations.a.attribute('foo', 'bar')
-        """
-        when: fails()
-        then: failure.assertHasCause("Cannot change attributes of configuration ':a' after it has been resolved")
-    }
-
     def "does not allow adding attributes to a configuration that has been resolved"() {
         buildFile << """
             configurations { a }
             configurations.a.resolve()
-            configurations.a.attributes(foo: 'bar')
+            configurations.a.attributes { attribute(Attribute.of('foo', String), 'bar') }
         """
         when: fails()
         then: failure.assertHasCause("Cannot change attributes of configuration ':a' after it has been resolved")
     }
 
     @Unroll
-    def "cannot change the configuration role after it has been resolved"() {
+    def "cannot change the configuration role (#code) after it has been resolved"() {
         buildFile << """
             configurations { a }
             configurations.a.resolve()
-            configurations.a.${role}()
+            ${code}
         """
-        when: fails()
-        then: failure.assertHasCause("Cannot change role of configuration ':a' after it has been resolved")
+        when:
+        fails()
+
+        then:
+        failure.assertHasCause("Cannot change role of configuration ':a' after it has been resolved")
+
         where:
-        role << ['forConsumingOrPublishingOnly', 'forQueryingOrResolvingOnly', 'asBucket']
+        role                      | code
+        'consume or publish only' | 'configurations.a.canBeResolved = false'
+        'query or resolve only'   | 'configurations.a.canBeConsumed = false'
+        'bucket'                  | 'configurations.a.canBeResolved = false; configurations.a.canBeConsumed = false'
+
     }
 }

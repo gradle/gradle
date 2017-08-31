@@ -16,75 +16,43 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Maps;
-import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.FileCollectionDependency;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
-import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 
 import java.util.Map;
-import java.util.Set;
 
-public class FileDependencyCollectingGraphVisitor implements DependencyGraphVisitor, FileDependencyResults {
-    private final SetMultimap<ResolvedConfigurationIdentifier, FileCollection> filesByConfiguration = LinkedHashMultimap.create();
-    private Map<FileCollectionDependency, FileCollection> rootFiles;
+public class FileDependencyCollectingGraphVisitor implements DependencyArtifactsVisitor {
+    private final Map<FileCollectionDependency, Integer> rootFiles = Maps.newLinkedHashMap();
 
     @Override
-    public void start(DependencyGraphNode root) {
-        Set<LocalFileDependencyMetadata> fileDependencies = ((LocalConfigurationMetadata) root.getMetadata()).getFiles();
-        rootFiles = Maps.newLinkedHashMap();
-        for (LocalFileDependencyMetadata fileDependency : fileDependencies) {
-            rootFiles.put(fileDependency.getSource(), fileDependency.getFiles());
-            filesByConfiguration.put(root.getNodeId(), fileDependency.getFiles());
+    public void startArtifacts(DependencyGraphNode root) {
+    }
+
+    @Override
+    public void visitNode(DependencyGraphNode node) {
+    }
+
+    @Override
+    public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, int artifactSetId, ArtifactSet artifacts) {
+    }
+
+    @Override
+    public void visitArtifacts(DependencyGraphNode node, LocalFileDependencyMetadata fileDependency, int artifactSetId, ArtifactSet artifactSet) {
+        if (node.isRoot()) {
+            rootFiles.put(fileDependency.getSource(), artifactSetId);
         }
     }
 
     @Override
-    public void visitNode(DependencyGraphNode resolvedConfiguration) {
+    public void finishArtifacts() {
     }
 
-    @Override
-    public void visitEdge(DependencyGraphNode resolvedConfiguration) {
-        ConfigurationMetadata configurationMetadata = resolvedConfiguration.getMetadata();
-        if (configurationMetadata instanceof LocalConfigurationMetadata) {
-            LocalConfigurationMetadata localConfigurationMetadata = (LocalConfigurationMetadata) configurationMetadata;
-            for (DependencyGraphEdge edge : resolvedConfiguration.getIncomingEdges()) {
-                if (edge.isTransitive()) {
-                    Set<LocalFileDependencyMetadata> fileDependencies = localConfigurationMetadata.getFiles();
-                    for (LocalFileDependencyMetadata fileDependency : fileDependencies) {
-                        filesByConfiguration.put(resolvedConfiguration.getNodeId(), fileDependency.getFiles());
-                    }
-                    break;
-                }
-            }
-        }
-    }
-
-    @Override
-    public void finish(DependencyGraphNode root) {
-    }
-
-    @Override
-    public Map<FileCollectionDependency, FileCollection> getFirstLevelFiles() {
-        return rootFiles;
-    }
-
-    @Override
-    public Set<FileCollection> getFiles(ResolvedConfigurationIdentifier node) {
-        return filesByConfiguration.get(node);
-    }
-
-    @Override
-    public Set<FileCollection> getFiles() {
-        return ImmutableSet.copyOf(filesByConfiguration.values());
+    public VisitedFileDependencyResults complete() {
+        return new DefaultVisitedFileDependencyResults(rootFiles);
     }
 }

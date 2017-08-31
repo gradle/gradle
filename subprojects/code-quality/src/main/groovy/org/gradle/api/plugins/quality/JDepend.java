@@ -18,53 +18,74 @@ package org.gradle.api.plugins.quality;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.JDependInvoker;
 import org.gradle.api.plugins.quality.internal.JDependReportsImpl;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
-import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.CollectionUtils;
+import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
 import java.io.File;
 
 /**
- * Analyzes code with <a href="http://clarkware.com/software/JDepend.html">JDepend</a>.
+ * Analyzes code with <a href="https://github.com/clarkware/jdepend">JDepend</a>.
  */
 @CacheableTask
 public class JDepend extends DefaultTask implements Reporting<JDependReports> {
 
     private FileCollection jdependClasspath;
 
-    private File classesDir;
+    private FileCollection classesDirs;
 
     private final JDependReports reports;
 
     /**
-     * The directory containing the classes to be analyzed.
+     * The directories containing the classes to be analyzed.
+     *
+     * @since 4.0
      */
     @PathSensitive(PathSensitivity.RELATIVE)
-    @InputDirectory
+    @InputFiles
     @SkipWhenEmpty
-    public File getClassesDir() {
-        return classesDir;
+    public FileCollection getClassesDirs() {
+        return classesDirs;
+    }
+
+    /**
+     * The directories containing the classes to be analyzed.
+     *
+     * @since 4.0
+     */
+    public void setClassesDirs(FileCollection classesDirs) {
+        this.classesDirs = classesDirs;
     }
 
     public JDepend() {
-        reports = getInstantiator().newInstance(JDependReportsImpl.class, this);
+        reports = getObjectFactory().newInstance(JDependReportsImpl.class, this);
     }
 
+    /**
+     * Injects and returns an instance of {@link org.gradle.api.model.ObjectFactory}.
+     *
+     * @since 4.2
+     */
+    @Incubating
     @Inject
-    public Instantiator getInstantiator() {
+    public ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -132,12 +153,11 @@ public class JDepend extends DefaultTask implements Reporting<JDependReports> {
         return jdependClasspath;
     }
 
+    /**
+     * The class path containing the JDepend library to be used.
+     */
     public void setJdependClasspath(FileCollection jdependClasspath) {
         this.jdependClasspath = jdependClasspath;
-    }
-
-    public void setClassesDir(File classesDir) {
-        this.classesDir = classesDir;
     }
 
     /**
@@ -148,5 +168,26 @@ public class JDepend extends DefaultTask implements Reporting<JDependReports> {
         return reports;
     }
 
+    /**
+     * The directory containing the classes to be analyzed.
+     *
+     * @deprecated Replaced by {@link #getClassesDirs()}.
+     */
+    @Deprecated
+    @Internal
+    public File getClassesDir() {
+        SingleMessageLogger.nagUserOfReplacedMethod("getClassesDir()", "getClassesDirs()");
+        return CollectionUtils.single(getClassesDirs());
+    }
 
+    /**
+     * The directory containing the classes to be analyzed.
+     *
+     * @deprecated Replaced by {@link #getClassesDirs()}.
+     */
+    @Deprecated
+    public void setClassesDir(File classesDir) {
+        SingleMessageLogger.nagUserOfReplacedMethod("setClassesDir(File)", "setClassesDirs(Set<File>)");
+        setClassesDirs(getProject().files(classesDir));
+    }
 }

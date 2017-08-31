@@ -16,11 +16,15 @@
 
 package org.gradle.util;
 
+import org.gradle.internal.scan.UsedByScanPlugin;
+import org.gradle.internal.time.DefaultEventTimer;
+
 /**
- * This class remains for backward compatibility. Replaced by `org.gradle.internal.time.Clock`.
+ * This class remains for backward compatibility. Replaced by `org.gradle.internal.time.DefaultEventTimer`.
  */
 @Deprecated
-public class Clock extends org.gradle.internal.time.Clock {
+@UsedByScanPlugin
+public class Clock extends DefaultEventTimer {
     public Clock() {
         super();
     }

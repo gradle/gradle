@@ -37,7 +37,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies { testCompile "junit:junit:4.12" }
         """
 
@@ -57,6 +57,48 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         ":test" in nonSkippedTasks
+    }
+
+    def "configures test task when debug property is set"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+            task validate() {
+                doFirst {
+                    assert test.debug
+                }
+            }
+            test.dependsOn(validate)
+            test.enabled = false
+        """
+
+        when:
+        executer.withArgument("-Dtest.debug")
+
+        then:
+        succeeds("test")
+    }
+
+    def "configures test task when test.single property is set"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+            task validate() {
+                doFirst {
+                    assert test.includes  == ['**/pattern*.class'] as Set
+                    assert test.inputs.sourceFiles.empty
+                }
+            }
+            test.include 'ignoreme'
+            test.dependsOn(validate)
+            test.enabled = false
+        """
+
+        when:
+        executer.withArgument("-Dtest.single=pattern")
+
+        then:
+        succeeds("test")
     }
 
     def "fails cleanly even if an exception is thrown that doesn't serialize cleanly"() {
@@ -85,7 +127,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         """
         file('build.gradle') << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies { testCompile 'junit:junit:4.12' }
         """
 
@@ -127,7 +169,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         """
         file('build.gradle') << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies {
                 testCompile 'junit:junit:4.12'
             }
@@ -157,7 +199,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies { testCompile "junit:junit:4.12" }
             test.workingDir = "${testWorkingDir.toURI()}"
         """
@@ -183,7 +225,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         when:
         buildFile << """
             apply plugin: "java"
-            repositories.mavenCentral()
+            ${mavenCentralRepository()}
             dependencies { testCompile "$dependency" }
             test { $framework() }
         """
@@ -209,7 +251,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
                 apply plugin:'java'
-                repositories{ mavenCentral() }
+                ${mavenCentralRepository()}
 
                 sourceSets{
 	                othertests{
@@ -225,7 +267,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
                 task othertestsTest(type:Test){
 	                useJUnit()
 	                classpath = sourceSets.othertests.runtimeClasspath
-	                testClassesDir = sourceSets.othertests.output.classesDir
+	                testClassesDirs = sourceSets.othertests.output.classesDirs
 	            }
             """
 
@@ -272,9 +314,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         when:
         buildScript """
             apply plugin: 'java'
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
             configurations { first {}; last {} }
             dependencies {
                 // guarantee ordering
@@ -314,9 +354,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         when:
         buildScript """
             apply plugin: 'java'
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
             dependencies {
                 testCompile 'junit:junit:4.12'
             }
@@ -363,9 +401,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             apply plugin:'java'
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
             dependencies {
                 testCompile 'junit:junit:4.12'
             }
@@ -417,5 +453,28 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         nonSkippedTasks.contains ":test"
         output.contains("FirstTest > test PASSED")
         !output.contains("SecondTest > test PASSED")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/2661")
+    def "test logging can be configured on turkish locale"() {
+        given:
+        buildFile << """
+            apply plugin:'java'
+            test {
+                testLogging {
+                    events "passed", "skipped", "failed"
+                }
+            }
+        """
+        when:
+        executer
+            .requireDaemon()
+            .requireIsolatedDaemons()
+            .withBuildJvmOpts("-Duser.language=tr", "-Duser.country=TR")
+            .withTasks("help")
+            .run()
+
+        then:
+        noExceptionThrown()
     }
 }

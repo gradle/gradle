@@ -64,7 +64,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
         this.classPathRegistry = classPathRegistry;
         this.classLoaderFactory = classLoaderFactory;
         this.moduleRegistry = moduleRegistry;
-        this.libClasspath = new DefaultClassPath();
+        this.libClasspath = ClassPath.EMPTY;
         GroovySystemLoaderFactory groovySystemLoaderFactory = new GroovySystemLoaderFactory();
         this.classLoaderCache = new ClassPathToClassLoaderCache(groovySystemLoaderFactory);
 
@@ -87,7 +87,8 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
         this.baseAntLoader = new CachingClassLoader(new MultiParentClassLoader(antLoader, loggingLoader));
 
         // Need gradle core to pick up ant logging adapter, AntBuilder and such
-        ClassPath gradleCoreUrls = moduleRegistry.getModule("gradle-core").getImplementationClasspath();
+        ClassPath gradleCoreUrls = moduleRegistry.getModule("gradle-core-api").getImplementationClasspath();
+        gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getModule("gradle-core").getImplementationClasspath());
         gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getModule("gradle-logging").getImplementationClasspath());
         gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getExternalModule("groovy-all").getClasspath());
 

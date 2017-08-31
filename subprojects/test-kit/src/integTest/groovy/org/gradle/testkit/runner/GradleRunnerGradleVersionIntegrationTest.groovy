@@ -17,11 +17,15 @@
 package org.gradle.testkit.runner
 
 import org.gradle.api.Action
+import org.gradle.integtests.fixtures.RetryRuleUtil
+import org.gradle.integtests.fixtures.daemon.DaemonsFixture
+import org.gradle.testing.internal.util.RetryRule
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.junit.Rule
 import spock.lang.Shared
 
 @NonCrossVersion
@@ -32,6 +36,17 @@ class GradleRunnerGradleVersionIntegrationTest extends BaseGradleRunnerIntegrati
 
     @Shared
     DistributionLocator locator = new DistributionLocator()
+
+    @Rule
+    RetryRule retryRule = RetryRuleUtil.retryCrossVersionTestOnIssueWithReleasedGradleVersion(this)
+
+    String getReleasedGradleVersion() {
+        VERSION
+    }
+
+    DaemonsFixture getDaemonsFixture() {
+        testKitDaemons(GradleVersion.version(VERSION))
+    }
 
     def "execute build with different distribution types"(String version, Action<GradleRunner> configurer) {
         given:

@@ -26,6 +26,7 @@ import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.ProjectPropertiesCommandLineConverter;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
+import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.logging.LoggingCommandLineConverter;
 
 import java.io.File;
@@ -49,17 +50,21 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String PROJECT_CACHE_DIR = "project-cache-dir";
     private static final String RECOMPILE_SCRIPTS = "recompile-scripts";
 
-    private static final String PARALLEL = "parallel";
-    private static final String MAX_WORKERS = "max-workers";
-
     private static final String CONFIGURE_ON_DEMAND = "configure-on-demand";
 
     private static final String CONTINUOUS = "continuous";
     private static final String CONTINUOUS_SHORT_FLAG = "t";
 
+    private static final String BUILDSCAN = "scan";
+    private static final String NO_BUILDSCAN = "no-scan";
+
+    private static final String BUILD_CACHE = "build-cache";
+    private static final String NO_BUILD_CACHE = "no-build-cache";
+
     private static final String INCLUDE_BUILD = "include-build";
 
     private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new LoggingCommandLineConverter();
+    private final CommandLineConverter<ParallelismConfiguration> parallelConfigurationCommandLineConverter = new ParallelismConfigurationCommandLineConverter();
     private final SystemPropertiesCommandLineConverter systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
     private final ProjectPropertiesCommandLineConverter projectPropertiesCommandLineConverter = new ProjectPropertiesCommandLineConverter();
     private final LayoutCommandLineConverter layoutCommandLineConverter;
@@ -70,33 +75,41 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
     public void configure(CommandLineParser parser) {
         loggingConfigurationCommandLineConverter.configure(parser);
+        parallelConfigurationCommandLineConverter.configure(parser);
         systemPropertiesCommandLineConverter.configure(parser);
         projectPropertiesCommandLineConverter.configure(parser);
         layoutCommandLineConverter.configure(parser);
 
         parser.allowMixedSubcommandsAndOptions();
-        parser.option(PROJECT_CACHE_DIR).hasArgument().hasDescription("Specifies the project-specific cache directory. Defaults to .gradle in the root project directory.");
-        parser.option(DRY_RUN, "dry-run").hasDescription("Runs the builds with all task actions disabled.");
-        parser.option(INIT_SCRIPT, "init-script").hasArguments().hasDescription("Specifies an initialization script.");
-        parser.option(SETTINGS_FILE, "settings-file").hasArgument().hasDescription("Specifies the settings file.");
-        parser.option(BUILD_FILE, "build-file").hasArgument().hasDescription("Specifies the build file.");
+        parser.option(PROJECT_CACHE_DIR).hasArgument().hasDescription("Specify the project-specific cache directory. Defaults to .gradle in the root project directory.");
+        parser.option(DRY_RUN, "dry-run").hasDescription("Run the builds with all task actions disabled.");
+        parser.option(INIT_SCRIPT, "init-script").hasArguments().hasDescription("Specify an initialization script.");
+        parser.option(SETTINGS_FILE, "settings-file").hasArgument().hasDescription("Specify the settings file.");
+        parser.option(BUILD_FILE, "build-file").hasArgument().hasDescription("Specify the build file.");
         parser.option(NO_PROJECT_DEPENDENCY_REBUILD, "no-rebuild").hasDescription("Do not rebuild project dependencies.");
         parser.option(RERUN_TASKS).hasDescription("Ignore previously cached task results.");
         parser.option(RECOMPILE_SCRIPTS).hasDescription("Force build script recompiling.");
         parser.option(EXCLUDE_TASK, "exclude-task").hasArguments().hasDescription("Specify a task to be excluded from execution.");
-        parser.option(PROFILE).hasDescription("Profiles build execution time and generates a report in the <build_dir>/reports/profile directory.");
-        parser.option(CONTINUE).hasDescription("Continues task execution after a task failure.");
-        parser.option(OFFLINE).hasDescription("The build should operate without accessing network resources.");
+        parser.option(PROFILE).hasDescription("Profile build execution time and generates a report in the <build_dir>/reports/profile directory.");
+        parser.option(CONTINUE).hasDescription("Continue task execution after a task failure.");
+        parser.option(OFFLINE).hasDescription("Execute the build without accessing network resources.");
         parser.option(REFRESH_DEPENDENCIES).hasDescription("Refresh the state of dependencies.");
-        parser.option(PARALLEL).hasDescription("Build projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.").incubating();
-        parser.option(MAX_WORKERS).hasArgument().hasDescription("Configure the number of concurrent workers Gradle is allowed to use.").incubating();
-        parser.option(CONFIGURE_ON_DEMAND).hasDescription("Only relevant projects are configured in this build run. This means faster build for large multi-project builds.").incubating();
+        parser.option(CONFIGURE_ON_DEMAND).hasDescription("Configure necessary projects only. Gradle will attempt to reduce configuration time for large multi-project builds.").incubating();
         parser.option(CONTINUOUS, CONTINUOUS_SHORT_FLAG).hasDescription("Enables continuous build. Gradle does not exit and will re-execute tasks when task file inputs change.").incubating();
-        parser.option(INCLUDE_BUILD).hasArguments().hasDescription("Includes the specified build in the composite.").incubating();
+
+        parser.option(BUILDSCAN).hasDescription("Creates a build scan. Gradle will emit a warning if the build scan plugin has not been applied. (https://gradle.com/build-scans)").incubating();
+        parser.option(NO_BUILDSCAN).hasDescription("Disables the creation of a build scan. (https://gradle.com/build-scans)").incubating();
+
+        parser.option(INCLUDE_BUILD).hasArguments().hasDescription("Include the specified build in the composite.").incubating();
+
+        parser.option(BUILD_CACHE).hasDescription("Enables the Gradle build cache. Gradle will try to reuse outputs from previous builds.").incubating();
+        parser.option(NO_BUILD_CACHE).hasDescription("Disables the Gradle build cache.").incubating();
+        parser.allowOneOf(BUILD_CACHE, NO_BUILD_CACHE);
     }
 
     public StartParameter convert(final ParsedCommandLine options, final StartParameter startParameter) throws CommandLineArgumentException {
         loggingConfigurationCommandLineConverter.convert(options, startParameter);
+        parallelConfigurationCommandLineConverter.convert(options, startParameter);
         Transformer<File, String> resolver = new BasicFileResolver(startParameter.getCurrentDir());
 
         Map<String, String> systemProperties = systemPropertiesCommandLineConverter.convert(options, new HashMap<String, String>());
@@ -171,23 +184,6 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
             startParameter.setRefreshDependencies(true);
         }
 
-        if (options.hasOption(PARALLEL)) {
-            startParameter.setParallelProjectExecutionEnabled(true);
-        }
-
-        if (options.hasOption(MAX_WORKERS)) {
-            String value = options.option(MAX_WORKERS).getValue();
-            try {
-                int workerCount = Integer.parseInt(value);
-                if (workerCount < 1) {
-                    invalidMaxWorkersSwitchValue(value);
-                }
-                startParameter.setMaxWorkerCount(workerCount);
-            } catch (NumberFormatException e) {
-                invalidMaxWorkersSwitchValue(value);
-            }
-        }
-
         if (options.hasOption(CONFIGURE_ON_DEMAND)) {
             startParameter.setConfigureOnDemand(true);
         }
@@ -196,15 +192,30 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
             startParameter.setContinuous(true);
         }
 
+        if (options.hasOption(BUILDSCAN)) {
+            startParameter.setBuildScan(true);
+        }
+
+        if (options.hasOption(NO_BUILDSCAN)) {
+            if(options.hasOption(BUILDSCAN)){
+                throw new CommandLineArgumentException("Command line switches '--scan' and '--no-scan' are mutually exclusive and must not be used together.");
+            }
+            startParameter.setNoBuildScan(true);
+        }
+
+        if (options.hasOption(BUILD_CACHE)) {
+            startParameter.setBuildCacheEnabled(true);
+        }
+
+        if (options.hasOption(NO_BUILD_CACHE)) {
+            startParameter.setBuildCacheEnabled(false);
+        }
+
         for (String includedBuild : options.option(INCLUDE_BUILD).getValues()) {
             startParameter.includeBuild(resolver.transform(includedBuild));
         }
 
         return startParameter;
-    }
-
-    private StartParameter invalidMaxWorkersSwitchValue(String value) {
-        throw new CommandLineArgumentException(String.format("Argument value '%s' given for --%s option is invalid (must be a positive, non-zero, integer)", value, MAX_WORKERS));
     }
 
     void convertCommandLineSystemProperties(Map<String, String> systemProperties, StartParameter startParameter, Transformer<File, String> resolver) {

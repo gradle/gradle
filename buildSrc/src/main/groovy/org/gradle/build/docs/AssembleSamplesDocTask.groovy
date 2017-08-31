@@ -16,28 +16,28 @@
 package org.gradle.build.docs
 
 import groovy.xml.DOMBuilder
+import groovy.xml.XmlUtil
+import groovy.xml.dom.DOMCategory
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitDetails
-import org.gradle.api.tasks.SourceTask
-import org.gradle.api.tasks.TaskAction
-import org.w3c.dom.Document
-import javax.xml.parsers.DocumentBuilderFactory
-import org.w3c.dom.Element
-import groovy.xml.dom.DOMCategory
 import org.gradle.api.tasks.*
-import groovy.xml.XmlUtil
+import org.w3c.dom.Document
+import org.w3c.dom.Element
+
+import javax.xml.parsers.DocumentBuilderFactory
 
 /**
  * Generates a chapter containing a summary of the readme files for the samples.
  */
 @CacheableTask
 class AssembleSamplesDocTask extends SourceTask {
+
     @OutputFile
     File destFile
 
     @Override
     @PathSensitive(PathSensitivity.RELATIVE)
-    public FileTree getSource() {
+    FileTree getSource() {
         return super.getSource()
     }
 
@@ -47,13 +47,13 @@ class AssembleSamplesDocTask extends SourceTask {
         use(DOMCategory) {
 
             // Collect up the source sample.xml files
-            source.visit {FileVisitDetails fvd ->
+            source.visit { FileVisitDetails fvd ->
                 if (fvd.isDirectory()) {
                     return
                 }
 
-                Element sourceDoc;
-                fvd.file.withReader {Reader reader ->
+                Element sourceDoc
+                fvd.file.withReader { Reader reader ->
                     sourceDoc = DOMBuilder.parse(reader).documentElement
                 }
 
@@ -62,18 +62,17 @@ class AssembleSamplesDocTask extends SourceTask {
                     throw new RuntimeException("Source file $fvd.file does not contain any <para> elements.")
                 }
                 samples << [
-                        dir: fvd.relativePath.parent as String,
-                        firstPara: firstPara,
-                        doc: sourceDoc,
-                        include: sourceDoc['*'].size() > 1
+                    dir      : fvd.relativePath.parent as String,
+                    firstPara: firstPara,
+                    doc      : sourceDoc,
+                    include  : sourceDoc['*'].size() > 1
                 ]
             }
 
             samples = samples.sort { it.dir }
 
-            Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument()
-
-            DomBuilder builder = new DomBuilder(doc)
+            def doc = newDocument()
+            def builder = new DomBuilder(doc)
             builder.appendix(id: 'sample_list') {
                 title('Gradle Samples')
                 para {
@@ -91,7 +90,7 @@ class AssembleSamplesDocTask extends SourceTask {
                         td('Sample')
                         td('Description')
                     }
-                    samples.each {sample ->
+                    samples.each { sample ->
                         tr {
                             td {
                                 if (sample.include) {
@@ -104,7 +103,7 @@ class AssembleSamplesDocTask extends SourceTask {
                         }
                     }
                 }
-                samples.each {sample ->
+                samples.each { sample ->
                     if (!sample.include) {
                         return
                     }
@@ -113,16 +112,20 @@ class AssembleSamplesDocTask extends SourceTask {
                             text('Sample ')
                             filename(sample.dir)
                         }
-                        sample.doc.childNodes.each {n ->
+                        sample.doc.childNodes.each { n ->
                             appendChild n
                         }
                     }
                 }
             }
 
-            destFile.withOutputStream {OutputStream stream ->
+            destFile.withOutputStream { OutputStream stream ->
                 XmlUtil.serialize(doc.documentElement, stream)
             }
         }
+    }
+
+    Document newDocument() {
+        DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument()
     }
 }

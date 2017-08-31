@@ -46,7 +46,7 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
         !FILE_PERMISSIONS.fulfilled
     }),
     SET_ENV_VARIABLE({
-        !UNKNOWN_OS.fulfilled
+        !UNKNOWN_OS.fulfilled && JavaVersion.current() < JavaVersion.VERSION_1_9
     }),
     WORKING_DIR({
         !UNKNOWN_OS.fulfilled
@@ -68,6 +68,9 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     }),
     MAC_OS_X({
         OperatingSystem.current().macOsX
+    }),
+    NOT_MAC_OS_X({
+        !OperatingSystem.current().macOsX
     }),
     LINUX({
         OperatingSystem.current().linux
@@ -131,6 +134,9 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     OBJECTIVE_C_SUPPORT({
         NOT_WINDOWS.fulfilled && NOT_UNKNOWN_OS.fulfilled
     }),
+    SWIFT_SUPPORT({
+        NOT_WINDOWS.fulfilled && NOT_UNKNOWN_OS.fulfilled
+    }),
     SMART_TERMINAL({
         System.getenv("TERM")?.toUpperCase() != "DUMB"
     }),
@@ -145,7 +151,10 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     }),
     NOT_PULL_REQUEST_BUILD({
         !PULL_REQUEST_BUILD.fulfilled
-    });
+    }),
+    KOTLIN_SCRIPT({
+        JDK8_OR_LATER.fulfilled && FIX_TO_WORK_ON_JAVA9.fulfilled && NOT_JDK_IBM.fulfilled
+    })
 
     /**
      * A predicate for testing whether the precondition is fulfilled.

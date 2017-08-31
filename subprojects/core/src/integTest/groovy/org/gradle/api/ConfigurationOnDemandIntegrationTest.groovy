@@ -294,7 +294,7 @@ project(':api') {
 
         then:
         fixture.assertProjectsConfigured(":", ":impl", ":api")
-        result.assertTasksExecuted(":api:foo", ":impl:bar")
+        result.assertTasksExecutedInOrder(":api:foo", ":impl:bar")
     }
 
     def "supports buildSrc"() {

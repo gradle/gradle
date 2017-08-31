@@ -27,7 +27,7 @@ import static org.gradle.util.Matchers.strictlyEquals
 class DefaultModuleComponentSelectorTest extends Specification {
     def "is instantiated with non-null constructor parameter values"() {
         when:
-        ModuleComponentSelector defaultModuleComponentSelector = DefaultModuleComponentSelector.of('some-group', 'some-name', '1.0')
+        ModuleComponentSelector defaultModuleComponentSelector = new DefaultModuleComponentSelector('some-group', 'some-name', '1.0')
 
         then:
         defaultModuleComponentSelector.group == 'some-group'
@@ -40,7 +40,7 @@ class DefaultModuleComponentSelectorTest extends Specification {
     @Unroll
     def "is instantiated with null constructor parameter values (#group, #name, #version)"() {
         when:
-        DefaultModuleComponentSelector.of(group, name, version)
+        new DefaultModuleComponentSelector(group, name, version)
 
         then:
         Throwable t = thrown(AssertionError)
@@ -56,8 +56,8 @@ class DefaultModuleComponentSelectorTest extends Specification {
     @Unroll
     def "can compare with other instance (#group, #name, #version)"() {
         expect:
-        ModuleComponentSelector defaultModuleComponentSelector1 = DefaultModuleComponentSelector.of('some-group', 'some-name', '1.0')
-        ModuleComponentSelector defaultModuleComponentSelector2 = DefaultModuleComponentSelector.of(group, name, version)
+        ModuleComponentSelector defaultModuleComponentSelector1 = new DefaultModuleComponentSelector('some-group', 'some-name', '1.0')
+        ModuleComponentSelector defaultModuleComponentSelector2 = new DefaultModuleComponentSelector(group, name, version)
         strictlyEquals(defaultModuleComponentSelector1, defaultModuleComponentSelector2) == equality
         (defaultModuleComponentSelector1.hashCode() == defaultModuleComponentSelector2.hashCode()) == hashCode
         (defaultModuleComponentSelector1.toString() == defaultModuleComponentSelector2.toString()) == stringRepresentation
@@ -84,7 +84,7 @@ class DefaultModuleComponentSelectorTest extends Specification {
 
     def "prevents matching of null id"() {
         when:
-        ModuleComponentSelector defaultModuleComponentSelector = DefaultModuleComponentSelector.of('some-group', 'some-name', '1.0')
+        ModuleComponentSelector defaultModuleComponentSelector = new DefaultModuleComponentSelector('some-group', 'some-name', '1.0')
         defaultModuleComponentSelector.matchesStrictly(null)
 
         then:
@@ -94,7 +94,7 @@ class DefaultModuleComponentSelectorTest extends Specification {
 
     def "does not match id for unexpected component selector type"() {
         when:
-        ModuleComponentSelector defaultModuleComponentSelector = DefaultModuleComponentSelector.of('some-group', 'some-name', '1.0')
+        ModuleComponentSelector defaultModuleComponentSelector = new DefaultModuleComponentSelector('some-group', 'some-name', '1.0')
         boolean matches = defaultModuleComponentSelector.matchesStrictly(newProjectId(':mypath'))
 
         then:
@@ -104,8 +104,8 @@ class DefaultModuleComponentSelectorTest extends Specification {
     @Unroll
     def "matches id (#group, #name, #version)"() {
         expect:
-        ModuleComponentSelector defaultModuleComponentSelector = DefaultModuleComponentSelector.of('some-group', 'some-name', '1.0')
-        ModuleComponentIdentifier defaultModuleComponentIdentifier = DefaultModuleComponentIdentifier.of(group, name, version)
+        ModuleComponentSelector defaultModuleComponentSelector = new DefaultModuleComponentSelector('some-group', 'some-name', '1.0')
+        ModuleComponentIdentifier defaultModuleComponentIdentifier = new DefaultModuleComponentIdentifier(group, name, version)
         defaultModuleComponentSelector.matchesStrictly(defaultModuleComponentIdentifier) == matchesId
 
         where:

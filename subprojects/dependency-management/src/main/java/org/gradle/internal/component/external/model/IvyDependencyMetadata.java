@@ -24,8 +24,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -101,7 +100,7 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
     }
 
     @Override
-    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
+    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
         // TODO - all this matching stuff is constant for a given DependencyMetadata instance
         Set<ConfigurationMetadata> targets = Sets.newLinkedHashSet();
         boolean matched = false;
@@ -177,16 +176,11 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
         targetConfigurations.add(configuration);
     }
 
-    public List<Exclude> getDependencyExcludes() {
+    public List<Exclude> getExcludes() {
         return excludes;
     }
 
-    @Override
-    public ModuleExclusion getExclusions(ConfigurationMetadata fromConfiguration) {
-        return excludes.isEmpty() ? ModuleExclusions.excludeNone() : ModuleExclusions.excludeAny(getExcludes(fromConfiguration.getHierarchy()));
-    }
-
-    private List<Exclude> getExcludes(Collection<String> configurations) {
+    public List<Exclude> getExcludes(Collection<String> configurations) {
         List<Exclude> rules = Lists.newArrayList();
         for (Exclude exclude : excludes) {
             Set<String> ruleConfigurations = exclude.getConfigurations();

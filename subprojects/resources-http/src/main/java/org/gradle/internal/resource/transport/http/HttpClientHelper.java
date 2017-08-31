@@ -32,6 +32,7 @@ import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
 import org.gradle.api.UncheckedIOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Locale;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Provides some convenience and unified logging.
@@ -47,11 +49,24 @@ public class HttpClientHelper implements Closeable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientHelper.class);
     private CloseableHttpClient client;
-    private final BasicHttpContext httpContext = new BasicHttpContext();
     private final HttpSettings settings;
+
+    /**
+     * Maintains a queue of contexts which are shared between threads when authentication
+     * is activated. When a request is performed, it will pick a context from the queue,
+     * and create a new one whenever it's not available (which either means it's the first request
+     * or that other requests are being performed concurrently). The queue will grow as big as
+     * the max number of concurrent requests executed.
+     */
+    private final ConcurrentLinkedQueue<HttpContext> sharedContext;
 
     public HttpClientHelper(HttpSettings settings) {
         this.settings = settings;
+        if (!settings.getAuthenticationSettings().isEmpty()) {
+            sharedContext = new ConcurrentLinkedQueue<HttpContext>();
+        } else {
+            sharedContext = null;
+        }
     }
 
     public CloseableHttpResponse performRawHead(String source, boolean revalidate) {
@@ -107,6 +122,27 @@ public class HttpClientHelper implements Closeable {
     }
 
     public CloseableHttpResponse performHttpRequest(HttpRequestBase request) throws IOException {
+        if (sharedContext == null) {
+            // There's no authentication involved, requests can be done concurrently
+            return performHttpRequest(request, new BasicHttpContext());
+        }
+        HttpContext httpContext = nextAvailableSharedContext();
+        try {
+            return performHttpRequest(request, httpContext);
+        } finally {
+            sharedContext.add(httpContext);
+        }
+    }
+
+    private HttpContext nextAvailableSharedContext() {
+        HttpContext context = sharedContext.poll();
+        if (context == null) {
+            return new BasicHttpContext();
+        }
+        return context;
+    }
+
+    private CloseableHttpResponse performHttpRequest(HttpRequestBase request, HttpContext httpContext) throws IOException {
         // Without this, HTTP Client prohibits multiple redirects to the same location within the same context
         httpContext.removeAttribute(HttpClientContext.REDIRECT_LOCATIONS);
         LOGGER.debug("Performing HTTP {}: {}", request.getMethod(), request.getURI());
@@ -141,6 +177,9 @@ public class HttpClientHelper implements Closeable {
     public synchronized void close() throws IOException {
         if (client != null) {
             client.close();
+            if (sharedContext != null) {
+                sharedContext.clear();
+            }
         }
     }
 
@@ -151,7 +190,7 @@ public class HttpClientHelper implements Closeable {
         public AutoClosedHttpResponse(CloseableHttpResponse httpResponse) throws IOException {
             this.httpResponse = httpResponse;
             HttpEntity entity = httpResponse.getEntity();
-            this.entity = entity !=null ? new BufferedHttpEntity(entity) : null;
+            this.entity = entity != null ? new BufferedHttpEntity(entity) : null;
         }
 
         @Override
@@ -295,4 +334,5 @@ public class HttpClientHelper implements Closeable {
             throw new UnsupportedOperationException();
         }
     }
+
 }

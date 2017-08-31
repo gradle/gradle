@@ -156,7 +156,7 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
 
         @Mutate
         void registerPlatformExtension(ExtensionContainer extensions, PlatformContainer platforms) {
-            extensions.add("platforms", platforms);
+            extensions.add(PlatformContainer.class, "platforms", platforms);
         }
 
         @Mutate

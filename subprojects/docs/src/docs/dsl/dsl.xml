@@ -157,6 +157,9 @@
                 <td>org.gradle.api.tasks.SourceSetOutput</td>
             </tr>
             <tr>
+                <td>org.gradle.api.file.SourceDirectorySet</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.tasks.incremental.IncrementalTaskInputs</td>
             </tr>
             <tr>
@@ -173,9 +176,6 @@
             </tr>
             <tr>
                 <td>org.gradle.api.artifacts.ComponentSelectionRules</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.dsl.ConventionProperty</td>
             </tr>
             <tr>
                 <td>org.gradle.plugin.repository.GradlePluginPortal</td>
@@ -224,6 +224,9 @@
             </tr>
             <tr>
                 <td>org.gradle.plugin.use.PluginDependencySpec</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugin.management.PluginManagementSpec</td>
             </tr>
             <tr>
                 <td>org.gradle.plugin.repository.PluginRepositoriesSpec</td>
@@ -288,6 +291,40 @@
             </tr>
             <tr>
                 <td>org.gradle.authentication.http.DigestAuthentication</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>Build Cache types</title>
+        <para>Types used to connect to and configure the build cache:</para>
+        <table>
+            <title>Build Cache types</title>
+            <tr>
+                <td>org.gradle.caching.configuration.BuildCacheConfiguration</td>
+            </tr>
+            <tr>
+                <td>org.gradle.caching.local.DirectoryBuildCache</td>
+            </tr>
+            <tr>
+                <td>org.gradle.caching.http.HttpBuildCache</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>Input Normalization types</title>
+        <para>Types used to configure input normalization</para>
+        <table>
+            <title>Input Normalization types</title>
+            <tr>
+                <td>org.gradle.normalization.InputNormalizationHandler</td>
+            </tr>
+            <tr>
+                <td>org.gradle.normalization.InputNormalization</td>
+            </tr>
+            <tr>
+                <td>org.gradle.normalization.RuntimeClasspathNormalization</td>
             </tr>
         </table>
     </section>
@@ -392,6 +429,9 @@
                 <td>org.gradle.testing.jacoco.tasks.JacocoMerge</td>
             </tr>
             <tr>
+                <td>org.gradle.testing.jacoco.tasks.JacocoCoverageVerification</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.tasks.bundling.Jar</td>
             </tr>
             <tr>
@@ -405,15 +445,6 @@
             </tr>
             <tr>
                 <td>org.gradle.api.plugins.quality.JDepend</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.plugins.jetty.JettyRun</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.plugins.jetty.JettyRunWar</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.plugins.jetty.JettyStop</td>
             </tr>
             <tr>
                 <td>org.gradle.api.plugins.quality.Pmd</td>
@@ -456,6 +487,9 @@
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.wrapper.Wrapper</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.WriteProperties</td>
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.bundling.Zip</td>

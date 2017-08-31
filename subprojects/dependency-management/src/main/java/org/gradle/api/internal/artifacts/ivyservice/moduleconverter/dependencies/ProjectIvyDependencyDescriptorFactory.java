@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
@@ -26,28 +27,31 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 
-import java.util.Map;
+import java.util.List;
 
 public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependencyDescriptorFactory {
+
     public ProjectIvyDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter) {
         super(excludeRuleConverter);
     }
 
-    public DslOriginDependencyMetadata createDependencyDescriptor(String clientConfiguration, Map<String, String> clientAttributes, ModuleDependency dependency) {
+    public DslOriginDependencyMetadata createDependencyDescriptor(String clientConfiguration, AttributeContainer clientAttributes, ModuleDependency dependency) {
         ProjectDependencyInternal projectDependency = (ProjectDependencyInternal) dependency;
         projectDependency.beforeResolved();
         Module module = getProjectModule(dependency);
-        ModuleVersionSelector requested = DefaultModuleVersionSelector.of(module.getGroup(), module.getName(), module.getVersion());
+        ModuleVersionSelector requested = new DefaultModuleVersionSelector(module.getGroup(), module.getName(), module.getVersion());
         ComponentSelector selector = DefaultProjectComponentSelector.newSelector(projectDependency.getDependencyProject());
 
+        List<Exclude> excludes = convertExcludeRules(clientConfiguration, dependency.getExcludeRules());
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(
             selector, requested, clientConfiguration,
             clientAttributes,
             projectDependency.getTargetConfiguration(),
             convertArtifacts(dependency.getArtifacts()),
-            convertExcludeRules(clientConfiguration, dependency.getExcludeRules()),
+            excludes,
             false, false, dependency.isTransitive());
         return new DslOriginDependencyMetadataWrapper(dependencyMetaData, dependency);
     }

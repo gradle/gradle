@@ -34,11 +34,11 @@ class EclipseMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
           -api
           -model
         -services
-          -util
+          -utilities (renamed by user to 'util'
         -util
         -contrib
           -services
-            -utilities (renamed by user to 'util'
+            -util
       */
 
         def settingsFile = file("master/settings.gradle")
@@ -95,7 +95,7 @@ project(':services:utilities') {
         assert deps.contains("/very-cool-model")
         assert deps.contains("/root-util")
         assert deps.contains("/shared-api")
-        assert deps.contains("/contrib-services-util")
+        assert deps.contains("/services-util")
     }
 
     def assertApiProjectContainsCorrectDependencies() {

@@ -185,10 +185,14 @@ task verify {
 """
     }
 
-    private static String checkComponentResultArtifacts(String componentResult, String type, def expectedFiles) {
+    private String checkComponentResultArtifacts(String componentResult, String type, def expectedFiles) {
         """
     def ${type}ArtifactResultFiles = []
     ${componentResult}.getArtifacts(${type.capitalize()}Artifact).each { artifactResult ->
+        assert artifactResult.id.componentIdentifier.displayName == "${id.displayName}" 
+        assert artifactResult.id.componentIdentifier.group == "${id.group}" 
+        assert artifactResult.id.componentIdentifier.module == "${id.module}" 
+        assert artifactResult.id.componentIdentifier.version == "${id.version}" 
         if (artifactResult instanceof ResolvedArtifactResult) {
             copy {
                 from artifactResult.file

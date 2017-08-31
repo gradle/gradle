@@ -44,22 +44,18 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
                     println "Used JRE: ${jreJavaHome.absolutePath.replace(File.separator, '/')}"
                     apply plugin:'scala'
 
-                    repositories {
-                        mavenCentral()
-                    }
+                    ${mavenCentralRepository()}
 
                     dependencies {
                         compile 'org.scala-lang:scala-library:2.11.1'
                     }
                     """
         when:
-        executer.expectDeprecationWarning()
-        executer.expectDeprecationWarning()
         executer.withEnvironmentVars("JAVA_HOME": jreJavaHome.absolutePath).withTasks("compileScala").run()
 
         then:
-        file("build/classes/main/org/test/JavaClazz.class").exists()
-        file("build/classes/main/org/test/ScalaClazz.class").exists()
+        scalaClassFile("org/test/JavaClazz.class").exists()
+        scalaClassFile("org/test/ScalaClazz.class").exists()
     }
 
     @Requires(TestPrecondition.WINDOWS)
@@ -69,9 +65,7 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
         file('build.gradle') << """
                     apply plugin:'scala'
 
-                    repositories {
-                        mavenCentral()
-                    }
+                    ${mavenCentralRepository()}
 
                     dependencies {
                         compile 'org.scala-lang:scala-library:2.11.1'
@@ -82,7 +76,7 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
         when:
         executer.withEnvironmentVars(envVars).withTasks("compileScala").run()
         then:
-        file("build/classes/main/org/test/ScalaClazz.class").exists()
+        scalaClassFile("org/test/ScalaClazz.class").exists()
     }
 
     private writeScalaTestSource(String srcDir) {

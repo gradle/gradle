@@ -15,8 +15,7 @@
  */
 package org.gradle.api.internal.file;
 
-import org.gradle.api.Nullable;
-
+import javax.annotation.Nullable;
 import java.io.File;
 
 public interface TemporaryFileProvider {
@@ -35,6 +34,6 @@ public interface TemporaryFileProvider {
      * and path, relative to the temporary file directory.
      */
     File createTemporaryFile(String prefix, @Nullable String suffix, @Nullable String... path);
-    
+
     File createTemporaryDirectory(@Nullable String prefix, @Nullable String suffix, @Nullable String... path);
 }

@@ -15,6 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.artifacts.ComponentMetadataSupplier;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
+
+import java.util.Map;
+
 public class BaseModuleComponentRepository implements ModuleComponentRepository {
     protected final ModuleComponentRepository delegate;
     private final ModuleComponentRepositoryAccess localAccess;
@@ -52,4 +58,14 @@ public class BaseModuleComponentRepository implements ModuleComponentRepository 
     public ModuleComponentRepositoryAccess getRemoteAccess() {
         return remoteAccess;
     }
+
+    @Override
+    public Map<ComponentArtifactIdentifier, ResolvableArtifact> getArtifactCache() {
+        throw new UnsupportedOperationException();
+    }
+
+    public ComponentMetadataSupplier createMetadataSupplier() {
+        return delegate.createMetadataSupplier();
+    }
+
 }

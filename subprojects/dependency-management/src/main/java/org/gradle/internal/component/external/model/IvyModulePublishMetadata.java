@@ -27,6 +27,7 @@ import java.util.Map;
 public interface IvyModulePublishMetadata {
     String IVY_MAVEN_NAMESPACE = "http://ant.apache.org/ivy/maven";
     String IVY_MAVEN_NAMESPACE_PREFIX = "m";
+    String IVY_EXTRA_NAMESPACE = "http://ant.apache.org/ivy/extra";
 
     ModuleDescriptorState getModuleDescriptor();
 

@@ -17,8 +17,8 @@
 package org.gradle.model.internal.type;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Nullable;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.TypeVariable;
 import java.util.Arrays;
 
@@ -45,6 +45,10 @@ class ParameterizedTypeWrapper implements TypeWrapper {
             hashCode ^= ownerType.hashCode();
         }
         return hashCode;
+    }
+
+    public TypeWrapper getRawType() {
+        return rawType;
     }
 
     @Override
@@ -190,6 +194,14 @@ class ParameterizedTypeWrapper implements TypeWrapper {
                 }
             }
             newArguments[i] = argument;
+        }
+        return new ParameterizedTypeWrapper(newArguments, rawType, ownerType);
+    }
+
+    ParameterizedTypeWrapper substituteAll(TypeWrapper[] newArguments) {
+        if (actualTypeArguments.length != newArguments.length) {
+            throw new IllegalArgumentException(
+                "Expecting " + actualTypeArguments.length + " type arguments but got " + newArguments.length + ".");
         }
         return new ParameterizedTypeWrapper(newArguments, rawType, ownerType);
     }

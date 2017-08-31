@@ -36,7 +36,7 @@ import java.net.URI;
  * </ol>
  *
  * <p>Example:</p>
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * ProjectConnection connection = GradleConnector.newConnector()
  *    .forProjectDirectory(new File("someProjectFolder"))
  *    .connect();
@@ -52,7 +52,7 @@ import java.net.URI;
  *  Generally, you should avoid configuring a Gradle distribution or version and instead use the default provided by the tooling API.
  * </p>
  *
- * <p>Similarly, the connection will use the JVM and JVM arguments that the target build is configured to use, for example in the {@code gradle.propertes} file. When no JVM or JVM arguments are defined for the build, the connection will use the current JVM and some default JVM arguments.</p>
+ * <p>Similarly, the connection will use the JVM and JVM arguments that the target build is configured to use, for example in the {@code gradle.properties} file. When no JVM or JVM arguments are defined for the build, the connection will use the current JVM and some default JVM arguments.</p>
  *
  * <p>{@code GradleConnector} instances are not thread-safe. If you want to use a {@code GradleConnector} concurrently you <em>must</em> always create a
  * new instance for each thread using {@link #newConnector()}. Note, however, the {@link ProjectConnection} instances that a connector creates are completely thread-safe.</p>
@@ -69,7 +69,7 @@ import java.net.URI;
  *
  * <h2>Java version compatibility</h2>
  *
- * <p>The Tooling API requires Java 7 or later. The Gradle version used by builds may have additional Java version requirements.</p>
+ * <p>The Tooling API requires Java 8 or later. Java 7 is currently still supported but will be removed in Gradle 5.0. The Gradle version used by builds may have additional Java version requirements.</p>
  *
  * @since 1.0-milestone-3
  */

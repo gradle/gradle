@@ -17,32 +17,30 @@
 package org.gradle.performance.fixture
 
 import com.google.common.base.Splitter
-import org.gradle.integtests.fixtures.executer.ExecuterDecoratingGradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleExecuterDecorator
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.time.TrueTimeProvider
-import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.results.CrossVersionPerformanceResults
 import org.gradle.performance.results.DataReporter
-import org.gradle.performance.results.Flakiness
 import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.ResultsStore
 import org.gradle.performance.results.ResultsStoreHelper
+import org.gradle.performance.util.Git
+import org.gradle.util.GFileUtils
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
 import java.util.regex.Pattern
 
-public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
+class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     private static final Pattern COMMA_OR_SEMICOLON = Pattern.compile('[;,]')
 
     GradleDistribution current
-    final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
+    final IntegrationTestBuildContext buildContext
     final DataReporter<CrossVersionPerformanceResults> reporter
     TestProjectLocator testProjectLocator = new TestProjectLocator()
     final BuildExperimentRunner experimentRunner
@@ -51,26 +49,28 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     String testProject
     File workingDir
-    boolean useDaemon
+    boolean useDaemon = true
 
     List<String> tasksToRun = []
+    List<String> cleanTasks = []
     List<String> args = []
     List<String> gradleOpts = []
     List<String> previousTestIds = []
 
     List<String> targetVersions = []
+    String minimumVersion
 
-    BuildExperimentListener buildExperimentListener
-    InvocationCustomizer invocationCustomizer
-    GradleExecuterDecorator executerDecorator
+    private CompositeBuildExperimentListener buildExperimentListeners = new CompositeBuildExperimentListener()
+    private CompositeInvocationCustomizer invocationCustomizers = new CompositeInvocationCustomizer()
 
-    CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases) {
+    CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, IntegrationTestBuildContext buildContext) {
         this.reporter = reporter
         this.experimentRunner = experimentRunner
         this.releases = releases
+        this.buildContext = buildContext
     }
 
-    CrossVersionPerformanceResults run(Flakiness flakiness = Flakiness.not_flaky) {
+    CrossVersionPerformanceResults run() {
         if (testId == null) {
             throw new IllegalStateException("Test id has not been specified")
         }
@@ -79,9 +79,6 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         }
         if (workingDir == null) {
             throw new IllegalStateException("Working directory has not been specified")
-        }
-        if (!targetVersions) {
-            throw new IllegalStateException("Target versions have not been specified")
         }
 
         def scenarioSelector = new TestScenarioSelector()
@@ -92,10 +89,12 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             previousTestIds: previousTestIds.collect { it.toString() }, // Convert GString instances
             testProject: testProject,
             tasks: tasksToRun.collect { it.toString() },
+            cleanTasks: cleanTasks.collect { it.toString() },
             args: args.collect { it.toString() },
-                gradleOpts: resolveGradleOpts(),
+            gradleOpts: resolveGradleOpts(),
             daemon: useDaemon,
             jvm: Jvm.current().toString(),
+            host: InetAddress.getLocalHost().getHostName(),
             operatingSystem: OperatingSystem.current().toString(),
             versionUnderTest: GradleVersion.current().getVersion(),
             vcsBranch: Git.current().branchName,
@@ -106,7 +105,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
         runVersion(current, perVersionWorkingDirectory('current'), results.current)
 
-        def baselineVersions = toBaselineVersions(releases, targetVersions)
+        def baselineVersions = toBaselineVersions(releases, targetVersions, minimumVersion)
 
         baselineVersions.each { it ->
             def baselineVersion = results.baseline(it)
@@ -117,25 +116,22 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
         results.assertEveryBuildSucceeds()
 
-        // Don't store results when builds have failed
         reporter.report(results)
-
-        results.assertCurrentVersionHasNotRegressed(flakiness)
 
         return results
     }
 
     protected File perVersionWorkingDirectory(String version) {
-        def perVersion = new File(workingDir, version)
+        def perVersion = new File(workingDir, version.replace('+', ''))
         if (!perVersion.exists()) {
             perVersion.mkdirs()
         } else {
-            throw new IllegalArgumentException("Didn't expect to find an existing directory at $perVersion")
+            GFileUtils.cleanDirectory(perVersion)
         }
         perVersion
     }
 
-    static Iterable<String> toBaselineVersions(ReleasedVersionDistributions releases, List<String> targetVersions) {
+    static Iterable<String> toBaselineVersions(ReleasedVersionDistributions releases, List<String> targetVersions, String minimumVersion) {
         Iterable<String> versions
         boolean addMostRecentFinalRelease = true
         def overrideBaselinesProperty = System.getProperty('org.gradle.performance.baselines')
@@ -174,11 +170,17 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 throw new IllegalArgumentException("'defaults' shouldn't be used in target versions.")
             }
             def releasedVersion = findRelease(releases, version)
+            def versionObject = GradleVersion.version(version)
+            if (minimumVersion != null && versionObject < GradleVersion.version(minimumVersion)) {
+                //this version is not supported by this scenario, as it uses features not yet available in this version of Gradle
+                continue
+            }
             if (releasedVersion) {
                 baselineVersions.add(releasedVersion.version.version)
-            } else if (GradleVersion.version(version).snapshot) {
+            } else if (versionObject.snapshot || isRcVersion(versionObject)) {
                 // for snapshots, we don't have a cheap way to check if it really exists, so we'll just
                 // blindly add it to the list and trust the test author
+                // Only active rc versions are listed in all-released-versions.properties that ReleasedVersionDistributions uses
                 addMostRecentFinalRelease = false
                 baselineVersions.add(version)
             } else {
@@ -192,6 +194,11 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         }
 
         baselineVersions
+    }
+
+    private static boolean isRcVersion(GradleVersion versionObject) {
+        // there is no public API for checking for RC version, this is an internal way
+        versionObject.stage.stage == 3
     }
 
     private static Iterable<String> resolveOverriddenVersions(String overrideBaselinesProperty, List<String> targetVersions) {
@@ -222,12 +229,13 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             .displayName(dist.version.version)
             .warmUpCount(warmUpRuns)
             .invocationCount(runs)
-            .listener(buildExperimentListener)
-            .invocationCustomizer(invocationCustomizer)
+            .listener(buildExperimentListeners)
+            .invocationCustomizer(invocationCustomizers)
             .invocation {
                 workingDirectory(workingDir)
-                distribution(new ExecuterDecoratingGradleDistribution(dist, executerDecorator))
+                distribution(dist)
                 tasksToRun(this.tasksToRun as String[])
+                cleanTasks(this.cleanTasks as String[])
                 args(this.args as String[])
                 gradleOpts(gradleOptsInUse as String[])
                 useDaemon(this.useDaemon)
@@ -248,30 +256,11 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         return experimentRunner.honestProfiler
     }
 
-    void setupCleanupOnOddRounds() {
-        setupCleanupOnOddRounds('clean')
+    void addBuildExperimentListener(BuildExperimentListener buildExperimentListener) {
+        buildExperimentListeners.addListener(buildExperimentListener)
     }
 
-    void setupCleanupOnOddRounds(String... cleanUpTasks) {
-        invocationCustomizer = new InvocationCustomizer() {
-            @Override
-            def <T extends InvocationSpec> T customize(BuildExperimentInvocationInfo invocationInfo, T invocationSpec) {
-                if (invocationInfo.iterationNumber % 2 == 1) {
-                    def builder = ((GradleInvocationSpec) invocationSpec).withBuilder()
-                    builder.setTasksToRun(cleanUpTasks as List)
-                    return builder.build()
-                } else {
-                    return invocationSpec
-                }
-            }
-        }
-        buildExperimentListener = new BuildExperimentListenerAdapter() {
-            @Override
-            void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
-                if (invocationInfo.iterationNumber % 2 == 1) {
-                    measurementCallback.omitMeasurement()
-                }
-            }
-        }
+    void addInvocationCustomizer(InvocationCustomizer invocationCustomizer) {
+        invocationCustomizers.addCustomizer(invocationCustomizer)
     }
 }

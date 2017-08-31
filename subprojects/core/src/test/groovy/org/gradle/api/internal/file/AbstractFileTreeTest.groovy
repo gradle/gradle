@@ -15,11 +15,13 @@
  */
 package org.gradle.api.internal.file
 
+import org.gradle.api.Action
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.file.RelativePath
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
@@ -56,6 +58,30 @@ public class AbstractFileTreeTest extends Specification {
 
         when:
         def filtered = tree.matching { include '*.txt' }
+        filtered.visit(visitor)
+
+        then:
+        1 * visitor.visitFile(file1)
+        0 * visitor._
+    }
+
+    def canFilterTreeUsingAction() {
+        FileVisitDetails file1 = Mock()
+        FileVisitDetails file2 = Mock()
+        FileVisitor visitor = Mock()
+        def tree = new TestFileTree([file1, file2])
+
+        given:
+        _ * file1.relativePath >> new RelativePath(true, 'a.txt')
+        _ * file2.relativePath >> new RelativePath(true, 'b.html')
+
+        when:
+        def filtered = tree.matching(new Action<PatternFilterable>() {
+            @Override
+            void execute(PatternFilterable patternFilterable) {
+                patternFilterable.include '*.txt'
+            }
+        })
         filtered.visit(visitor)
 
         then:

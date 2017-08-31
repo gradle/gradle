@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-pluginRepositories {
-  maven {
-    url 'maven-repo'
+pluginManagement {
+  repositories {
+      maven {
+        url 'maven-repo'
+      }
   }
 }
 

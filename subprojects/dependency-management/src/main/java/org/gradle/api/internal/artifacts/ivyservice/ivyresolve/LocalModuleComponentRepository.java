@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
+import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -97,6 +98,11 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
                 delegate.getRemoteAccess().resolveArtifact(artifact, moduleSource, result);
             }
         }
+
+        @Override
+        public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
+            return delegate.getRemoteAccess().estimateMetadataFetchingCost(moduleComponentIdentifier);
+        }
     }
 
     private static class RemoteAccess implements ModuleComponentRepositoryAccess {
@@ -123,6 +129,11 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
 
         @Override
         public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+        }
+
+        @Override
+        public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
+            return MetadataFetchingCost.EXPENSIVE;
         }
     }
 }

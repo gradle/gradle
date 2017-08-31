@@ -19,8 +19,8 @@ package org.gradle.tooling.internal.provider.runner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.gradle.api.execution.internal.InternalTaskExecutionListener;
-import org.gradle.api.execution.internal.TaskOperationInternal;
+import org.gradle.api.Task;
+import org.gradle.api.execution.internal.ExecuteTaskBuildOperationDetails;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
@@ -28,7 +28,9 @@ import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.TestExecutionException;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.internal.progress.OperationResult;
+import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.internal.progress.BuildOperationListener;
+import org.gradle.internal.progress.OperationFinishEvent;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
@@ -39,7 +41,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-class TestExecutionResultEvaluator implements TestListenerInternal, InternalTaskExecutionListener {
+class TestExecutionResultEvaluator implements TestListenerInternal, BuildOperationListener {
     private static final String INDENT = "    ";
 
     private long resultCount;
@@ -86,9 +88,9 @@ class TestExecutionResultEvaluator implements TestListenerInternal, InternalTask
         for (InternalJvmTestRequest internalJvmTestRequest : internalJvmTestRequests) {
             final String className = internalJvmTestRequest.getClassName();
             final String methodName = internalJvmTestRequest.getMethodName();
-            if(methodName == null){
+            if (methodName == null) {
                 requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test class ").append(className);
-            }else{
+            } else {
                 requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test method ").append(className).append(".").append(methodName).append("()");
             }
         }
@@ -115,7 +117,11 @@ class TestExecutionResultEvaluator implements TestListenerInternal, InternalTask
         while (descriptor.getOwnerBuildOperationId() == null && descriptor.getParent() != null) {
             descriptor = descriptor.getParent();
         }
-        return runningTasks.get(descriptor.getOwnerBuildOperationId());
+        String taskPath = runningTasks.get(descriptor.getOwnerBuildOperationId());
+        if (taskPath == null) {
+            throw new IllegalStateException("No parent task for test " + givenDescriptor);
+        }
+        return taskPath;
     }
 
     @Override
@@ -123,13 +129,20 @@ class TestExecutionResultEvaluator implements TestListenerInternal, InternalTask
     }
 
     @Override
-    public void beforeExecute(TaskOperationInternal taskOperation, OperationStartEvent startEvent) {
-        runningTasks.put(taskOperation.getId(), taskOperation.getTask().getPath());
+    public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+        if (!(buildOperation.getDetails() instanceof ExecuteTaskBuildOperationDetails)) {
+            return;
+        }
+        Task task = ((ExecuteTaskBuildOperationDetails) buildOperation.getDetails()).getTask();
+        runningTasks.put(buildOperation.getId(), task.getPath());
     }
 
     @Override
-    public void afterExecute(TaskOperationInternal taskOperation, OperationResult result) {
-        runningTasks.remove(taskOperation.getId());
+    public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
+        if (!(buildOperation.getDetails() instanceof ExecuteTaskBuildOperationDetails)) {
+            return;
+        }
+        runningTasks.remove(buildOperation.getId());
     }
 
     private static class FailedTest {

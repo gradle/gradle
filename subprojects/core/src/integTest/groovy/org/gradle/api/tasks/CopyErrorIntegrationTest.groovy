@@ -43,7 +43,7 @@ class CopyErrorIntegrationTest extends AbstractIntegrationTest {
 '''
 
         ExecutionFailure failure = inTestDirectory().withTasks('copy').runWithFailure()
-        failure.assertHasCause("""Cannot convert the provided notation to a String: [].
+        failure.assertHasCause("""Cannot convert the provided notation to a String: repository container.
 The following types/formats are supported:
   - String or CharSequence instances, for example 'some/path'.
   - Boolean values, for example true, Boolean.TRUE.

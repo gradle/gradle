@@ -16,12 +16,13 @@
 
 package org.gradle.tooling.events.internal;
 
-import org.gradle.api.Nullable;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 
+import javax.annotation.Nullable;
+
 /**
- * Implementation of the {@code BuildOperationDescriptor} interface.
+ * Implementation of the {@link OperationDescriptor} interface, for those operations which are performed by the provider.
  */
 public class DefaultOperationDescriptor implements OperationDescriptor, OperationDescriptorWrapper {
 
@@ -30,7 +31,7 @@ public class DefaultOperationDescriptor implements OperationDescriptor, Operatio
     private final OperationDescriptor parent;
     private InternalOperationDescriptor internalDescriptor;
 
-    public DefaultOperationDescriptor(InternalOperationDescriptor internalDescriptor,  OperationDescriptor parent) {
+    public DefaultOperationDescriptor(InternalOperationDescriptor internalDescriptor, OperationDescriptor parent) {
         this.name = internalDescriptor.getName();
         this.displayName = internalDescriptor.getDisplayName();
         this.parent = parent;

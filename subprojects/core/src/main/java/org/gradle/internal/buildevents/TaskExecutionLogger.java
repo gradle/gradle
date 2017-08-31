@@ -16,14 +16,14 @@
 
 package org.gradle.internal.buildevents;
 
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.invocation.Gradle;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.progress.LoggerProvider;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,6 +31,7 @@ import java.util.Map;
 /**
  * A listener which logs the execution of tasks.
  */
+@UsedByScanPlugin("Used to filter out ProgressStartEvent with this category")
 public class TaskExecutionLogger implements TaskExecutionListener {
 
     private final Map<Task, ProgressLogger> currentTasks = new HashMap<Task, ProgressLogger>();
@@ -46,7 +47,7 @@ public class TaskExecutionLogger implements TaskExecutionListener {
         assert !currentTasks.containsKey(task);
 
         ProgressLogger currentTask = progressLoggerFactory.newOperation(TaskExecutionLogger.class, parentLoggerProvider.getLogger());
-        String displayName = getDisplayName(task);
+        String displayName = getDisplayName((TaskInternal) task);
         currentTask.setDescription("Execute ".concat(displayName));
         currentTask.setShortDescription(displayName);
         currentTask.setLoggingHeader(displayName);
@@ -56,17 +57,12 @@ public class TaskExecutionLogger implements TaskExecutionListener {
 
     public void afterExecute(Task task, TaskState state) {
         ProgressLogger currentTask = currentTasks.remove(task);
-        String taskMessage = state.getFailure() != null ? "FAILED" : state.getSkipMessage();
-        currentTask.completed(taskMessage);
+        boolean failed = state.getFailure() != null;
+        String taskMessage = failed ? "FAILED" : state.getSkipMessage();
+        currentTask.completed(taskMessage, failed);
     }
 
-    private String getDisplayName(Task task) {
-        Gradle build = task.getProject().getGradle();
-        if (build.getParent() == null) {
-            // The main build, use the task path
-            return task.getPath();
-        }
-        // A nested build, use a discriminator
-        return Project.PATH_SEPARATOR + build.getRootProject().getName() + task.getPath();
+    private String getDisplayName(TaskInternal task) {
+        return task.getIdentityPath().toString();
     }
 }

@@ -31,6 +31,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
@@ -62,7 +63,13 @@ public class IvyModuleDescriptorConverter {
         }
     }
 
-    public static ModuleDescriptorState forIvyModuleDescriptor(ModuleDescriptor ivyDescriptor) {
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+
+    public IvyModuleDescriptorConverter(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
+    }
+
+    public ModuleDescriptorState forIvyModuleDescriptor(ModuleDescriptor ivyDescriptor) {
         ModuleRevisionId moduleRevisionId = ivyDescriptor.getModuleRevisionId();
         ModuleComponentIdentifier componentIdentifier = DefaultModuleComponentIdentifier.newId(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
         MutableModuleDescriptorState state = new MutableModuleDescriptorState(componentIdentifier, ivyDescriptor.getStatus(), ivyDescriptor.isDefault());
@@ -80,7 +87,7 @@ public class IvyModuleDescriptorConverter {
         return state;
     }
 
-    public static List<IvyDependencyMetadata> extractDependencies(ModuleDescriptor ivyDescriptor) {
+    public List<IvyDependencyMetadata> extractDependencies(ModuleDescriptor ivyDescriptor) {
         List<IvyDependencyMetadata> result = Lists.newArrayListWithCapacity(ivyDescriptor.getDependencies().length);
         for (DependencyDescriptor dependencyDescriptor : ivyDescriptor.getDependencies()) {
             addDependency(result, dependencyDescriptor);
@@ -88,7 +95,7 @@ public class IvyModuleDescriptorConverter {
         return result;
     }
 
-    public static List<Configuration> extractConfigurations(ModuleDescriptor ivyDescriptor) {
+    public List<Configuration> extractConfigurations(ModuleDescriptor ivyDescriptor) {
         List<Configuration> result = Lists.newArrayListWithCapacity(ivyDescriptor.getConfigurations().length);
         for (org.apache.ivy.core.module.descriptor.Configuration ivyConfiguration : ivyDescriptor.getConfigurations()) {
             addConfiguration(result, ivyConfiguration);
@@ -104,11 +111,11 @@ public class IvyModuleDescriptorConverter {
         result.add(new Configuration(name, transitive, visible, extendsFrom));
     }
 
-    private static void addExcludeRule(MutableModuleDescriptorState state, ExcludeRule excludeRule) {
+    private void addExcludeRule(MutableModuleDescriptorState state, ExcludeRule excludeRule) {
         state.addExclude(forIvyExclude(excludeRule));
     }
 
-    private static void addDependency(List<IvyDependencyMetadata> result, DependencyDescriptor dependencyDescriptor) {
+    private void addDependency(List<IvyDependencyMetadata> result, DependencyDescriptor dependencyDescriptor) {
         ModuleRevisionId revisionId = dependencyDescriptor.getDependencyRevisionId();
         ModuleVersionSelector requested = DefaultModuleVersionSelector.newSelector(revisionId.getOrganisation(), revisionId.getName(), revisionId.getRevision());
 
@@ -119,7 +126,7 @@ public class IvyModuleDescriptorConverter {
 
         List<Artifact> artifacts = Lists.newArrayList();
         for (DependencyArtifactDescriptor ivyArtifact : dependencyDescriptor.getAllDependencyArtifacts()) {
-            IvyArtifactName ivyArtifactName = DefaultIvyArtifactName.of(ivyArtifact.getName(), ivyArtifact.getType(), ivyArtifact.getExt(), (String) ivyArtifact.getExtraAttributes().get(CLASSIFIER));
+            IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(ivyArtifact.getName(), ivyArtifact.getType(), ivyArtifact.getExt(), (String) ivyArtifact.getExtraAttributes().get(CLASSIFIER));
             artifacts.add(new Artifact(ivyArtifactName, Sets.newHashSet(ivyArtifact.getConfigurations())));
         }
 
@@ -139,10 +146,10 @@ public class IvyModuleDescriptorConverter {
             excludes));
     }
 
-    private static Exclude forIvyExclude(org.apache.ivy.core.module.descriptor.ExcludeRule excludeRule) {
+    private Exclude forIvyExclude(org.apache.ivy.core.module.descriptor.ExcludeRule excludeRule) {
         ArtifactId id = excludeRule.getId();
         return new DefaultExclude(
-            id.getModuleId().getOrganisation(), id.getModuleId().getName(), id.getName(), id.getType(), id.getExt(),
+            moduleIdentifierFactory.module(id.getModuleId().getOrganisation(), id.getModuleId().getName()), id.getName(), id.getType(), id.getExt(),
             excludeRule.getConfigurations(), excludeRule.getMatcher().getName());
     }
 

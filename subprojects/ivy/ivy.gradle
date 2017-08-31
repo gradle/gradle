@@ -23,7 +23,6 @@ dependencies {
     compile project(':pluginUse')
     compile project(':dependencyManagement')
 
-    testCompile libraries.groovy
     integTestCompile project(":ear")
     integTestRuntime project(":resourcesS3")
     integTestRuntime project(":resourcesSftp")

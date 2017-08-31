@@ -17,11 +17,16 @@
 package org.gradle.api.internal.artifacts.dsl;
 
 import groovy.lang.Closure;
-import groovy.lang.MissingMethodException;
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
+import org.gradle.internal.Actions;
+import org.gradle.internal.metaobject.DynamicInvokeResult;
+import org.gradle.internal.metaobject.MethodAccess;
+import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
@@ -29,44 +34,74 @@ import org.gradle.util.GUtil;
 import java.util.Arrays;
 import java.util.List;
 
-public class DefaultArtifactHandler implements ArtifactHandler {
+public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
 
     private final ConfigurationContainer configurationContainer;
-    private final NotationParser<Object, PublishArtifact> publishArtifactFactory;
+    private final NotationParser<Object, ConfigurablePublishArtifact> publishArtifactFactory;
+    private final DynamicMethods dynamicMethods;
 
-    public DefaultArtifactHandler(ConfigurationContainer configurationContainer, NotationParser<Object, PublishArtifact> publishArtifactFactory) {
+    public DefaultArtifactHandler(ConfigurationContainer configurationContainer, NotationParser<Object, ConfigurablePublishArtifact> publishArtifactFactory) {
         this.configurationContainer = configurationContainer;
         this.publishArtifactFactory = publishArtifactFactory;
+        dynamicMethods = new DynamicMethods();
     }
 
     private PublishArtifact pushArtifact(org.gradle.api.artifacts.Configuration configuration, Object notation, Closure configureClosure) {
-        PublishArtifact publishArtifact = publishArtifactFactory.parseNotation(notation);
+        Action<Object> configureAction = ConfigureUtil.configureUsing(configureClosure);
+        return pushArtifact(configuration, notation, configureAction);
+    }
+
+    private PublishArtifact pushArtifact(Configuration configuration, Object notation, Action<? super ConfigurablePublishArtifact> configureAction) {
+        ConfigurablePublishArtifact publishArtifact = publishArtifactFactory.parseNotation(notation);
         configuration.getArtifacts().add(publishArtifact);
-        ConfigureUtil.configure(configureClosure, publishArtifact);
+        configureAction.execute(publishArtifact);
         return publishArtifact;
     }
 
-    public PublishArtifact add(String configurationName, Object artifactNotation) {
-        return pushArtifact(configurationContainer.getByName(configurationName), artifactNotation, null);
+    @Override
+    public PublishArtifact add(String configurationName, Object artifactNotation, Action<? super ConfigurablePublishArtifact> configureAction) {
+        return pushArtifact(configurationContainer.getByName(configurationName), artifactNotation, configureAction);
     }
 
+    @Override
+    public PublishArtifact add(String configurationName, Object artifactNotation) {
+        return pushArtifact(configurationContainer.getByName(configurationName), artifactNotation, Actions.doNothing());
+    }
+
+    @Override
     public PublishArtifact add(String configurationName, Object artifactNotation, Closure configureClosure) {
         return pushArtifact(configurationContainer.getByName(configurationName), artifactNotation, configureClosure);
     }
 
-    public Object methodMissing(String name, Object arg) {
-        Object[] args = (Object[]) arg;
-        Configuration configuration = configurationContainer.findByName(name);
-        if (configuration == null) {
-            throw new MissingMethodException(name, this.getClass(), args);
+    @Override
+    public MethodAccess getAdditionalMethods() {
+        return dynamicMethods;
+    }
+
+    private class DynamicMethods implements MethodAccess {
+        @Override
+        public boolean hasMethod(String name, Object... arguments) {
+            return arguments.length > 0 && configurationContainer.findByName(name) != null;
         }
-        List<Object> normalizedArgs = GUtil.flatten(Arrays.asList(args), false);
-        if (normalizedArgs.size() == 2 && normalizedArgs.get(1) instanceof Closure) {
-            return pushArtifact(configuration, normalizedArgs.get(0), (Closure) normalizedArgs.get(1));
+
+        @Override
+        public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
+            if (arguments.length == 0) {
+                return DynamicInvokeResult.notFound();
+            }
+            Configuration configuration = configurationContainer.findByName(name);
+            if (configuration == null) {
+                return DynamicInvokeResult.notFound();
+            }
+            List<Object> normalizedArgs = GUtil.flatten(Arrays.asList(arguments), false);
+            if (normalizedArgs.size() == 2 && normalizedArgs.get(1) instanceof Closure) {
+                return DynamicInvokeResult.found(pushArtifact(configuration, normalizedArgs.get(0), (Closure) normalizedArgs.get(1)));
+            } else {
+                for (Object notation : normalizedArgs) {
+                    pushArtifact(configuration, notation, Actions.doNothing());
+                }
+                return DynamicInvokeResult.found();
+            }
         }
-        for (Object notation : args) {
-            pushArtifact(configuration, notation, null);
-        }
-        return null;
     }
 }

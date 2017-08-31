@@ -43,22 +43,43 @@ public class TreeFormatter extends TreeVisitor<String> {
 
     @Override
     public void node(String node) {
-        if (current.traversing) {
+        if (current.state == State.TraverseChildren) {
             // First child node
             current = new Node(current, node);
-            if (current.isRoot()) {
-                original.append(node);
-                current.valueWritten = true;
-            }
         } else {
             // A sibling node
+            current.state = State.Done;
             current = new Node(current.parent, node);
+        }
+        if (current.isTopLevelNode()) {
+            if (current != current.parent.firstChild) {
+                // Not the first top level node
+                original.format("%n");
+            }
+            original.append(node);
+            current.valueWritten = true;
+        }
+    }
+
+    public void append(CharSequence text) {
+        if (current.state == State.CollectValue) {
+            if (current.valueWritten) {
+                original.append(text);
+            } else {
+                current.value.append(text);
+            }
+        } else {
+            throw new IllegalStateException("Cannot append text to node.");
         }
     }
 
     @Override
     public void startChildren() {
-        current.traversing = true;
+        if (current.state == State.CollectValue) {
+            current.state = State.TraverseChildren;
+        } else  {
+            throw new IllegalStateException("Cannot start children again");
+        }
     }
 
     @Override
@@ -66,18 +87,23 @@ public class TreeFormatter extends TreeVisitor<String> {
         if (current.parent == null) {
             throw new IllegalStateException("Not visiting any node.");
         }
-        if (!current.traversing) {
+        if (current.state == State.CollectValue) {
+            current.state = State.Done;
             current = current.parent;
         }
-        if (current.isRoot()) {
+        if (current.state != State.TraverseChildren) {
+            throw new IllegalStateException("Cannot end children.");
+        }
+        if (current.isTopLevelNode()) {
             writeNode(current);
         }
+        current.state = State.Done;
         current = current.parent;
     }
 
     private void writeNode(Node node) {
         if (node.prefix == null) {
-            node.prefix = node.isRoot() ? "" : node.parent.prefix + "    ";
+            node.prefix = node.isTopLevelNode() ? "" : node.parent.prefix + "    ";
         }
 
         StyledTextOutput output = new LinePrefixingStyledTextOutput(original, node.prefix, false);
@@ -104,28 +130,31 @@ public class TreeFormatter extends TreeVisitor<String> {
         }
     }
 
+    private enum State {
+        CollectValue, TraverseChildren, Done
+    }
+
     private static class Node {
         final Node parent;
-        final String value;
-        boolean written;
-        boolean traversing;
+        final StringBuilder value;
         Node firstChild;
         Node lastChild;
         Node nextSibling;
         String prefix;
-        public boolean valueWritten;
+        State state;
+        boolean valueWritten;
 
         private Node() {
             this.parent = null;
             this.value = null;
-            traversing = true;
-            written = true;
             prefix = "";
+            state = State.TraverseChildren;
         }
 
         private Node(Node parent, String value) {
             this.parent = parent;
-            this.value = value;
+            this.value = new StringBuilder(value);
+            state = State.CollectValue;
             if (parent.firstChild == null) {
                 parent.firstChild = this;
                 parent.lastChild = this;
@@ -139,7 +168,7 @@ public class TreeFormatter extends TreeVisitor<String> {
             return firstChild != null && firstChild.nextSibling == null && !firstChild.canCollapseFirstChild();
         }
 
-        boolean isRoot() {
+        boolean isTopLevelNode() {
             return parent.parent == null;
         }
     }

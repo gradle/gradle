@@ -17,33 +17,36 @@
 package org.gradle.performance
 
 import groovy.transform.CompileStatic
-import org.gradle.performance.categories.GradleCorePerformanceTest
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
 import org.gradle.performance.fixture.GradleSessionProvider
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
+import org.gradle.performance.fixture.PerformanceTestIdProvider
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.CrossBuildResultsStore
 import org.gradle.performance.results.DataReporter
+import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-import org.junit.experimental.categories.Category
 import spock.lang.Specification
 
-@Category(GradleCorePerformanceTest)
 @CompileStatic
+@CleanupTestDirectory
 class AbstractCrossBuildPerformanceTest extends Specification {
     private static final DataReporter<CrossBuildPerformanceResults> RESULT_STORE = new CrossBuildResultsStore()
 
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new PerformanceTestDirectoryProvider()
+    TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider()
 
-    CrossBuildPerformanceTestRunner runner = new CrossBuildPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), RESULT_STORE) {
+    protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
+
+    CrossBuildPerformanceTestRunner runner = new CrossBuildPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(buildContext)), RESULT_STORE, buildContext) {
         @Override
         protected void defaultSpec(BuildExperimentSpec.Builder builder) {
             super.defaultSpec(builder)
-            builder.workingDirectory = tmpDir.testDirectory
+            builder.workingDirectory = temporaryFolder.testDirectory
             AbstractCrossBuildPerformanceTest.this.defaultSpec(builder)
         }
 
@@ -53,6 +56,9 @@ class AbstractCrossBuildPerformanceTest extends Specification {
             AbstractCrossBuildPerformanceTest.this.finalizeSpec(builder)
         }
     }
+
+    @Rule
+    PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider(runner)
 
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
 

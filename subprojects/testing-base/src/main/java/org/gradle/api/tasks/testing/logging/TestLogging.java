@@ -33,6 +33,14 @@ public interface TestLogging {
      * Sets the events to be logged.
      *
      * @param events the events to be logged
+     * @since 4.0
+     */
+    void setEvents(Set<TestLogEvent> events);
+
+    /**
+     * Sets the events to be logged.
+     *
+     * @param events the events to be logged
      */
     void setEvents(Iterable<?> events);
 
@@ -80,16 +88,16 @@ public interface TestLogging {
     void setMaxGranularity(int granularity);
 
     /**
-     * Returns the display granularity of the events to be logged. For example, if set to 0, a method-level event will be displayed as "Test Run > Test Worker x > org.SomeClass > org.someMethod". If
-     * set to 2, the same event will be displayed as "org.someClass > org.someMethod". <p>-1 denotes the highest granularity and corresponds to an atomic test.
+     * Returns the display granularity of the events to be logged. For example, if set to 0, a method-level event will be displayed as "Test Run &gt; Test Worker x &gt; org.SomeClass &gt; org.someMethod". If
+     * set to 2, the same event will be displayed as "org.someClass &gt; org.someMethod". <p>-1 denotes the highest granularity and corresponds to an atomic test.
      *
      * @return the display granularity of the events to be logged
      */
     int getDisplayGranularity();
 
     /**
-     * Sets the display granularity of the events to be logged. For example, if set to 0, a method-level event will be displayed as "Test Run > Test Worker x > org.SomeClass > org.someMethod". If set
-     * to 2, the same event will be displayed as "org.someClass > org.someMethod". <p>-1 denotes the highest granularity and corresponds to an atomic test.
+     * Sets the display granularity of the events to be logged. For example, if set to 0, a method-level event will be displayed as "Test Run &gt; Test Worker x &gt; org.SomeClass &gt; org.someMethod". If set
+     * to 2, the same event will be displayed as "org.someClass &gt; org.someMethod". <p>-1 denotes the highest granularity and corresponds to an atomic test.
      *
      * @param granularity the display granularity of the events to be logged
      */
@@ -149,6 +157,14 @@ public interface TestLogging {
      * Sets the format to be used for logging test exceptions. Only relevant if {@code showStackTraces} is {@code true}.
      *
      * @param exceptionFormat the format to be used for logging test exceptions
+     * @since 4.0
+     */
+    void setExceptionFormat(TestExceptionFormat exceptionFormat);
+
+    /**
+     * Sets the format to be used for logging test exceptions. Only relevant if {@code showStackTraces} is {@code true}.
+     *
+     * @param exceptionFormat the format to be used for logging test exceptions
      */
     void setExceptionFormat(Object exceptionFormat);
 
@@ -158,6 +174,14 @@ public interface TestLogging {
      * @return the set of filters to be used for sanitizing test stack traces
      */
     Set<TestStackTraceFilter> getStackTraceFilters();
+
+    /**
+     * Sets the set of filters to be used for sanitizing test stack traces.
+     *
+     * @param stackTraces the set of filters to be used for sanitizing test stack traces
+     * @since 4.0
+     */
+    void setStackTraceFilters(Set<TestStackTraceFilter> stackTraces);
 
     /**
      * Sets the set of filters to be used for sanitizing test stack traces.

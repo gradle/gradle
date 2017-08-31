@@ -16,17 +16,19 @@
 package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.tasks.ScalaSourceSet;
-import org.gradle.util.ConfigureUtil;
+
+import static org.gradle.util.ConfigureUtil.configure;
 
 public class DefaultScalaSourceSet implements ScalaSourceSet {
     private final SourceDirectorySet scala;
     private final SourceDirectorySet allScala;
 
     public DefaultScalaSourceSet(String displayName, SourceDirectorySetFactory sourceDirectorySetFactory) {
-        scala = sourceDirectorySetFactory.create(displayName + " Scala source");
+        scala = sourceDirectorySetFactory.create("scala", displayName + " Scala source");
         scala.getFilter().include("**/*.java", "**/*.scala");
         allScala = sourceDirectorySetFactory.create(displayName + " Scala source");
         allScala.getFilter().include("**/*.scala");
@@ -38,7 +40,13 @@ public class DefaultScalaSourceSet implements ScalaSourceSet {
     }
 
     public ScalaSourceSet scala(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, getScala());
+        configure(configureClosure, getScala());
+        return this;
+    }
+
+    @Override
+    public ScalaSourceSet scala(Action<? super SourceDirectorySet> configureAction) {
+        configureAction.execute(getScala());
         return this;
     }
 

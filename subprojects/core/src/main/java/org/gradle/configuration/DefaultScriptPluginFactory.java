@@ -28,6 +28,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.groovy.scripts.BasicScript;
 import org.gradle.groovy.scripts.ScriptCompiler;
@@ -43,16 +44,19 @@ import org.gradle.groovy.scripts.internal.InitialPassStatementTransformer;
 import org.gradle.groovy.scripts.internal.SubsetScriptTransformer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
+import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
+import org.gradle.plugin.management.internal.PluginRequests;
+import org.gradle.plugin.management.internal.PluginRequestsSerializer;
 import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
-import org.gradle.plugin.use.internal.PluginRequests;
-import org.gradle.plugin.use.internal.PluginRequestsSerializer;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final static StringInterner INTERNER = new StringInterner();
@@ -70,6 +74,11 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final PluginRequestsSerializer pluginRequestsSerializer = new PluginRequestsSerializer();
     private final PluginRepositoryRegistry pluginRepositoryRegistry;
     private final PluginRepositoryFactory pluginRepositoryFactory;
+    private final ProviderFactory providerFactory;
+    private final TextResourceLoader textResourceLoader;
+    private final StreamHasher streamHasher;
+    private final FileHasher fileHasher;
+    private ScriptPluginFactory scriptPluginFactory;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
                                       Factory<LoggingManagerInternal> loggingManagerFactory,
@@ -81,7 +90,11 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       DocumentationRegistry documentationRegistry,
                                       ModelRuleSourceDetector modelRuleSourceDetector,
                                       PluginRepositoryRegistry pluginRepositoryRegistry,
-                                      PluginRepositoryFactory pluginRepositoryFactory) {
+                                      PluginRepositoryFactory pluginRepositoryFactory,
+                                      ProviderFactory providerFactory,
+                                      TextResourceLoader textResourceLoader,
+                                      StreamHasher streamHasher,
+                                      FileHasher fileHasher) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.loggingManagerFactory = loggingManagerFactory;
         this.instantiator = instantiator;
@@ -93,6 +106,15 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.modelRuleSourceDetector = modelRuleSourceDetector;
         this.pluginRepositoryRegistry = pluginRepositoryRegistry;
         this.pluginRepositoryFactory = pluginRepositoryFactory;
+        this.providerFactory = providerFactory;
+        this.textResourceLoader = textResourceLoader;
+        this.scriptPluginFactory = this;
+        this.streamHasher = streamHasher;
+        this.fileHasher = fileHasher;
+    }
+
+    public void setScriptPluginFactory(ScriptPluginFactory scriptPluginFactory) {
+        this.scriptPluginFactory = scriptPluginFactory;
     }
 
     public ScriptPlugin create(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope targetScope, ClassLoaderScope baseScope, boolean topLevelScript) {
@@ -124,9 +146,9 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                     return fileLookup.getFileResolver().getPatternSetFactory();
                 }
             };
-            services.add(ScriptPluginFactory.class, DefaultScriptPluginFactory.this);
+            services.add(ScriptPluginFactory.class, scriptPluginFactory);
             services.add(ScriptHandlerFactory.class, scriptHandlerFactory);
-            services.add(ClassLoaderScope.class, targetScope);
+            services.add(ClassLoaderScope.class, baseScope);
             services.add(LoggingManagerInternal.class, loggingManagerFactory.create());
             services.add(Instantiator.class, instantiator);
             services.add(ScriptHandler.class, scriptHandler);
@@ -135,6 +157,10 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(ModelRuleSourceDetector.class, modelRuleSourceDetector);
             services.add(PluginRepositoryRegistry.class, pluginRepositoryRegistry);
             services.add(PluginRepositoryFactory.class, pluginRepositoryFactory);
+            services.add(ProviderFactory.class, providerFactory);
+            services.add(TextResourceLoader.class, textResourceLoader);
+            services.add(StreamHasher.class, streamHasher);
+            services.add(FileHasher.class, fileHasher);
 
             final ScriptTarget initialPassScriptTarget = initialPassTarget(target);
 

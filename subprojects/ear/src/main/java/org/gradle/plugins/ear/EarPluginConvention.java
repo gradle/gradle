@@ -16,7 +16,10 @@
 package org.gradle.plugins.ear;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.model.InstantiatorBackedObjectFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
@@ -31,23 +34,32 @@ import java.io.File;
 public class EarPluginConvention {
 
     private FileResolver fileResolver;
-    private final Instantiator instantiator;
+    private ObjectFactory objectFactory;
 
     private DeploymentDescriptor deploymentDescriptor;
     private String appDirName;
     private String libDirName;
 
+    /**
+     * Construct an EarPluginConvention using internal {@link Instantiator}.
+     *
+     * @deprecated Use public {@link ObjectFactory} constructor instead of this one using internal {@link Instantiator}.
+     */
     @Deprecated
-    @Inject
-    public EarPluginConvention(Instantiator instantiator) {
-        this.instantiator = instantiator;
+    public EarPluginConvention(FileResolver fileResolver, Instantiator instantiator) {
+        this(fileResolver, new InstantiatorBackedObjectFactory(instantiator));
     }
 
+    /**
+     * Construct an EarPluginConvention using public {@link ObjectFactory}.
+     *
+     * @since 4.2
+     */
     @Inject
-    public EarPluginConvention(FileResolver fileResolver, Instantiator instantiator) {
+    public EarPluginConvention(FileResolver fileResolver, ObjectFactory objectFactory) {
         this.fileResolver = fileResolver;
-        this.instantiator = instantiator;
-        deploymentDescriptor = instantiator.newInstance(DefaultDeploymentDescriptor.class, fileResolver, instantiator);
+        this.objectFactory = objectFactory;
+        deploymentDescriptor = objectFactory.newInstance(DefaultDeploymentDescriptor.class, fileResolver, objectFactory);
         deploymentDescriptor.readFrom("META-INF/application.xml");
         deploymentDescriptor.readFrom(appDirName + "/META-INF/" + deploymentDescriptor.getFileName());
     }
@@ -116,11 +128,29 @@ public class EarPluginConvention {
      * @return This.
      */
     public EarPluginConvention deploymentDescriptor(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, forceDeploymentDescriptor());
+        return this;
+    }
+
+    /**
+     * Configures the deployment descriptor for this EAR archive.
+     *
+     * <p>The given action is executed to configure the deployment descriptor.</p>
+     *
+     * @param configureAction The action.
+     * @return This.
+     * @since 3.5
+     */
+    public EarPluginConvention deploymentDescriptor(Action<? super DeploymentDescriptor> configureAction) {
+        configureAction.execute(forceDeploymentDescriptor());
+        return this;
+    }
+
+    private DeploymentDescriptor forceDeploymentDescriptor() {
         if (deploymentDescriptor == null) {
-            deploymentDescriptor = instantiator.newInstance(DefaultDeploymentDescriptor.class, fileResolver, instantiator);
+            deploymentDescriptor = objectFactory.newInstance(DefaultDeploymentDescriptor.class, fileResolver, objectFactory);
             assert deploymentDescriptor != null;
         }
-        ConfigureUtil.configure(configureClosure, deploymentDescriptor);
-        return this;
+        return deploymentDescriptor;
     }
 }

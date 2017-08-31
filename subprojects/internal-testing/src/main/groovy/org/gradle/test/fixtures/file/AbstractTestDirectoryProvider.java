@@ -23,11 +23,8 @@ import org.gradle.test.fixtures.ConcurrentTestUtil;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.Random;
 import java.util.regex.Pattern;
 
@@ -36,8 +33,7 @@ import java.util.regex.Pattern;
  * A JUnit rule which provides a unique temporary folder for the test.
  */
 abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryProvider {
-    private static final Logger LOG = LoggerFactory.getLogger(AbstractTestDirectoryProvider.class);
-    protected static TestFile root;
+    protected TestFile root;
 
     private static final Random RANDOM = new Random();
     private static final int ALL_DIGITS_AND_LETTERS_RADIX = 36;
@@ -62,6 +58,10 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
     @Override
     public void suppressCleanup() {
         cleanup = false;
+    }
+
+    public boolean isCleanup() {
+        return cleanup;
     }
 
     public Statement apply(final Statement base, Description description) {
@@ -93,12 +93,7 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
                     ConcurrentTestUtil.poll(new Closure(null, null) {
                         @SuppressWarnings("UnusedDeclaration")
                         void doCall() throws IOException {
-                            try {
-                                FileUtils.forceDelete(dir);
-                            } catch(IOException e) {
-                                closeCachedClassLoaders();
-                                throw e;
-                            }
+                            FileUtils.forceDelete(dir);
                         }
                     });
                 }
@@ -110,18 +105,6 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
                     throw e;
                 }
             }
-        }
-    }
-
-    // use reflection to close cached classloaders in AbstractGradleExecuter
-    private static void closeCachedClassLoaders() {
-        try {
-            Class<?> abstractGradleExecuterClazz = Class.forName("org.gradle.integtests.fixtures.executer.AbstractGradleExecuter", false, AbstractTestDirectoryProvider.class.getClassLoader());
-            Method cleanupMethod = abstractGradleExecuterClazz.getMethod("cleanupCachedClassLoaders");
-            cleanupMethod.invoke(null);
-        } catch (Exception e) {
-            // swallow exception, just log a warning
-            LOG.warn("Cannot close cached classloaders", e);
         }
     }
 

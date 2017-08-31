@@ -224,7 +224,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         fails(buildA, ":delegate")
 
         then:
-        failure.assertHasDescription("Task 'does-not-exist' not found in root project 'buildB'.")
+        failure.assertHasDescription("Task 'does-not-exist' not found in project ':buildB'.")
     }
 
     def "reports failure when task path is not qualified for included build"() {
@@ -241,6 +241,30 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         then:
         failure.assertHasDescription("A problem occurred evaluating root project 'buildA'.")
         failure.assertHasCause("Task path 'logProject' is not a qualified task path (e.g. ':task' or ':project:task')")
+    }
+
+    def "reports failure when task path is substring of task in included build"() {
+        given:
+        buildA.buildFile << """
+    task delegate {
+        dependsOn gradle.includedBuild('buildB').task(':logP')
+    }
+    task subDelegate {
+        dependsOn gradle.includedBuild('buildB').task(':b1:logP')
+    }
+"""
+
+        when:
+        fails(buildA, ":delegate")
+
+        then:
+        failure.assertHasDescription("Task ':logP' not found in build 'buildB'.")
+
+        when:
+        fails(buildA, ":subDelegate")
+
+        then:
+        failure.assertHasDescription("Task ':b1:logP' not found in build 'buildB'.")
     }
 
     def "reports failure when attempting to access included build when build is not a composite"() {
@@ -262,7 +286,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
     def "reports failure when delegating to included build when composing build defines a task with the same name as the included build"() {
         when:
         buildA.buildFile << """
-    task buildB // Just a regular old task instance
+    task _buildB_logProject // Just a regular old task instance
     task delegate {
         dependsOn gradle.includedBuild('buildB').task(':logProject')
     }
@@ -273,7 +297,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
 
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':delegate'.")
-        failure.assertHasCause("Cannot create delegating task 'buildB' as task with same name already exists.")
+        failure.assertHasCause("Cannot create delegating task '_buildB_logProject' as task with same name already exists.")
     }
 
     @Unroll
@@ -299,7 +323,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         fails(buildA, ":delegate")
 
         and:
-        failure.assertHasDescription("A problem occurred evaluating root project 'buildC'.")
+        failure.assertHasDescription("A problem occurred evaluating project ':buildC'.")
         failure.assertHasCause("Included build '${buildName}' not found.")
 
         where:

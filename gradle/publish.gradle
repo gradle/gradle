@@ -71,14 +71,3 @@ uploadArchives { task ->
         }
     }
 }
-
-task publishLocalArchives(type: Upload) {
-    configuration = configurations.publishRuntime
-    dependsOn generatePom
-    uploadDescriptor = false
-    repositories {
-        ivy {
-            artifactPattern "${rootProject.file('build/repo')}/${project.group.replaceAll('\\.', '/')}/${archivesBaseName}/[revision]/[artifact]-[revision](-[classifier]).[ext]"
-        }
-    }
-}

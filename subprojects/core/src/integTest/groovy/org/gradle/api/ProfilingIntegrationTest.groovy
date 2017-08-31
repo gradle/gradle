@@ -22,6 +22,7 @@ import org.jsoup.nodes.Document
 class ProfilingIntegrationTest extends AbstractIntegrationSpec {
 
     def "can generate profiling report"() {
+        given:
         file('settings.gradle') << 'include "a", "b", "c"'
         buildFile << '''
 allprojects {
@@ -31,16 +32,18 @@ allprojects {
 }
 '''
         when:
-        executer.withArguments("--profile").withTasks("build", "fooTask", "-x", "barTask").run()
+        executer.requireGradleDistribution().withArgument("--profile")
+        succeeds("build", "fooTask", "-x", "barTask")
 
         then:
         def reportFile = file('build/reports/profile').listFiles().find { it.name ==~ /profile-.+.html/ }
-        Document document = Jsoup.parse(reportFile, null);
+        Document document = Jsoup.parse(reportFile, null)
         !document.select("TD:contains(:jar)").isEmpty()
         !document.select("TD:contains(:a:jar)").isEmpty()
         !document.select("TD:contains(:b:jar)").isEmpty()
         !document.select("TD:contains(:c:jar)").isEmpty()
         document.text().contains("build fooTask")
         document.text().contains("-x barTask")
+        output.contains("See the profiling report at:")
     }
 }

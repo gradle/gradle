@@ -27,13 +27,13 @@ import org.gradle.api.publish.ivy.IvyConfiguration;
 import org.gradle.api.publish.ivy.IvyExtraInfoSpec;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
-import org.gradle.listener.ActionBroadcast;
+import org.gradle.internal.MutableActionSet;
 
 import java.util.Set;
 
 public class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecInternal {
 
-    private final ActionBroadcast<XmlProvider> xmlActions = new ActionBroadcast<XmlProvider>();
+    private final MutableActionSet<XmlProvider> xmlActions = new MutableActionSet<XmlProvider>();
     private final IvyPublicationInternal ivyPublication;
     private String status = Module.DEFAULT_STATUS;
     private String branch;

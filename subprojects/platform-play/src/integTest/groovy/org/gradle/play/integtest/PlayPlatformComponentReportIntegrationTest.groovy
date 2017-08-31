@@ -30,9 +30,7 @@ class PlayPlatformComponentReportIntegrationTest extends AbstractComponentReport
                 id 'play-application'
             }
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             model {
                 components {
@@ -65,7 +63,7 @@ Source sets
         includes: **/*.scala
     Twirl template source 'play:twirlTemplates'
         srcDir: app
-        includes: **/*.html
+        includes: **/*.scala.*
 
 Binaries
     Play Application Jar 'play:binary'

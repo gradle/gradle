@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.ComponentMetadataSupplier
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.internal.component.external.model.IvyModuleResolveMetadata
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
@@ -27,6 +28,8 @@ import spock.lang.Specification
 class MetadataProviderTest extends Specification {
     def dep = Stub(DependencyMetadata)
     def id = Stub(ModuleComponentIdentifier) {
+        getGroup() >> 'group'
+        getName() >> 'name'
         getVersion() >> "1.2"
     }
     def metaData = Stub(ModuleComponentResolveMetadata)
@@ -124,5 +127,25 @@ class MetadataProviderTest extends Specification {
 
         expect:
         metadataProvider.getIvyModuleDescriptor() == null
+    }
+
+    def "can use a metadata rule to provide metadata"() {
+        given:
+        resolveState.id >> id
+        resolveState.componentMetadataSupplier >> Mock(ComponentMetadataSupplier) {
+            execute(_) >> { args ->
+                def builder = args[0].result
+                builder.status = 'foo'
+                builder.statusScheme = ['foo', 'bar']
+            }
+        }
+
+        when:
+        def componentMetadata = metadataProvider.componentMetadata
+
+        then:
+        0 * resolveState.resolve()
+        componentMetadata.status == 'foo'
+        componentMetadata.statusScheme == ['foo', 'bar']
     }
 }

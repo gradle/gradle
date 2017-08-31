@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleHandle
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApi
@@ -168,11 +167,13 @@ allprojects {
             apply plugin: 'application'
 
             repositories {
-                maven { url "${new IntegrationTestBuildContext().libsRepo.toURI()}" }
+                maven { url "${buildContext.libsRepo.toURI()}" }
                 maven { url "https://repo.gradle.org/gradle/repo" }
             }
 
             dependencies {
+                // If this test fails due to a missing tooling API jar 
+                // re-run `gradle prepareVersionsInfo intTestImage publishLocalArchives` 
                 compile "org.gradle:gradle-tooling-api:${distribution.version.version}"
                 runtime 'org.slf4j:slf4j-simple:1.7.10'
             }
@@ -232,6 +233,7 @@ allprojects {
 
                     ProjectConnection connection = connector.connect();
                     try {
+                        System.out.println("About to configure a new build");
                         // Configure the build
                         BuildLauncher launcher = connection.newBuild();
                         launcher.forTasks("thing");
@@ -239,13 +241,16 @@ allprojects {
                         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                         launcher.setStandardOutput(outputStream);
                         launcher.setStandardError(outputStream);
-                        launcher.setColorOutput(true);
-
+                        launcher.setColorOutput(${withColor});
+                        System.out.println("About to run the build with color=" + ${withColor});
                         // Run the build
                         launcher.run();
+                        System.out.println("Build was successful");
                     } finally {
                         // Clean up
+                        System.out.println("Cleaning up after the build");
                         connection.close();
+                        System.out.println("Connection is closed.");
                     }
                 }
             }
@@ -253,7 +258,6 @@ allprojects {
 
         when:
         GradleHandle handle = executer.inDirectory(projectDir)
-            .expectDeprecationWarning() // tapi on java 6
             .withTasks('run')
             .start()
 
@@ -284,11 +288,17 @@ allprojects {
         // Does the tooling API hold the JVM open (which will also hold the build open)?
         while (handle.running) {
             if (stopTimer.hasExpired()) {
-                throw new Exception("timeout after placing stop marker (JVM might have been held open")
+                // This test can fail if we have started a thread pool in Gradle and have not shut it down
+                // properly. If you run this locally, you can connect to the JVM running Main above and
+                // get a thread dump after you see "Connection is closed".
+                throw new Exception("timeout after placing stop marker (JVM might have been held open)")
             }
             sleep retryIntervalMs
         }
 
         handle.waitForFinish()
+
+        where:
+        withColor << [true, false]
     }
 }

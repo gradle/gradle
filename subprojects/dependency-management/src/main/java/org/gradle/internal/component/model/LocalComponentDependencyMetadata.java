@@ -16,40 +16,36 @@
 
 package org.gradle.internal.component.model;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
-import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.AmbiguousConfigurationSelectionException;
+import org.gradle.internal.component.IncompatibleConfigurationSelectionException;
+import org.gradle.internal.component.NoMatchingConfigurationSelectionException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
+import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
 import org.gradle.util.GUtil;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 
 public class LocalComponentDependencyMetadata implements LocalOriginDependencyMetadata {
-    private static final Function<ConfigurationMetadata, String> CONFIG_NAME = new Function<ConfigurationMetadata, String>() {
-        @Override
-        public String apply(ConfigurationMetadata input) {
-            return input.getName();
-        }
-    };
-
     private final ComponentSelector selector;
     private final ModuleVersionSelector requested;
     private final String moduleConfiguration;
@@ -59,12 +55,11 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     private final boolean force;
     private final boolean changing;
     private final boolean transitive;
-    private final ModuleExclusion exclusions;
-    private final Map<String, String> moduleAttributes;
+    private final AttributeContainer moduleAttributes;
 
     public LocalComponentDependencyMetadata(ComponentSelector selector, ModuleVersionSelector requested,
                                             String moduleConfiguration,
-                                            Map<String, String> moduleAttributes,
+                                            AttributeContainer moduleAttributes,
                                             String dependencyConfiguration,
                                             Set<IvyArtifactName> artifactNames, List<Exclude> excludes,
                                             boolean force, boolean changing, boolean transitive) {
@@ -75,7 +70,6 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         this.dependencyConfiguration = dependencyConfiguration;
         this.artifactNames = artifactNames;
         this.excludes = excludes;
-        this.exclusions = ModuleExclusions.excludeAny(excludes);
         this.force = force;
         this.changing = changing;
         this.transitive = transitive;
@@ -107,59 +101,65 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     @Override
-    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
-        assert fromConfiguration.getHierarchy().contains(getOrDefaultConfiguration(moduleConfiguration));
-        Map<String, String> attributes = fromConfiguration.getAttributes();
-        boolean useConfigurationAttributes = dependencyConfiguration == null && !attributes.isEmpty();
+    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
+        AttributeContainerInternal fromConfigurationAttributes = fromConfiguration.getAttributes();
+        boolean consumerHasAttributes = !fromConfigurationAttributes.isEmpty();
+        List<? extends ConfigurationMetadata> consumableConfigurations = targetComponent.getConsumableConfigurationsHavingAttributes();
+        boolean useConfigurationAttributes = dependencyConfiguration == null && (consumerHasAttributes || !consumableConfigurations.isEmpty());
         if (useConfigurationAttributes) {
-            Set<String> configurationNames = targetComponent.getConfigurationNames();
-            List<ConfigurationMetadata> candidateConfigurations = new ArrayList<ConfigurationMetadata>(1);
-            for (String configurationName : configurationNames) {
-                ConfigurationMetadata dependencyConfiguration = targetComponent.getConfiguration(configurationName);
-                Map<String, String> dependencyConfigurationAttributes = dependencyConfiguration.getAttributes();
-                if (!dependencyConfigurationAttributes.isEmpty() && dependencyConfiguration.isConsumeOrPublishAllowed()) {
-                    if (dependencyConfigurationAttributes.entrySet().containsAll(attributes.entrySet())) {
-                        candidateConfigurations.add(dependencyConfiguration);
-                    }
-                }
+            AttributesSchemaInternal producerAttributeSchema = targetComponent.getAttributesSchema();
+            AttributeMatcher attributeMatcher = consumerSchema.withProducer(producerAttributeSchema);
+            ConfigurationMetadata fallbackConfiguration = targetComponent.getConfiguration(Dependency.DEFAULT_CONFIGURATION);
+            if (fallbackConfiguration != null && !fallbackConfiguration.isCanBeConsumed()) {
+                fallbackConfiguration = null;
             }
-            if (candidateConfigurations.size()==1) {
-                return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(candidateConfigurations.get(0), attributes));
-            } else if (!candidateConfigurations.isEmpty()) {
-                throw new IllegalArgumentException("Cannot choose between the following configurations: " + Sets.newTreeSet(Lists.transform(candidateConfigurations, CONFIG_NAME)) + ". All of then match the client attributes " + new TreeMap<String, String>(attributes));
+            List<ConfigurationMetadata> matches = attributeMatcher.matches(consumableConfigurations, fromConfigurationAttributes, fallbackConfiguration);
+            if (matches.size() == 1) {
+                return ImmutableSet.of(ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(matches.get(0), fromConfigurationAttributes));
+            } else if (!matches.isEmpty()) {
+                throw new AmbiguousConfigurationSelectionException(fromConfigurationAttributes, attributeMatcher, matches, targetComponent);
+            } else {
+                throw new NoMatchingConfigurationSelectionException(fromConfigurationAttributes, attributeMatcher, targetComponent);
             }
         }
+
         String targetConfiguration = GUtil.elvis(dependencyConfiguration, Dependency.DEFAULT_CONFIGURATION);
         ConfigurationMetadata toConfiguration = targetComponent.getConfiguration(targetConfiguration);
         if (toConfiguration == null) {
             throw new ConfigurationNotFoundException(fromComponent.getComponentId(), moduleConfiguration, targetConfiguration, targetComponent.getComponentId());
         }
-        if (dependencyConfiguration!=null && !toConfiguration.isConsumeOrPublishAllowed()) {
-            throw new IllegalArgumentException("Configuration '" + dependencyConfiguration + "' cannot be used in a project dependency");
+        if (!toConfiguration.isCanBeConsumed()) {
+            throw new ConfigurationNotConsumableException(targetComponent.toString(), toConfiguration.getName());
         }
-        ConfigurationMetadata delegate = toConfiguration;
-        if (useConfigurationAttributes) {
-            delegate = ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(delegate, attributes);
+        if (consumerHasAttributes && !toConfiguration.getAttributes().isEmpty()) {
+            // need to validate that the selected configuration still matches the consumer attributes
+            AttributesSchemaInternal producerAttributeSchema = targetComponent.getAttributesSchema();
+            if (!consumerSchema.withProducer(producerAttributeSchema).isMatching(toConfiguration.getAttributes(), fromConfigurationAttributes)) {
+                throw new IncompatibleConfigurationSelectionException(fromConfigurationAttributes, consumerSchema.withProducer(producerAttributeSchema), targetComponent, targetConfiguration);
+            }
         }
-        return ImmutableSet.of(delegate);
+        if (!fromConfigurationAttributes.isEmpty()) {
+            toConfiguration = ClientAttributesPreservingConfigurationMetadata.wrapIfLocal(toConfiguration, fromConfigurationAttributes);
+        }
+        return ImmutableSet.of(toConfiguration);
     }
 
     private static String getOrDefaultConfiguration(String configuration) {
         return GUtil.elvis(configuration, Dependency.DEFAULT_CONFIGURATION);
     }
+
     @Override
     public Set<String> getModuleConfigurations() {
         return ImmutableSet.of(getOrDefaultConfiguration(moduleConfiguration));
     }
 
     @Override
-    public ModuleExclusion getExclusions(ConfigurationMetadata fromConfiguration) {
-        assert fromConfiguration.getHierarchy().contains(getOrDefaultConfiguration(moduleConfiguration));
-        return exclusions;
+    public List<Exclude> getExcludes() {
+        return excludes;
     }
 
     @Override
-    public List<Exclude> getExcludes() {
+    public List<Exclude> getExcludes(Collection<String> configurations) {
         return excludes;
     }
 
@@ -235,33 +235,33 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
 
     private static class ClientAttributesPreservingConfigurationMetadata implements LocalConfigurationMetadata {
         private final LocalConfigurationMetadata delegate;
-        private final Map<String, String> attributes;
+        private final AttributeContainerInternal attributes;
 
-        private static ConfigurationMetadata wrapIfLocal(ConfigurationMetadata md, Map<String, String> attributes) {
+        private static ConfigurationMetadata wrapIfLocal(ConfigurationMetadata md, AttributeContainerInternal attributes) {
             if (md instanceof LocalConfigurationMetadata) {
                 return new ClientAttributesPreservingConfigurationMetadata((LocalConfigurationMetadata) md, attributes);
             }
             return md;
         }
 
-        private ClientAttributesPreservingConfigurationMetadata(LocalConfigurationMetadata delegate, Map<String, String> attributes) {
+        private ClientAttributesPreservingConfigurationMetadata(LocalConfigurationMetadata delegate, AttributeContainerInternal attributes) {
             this.delegate = delegate;
             this.attributes = attributes;
         }
 
         @Override
-        public Map<String, String> getAttributes() {
+        public AttributeContainerInternal getAttributes() {
             return attributes;
         }
 
         @Override
-        public boolean isConsumeOrPublishAllowed() {
-            return delegate.isConsumeOrPublishAllowed();
+        public boolean isCanBeConsumed() {
+            return delegate.isCanBeConsumed();
         }
 
         @Override
-        public boolean isQueryOrResolveAllowed() {
-            return delegate.isQueryOrResolveAllowed();
+        public boolean isCanBeResolved() {
+            return delegate.isCanBeResolved();
         }
 
         @Override
@@ -275,18 +275,28 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         }
 
         @Override
-        public List<DependencyMetadata> getDependencies() {
+        public DisplayName asDescribable() {
+            return delegate.asDescribable();
+        }
+
+        @Override
+        public List<? extends LocalOriginDependencyMetadata> getDependencies() {
             return delegate.getDependencies();
         }
 
         @Override
-        public Set<ComponentArtifactMetadata> getArtifacts() {
+        public Set<? extends LocalComponentArtifactMetadata> getArtifacts() {
             return delegate.getArtifacts();
         }
 
         @Override
-        public ModuleExclusion getExclusions() {
-            return delegate.getExclusions();
+        public Set<? extends VariantMetadata> getVariants() {
+            return delegate.getVariants();
+        }
+
+        @Override
+        public ModuleExclusion getExclusions(ModuleExclusions moduleExclusions) {
+            return delegate.getExclusions(moduleExclusions);
         }
 
         @Override
@@ -315,13 +325,9 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         }
 
         @Override
-        public TaskDependency getDirectBuildDependencies() {
-            return delegate.getDirectBuildDependencies();
-        }
-
-        @Override
         public Set<LocalFileDependencyMetadata> getFiles() {
             return delegate.getFiles();
         }
     }
+
 }

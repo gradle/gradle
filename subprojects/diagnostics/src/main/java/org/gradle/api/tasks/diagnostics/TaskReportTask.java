@@ -34,6 +34,10 @@ import java.io.IOException;
 /**
  * <p>Displays a list of tasks in the project. An instance of this type is used when you execute the {@code tasks} task
  * from the command-line.</p>
+ *
+ * By default, this report shows only those tasks which have been assigned to a task group, so-called <i>visible</i>
+ * tasks. Tasks which have not been assigned to a task group, so-called <i>hidden</i> tasks, can be included in the report
+ * by enabling the command line option {@code --all}.
  */
 public class TaskReportTask extends AbstractReportTask {
     private TaskReportRenderer renderer = new TaskReportRenderer();
@@ -64,7 +68,7 @@ public class TaskReportTask extends AbstractReportTask {
         renderer.showDetail(isDetail());
         renderer.addDefaultTasks(project.getDefaultTasks());
 
-        AggregateMultiProjectTaskReportModel aggregateModel = new AggregateMultiProjectTaskReportModel(!isDetail());
+        AggregateMultiProjectTaskReportModel aggregateModel = new AggregateMultiProjectTaskReportModel(!isDetail(), isDetail());
         TaskDetailsFactory taskDetailsFactory = new TaskDetailsFactory(project);
 
         SingleProjectTaskReportModel projectTaskModel = new SingleProjectTaskReportModel(taskDetailsFactory);
@@ -86,9 +90,6 @@ public class TaskReportTask extends AbstractReportTask {
             renderer.startTaskGroup(group);
             for (TaskDetails task : model.getTasksForGroup(group)) {
                 renderer.addTask(task);
-                for (TaskDetails child : task.getChildren()) {
-                    renderer.addChildTask(child);
-                }
             }
         }
         renderer.completeTasks();

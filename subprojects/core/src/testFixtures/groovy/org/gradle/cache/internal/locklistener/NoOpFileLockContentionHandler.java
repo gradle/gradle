@@ -26,6 +26,7 @@ public class NoOpFileLockContentionHandler implements FileLockContentionHandler 
         return -1;
     }
 
-    public void pingOwner(int port, long lockId, String displayName) {
+    public boolean maybePingOwner(int port, long lockId, String displayName, long timeElapsed) {
+        return false;
     }
 }

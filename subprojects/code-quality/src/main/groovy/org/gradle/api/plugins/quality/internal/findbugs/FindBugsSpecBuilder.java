@@ -37,7 +37,7 @@ public class FindBugsSpecBuilder {
     private FileCollection pluginsList;
     private FileCollection sources;
     private FileCollection classpath;
-    private FileCollection classes;
+    private FileCollection classesDirs;
     private FindBugsReports reports;
 
     private String effort;
@@ -51,12 +51,13 @@ public class FindBugsSpecBuilder {
     private Collection<String> extraArgs;
     private Collection<String> jvmArgs;
     private boolean debugEnabled;
+    private boolean showProgress;
 
-    public FindBugsSpecBuilder(FileCollection classes) {
-        if(classes == null || classes.isEmpty()){
-            throw new InvalidUserDataException("No classes configured for FindBugs analysis.");
+    public FindBugsSpecBuilder(FileCollection classesDirs) {
+        if(classesDirs == null || classesDirs.isEmpty()){
+            throw new InvalidUserDataException("No class directories configured for FindBugs analysis.");
         }
-        this.classes = classes;
+        this.classesDirs = classesDirs;
     }
 
     public FindBugsSpecBuilder withPluginsList(FileCollection pluginsClasspath) {
@@ -163,7 +164,9 @@ public class FindBugsSpecBuilder {
         args.add(pluginsList==null ? "" : pluginsList.getAsPath());
         args.add("-sortByClass");
         args.add("-timestampNow");
-        args.add("-progress");
+        if (showProgress) {
+            args.add("-progress");
+        }
 
         if (reports != null && !reports.getEnabled().isEmpty()) {
             if (reports.getEnabled().size() == 1) {
@@ -241,8 +244,11 @@ public class FindBugsSpecBuilder {
             args.addAll(extraArgs);
         }
 
-        for (File classFile : classes.getFiles()) {
-            args.add(classFile.getAbsolutePath());
+        for (File classDir : classesDirs.getFiles()) {
+            // FindBugs cannot handle missing directories
+            if (classDir.exists()) {
+                args.add(classDir.getAbsolutePath());
+            }
         }
 
         return new FindBugsSpec(args, maxHeapSize, debugEnabled, jvmArgs);
@@ -262,5 +268,10 @@ public class FindBugsSpecBuilder {
 
     private boolean has(FileCollection fileCollection) {
         return fileCollection != null && !fileCollection.isEmpty();
+    }
+
+    public FindBugsSpecBuilder withShowProgress(boolean showProgress) {
+        this.showProgress = showProgress;
+        return this;
     }
 }

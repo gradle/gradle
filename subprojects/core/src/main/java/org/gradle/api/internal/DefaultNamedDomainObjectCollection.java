@@ -24,17 +24,15 @@ import org.gradle.api.Rule;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
-import org.gradle.api.internal.plugins.DefaultConvention;
-import org.gradle.api.plugins.Convention;
-import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
-import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.metaobject.GetPropertyResult;
-import org.gradle.internal.metaobject.InvokeMethodResult;
-import org.gradle.internal.metaobject.MixInClosurePropertiesAsMethodsDynamicObject;
+import org.gradle.internal.metaobject.DynamicInvokeResult;
+import org.gradle.internal.metaobject.MethodAccess;
+import org.gradle.internal.metaobject.MethodMixIn;
+import org.gradle.internal.metaobject.PropertyAccess;
+import org.gradle.internal.metaobject.PropertyMixIn;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
@@ -50,24 +48,20 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 
-public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCollection<T> implements NamedDomainObjectCollection<T>, DynamicObjectAware {
+public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCollection<T> implements NamedDomainObjectCollection<T>, MethodMixIn, PropertyMixIn {
 
     private final Instantiator instantiator;
     private final Namer<? super T> namer;
     private final Index<T> index;
 
     private final ContainerElementsDynamicObject elementsDynamicObject = new ContainerElementsDynamicObject();
-    private final Convention convention;
-    private final DynamicObject dynamicObject;
 
     private final List<Rule> rules = new ArrayList<Rule>();
-    private Set<String> applyingRulesFor = new HashSet<String>();
+    private final Set<String> applyingRulesFor = new HashSet<String>();
 
     public DefaultNamedDomainObjectCollection(Class<? extends T> type, Collection<T> store, Instantiator instantiator, Namer<? super T> namer) {
         super(type, store);
         this.instantiator = instantiator;
-        this.convention = new DefaultConvention(instantiator);
-        this.dynamicObject = new ExtensibleDynamicObject(this, new ContainerDynamicObject(elementsDynamicObject), convention);
         this.namer = namer;
         this.index = new UnfilteredIndex<T>();
         index();
@@ -82,8 +76,6 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     protected DefaultNamedDomainObjectCollection(Class<? extends T> type, Collection<T> store, CollectionEventRegister<T> eventRegister, Index<T> index, Instantiator instantiator, Namer<? super T> namer) {
         super(type, store, eventRegister);
         this.instantiator = instantiator;
-        this.convention = new DefaultConvention(instantiator);
-        this.dynamicObject = new ExtensibleDynamicObject(this, new ContainerDynamicObject(elementsDynamicObject), convention);
         this.namer = namer;
         this.index = index;
     }
@@ -173,6 +165,11 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return getTypeDisplayName() + " container";
     }
 
+    @Override
+    public String toString() {
+        return getDisplayName();
+    }
+
     public SortedMap<String, T> getAsMap() {
         return index.asMap();
     }
@@ -198,7 +195,9 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         if (value != null) {
             return value;
         }
-        applyRules(name);
+        if (!applyRules(name)) {
+            return null;
+        }
         return findByNameWithoutRules(name);
     }
 
@@ -249,30 +248,26 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return getByName(name);
     }
 
-    /**
-     * Returns a {@link DynamicObject} which can be used to access the domain objects as dynamic properties and methods.
-     *
-     * @return The dynamic object
-     */
-    public DynamicObject getAsDynamicObject() {
-        return dynamicObject;
+    @Override
+    public MethodAccess getAdditionalMethods() {
+        return getElementsAsDynamicObject();
     }
 
-    public Convention getConvention() {
-        return convention;
-    }
-
-    public ExtensionContainer getExtensions() {
-        return convention;
+    @Override
+    public PropertyAccess getAdditionalProperties() {
+        return getElementsAsDynamicObject();
     }
 
     protected DynamicObject getElementsAsDynamicObject() {
         return elementsDynamicObject;
     }
 
-    private void applyRules(String name) {
-        if (applyingRulesFor.contains(name)) {
-            return;
+    /**
+     * @return true if the method _may_ have done some work
+     */
+    private boolean applyRules(String name) {
+        if (rules.isEmpty() || applyingRulesFor.contains(name)) {
+            return false;
         }
         applyingRulesFor.add(name);
         try {
@@ -282,6 +277,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         } finally {
             applyingRulesFor.remove(name);
         }
+        return true;
     }
 
     public Rule addRule(Rule rule) {
@@ -290,22 +286,41 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     public Rule addRule(final String description, final Closure ruleAction) {
-        Rule rule = new Rule() {
-            public String getDescription() {
-                return description;
-            }
-
-            public void apply(String taskName) {
-                ruleAction.call(taskName);
-            }
-
+        return addRule(new RuleAdapter(description) {
             @Override
-            public String toString() {
-                return "Rule: " + description;
+            public void apply(String domainObjectName) {
+                ruleAction.call(domainObjectName);
             }
-        };
-        rules.add(rule);
-        return rule;
+        });
+    }
+
+    @Override
+    public Rule addRule(final String description, final Action<String> ruleAction) {
+        return addRule(new RuleAdapter(description) {
+            @Override
+            public void apply(String domainObjectName) {
+                ruleAction.execute(domainObjectName);
+            }
+        });
+    }
+
+    private static abstract class RuleAdapter implements Rule {
+
+        private final String description;
+
+        RuleAdapter(String description) {
+            this.description = description;
+        }
+
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public String toString() {
+            return "Rule: " + description;
+        }
     }
 
     public List<Rule> getRules() {
@@ -321,17 +336,6 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return getType().getSimpleName();
     }
 
-    private class ContainerDynamicObject extends MixInClosurePropertiesAsMethodsDynamicObject {
-        private ContainerDynamicObject(ContainerElementsDynamicObject elementsDynamicObject) {
-            setObjects(new BeanDynamicObject(DefaultNamedDomainObjectCollection.this), elementsDynamicObject, convention.getExtensionsAsDynamicObject());
-        }
-
-        @Override
-        public String getDisplayName() {
-            return DefaultNamedDomainObjectCollection.this.getDisplayName();
-        }
-    }
-
     private class ContainerElementsDynamicObject extends AbstractDynamicObject {
         @Override
         public String getDisplayName() {
@@ -344,11 +348,9 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public void getProperty(String name, GetPropertyResult result) {
+        public DynamicInvokeResult tryGetProperty(String name) {
             T t = findByName(name);
-            if (t != null) {
-                result.result(t);
-            }
+            return t == null ? DynamicInvokeResult.notFound() : DynamicInvokeResult.found(t);
         }
 
         @Override
@@ -362,10 +364,11 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public void invokeMethod(String name, InvokeMethodResult result, Object... arguments) {
+        public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
             if (isConfigureMethod(name, arguments)) {
-                result.result(ConfigureUtil.configure((Closure) arguments[0], getByName(name)));
+                return DynamicInvokeResult.found(ConfigureUtil.configure((Closure) arguments[0], getByName(name)));
             }
+            return DynamicInvokeResult.notFound();
         }
 
         private boolean isConfigureMethod(String name, Object... arguments) {

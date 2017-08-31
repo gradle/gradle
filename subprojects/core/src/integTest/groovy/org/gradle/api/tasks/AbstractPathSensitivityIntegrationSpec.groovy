@@ -21,14 +21,14 @@ import spock.lang.Unroll
 
 import static org.gradle.api.tasks.PathSensitivity.*
 
+@Unroll
 abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegrationSpec {
 
-    @Unroll("single source file renamed with #pathSensitive as input is loaded from cache: #expectSkipped (order sensitive: #orderSensitive)")
-    def "single source file renamed"() {
+    def "single source file renamed with #pathSensitive as input is loaded from cache: #expectSkipped"() {
         given:
         file("sources/input.txt").text = "input"
 
-        declareTestTaskWithPathSensitivity(pathSensitive, orderSensitive)
+        declareTestTaskWithPathSensitivity(pathSensitive)
 
         buildFile << """
             test {
@@ -45,30 +45,26 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         assert file("sources/input.txt").renameTo(file("sources/input-renamed.txt"))
 
         cleanWorkspace()
+
         execute "test"
         then:
         skippedTasks.empty == !expectSkipped
 
         where:
-        pathSensitive | orderSensitive | expectSkipped
-        ABSOLUTE      | true           | false
-        ABSOLUTE      | false          | false
-        RELATIVE      | true           | false
-        RELATIVE      | false          | false
-        NAME_ONLY     | true           | false
-        NAME_ONLY     | false          | false
-        NONE          | true           | true
-        NONE          | false          | true
+        pathSensitive | expectSkipped
+        ABSOLUTE      | false
+        RELATIVE      | false
+        NAME_ONLY     | false
+        NONE          | true
     }
 
-    @Unroll("single source file moved within hierarchy with #pathSensitive as input is loaded from cache: #expectSkipped (order sensitive: #orderSensitive)")
-    def "single source file moved within hierarchy"() {
+    def "single source file moved within hierarchy with #pathSensitive as input is loaded from cache: #expectSkipped"() {
         given:
         file("src/data1").createDir()
         file("src/data2").createDir()
         file("src/data1/input.txt").text = "input"
 
-        declareTestTaskWithPathSensitivity(pathSensitive, orderSensitive)
+        declareTestTaskWithPathSensitivity(pathSensitive)
 
         buildFile << """
             test {
@@ -84,37 +80,24 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         when:
         assert file("src/data1/input.txt").renameTo(file("src/data2/input.txt"))
         cleanWorkspace()
+
         execute "test"
         then:
         skippedTasks.empty == !expectSkipped
 
         where:
-        pathSensitive | orderSensitive | expectSkipped
-        ABSOLUTE      | true           | false
-        ABSOLUTE      | false          | false
-        RELATIVE      | true           | false
-        RELATIVE      | false          | false
-        NAME_ONLY     | true           | false
-        NAME_ONLY     | false          | true
-        NONE          | true           | true
-        NONE          | false          | true
-
-        // NOTE: NAME_ONLY in order-sensitive mode is not skipped,
-        // because the order of files and directories do change from:
-        //  - data1, data1/input.txt, data2
-        // to
-        //  - data1, data2, data2/input.txt
-        //
-        // It's not an issue for the NONE case, because there we
-        // ignore directories, as they have no contents to be hashed.
+        pathSensitive | expectSkipped
+        ABSOLUTE      | false
+        RELATIVE      | false
+        NAME_ONLY     | true
+        NONE          | true
     }
 
-    @Unroll("source file hierarchy moved with #pathSensitive as input is loaded from cache: #expectSkipped (order sensitive: #orderSensitive)")
-    def "source file hierarchy moved"() {
+    def "source file hierarchy moved with #pathSensitive as input is loaded from cache: #expectSkipped"() {
         given:
         file("src/data/input.txt").text = "input"
 
-        declareTestTaskWithPathSensitivity(pathSensitive, orderSensitive)
+        declareTestTaskWithPathSensitivity(pathSensitive)
 
         buildFile << """
             test {
@@ -136,27 +119,24 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         """
 
         cleanWorkspace()
+
         execute "test"
         then:
         skippedTasks.empty == !expectSkipped
 
         where:
-        pathSensitive | orderSensitive | expectSkipped
-        ABSOLUTE      | true           | false
-        ABSOLUTE      | false          | false
-        RELATIVE      | true           | true
-        RELATIVE      | false          | true
-        NAME_ONLY     | true           | true
-        NAME_ONLY     | false          | true
-        NONE          | true           | true
-        NONE          | false          | true
+        pathSensitive | expectSkipped
+        ABSOLUTE      | false
+        RELATIVE      | true
+        NAME_ONLY     | true
+        NONE          | true
     }
 
     abstract void execute(String... tasks)
 
     abstract void cleanWorkspace()
 
-    private void declareTestTaskWithPathSensitivity(PathSensitivity pathSensitivity, boolean orderSensitive) {
+    private void declareTestTaskWithPathSensitivity(PathSensitivity pathSensitivity) {
         file("buildSrc/src/main/groovy/TestTask.groovy") << """
             import org.gradle.api.*
             import org.gradle.api.file.*
@@ -165,7 +145,6 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
             @CacheableTask
             class PathSensitiveTask extends DefaultTask {
                 @InputFiles
-                ${orderSensitive ? "@OrderSensitive" : ""}
                 @PathSensitive(PathSensitivity.${pathSensitivity.name()})
                 FileCollection sources
 

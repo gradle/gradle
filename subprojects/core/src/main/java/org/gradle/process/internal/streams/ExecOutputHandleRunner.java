@@ -23,7 +23,6 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.concurrent.Executor;
 
 public class ExecOutputHandleRunner implements Runnable {
     private final static Logger LOGGER = Logging.getLogger(ExecOutputHandleRunner.class);
@@ -59,10 +58,6 @@ public class ExecOutputHandleRunner implements Runnable {
         } catch (Throwable t) {
             LOGGER.error(String.format("Could not %s.", displayName), t);
         }
-    }
-
-    public void run(Executor executor) {
-        executor.execute(this);
     }
 
     public void closeInput() throws IOException {

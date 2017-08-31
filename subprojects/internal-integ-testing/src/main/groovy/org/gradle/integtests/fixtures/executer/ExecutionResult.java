@@ -15,6 +15,8 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
+import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
+
 import java.util.List;
 import java.util.Set;
 
@@ -28,13 +30,20 @@ public interface ExecutionResult {
      * Stdout of the Gradle execution, normalized to use new-line char as line separator. Excludes warnings about deprecated or incubating features used to run the build.
      *
      * <ul>
-     *     <li>Removes warning about running on Java 6.</li>
+     *     <li>Removes warning about running on Java 7.</li>
      *     <li>Removes warning about running using configure on demand or parallel execution.</li>
      *     <li>Removes notice about starting the daemon.</li>
      *     <li>Normalizes build time to 1 second.
      * </ul>
      */
     String getNormalizedOutput();
+
+    /**
+     * Returns a fixture that parses the output and forms them into the expected groups
+     *
+     * <b>NOTE:</b> this is only supported when using {@link org.gradle.api.logging.configuration.ConsoleOutput#Rich}
+     */
+    GroupedOutputFixture getGroupedOutput();
 
     /**
      * Stderr of the Gradle execution, normalized to use new-line char as line separator.
@@ -52,8 +61,22 @@ public interface ExecutionResult {
 
     /**
      * Asserts that exactly the given set of tasks have been executed in the given order. Note: ignores buildSrc tasks.
+     * Each task path can be either a String or a {@link TaskOrderSpec}.  See {@link TaskOrderSpecs} for common assertions
+     * and an explanation of their usage.  Defaults to a {@link TaskOrderSpecs#exact(Object[])} assertion.
+     */
+    ExecutionResult assertTasksExecutedInOrder(Object... taskPaths);
+
+    /**
+     * Asserts that exactly the given set of tasks have been executed in any order. Note: ignores buildSrc tasks.
      */
     ExecutionResult assertTasksExecuted(String... taskPaths);
+
+    /**
+     * Asserts that the provided tasks were executed in the given order.  Each task path can be either a String
+     * or a {@link TaskOrderSpec}.  See {@link TaskOrderSpecs} for common assertions and an explanation of their usage.
+     * Defaults to a {@link TaskOrderSpecs#exact(Object[])} assertion.
+     */
+    ExecutionResult assertTaskOrder(Object... taskPaths);
 
     /**
      * Returns the tasks that were skipped, in an undefined order. Note: ignores buildSrc tasks.

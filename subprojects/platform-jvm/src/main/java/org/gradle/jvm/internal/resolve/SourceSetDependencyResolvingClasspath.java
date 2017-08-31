@@ -16,7 +16,10 @@
 package org.gradle.jvm.internal.resolve;
 
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.jvm.internal.DependencyResolvingClasspath;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.platform.base.DependencySpec;
@@ -27,17 +30,20 @@ import java.util.List;
 public class SourceSetDependencyResolvingClasspath extends DependencyResolvingClasspath {
 
     public SourceSetDependencyResolvingClasspath(
-            BinarySpecInternal binarySpec,
-            LanguageSourceSet sourceSet,
-            Iterable<DependencySpec> dependencies,
-            ArtifactDependencyResolver dependencyResolver,
-            VariantsMetaData binaryVariants,
-            List<ResolutionAwareRepository> remoteRepositories) {
+        BinarySpecInternal binarySpec,
+        LanguageSourceSet sourceSet,
+        Iterable<DependencySpec> dependencies,
+        ArtifactDependencyResolver dependencyResolver,
+        VariantsMetaData binaryVariants,
+        List<ResolutionAwareRepository> remoteRepositories,
+        AttributesSchemaInternal attributesSchema,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        BuildOperationExecutor buildOperationExecutor) {
         super(binarySpec,
             "source set '" + sourceSet.getDisplayName() + "'",
             dependencyResolver,
             remoteRepositories,
-            new JvmLibraryResolveContext(binarySpec.getId(), binaryVariants, dependencies, UsageKind.API, sourceSet.getDisplayName()));
+            new JvmLibraryResolveContext(binarySpec.getId(), binaryVariants, dependencies, UsageKind.API, sourceSet.getDisplayName(), moduleIdentifierFactory), attributesSchema, buildOperationExecutor);
     }
 
 }

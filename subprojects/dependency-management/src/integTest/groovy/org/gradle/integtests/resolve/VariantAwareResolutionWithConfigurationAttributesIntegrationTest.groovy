@@ -29,6 +29,7 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
         file("buildSrc/src/main/groovy/VariantsPlugin.groovy") << '''
             import org.gradle.api.Plugin
             import org.gradle.api.Project
+            import org.gradle.api.attributes.Attribute
             import org.gradle.api.tasks.compile.JavaCompile
             import org.gradle.api.tasks.bundling.Jar
             import org.gradle.api.tasks.bundling.Zip
@@ -36,26 +37,42 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
 
             class VariantsPlugin implements Plugin<Project> {
                 void apply(Project p) {
+                        def buildType = Attribute.of('buildType', String)
+                        def usage = Attribute.of('usage', String)
+                        def flavor = Attribute.of('flavor', String)
+                        p.dependencies.attributesSchema {
+                           attribute(buildType)
+                           attribute(usage)
+                           attribute(flavor)
+                        }
                         def buildTypes = ['debug', 'release']
                         def flavors = ['free', 'paid']
                         def processResources = p.tasks.processResources
-                        p.configurations.compile.asBucket()
+                        p.configurations.compile.canBeResolved = false
+                        p.configurations.compile.canBeConsumed = false
                         buildTypes.each { bt ->
                             flavors.each { f ->
                                 String baseName = "compile${f.capitalize()}${bt.capitalize()}"
                                 def compileConfig = p.configurations.create(baseName) {
                                     extendsFrom p.configurations.compile
-                                    forConsumingOrPublishingOnly()
-                                    attributes buildType: bt, flavor: f, usage: 'compile'
+                                    canBeResolved = false
+                                    attributes.attribute(buildType, bt)
+                                    attributes.attribute(flavor, f)
+                                    attributes.attribute(usage, 'compile')
                                 }
                                 def _compileConfig = p.configurations.create("_$baseName") {
                                     extendsFrom p.configurations.compile
-                                    forQueryingOrResolvingOnly()
-                                    attributes buildType: bt, flavor: f, usage: 'compile'
+                                    canBeConsumed = false
+                                    attributes.attribute(buildType, bt)
+                                    attributes.attribute(flavor, f)
+                                    attributes.attribute(usage, 'compile')
                                 }
                                 def mergedResourcesConf = p.configurations.create("resources${f.capitalize()}${bt.capitalize()}") {
                                     extendsFrom p.configurations.compile
-                                    attributes buildType: bt, flavor: f, usage: 'resources'
+                                    
+                                    attributes.attribute(buildType, bt)
+                                    attributes.attribute(flavor, f)
+                                    attributes.attribute(usage, 'resources')
                                 }
                                 p.dependencies.add(mergedResourcesConf.name, processResources.outputs.files)
                                 def compileTask = p.tasks.create("compileJava${f.capitalize()}${bt.capitalize()}", JavaCompile) { task ->
@@ -102,10 +119,10 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
             task checkConfigurations {
                 doLast {
                     ['compileFreeDebug', 'compileFreeRelease', 'compilePaidDebug', 'compilePaidRelease'].each {
-                        assert !configurations.getByName(it).queryOrResolveAllowed
-                        assert configurations.getByName(it).consumeOrPublishAllowed
-                        assert configurations.getByName("_$it").queryOrResolveAllowed
-                        assert !configurations.getByName("_$it").consumeOrPublishAllowed
+                        assert !configurations.getByName(it).canBeResolved
+                        assert configurations.getByName(it).canBeConsumed
+                        assert configurations.getByName("_$it").canBeResolved
+                        assert !configurations.getByName("_$it").canBeConsumed
                     }
                 }
             }
@@ -248,9 +265,7 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
 
     private static File withExternalDependencies(File buildFile, String dependenciesBlock) {
         buildFile << """
-            repositories {
-                jcenter()
-            }
+            ${jcenterRepository()}
             dependencies {
                 $dependenciesBlock
             }

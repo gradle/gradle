@@ -17,6 +17,8 @@ package org.gradle.api.internal
 
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import spock.lang.Issue
@@ -88,7 +90,7 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
     }
 
     def "can configure existing object"() {
-        container.create('list1')
+        container.create('someObj')
 
         when:
         container.configure {
@@ -220,6 +222,12 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
         container.list1.prop == 'list1'
         container.list2.prop == 'list2'
     }
+
+    def "has public type"() {
+        expect:
+        container.publicType == new TypeOf<NamedDomainObjectContainer<TestObject>>() {}
+    }
+
 
     static class Owner {
         void thing(Closure closure) {}

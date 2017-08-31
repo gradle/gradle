@@ -17,6 +17,7 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ScriptExecuter
+import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
@@ -25,6 +26,7 @@ import spock.lang.IgnoreIf
 
 import static org.hamcrest.Matchers.startsWith
 
+@TestReproducibleArchives
 class ApplicationIntegrationSpec extends AbstractIntegrationSpec{
 
     def setup() {
@@ -303,11 +305,11 @@ installDist.destinationDir = buildDir
         then:
         File generatedWindowsStartScript = file("build/scripts/application.bat")
         generatedWindowsStartScript.exists()
-        assertLineSeparators(generatedWindowsStartScript, TextUtil.windowsLineSeparator, 84);
+        assertLineSeparators(generatedWindowsStartScript, TextUtil.windowsLineSeparator, 84)
 
         File generatedLinuxStartScript = file("build/scripts/application")
         generatedLinuxStartScript.exists()
-        assertLineSeparators(generatedLinuxStartScript, TextUtil.unixLineSeparator, 171);
+        assertLineSeparators(generatedLinuxStartScript, TextUtil.unixLineSeparator, 172)
         assertLineSeparators(generatedLinuxStartScript, TextUtil.windowsLineSeparator, 1)
 
         file("build/scripts/application").exists()
@@ -420,7 +422,7 @@ class Main {
         distBase.file("docs/READ-ME.txt").text == "Read me!!!"
     }
 
-    private void checkApplicationImage(String applicationName, TestFile installDir) {
+    private static void checkApplicationImage(String applicationName, TestFile installDir) {
         installDir.file("bin/${applicationName}").assertIsFile()
         installDir.file("bin/${applicationName}.bat").assertIsFile()
         installDir.file("lib/application.jar").assertIsFile()
@@ -439,4 +441,51 @@ class Main {
         assert testFile.text.split(lineSeparator).length == expectedLineCount
         true
     }
+
+    def checkClasspathOrderInStartScript() {
+        def resourceFileName = "resource.properties"
+        file('src/main/java/org/gradle/test/Main.java') << """
+package org.gradle.test;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+class Main {
+
+  public static void main(String[] args) throws IOException {
+    String firstLine = new BufferedReader(new InputStreamReader(
+        ClassLoader.getSystemClassLoader().getResourceAsStream("${resourceFileName}"))).readLine();
+    if (!firstLine.equals("bar")) {
+      throw new RuntimeException("Classpath provides wrong '${resourceFileName}' file with value '" + firstLine + "'");
+    }
+  }
+}
+"""
+
+        def testResources = file("resources")
+        def resourceFile = testResources.file(resourceFileName)
+        resourceFile.text = "bar"
+        testResources.zipTo(file("libs/bar.jar"))
+        resourceFile.text = "foo"
+        testResources.zipTo(file("libs/foo.jar"))
+        buildFile << """
+            dependencies {
+                compile files("libs/bar.jar")
+                compile files("libs/foo.jar")
+            }
+        """
+
+        when:
+        run 'installDist'
+
+        def builder = new ScriptExecuter()
+        builder.workingDir file('build/install/application/bin')
+        builder.executable "application"
+        def result = builder.run()
+
+        then:
+        result.assertNormalExitValue()
+    }
+
 }

@@ -16,8 +16,7 @@
 
 package org.gradle.launcher.daemon.protocol;
 
-import org.gradle.api.Nullable;
-
+import javax.annotation.Nullable;
 import java.io.Serializable;
 
 public class Status implements Serializable {

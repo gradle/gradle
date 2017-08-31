@@ -33,7 +33,7 @@ import java.util.Set;
  * <p>Below is a full configuration example. Since all properties have sensible defaults,
  * typically only selected properties will be configured.
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  *     apply plugin: "java-gradle-plugin"
  *
  *     gradlePlugin {
@@ -99,7 +99,7 @@ public class GradlePluginDevelopmentExtension {
     }
 
     /**
-     * Returns the the source sets executing the functional tests with TestKit. Defaults to {@code project.sourceSets.test}.
+     * Returns the source sets executing the functional tests with TestKit. Defaults to {@code project.sourceSets.test}.
      *
      * @return the test source sets
      */

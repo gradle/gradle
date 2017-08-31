@@ -8,6 +8,7 @@
                     <td>Default with <literal>antlr</literal> plugin</td>
                 </tr>
             </thead>
+            <tr><td>arguments</td><td></td></tr>
             <tr><td>antlrClasspath</td><td><literal>project.configurations.antlr</literal></td></tr>
             <tr><td>outputDirectory</td><td>
                 <filename><replaceable>${project.buildDir}</replaceable>/generated-src/antlr/<replaceable>${sourceSet.name}</replaceable></filename></td></tr>

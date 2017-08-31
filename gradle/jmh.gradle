@@ -21,17 +21,18 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'me.champeau.gradle:jmh-gradle-plugin:0.3.1'
+        classpath 'me.champeau.gradle:jmh-gradle-plugin:0.4.4'
     }
 }
 
 apply plugin: me.champeau.gradle.JMHPlugin
 
-jmh {
-    jmhVersion = '1.12'
-    includeTests = false
-    warmupIterations = 10
-    threads = 2
-    synchronizeIterations = false
-    fork = 4
+configurations {
+    jmhImplementation.extendsFrom(implementation)
 }
+
+jmh {
+    includeTests = false
+    resultFormat = 'CSV'
+}
+

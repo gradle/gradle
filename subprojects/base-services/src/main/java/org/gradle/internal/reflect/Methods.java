@@ -17,10 +17,10 @@
 package org.gradle.internal.reflect;
 
 import com.google.common.base.Equivalence;
-import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 @SuppressWarnings("NullableProblems")
 public class Methods {
@@ -30,23 +30,21 @@ public class Methods {
     public static final Equivalence<Method> SIGNATURE_EQUIVALENCE = new Equivalence<Method>() {
         @Override
         protected boolean doEquivalent(Method a, Method b) {
-            boolean equals = new EqualsBuilder()
-                .append(a.getName(), b.getName())
-                .append(a.getGenericParameterTypes(), b.getGenericParameterTypes())
-                .isEquals();
-            if (equals) {
-                equals = a.getReturnType().equals(b.getReturnType())
-                    || a.getReturnType().isAssignableFrom(b.getReturnType())
-                    || b.getReturnType().isAssignableFrom(a.getReturnType());
+            if (a.getName().equals(b.getName())) {
+                if (a.getReturnType().equals(b.getReturnType())
+                    || (a.getReturnType().isAssignableFrom(b.getReturnType())
+                    || b.getReturnType().isAssignableFrom(a.getReturnType()))) {
+                    return Arrays.equals(a.getGenericParameterTypes(), b.getGenericParameterTypes());
+                }
             }
-            return equals;
+            return false;
         }
 
         @Override
         protected int doHash(Method method) {
             return new HashCodeBuilder()
                 .append(method.getName())
-                .append(method.getGenericParameterTypes())
+                .append(method.getParameterTypes())
                 .toHashCode();
         }
     };
@@ -57,19 +55,19 @@ public class Methods {
     public static final Equivalence<Method> DESCRIPTOR_EQUIVALENCE = new Equivalence<Method>() {
         @Override
         protected boolean doEquivalent(Method a, Method b) {
-            return new EqualsBuilder()
-                .append(a.getName(), b.getName())
-                .append(a.getGenericParameterTypes(), b.getGenericParameterTypes())
-                .append(a.getGenericReturnType(), b.getGenericReturnType())
-                .isEquals();
+            if (a.getName().equals(b.getName())) {
+                return a.getGenericReturnType().equals(b.getGenericReturnType())
+                    && Arrays.equals(a.getGenericParameterTypes(), b.getGenericParameterTypes());
+            }
+            return false;
         }
 
         @Override
         protected int doHash(Method method) {
             return new HashCodeBuilder()
                 .append(method.getName())
-                .append(method.getGenericParameterTypes())
-                .append(method.getGenericReturnType())
+                .append(method.getParameterTypes())
+                .append(method.getReturnType())
                 .toHashCode();
         }
     };

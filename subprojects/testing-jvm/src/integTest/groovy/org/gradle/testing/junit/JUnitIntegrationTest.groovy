@@ -28,10 +28,11 @@ import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsLine
+import static org.gradle.util.Matchers.matchesRegexp
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 
-public class JUnitIntegrationTest extends AbstractIntegrationSpec {
+class JUnitIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     final TestResources resources = new TestResources(testDirectoryProvider)
 
@@ -166,11 +167,11 @@ public class JUnitIntegrationTest extends AbstractIntegrationSpec {
     def canUseTestSuperClassesFromAnotherProject() {
         given:
         testDirectory.file('settings.gradle').write("include 'a', 'b'")
-        testDirectory.file('b/build.gradle') << '''
+        testDirectory.file('b/build.gradle') << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies { compile 'junit:junit:4.12' }
-        '''
+        """
         testDirectory.file('b/src/main/java/org/gradle/AbstractTest.java') << '''
             package org.gradle;
             public abstract class AbstractTest {
@@ -178,11 +179,11 @@ public class JUnitIntegrationTest extends AbstractIntegrationSpec {
             }
         '''
         TestFile buildFile = testDirectory.file('a/build.gradle')
-        buildFile << '''
+        buildFile << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies { testCompile project(':b') }
-        '''
+        """
         testDirectory.file('a/src/test/java/org/gradle/SomeTest.java') << '''
             package org.gradle;
             public class SomeTest extends AbstractTest {
@@ -201,12 +202,12 @@ public class JUnitIntegrationTest extends AbstractIntegrationSpec {
     def canExcludeSuperClassesFromExecution() {
         given:
         TestFile buildFile = testDirectory.file('build.gradle')
-        buildFile << '''
+        buildFile << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies { testCompile 'junit:junit:4.12' }
             test { exclude '**/BaseTest.*' }
-        '''
+        """
         testDirectory.file('src/test/java/org/gradle/BaseTest.java') << '''
             package org.gradle;
             public class BaseTest {
@@ -256,7 +257,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationSpec {
         given:
         testDirectory.file('build.gradle').writelns(
                 "apply plugin: 'java'",
-                "repositories { mavenCentral() }",
+                mavenCentralRepository(),
                 "dependencies { compile 'junit:junit:4.12' }"
         )
         testDirectory.file('src/test/java/org/gradle/AbstractTest.java').writelns(
@@ -291,7 +292,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationSpec {
         given:
         testDirectory.file('build.gradle').writelns(
                 "apply plugin: 'java'",
-                "repositories { mavenCentral() }",
+                mavenCentralRepository(),
                 "dependencies { compile 'junit:junit:4.12' }",
                 "test.forkEvery = 1"
         )
@@ -343,20 +344,20 @@ public class JUnitIntegrationTest extends AbstractIntegrationSpec {
                 "}"
         )
 
-        testDirectory.file('build.gradle') << '''
+        testDirectory.file('build.gradle') << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies { testCompile 'junit:junit:4.12' }
             def listener = new TestListenerImpl()
             test.addTestListener(listener)
             test.ignoreFailures = true
             class TestListenerImpl implements TestListener {
-                void beforeSuite(TestDescriptor suite) { println "START [$suite] [$suite.name]" }
-                void afterSuite(TestDescriptor suite, TestResult result) { println "FINISH [$suite] [$suite.name] [$result.resultType] [$result.testCount]" }
-                void beforeTest(TestDescriptor test) { println "START [$test] [$test.name]" }
-                void afterTest(TestDescriptor test, TestResult result) { println "FINISH [$test] [$test.name] [$result.resultType] [$result.testCount] [$result.exception]" }
+                void beforeSuite(TestDescriptor suite) { println "START [\$suite] [\$suite.name]" }
+                void afterSuite(TestDescriptor suite, TestResult result) { println "FINISH [\$suite] [\$suite.name] [\$result.resultType] [\$result.testCount]" }
+                void beforeTest(TestDescriptor test) { println "START [\$test] [\$test.name]" }
+                void afterTest(TestDescriptor test, TestResult result) { println "FINISH [\$test] [\$test.name] [\$result.resultType] [\$result.testCount] [\$result.exception]" }
             }
-        '''
+        """
 
         when:
         ExecutionResult result = executer.withTasks("test").run()
@@ -365,8 +366,8 @@ public class JUnitIntegrationTest extends AbstractIntegrationSpec {
         assert containsLine(result.getOutput(), "START [Gradle Test Run :test] [Gradle Test Run :test]")
         assert containsLine(result.getOutput(), "FINISH [Gradle Test Run :test] [Gradle Test Run :test] [FAILURE] [4]")
 
-        assert containsLine(result.getOutput(), "START [Gradle Test Executor 1] [Gradle Test Executor 1]")
-        assert containsLine(result.getOutput(), "FINISH [Gradle Test Executor 1] [Gradle Test Executor 1] [FAILURE] [4]")
+        assert containsLine(result.getOutput(), matchesRegexp("START \\[Gradle Test Executor \\d+\\] \\[Gradle Test Executor \\d+\\]"))
+        assert containsLine(result.getOutput(), matchesRegexp("FINISH \\[Gradle Test Executor \\d+\\] \\[Gradle Test Executor \\d+\\] \\[FAILURE\\] \\[4\\]"))
 
         assert containsLine(result.getOutput(), "START [Test class SomeOtherTest] [SomeOtherTest]")
         assert containsLine(result.getOutput(), "FINISH [Test class SomeOtherTest] [SomeOtherTest] [SUCCESS] [1]")
@@ -393,20 +394,20 @@ public class JUnitIntegrationTest extends AbstractIntegrationSpec {
                 "}"
         )
 
-        testDirectory.file('build.gradle') << '''
+        testDirectory.file('build.gradle') << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies { testCompile 'junit:junit:3.8' }
             def listener = new TestListenerImpl()
             test.addTestListener(listener)
             test.ignoreFailures = true
             class TestListenerImpl implements TestListener {
-                void beforeSuite(TestDescriptor suite) { println "START [$suite] [$suite.name]" }
-                void afterSuite(TestDescriptor suite, TestResult result) { println "FINISH [$suite] [$suite.name]" }
-                void beforeTest(TestDescriptor test) { println "START [$test] [$test.name]" }
-                void afterTest(TestDescriptor test, TestResult result) { println "FINISH [$test] [$test.name] [$result.exception]" }
+                void beforeSuite(TestDescriptor suite) { println "START [\$suite] [\$suite.name]" }
+                void afterSuite(TestDescriptor suite, TestResult result) { println "FINISH [\$suite] [\$suite.name]" }
+                void beforeTest(TestDescriptor test) { println "START [\$test] [\$test.name]" }
+                void afterTest(TestDescriptor test, TestResult result) { println "FINISH [\$test] [\$test.name] [\$result.exception]" }
             }
-        '''
+        """
 
         when:
         ExecutionResult result = executer.withTasks("test").run()
@@ -454,6 +455,4 @@ public class JUnitIntegrationTest extends AbstractIntegrationSpec {
         result.testClass("org.gradle.SomeSuite").assertStderr(containsString("stderr in TestSetup#setup"))
         result.testClass("org.gradle.SomeSuite").assertStderr(containsString("stderr in TestSetup#teardown"))
     }
-
-
 }

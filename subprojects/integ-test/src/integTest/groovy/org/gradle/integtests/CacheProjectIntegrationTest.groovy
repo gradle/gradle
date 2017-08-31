@@ -17,9 +17,11 @@
 package org.gradle.integtests
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.api.internal.hash.DefaultFileHasher
-import org.gradle.api.internal.hash.FileHasher
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.internal.hash.DefaultContentHasherFactory
+import org.gradle.internal.hash.DefaultFileHasher
+import org.gradle.internal.hash.DefaultStreamHasher
+import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -31,10 +33,10 @@ import org.junit.Test
 
 import static org.junit.Assert.assertEquals
 
-public class CacheProjectIntegrationTest extends AbstractIntegrationTest {
+class CacheProjectIntegrationTest extends AbstractIntegrationTest {
     static final String TEST_FILE = "build/test.txt"
 
-    final FileHasher fileHasher = new DefaultFileHasher()
+    final FileHasher fileHasher = new DefaultFileHasher(new DefaultStreamHasher(new DefaultContentHasherFactory()))
 
     @Rule public final HttpServer server = new HttpServer()
 
@@ -58,7 +60,7 @@ public class CacheProjectIntegrationTest extends AbstractIntegrationTest {
         userHomeDir = executer.gradleUserHomeDir
         buildFile = projectDir.file('build.gradle')
 
-        artifactsCache = projectDir.file(".gradle/$version/taskArtifacts/taskArtifacts.bin")
+        artifactsCache = projectDir.file(".gradle/$version/taskHistory/taskHistory.bin")
 
         repo = new MavenHttpRepository(server, mavenRepo)
 
@@ -66,22 +68,6 @@ public class CacheProjectIntegrationTest extends AbstractIntegrationTest {
         repo.module("commons-lang", "commons-lang", "2.6").publish().allowAll()
 
         server.start()
-
-        int minimumBuildTimeMillis = 1000
-        // this is here to ensure that the lastModified() timestamps actually change in between builds.
-        executer.beforeExecute {
-            def initScript = file("init.gradle")
-            initScript.text = """
-            def startAt = System.nanoTime()
-            gradle.buildFinished {
-                long sinceStart = (System.nanoTime() - startAt) / 1000000L
-                if (sinceStart > 0 && sinceStart < $minimumBuildTimeMillis) {
-                  Thread.sleep(($minimumBuildTimeMillis - sinceStart) as Long)
-                }
-            }
-        """
-            withArgument("-I").withArgument(initScript.absolutePath)
-        }
     }
 
     private void updateCaches() {

@@ -20,7 +20,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.composite.internal.CompositeBuildIdeProjectResolver;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -41,10 +41,10 @@ import java.util.List;
 import java.util.Set;
 
 public class WtpComponentFactory {
-    private final CompositeBuildIdeProjectResolver ideProjectResolver;
+    private final LocalComponentRegistry localComponentRegistry;
 
     public WtpComponentFactory(Project project) {
-        ideProjectResolver = CompositeBuildIdeProjectResolver.from(((ProjectInternal) project).getServices());
+        localComponentRegistry = ((ProjectInternal) project).getServices().get(LocalComponentRegistry.class);
     }
 
     public void configure(final EclipseWtpComponent wtp, WtpComponent component) {
@@ -106,7 +106,7 @@ public class WtpComponentFactory {
     }
 
     private String determineProjectName(IdeProjectDependency dependency) {
-        ComponentArtifactMetadata eclipseProjectArtifact = ideProjectResolver.findArtifact(dependency.getProjectId(), "eclipse.project");
+        ComponentArtifactMetadata eclipseProjectArtifact = localComponentRegistry.findAdditionalArtifact(dependency.getProjectId(), "eclipse.project");
         return eclipseProjectArtifact == null ? dependency.getProjectName() : eclipseProjectArtifact.getName().getName();
     }
 

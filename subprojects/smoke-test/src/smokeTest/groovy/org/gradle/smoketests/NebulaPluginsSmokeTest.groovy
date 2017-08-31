@@ -23,12 +23,10 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
         buildFile << """
             plugins {
                 id "java"
-                id "nebula.dependency-recommender" version "3.3.0"
+                id "nebula.dependency-recommender" version "4.1.2"
             }
 
-            repositories {
-                jcenter()
-            }
+            ${jcenterRepository()}
 
             dependencyRecommendations {
                 mavenBom module: 'netflix:platform:latest.release'
@@ -48,7 +46,7 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
         when:
         buildFile << """
             plugins {
-                id 'nebula.plugin-plugin' version '4.15.0'
+                id 'nebula.plugin-plugin' version '5.6.0'
             }
         """
 
@@ -71,13 +69,11 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
         given:
         buildFile << """
             buildscript {
-                repositories {
-                    jcenter()
-                }
+                ${jcenterRepository()}
             }
 
             plugins {
-                id "nebula.lint" version "5.1.3"
+                id "nebula.lint" version "7.3.5"
             }
 
             apply plugin: 'java'
@@ -93,9 +89,10 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
         def result = runner('lintGradle').build()
 
         then:
-        result.output.contains("""parentheses are unnecessary for dependencies
-warning   dependency-parentheses             build.gradle:17
-testCompile('junit:junit:4.7')""")
+        result.output.contains("parentheses are unnecessary for dependencies")
+        result.output.contains("warning   dependency-parentheses")
+        result.output.contains("build.gradle:15")
+        result.output.contains("testCompile('junit:junit:4.7')")
         buildFile.text.contains("testCompile('junit:junit:4.7')")
 
         when:
@@ -103,7 +100,7 @@ testCompile('junit:junit:4.7')""")
 
         then:
         result.output.contains("""fixed          dependency-parentheses             parentheses are unnecessary for dependencies
-build.gradle:17
+build.gradle:15
 testCompile('junit:junit:4.7')""")
         buildFile.text.contains("testCompile 'junit:junit:4.7'")
     }
@@ -112,7 +109,7 @@ testCompile('junit:junit:4.7')""")
         when:
         buildFile << """
             plugins {
-                id "nebula.dependency-lock" version "4.3.0"
+                id "nebula.dependency-lock" version "4.9.4"
             }
         """.stripIndent()
 

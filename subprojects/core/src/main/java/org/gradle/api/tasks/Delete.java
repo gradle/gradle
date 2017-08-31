@@ -31,7 +31,7 @@ import java.util.Set;
 
 /**
  * <p>Deletes files or directories. Example:</p>
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * task makePretty(type: Delete) {
  *   delete 'uglyFolder', 'uglyFile'
  *   followSymlinks = true
@@ -77,7 +77,7 @@ public class Delete extends ConventionTask implements DeleteSpec {
      *
      * @return The files. Never returns null.
      */
-    @Internal
+    @Destroys
     public FileCollection getTargetFiles() {
         return getProject().files(delete);
     }
@@ -90,6 +90,16 @@ public class Delete extends ConventionTask implements DeleteSpec {
     @Internal
     public Set<Object> getDelete() {
         return delete;
+    }
+
+    /**
+     * Sets the files to be deleted by this task.
+     *
+     * @param targets A set of any type of object accepted by {@link org.gradle.api.Project#files(Object...)}
+     * @since 4.0
+     */
+    public void setDelete(Set<Object> targets) {
+        this.delete = targets;
     }
 
     /**

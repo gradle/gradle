@@ -14,8 +14,8 @@ $(function() {
     };
     paraFadeOut();
 
-    $.ajax(url + "?callback=?", {
-      dataType: "jsonp",
+    $.ajax(url, {
+      dataType: "json",
       cache: true,
       success: function(data, textStatus, jqXHR) {
         finishAnimation();
@@ -43,25 +43,25 @@ $(function() {
   });
 
   injectIssues(
-    "https://services.gradle.org/fixed-issues/@versionBase@",
-    $("h2#fixed-issues"), 
-    "fixed-issues", 
-    "Retrieving the fixed issue information for @versionBase@", 
+    "https://services.gradle.org/fixed-issues/@baseVersion@",
+    $("h2#fixed-issues"),
+    "fixed-issues",
+    "Retrieving the fixed issue information for @baseVersion@",
     function(i) {
-      return i + " issues have been fixed in Gradle @versionBase@.";
+      return i + " issues have been fixed in Gradle @baseVersion@.";
     }
   );
-  
+
   injectIssues(
-    "https://services.gradle.org/known-issues/@versionBase@",
-    $("h2#known-issues").next("p"), 
-    "known-issues", 
-    "Retrieving the known issue information for @versionBase@", 
+    "https://services.gradle.org/known-issues/@baseVersion@",
+    $("h2#known-issues").next("p"),
+    "known-issues",
+    "Retrieving the known issue information for @baseVersion@",
     function(i) {
       if (i > 0) {
-        return i + " issues are known to affect Gradle @versionBase@.";
+        return i + " issues are known to affect Gradle @baseVersion@.";
       } else {
-        return "There are no known issues of Gradle @versionBase@ at this time.";
+        return "There are no known issues of Gradle @baseVersion@ at this time.";
       }
     }
   );

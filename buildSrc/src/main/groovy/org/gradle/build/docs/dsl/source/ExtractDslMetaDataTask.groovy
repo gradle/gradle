@@ -15,6 +15,8 @@
  */
 package org.gradle.build.docs.dsl.source
 
+import groovy.time.TimeCategory
+import groovy.time.TimeDuration
 import groovyjarjarantlr.collections.AST
 import org.codehaus.groovy.antlr.AntlrASTProcessor
 import org.codehaus.groovy.antlr.SourceBuffer
@@ -39,7 +41,6 @@ import org.gradle.build.docs.dsl.source.model.ClassMetaData
 import org.gradle.build.docs.dsl.source.model.TypeMetaData
 import org.gradle.build.docs.model.ClassMetaDataRepository
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository
-import org.gradle.util.Clock
 import org.gradle.build.docs.DocGenerationException
 import org.gradle.api.Transformer
 
@@ -63,7 +64,7 @@ class ExtractDslMetaDataTask extends SourceTask {
 
     @TaskAction
     def extract() {
-        Clock clock = new Clock()
+        Date start = new Date()
 
         //parsing all input files into metadata
         //and placing them in the repository object
@@ -82,7 +83,9 @@ class ExtractDslMetaDataTask extends SourceTask {
         }
         repository.store(destFile)
 
-        println "Parsed $counter classes in ${clock.time}"
+        Date stop = new Date()
+        TimeDuration elapsedTime = TimeCategory.minus(stop, start)
+        println "Parsed $counter classes in ${elapsedTime}"
     }
 
     def parse(File sourceFile, ClassMetaDataRepository<ClassMetaData> repository) {

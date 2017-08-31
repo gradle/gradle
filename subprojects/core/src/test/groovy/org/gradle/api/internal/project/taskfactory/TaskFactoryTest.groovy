@@ -25,7 +25,7 @@ import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.tasks.TaskInstantiationException
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.reflect.ObjectInstantiationException
+import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class TaskFactoryTest extends AbstractProjectBuilderSpec {

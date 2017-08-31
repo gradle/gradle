@@ -25,6 +25,7 @@ import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.reporting.dependencies.internal.DefaultDependencyReportContainer;
 import org.gradle.api.reporting.dependencies.internal.HtmlDependencyReporter;
@@ -32,7 +33,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.logging.ConsoleRenderer;
 
 import javax.inject.Inject;
 import java.util.Set;
@@ -55,8 +56,12 @@ import java.util.Set;
  * </pre>
  * <p>
  * The report is generated in the <code>build/reports/project/dependencies</code> directory by default.
- * This can also be changed by setting the <code>outputDirectory</code>
- * property.
+ * This can also be changed by setting the <code>reports.html.destination</code> property:
+ * <pre>
+ * htmlDependencyReport {
+ *     reports.html.destination = file("build/reports/project/dependencies")
+ * }
+ * </pre>
  */
 @Incubating
 public class HtmlDependencyReportTask extends ConventionTask implements Reporting<DependencyReportContainer> {
@@ -64,7 +69,7 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
     private final DependencyReportContainer reports;
 
     public HtmlDependencyReportTask() {
-        reports = getInstantiator().newInstance(DefaultDependencyReportContainer.class, this);
+        reports = getObjectFactory().newInstance(DefaultDependencyReportContainer.class, this);
         reports.getHtml().setEnabled(true);
         getOutputs().upToDateWhen(new Spec<Task>() {
             public boolean isSatisfiedBy(Task element) {
@@ -90,8 +95,13 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
         return reports;
     }
 
+    /**
+     * Injects and returns an instance of {@link org.gradle.api.model.ObjectFactory}.
+     *
+     * @since 4.2
+     */
     @Inject
-    protected Instantiator getInstantiator() {
+    public ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -114,6 +124,8 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
 
         HtmlDependencyReporter reporter = new HtmlDependencyReporter(getVersionSelectorScheme(), getVersionComparator());
         reporter.render(getProjects(), reports.getHtml().getDestination());
+
+        getProject().getLogger().lifecycle("See the report at: {}", new ConsoleRenderer().asClickableFileUrl(reports.getHtml().getEntryPoint()));
     }
 
     /**

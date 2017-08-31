@@ -28,7 +28,7 @@ class MultiProjectContinuousIntegrationTest extends Java7RequiringContinuousInte
         buildFile << """
             subprojects {
                 apply plugin: 'java'
-                repositories { mavenCentral() }
+                ${mavenCentralRepository()}
             }
 
             project(':downstream') {

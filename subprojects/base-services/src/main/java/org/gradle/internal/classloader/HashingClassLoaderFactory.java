@@ -15,8 +15,10 @@
  */
 package org.gradle.internal.classloader;
 
-import com.google.common.hash.HashCode;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.hash.HashCode;
+
+import javax.annotation.Nullable;
 
 /**
  * A {@link ClassLoaderFactory} that also stores the hash of each created classloader which is later retrievable via {@link #getHash(ClassLoader)}.
@@ -26,5 +28,5 @@ public interface HashingClassLoaderFactory extends ClassLoaderFactory, ClassLoad
      * Creates a {@link ClassLoader} with the given parent and classpath. Use the given hash
      * code, or calculate it from the given classpath when hash code is {@code null}.
      */
-    ClassLoader createChildClassLoader(ClassLoader parent, ClassPath classPath, HashCode overrideHashCode);
+    ClassLoader createChildClassLoader(ClassLoader parent, ClassPath classPath, @Nullable HashCode implementationHash);
 }

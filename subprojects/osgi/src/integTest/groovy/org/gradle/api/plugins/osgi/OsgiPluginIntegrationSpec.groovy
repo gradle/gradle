@@ -16,14 +16,18 @@
 
 package org.gradle.api.plugins.osgi
 
+import aQute.bnd.osgi.Analyzer
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.fixtures.archive.JarTestFixture
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import java.util.jar.JarFile
 import java.util.jar.Manifest
 
+@TestReproducibleArchives
 class OsgiPluginIntegrationSpec extends AbstractIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2237")
@@ -160,9 +164,7 @@ class OsgiPluginIntegrationSpec extends AbstractIntegrationSpec {
             apply plugin: 'java'
             apply plugin: 'osgi'
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 compile 'org.eclipse:osgi:3.10.0-v20140606-1445'
@@ -199,5 +201,30 @@ class OsgiPluginIntegrationSpec extends AbstractIntegrationSpec {
         } finally {
             jar.close();
         }
+    }
+
+    def "license is in manifest"() {
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'osgi'
+            
+            jar {
+                manifest {
+                    license "Apache License, Version 2.0"
+                }
+            }
+        """
+        settingsFile << "rootProject.name = 'test'"
+        file('src/main/java/org/gradle/Bar.java') << """
+            package org.gradle;
+
+            public class Bar {
+            }
+        """
+        when:
+        succeeds("jar")
+        then:
+        def manifest = new JarTestFixture(file('build/libs/test.jar')).manifest
+        manifest.mainAttributes.getValue(Analyzer.BUNDLE_LICENSE) == "Apache License, Version 2.0"
     }
 }

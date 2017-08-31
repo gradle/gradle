@@ -189,7 +189,7 @@ public class SubClassTests extends SuperClassTests {
 
             task otherTests(type: Test) {
                 binResultsDir file("bin")
-                testClassesDir = file("blah")
+                testClassesDirs = files("blah")
             }
 
             task testReport(type: TestReport) {
@@ -419,7 +419,7 @@ public class SubClassTests extends SuperClassTests {
     String getJunitSetup() {
         """
         apply plugin: 'java'
-        repositories { mavenCentral() }
+        ${mavenCentralRepository()}
         dependencies { testCompile 'junit:junit:4.12' }
         """
     }

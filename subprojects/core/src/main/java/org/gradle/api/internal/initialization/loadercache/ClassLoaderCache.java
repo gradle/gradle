@@ -16,10 +16,11 @@
 
 package org.gradle.api.internal.initialization.loadercache;
 
-import com.google.common.hash.HashCode;
-import org.gradle.api.Nullable;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.hash.HashCode;
+
+import javax.annotation.Nullable;
 
 public interface ClassLoaderCache {
 
@@ -27,6 +28,7 @@ public interface ClassLoaderCache {
 
     /**
      * Returns an existing classloader from the cache, or creates it if it cannot be found.
+     *
      * @param id the ID of the classloader.
      * @param classPath the classpath to use to create the classloader.
      * @param parent the parent of the classloader.
@@ -37,15 +39,27 @@ public interface ClassLoaderCache {
 
     /**
      * Returns an existing classloader from the cache, or creates it if it cannot be found.
+     *
      * @param id the ID of the classloader.
      * @param classPath the classpath to use to create the classloader.
      * @param parent the parent of the classloader.
      * @param filterSpec the filtering to use on the classpath.
-     * @param overrideHashCode the returned classloader should use the given hash, or the hash of the classpath if the parameter is {@code null}.
+     * @param implementationHash a hash that represents the contents of the classpath. Can be {@code null}, in which case the hash is calculated from the provided classpath
      * @return the classloader.
      */
-    ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, HashCode overrideHashCode);
+    ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, @Nullable HashCode implementationHash);
 
+    /**
+     * Adds or replaces a classloader. This should be called to register specialized classloaders that belong to the hierarchy, so they can be cleaned up as required.
+     *
+     * @param id the ID of the classloader.
+     * @param classLoader the classloader.
+     * @return the classloader.
+     */
+    <T extends ClassLoader> T put(ClassLoaderId id, T classLoader);
+
+    /**
+     * Discards the given classloader.
+     */
     void remove(ClassLoaderId id);
-
 }

@@ -16,10 +16,12 @@
 
 package org.gradle.api.plugins
 
+import org.gradle.api.Action
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
+import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.test.fixtures.file.TestFile
@@ -50,7 +52,6 @@ class JavaPluginConventionTest {
 
     @Test public void defaultValues() {
         assertThat(convention.sourceSets, instanceOf(DefaultSourceSetContainer))
-        assertEquals('dependency-cache', convention.dependencyCacheDirName)
         assertEquals('docs', convention.docsDirName)
         assertEquals('test-results', convention.testResultsDirName)
         assertEquals('tests', convention.testReportDirName)
@@ -82,7 +83,6 @@ class JavaPluginConventionTest {
     }
 
     private void checkDirs() {
-        assertEquals(new File(project.buildDir, convention.dependencyCacheDirName), convention.dependencyCacheDir)
         assertEquals(new File(project.buildDir, convention.docsDirName), convention.docsDir)
         assertEquals(new File(project.buildDir, convention.testResultsDirName), convention.testResultsDir)
         assertEquals(new File(convention.reportsDir, convention.testReportDirName), convention.testReportDir)
@@ -109,6 +109,14 @@ class JavaPluginConventionTest {
         convention.sourceCompatibility = 6
         assertEquals(JavaVersion.VERSION_1_6, convention.sourceCompatibility)
         assertEquals(JavaVersion.VERSION_1_2, convention.targetCompatibility)
+
+        convention.targetCompatibility = JavaVersion.VERSION_1_3
+        assertEquals(JavaVersion.VERSION_1_6, convention.sourceCompatibility)
+        assertEquals(JavaVersion.VERSION_1_3, convention.targetCompatibility)
+
+        convention.sourceCompatibility = JavaVersion.VERSION_1_7
+        assertEquals(JavaVersion.VERSION_1_7, convention.sourceCompatibility)
+        assertEquals(JavaVersion.VERSION_1_3, convention.targetCompatibility)
     }
 
     @Test
@@ -124,6 +132,15 @@ class JavaPluginConventionTest {
         assertThat(manifest, instanceOf(DefaultManifest.class))
         DefaultManifest mergedManifest = manifest.effectiveManifest
         assertThat(mergedManifest.attributes, equalTo([key1: 'value1', key2: 'value2', 'Manifest-Version': '1.0']))
+    }
+
+    @Test
+    void "can configure manifest with an action"() {
+        def manifest = convention.manifest({ Manifest manifest ->
+            manifest.attributes key: 'value'
+        } as Action<Manifest>)
+        Manifest mergedManifest = manifest.effectiveManifest
+        assertThat(mergedManifest.attributes, equalTo([key: 'value', 'Manifest-Version': '1.0']))
     }
 
     @Test

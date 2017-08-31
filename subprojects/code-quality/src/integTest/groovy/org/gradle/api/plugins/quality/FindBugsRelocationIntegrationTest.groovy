@@ -16,9 +16,8 @@
 
 package org.gradle.api.plugins.quality
 
+import groovy.xml.XmlUtil
 import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
-
-import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class FindBugsRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
     @Override
@@ -38,9 +37,7 @@ class FindBugsRelocationIntegrationTest extends AbstractTaskRelocationIntegratio
         """
             apply plugin: "findbugs"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             task compile(type: JavaCompile) {
                 sourceCompatibility = JavaVersion.current()
@@ -68,14 +65,25 @@ class FindBugsRelocationIntegrationTest extends AbstractTaskRelocationIntegratio
 
     @Override
     protected extractResults() {
-        def contents = normaliseLineSeparators(file("build/reports/findbugs/findbugs.xml").text)
-        contents = contents.replaceAll(/(\w+(?:imestamp|econds|mbytes)\w*)=".*?"/, '$1="[NUMBER]"')
-        contents = contents.replaceAll(/<Jar>.*?<\/Jar>/, '<Jar>[JAR]</Jar>')
-        contents = contents.split("\n")
-            // Apparently FindBugs randomly reports ClassProfile entries
-            .findAll { !it.contains("<ClassProfile") }
-            .sort()
-            .join("\n")
-        return contents
+        def findbugsXml = new XmlSlurper().parse(file("build/reports/findbugs/findbugs.xml"))
+
+        // Remove Jar elements that have a full path to the jar being analyzed
+        findbugsXml.Project.Jar.replaceNode {}
+        // Remove ClassProfile elements that are sometimes different, but do not matter
+        findbugsXml.FindBugsSummary.FindBugsProfile.replaceNode {}
+
+        def summaryAttributes = findbugsXml.FindBugsSummary[0].attributes()
+        summaryAttributes.timestamp = "0"
+        summaryAttributes.cpu_seconds = "0"
+        summaryAttributes.clock_seconds = "0"
+        summaryAttributes.gc_seconds = "0"
+        summaryAttributes.peak_mbytes = "0"
+        summaryAttributes.alloc_mbytes = "0"
+
+        def rootAttributes = findbugsXml.attributes()
+        rootAttributes.analysisTimestamp = "0"
+        rootAttributes.timestamp = "0"
+
+        return XmlUtil.serialize(findbugsXml)
     }
 }

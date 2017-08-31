@@ -16,21 +16,17 @@
 
 package org.gradle.internal.classloader;
 
-import com.google.common.hash.HashCode;
-import org.gradle.api.Nullable;
+import org.gradle.internal.hash.HashCode;
+
+import javax.annotation.Nullable;
 
 /**
  * Provides a combined hash for a hierarchy of classloaders.
  */
 public interface ClassLoaderHierarchyHasher {
     /**
-     * Returns a hash for the given classloader hierarchy even if the hierarchy contains classloaders that cannot be hashed reliably.
-     */
-    HashCode getLenientHash(ClassLoader classLoader);
-
-    /**
      * Returns a hash for the given classloader hierarchy, or {@code null} if the hierarchy contains any classloader that cannot be hashed reliably.
      */
     @Nullable
-    HashCode getStrictHash(ClassLoader classLoader);
+    HashCode getClassLoaderHash(ClassLoader classLoader);
 }

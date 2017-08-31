@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 
 //builds old model of resolved dependency graph based on the result events
@@ -24,9 +23,9 @@ public interface ResolvedConfigurationBuilder {
 
     void addFirstLevelDependency(ModuleDependency moduleDependency, DependencyGraphNode dependency);
 
-    void addUnresolvedDependency(UnresolvedDependency unresolvedDependency);
+    void addChild(DependencyGraphNode parent, DependencyGraphNode child, int artifactsId);
 
-    void addChild(DependencyGraphNode parent, DependencyGraphNode child, long artifactsId);
+    void addNodeArtifacts(DependencyGraphNode node, int artifactsId);
 
     void newResolvedDependency(DependencyGraphNode node);
 

@@ -22,6 +22,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.logging.Logger;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.buildcomparison.compare.internal.BuildComparisonResult;
 import org.gradle.api.plugins.buildcomparison.gradle.internal.ComparableGradleBuildExecuter;
 import org.gradle.api.plugins.buildcomparison.gradle.internal.DefaultGradleBuildInvocationSpec;
@@ -44,7 +45,6 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.PathNormalisingKeyFileStore;
 import org.gradle.util.GradleVersion;
@@ -77,10 +77,10 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
 
     public CompareGradleBuilds() {
         PathToFileResolver fileResolver = getFileResolver();
-        Instantiator instantiator = getInstantiator();
-        sourceBuild = instantiator.newInstance(DefaultGradleBuildInvocationSpec.class, fileResolver, getProject().getRootDir());
+        ObjectFactory objectFactory = getObjectFactory();
+        sourceBuild = objectFactory.newInstance(DefaultGradleBuildInvocationSpec.class, fileResolver, getProject().getRootDir());
         sourceBuild.setTasks(DEFAULT_TASKS);
-        targetBuild = instantiator.newInstance(DefaultGradleBuildInvocationSpec.class, fileResolver, getProject().getRootDir());
+        targetBuild = objectFactory.newInstance(DefaultGradleBuildInvocationSpec.class, fileResolver, getProject().getRootDir());
         targetBuild.setTasks(DEFAULT_TASKS);
 
         // Never up to date
@@ -101,8 +101,13 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Injects and returns an instance of {@link ObjectFactory}.
+     *
+     * @since 4.2
+     */
     @Inject
-    protected Instantiator getInstantiator() {
+    protected ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -197,6 +202,16 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
     @OutputDirectory
     public File getReportDir() {
         return reportDir == null ? null : getFileResolver().resolve(reportDir);
+    }
+
+    /**
+     * Sets the directory that will contain the HTML comparison report and any other report files.
+     *
+     * @param reportDir The directory that will contain the HTML comparison report and any other report files.
+     * @since 4.0
+     */
+    public void setReportDir(File reportDir) {
+        setReportDir((Object) reportDir);
     }
 
     /**

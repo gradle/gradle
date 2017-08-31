@@ -28,11 +28,13 @@ public class ProjectLayoutSetupRegistryFactory {
         DefaultTemplateLibraryVersionProvider libraryVersionProvider = new DefaultTemplateLibraryVersionProvider();
         ProjectLayoutSetupRegistry registry = new ProjectLayoutSetupRegistry();
         TemplateOperationFactory templateOperationBuilder = new TemplateOperationFactory("/org/gradle/buildinit/tasks/templates", fileResolver, documentationRegistry);
-        ProjectInitDescriptor simpleGlobalFilesBuildSettingsDescriptor = new SimpleGlobalFilesBuildSettingsDescriptor(templateOperationBuilder, fileResolver);
-        registry.add(BuildInitTypeIds.JAVA_LIBRARY, new JavaLibraryProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, simpleGlobalFilesBuildSettingsDescriptor));
-        registry.add(BuildInitTypeIds.SCALA_LIBRARY, new ScalaLibraryProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, simpleGlobalFilesBuildSettingsDescriptor));
-        registry.add(BuildInitTypeIds.GROOVY_LIBRARY, new GroovyLibraryProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, simpleGlobalFilesBuildSettingsDescriptor));
-        registry.add(BuildInitTypeIds.BASIC, new BasicTemplateBasedProjectInitDescriptor(templateOperationBuilder, libraryVersionProvider, simpleGlobalFilesBuildSettingsDescriptor));
+        ProjectInitDescriptor settingsDescriptor = new SimpleGlobalFilesBuildSettingsDescriptor(templateOperationBuilder, fileResolver);
+        registry.add(BuildInitTypeIds.JAVA_LIBRARY, new JavaLibraryProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, settingsDescriptor, documentationRegistry));
+        registry.add(BuildInitTypeIds.JAVA_APPLICATION, new JavaApplicationProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, settingsDescriptor, documentationRegistry));
+        registry.add(BuildInitTypeIds.GROOVY_APPLICATION, new GroovyApplicationProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, settingsDescriptor, documentationRegistry));
+        registry.add(BuildInitTypeIds.SCALA_LIBRARY, new ScalaLibraryProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, settingsDescriptor, documentationRegistry));
+        registry.add(BuildInitTypeIds.GROOVY_LIBRARY, new GroovyLibraryProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, settingsDescriptor, documentationRegistry));
+        registry.add(BuildInitTypeIds.BASIC, new BasicTemplateBasedProjectInitDescriptor(templateOperationBuilder, libraryVersionProvider, settingsDescriptor));
         registry.add(BuildInitTypeIds.POM, new PomProjectInitDescriptor(fileResolver, mavenSettingsProvider));
         return registry;
     }

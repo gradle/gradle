@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.junit.Rule
@@ -47,7 +48,7 @@ apply plugin: 'eclipse'
 
 repositories {
     maven { url "${mavenRepo.uri}" }
-    mavenCentral()
+    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
 }
 
 dependencies {
@@ -191,6 +192,53 @@ configure(project(":b")){
 configure(project(":c")){
     dependencies {
         compile 'someGroup:someArtifact:1.0'
+    }
+}
+"""
+
+        def libs = classpath("a").libs
+        assert classpath("a").projects == ["/b", "/c"]
+        assert libs.size() == 2
+        libs[0].assertHasJar(someOtherArtifactJar)
+        libs[1].assertHasJar(someArtifactJar)
+    }
+
+    @Test
+    void includesTransitiveImplementationDependencies() {
+        //given
+        def someArtifactJar = mavenRepo.module('someGroup', 'someArtifact', '1.0').publish().artifactFile
+        def someOtherArtifactJar = mavenRepo.module('someGroup', 'someOtherArtifact', '1.0').publish().artifactFile
+
+        //when
+        runEclipseTask """include 'a', 'b', 'c'""", """
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'eclipse'
+
+    repositories {
+        maven { url "${mavenRepo.uri}" }
+    }
+}
+
+configure(project(":a")){
+    dependencies {
+        compile 'someGroup:someOtherArtifact:1.0'
+
+        compile project(':b')
+    }
+}
+
+configure(project(":b")){
+    apply plugin: 'java-library'
+    dependencies {
+        api project(':c')
+    }
+}
+
+configure(project(":c")){
+    apply plugin: 'java-library'
+    dependencies {
+        implementation 'someGroup:someArtifact:1.0'
     }
 }
 """
@@ -981,7 +1029,7 @@ apply plugin: 'eclipse'
 
 repositories {
     maven { url "${mavenRepo.uri}" }
-    mavenCentral()
+    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
 }
 
 dependencies {
@@ -1129,6 +1177,11 @@ project(':b') {
         classpathB.assertHasLibs('compile-1.0.jar')
     }
 
+    /*
+     * This is a test describing the current, not necessarily desired behavior. We really shouldn't
+     * put duplicate dependencies on the classpath. The order will always be arbitrary and break one
+     * use case or another.
+     */
     @Test
     void "conflicting versions of the same library for compile and compile-only mapped to classpath"() {
         // given
@@ -1164,12 +1217,17 @@ project(':b') {
         def classpathA = classpath('a')
         def classpathB = classpath('b')
         assert classpathA.libs.size() == 2
-        classpathA.assertHasLibs('conflictingDependency-1.0.jar', 'conflictingDependency-2.0.jar')
+        classpathA.assertHasLibs('conflictingDependency-2.0.jar', 'conflictingDependency-1.0.jar')
         assert classpathB.libs.size() == 1
         assert classpathB.projects == ['/a']
         classpathB.assertHasLibs('conflictingDependency-1.0.jar')
     }
 
+    /*
+     * This is a test describing the current, not necessarily desired behavior. We really shouldn't
+     * put duplicate dependencies on the classpath. The order will always be arbitrary and break one
+     * use case or another.
+     */
     @Test
     void "conflicting versions of the same library for runtime and compile-only mapped to classpath"() {
         // given
@@ -1205,12 +1263,17 @@ project(':b') {
         def classpathA = classpath('a')
         def classpathB = classpath('b')
         assert classpathA.libs.size() == 2
-        classpathA.assertHasLibs('conflictingDependency-1.0.jar', 'conflictingDependency-2.0.jar')
+        classpathA.assertHasLibs('conflictingDependency-2.0.jar', 'conflictingDependency-1.0.jar')
         assert classpathB.libs.size() == 1
         assert classpathB.projects == ['/a']
         classpathB.assertHasLibs('conflictingDependency-1.0.jar')
     }
 
+    /*
+     * This is a test describing the current, not necessarily desired behavior. We really shouldn't
+     * put duplicate dependencies on the classpath. The order will always be arbitrary and break one
+     * use case or another.
+     */
     @Test
     void "conflicting versions of the same library for test-compile and testcompile-only mapped to classpath"() {
         // given
@@ -1246,7 +1309,7 @@ project(':b') {
         def classpathA = classpath('a')
         def classpathB = classpath('b')
         assert classpathA.libs.size() == 2
-        classpathA.assertHasLibs('conflictingDependency-1.0.jar', 'conflictingDependency-2.0.jar')
+        classpathA.assertHasLibs('conflictingDependency-2.0.jar', 'conflictingDependency-1.0.jar')
         assert classpathB.libs.size() == 0
         assert classpathB.projects == ['/a']
     }

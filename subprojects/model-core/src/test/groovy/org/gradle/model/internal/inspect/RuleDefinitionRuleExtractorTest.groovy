@@ -20,6 +20,8 @@ import org.gradle.model.*
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.registry.DefaultModelRegistry
 
+import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
+
 class RuleDefinitionRuleExtractorTest extends ProjectRegistrySpec {
     def extractor = new ModelRuleExtractor([new RuleDefinitionRuleExtractor()], proxyFactory, schemaStore, structBindingsStore)
 
@@ -44,7 +46,7 @@ class RuleDefinitionRuleExtractorTest extends ProjectRegistrySpec {
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
-        e.message == """Type ${InvalidSignature.name} is not a valid rule source:
+        e.message == """Type ${fullyQualifiedNameOf(InvalidSignature)} is not a valid rule source:
 - Method broken3(java.lang.String) is not a valid rule method: A method annotated with @Rules must have void return type.
 - Method broken3(java.lang.String) is not a valid rule method: A method annotated with @Rules must have at least two parameters
 - Method broken1(java.lang.String, ${RuleSource.name}) is not a valid rule method: The first parameter of a method annotated with @Rules must be a subtype of ${RuleSource.name}
@@ -64,7 +66,7 @@ class RuleDefinitionRuleExtractorTest extends ProjectRegistrySpec {
 
         then:
         def e = thrown InvalidModelRuleDeclarationException
-        e.message == """Type ${InvalidEachAnnotationOnParameter.name} is not a valid rule source:
+        e.message == """Type ${fullyQualifiedNameOf(InvalidEachAnnotationOnParameter)} is not a valid rule source:
 - Method input($SomeRuleSource.name, java.lang.String, java.lang.Integer) is not a valid rule method: Rule parameter #3 should not be annotated with @Each."""
     }
 
@@ -80,7 +82,7 @@ class RuleDefinitionRuleExtractorTest extends ProjectRegistrySpec {
 
         then:
         def e = thrown InvalidModelRuleDeclarationException
-        e.message == """Type ${InvalidEachAnnotationOnRuleSource.name} is not a valid rule source:
+        e.message == """Type ${fullyQualifiedNameOf(InvalidEachAnnotationOnRuleSource)} is not a valid rule source:
 - Method rules($SomeRuleSource.name, java.lang.String, java.lang.Integer) is not a valid rule method: Rule parameter #1 should not be annotated with @Each."""
     }
 
@@ -98,7 +100,7 @@ class RuleDefinitionRuleExtractorTest extends ProjectRegistrySpec {
 
         then:
         def e = thrown InvalidModelRuleDeclarationException
-        e.message == """Type ${InvalidEachAndPathAnnotation.name} is not a valid rule source:
+        e.message == """Type ${fullyQualifiedNameOf(InvalidEachAndPathAnnotation)} is not a valid rule source:
 - Method invalid($SomeRuleSource.name, java.lang.String, java.lang.Integer) is not a valid rule method: Rule subject must not be annotated with both @Path and @Each."""
     }
 

@@ -18,5 +18,10 @@ package org.gradle.internal.component.local.model;
 
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 
+import javax.annotation.Nullable;
+
 public interface LocalComponentMetadata extends ComponentResolveMetadata {
+    @Nullable
+    @Override
+    LocalConfigurationMetadata getConfiguration(String name);
 }

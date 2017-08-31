@@ -108,7 +108,21 @@ public class FileUtils {
     }
 
     /**
-     * Canonializes the given file.
+     * Checks if the given file path ends with the given extension (ignoring case).
+     * @param fileName the file name
+     * @param extension candidate extension including leading dot
+     * @return true if the file name ends with extension, ignoring case
+     */
+    public static boolean hasExtensionIgnoresCase(String fileName, String extension) {
+        return endsWithIgnoreCase(fileName, extension);
+    }
+
+    private static boolean endsWithIgnoreCase(String subject, String suffix) {
+        return subject.regionMatches(true, subject.length() - suffix.length(), suffix, 0, suffix.length());
+    }
+
+    /**
+     * Canonicalizes the given file.
      */
     public static File canonicalize(File src) {
         try {
@@ -117,4 +131,5 @@ public class FileUtils {
             throw new UncheckedIOException(e);
         }
     }
+
 }

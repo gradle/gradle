@@ -22,14 +22,17 @@ import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport;
 import org.gradle.api.reporting.internal.TaskReportContainer;
 
-public class CodeNarcReportsImpl extends TaskReportContainer<SingleFileReport> implements CodeNarcReports {
+import javax.inject.Inject;
 
+public class CodeNarcReportsImpl extends TaskReportContainer<SingleFileReport> implements CodeNarcReports {
+    @Inject
     public CodeNarcReportsImpl(Task task) {
         super(SingleFileReport.class, task);
 
         add(TaskGeneratedSingleFileReport.class, "xml", task);
         add(TaskGeneratedSingleFileReport.class, "html", task);
         add(TaskGeneratedSingleFileReport.class, "text", task);
+        add(TaskGeneratedSingleFileReport.class, "console", task);
     }
 
     public SingleFileReport getXml() {

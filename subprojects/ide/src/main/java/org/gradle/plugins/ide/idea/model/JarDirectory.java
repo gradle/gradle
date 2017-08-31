@@ -31,11 +31,6 @@ public class JarDirectory {
         this.recursive = recursive;
     }
 
-    @Deprecated
-    public JarDirectory(Object path, Object recursive) {
-        this((Path)path, ((Boolean)recursive).booleanValue());
-    }
-
     /**
      * The path of the jar directory
      */

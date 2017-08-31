@@ -30,16 +30,18 @@ class GradleInvocationSpec implements InvocationSpec {
     final List<String> tasksToRun
     final List<String> args
     final List<String> jvmOpts
+    final List<String> cleanTasks
     final boolean useDaemon
     final boolean useToolingApi
     final boolean expectFailure
 
-    GradleInvocationSpec(GradleDistribution gradleDistribution, File workingDirectory, List<String> tasksToRun, List<String> args, List<String> jvmOpts, boolean useDaemon, boolean useToolingApi, boolean expectFailure) {
+    GradleInvocationSpec(GradleDistribution gradleDistribution, File workingDirectory, List<String> tasksToRun, List<String> args, List<String> jvmOpts, List<String> cleanTasks, boolean useDaemon, boolean useToolingApi, boolean expectFailure) {
         this.gradleDistribution = gradleDistribution
         this.workingDirectory = workingDirectory
         this.tasksToRun = tasksToRun
         this.args = args
         this.jvmOpts = jvmOpts
+        this.cleanTasks = cleanTasks
         this.useDaemon = useDaemon
         this.useToolingApi = useToolingApi
         this.expectFailure = expectFailure
@@ -60,6 +62,7 @@ class GradleInvocationSpec implements InvocationSpec {
         builder.tasksToRun.addAll(this.tasksToRun)
         builder.args.addAll(args)
         builder.gradleOptions.addAll(jvmOpts)
+        builder.cleanTasks.addAll(cleanTasks)
         builder.useDaemon = useDaemon
         builder.useToolingApi = useToolingApi
         builder.expectFailure = expectFailure
@@ -86,6 +89,7 @@ class GradleInvocationSpec implements InvocationSpec {
         List<String> args = []
         List<String> gradleOptions = []
         Map<String, Object> profilerOpts = [:]
+        List<String> cleanTasks = []
         boolean useDaemon
         boolean useToolingApi
         boolean useProfiler
@@ -119,6 +123,19 @@ class GradleInvocationSpec implements InvocationSpec {
 
         InvocationBuilder gradleOpts(String... gradleOpts) {
             this.gradleOptions.addAll(Arrays.asList(gradleOpts))
+            this
+        }
+        InvocationBuilder gradleOpts(Iterable<String> gradleOpts) {
+            this.gradleOptions.addAll(gradleOpts)
+            this
+        }
+
+        InvocationBuilder cleanTasks(String... cleanTasks) {
+            this.cleanTasks(Arrays.asList(cleanTasks))
+        }
+
+        InvocationBuilder cleanTasks(Iterable<String> cleanTasks) {
+            this.cleanTasks.addAll(cleanTasks)
             this
         }
 
@@ -187,7 +204,7 @@ class GradleInvocationSpec implements InvocationSpec {
                 jvmOptsSet.addAll(profiler.profilerArguments(profilerOpts))
             }
 
-            return new GradleInvocationSpec(gradleDistribution, workingDirectory, tasksToRun.asImmutable(), args.asImmutable(), new ArrayList<String>(jvmOptsSet).asImmutable(), useDaemon, useToolingApi, expectFailure)
+            return new GradleInvocationSpec(gradleDistribution, workingDirectory, tasksToRun.asImmutable(), args.asImmutable(), new ArrayList<String>(jvmOptsSet).asImmutable(), cleanTasks.asImmutable(), useDaemon, useToolingApi, expectFailure)
         }
 
     }

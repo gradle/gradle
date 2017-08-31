@@ -16,12 +16,12 @@
 package org.gradle.api.internal.jvm;
 
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.AbstractBuildableComponentSpec;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.ClassDirectoryBinarySpec;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
@@ -32,8 +32,15 @@ import org.gradle.model.ModelMap;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.internal.*;
+import org.gradle.platform.base.internal.BinaryBuildAbility;
+import org.gradle.platform.base.internal.BinaryNamingScheme;
+import org.gradle.platform.base.internal.ComponentSpecIdentifier;
+import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
+import org.gradle.platform.base.internal.FixedBuildAbility;
+import org.gradle.platform.base.internal.ToolSearchBuildAbility;
+import org.gradle.util.SingleMessageLogger;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 public class DefaultClassDirectoryBinarySpec extends AbstractBuildableComponentSpec implements ClassDirectoryBinarySpecInternal {
@@ -106,11 +113,21 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableComponentS
     }
 
     public File getClassesDir() {
-        return sourceSet.getOutput().getClassesDir();
+        return SingleMessageLogger.whileDisabled(new Factory<File>() {
+            @Override
+            public File create() {
+                return sourceSet.getOutput().getClassesDir();
+            }
+        });
     }
 
-    public void setClassesDir(File classesDir) {
-        sourceSet.getOutput().setClassesDir(classesDir);
+    public void setClassesDir(final File classesDir) {
+        SingleMessageLogger.whileDisabled(new Runnable() {
+            @Override
+            public void run() {
+                sourceSet.getOutput().setClassesDir(classesDir);
+            }
+        });
     }
 
     public File getResourcesDir() {

@@ -27,7 +27,13 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.model.*;
+import org.gradle.model.Each;
+import org.gradle.model.Finalize;
+import org.gradle.model.Model;
+import org.gradle.model.ModelMap;
+import org.gradle.model.Mutate;
+import org.gradle.model.Path;
+import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentType;
@@ -114,7 +120,10 @@ public class TestingModelBasePlugin implements Plugin<Project> {
         void attachBinariesCheckTasksToCheckLifecycle(@Path("tasks.check") Task checkTask, @Path("binaries") ModelMap<BinarySpec> binaries) {
             for (BinarySpec binary : binaries) {
                 if (binary.isBuildable()) {
-                    checkTask.dependsOn(binary.getCheckTask());
+                    Task binaryCheckTask = binary.getCheckTask();
+                    if (binaryCheckTask != null) {
+                        checkTask.dependsOn(binaryCheckTask);
+                    }
                 }
             }
         }

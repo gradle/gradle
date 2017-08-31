@@ -29,6 +29,11 @@ public interface SerializerRegistry {
     <T> void useJavaSerialization(Class<T> implementationType);
 
     /**
+     * Returns true when this registry can serialize objects of the given type.
+     */
+    boolean canSerialize(Class<?> baseType);
+
+    /**
      * Creates a serializer that uses the current registrations to serialize objects of type T.
      */
     <T> Serializer<T> build(Class<T> baseType);

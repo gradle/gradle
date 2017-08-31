@@ -15,16 +15,17 @@
  */
 package org.gradle.tooling.internal.provider.connection;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -54,6 +55,12 @@ public interface ProviderOperationParameters {
      */
     @Nullable
     List<String> getJvmArguments();
+
+    /**
+     * @return When null, use the provider's default environment variables. When empty, use no environment variables.
+     */
+    @Nullable
+    Map<String, String> getEnvironmentVariables();
 
     /**
      * @since 1.0-milestone-3

@@ -18,7 +18,6 @@ package org.gradle.play.internal;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.gradle.api.Nullable;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractBuildableComponentSpec;
@@ -43,6 +42,7 @@ import org.gradle.play.PublicAssets;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
 import java.util.Set;

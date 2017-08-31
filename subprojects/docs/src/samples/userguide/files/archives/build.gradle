@@ -19,3 +19,11 @@ task tar(type: Tar) {
     }
 }
 // END SNIPPET tar
+
+// START SNIPPET reproducible
+tasks.withType(AbstractArchiveTask) {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+// END SNIPPET reproducible
+

@@ -27,10 +27,12 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
     }
 
     def cleanup() {
-        testDirectory.usingNativeTools().deleteDir() //remove symlinks
+        if (testDirectoryProvider.cleanup) {
+            testDirectory.usingNativeTools().deleteDir() //remove symlinks
+        }
     }
 
-    public static boolean shellAvailable(String shellCommand) {
+    public static boolean   shellAvailable(String shellCommand) {
         return TestPrecondition.UNIX_DERIVATIVE.isFulfilled() && (
             new File("/bin/$shellCommand").exists()
                 || new File("/usr/bin/$shellCommand").exists()
@@ -118,11 +120,13 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         succeeds('installDist')
 
         when:
-        ExecutionResult result = runViaUnixStartScript("bash", "someArg1", "some arg 2")
+        ExecutionResult result = runViaUnixStartScript("bash", "someArg1", "someArg1", "some arg 2", "-DFOO=\\\"bar < baz\\\"", "-DGOO='car < caz'")
 
         then:
         result.output.contains('Arg: someArg1')
         result.output.contains('Arg: some arg 2')
+        result.output.contains('Arg: -DFOO="bar < baz"')
+        result.output.contains('Arg: -DGOO=\'car < caz\'')
     }
 
     @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("dash") })
@@ -131,11 +135,13 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         succeeds('installDist')
 
         when:
-        ExecutionResult result = runViaUnixStartScript("dash", "someArg1", "some arg 2")
+        ExecutionResult result = runViaUnixStartScript("dash", "someArg1", "some arg 2", "-DFOO=\\\"bar < baz\\\"", "-DGOO='car < caz'")
 
         then:
         result.output.contains('Arg: someArg1')
         result.output.contains('Arg: some arg 2')
+        result.output.contains('Arg: -DFOO="bar < baz"')
+        result.output.contains('Arg: -DGOO=\'car < caz\'')
     }
 
     @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("static-sh") })
@@ -144,29 +150,32 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         succeeds('installDist')
 
         when:
-        ExecutionResult result = runViaUnixStartScript("static-sh", "someArg1", "some arg 2")
+        ExecutionResult result = runViaUnixStartScript("static-sh", "someArg1", "some arg 2", "-DFOO=\\\"bar < baz\\\"", "-DGOO='car < caz'")
 
         then:
         result.output.contains('Arg: someArg1')
         result.output.contains('Arg: some arg 2')
+        result.output.contains('Arg: -DFOO="bar < baz"')
+        result.output.contains('Arg: -DGOO=\'car < caz\'')
     }
 
     ExecutionResult runViaUnixStartScript(String shCommand, String... args) {
+        def path = setUpTestPATH(shCommand);
         TestFile startScriptDir = file('build/install/sample/bin')
         buildFile << """
 task execStartScript(type: Exec) {
     workingDir '$startScriptDir.canonicalPath'
+    environment PATH: "$path"
     commandLine './sample'
     args "${args.join('", "')}"
 }
 """
-        def path = setUpTestPATH(shCommand);
-        return executer.withEnvironmentVars('PATH': path).withTasks('execStartScript').run();
+        return executer.withTasks('execStartScript').run()
     }
 
     private String setUpTestPATH(String shCommand) {
         def binDir = file('fake-bin')
-        def basicCommands = ['basename', 'dirname', 'uname', 'which', 'java']
+        def basicCommands = ['basename', 'dirname', 'uname', 'which', 'sed', 'java']
         basicCommands.each { linkToBinary(it, it, binDir) }
         linkToBinary("sh", shCommand, binDir) // link the shell we want to use to 'sh' which the script will pick up using '#!/usr/bin/env sh'
         return binDir.absolutePath

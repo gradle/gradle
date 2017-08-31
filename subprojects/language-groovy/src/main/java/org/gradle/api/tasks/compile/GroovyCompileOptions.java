@@ -19,14 +19,16 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -142,21 +144,22 @@ public class GroovyCompileOptions extends AbstractOptions {
      * A Groovy script file that configures the compiler, allowing extensive control over how the code is compiled.
      * <p>
      * The script is executed as Groovy code, with the following context:
+     * </p>
      * <ul>
      * <li>The instance of <a href="http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/CompilerConfiguration.html">CompilerConfiguration</a> available as the {@code configuration} variable.</li>
      * <li>All static members of <a href="http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/customizers/builder/CompilerCustomizationBuilder.html">CompilerCustomizationBuilder</a> pre imported.</li>
      * </ul>
-     * </p>
      * <p>
      * This facilitates the following pattern:
+     * </p>
      * <pre>
      * withConfig(configuration) {
      *   // use compiler configuration DSL here
      * }
      * </pre>
-     * </p>
      * <p>
      * For example, to activate type checking for all Groovy classes…
+     * </p>
      * <pre>
      * import groovy.transform.TypeChecked
      *
@@ -164,7 +167,6 @@ public class GroovyCompileOptions extends AbstractOptions {
      *     ast(TypeChecked)
      * }
      * </pre>
-     * </p>
      * <p>
      * Please see <a href="http://docs.groovy-lang.org/latest/html/documentation/#compilation-customizers">the Groovy compiler customization builder documentation</a>
      * for more information about the compiler configuration DSL.
@@ -175,6 +177,7 @@ public class GroovyCompileOptions extends AbstractOptions {
      * @see <a href="http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/CompilerConfiguration.html">CompilerConfiguration</a>
      * @see <a href="http://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/customizers/builder/CompilerCustomizationBuilder.html">CompilerCustomizationBuilder</a>
      */
+    @PathSensitive(PathSensitivity.NONE)
     @InputFile
     @Incubating
     @Optional

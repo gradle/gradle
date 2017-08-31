@@ -16,8 +16,7 @@
 
 package org.gradle.performance.results;
 
-import org.gradle.api.Nullable;
-
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -43,6 +42,8 @@ public interface PerformanceTestExecution {
 
     String getOperatingSystem();
 
+    String getHost();
+
     String getJvm();
 
     /**
@@ -56,6 +57,12 @@ public interface PerformanceTestExecution {
      */
     @Nullable
     List<String> getTasks();
+
+    /**
+     * The clean tasks executed. Null if not known or not constant for all experiments
+     */
+    @Nullable
+    List<String> getCleanTasks();
 
     /**
      * The Gradle arguments. Null if not known or not constant for all experiments

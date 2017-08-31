@@ -31,7 +31,7 @@ import java.io.File;
  * implements {@link org.gradle.api.file.CopySpec CopySpec} for specifying what to copy.
  *
  * <p> Examples:
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * task copyDocs(type: Copy) {
  *     from 'src/main/doc'
  *     into 'build/target/doc'
@@ -67,7 +67,6 @@ import java.io.File;
  * }
  * </pre>
  */
-@ParallelizableTask
 public class Copy extends AbstractCopyTask {
 
     @Override

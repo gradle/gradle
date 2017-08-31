@@ -83,7 +83,7 @@ public class ApplicationPluginConvention {
      * <p>The specification of the contents of the distribution.</p>
      * <p>
      * Use this {@link org.gradle.api.file.CopySpec} to include extra files/resource in the application distribution.
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * apply plugin: 'application'
      *
      * applicationDistribution.from("some/dir") {

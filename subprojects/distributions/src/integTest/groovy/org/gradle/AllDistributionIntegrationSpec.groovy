@@ -18,10 +18,13 @@ package org.gradle
 
 import groovy.io.FileType
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Shared
 
 import static org.hamcrest.Matchers.containsString
 
 class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
+
+    @Shared String version = buildContext.distZipVersion.version
 
     @Override
     String getDistributionLabel() {
@@ -37,9 +40,7 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
         // Source
         contentsDir.file('src').eachFile { TestFile file -> file.assertIsDir() }
-        contentsDir.file('src/core/org/gradle/api/Project.java').assertIsFile()
-        contentsDir.file('src/core/org/gradle/initialization/buildsrc/defaultBuildSourceScript.txt').assertIsFile()
-        contentsDir.file('src/ui/org/gradle/gradleplugin/userinterface/swing/standalone/BlockingApplication.java').assertIsFile()
+        contentsDir.file('src/core-api/org/gradle/api/Project.java').assertIsFile()
         contentsDir.file('src/wrapper/org/gradle/wrapper/WrapperExecutor.java').assertIsFile()
 
         // Samples

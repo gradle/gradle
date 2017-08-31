@@ -18,27 +18,27 @@ package org.gradle.execution.taskgraph
 
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore
 import org.gradle.internal.concurrent.ExecutorFactory
-import org.gradle.internal.operations.BuildOperationWorkerRegistry
+import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
+import org.gradle.internal.work.WorkerLeaseService
 import spock.lang.Specification
 
 public class TaskPlanExecutorFactoryTest extends Specification {
     final TaskHistoryStore cache = Mock()
     final ExecutorFactory executorFactory = Mock()
-    final BuildOperationWorkerRegistry buildOperationWorkerRegistry = Mock()
+    final WorkerLeaseService workerLeaseService = Mock()
 
-    def "creates a default executor"() {
+    def "can create a task plan executor"() {
         when:
-        def factory = new TaskPlanExecutorFactory(1, executorFactory, buildOperationWorkerRegistry)
+        def factory = new TaskPlanExecutorFactory(new ParallelismConfigurationManagerFixture(false, 1), executorFactory, workerLeaseService)
+
+        then:
+        factory.create().class == DefaultTaskPlanExecutor
+
+        when:
+        factory = new TaskPlanExecutorFactory(new ParallelismConfigurationManagerFixture(true, 3), executorFactory, workerLeaseService)
 
         then:
         factory.create().class == DefaultTaskPlanExecutor
     }
 
-    def "creates a parallel executor"() {
-        when:
-        def factory = new TaskPlanExecutorFactory(3, executorFactory, buildOperationWorkerRegistry)
-
-        then:
-        factory.create().class == ParallelTaskPlanExecutor
-    }
 }

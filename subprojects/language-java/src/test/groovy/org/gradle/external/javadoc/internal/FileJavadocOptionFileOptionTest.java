@@ -36,7 +36,7 @@ public class FileJavadocOptionFileOptionTest {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         writerContextMock = context.mock(JavadocOptionFileWriterContext.class);
 
-        fileOption = new FileJavadocOptionFileOption(optionName);
+        fileOption = new FileJavadocOptionFileOption(optionName, null);
     }
 
     @Test

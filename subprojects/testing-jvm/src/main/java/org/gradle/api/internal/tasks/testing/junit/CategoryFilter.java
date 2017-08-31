@@ -44,7 +44,9 @@ class CategoryFilter extends Filter {
 
     @Override
     public boolean shouldRun(final Description description) {
-        return shouldRun(description, description.isSuite() ? null : Description.createSuiteDescription(description.getTestClass()));
+        Class<?> testClass = description.getTestClass();
+        Description desc = description.isSuite() || testClass == null ? null : Description.createSuiteDescription(testClass);
+        return shouldRun(description, desc);
     }
 
     private boolean shouldRun(final Description description, final Description parent) {

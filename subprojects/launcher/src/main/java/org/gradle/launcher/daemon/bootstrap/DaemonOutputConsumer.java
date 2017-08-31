@@ -19,7 +19,7 @@ package org.gradle.launcher.daemon.bootstrap;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.process.internal.streams.ExecOutputHandleRunner;
 import org.gradle.process.internal.streams.StreamsHandler;
 
@@ -35,7 +35,7 @@ public class DaemonOutputConsumer implements StreamsHandler {
     private final InputStream stdInput;
 
     private StringWriter output;
-    private StoppableExecutor executor;
+    private ManagedExecutor executor;
     private Runnable streamConsumer;
     DaemonStartupCommunication startupCommunication = new DaemonStartupCommunication();
     private String processOutput;

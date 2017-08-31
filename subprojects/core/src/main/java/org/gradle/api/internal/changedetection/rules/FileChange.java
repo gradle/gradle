@@ -18,22 +18,52 @@ package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.base.Objects;
 import org.gradle.api.tasks.incremental.InputFileDetails;
+import org.gradle.internal.file.FileType;
 
 import java.io.File;
 
 public class FileChange implements TaskStateChange, InputFileDetails {
     private final String path;
     private final ChangeType change;
-    private final String fileType;
+    private final String title;
+    private final FileType previousFileType;
+    private final FileType currentFileType;
 
-    public FileChange(String path, ChangeType change, String fileType) {
+    public static FileChange added(String path, String title, FileType currentFileType) {
+        return new FileChange(path, ChangeType.ADDED, title, FileType.Missing, currentFileType);
+    }
+
+    public static FileChange removed(String path, String title, FileType previousFileType) {
+        return new FileChange(path, ChangeType.REMOVED, title, previousFileType, FileType.Missing);
+    }
+
+    public static FileChange modified(String path, String title, FileType previousFileType, FileType currentFileType) {
+        return new FileChange(path, ChangeType.MODIFIED, title, previousFileType, currentFileType);
+    }
+
+    private FileChange(String path, ChangeType change, String title, FileType previousFileType, FileType currentFileType) {
         this.path = path;
         this.change = change;
-        this.fileType = fileType;
+        this.title = title;
+        this.previousFileType = previousFileType;
+        this.currentFileType = currentFileType;
     }
 
     public String getMessage() {
-        return fileType + " file " + path + " " + change.describe() + ".";
+        return title + " file " + path + " " + getDisplayedChangeType().describe() + ".";
+    }
+
+    private ChangeType getDisplayedChangeType() {
+        if (change != ChangeType.MODIFIED) {
+            return change;
+        }
+        if (previousFileType == FileType.Missing) {
+            return ChangeType.ADDED;
+        }
+        if (currentFileType == FileType.Missing) {
+            return ChangeType.REMOVED;
+        }
+        return ChangeType.MODIFIED;
     }
 
     @Override
@@ -76,11 +106,13 @@ public class FileChange implements TaskStateChange, InputFileDetails {
         FileChange that = (FileChange) o;
         return Objects.equal(path, that.path)
             && change == that.change
-            && Objects.equal(fileType, that.fileType);
+            && Objects.equal(title, that.title)
+            && Objects.equal(previousFileType, that.previousFileType)
+            && Objects.equal(currentFileType, that.currentFileType);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(path, change, fileType);
+        return Objects.hashCode(path, change, title, previousFileType, currentFileType);
     }
 }

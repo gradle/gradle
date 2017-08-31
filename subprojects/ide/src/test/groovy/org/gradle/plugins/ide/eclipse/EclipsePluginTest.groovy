@@ -22,6 +22,7 @@ import org.gradle.api.Task
 import org.gradle.api.tasks.Delete
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ide.eclipse.model.BuildCommand
+import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class EclipsePluginTest extends AbstractProjectBuilderSpec {
@@ -29,7 +30,7 @@ class EclipsePluginTest extends AbstractProjectBuilderSpec {
     private EclipsePlugin eclipsePlugin
 
     def setup() {
-        eclipsePlugin = new EclipsePlugin(project.services.get(Instantiator))
+        eclipsePlugin = new EclipsePlugin(project.services.get(Instantiator), project.services.get(UniqueProjectNameProvider))
     }
 
     def applyToBaseProject_shouldOnlyHaveEclipseProjectTask() {
@@ -58,7 +59,7 @@ class EclipsePluginTest extends AbstractProjectBuilderSpec {
         project.apply(plugin: 'java')
 
         then:
-        checkEclipseClasspath([project.configurations.testRuntime, project.configurations.compileClasspath, project.configurations.testCompileClasspath])
+        checkEclipseClasspath([project.configurations.compileClasspath, project.configurations.runtimeClasspath, project.configurations.testCompileClasspath, project.configurations.testRuntimeClasspath])
     }
 
     def applyToScalaProject_shouldHaveProjectAndClasspathTaskForScala() {
@@ -80,7 +81,7 @@ class EclipsePluginTest extends AbstractProjectBuilderSpec {
         project.apply(plugin: 'scala')
 
         then:
-        checkEclipseClasspath([project.configurations.testRuntime, project.configurations.compileClasspath, project.configurations.testCompileClasspath], scalaIdeContainer)
+        checkEclipseClasspath([project.configurations.compileClasspath, project.configurations.runtimeClasspath, project.configurations.testCompileClasspath, project.configurations.testRuntimeClasspath], scalaIdeContainer)
     }
 
     def applyToGroovyProject_shouldHaveProjectAndClasspathTaskForGroovy() {
@@ -100,7 +101,7 @@ class EclipsePluginTest extends AbstractProjectBuilderSpec {
         project.apply(plugin: 'groovy')
 
         then:
-        checkEclipseClasspath([project.configurations.testRuntime, project.configurations.compileClasspath, project.configurations.testCompileClasspath])
+        checkEclipseClasspath([project.configurations.compileClasspath, project.configurations.runtimeClasspath, project.configurations.testCompileClasspath, project.configurations.testRuntimeClasspath])
     }
 
     def "creates empty classpath model for non java projects"() {

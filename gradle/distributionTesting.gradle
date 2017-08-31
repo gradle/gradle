@@ -21,7 +21,7 @@ ext.distributionTestTasks = tasks.withType(DistributionTest)
 
 distributionTestTasks.all { DistributionTest task ->
     dependsOn ':intTestImage'
-    dependsOn ':toolingApi:shadedJar'
+    dependsOn ':toolingApi:toolingApiShadedJar'
     dependsOn ':cleanUpCaches'
     finalizedBy ':cleanUpDaemons'
     shouldRunAfter 'test'
@@ -32,7 +32,7 @@ distributionTestTasks.all { DistributionTest task ->
 
     }
 
-    reports.junitXml.destination = file("${project.testResultsDir}/$name")
+    reports.junitXml.destination = new File(project.testResultsDir, name)
 
     // use -PtestVersions=all or -PtestVersions=1.2,1.3…
     systemProperties['org.gradle.integtest.versions'] = project.hasProperty('testVersions') ? project.testVersions : 'latest'
@@ -41,22 +41,30 @@ distributionTestTasks.all { DistributionTest task ->
 
     systemProperties['org.gradle.integtest.multiversion'] = project.hasProperty("testAllVersions") && project.testAllVersions ? 'all' : 'default'
 
+    systemProperties['org.gradle.integtest.mirrors.mavencentral'] = isCiServer ? 'http://dev12.gradle.org:8081/artifactory/repo1' : ''
+    systemProperties['org.gradle.integtest.mirrors.jcenter'] = isCiServer ? 'http://dev12.gradle.org:8081/artifactory/jcenter' : ''
+    systemProperties['org.gradle.integtest.mirrors.typesafemaven'] = isCiServer ? 'http://dev12.gradle.org:8081/artifactory/typesafe-maven-releases' : ''
+    systemProperties['org.gradle.integtest.mirrors.typesafeivy'] = isCiServer ? 'http://dev12.gradle.org:8081/artifactory/typesafe-ivy-releases' : ''
+
     dependsOn project.task("configure${task.name.capitalize()}") {
         doLast {
             configure(task) {
                 reports.html.destination = file("${project.reporting.baseDir}/$name")
-                systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.destinationDir.absolutePath
-                systemProperties['integTest.gradleUserHomeDir'] = rootProject.file('intTestHomeDir').absolutePath
-                systemProperties['integTest.libsRepo'] = rootProject.file('build/repo')
-                systemProperties['integTest.toolingApiShadedJarDir'] = rootProject.project(':toolingApi').shadedJar.outputDir
+                gradleHomeDir = rootProject.intTestImage.destinationDir
+                gradleUserHomeDir = rootProject.file('intTestHomeDir')
+                toolingApiShadedJarDir = rootProject.project(':toolingApi').toolingApiShadedJar.destinationDir
 
-                // If the projects int test need the distributions, they should add:
-                // inputs.files rootProject.buildDists
-                systemProperties['integTest.distsDir'] = rootProject.distsDir.absolutePath
-
-                // The user home dir is not wiped out by clean
-                // Move the daemon working space underneath the build dir so they don't pile up on CI
-                systemProperties['org.gradle.integtest.daemon.registry'] = file("$rootProject.buildDir/daemon").absolutePath
+                if (requiresLibsRepo) {
+                    libsRepo = rootProject.file('build/repo')
+                }
+                if (requiresDists) {
+                    distsDir = rootProject.distsDir
+                    systemProperties['integTest.distZipVersion'] = version
+                }
+                if (requiresBinZip) {
+                    binZip = project(':distributions').binZip.archivePath
+                }
+                daemonRegistry = file("$rootProject.buildDir/daemon")
             }
         }
     }
@@ -129,7 +137,7 @@ def removeDaemonLogFiles(File dir) {
 /**
  * Removes state for versions that we're unlikely to ever need again, such as old snapshot versions.
  */
-def removeOldVersionsFromDir(File dir, def shouldDelete, def dirPrefix = "", def dirSuffix = "") {
+def removeOldVersionsFromDir(File dir, shouldDelete, dirPrefix = "", dirSuffix = "") {
     if (dir.directory) {
 
         for (File cacheDir : dir.listFiles()) {
@@ -183,18 +191,15 @@ project(":") {
         doLast {
             def executingVersion = GradleVersion.version(gradle.gradleVersion)
 
-            def versionProps = readBuildReceipt("${buildDir}/${buildReceiptFileName}")
-            def testedVersion = GradleVersion.version(versionProps.versionNumber)
-
             // Expire .gradle cache where major version is older than executing version
-            def expireTaskCache = { def candidateVersion ->
+            def expireTaskCache = { candidateVersion ->
                 return candidateVersion.baseVersion < executingVersion.baseVersion
             }
 
             // Expire intTestImage cache snapshots that are older than the tested version
             // Also expire version-specific cache snapshots when they can't be re-used (for 'snapshot-1' developer builds)
-            def expireIntegTestCache = { def candidateVersion ->
-                return (candidateVersion.snapshot && candidateVersion < testedVersion) || candidateVersion.version.endsWith('-snapshot-1')
+            def expireIntegTestCache = { candidateVersion ->
+                return (candidateVersion.snapshot && candidateVersion < GradleVersion.version(version)) || candidateVersion.version.endsWith('-snapshot-1')
             }
 
             // Remove state for old versions of Gradle that we're unlikely to ever require again
@@ -225,7 +230,7 @@ project(":") {
 }
 
 def forEachJavaProcess(Closure action) {
-    String queryString = "(?i)[/\\\\](java(?:\\.exe)?.+?(?:(?:-cp.+${Pattern.quote(rootProject.projectDir.absolutePath)}.+?org\\.gradle\\.)|(?:-classpath.+${Pattern.quote(rootProject.buildDir.absolutePath)}.+?org\\.gradle\\.)).+)"
+    String queryString = "(?i)[/\\\\](java(?:\\.exe)?.+?(?:(?:-cp.+${Pattern.quote(rootProject.projectDir.absolutePath)}.+?(org\\.gradle\\.|[a-zA-Z]+))|(?:-classpath.+${Pattern.quote(rootProject.buildDir.absolutePath)}.+?(org\\.gradle\\.|[a-zA-Z]+))).+)"
     def output = new ByteArrayOutputStream()
     def error = new ByteArrayOutputStream()
     def pidPattern
@@ -261,10 +266,16 @@ def forEachJavaProcess(Closure action) {
             if (pidMatcher.find()) {
                 def pid = pidMatcher.group(1)
                 def process = processMatcher.group(1)
-                action.call(pid, process)
+                if (!isMe(process)) {
+                    action.call(pid, process)
+                }
             }
         }
     }
+}
+
+def isMe(process) {
+    process.contains(project.gradle.gradleHomeDir.path)
 }
 
 def pkill(pid) {
@@ -293,13 +304,17 @@ project(":") {
     if (tasks.findByName('cleanUpDaemons')) {
         return
     }
-    task killExistingDaemons {
+    task killExistingProcessesStartedByGradle {
         doLast {
-            didWork = false
+            def didKill = false
             forEachJavaProcess { pid, process ->
                 logger.warn("A process wasn't shutdown properly in a previous Gradle run. Killing process with PID $pid (Command line: $process)")
                 pkill(pid)
-                didWork = true
+                didKill = true
+            }
+            if (didKill && org.gradle.internal.os.OperatingSystem.current().windows) {
+                //it might take a moment until file handles are released on Windows
+                Thread.sleep(5000)
             }
         }
     }
@@ -308,23 +323,23 @@ project(":") {
         ext.suspiciousDaemons = [:].withDefault { [].asSynchronized() }.asSynchronized()
         ext.daemonPids = ([] as Set).asSynchronized()
         doLast {
-            didWork = false
             Set alreadyKilled = []
             forEachJavaProcess { pid, process ->
                 suspiciousDaemons.each { suite, pids ->
                     if (pids.contains(pid) && !alreadyKilled.contains(pid)) {
                         logger.warn("A process was created in $suite but wasn't shutdown properly. Killing PID $pid (Command line: $process)")
                         pkill(pid)
-                        didWork = true
                     }
                 }
             }
         }
     }
-}
-
-allprojects {
-    tasks.whenTaskAdded {
-        it.dependsOn(':killExistingDaemons')
+    if (isCiServer) {
+        clean.dependsOn killExistingProcessesStartedByGradle
+        subprojects {
+            tasks.all {
+                mustRunAfter(killExistingProcessesStartedByGradle)
+            }
+        }
     }
 }

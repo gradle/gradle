@@ -23,7 +23,7 @@ import java.io.File;
  * A JUnit rule which provides a unique temporary folder for the test.
  */
 public class TestNameTestDirectoryProvider extends AbstractTestDirectoryProvider {
-    static {
+    public TestNameTestDirectoryProvider() {
         // NOTE: the space in the directory name is intentional
         root = new TestFile(new File("build/tmp/test files"));
     }

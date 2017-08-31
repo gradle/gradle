@@ -86,9 +86,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
             apply plugin: 'build-dashboard'
 
             allprojects {
-                repositories {
-                    mavenCentral()
-                }
+                ${mavenCentralRepository()}
             }
         """
     }

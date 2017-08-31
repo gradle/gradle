@@ -93,6 +93,11 @@ public class ExternalResourceName {
         return getDecoded();
     }
 
+    public String getShortDisplayName() {
+        int lastSlash = path.lastIndexOf('/');
+        return lastSlash == -1 ? getDecoded() : path.substring(lastSlash + 1);
+    }
+
     @Override
     public String toString() {
         return getDisplayName();
@@ -181,6 +186,13 @@ public class ExternalResourceName {
             newPath = this.path + "/" + path;
         }
         return new ExternalResourceName(encodedRoot, newPath);
+    }
+
+    /**
+     * Appends the given text to the end of this path.
+     */
+    public ExternalResourceName append(String path) {
+        return new ExternalResourceName(encodedRoot, this.path + path);
     }
 
     @Override

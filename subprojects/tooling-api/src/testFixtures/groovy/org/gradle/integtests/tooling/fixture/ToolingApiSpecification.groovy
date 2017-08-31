@@ -18,8 +18,11 @@ package org.gradle.integtests.tooling.fixture
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import org.gradle.integtests.fixtures.RetryRuleUtil
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
+import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
@@ -28,6 +31,7 @@ import org.gradle.test.fixtures.file.TestDistributionDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.internal.util.RetryRule
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
@@ -37,7 +41,6 @@ import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import spock.lang.Specification
 
-import static org.gradle.testing.internal.util.RetryRule.retryIf
 /**
  * A spec that executes tests against all compatible versions of tooling API consumer and testDirectoryProvider, including the current Gradle version under test.
  *
@@ -58,15 +61,14 @@ abstract class ToolingApiSpecification extends Specification {
     @Rule
     public final SetSystemProperties sysProperties = new SetSystemProperties()
 
+    GradleConnectionException caughtGradleConnectionException
+
     @Rule
-    RetryRule retryRule = retryIf(
-        // known issue with pre 1.3 daemon versions: https://github.com/gradle/gradle/commit/29d895bc086bc2bfcf1c96a6efad22c602441e26
-        { t ->
-            GradleVersion.version(targetDist.version.baseVersion.version) < GradleVersion.version("1.3") && t.cause != null &&
-                (t.cause.message ==~ /Timeout waiting to connect to (the )?Gradle daemon\./
-                    || t.cause.message.contains("Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)"))
-        }
-    );
+    RetryRule retryRule = RetryRuleUtil.retryCrossVersionTestOnIssueWithReleasedGradleVersion(this)
+
+    String getReleasedGradleVersion() {
+        return targetDist.version.baseVersion.version
+    }
 
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     final GradleDistribution dist = new UnderDevelopmentGradleDistribution()
@@ -77,7 +79,7 @@ abstract class ToolingApiSpecification extends Specification {
     final ToolingApi toolingApi = new ToolingApi(targetDist, temporaryFolder)
 
     @Rule
-    public RuleChain chain = RuleChain.outerRule(temporaryFolder).around(temporaryDistributionFolder).around(toolingApi);
+    public RuleChain chain = RuleChain.outerRule(temporaryFolder).around(temporaryDistributionFolder).around(toolingApi)
 
     static void selectTargetDist(GradleDistribution version) {
         VERSION.set(version)
@@ -87,12 +89,20 @@ abstract class ToolingApiSpecification extends Specification {
         VERSION.get()
     }
 
+    DaemonsFixture getDaemonsFixture() {
+        toolingApi.daemons
+    }
+
     TestFile getProjectDir() {
         temporaryFolder.testDirectory
     }
 
     TestFile getBuildFile() {
         file("build.gradle")
+    }
+
+    TestFile getBuildFileKts() {
+        file("build.gradle.kts")
     }
 
     TestFile getSettingsFile() {
@@ -237,5 +247,13 @@ abstract class ToolingApiSpecification extends Specification {
 
     protected static GradleVersion getTargetVersion() {
         GradleVersion.version(targetDist.version.baseVersion.version)
+    }
+
+    protected static String jcenterRepository() {
+        RepoScriptBlockUtil.jcenterRepository()
+    }
+
+    protected static String mavenCentralRepository() {
+        RepoScriptBlockUtil.mavenCentralRepository()
     }
 }

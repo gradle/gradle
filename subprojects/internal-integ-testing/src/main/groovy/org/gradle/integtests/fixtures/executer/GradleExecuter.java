@@ -18,6 +18,8 @@ package org.gradle.integtests.fixtures.executer;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 
@@ -27,7 +29,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public interface GradleExecuter {
+public interface GradleExecuter extends Stoppable {
     /**
      * Sets the working directory to use. Defaults to the test's temporary directory.
      */
@@ -169,19 +171,11 @@ public interface GradleExecuter {
     GradleExecuter withBuildJvmOpts(Iterable<String> jvmOpts);
 
     /**
-     * Activates the task output cache
+     * Activates the build cache
      *
      * @return this executer
      */
-    GradleExecuter withTaskCacheEnabled();
-
-    /**
-     * Activates the task output cache for a local directory
-     *
-     * @param cacheDir the directory for the cache
-     * @return this executer
-     */
-    GradleExecuter withLocalTaskCache(File cacheDir);
+    GradleExecuter withBuildCacheEnabled();
 
     /**
      * Don't set temp folder explicitly.
@@ -202,7 +196,7 @@ public interface GradleExecuter {
      * Specifies that the executer should only those JVM args explicitly requested using {@link #withBuildJvmOpts(String...)} and {@link #withCommandLineGradleOpts(String...)} (where appropriate) for
      * the build JVM and not attempt to provide any others.
      */
-    GradleExecuter useDefaultBuildJvmArgs();
+    GradleExecuter useOnlyRequestedJvmOpts();
 
     /**
      * Sets the default character encoding to use.
@@ -285,9 +279,18 @@ public interface GradleExecuter {
     TestDirectoryProvider getTestDirectoryProvider();
 
     /**
-     * Expects exactly one deprecation warning in the build output. Call multiple times to expect multiple warnings.
+     * Expects exactly one deprecation warning in the build output. If more than one warning is produced,
+     * or no warning is produced at all, the assertion fails.
+     *
+     * @see #expectDeprecationWarnings(int)
      */
     GradleExecuter expectDeprecationWarning();
+
+    /**
+     * Expects exactly the given number of deprecation warnings. If fewer or more warnings are produced during
+     * the execution, the assertion fails.
+     */
+    GradleExecuter expectDeprecationWarnings(int count);
 
     /**
      * Disable deprecation warning checks.
@@ -325,6 +328,11 @@ public interface GradleExecuter {
      * <p>Note: this does not affect the Gradle user home directory.</p>
      */
     GradleExecuter requireIsolatedDaemons();
+
+    /**
+     * Disable worker daemons expiration.
+     */
+    GradleExecuter withWorkerDaemonsExpirationDisabled();
 
     /**
      * Returns true if this executer will share daemons with other executers.
@@ -375,4 +383,50 @@ public interface GradleExecuter {
     boolean isDebug();
 
     boolean isProfile();
+
+    /**
+     * Starts the launcher JVM (daemon client) in suspended debug mode
+     */
+    GradleExecuter startLauncherInDebugger(boolean debugLauncher);
+
+    boolean isDebugLauncher();
+
+    /**
+     * Clears previous settings so that instance can be reused
+     */
+    GradleExecuter reset();
+
+    /**
+     * Measures the duration of the execution
+     */
+    GradleExecuter withDurationMeasurement(DurationMeasurement durationMeasurement);
+
+    /**
+     * Returns true if this executer uses a daemon
+     */
+    boolean isUseDaemon();
+
+    /**
+     * Configures that user home services should not be reused across multiple invocations.
+     *
+     * <p>
+     * Note: You will want to call this method if the test case defines a custom Gradle user home directory
+     * so the services can be shut down after test execution in
+     * {@link org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry#release(org.gradle.internal.service.ServiceRegistry)}.
+     * Not calling the method in those situations will result in the inability to delete a file lock.
+     * </p>
+     */
+    GradleExecuter withOwnUserHomeServices();
+
+    /**
+     * Executes the build with {@code "--console=rich"} argument.
+     *
+     * @see AbstractConsoleFunctionalSpec
+     */
+    GradleExecuter withRichConsole();
+
+    /**
+     * Execute the builds without adding the {@code "--stacktrace"} argument.
+     */
+    GradleExecuter withStacktraceDisabled();
 }

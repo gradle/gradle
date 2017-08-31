@@ -17,8 +17,34 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 
 public interface DependencyArtifactsVisitor {
-    void visitArtifacts(DependencyGraphNode parent, DependencyGraphNode child, ArtifactSet artifacts);
+    /**
+     * Starts visiting.
+     */
+    void startArtifacts(DependencyGraphNode root);
+
+    /**
+     * Visits a node in the graph. All nodes are visited prior to visiting the edges
+     */
+    void visitNode(DependencyGraphNode node);
+
+    /**
+     * Visits the artifacts introduced by a particular edge in the graph. Called for every edge in the graph.
+     * The nodes are visited in consumer-first order.
+     */
+    void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, int artifactSetId, ArtifactSet artifacts);
+
+    /**
+     * Visits the artifacts introduce by a particular node in the graph. Called *zero or more* times for each node.
+     * Currently local files are treated differently to other dependencies.
+     * The nodes are visited in consumer-first order
+     */
+    void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, int artifactSetId, ArtifactSet artifactSet);
+
+    /**
+     * Completes visiting.
+     */
     void finishArtifacts();
 }

@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.repositories
+
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.AuthenticationContainer
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
@@ -23,8 +25,10 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.internal.resource.ExternalResourceRepository
+import org.gradle.internal.resource.cached.ExternalResourceFileStore
+import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
-import org.gradle.internal.resource.transport.ExternalResourceRepository
 import spock.lang.Specification
 
 class DefaultMavenArtifactRepositoryTest extends Specification {
@@ -33,11 +37,13 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
     final ExternalResourceRepository resourceRepository = Mock()
     final ArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
+    final ExternalResourceFileStore externalResourceFileStore = Stub()
     final MetaDataParser pomParser = Stub()
     final AuthenticationContainer authenticationContainer = Stub()
+    final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Stub()
 
     final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(
-            resolver, transportFactory, locallyAvailableResourceFinder, DirectInstantiator.INSTANCE, artifactIdentifierFileStore, pomParser, authenticationContainer)
+        resolver, transportFactory, locallyAvailableResourceFinder, DirectInstantiator.INSTANCE, artifactIdentifierFileStore, pomParser, authenticationContainer, moduleIdentifierFactory, externalResourceFileStore, Mock(FileResourceRepository))
 
     def "creates local repository"() {
         given:
@@ -129,6 +135,24 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         then:
         InvalidUserDataException e = thrown()
         e.message == 'You must specify a URL for a Maven repository.'
+    }
+
+    def "create repository from strongly typed URI"() {
+        given:
+        def uri = new URI("http://localhost:9090/repo")
+        _ * resolver.resolveUri(_) >> uri
+        transportFactory.createTransport(_, 'repo', _) >> transport()
+
+        and:
+        repository.name = 'repo'
+        repository.url = uri
+
+        when:
+        def repo = repository.createRealResolver()
+
+        then:
+        repo instanceof MavenResolver
+        repo.root == uri
     }
 
     private RepositoryTransport transport() {

@@ -21,12 +21,11 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.googlecode.jatl.Html;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
-import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.DataSeries;
 import org.gradle.performance.measure.Duration;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collections;
@@ -54,14 +53,9 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             h2().text(String.format("Test: %s", testHistory.getDisplayName())).end();
             text(getReproductionInstructions(testHistory));
             p().text("Tasks: " + getTasks(testHistory)).end();
+            p().text("Clean tasks: " + getCleanTasks(testHistory)).end();
 
             addPerformanceGraph("Average total time", "totalTimeChart", "totalTime", "total time", "s");
-            addPerformanceGraph("Average configuration time", "configurationTimeChart", "configurationTime", "configuration time", "s");
-            addPerformanceGraph("Average execution time", "executionTimeChart", "executionTime", "execution time", "s");
-            addPerformanceGraph("Average setup/teardown time", "miscTimeChart", "miscTime", "setup/teardown time", "s");
-            addPerformanceGraph("Average heap usage", "heapUsageChart", "heapUsage", "heap usage", "mb");
-            addPerformanceGraph("Average JIT compiler cpu time", "compileTotalTimeChart", "compileTotalTime", "jit compiler cpu time", "s");
-            addPerformanceGraph("Average GC cpu time", "gcTotalTimeChart", "gcTotalTime", "GC cpu time", "s");
 
             div().id("tooltip").end();
             div().id("controls").end();
@@ -72,6 +66,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
                 th().text("Scenario").end();
                 th().text("Test project").end();
                 th().text("Tasks").end();
+                th().text("Clean tasks").end();
                 th().text("Gradle args").end();
                 th().text("Gradle JVM args").end();
                 th().text("Daemon").end();
@@ -81,6 +76,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
                     textCell(scenario.getDisplayName());
                     textCell(scenario.getTestProject());
                     textCell(scenario.getTasks());
+                    textCell(scenario.getCleanTasks());
                     textCell(scenario.getArgs());
                     textCell(scenario.getGradleOpts());
                     textCell(scenario.getDaemon());
@@ -94,31 +90,22 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             th().colspan("3").end();
             final String colspanForField = String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples());
             th().colspan(colspanForField).text("Average build time").end();
-            th().colspan(colspanForField).text("Average configuration time").end();
-            th().colspan(colspanForField).text("Average execution time").end();
-            th().colspan(colspanForField).text("Average jit compiler cpu time").end();
-            th().colspan(colspanForField).text("Average gc cpu time").end();
-            th().colspan(colspanForField).text("Average heap usage (old measurement)").end();
-            th().colspan(colspanForField).text("Average total heap usage").end();
-            th().colspan(colspanForField).text("Average max heap usage").end();
-            th().colspan(colspanForField).text("Average max uncollected heap").end();
-            th().colspan(colspanForField).text("Average max committed heap").end();
             th().colspan("8").text("Details").end();
             end();
             tr();
             th().text("Date").end();
             th().text("Branch").end();
             th().text("Git commit").end();
-            for (int i = 0; i < 8; i++) {
-                for (String label : testHistory.getScenarioLabels()) {
-                    renderHeaderForSamples(label);
-                }
+            for (String label : testHistory.getScenarioLabels()) {
+                renderHeaderForSamples(label);
             }
             th().text("Test version").end();
             th().text("Operating System").end();
+            th().text("Host").end();
             th().text("JVM").end();
             th().text("Test project").end();
             th().text("Tasks").end();
+            th().text("Clean tasks").end();
             th().text("Gradle args").end();
             th().text("Gradle JVM opts").end();
             th().text("Daemon").end();
@@ -141,56 +128,13 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
                         return original.getTotalTime();
                     }
                 });
-                renderSamplesForExperiment(scenarios, new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
-                    public DataSeries<Duration> transform(MeasuredOperationList original) {
-                        return original.getConfigurationTime();
-                    }
-                });
-                renderSamplesForExperiment(scenarios, new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
-                    public DataSeries<Duration> transform(MeasuredOperationList original) {
-                        return original.getExecutionTime();
-                    }
-                });
-                renderSamplesForExperiment(scenarios, new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
-                    public DataSeries<Duration> transform(MeasuredOperationList original) {
-                        return original.getCompileTotalTime();
-                    }
-                });
-                renderSamplesForExperiment(scenarios, new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
-                    public DataSeries<Duration> transform(MeasuredOperationList original) {
-                        return original.getGcTotalTime();
-                    }
-                });
-                renderSamplesForExperiment(scenarios, new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
-                    public DataSeries<DataAmount> transform(MeasuredOperationList original) {
-                        return original.getTotalMemoryUsed();
-                    }
-                });
-                renderSamplesForExperiment(scenarios, new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
-                    public DataSeries<DataAmount> transform(MeasuredOperationList original) {
-                        return original.getTotalHeapUsage();
-                    }
-                });
-                renderSamplesForExperiment(scenarios, new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
-                    public DataSeries<DataAmount> transform(MeasuredOperationList original) {
-                        return original.getMaxHeapUsage();
-                    }
-                });
-                renderSamplesForExperiment(scenarios, new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
-                    public DataSeries<DataAmount> transform(MeasuredOperationList original) {
-                        return original.getMaxUncollectedHeap();
-                    }
-                });
-                renderSamplesForExperiment(scenarios, new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
-                    public DataSeries<DataAmount> transform(MeasuredOperationList original) {
-                        return original.getMaxCommittedHeap();
-                    }
-                });
                 textCell(results.getVersionUnderTest());
                 textCell(results.getOperatingSystem());
+                textCell(results.getHost());
                 textCell(results.getJvm());
                 textCell(results.getTestProject());
                 textCell(results.getTasks());
+                textCell(results.getCleanTasks());
                 textCell(results.getArgs());
                 textCell(results.getGradleOpts());
                 textCell(results.getDaemon());
@@ -244,16 +188,28 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
         };
     }
 
-    private String getTasks(PerformanceTestHistory testHistory) {
-        List<? extends PerformanceTestExecution> executions = testHistory.getExecutions();
-        if (executions.isEmpty()) {
-            return "";
-        }
-        PerformanceTestExecution performanceTestExecution = executions.get(0);
+    private static String getTasks(PerformanceTestHistory testHistory) {
+        PerformanceTestExecution performanceTestExecution = getExecution(testHistory);
         if (performanceTestExecution == null || performanceTestExecution.getTasks() == null) {
             return "";
         }
         return Joiner.on(" ").join(performanceTestExecution.getTasks());
+    }
+
+    private static String getCleanTasks(PerformanceTestHistory testHistory) {
+        PerformanceTestExecution performanceTestExecution = getExecution(testHistory);
+        if (performanceTestExecution == null || performanceTestExecution.getCleanTasks() == null) {
+            return "";
+        }
+        return Joiner.on(" ").join(performanceTestExecution.getCleanTasks());
+    }
+
+    private static PerformanceTestExecution getExecution(PerformanceTestHistory testHistory) {
+        List<? extends PerformanceTestExecution> executions = testHistory.getExecutions();
+        if (executions.isEmpty()) {
+            return null;
+        }
+        return executions.get(0);
     }
 
     private String getReproductionInstructions(PerformanceTestHistory history) {

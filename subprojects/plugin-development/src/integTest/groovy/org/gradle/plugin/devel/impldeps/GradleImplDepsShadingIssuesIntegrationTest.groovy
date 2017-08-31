@@ -30,7 +30,7 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
 
         when:
         buildFile << testableGroovyProject()
-        file('src/main/groovy/MyPlugin.groovy') << '''
+        file('src/main/groovy/MyPlugin.groovy') << """
             import org.gradle.api.Plugin
             import org.gradle.api.Project
 
@@ -38,14 +38,14 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
 
                 void apply(Project project) {
                     def conf = project.configurations.create('bug')
-                    project.repositories { jcenter() }
+                    project.${jcenterRepository()}
                     project.dependencies {
                         bug 'junit:junit:4.12'
                     }
                     conf.resolve()
                 }
             }
-        '''
+        """
         file('src/test/groovy/MyPluginTest.groovy') << pluginTest()
 
         then:

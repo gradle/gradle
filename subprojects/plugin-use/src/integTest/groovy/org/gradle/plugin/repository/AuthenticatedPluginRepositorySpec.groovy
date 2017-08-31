@@ -23,7 +23,10 @@ import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import spock.lang.Unroll
 
-import static org.gradle.test.fixtures.server.http.HttpServer.AuthScheme.*
+import static org.gradle.test.fixtures.server.http.AuthScheme.BASIC
+import static org.gradle.test.fixtures.server.http.AuthScheme.DIGEST
+import static org.gradle.test.fixtures.server.http.AuthScheme.HIDE_UNAUTHORIZED
+import static org.gradle.test.fixtures.server.http.AuthScheme.NTLM
 
 @LeaksFileHandles
 class AuthenticatedPluginRepositorySpec extends AbstractHttpDependencyResolutionTest {
@@ -56,7 +59,8 @@ class AuthenticatedPluginRepositorySpec extends AbstractHttpDependencyResolution
             repoUrl = ivyHttpRepo.uri
         }
         settingsFile << """
-          pluginRepositories {
+          pluginManagement {
+            repositories {
               ${repoType} {
                   url "${repoUrl}"
                   credentials {
@@ -65,6 +69,7 @@ class AuthenticatedPluginRepositorySpec extends AbstractHttpDependencyResolution
                   }
                   ${configuredAuthentication}
               }
+            }
           }
         """
     }

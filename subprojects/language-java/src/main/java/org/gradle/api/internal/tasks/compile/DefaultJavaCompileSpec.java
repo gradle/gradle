@@ -17,13 +17,13 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.tasks.compile.CompileOptions;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
+import java.util.List;
 
 public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implements JavaCompileSpec {
     private CompileOptions compileOptions;
-    private File dependencyCacheDir;
+    private List<File> annotationProcessorPath;
 
     @Override
     public CompileOptions getCompileOptions() {
@@ -34,17 +34,13 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
         this.compileOptions = compileOptions;
     }
 
-    @Deprecated
     @Override
-    public File getDependencyCacheDir() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("DefaultJavaCompileSpec.getDependencyCacheDir()");
-        return dependencyCacheDir;
+    public List<File> getAnnotationProcessorPath() {
+        return annotationProcessorPath;
     }
 
-    @Deprecated
     @Override
-    public void setDependencyCacheDir(File dependencyCacheDir) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("DefaultJavaCompileSpec.setDependencyCacheDir()");
-        this.dependencyCacheDir = dependencyCacheDir;
+    public void setAnnotationProcessorPath(List<File> annotationProcessorPath) {
+        this.annotationProcessorPath = annotationProcessorPath;
     }
 }

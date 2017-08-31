@@ -18,16 +18,13 @@ package org.gradle.performance.results
 
 import groovy.transform.CompileStatic
 import org.gradle.api.Transformer
-import org.gradle.api.logging.Logger
-import org.gradle.api.logging.Logging
 
 @CompileStatic
-public class CrossVersionPerformanceResults extends PerformanceTestResult {
-    private final static Logger LOGGER = Logging.getLogger(CrossVersionPerformanceResults.class)
-
+class CrossVersionPerformanceResults extends PerformanceTestResult {
     String testProject
     List<String> args
     List<String> tasks
+    List<String> cleanTasks
     List<String> gradleOpts
     Boolean daemon
 
@@ -41,7 +38,11 @@ public class CrossVersionPerformanceResults extends PerformanceTestResult {
     }
 
     String getDisplayName() {
-        return "Results for test project '$testProject' with tasks ${tasks.join(', ')}"
+        def displayName = "Results for test project '$testProject' with tasks ${tasks.join(', ')}"
+        if (cleanTasks) {
+            displayName += ", cleaned with ${cleanTasks.join(', ')}"
+        }
+        return displayName
     }
 
     Collection<BaselineVersion> getBaselineVersions() {
@@ -80,32 +81,16 @@ public class CrossVersionPerformanceResults extends PerformanceTestResult {
     }
 
     void assertEveryBuildSucceeds() {
-        if (whatToCheck() != Checks.NONE) {
-            LOGGER.info("Asserting all builds have succeeded...");
-            assert failures.collect { it.exception }.empty: "Some builds have failed."
+        if (whatToCheck().exceptions()) {
+            assert failures.empty: "Some builds have failed: ${failures*.exception}"
         }
     }
 
-    void assertCurrentVersionHasNotRegressed(Flakiness flakiness=Flakiness.not_flaky) {
+    void assertCurrentVersionHasNotRegressed() {
         def slower = checkBaselineVersion({ it.fasterThan(current) }, { it.getSpeedStatsAgainst(displayName, current) })
-        def larger = checkBaselineVersion({ it.usesLessMemoryThan(current) }, { it.getMemoryStatsAgainst(displayName, current) })
         assertEveryBuildSucceeds()
-        if (slower && larger && whatToCheck().speed() && whatToCheck().memory()) {
-            throwAssertionErrorIfNotFlaky(flakiness, "$slower\n$larger")
-        }
         if (slower && whatToCheck().speed()) {
-            throwAssertionErrorIfNotFlaky(flakiness, slower)
-        }
-        if (larger && whatToCheck().memory()) {
-            throwAssertionErrorIfNotFlaky(flakiness, larger)
-        }
-    }
-
-    private static void throwAssertionErrorIfNotFlaky(Flakiness flakiness, String message) {
-        if (flakiness.isFlaky()) {
-            LOGGER.error("Performance test failed but it is known as flaky: $message")
-        } else {
-            throw new AssertionError(Object.cast(message))
+            throw new AssertionError(Object.cast(slower))
         }
     }
 

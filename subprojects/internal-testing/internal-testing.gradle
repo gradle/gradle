@@ -22,6 +22,7 @@ dependencies {
 
     compile project(":baseServices")
     compile project(":native")
+    compile libraries.slf4j_api
     compile libraries.guava
     compile libraries.commons_lang
     compile libraries.commons_io
@@ -31,7 +32,6 @@ dependencies {
     compile libraries.jmock
     compile libraries.spock
     compile libraries.jsoup
-    compile libraries.jsr305 //it is a guava dependency needed for compilation on ibm vm / windows
 }
 
 useClassycle()

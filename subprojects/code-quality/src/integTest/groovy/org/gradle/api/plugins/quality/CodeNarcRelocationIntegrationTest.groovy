@@ -54,9 +54,7 @@ class CodeNarcRelocationIntegrationTest extends AbstractTaskRelocationIntegratio
         """
             apply plugin: "codenarc"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             task codenarc(type: CodeNarc) {
                 source "$sourceDir"

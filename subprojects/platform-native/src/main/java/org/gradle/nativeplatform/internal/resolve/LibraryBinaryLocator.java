@@ -17,8 +17,9 @@
 package org.gradle.nativeplatform.internal.resolve;
 
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.Nullable;
 import org.gradle.nativeplatform.NativeLibraryBinary;
+
+import javax.annotation.Nullable;
 
 public interface LibraryBinaryLocator {
     /**

@@ -16,17 +16,19 @@
 
 package org.gradle.performance.fixture
 
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.DataReporter
+import org.gradle.performance.util.Git
 import org.gradle.util.GradleVersion
 
 class BuildScanPerformanceTestRunner extends CrossBuildPerformanceTestRunner {
     private final String pluginCommitSha
 
-    public BuildScanPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossBuildPerformanceResults> dataReporter, String pluginCommitSha) {
-        super(experimentRunner, dataReporter)
+    public BuildScanPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossBuildPerformanceResults> dataReporter, String pluginCommitSha, IntegrationTestBuildContext buildContext) {
+        super(experimentRunner, dataReporter, buildContext)
         this.pluginCommitSha = pluginCommitSha
     }
 
@@ -37,6 +39,7 @@ class BuildScanPerformanceTestRunner extends CrossBuildPerformanceTestRunner {
             testGroup: testGroup,
             jvm: Jvm.current().toString(),
             operatingSystem: OperatingSystem.current().toString(),
+            host: InetAddress.getLocalHost().getHostName(),
             versionUnderTest: GradleVersion.current().getVersion(),
             vcsBranch: Git.current().branchName,
             vcsCommits: [Git.current().commitId, pluginCommitSha],

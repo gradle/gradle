@@ -48,6 +48,15 @@ public class BrowserEvaluate extends DefaultTask {
         return content == null ? null : getProject().files(content).getSingleFile();
     }
 
+    /**
+     * Sets content.
+     *
+     * @since 4.0
+     */
+    public void setContent(File content) {
+        this.content = content;
+    }
+
     public void setContent(Object content) {
         this.content = content;
     }
@@ -55,6 +64,15 @@ public class BrowserEvaluate extends DefaultTask {
     @Input
     public String getResource() {
         return resource.toString();
+    }
+
+    /**
+     * Sets resource.
+     *
+     * @since 4.0
+     */
+    public void setResource(String resource) {
+        this.resource = resource;
     }
 
     public void setResource(Object resource) {
@@ -74,6 +92,15 @@ public class BrowserEvaluate extends DefaultTask {
     @OutputFile
     public File getResult() {
         return result == null ? null : getProject().file(result);
+    }
+
+    /**
+     * Sets result.
+     *
+     * @since 4.0
+     */
+    public void setResult(File result) {
+        this.result = result;
     }
 
     public void setResult(Object result) {

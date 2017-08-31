@@ -18,7 +18,6 @@ package org.gradle.api.java.archives;
 import groovy.lang.Closure;
 import org.gradle.internal.HasInternalProtocol;
 
-import java.io.Writer;
 import java.util.Map;
 
 /**
@@ -70,21 +69,6 @@ public interface Manifest {
     Manifest getEffectiveManifest();
 
     /**
-     * Writes the manifest into a writer.
-     *
-     * If writing to bytes, prefer using the UTF-8 character set for encoding.
-     *
-     * Note that using this method will break your Manifest if it contains long
-     * attribute names or values that may produce split multi-bytes characters.
-     * Prefer {@link #writeTo(Object)} instead.
-     *
-     * @param writer The writer to write the manifest to
-     * @return this
-     */
-    @Deprecated
-    Manifest writeTo(Writer writer);
-
-    /**
      * Writes the manifest into a file. The path's are resolved as defined by {@link org.gradle.api.Project#files(Object...)}
      *
      * The manifest will be encoded using the character set defined by the {@link org.gradle.jvm.tasks.Jar#getManifestContentCharset()} property.
@@ -101,7 +85,6 @@ public interface Manifest {
      * The merge is not happening instantaneously. It happens either before writing or when {@link #getEffectiveManifest()}
      * is called.
      *
-     * @param mergePath
      * @return this
      */
     Manifest from(Object... mergePath);
@@ -115,8 +98,6 @@ public interface Manifest {
      *
      * The closure configures the underlying {@link org.gradle.api.java.archives.ManifestMergeSpec}.
      *
-     * @param mergePath
-     * @param closure
      * @return this
      */
     Manifest from(Object mergePath, Closure<?> closure);

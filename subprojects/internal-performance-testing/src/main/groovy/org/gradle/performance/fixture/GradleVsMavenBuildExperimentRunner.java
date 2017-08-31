@@ -18,11 +18,18 @@ package org.gradle.performance.fixture;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
+import org.gradle.api.Action;
+import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 
 public class GradleVsMavenBuildExperimentRunner extends BuildExperimentRunner {
@@ -45,19 +52,49 @@ public class GradleVsMavenBuildExperimentRunner extends BuildExperimentRunner {
         }
     }
 
-    private void runMavenExperiment(MeasuredOperationList results, MavenBuildExperimentSpec experiment, final MavenInvocationSpec buildSpec) {
+    private void runMavenExperiment(MeasuredOperationList results, final MavenBuildExperimentSpec experiment, final MavenInvocationSpec buildSpec) {
         File projectDir = buildSpec.getWorkingDirectory();
         performMeasurements(new InvocationExecutorProvider() {
-            public Runnable runner(final BuildExperimentInvocationInfo invocationInfo, final InvocationCustomizer invocationCustomizer) {
-                return new Runnable() {
-                    public void run() {
-                        ExecAction mavenInvocation = createMavenInvocation(invocationCustomizer.customize(invocationInfo, buildSpec));
-                        System.out.println("Run Maven using JVM opts: " + buildSpec.getJvmOpts());
-                        mavenInvocation.execute();
+            public Action<MeasuredOperation> runner(final BuildExperimentInvocationInfo invocationInfo, final InvocationCustomizer invocationCustomizer) {
+                return new Action<MeasuredOperation>() {
+                    @Override
+                    public void execute(MeasuredOperation measuredOperation) {
+                        System.out.println("Run Maven using JVM opts: " + Iterables.concat(buildSpec.getMavenOpts(), buildSpec.getJvmOpts()));
+                        List<String> cleanTasks = buildSpec.getCleanTasks();
+                        if (!cleanTasks.isEmpty()) {
+                            System.out.println("Cleaning up by running Maven tasks: " + Joiner.on(" ").join(buildSpec.getCleanTasks()));
+                            ExecAction clean = createMavenInvocation(buildSpec, cleanTasks);
+                            executeWithFileLogging(experiment, clean);
+                        }
+
+                        MavenInvocationSpec invocation = invocationCustomizer.customize(invocationInfo, buildSpec);
+                        final ExecAction run = createMavenInvocation(invocation, invocation.getTasksToRun());
+                        System.out.println("Measuring Maven tasks: " + Joiner.on(" ").join(buildSpec.getTasksToRun()));
+                        DurationMeasurementImpl.measure(measuredOperation, new Runnable() {
+                            @Override
+                            public void run() {
+                                executeWithFileLogging(experiment, run);
+                            }
+                        });
                     }
                 };
             }
         }, experiment, results, projectDir);
+    }
+
+    private void executeWithFileLogging(MavenBuildExperimentSpec experiment, ExecAction mavenInvocation) {
+        File log = new File(experiment.getWorkingDirectory(), "log.txt");
+        OutputStream out = null;
+        try {
+            out = new FileOutputStream(log, true);
+            mavenInvocation.setErrorOutput(out);
+            mavenInvocation.setStandardOutput(out);
+            mavenInvocation.execute();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        } finally {
+            CompositeStoppable.stoppable(out).stop();
+        }
     }
 
     @Override
@@ -70,15 +107,15 @@ public class GradleVsMavenBuildExperimentRunner extends BuildExperimentRunner {
                 }
             };
         }
-        return createInvocationCustomizer(info);
+        return super.createInvocationCustomizer(info);
     }
 
-    private ExecAction createMavenInvocation(MavenInvocationSpec buildSpec) {
+    private ExecAction createMavenInvocation(MavenInvocationSpec buildSpec, List<String> tasks) {
         ExecAction execAction = execActionFactory.newExecAction();
         execAction.setWorkingDir(buildSpec.getWorkingDirectory());
         execAction.executable(buildSpec.getInstallation().getMvn());
         execAction.args(buildSpec.getArgs());
-        execAction.args(buildSpec.getTasksToRun());
+        execAction.args(tasks);
         execAction.environment("MAVEN_OPTS", Joiner.on(' ').join(Iterables.concat(buildSpec.getMavenOpts(), buildSpec.getJvmOpts())));
         return execAction;
     }

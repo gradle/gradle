@@ -29,7 +29,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
 """
 
         given:
-        executer.useDefaultBuildJvmArgs()
+        executer.useOnlyRequestedJvmOpts()
 
         expect:
         succeeds()

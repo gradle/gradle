@@ -16,14 +16,18 @@
 
 package org.gradle.internal.component.local.model
 
-import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
+import org.gradle.api.internal.artifacts.configurations.OutgoingVariant
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.internal.attributes.AttributeContainerInternal
+import org.gradle.api.internal.attributes.AttributesSchemaInternal
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.component.external.descriptor.DefaultExclude
@@ -37,7 +41,7 @@ import spock.lang.Specification
 class DefaultLocalComponentMetadataTest extends Specification {
     def id = DefaultModuleVersionIdentifier.newId("group", "module", "version")
     def componentIdentifier = DefaultModuleComponentIdentifier.newId(id)
-    def metadata = new DefaultLocalComponentMetadata(id, componentIdentifier, "status")
+    def metadata = new DefaultLocalComponentMetadata(id, componentIdentifier, "status", Mock(AttributesSchemaInternal))
 
     def "can lookup configuration after it has been added"() {
         when:
@@ -61,6 +65,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
     }
 
     def "configuration has no dependencies or artifacts when none have been added"() {
+        def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
         when:
         metadata.addConfiguration("super", "description", [] as Set, ["super"] as Set, false, false, null, true, true)
         metadata.addConfiguration("conf", "description", ["super"] as Set, ["super", "conf"] as Set, true, true, null, true, true)
@@ -69,7 +74,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
         def conf = metadata.getConfiguration('conf')
         conf.dependencies.empty
         conf.artifacts.empty
-        conf.exclusions == ModuleExclusions.excludeNone()
+        conf.getExclusions(moduleExclusions) == ModuleExclusions.excludeNone()
         conf.files.empty
     }
 
@@ -120,8 +125,8 @@ class DefaultLocalComponentMetadataTest extends Specification {
         metadata.getConfiguration("child2").artifacts.size() == 1
     }
 
-    private addConfiguration(String name, Collection<String> extendsFrom = []) {
-        metadata.addConfiguration(name, "", extendsFrom as Set, (extendsFrom + [name]) as Set, true, true, null, true, true)
+    private addConfiguration(String name, Collection<String> extendsFrom = [], AttributeContainerInternal attributes = ImmutableAttributes.EMPTY) {
+        metadata.addConfiguration(name, "", extendsFrom as Set, (extendsFrom + [name]) as Set, true, true, attributes, true, true)
     }
 
     def addArtifact(String configuration, IvyArtifactName name, File file, TaskDependency buildDeps = null) {
@@ -174,6 +179,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
 
     def "can lookup an unknown artifact given an Ivy artifact"() {
         def artifact = artifactName()
+
         given:
         addConfiguration("conf")
 
@@ -212,6 +218,38 @@ class DefaultLocalComponentMetadataTest extends Specification {
         metadata.getConfiguration("conf2").artifacts == [artifactMetadata2] as Set
     }
 
+    def "variants are attached to configuration but not its children"() {
+        def variant1 = Stub(OutgoingVariant)
+        def variant2 = Stub(OutgoingVariant)
+        variant1.attributes >> attributes()
+        variant1.artifacts >> ([Stub(PublishArtifact)] as Set)
+        variant2.attributes >> attributes()
+        variant2.artifacts >> ([Stub(PublishArtifact)] as Set)
+
+        when:
+        addConfiguration("conf1")
+        addConfiguration("conf2", ["conf1"])
+        metadata.addVariant("conf1", variant1)
+        metadata.addVariant("conf2", variant2)
+
+        then:
+        def config1 = metadata.getConfiguration("conf1")
+        config1.variants.size() == 1
+        config1.variants.first().attributes == variant1.attributes
+        config1.variants.first().artifacts.size() == 1
+
+        def config2 = metadata.getConfiguration("conf2")
+        config2.variants.size() == 1
+        config2.variants.first().attributes == variant2.attributes
+        config2.variants.first().artifacts.size() == 1
+    }
+
+    private AttributeContainerInternal attributes() {
+        def attrs = ImmutableAttributes.EMPTY
+        attrs.asImmutable() >> attrs
+        return attrs
+    }
+
     def "files attached to configuration and its children"() {
         def files1 = Stub(LocalFileDependencyMetadata)
         def files2 = Stub(LocalFileDependencyMetadata)
@@ -233,84 +271,6 @@ class DefaultLocalComponentMetadataTest extends Specification {
         metadata.getConfiguration("conf2").files == [files2] as Set
         metadata.getConfiguration("child1").files == [files1, files2, files3] as Set
         metadata.getConfiguration("child2").files == [files1] as Set
-    }
-
-    def "collects build dependencies for artifacts attached to configuration and its parents"() {
-        def artifact1 = artifactName()
-        def artifact2 = artifactName()
-        def artifact3 = artifactName()
-        def file1 = new File("artifact-1.zip")
-        def file2 = new File("artifact-2.zip")
-        def file3 = new File("artifact-3.zip")
-        def buildDeps1 = Stub(TaskDependency)
-        def buildDeps2 = Stub(TaskDependency)
-        def buildDeps3 = Stub(TaskDependency)
-        def task1 = Stub(Task)
-        def task2 = Stub(Task)
-        def task3 = Stub(Task)
-
-        given:
-        addConfiguration("conf1")
-        addConfiguration("conf2")
-        addConfiguration("child1", ["conf1", "conf2"])
-        addConfiguration("child2", ["conf1"])
-
-        buildDeps1.getDependencies(_) >> [task1]
-        buildDeps2.getDependencies(_) >> [task2]
-        buildDeps3.getDependencies(_) >> [task3]
-
-        when:
-        addArtifact("conf1", artifact1, file1, buildDeps1)
-        addArtifact("conf2", artifact2, file2, buildDeps2)
-        addArtifact("child1", artifact3, file3, buildDeps3)
-
-        then:
-        metadata.getConfiguration("conf1").directBuildDependencies.getDependencies(null) == [task1] as Set
-        metadata.getConfiguration("conf2").directBuildDependencies.getDependencies(null) == [task2] as Set
-        metadata.getConfiguration("child1").directBuildDependencies.getDependencies(null) == [task1, task2, task3] as Set
-        metadata.getConfiguration("child2").directBuildDependencies.getDependencies(null) == [task1] as Set
-    }
-
-    def "collects build dependencies for files attached to configuration and its parents"() {
-        def dep1 = Stub(LocalFileDependencyMetadata)
-        def dep2 = Stub(LocalFileDependencyMetadata)
-        def dep3 = Stub(LocalFileDependencyMetadata)
-        def files1 = Stub(FileCollection)
-        def files2 = Stub(FileCollection)
-        def files3 = Stub(FileCollection)
-        def buildDeps1 = Stub(TaskDependency)
-        def buildDeps2 = Stub(TaskDependency)
-        def buildDeps3 = Stub(TaskDependency)
-        def task1 = Stub(Task)
-        def task2 = Stub(Task)
-        def task3 = Stub(Task)
-
-        given:
-        addConfiguration("conf1")
-        addConfiguration("conf2")
-        addConfiguration("child1", ["conf1", "conf2"])
-        addConfiguration("child2", ["conf1"])
-
-        dep1.files >> files1
-        dep2.files >> files2
-        dep3.files >> files3
-        files1.buildDependencies >> buildDeps1
-        files2.buildDependencies >> buildDeps2
-        files3.buildDependencies >> buildDeps3
-        buildDeps1.getDependencies(_) >> [task1]
-        buildDeps2.getDependencies(_) >> [task2]
-        buildDeps3.getDependencies(_) >> [task3]
-
-        when:
-        metadata.addFiles("conf1", dep1)
-        metadata.addFiles("conf2", dep2)
-        metadata.addFiles("child1", dep3)
-
-        then:
-        metadata.getConfiguration("conf1").directBuildDependencies.getDependencies(null) == [task1] as Set
-        metadata.getConfiguration("conf2").directBuildDependencies.getDependencies(null) == [task2] as Set
-        metadata.getConfiguration("child1").directBuildDependencies.getDependencies(null) == [task1, task2, task3] as Set
-        metadata.getConfiguration("child2").directBuildDependencies.getDependencies(null) == [task1] as Set
     }
 
     def "can add dependencies"() {
@@ -350,13 +310,15 @@ class DefaultLocalComponentMetadataTest extends Specification {
     }
 
     def "builds and caches exclude rules for a configuration"() {
+        def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
+
         given:
         metadata.addConfiguration("compile", null, [] as Set, ["compile"] as Set, true, true, null, true, true)
         metadata.addConfiguration("runtime", null, ["compile"] as Set, ["compile", "runtime"] as Set, true, true, null, true, true)
 
-        def rule1 = new DefaultExclude("group1", "module1", ["compile"] as String[], PatternMatchers.EXACT)
-        def rule2 = new DefaultExclude("group1", "module1", ["runtime"] as String[], PatternMatchers.EXACT)
-        def rule3 = new DefaultExclude("group1", "module1", ["other"] as String[], PatternMatchers.EXACT)
+        def rule1 = new DefaultExclude(DefaultModuleIdentifier.newId("group1", "module1"), ["compile"] as String[], PatternMatchers.EXACT)
+        def rule2 = new DefaultExclude(DefaultModuleIdentifier.newId("group1", "module1"), ["runtime"] as String[], PatternMatchers.EXACT)
+        def rule3 = new DefaultExclude(DefaultModuleIdentifier.newId("group1", "module1"), ["other"] as String[], PatternMatchers.EXACT)
 
         metadata.addExclude(rule1)
         metadata.addExclude(rule2)
@@ -365,12 +327,12 @@ class DefaultLocalComponentMetadataTest extends Specification {
         expect:
         def config = metadata.getConfiguration("runtime")
 
-        def exclusions = config.exclusions
-        exclusions == ModuleExclusions.excludeAny(rule1, rule2)
-        exclusions.is(config.exclusions)
+        def exclusions = config.getExclusions(moduleExclusions)
+        exclusions == moduleExclusions.excludeAny(rule1, rule2)
+        exclusions.is(config.getExclusions(moduleExclusions))
     }
 
     def artifactName() {
-        return DefaultIvyArtifactName.of("artifact", "type", "ext")
+        return new DefaultIvyArtifactName("artifact", "type", "ext")
     }
 }

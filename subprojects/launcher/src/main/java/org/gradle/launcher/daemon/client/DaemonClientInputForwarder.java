@@ -15,17 +15,17 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.io.TextStream;
 import org.gradle.launcher.daemon.protocol.CloseInput;
 import org.gradle.launcher.daemon.protocol.ForwardInput;
 import org.gradle.launcher.daemon.protocol.InputMessage;
-import org.gradle.internal.dispatch.Dispatch;
 
+import javax.annotation.Nullable;
 import java.io.InputStream;
 
 /**

@@ -17,9 +17,9 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import org.gradle.api.internal.tasks.SimpleWorkResult;
-import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme;
+import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 
 import java.io.File;
 
@@ -27,9 +27,11 @@ public class OutputCleaningCompiler<T extends NativeCompileSpec> implements Comp
 
     private final Compiler<T> compiler;
     private final String outputFileSuffix;
+    private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
 
-    public OutputCleaningCompiler(Compiler<T> compiler, String outputFileSuffix) {
+    public OutputCleaningCompiler(Compiler<T> compiler, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, String outputFileSuffix) {
         this.compiler = compiler;
+        this.compilerOutputFileNamingSchemeFactory = compilerOutputFileNamingSchemeFactory;
         this.outputFileSuffix = outputFileSuffix;
     }
 
@@ -60,9 +62,9 @@ public class OutputCleaningCompiler<T extends NativeCompileSpec> implements Comp
     }
 
     private File getObjectFile(File objectFileRoot, File sourceFile) {
-        return new CompilerOutputFileNamingScheme()
-                        .withObjectFileNameSuffix(outputFileSuffix)
-                        .withOutputBaseFolder(objectFileRoot)
-                        .map(sourceFile);
+        return compilerOutputFileNamingSchemeFactory.create()
+            .withObjectFileNameSuffix(outputFileSuffix)
+            .withOutputBaseFolder(objectFileRoot)
+            .map(sourceFile);
     }
 }

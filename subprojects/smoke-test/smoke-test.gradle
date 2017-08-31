@@ -16,12 +16,23 @@ configurations {
 
 dependencies {
     smokeTestCompile project(':testKit')
+    smokeTestCompile project(":internalIntegTesting")
     smokeTestCompile libraries.spock
 }
 
+processSmokeTestResources {
+    from ("$rootDir/gradle") {
+        into "org/gradle/smoketests/cache-init-scripts"
+        include "overlappingTaskOutputsStatsInit.gradle"
+    }
+}
+
 tasks.create('smokeTest', SmokeTest) { SmokeTest task ->
-    testClassesDir = sourceSets.smokeTest.output.classesDir
+    group = "Verification"
+    description = "Runs Smoke tests"
+    testClassesDirs = sourceSets.smokeTest.output.classesDirs
     classpath = sourceSets.smokeTest.runtimeClasspath
+    maxParallelForks = 1 // those tests are pretty expensive, we shouldn't execute them concurrently
 }
 
 plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) { // lazy as plugin not applied yet

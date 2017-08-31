@@ -23,7 +23,6 @@ import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
-import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 
 public class ErrorHandlingArtifactResolver implements ArtifactResolver {
     private final ArtifactResolver resolver;
@@ -36,15 +35,6 @@ public class ErrorHandlingArtifactResolver implements ArtifactResolver {
     public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         try {
             resolver.resolveArtifactsWithType(component, artifactType, result);
-        } catch (Throwable t) {
-            result.failed(new ArtifactResolveException(component.getComponentId(), t));
-        }
-    }
-
-    @Override
-    public void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result) {
-        try {
-            resolver.resolveArtifacts(component, result);
         } catch (Throwable t) {
             result.failed(new ArtifactResolveException(component.getComponentId(), t));
         }

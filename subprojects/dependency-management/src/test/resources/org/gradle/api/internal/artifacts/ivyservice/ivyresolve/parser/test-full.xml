@@ -15,9 +15,9 @@
    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
    KIND, either express or implied.  See the License for the
    specific language governing permissions and limitations
-   under the License.    
+   under the License.
 -->
-<ivy-module version="2.0" xmlns:e="http://ant.apache.org/ivy/extra">
+<ivy-module version="2.0" xmlns:m="http://ant.apache.org/ivy/maven" xmlns:e="http://ant.apache.org/ivy/extra">
 	<info organisation="myorg"
 	       module="mymodule"
 	       revision="myrev"
@@ -25,13 +25,13 @@
            branch="branch"
 	       publication="20041101110000"
 	       e:attr1="value1">
-	       
+
 		<license name="MyLicense" url="http://www.my.org/mymodule/mylicense.html"/>
 		<ivyauthor name="jayasoft" url="http://www.jayasoft.org/"/>
 		<ivyauthor name="myorg" url="http://www.myorg.org/"/>
 		<repository name="ivyrep" url="http://www.jayasoft.fr/org/ivyrep/" pattern="[organisation]/[module]/ivy-[revision].xml" ivys="true" artifacts="false"/>
 
-		<description homepage="http://www.my.org/mymodule/">			
+		<description homepage="http://www.my.org/mymodule/">
 	This module is <b>great</b> !<br/>
 	You can use it especially with myconf1 and myconf2, and myconf4 is not too bad too.
 		</description>
@@ -42,12 +42,12 @@
 		<conf name="myconf1" description="desc 1" e:attr2="value2"/>
 		<conf name="myconf2" description="desc 2" visibility="public"/>
 		<conf name="myconf3" description="desc 3" visibility="private"/>
-		<conf name="myconf4" description="desc 4" extends="myconf1, myconf2"/>		
+		<conf name="myconf4" description="desc 4" extends="myconf1, myconf2"/>
 		<conf name="myoldconf" description="my old desc" deprecated="20050115"/>
 	</configurations>
 	<publications>
-		<artifact name="myartifact1" type="jar" e:attr3="value3"/>
-		<artifact name="myartifact2" type="jar" conf="myconf1"/>
+		<artifact name="myartifact1" type="jar" e:attr3="value3" e:classifier="classy1"/>
+		<artifact name="myartifact2" type="jar" conf="myconf1" m:classifier="classy2"/>
 		<artifact name="myartifact3" type="jar" conf="myconf1, myconf2, myconf3"/>
 		<artifact name="myartifact4" type="jar">
 			<conf name="myconf1"/>
@@ -81,7 +81,7 @@
 		<dependency org="yourorg" name="yourmodule8" rev="8.1">
 			<artifact name="yourartifact8-1" type="jar" e:attr5="value5"/>
 			<artifact name="yourartifact8-2" type="jar"/>
-		</dependency>		
+		</dependency>
 
 		<dependency org="yourorg" name="yourmodule9" rev="9.1" conf="myconf1,myconf2,myconf3->default">
 			<artifact name="yourartifact9-1" type="jar" conf="myconf1,myconf2"/>
@@ -89,7 +89,7 @@
 				<conf name="myconf2"/>
 				<conf name="myconf3"/>
 			</artifact>
-		</dependency>		
+		</dependency>
 
 		<dependency org="yourorg" name="yourmodule10" rev="10.1">
 			<include name="your.*" type="jar"/>
@@ -97,10 +97,10 @@
 			<exclude name="toexclude"/>
 		</dependency>
 		<dependency org="yourorg" name="yourmodule11" rev="11.1" conf="*->@"/>
-		
-		<exclude module="*servlet*" matcher="glob" conf="myconf1" /> 
+
+		<exclude module="*servlet*" matcher="glob" conf="myconf1" />
 		<exclude org="acme" module="test" artifact="test" type="source" ext="jar" />
-        <override org="yourorg" module=".*1" matcher="regexp" branch="BRANCH" rev="1.0" /> 
+        <override org="yourorg" module=".*1" matcher="regexp" branch="BRANCH" rev="1.0" />
 		<conflict org="yourorg" module=".*" matcher="regexp" manager="all" />
 		<conflict org="theirorg" module="theirmodule1" rev="1.0, 1.1"/>
 	</dependencies>

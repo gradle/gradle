@@ -23,10 +23,11 @@ dependencies {
     compile project(':testingBase')
 
     compile libraries.junit
+    compile libraries.kryo
     compile 'org.testng:testng:6.3.1'
 
-    testCompile libraries.groovy
     testCompile 'com.google.inject:guice:2.0@jar' // this is for TestNG
+
 }
 
 configure([test, java9Test]) {
@@ -37,7 +38,8 @@ configure([test, java9Test]) {
 useTestFixtures()
 useTestFixtures(project: ':testingBase', sourceSet: 'testFixtures')
 useTestFixtures(project: ':diagnostics')
-useTestFixtures(project: ":messaging")
+useTestFixtures(project: ':messaging')
+useTestFixtures(project: ':baseServices')
 
 // TODO: re-enable if we are ready to do breaking changes, because this subproject includes classes migrated from the "plugins" subproject
 //useClassycle()

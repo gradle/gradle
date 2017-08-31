@@ -6,4 +6,5 @@
 :createClientJar UP-TO-DATE
 :clientJar UP-TO-DATE
 
-BUILD SUCCESSFUL
+BUILD SUCCESSFUL in 0s
+6 actionable tasks: 2 executed, 4 up-to-date

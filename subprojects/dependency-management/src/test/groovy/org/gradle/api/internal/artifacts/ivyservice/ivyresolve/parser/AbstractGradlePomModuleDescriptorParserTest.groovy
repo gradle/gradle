@@ -20,12 +20,18 @@ import org.apache.ivy.core.module.id.ArtifactRevisionId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
+import org.gradle.internal.resource.local.FileResourceRepository
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -34,7 +40,14 @@ import spock.lang.Specification
 abstract class AbstractGradlePomModuleDescriptorParserTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    final GradlePomModuleDescriptorParser parser = new GradlePomModuleDescriptorParser(new DefaultVersionSelectorScheme())
+    final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock() {
+        module(_, _) >> { args ->
+            DefaultModuleIdentifier.newId(*args)
+        }
+    }
+    final ModuleExclusions moduleExclusions = new ModuleExclusions(moduleIdentifierFactory)
+    final FileResourceRepository fileRepository = TestFiles.fileRepository()
+    final GradlePomModuleDescriptorParser parser = new GradlePomModuleDescriptorParser(new DefaultVersionSelectorScheme(), moduleIdentifierFactory, moduleExclusions, fileRepository)
     final parseContext = Mock(DescriptorParseContext)
     TestFile pomFile
     ModuleDescriptorState descriptor
@@ -47,6 +60,10 @@ abstract class AbstractGradlePomModuleDescriptorParserTest extends Specification
     protected void parsePom() {
         metadata = parseMetaData()
         descriptor = metadata.descriptor
+    }
+
+    protected LocallyAvailableExternalResource asResource(File file) {
+        return fileRepository.resource(file)
     }
 
     protected MutableMavenModuleResolveMetadata parseMetaData() {

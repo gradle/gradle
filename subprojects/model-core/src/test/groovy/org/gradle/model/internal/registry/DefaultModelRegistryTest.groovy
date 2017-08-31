@@ -31,6 +31,7 @@ import org.gradle.util.TextUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
 import static org.gradle.model.internal.core.NodePredicate.allDescendants
 import static org.gradle.model.internal.core.NodePredicate.allLinks
 import static org.gradle.util.TextUtil.normaliseLineSeparators
@@ -703,7 +704,7 @@ class DefaultModelRegistryTest extends Specification {
 
         then:
         def ex = thrown IllegalStateException
-        ex.message == "Cannot bind subject 'ModelReference{path=thing, scope=null, type=${Bean.name}, state=GraphClosed}' to role '${targetRole}' because it is targeting a type and subject types are not yet available in that role"
+        ex.message == "Cannot bind subject 'ModelReference{path=thing, scope=null, type=${fullyQualifiedNameOf(Bean)}, state=GraphClosed}' to role '${targetRole}' because it is targeting a type and subject types are not yet available in that role"
 
         where:
         targetRole << ModelActionRole.values().findAll { !it.subjectViewAvailable }
@@ -1434,7 +1435,7 @@ foo
         then:
         def ex = thrown InvalidModelRuleException
         ex.cause instanceof ModelRuleBindingException
-        ex.cause.message == TextUtil.toPlatformLineSeparators("""Type-only model reference of type $Bean.name ($Bean.name) is ambiguous as multiple model elements are available for this type:
+        ex.cause.message == TextUtil.toPlatformLineSeparators("""Type-only model reference of type ${fullyQualifiedNameOf(Bean)} (${fullyQualifiedNameOf(Bean)}) is ambiguous as multiple model elements are available for this type:
   - dep (created by: dep creator)
   - dep2 (created by: dep2 creator)""")
     }

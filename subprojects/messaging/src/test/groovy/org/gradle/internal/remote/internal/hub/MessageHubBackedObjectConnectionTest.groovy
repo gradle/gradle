@@ -16,6 +16,7 @@
 
 package org.gradle.internal.remote.internal.hub
 
+import org.gradle.api.GradleException
 import org.gradle.internal.dispatch.MethodInvocation
 import org.gradle.internal.dispatch.StreamCompletion
 import org.gradle.internal.remote.internal.ConnectCompletion
@@ -52,6 +53,45 @@ class MessageHubBackedObjectConnectionTest extends ConcurrentSpec {
         then:
         1 * worker.doStuff("param 1")
         0 * worker._
+
+        cleanup:
+        connection?.stop()
+        connectionBuilder?.stop()
+    }
+
+    def "cannot add incoming message handler on established connections"() {
+        def worker = Mock(Worker)
+        def connection = new TestConnection()
+
+        given:
+        connectCompletion.create(_) >> connection
+
+        when:
+        connectionBuilder.connect()
+        connectionBuilder.addIncoming(Worker, worker)
+
+        then:
+        def e = thrown(GradleException)
+        e.message == "Cannot add incoming message handler after connection established."
+
+        cleanup:
+        connection?.stop()
+        connectionBuilder?.stop()
+    }
+
+    def "cannot create outgoing message transmitter on established connections"() {
+        def connection = new TestConnection()
+
+        given:
+        connectCompletion.create(_) >> connection
+
+        when:
+        connectionBuilder.connect()
+        connectionBuilder.addOutgoing(Worker)
+
+        then:
+        def e = thrown(GradleException)
+        e.message == "Cannot add outgoing message transmitter after connection established."
 
         cleanup:
         connection?.stop()

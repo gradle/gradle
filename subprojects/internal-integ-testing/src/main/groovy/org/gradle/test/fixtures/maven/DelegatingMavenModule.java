@@ -43,6 +43,11 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     }
 
     @Override
+    public String getPath() {
+        return backingModule.getPath();
+    }
+
+    @Override
     public void assertPublishedAsJavaModule() {
         backingModule.assertPublishedAsJavaModule();
     }
@@ -162,5 +167,10 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     public T withNonUniqueSnapshots() {
         backingModule.withNonUniqueSnapshots();
         return t();
+    }
+
+    @Override
+    public boolean getUniqueSnapshots() {
+        return backingModule.getUniqueSnapshots();
     }
 }

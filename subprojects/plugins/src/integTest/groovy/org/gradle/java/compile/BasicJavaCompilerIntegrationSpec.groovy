@@ -41,7 +41,7 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         succeeds("compileJava")
         output.contains(logStatement())
         !errorOutput
-        file("build/classes/main/compile/test/Person.class").exists()
+        javaClassFile("compile/test/Person.class").exists()
     }
 
     def compileBadCodeBreaksTheBuild() {
@@ -52,7 +52,7 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         fails("compileJava")
         output.contains(logStatement())
         compilerErrorOutput.contains("';' expected")
-        file("build/classes/main").assertHasDescendants()
+        javaClassFile("").assertHasDescendants()
     }
 
     def compileBadCodeWithoutFailing() {
@@ -66,7 +66,7 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         succeeds("compileJava")
         output.contains(logStatement())
         compilerErrorOutput.contains("';' expected")
-        file("build/classes/main").assertHasDescendants()
+        javaClassFile("").assertHasDescendants()
     }
 
     def compileWithSpecifiedEncoding() {
@@ -95,7 +95,7 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         run("compileJava")
 
         then:
-        def fullDebug = classFile("build/classes/main/compile/test/Person.class")
+        def fullDebug = classFile("compile/test/Person.class")
         fullDebug.debugIncludesSourceFile
         fullDebug.debugIncludesLineNumbers
         fullDebug.debugIncludesLocalVariables
@@ -107,7 +107,7 @@ compileJava.options.debugOptions.debugLevel='lines'
         run("compileJava")
 
         then:
-        def linesOnly = classFile("build/classes/main/compile/test/Person.class")
+        def linesOnly = classFile("compile/test/Person.class")
         !linesOnly.debugIncludesSourceFile
         linesOnly.debugIncludesLineNumbers
         !linesOnly.debugIncludesLocalVariables
@@ -119,7 +119,7 @@ compileJava.options.debug = false
         run("compileJava")
 
         then:
-        def noDebug = classFile("build/classes/main/compile/test/Person.class")
+        def noDebug = classFile("compile/test/Person.class")
         !noDebug.debugIncludesSourceFile
         !noDebug.debugIncludesLineNumbers
         !noDebug.debugIncludesLocalVariables
@@ -147,7 +147,7 @@ public class FxApp extends Application {
         given:
         goodCode()
         buildFile << """
-compileJava.options.compilerArgs.addAll(['-release', '7'])
+compileJava.options.compilerArgs.addAll(['--release', '7'])
 """
 
         expect:
@@ -170,7 +170,7 @@ public class FailsOnJava7 {
 '''
 
         buildFile << """
-compileJava.options.compilerArgs.addAll(['-release', '7'])
+compileJava.options.compilerArgs.addAll(['--release', '7'])
 """
 
         expect:
@@ -186,16 +186,14 @@ compileJava.options.compilerArgs.addAll(['-release', '7'])
     }
 
     def buildScript() {
-        '''
+        """
 apply plugin: "java"
-repositories {
-    mavenCentral()
-}
+${mavenCentralRepository()}
 
 dependencies {
-    compile "org.codehaus.groovy:groovy:2.4.7"
+    compile "org.codehaus.groovy:groovy:2.4.10"
 }
-'''
+"""
     }
 
     abstract compilerConfiguration()
@@ -269,7 +267,7 @@ class Main {
     }
 
     def classFile(String path) {
-        return new ClassFile(file(path))
+        return new ClassFile(javaClassFile(path))
     }
 
     @LeaksFileHandles("holds processor.jar open for in process compiler")
@@ -288,7 +286,7 @@ class Main {
 
         then:
         succeeds("compileJava")
-        file('build/classes/main/Java$$Generated.java').exists()
+        javaClassFile('Java$$Generated.java').exists()
     }
 
     def writeAnnotationProcessorProject() {

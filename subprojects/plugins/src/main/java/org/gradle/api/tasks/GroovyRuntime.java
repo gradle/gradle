@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Buildable;
 import org.gradle.api.GradleException;
@@ -37,7 +38,7 @@ import java.util.List;
  *
  * <p>Example usage:
  *
- * <pre autoTested="">
+ * <pre class='autoTested'>
  *     apply plugin: "groovy"
  *
  *     repositories {
@@ -84,7 +85,7 @@ public class GroovyRuntime {
             public FileCollection createDelegate() {
                 GroovyJarFile groovyJar = findGroovyJarFile(classpath);
                 if (groovyJar == null) {
-                    throw new GradleException(String.format("Cannot infer Groovy class path because no Groovy Jar was found on class path: %s", classpath));
+                    throw new GradleException(String.format("Cannot infer Groovy class path because no Groovy Jar was found on class path: %s", Iterables.toString(classpath)));
                 }
 
                 if (groovyJar.isGroovyAll()) {

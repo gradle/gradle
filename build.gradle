@@ -24,53 +24,35 @@ archivesBaseName = 'gradle'
 
 buildTypes {
     sanityCheck {
-        tasks "classes", "doc:checkstyleApi", "codeQuality", "docs:check"
-    }
-
-    // The minimum to be run before check-in
-    preCommitBuild {
-        tasks "doc:checkstyleApi", "docs:check", "codeQuality", "test"
-    }
-    quickCheck {
-        tasks "doc:checkstyleApi", "docs:check", "codeQuality", "test"
-    }
-
-    // For testing pull requests
-    pullRequestValidation {
-        tasks "doc:checkstyleApi", "docs:check", "codeQuality", "core:test", "dependencyManagement:test"
-    }
-
-    // A full (in-process) test
-    developerBuild {
-        tasks "check"
+        tasks "classes", "doc:checkstyleApi", "codeQuality", "docs:check", "distribution:checkBinaryCompatibility", "javadocAll"
     }
 
     // Used by the first phase of the build pipeline, running only last version on multiversion - tests
     quickTest {
-        tasks "runtimeTests", "runtimeIntegTests"
+        tasks "test", "integTest", "crossVersionTest"
     }
 
     // Used for builds to run all tests, but not necessarily on all platforms
     fullTest {
-        tasks "runtimeTests", "runtimeForkingIntegTests"
+        tasks "test", "forkingIntegTest", "forkingCrossVersionTest"
         projectProperties useIncomingDistributions: true, testAllVersions: true
     }
 
     // Used for builds to test the code on certain platforms
     platformTest {
-        tasks "runtimeTests", "runtimeForkingIntegTests"
+        tasks "test", "forkingIntegTest", "forkingCrossVersionTest"
         projectProperties useIncomingDistributions: true, testAllVersions: true, testAllPlatforms: true
     }
 
-    // Tests using the daemon mode
-    daemonTest {
-        tasks "runtimeDaemonIntegTests"
+    // Tests not using the daemon mode
+    noDaemonTest {
+        tasks "noDaemonIntegTest"
         projectProperties useIncomingDistributions: true
     }
 
     // Run the integration tests using the parallel executer
     parallelTest {
-        tasks "runtimeParallelIntegTests"
+        tasks "parallelIntegTest"
         projectProperties useIncomingDistributions: true
     }
 
@@ -106,7 +88,12 @@ buildTypes {
 
     // Used for cross version tests on CI
     crossVersionTest {
-        tasks "crossVersionIntegTest"
+        tasks "crossVersionTests"
+        projectProperties useIncomingDistributions: true
+    }
+
+    quickFeedbackCrossVersionTest {
+        tasks "quickFeedbackCrossVersionTests"
         projectProperties useIncomingDistributions: true
     }
 
@@ -131,25 +118,27 @@ buildTypes {
         projectProperties useIncomingDistributions: true
     }
 
+    java9SmokeTest {
+        tasks "java9IntegTest"
+        projectProperties useIncomingDistributions: true
+    }
+
     soakTest {
         tasks "soak:soakTest"
         projectProperties testAllVersions: true
     }
 }
 
-apply from: "gradle/testGroupings.gradle"
-apply from: 'gradle/buildSplits.gradle'
-apply from: 'gradle/buildScanUserData.gradle'
 ext {
     jvm = org.gradle.internal.jvm.Jvm.current()
     javaVersion = JavaVersion.current()
-    isCiServer = System.getenv().containsKey("TEAMCITY_VERSION")
+    isCiServer = System.getenv().containsKey("CI")
     isWindows = org.gradle.internal.os.OperatingSystem.current().windows
 
     if (project.hasProperty("maxParallelForks")) {
         project.maxParallelForks = Integer.valueOf(project.maxParallelForks, 10)
     } else {
-        ext.maxParallelForks = 1
+        ext.maxParallelForks = 4
     }
 
     if (project.hasProperty("useIncomingDistributions")) {
@@ -170,23 +159,30 @@ ext {
     groovyProjects = subprojects
     publicGroovyProjects = groovyProjects - internalProjects
     pluginProjects = [
-        'plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven',
+        'plugins', 'codeQuality', 'antlr', 'wrapper', 'osgi', 'maven',
         'ide', 'announce', 'scala', 'signing', 'ear', 'javascript', 'buildComparison',
         'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'platformBase',
         'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy', 'languageScala',
         'platformNative', 'platformPlay', 'idePlay', 'languageNative', 'ideNative', 'testingBase',
         'testingNative', 'testingJvm', 'pluginDevelopment', 'pluginUse', 'resourcesHttp',
-        'resourcesSftp', 'resourcesS3', 'toolingApiBuilders', 'compositeBuilds', 'taskCacheHttp'
+        'resourcesSftp', 'resourcesS3', 'resourcesGcs', 'compositeBuilds', 'buildCacheHttp'
+    ].collect {
+        project(it)
+    }
+    implementationPluginProjects = [
+            'toolingApiBuilders'
     ].collect {
         project(it)
     }
     publishedProjects = [
         project(':logging'),
         project(':core'),
+        project(':modelCore'),
         project(':toolingApi'),
         project(':wrapper'),
         project(':baseServices'),
         project(':baseServicesGroovy'),
+        project(':workers'),
         project(':dependencyManagement'),
         project(':messaging'),
         project(':processServices'),
@@ -195,7 +191,8 @@ ext {
     removedProjects = ['sonar']
 }
 
-apply from: "gradle/buildReceipt.gradle"
+apply from: "gradle/buildScanUserData.gradle"
+apply from: "gradle/taskCacheBuildScanUserData.gradle"
 apply from: "gradle/incomingDistributions.gradle"
 apply from: "gradle/versioning.gradle"
 apply from: "gradle/dependencies.gradle"
@@ -206,9 +203,9 @@ apply from: "gradle/classycle.gradle"
 apply from: "gradle/strictCompile.gradle"
 apply from: "gradle/noDependencyResolutionDuringConfiguration.gradle"
 apply from: "gradle/testSetup.gradle"
-apply from: "gradle/taskOrdering.gradle"
 apply from: "gradle/fix-GRADLE-2492.gradle"
 apply from: 'gradle/customM2Check.gradle'
+apply from: "gradle/publicApi.gradle"
 
 allprojects {
     group = 'org.gradle'
@@ -216,6 +213,14 @@ allprojects {
     repositories {
         maven { url 'https://repo.gradle.org/gradle/libs-releases' }
         maven { url 'https://repo.gradle.org/gradle/libs-milestones' }
+        maven { url "https://repo.gradle.org/gradle/libs-snapshots" }
+    }
+
+    // patchExternalModules lives in the root project - we need to activate normalization there, too.
+    normalization {
+        runtimeClasspath {
+            ignore 'org/gradle/build-receipt.properties'
+        }
     }
 }
 
@@ -235,10 +240,6 @@ subprojects {
     }
 
     apply from: "$rootDir/gradle/codeQuality.gradle"
-
-    if (isCiServer) {
-        reporting.baseDir "$rootProject.reporting.baseDir/${path.replaceFirst(':', '').replaceAll(':', '.')}"
-    }
 }
 
 configurations {
@@ -269,17 +270,20 @@ configurations {
 }
 
 def patchedExternalModulesDir = new File(buildDir, "external/files")
-def patchedExternalModules = fileTree(patchedExternalModulesDir) {
-    builtBy 'patchExternalModules'
-}
+def patchedExternalModules = files({ -> fileTree(patchedExternalModulesDir).files.sort() })
+patchedExternalModules.builtBy 'patchExternalModules'
 
 dependencies {
-    externalModules 'org.gradle:gradle-script-kotlin:0.4.1'
+    externalModules 'org.gradle:gradle-kotlin-dsl:0.11.0'
+    externalModules 'org.gradle:gradle-kotlin-dsl-tooling-builders:0.11.0'
     coreRuntime project(':launcher')
+    coreRuntime project(':runtimeApiInfo')
     runtime project(':wrapper')
     runtime project(":installationBeacon")
     runtime patchedExternalModules
     gradlePlugins pluginProjects
+    gradlePlugins implementationPluginProjects
+    gradlePlugins project(':workers')
     gradlePlugins project(':dependencyManagement')
     gradlePlugins project(':testKit')
 }
@@ -287,13 +291,10 @@ dependencies {
 import org.gradle.modules.PatchExternalModules
 
 task patchExternalModules(type: PatchExternalModules) {
-    // Include any dependency jars that are not available in the core runtime
-    externalModulesRuntime = configurations.externalModulesRuntime
-    coreRuntime = configurations.coreRuntime
-    externalModules = configurations.externalModules
+    allModules = configurations.externalModulesRuntime
+    coreModules = configurations.coreRuntime
+    modulesToPatch = configurations.externalModules
     destination = patchedExternalModulesDir
-
-    dependsOn configurations.externalModules
 }
 
 task verifyIsProductionBuildEnvironment {
@@ -333,12 +334,7 @@ task installAll(type: Install) {
     installDirPropertyName = 'gradle_installPath'
 }
 
-clean {
-    dependsOn ':killExistingDaemons'
-}
-
 apply from: "gradle/intTestImage.gradle"
-apply from: 'gradle/pullRequestBuild.gradle'
 
 // Generate a report showing which tests in a subproject are leaving
 // files around.
@@ -361,30 +357,11 @@ task cleanUpRemovedProjects(type: Delete) {
 }
 clean.dependsOn(cleanUpRemovedProjects)
 
-/*
- * When run from a Continuous Integration environment HTML test reports will usually only be inspected
- * if the build failed e.g. due to failed or flaky tests.
- *
- * Deletes HTML test reports so they are not archived on TeamCity and use up unnecessary disk space.
- */
-if (isCiServer) {
-    gradle.buildFinished { buildResult ->
-        if (!buildResult.failure) {
-            logger.quiet "Deleting HTML test reports..."
-
-            subprojects {
-                def htmlTestReportDirs = tasks.withType(Test).collect { it.reports.html.destination }.unique()
-
-                htmlTestReportDirs.each { htmlReportDir ->
-                    logger.info "Deleting test reports directory '$htmlReportDir'."
-                    def success = htmlReportDir.deleteDir()
-
-                    if (!success) {
-                        logger.warn "Unable to delete test report directory '$htmlReportDir'."
-                    }
-                }
-            }
-        }
+gradle.buildFinished { result ->
+    def rootProject = result.gradle.rootProject
+    if (rootProject.remoteBuildCacheEnabled && !rootProject.java7HomeSet) {
+        logger.warn("In order to have cache hits from the remote build cache you need to set 'java7Home' in your gradle.properties!")
     }
 }
 
+apply from: "gradle/ciReporting.gradle"

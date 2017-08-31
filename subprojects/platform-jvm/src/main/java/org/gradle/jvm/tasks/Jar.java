@@ -30,10 +30,8 @@ import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.internal.CustomManifestInternalWrapper;
 import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.api.java.archives.internal.ManifestInternal;
-import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.util.ConfigureUtil;
 
@@ -44,8 +42,6 @@ import java.util.concurrent.Callable;
 /**
  * Assembles a JAR archive.
  */
-@ParallelizableTask
-@CacheableTask
 @Incubating
 public class Jar extends Zip {
 
@@ -63,7 +59,7 @@ public class Jar extends Zip {
         metaInf = (CopySpecInternal) getRootSpec().addFirst().into("META-INF");
         metaInf.addChild().from(new Callable<FileTreeAdapter>() {
             public FileTreeAdapter call() throws Exception {
-                MapFileTree manifestSource = new MapFileTree(getTemporaryDirFactory(), getFileSystem());
+                MapFileTree manifestSource = new MapFileTree(getTemporaryDirFactory(), getFileSystem(), getDirectoryFileTreeFactory());
                 manifestSource.add("MANIFEST.MF", new Action<OutputStream>() {
                     public void execute(OutputStream outputStream) {
                         Manifest manifest = getManifest();
@@ -136,8 +132,8 @@ public class Jar extends Zip {
      * The character set used to encode the manifest content.
      *
      * @param manifestContentCharset the character set used to encode the manifest content
-     * @since 2.14
      * @see #getManifestContentCharset()
+     * @since 2.14
      */
     @Incubating
     public void setManifestContentCharset(String manifestContentCharset) {
@@ -178,12 +174,29 @@ public class Jar extends Zip {
      * @return This.
      */
     public Jar manifest(Closure<?> configureClosure) {
-        if (getManifest() == null) {
+        ConfigureUtil.configure(configureClosure, forceManifest());
+        return this;
+    }
+
+    /**
+     * Configures the manifest for this JAR archive.
+     *
+     * <p>The given action is executed to configure the manifest.</p>
+     *
+     * @param configureAction The action.
+     * @return This.
+     * @since 3.5
+     */
+    public Jar manifest(Action<? super Manifest> configureAction) {
+        configureAction.execute(forceManifest());
+        return this;
+    }
+
+    private Manifest forceManifest() {
+        if (manifest == null) {
             manifest = new DefaultManifest(((ProjectInternal) getProject()).getFileResolver());
         }
-
-        ConfigureUtil.configure(configureClosure, getManifest());
-        return this;
+        return manifest;
     }
 
     @Internal
@@ -201,5 +214,20 @@ public class Jar extends Zip {
      */
     public CopySpec metaInf(Closure<?> configureClosure) {
         return ConfigureUtil.configure(configureClosure, getMetaInf());
+    }
+
+    /**
+     * Adds content to this JAR archive's META-INF directory.
+     *
+     * <p>The given action is executed to configure a {@code CopySpec}.</p>
+     *
+     * @param configureAction The action.
+     * @return The created {@code CopySpec}
+     * @since 3.5
+     */
+    public CopySpec metaInf(Action<? super CopySpec> configureAction) {
+        CopySpec metaInf = getMetaInf();
+        configureAction.execute(metaInf);
+        return metaInf;
     }
 }

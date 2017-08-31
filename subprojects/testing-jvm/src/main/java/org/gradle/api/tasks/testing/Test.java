@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.testing;
 
 import groovy.lang.Closure;
+import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
@@ -54,6 +55,7 @@ import org.gradle.api.internal.tasks.testing.logging.ShortExceptionFormatter;
 import org.gradle.api.internal.tasks.testing.logging.TestCountLogger;
 import org.gradle.api.internal.tasks.testing.logging.TestEventLogger;
 import org.gradle.api.internal.tasks.testing.logging.TestExceptionFormatter;
+import org.gradle.api.internal.tasks.testing.logging.TestWorkerProgressListener;
 import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
@@ -69,14 +71,16 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
+import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.internal.Actions;
+import org.gradle.internal.Cast;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -84,18 +88,22 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.ConsoleRenderer;
+import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.operations.BuildOperationProcessor;
-import org.gradle.internal.operations.BuildOperationWorkerRegistry;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
+import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -104,11 +112,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gradle.util.ConfigureUtil.configureUsing;
+
 /**
  * Executes JUnit (3.8.x or 4.x) or TestNG tests. Test are always run in (one or more) separate JVMs.
  * The sample below shows various configuration options.
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java' // adds 'test' task
  *
  * test {
@@ -133,12 +143,12 @@ import java.util.Set;
  *   jvmArgs '-XX:MaxPermSize=256m'
  *
  *   // listen to events in the test execution lifecycle
- *   beforeTest { descriptor ->
+ *   beforeTest { descriptor -&gt;
  *      logger.lifecycle("Running test: " + descriptor)
  *   }
  *
  *   // listen to standard out and standard error of the test JVM(s)
- *   onOutput { descriptor, event ->
+ *   onOutput { descriptor, event -&gt;
  *      logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message )
  *   }
  * }
@@ -151,7 +161,6 @@ import java.util.Set;
 
  */
 @CacheableTask
-@ParallelizableTask
 public class Test extends ConventionTask implements JavaForkOptions, PatternFilterable, VerificationTask, Reporting<TestTaskReports> {
 
     private final ListenerBroadcast<TestListener> testListenerBroadcaster;
@@ -162,7 +171,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private final DefaultTestFilter filter;
 
     private TestExecuter testExecuter;
-    private File testClassesDir;
+    private FileCollection testClassesDirs;
     private File binResultsDir;
     private PatternFilterable patternSet;
     private boolean ignoreFailures;
@@ -238,7 +247,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     @Inject
-    protected BuildOperationProcessor getBuildOperationProcessor() {
+    protected BuildOperationExecutor getBuildOperationExecutor() {
         throw new UnsupportedOperationException();
     }
 
@@ -254,7 +263,12 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         this.testReporter = testReporter;
     }
 
-    void setTestExecuter(TestExecuter testExecuter) {
+    /**
+     * Sets the testExecuter property.
+     *
+     * @since 4.2
+     */
+    protected void setTestExecuter(TestExecuter testExecuter) {
         this.testExecuter = testExecuter;
     }
 
@@ -286,6 +300,14 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * {@inheritDoc}
      */
     @Override
+    public void setWorkingDir(File dir) {
+        forkOptions.setWorkingDir(dir);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void setWorkingDir(Object dir) {
         forkOptions.setWorkingDir(dir);
     }
@@ -300,10 +322,20 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     /**
+     * Returns the version of Java used to run the tests based on the executable specified by {@link #getExecutable()}.
+     *
+     * @since 3.3
+     */
+    @Input
+    public JavaVersion getJavaVersion() {
+        return getServices().get(JvmVersionDetector.class).getJavaVersion(getExecutable());
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
-    @Input
+    @Internal
     public String getExecutable() {
         return forkOptions.getExecutable();
     }
@@ -315,6 +347,14 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     public Test executable(Object executable) {
         forkOptions.executable(executable);
         return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setExecutable(String executable) {
+        forkOptions.setExecutable(executable);
     }
 
     /**
@@ -444,6 +484,14 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * {@inheritDoc}
      */
     @Override
+    public void setJvmArgs(List<String> arguments) {
+        forkOptions.setJvmArgs(arguments);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void setJvmArgs(Iterable<?> arguments) {
         forkOptions.setJvmArgs(arguments);
     }
@@ -505,6 +553,14 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     @Override
     public List<String> getAllJvmArgs() {
         return forkOptions.getAllJvmArgs();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setAllJvmArgs(List<String> arguments) {
+        forkOptions.setAllJvmArgs(arguments);
     }
 
     /**
@@ -576,8 +632,8 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         TestEventLogger eventLogger = new TestEventLogger(getTextOutputFactory(), currentLevel, levelLogging, exceptionFormatter);
         addTestListener(eventLogger);
         addTestOutputListener(eventLogger);
-        if (getFilter().isFailOnNoMatchingTests() && !getFilter().getIncludePatterns().isEmpty()) {
-            addTestListener(new NoMatchingTestsReporter("No tests found for given includes: " + getFilter().getIncludePatterns()));
+        if (getFilter().isFailOnNoMatchingTests() && (!getFilter().getIncludePatterns().isEmpty() || !filter.getCommandLineIncludePatterns().isEmpty())) {
+            addTestListener(new NoMatchingTestsReporter(createNoMatchingTestErrorMessage()));
         }
 
         File binaryResultsDir = getBinResultsDir();
@@ -598,13 +654,23 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
         testListenerInternalBroadcaster.add(new TestListenerAdapter(testListenerBroadcaster.getSource(), testOutputListenerBroadcaster.getSource()));
 
+        ProgressLogger parentProgressLogger = getProgressLoggerFactory().newOperation(Test.class);
+        parentProgressLogger.setDescription("Test Execution");
+        parentProgressLogger.started();
+        TestWorkerProgressListener testWorkerProgressListener = new TestWorkerProgressListener(getProgressLoggerFactory(), parentProgressLogger);
+        testListenerInternalBroadcaster.add(testWorkerProgressListener);
+
         TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(testListenerInternalBroadcaster.getSource());
 
         if (testExecuter == null) {
-            testExecuter = new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry(), getServices().get(BuildOperationWorkerRegistry.class));
+            testExecuter = new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry(),
+                getServices().get(WorkerLeaseRegistry.class),
+                getServices().get(BuildOperationExecutor.class),
+                getServices().get(StartParameter.class).getMaxWorkerCount(),
+                getServices().get(TimeProvider.class));
         }
 
-        JavaVersion javaVersion = getServices().get(JvmVersionDetector.class).getJavaVersion(getExecutable());
+        JavaVersion javaVersion = getJavaVersion();
         if (!javaVersion.isJava6Compatible()) {
             throw new UnsupportedJavaRuntimeException("Support for test execution using Java 5 or earlier was removed in Gradle 3.0.");
         }
@@ -612,7 +678,9 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         try {
             testExecuter.execute(this, resultProcessor);
         } finally {
+            parentProgressLogger.completed();
             testExecuter = null;
+            testWorkerProgressListener.completeAll();
             testListenerBroadcaster.removeAll();
             testOutputListenerBroadcaster.removeAll();
             testListenerInternalBroadcaster.removeAll();
@@ -625,7 +693,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
         try {
             if (testReporter == null) {
-                testReporter = new DefaultTestReport(getBuildOperationProcessor());
+                testReporter = new DefaultTestReport(getBuildOperationExecutor());
             }
 
             JUnitXmlReport junitXml = reports.getJunitXml();
@@ -633,7 +701,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
                 TestOutputAssociation outputAssociation = junitXml.isOutputPerTestCase()
                         ? TestOutputAssociation.WITH_TESTCASE
                         : TestOutputAssociation.WITH_SUITE;
-                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testResultsProvider, outputAssociation, getBuildOperationProcessor(), getInetAddressFactory().getHostname());
+                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testResultsProvider, outputAssociation, getBuildOperationExecutor(), getInetAddressFactory().getHostname());
                 binary2JUnitXmlReportGenerator.generate();
             }
 
@@ -652,6 +720,23 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         if (testCountLogger.hadFailures()) {
             handleTestFailures();
         }
+    }
+
+    private String createNoMatchingTestErrorMessage() {
+        String msg = "No tests found for given includes: ";
+        if (!getIncludes().isEmpty()) {
+            msg += getIncludes() + "(include rules) ";
+        }
+        if (!getExcludes().isEmpty()) {
+            msg += getExcludes() + "(exclude rules) ";
+        }
+        if (!filter.getIncludePatterns().isEmpty()) {
+            msg += filter.getIncludePatterns() + "(filter.includeTestsMatching) ";
+        }
+        if (!filter.getCommandLineIncludePatterns().isEmpty()) {
+            msg += filter.getCommandLineIncludePatterns() + "(--tests filter) ";
+        }
+        return msg;
     }
 
     /**
@@ -739,9 +824,19 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     /**
      * Adds a closure to be notified when output from the test received. A {@link org.gradle.api.tasks.testing.TestDescriptor} and {@link org.gradle.api.tasks.testing.TestOutputEvent} instance are
-     * passed to the closure as a parameter. <pre autoTested=''> apply plugin: 'java'
+     * passed to the closure as a parameter.
      *
-     * test { onOutput { descriptor, event -> if (event.destination == TestOutputEvent.Destination.StdErr) { logger.error("Test: " + descriptor + ", error: " + event.message) } } } </pre>
+     * <pre class='autoTested'>
+     * apply plugin: 'java'
+     *
+     * test {
+     *    onOutput { descriptor, event -&gt;
+     *        if (event.destination == TestOutputEvent.Destination.StdErr) {
+     *            logger.error("Test: " + descriptor + ", error: " + event.message)
+     *        }
+     *    }
+     * }
+     * </pre>
      *
      * @param closure The closure to call.
      */
@@ -750,7 +845,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     /**
-     * Adds include patterns for the files in the test classes directory (e.g. '**&#2F;*Test.class')).
+     * Adds include patterns for the files in the test classes directory (e.g. '**&#47;*Test.class')).
      *
      * @see #setIncludes(Iterable)
      */
@@ -761,7 +856,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     /**
-     * Adds include patterns for the files in the test classes directory (e.g. '**&#2F;*Test.class')).
+     * Adds include patterns for the files in the test classes directory (e.g. '**&#47;*Test.class')).
      *
      * @see #setIncludes(Iterable)
      */
@@ -790,7 +885,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     /**
-     * Adds exclude patterns for the files in the test classes directory (e.g. '**&#2F;*Test.class')).
+     * Adds exclude patterns for the files in the test classes directory (e.g. '**&#47;*Test.class')).
      *
      * @see #setExcludes(Iterable)
      */
@@ -801,7 +896,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     /**
-     * Adds exclude patterns for the files in the test classes directory (e.g. '**&#2F;*Test.class')).
+     * Adds exclude patterns for the files in the test classes directory (e.g. '**&#47;*Test.class')).
      *
      * @see #setExcludes(Iterable)
      */
@@ -839,7 +934,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     @Option(option = "tests", description = "Sets test class or method name to be included, '*' is supported.")
     @Incubating
     public Test setTestNameIncludePatterns(List<String> testNamePattern) {
-        filter.setIncludePatterns(testNamePattern.toArray(new String[]{}));
+        filter.setCommandLineIncludePatterns(testNamePattern);
         return this;
     }
 
@@ -847,19 +942,67 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * Returns the root folder for the compiled test sources.
      *
      * @return All test class directories to be used.
+     * @deprecated Use {@link #getTestClassesDirs()}.
      */
+    @Deprecated
     @Internal
     public File getTestClassesDir() {
-        return testClassesDir;
+        SingleMessageLogger.nagUserOfReplacedMethod("getTestClassesDir()", "getTestClassesDirs()");
+        if (testClassesDirs==null || testClassesDirs.isEmpty()) {
+            return null;
+        }
+        return getProject().file(CollectionUtils.first(testClassesDirs));
     }
 
     /**
      * Sets the root folder for the compiled test sources.
      *
      * @param testClassesDir The root folder
+     * @deprecated Use {@link #setTestClassesDirs(FileCollection)}.
      */
+    @Deprecated
     public void setTestClassesDir(File testClassesDir) {
-        this.testClassesDir = testClassesDir;
+        SingleMessageLogger.nagUserOfReplacedMethod("setTestClassesDir(File)", "setTestClassesDirs(FileCollection)");
+        setTestClassesDirs(getProject().files(testClassesDir));
+    }
+
+    /**
+     * Returns the directories for the compiled test sources.
+     *
+     * @return All test class directories to be used.
+     * @since 4.0
+     */
+    @Internal
+    public FileCollection getTestClassesDirs() {
+        return testClassesDirs;
+    }
+
+    /**
+     * Sets the directories to scan for compiled test sources.
+     *
+     * Typically, this would be configured to use the output of a source set:
+     * <pre class='autoTested'>
+     * apply plugin: 'java'
+     *
+     * sourceSets {
+     *    integrationTest {
+     *       compileClasspath += main.output
+     *       runtimeClasspath += main.output
+     *    }
+     * }
+     *
+     * task integrationTest(type: Test) {
+     *     // Runs tests from src/integrationTest
+     *     testClassesDirs = sourceSets.integrationTest.output.classesDirs
+     *     classpath = sourceSets.integrationTest.runtimeClasspath
+     * }
+     * </pre>
+     *
+     * @param testClassesDirs All test class directories to be used.
+     * @since 4.0
+     */
+    public void setTestClassesDirs(FileCollection testClassesDirs) {
+        this.testClassesDirs = testClassesDirs;
     }
 
     /**
@@ -967,7 +1110,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     @Nested
     // TODO:LPTR This doesn't resolve any of the nested options for the concrete subtypes
     public TestFrameworkOptions getOptions() {
-        return options(null);
+        return getTestFramework().getOptions();
     }
 
     /**
@@ -976,8 +1119,18 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @return The test framework options.
      */
     public TestFrameworkOptions options(Closure testFrameworkConfigure) {
-        TestFrameworkOptions options = getTestFramework().getOptions();
-        ConfigureUtil.configure(testFrameworkConfigure, options);
+        return ConfigureUtil.configure(testFrameworkConfigure, getOptions());
+    }
+
+    /**
+     * Configures test framework specific options. Make sure to call {@link #useJUnit()} or {@link #useTestNG()} before using this method.
+     *
+     * @return The test framework options.
+     * @since 3.5
+     */
+    public TestFrameworkOptions options(Action<? super TestFrameworkOptions> testFrameworkConfigure) {
+        TestFrameworkOptions options = getOptions();
+        testFrameworkConfigure.execute(options);
         return options;
     }
 
@@ -985,7 +1138,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         return useTestFramework(testFramework, null);
     }
 
-    private TestFramework useTestFramework(TestFramework testFramework, Closure testFrameworkConfigure) {
+    private <T extends TestFrameworkOptions> TestFramework useTestFramework(TestFramework testFramework, Action<? super T> testFrameworkConfigure) {
         if (testFramework == null) {
             throw new IllegalArgumentException("testFramework is null!");
         }
@@ -993,7 +1146,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         this.testFramework = testFramework;
 
         if (testFrameworkConfigure != null) {
-            ConfigureUtil.configure(testFrameworkConfigure, this.testFramework.getOptions());
+            testFrameworkConfigure.execute(Cast.<T>uncheckedCast(this.testFramework.getOptions()));
         }
 
         return this.testFramework;
@@ -1003,7 +1156,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * Specifies that JUnit should be used to execute the tests. <p> To configure JUnit specific options, see {@link #useJUnit(groovy.lang.Closure)}.
      */
     public void useJUnit() {
-        useJUnit(null);
+        useJUnit(Actions.<JUnitOptions>doNothing());
     }
 
     /**
@@ -1013,6 +1166,17 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param testFrameworkConfigure A closure used to configure the JUnit options.
      */
     public void useJUnit(Closure testFrameworkConfigure) {
+        useJUnit(ConfigureUtil.<JUnitOptions>configureUsing(testFrameworkConfigure));
+    }
+
+    /**
+     * Specifies that JUnit should be used to execute the tests, configuring JUnit specific options. <p> The supplied action configures an instance of {@link
+     * org.gradle.api.tasks.testing.junit.JUnitOptions}, which can be used to configure how JUnit runs.
+     *
+     * @param testFrameworkConfigure An action used to configure the JUnit options.
+     * @since 3.5
+     */
+    public void useJUnit(Action<? super JUnitOptions> testFrameworkConfigure) {
         useTestFramework(new JUnitTestFramework(this, filter), testFrameworkConfigure);
     }
 
@@ -1020,7 +1184,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * Specifies that TestNG should be used to execute the tests. <p> To configure TestNG specific options, see {@link #useTestNG(Closure)}.
      */
     public void useTestNG() {
-        useTestNG(null);
+        useTestNG(Actions.<TestFrameworkOptions>doNothing());
     }
 
     /**
@@ -1030,6 +1194,17 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param testFrameworkConfigure A closure used to configure the TestNG options.
      */
     public void useTestNG(Closure testFrameworkConfigure) {
+        useTestNG(configureUsing(testFrameworkConfigure));
+    }
+
+    /**
+     * Specifies that TestNG should be used to execute the tests, configuring TestNG specific options. <p> The supplied action configures an instance of {@link
+     * org.gradle.api.tasks.testing.testng.TestNGOptions}, which can be used to configure how TestNG runs.
+     *
+     * @param testFrameworkConfigure An action used to configure the TestNG options.
+     * @since 3.5
+     */
+    public void useTestNG(Action<? super TestFrameworkOptions> testFrameworkConfigure) {
         useTestFramework(new TestNGTestFramework(this, this.filter, getInstantiator(), getClassLoaderCache()), testFrameworkConfigure);
     }
 
@@ -1063,7 +1238,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @return The maximum number of test classes. Returns 0 when there is no maximum.
      */
-    @Input
+    @Internal
     public long getForkEvery() {
         return forkEvery;
     }
@@ -1082,10 +1257,11 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     /**
      * Returns the maximum number of forked test processes to execute in parallel. The default value is 1 (no parallel test execution).
+     * It cannot exceed the value of {@literal max-workers} for the current build.
      *
      * @return The maximum number of forked test processes.
      */
-    @Input
+    @Internal
     public int getMaxParallelForks() {
         return getDebug() ? 1 : maxParallelForks;
     }
@@ -1110,15 +1286,19 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     public FileTree getCandidateClassFiles() {
-        return getProject().fileTree(getTestClassesDir()).matching(patternSet);
+        return getTestClassesDirs().getAsFileTree().matching(patternSet);
     }
 
     /**
      * Allows to set options related to which test events are logged to the console, and on which detail level. For example, to show more information about exceptions use:
      *
-     * <pre autoTested=''> apply plugin: 'java'
+     * <pre class='autoTested'>
+     * apply plugin: 'java'
      *
-     * test.testLogging { exceptionFormat "full" } </pre>
+     * test.testLogging {
+     *     exceptionFormat "full"
+     * }
+     * </pre>
      *
      * For further information see {@link TestLoggingContainer}.
      *
@@ -1131,14 +1311,40 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     /**
-     * Allows configuring the logging of the test execution, for example log eagerly the standard output, etc. <pre autoTested=''> apply plugin: 'java'
+     * Allows configuring the logging of the test execution, for example log eagerly the standard output, etc.
      *
-     * //makes the standard streams (err and out) visible at console when running tests test.testLogging { showStandardStreams = true } </pre>
+     * <pre class='autoTested'>
+     * apply plugin: 'java'
+     *
+     * // makes the standard streams (err and out) visible at console when running tests
+     * test.testLogging {
+     *    showStandardStreams = true
+     * }
+     * </pre>
      *
      * @param closure configure closure
      */
     public void testLogging(Closure closure) {
         ConfigureUtil.configure(closure, testLogging);
+    }
+
+    /**
+     * Allows configuring the logging of the test execution, for example log eagerly the standard output, etc.
+     *
+     * <pre class='autoTested'>
+     * apply plugin: 'java'
+     *
+     * // makes the standard streams (err and out) visible at console when running tests
+     * test.testLogging {
+     *    showStandardStreams = true
+     * }
+     * </pre>
+     *
+     * @param action configure action
+     * @since 3.5
+     */
+    public void testLogging(Action<? super TestLoggingContainer> action) {
+        action.execute(testLogging);
     }
 
     /**

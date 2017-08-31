@@ -20,12 +20,12 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
 import org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory;
-import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
 import java.util.Collections;
@@ -33,13 +33,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gradle.util.ConfigureUtil.configure;
+
 /**
  * Enables fine-tuning wtp component details of the Eclipse plugin
  * <p>
  * Example of use with a blend of all possible properties.
  * Bear in mind that usually you don't have to configure them directly because Gradle configures it for free!
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'war' //or 'ear' or 'java'
  * apply plugin: 'eclipse-wtp'
  *
@@ -61,7 +63,7 @@ import java.util.Set;
  *       //you can configure the deployName:
  *       deployName = 'killerApp'
  *
- *       //you can alter the wb-resource elements. sourceDirs is a ConventionProperty.
+ *       //you can alter the wb-resource elements.
  *       //non-existing source dirs won't be added to the component file.
  *       sourceDirs += file('someExtraFolder')
  *
@@ -72,7 +74,7 @@ import java.util.Set;
  *       rootConfigurations += [ configurations.someInterestingConfiguration ]
  *
  *       // dependencies to exclude from wtp deployment
- *       minusConfigurations << configurations.anotherConfiguration
+ *       minusConfigurations &lt;&lt; configurations.anotherConfiguration
  *
  *       //you can add a wb-resource elements; mandatory keys: 'sourcePath', 'deployPath':
  *       //if sourcePath points to non-existing folder it will *not* be added.
@@ -93,7 +95,7 @@ import java.util.Set;
  * <p>
  * Examples of advanced configuration:
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'war'
  * apply plugin: 'eclipse-wtp'
  *
@@ -110,13 +112,13 @@ import java.util.Set;
  *
  *         //closure executed after wtp component file content is loaded from existing file
  *         //but before gradle build information is merged
- *         beforeMerged { wtpComponent ->
+ *         beforeMerged { wtpComponent -&gt;
  *           //tinker with {@link WtpComponent} here
  *         }
  *
  *         //closure executed after wtp component file content is loaded from existing file
  *         //and after gradle build information is merged
- *         whenMerged { wtpComponent ->
+ *         whenMerged { wtpComponent -&gt;
  *           //you can tinker with the {@link WtpComponent} here
  *         }
  *       }
@@ -152,7 +154,7 @@ public class EclipseWtpComponent {
     }
 
     /**
-     * See {@link #file(Closure) }
+     * See {@link #file(Action) }
      */
     public XmlFileContentMerger getFile() {
         return file;
@@ -167,11 +169,23 @@ public class EclipseWtpComponent {
      * For example see docs for {@link EclipseWtpComponent}
      */
     public void file(Closure closure) {
-        ConfigureUtil.configure(closure, file);
+        configure(closure, file);
     }
 
     /**
-     * {@link org.gradle.api.dsl.ConventionProperty} for the source directories to be transformed into wb-resource elements.
+     * Enables advanced configuration like tinkering with the output XML
+     * or affecting the way existing wtp component file content is merged with gradle build information.
+     * <p>
+     * For example see docs for {@link EclipseWtpComponent}
+     *
+     * @since 3.5
+     */
+    public void file(Action<? super XmlFileContentMerger> action) {
+        action.execute(file);
+    }
+
+    /**
+     * Source directories to be transformed into wb-resource elements.
      * <p>
      * For examples see docs for {@link EclipseWtp}
      * <p>
@@ -253,7 +267,7 @@ public class EclipseWtpComponent {
     }
 
     /**
-     * {@link org.gradle.api.dsl.ConventionProperty} for additional wb-resource elements.
+     * Additional wb-resource elements.
      * <p>
      * For examples see docs for {@link EclipseWtp}
      * <p>

@@ -17,7 +17,9 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -155,8 +157,9 @@ public class CompositeFileCollectionTest {
 
     @Test
     public void getAsFileTreesReturnsUnionOfFileTrees() {
-        final DirectoryFileTree set1 = new DirectoryFileTree(new File("dir1").getAbsoluteFile());
-        final DirectoryFileTree set2 = new DirectoryFileTree(new File("dir2").getAbsoluteFile());
+        final DirectoryFileTreeFactory directoryFileTreeFactory = new DefaultDirectoryFileTreeFactory();
+        final DirectoryFileTree set1 = directoryFileTreeFactory.create(new File("dir1").getAbsoluteFile());
+        final DirectoryFileTree set2 = directoryFileTreeFactory.create(new File("dir2").getAbsoluteFile());
 
         context.checking(new Expectations() {{
             oneOf(source1).getAsFileTrees();

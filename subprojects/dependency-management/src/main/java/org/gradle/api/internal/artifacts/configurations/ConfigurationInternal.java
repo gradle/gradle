@@ -17,15 +17,21 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.ResolveContext;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.util.Path;
 
 public interface ConfigurationInternal extends ResolveContext, Configuration, DependencyMetaDataProvider {
-    enum InternalState {UNRESOLVED, TASK_DEPENDENCIES_RESOLVED, RESULTS_RESOLVED}
+    enum InternalState {UNRESOLVED, GRAPH_RESOLVED, ARTIFACTS_RESOLVED}
 
+    @Override
     ResolutionStrategyInternal getResolutionStrategy();
 
-    InternalState getResolvedState();
+    @Override
+    AttributeContainerInternal getAttributes();
 
     String getPath();
+
+    Path getIdentityPath();
 
     void triggerWhenEmptyActionsIfNecessary();
 
@@ -34,4 +40,11 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
     void addMutationValidator(MutationValidator validator);
 
     void removeMutationValidator(MutationValidator validator);
+
+    /**
+     * Converts this configuration to an {@link OutgoingVariant} view. The view may not necessarily be immutable.
+     */
+    OutgoingVariant convertToOutgoingVariant();
+
+    void preventFromFurtherMutation();
 }

@@ -17,8 +17,10 @@ package org.gradle.api.resource
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.junit.Rule
 
+@TestReproducibleArchives
 class TextResourceIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     TestResources resource = new TestResources(temporaryFolder)

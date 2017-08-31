@@ -16,11 +16,12 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.Nullable;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
-import java.io.Serializable;
+import javax.annotation.Nullable;
 
-public class TestStartEvent implements Serializable {
+@UsedByScanPlugin
+public class TestStartEvent {
     private final long startTime;
     private final Object parentId;
 

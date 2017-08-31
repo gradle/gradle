@@ -18,12 +18,12 @@ package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
-import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.nativeplatform.internal.StaticLibraryArchiverSpec;
+import org.gradle.nativeplatform.toolchain.internal.AbstractCompiler;
 import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
@@ -36,35 +36,16 @@ import java.util.List;
 /**
  * A static library archiver based on the GNU 'ar' utility
  */
-class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
-    private final CommandLineToolInvocationWorker commandLineToolInvocationWorker;
-    private final ArgsTransformer<StaticLibraryArchiverSpec> argsTransformer = new ArchiverSpecToArguments();
-    private final CommandLineToolContext invocationContext;
-    private final BuildOperationProcessor buildOperationProcessor;
-
-    ArStaticLibraryArchiver(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext) {
-        this.buildOperationProcessor = buildOperationProcessor;
-        this.commandLineToolInvocationWorker = commandLineToolInvocationWorker;
-        this.invocationContext = invocationContext;
+class ArStaticLibraryArchiver extends AbstractCompiler<StaticLibraryArchiverSpec> {
+    ArStaticLibraryArchiver(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, WorkerLeaseService workerLeaseService) {
+        super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new ArchiverSpecToArguments(), false, workerLeaseService);
     }
 
     @Override
     public WorkResult execute(final StaticLibraryArchiverSpec spec) {
         deletePreviousOutput(spec);
 
-        List<String> args = argsTransformer.transform(spec);
-        invocationContext.getArgAction().execute(args);
-        final CommandLineToolInvocation invocation = invocationContext.createInvocation(
-                "archiving " + spec.getOutputFile().getName(), args, spec.getOperationLogger());
-
-        buildOperationProcessor.run(commandLineToolInvocationWorker, new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
-            @Override
-            public void execute(BuildOperationQueue<CommandLineToolInvocation> buildQueue) {
-                buildQueue.setLogLocation(spec.getOperationLogger().getLogLocation());
-                buildQueue.add(invocation);
-            }
-        });
-        return new SimpleWorkResult(true);
+        return super.execute(spec);
     }
 
     private void deletePreviousOutput(StaticLibraryArchiverSpec spec) {
@@ -75,6 +56,25 @@ class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
         if (!(spec.getOutputFile().delete())) {
             throw new GradleException("Create static archive failed: could not delete previous archive");
         }
+    }
+
+    @Override
+    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(final StaticLibraryArchiverSpec spec, List<String> args) {
+        final CommandLineToolInvocation invocation = newInvocation(
+            "archiving " + spec.getOutputFile().getName(), spec.getOutputFile().getParentFile(), args, spec.getOperationLogger());
+
+        return new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
+            @Override
+            public void execute(BuildOperationQueue<CommandLineToolInvocation> buildQueue) {
+                buildQueue.setLogLocation(spec.getOperationLogger().getLogLocation());
+                buildQueue.add(invocation);
+            }
+        };
+    }
+
+    @Override
+    protected void addOptionsFileArgs(List<String> args, File tempDir) {
+        // No support for command file
     }
 
     private static class ArchiverSpecToArguments implements ArgsTransformer<StaticLibraryArchiverSpec> {

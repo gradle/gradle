@@ -19,8 +19,8 @@ package org.gradle.nativeplatform.fixtures.app
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.test.fixtures.file.TestFile
 
-abstract class TestNativeComponent {
-    List<SourceFile> getAllFiles() {
+abstract class TestNativeComponent extends SourceElement {
+    List<SourceFile> getFiles() {
         return sourceFiles + headerFiles
     }
 
@@ -28,12 +28,8 @@ abstract class TestNativeComponent {
 
     abstract List<SourceFile> getHeaderFiles()
 
-    protected SourceFile sourceFile(String path, String name, String content) {
-        return new SourceFile(path, name, content);
-    }
-
-    public void writeSources(TestFile sourceDir) {
-        for (SourceFile srcFile : allFiles) {
+    void writeSources(TestFile sourceDir) {
+        for (SourceFile srcFile : files) {
             srcFile.writeToDir(sourceDir)
         }
     }

@@ -54,7 +54,7 @@
                 <td>port</td>
             </tr>
             <tr>
-                <td>classDumpFile</td>
+                <td>classDumpDir</td>
             </tr>
             <tr>
                 <td>jmx</td>

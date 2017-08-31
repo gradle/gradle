@@ -18,22 +18,18 @@ package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import org.gradle.test.fixtures.maven.MavenModule
-import spock.lang.Ignore
+import org.gradle.util.Matchers
 
 /**
  * Tests for resolving dependency cycles in a composite build.
  */
-@Ignore
 class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildB
     BuildTestFile buildC
     ResolveTestFixture resolve
-    MavenModule publishedModuleB
     List arguments = []
 
     def setup() {
-        publishedModuleB = mavenRepo.module("org.test", "buildB", "1.0").publish()
         resolve = new ResolveTestFixture(buildA.buildFile)
 
         buildA.buildFile << """
@@ -72,11 +68,14 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:1.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:1.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
-                edge("org.test:buildC:1.0", "project :buildC:", "org.test:buildC:1.0") {
+                edge("org.test:buildC:1.0", "project :buildC", "org.test:buildC:1.0") {
+                    configuration = "runtimeElements"
                     compositeSubstitute()
-                    edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:1.0") {
+                    edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:1.0") {
+                        configuration = "runtimeElements"
                         compositeSubstitute()
                     }
                 }
@@ -88,10 +87,10 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
 
         then:
         failure
-            .assertHasDescription("Failed to build artifacts for build 'buildB'")
-            .assertHasCause("Failed to build artifacts for build 'buildC'")
-            .assertHasCause("Could not download buildB.jar (project :buildB:)")
-            .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
+            .assertHasDescription("Could not determine the dependencies of task")
+            .assertHasCause("Included build dependency cycle:")
+            .assertThatCause(Matchers.containsText("build 'buildC' -> build 'buildB'"))
+            .assertThatCause(Matchers.containsText("build 'buildB' -> build 'buildC'"))
     }
 
     def "indirect dependency cycle between included builds"() {
@@ -116,13 +115,17 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:1.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:1.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
-                edge("org.test:buildC:1.0", "project :buildC:", "org.test:buildC:1.0") {
+                edge("org.test:buildC:1.0", "project :buildC", "org.test:buildC:1.0") {
+                    configuration = "runtimeElements"
                     compositeSubstitute()
-                    edge("org.test:buildD:1.0", "project :buildD:", "org.test:buildD:1.0") {
+                    edge("org.test:buildD:1.0", "project :buildD", "org.test:buildD:1.0") {
+                        configuration = "runtimeElements"
                         compositeSubstitute()
-                        edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:1.0") {
+                        edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:1.0") {
+                            configuration = "runtimeElements"
                             compositeSubstitute()
                         }
                     }
@@ -135,11 +138,53 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
 
         then:
         failure
-            .assertHasDescription("Failed to build artifacts for build 'buildB'")
-            .assertHasCause("Failed to build artifacts for build 'buildC'")
-            .assertHasCause("Failed to build artifacts for build 'buildD'")
-            .assertHasCause("Could not download buildB.jar (project :buildB:)")
-            .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildD' -> build 'buildB'")
+            .assertHasDescription("Could not determine the dependencies of task")
+            .assertHasCause("Included build dependency cycle:")
+            .assertThatCause(Matchers.containsText("build 'buildC' -> build 'buildD'"))
+    }
+
+    // Not actually a cycle, just documenting behaviour
+    def "dependency cycle between different projects of included builds"() {
+        given:
+        dependency "org.test:b1:1.0"
+        buildB.buildFile << """
+project(':b1') {
+    dependencies { 
+        compile "org.test:buildC:1.0"
+    }
+}
+"""
+        dependency buildC, "org.test:b2:1.0"
+
+        when:
+        resolve.withoutBuildingArtifacts()
+        resolveSucceeds(":checkDeps")
+
+        then:
+        checkGraph {
+            edge("org.test:b1:1.0", "project :buildB:b1", "org.test:b1:1.0") {
+                configuration = "runtimeElements"
+                compositeSubstitute()
+                edge("org.test:buildC:1.0", "project :buildC", "org.test:buildC:1.0") {
+                    configuration = "runtimeElements"
+                    compositeSubstitute()
+                    edge("org.test:b2:1.0", "project :buildB:b2", "org.test:b2:1.0") {
+                        configuration = "runtimeElements"
+                        compositeSubstitute()
+                    }
+                }
+            }
+        }
+
+        when:
+        resolveFails(":resolveArtifacts")
+
+        then:
+        failure
+            .assertHasDescription("Could not determine the dependencies of task")
+            .assertHasCause("Included build dependency cycle:")
+            .assertThatCause(Matchers.containsText("build 'buildC' -> build 'buildB'"))
+            .assertThatCause(Matchers.containsText("build 'buildB' -> build 'buildC'"))
     }
 
     def "compile-only dependency cycle between included builds"() {
@@ -159,9 +204,11 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
 
         then: // No cycle when building dependency graph
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:1.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:1.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
-                edge("org.test:buildC:1.0", "project :buildC:", "org.test:buildC:1.0") {
+                edge("org.test:buildC:1.0", "project :buildC", "org.test:buildC:1.0") {
+                    configuration = "runtimeElements"
                     compositeSubstitute()
                 }
             }
@@ -172,10 +219,10 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
 
         then:
         failure
-            .assertHasDescription("Failed to build artifacts for build 'buildB'")
-            .assertHasCause("Failed to build artifacts for build 'buildC'")
-            .assertHasCause("Could not download buildB.jar (project :buildB:)")
-            .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
+            .assertHasDescription("Could not determine the dependencies of task")
+            .assertHasCause("Included build dependency cycle:")
+            .assertThatCause(Matchers.containsText("build 'buildC' -> build 'buildB'"))
+            .assertThatCause(Matchers.containsText("build 'buildB' -> build 'buildC'"))
     }
 
     def "dependency cycle between subprojects in an included multiproject build"() {
@@ -204,11 +251,14 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:1.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:1.0") {
+                configuration = "runtimeElements"
                 compositeSubstitute()
                 edge("org.test:b1:1.0", "project :buildB:b1", "org.test:b1:1.0") {
+                    configuration = "runtimeElements"
                     compositeSubstitute()
                     edge("org.test:b2:1.0", "project :buildB:b2", "org.test:b2:1.0") {
+                        configuration = "runtimeElements"
                         compositeSubstitute()
                         edge("org.test:b1:1.0", "project :buildB:b1", "org.test:b1:1.0") {}
                     }
@@ -221,11 +271,10 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
 
         then:
         failure
-            .assertHasDescription("Failed to build artifacts for build 'buildB'")
-            .assertHasCause("Circular dependency between the following tasks:")
+            .assertHasDescription("Circular dependency between the following tasks:")
     }
 
-    protected void resolveSucceeds  (String task) {
+    protected void resolveSucceeds(String task) {
         resolve.prepare()
         super.execute(buildA, task, arguments)
     }

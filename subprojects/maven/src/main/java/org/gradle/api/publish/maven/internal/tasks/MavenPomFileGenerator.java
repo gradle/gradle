@@ -66,6 +66,10 @@ public class MavenPomFileGenerator {
         addDependency(dependency, "runtime");
     }
 
+    public void addApiDependency(MavenDependencyInternal apiDependency) {
+        addDependency(apiDependency, "compile");
+    }
+
     private void addDependency(MavenDependencyInternal mavenDependency, String scope) {
         if (mavenDependency.getArtifacts().size() == 0) {
             addDependency(mavenDependency, mavenDependency.getArtifactId(), scope, null, null);
@@ -116,5 +120,4 @@ public class MavenPomFileGenerator {
         });
         return this;
     }
-
 }

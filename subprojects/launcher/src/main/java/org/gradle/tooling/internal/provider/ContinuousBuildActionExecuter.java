@@ -18,23 +18,26 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.Action;
 import org.gradle.api.execution.internal.TaskInputsListener;
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.deployment.internal.Deployment;
+import org.gradle.deployment.internal.DeploymentInternal;
+import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.execution.CancellableOperationManager;
 import org.gradle.execution.DefaultCancellableOperationManager;
 import org.gradle.execution.PassThruCancellableOperationManager;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestContext;
+import org.gradle.initialization.ContinuousExecutionGate;
+import org.gradle.initialization.DefaultContinuousExecutionGate;
 import org.gradle.initialization.ReportedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.filewatch.ChangeReporter;
-import org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory;
+import org.gradle.internal.filewatch.DefaultFileWatcherEventListener;
 import org.gradle.internal.filewatch.FileSystemChangeWaiter;
 import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory;
-import org.gradle.internal.filewatch.FileWatcherFactory;
+import org.gradle.internal.filewatch.FileWatcherEventListener;
+import org.gradle.internal.filewatch.PendingChangesListener;
+import org.gradle.internal.filewatch.SingleFirePendingChangesListener;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -48,37 +51,23 @@ import org.gradle.util.SingleMessageLogger;
 
 public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final BuildActionExecuter<BuildActionParameters> delegate;
-    private final ListenerManager listenerManager;
+    private final TaskInputsListener inputsListener;
     private final OperatingSystem operatingSystem;
     private final FileSystemChangeWaiterFactory changeWaiterFactory;
     private final ExecutorFactory executorFactory;
     private final StyledTextOutput logger;
 
-    public ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileWatcherFactory fileWatcherFactory, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, ExecutorFactory executorFactory) {
-        this(delegate, listenerManager, styledTextOutputFactory, OperatingSystem.current(), executorFactory, new DefaultFileSystemChangeWaiterFactory(fileWatcherFactory));
-    }
-
-    ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, OperatingSystem operatingSystem, ExecutorFactory executorFactory, FileSystemChangeWaiterFactory changeWaiterFactory) {
+    public ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileSystemChangeWaiterFactory changeWaiterFactory, TaskInputsListener inputsListener, StyledTextOutputFactory styledTextOutputFactory, ExecutorFactory executorFactory) {
         this.delegate = delegate;
-        this.listenerManager = listenerManager;
-        this.operatingSystem = operatingSystem;
-        this.changeWaiterFactory = changeWaiterFactory;
+        this.inputsListener = inputsListener;
+        this.operatingSystem = OperatingSystem.current();
         this.executorFactory = executorFactory;
-        this.logger = styledTextOutputFactory.create(ContinuousBuildActionExecuter.class, LogLevel.LIFECYCLE);
+        this.changeWaiterFactory = changeWaiterFactory;
+        this.logger = styledTextOutputFactory.create(ContinuousBuildActionExecuter.class, LogLevel.QUIET);
     }
 
     @Override
-    public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
-        if (actionParameters.isContinuous()) {
-            return executeMultipleBuilds(action, requestContext, actionParameters, contextServices);
-        } else {
-            return delegate.execute(action, requestContext, actionParameters, contextServices);
-        }
-    }
-
-    private Object executeMultipleBuilds(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters, ServiceRegistry buildSessionScopeServices) {
-        SingleMessageLogger.incubatingFeatureUsed("Continuous build");
-
+    public Object execute(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         BuildCancellationToken cancellationToken = requestContext.getCancellationToken();
 
         final CancellableOperationManager cancellableOperationManager;
@@ -92,6 +81,37 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
             cancellableOperationManager = new PassThruCancellableOperationManager(cancellationToken);
         }
 
+        if (actionParameters.isContinuous()) {
+            SingleMessageLogger.incubatingFeatureUsed("Continuous build");
+            DefaultContinuousExecutionGate alwaysOpenExecutionGate = new DefaultContinuousExecutionGate();
+            return executeMultipleBuilds(action, requestContext, actionParameters, contextServices, cancellableOperationManager, alwaysOpenExecutionGate);
+        } else {
+            try {
+                return delegate.execute(action, requestContext, actionParameters, contextServices);
+            } finally {
+                waitForDeployments(action, requestContext, actionParameters, contextServices, cancellableOperationManager);
+            }
+        }
+    }
+
+    private void waitForDeployments(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters, ServiceRegistry contextServices, CancellableOperationManager cancellableOperationManager) {
+        final DeploymentRegistryInternal deploymentRegistry = contextServices.get(DeploymentRegistryInternal.class);
+        if (!deploymentRegistry.getRunningDeployments().isEmpty()) {
+            // Deployments are considered outOfDate until initial execution with file watching
+            for (Deployment deployment : deploymentRegistry.getRunningDeployments()) {
+                ((DeploymentInternal) deployment).outOfDate();
+            }
+            requestContext.getBuildTimeClock().reset();
+            logger.println().println("Reloadable deployment detected. Entering continuous build.");
+            ContinuousExecutionGate deploymentRequestExecutionGate = deploymentRegistry.getExecutionGate();
+            executeMultipleBuilds(action, requestContext, actionParameters, contextServices, cancellableOperationManager, deploymentRequestExecutionGate);
+        }
+    }
+
+    private Object executeMultipleBuilds(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters, final ServiceRegistry buildSessionScopeServices,
+                                         CancellableOperationManager cancellableOperationManager, ContinuousExecutionGate continuousExecutionGate) {
+        BuildCancellationToken cancellationToken = requestContext.getCancellationToken();
+
         Object lastResult = null;
         int counter = 0;
         while (!cancellationToken.isCancellationRequested()) {
@@ -101,7 +121,8 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
                 logger.println("Change detected, executing build...").println();
             }
 
-            final FileSystemChangeWaiter waiter = changeWaiterFactory.createChangeWaiter(cancellationToken);
+            PendingChangesListener pendingChangesListener = buildSessionScopeServices.get(ListenerManager.class).getBroadcaster(PendingChangesListener.class);
+            final FileSystemChangeWaiter waiter = changeWaiterFactory.createChangeWaiter(new SingleFirePendingChangesListener(pendingChangesListener), cancellationToken, continuousExecutionGate);
             try {
                 try {
                     lastResult = executeBuildAndAccumulateInputs(action, requestContext, actionParameters, waiter, buildSessionScopeServices);
@@ -119,7 +140,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
                     cancellableOperationManager.monitorInput(new Action<BuildCancellationToken>() {
                         @Override
                         public void execute(BuildCancellationToken cancellationToken) {
-                            ChangeReporter reporter = new ChangeReporter();
+                            FileWatcherEventListener reporter = new DefaultFileWatcherEventListener();
                             waiter.wait(new Runnable() {
                                 @Override
                                 public void run() {
@@ -157,20 +178,12 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
     }
 
     private Object executeBuildAndAccumulateInputs(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, final FileSystemChangeWaiter waiter, ServiceRegistry buildSessionScopeServices) {
-        TaskInputsListener listener = new TaskInputsListener() {
-            @Override
-            public void onExecute(TaskInternal taskInternal, FileCollectionInternal fileSystemInputs) {
-                FileSystemSubset.Builder fileSystemSubsetBuilder = FileSystemSubset.builder();
-                fileSystemInputs.registerWatchPoints(fileSystemSubsetBuilder);
-                waiter.watch(fileSystemSubsetBuilder.build());
-            }
-        };
-        listenerManager.addListener(listener);
         try {
+            inputsListener.setFileSystemWaiter(waiter);
             return delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices);
         } finally {
-            listenerManager.removeListener(listener);
+            inputsListener.setFileSystemWaiter(null);
         }
-    }
 
+    }
 }

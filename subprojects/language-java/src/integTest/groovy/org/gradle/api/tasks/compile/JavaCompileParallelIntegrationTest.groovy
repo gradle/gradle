@@ -56,9 +56,7 @@ class JavaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
             subprojects {
                 apply plugin: 'java'
 
-                repositories {
-                    mavenCentral()
-                }
+                ${mavenCentralRepository()}
 
                 dependencies {
                     compile 'commons-lang:commons-lang:2.5'
@@ -68,7 +66,7 @@ class JavaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
 
         projectNames.each { projectName ->
             def jdk = jdks.next()
-            def executable = TextUtil.escapeString(jdk.key.javacExecutable)
+            def javaHome = TextUtil.escapeString(jdk.key.javaHome.absolutePath)
             def version = jdk.value
             buildFile << """
 project(':$projectName') {
@@ -78,7 +76,7 @@ project(':$projectName') {
 
         options.with {
             fork = true
-            forkOptions.executable = "${executable}"
+            forkOptions.javaHome = file("${javaHome}")
         }
     }
 }

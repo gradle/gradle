@@ -20,6 +20,8 @@ import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.TextUtil
 
+import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
+
 class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
 
     def "can view task container as various view types"() {
@@ -376,7 +378,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         succeeds('customTask')
 
         then:
-        result.assertTasksExecuted(':climbTask', ':customTask')
+        result.assertTasksExecutedInOrder(':climbTask', ':customTask')
     }
 
     def "a non-rule-source task can depend on one or more task of types created via both rule sources and old world container"() {
@@ -402,7 +404,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         succeeds('customTask')
 
         then:
-        result.assertTasksExecuted(':climbTask', ':oldClimber', ':customTask')
+        result.assertTasksExecutedInOrder(any(':climbTask', ':oldClimber'),  ':customTask')
     }
 
     def "can depend on a rule-source task in a project which has already evaluated"() {
@@ -435,7 +437,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         succeeds('sub2:customTask')
 
         then:
-        result.assertTasksExecuted(':sub1:climbTask', ':sub2:customTask')
+        result.assertTasksExecutedInOrder(':sub1:climbTask', ':sub2:customTask')
     }
 
     def "can depend on a rule-source task after a project has been evaluated"() {
@@ -462,7 +464,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         succeeds('customTask')
 
         then:
-        result.assertTasksExecuted(':climbTask', ':customTask')
+        result.assertTasksExecutedInOrder(':climbTask', ':customTask')
     }
 
     def "a build failure occurs when depending on a rule task with failing configuration"() {
@@ -489,8 +491,9 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         fails('customTask')
 
         then:
+        failure.assertHasDescription("Could not determine the dependencies of task ':customTask'.")
+        failure.assertHasCause('Exception thrown while executing model rule: Rules#addTasks(ModelMap<Task>) > create(climbTask)')
         failure.assertHasCause('Bang')
-        failure.assertHasDescription('Exception thrown while executing model rule: Rules#addTasks(ModelMap<Task>) > create(climbTask)')
     }
 
     def "can not depend on a general Task"() {
@@ -531,7 +534,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         succeeds('customTask')
 
         then:
-        result.assertTasksExecuted(':climbTask', ':customTask')
+        result.assertTasksExecutedInOrder(':climbTask', ':customTask')
     }
 
     def "a non-rule-source task can depend on a rule-source task with matching criteria"() {
@@ -555,7 +558,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         succeeds('customTask')
 
         then:
-        result.assertTasksExecuted(':climbTask', ':customTask')
+        result.assertTasksExecutedInOrder(':climbTask', ':customTask')
     }
 
     def "a non-rule-source task can not depend on both realizable and default task collections"() {
@@ -580,7 +583,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         succeeds('customTask')
 
         then:
-        result.assertTasksExecuted(':foo', ':customTask')
+        result.assertTasksExecutedInOrder(':foo', ':customTask')
     }
 
     @NotYetImplemented
@@ -606,7 +609,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         succeeds('customTask')
 
         then:
-        result.assertTasksExecuted(':customTask', ':climbTask', ':jumpTask')
+        result.assertTasksExecutedInOrder(':customTask', ':climbTask', ':jumpTask')
     }
 
     @NotYetImplemented
@@ -694,6 +697,6 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         run "customTask"
 
         then:
-        result.assertTasksExecuted(':climbTask', ':customTask')
+        result.assertTasksExecutedInOrder(':climbTask', ':customTask')
     }
 }

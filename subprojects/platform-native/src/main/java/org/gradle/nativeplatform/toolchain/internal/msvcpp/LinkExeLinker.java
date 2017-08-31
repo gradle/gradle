@@ -18,14 +18,17 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.tasks.SimpleWorkResult;
-import org.gradle.internal.operations.BuildOperationProcessor;
-import org.gradle.internal.operations.BuildOperationQueue;
-import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationQueue;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.SharedLibraryLinkerSpec;
-import org.gradle.nativeplatform.toolchain.internal.*;
+import org.gradle.nativeplatform.toolchain.internal.AbstractCompiler;
+import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -33,18 +36,13 @@ import java.util.List;
 
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.EscapeUserArgs.escapeUserArgs;
 
-class LinkExeLinker implements Compiler<LinkerSpec> {
+class LinkExeLinker extends AbstractCompiler<LinkerSpec> {
 
-    private final CommandLineToolInvocationWorker commandLineToolInvocationWorker;
     private final Transformer<LinkerSpec, LinkerSpec> specTransformer;
-    private final ArgsTransformer<LinkerSpec> argsTransformer;
     private final CommandLineToolContext invocationContext;
-    private final BuildOperationProcessor buildOperationProcessor;
 
-    LinkExeLinker(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, Transformer<LinkerSpec, LinkerSpec> specTransformer) {
-        this.buildOperationProcessor = buildOperationProcessor;
-        this.argsTransformer = new LinkerArgsTransformer();
-        this.commandLineToolInvocationWorker = commandLineToolInvocationWorker;
+    LinkExeLinker(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, Transformer<LinkerSpec, LinkerSpec> specTransformer, WorkerLeaseService workerLeaseService) {
+        super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new LinkerArgsTransformer(), true, workerLeaseService);
         this.invocationContext = invocationContext;
         this.specTransformer = specTransformer;
     }
@@ -52,21 +50,26 @@ class LinkExeLinker implements Compiler<LinkerSpec> {
     @Override
     public WorkResult execute(final LinkerSpec spec) {
         LinkerSpec transformedSpec = specTransformer.transform(spec);
-        List<String> args = argsTransformer.transform(transformedSpec);
-        invocationContext.getArgAction().execute(args);
-        new VisualCppOptionsFileArgsWriter(spec.getTempDir()).execute(args);
-        final CommandLineToolInvocation invocation = invocationContext.createInvocation(
-                "linking " + spec.getOutputFile().getName(), args, spec.getOperationLogger());
 
-        buildOperationProcessor.run(commandLineToolInvocationWorker, new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
+        return super.execute(transformedSpec);
+    }
+
+    @Override
+    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(final LinkerSpec spec, List<String> args) {
+        final CommandLineToolInvocation invocation = invocationContext.createInvocation(
+            "linking " + spec.getOutputFile().getName(), spec.getOutputFile().getParentFile(), args, spec.getOperationLogger());
+
+        return new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
             @Override
             public void execute(BuildOperationQueue<CommandLineToolInvocation> buildQueue) {
                 buildQueue.setLogLocation(spec.getOperationLogger().getLogLocation());
                 buildQueue.add(invocation);
             }
-        });
+        };
+    }
 
-        return new SimpleWorkResult(true);
+    protected void addOptionsFileArgs(List<String> args, File tempDir) {
+        new VisualCppOptionsFileArgsWriter(tempDir).execute(args);
     }
 
     private static class LinkerArgsTransformer implements ArgsTransformer<LinkerSpec> {

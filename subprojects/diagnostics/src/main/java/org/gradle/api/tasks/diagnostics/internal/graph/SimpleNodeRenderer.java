@@ -26,10 +26,18 @@ public class SimpleNodeRenderer implements NodeRenderer {
     @Override
     public void renderNode(StyledTextOutput output, RenderableDependency node, boolean alreadyRendered) {
         output.text(node.getName());
-        if (!node.isResolvable()) {
-            output.withStyle(Failure).text(" FAILED");
-        } else if (alreadyRendered && !node.getChildren().isEmpty()) {
-            output.withStyle(Info).text(" (*)");
+        switch (node.getResolutionState()) {
+            case FAILED:
+                output.withStyle(Failure).text(" FAILED");
+                break;
+            case RESOLVED:
+                if (alreadyRendered && !node.getChildren().isEmpty()) {
+                    output.withStyle(Info).text(" (*)");
+                }
+                break;
+            case UNRESOLVED:
+                output.withStyle(Info).text(" (n)");
+                break;
         }
     }
 }

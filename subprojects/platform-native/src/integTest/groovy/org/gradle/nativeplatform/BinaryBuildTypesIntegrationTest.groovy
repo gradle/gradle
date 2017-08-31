@@ -209,6 +209,7 @@ model {
         fails "mainReleaseExecutable"
 
         then:
-        failure.assertHasDescription("No static library binary available for library 'hello' with [flavor: 'default', platform: '${NativePlatformsTestFixture.defaultPlatformName}', buildType: 'release']")
+        failure.assertHasDescription("Could not determine the dependencies of task ':linkMainReleaseExecutable'.")
+        failure.assertHasCause("No static library binary available for library 'hello' with [flavor: 'default', platform: '${NativePlatformsTestFixture.defaultPlatformName}', buildType: 'release']")
     }
 }

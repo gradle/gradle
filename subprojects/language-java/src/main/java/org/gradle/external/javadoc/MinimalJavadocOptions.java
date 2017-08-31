@@ -22,6 +22,8 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.process.ExecSpec;
 
 import java.io.File;
@@ -91,7 +93,7 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions bootClasspath(File ... bootClasspath);
 
-    @Optional @InputFiles
+    @Optional @PathSensitive(PathSensitivity.RELATIVE) @InputFiles
     List<File> getExtDirs();
 
     void setExtDirs(List<File> extDirs);
@@ -140,7 +142,7 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions jFlags(String ... jFlags);
 
-    @Optional @InputFiles
+    @Optional @PathSensitive(PathSensitivity.NONE) @InputFiles
     List<File> getOptionFiles();
 
     void setOptionFiles(List<File> optionFiles);

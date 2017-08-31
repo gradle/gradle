@@ -16,6 +16,10 @@
                 <td>source</td>
                 <td><literal>[project.appDir]</literal>, not transitive</td>
             </tr>
+            <tr>
+                <td>libDirName</td>
+                <td><literal>'lib'</literal></td>
+            </tr>
         </table>
     </section>
     <section>
@@ -28,6 +32,9 @@
             </thead>
             <tr>
                 <td>lib</td>
+            </tr>
+            <tr>
+                <td>deploymentDescriptor</td>
             </tr>
         </table>
     </section>

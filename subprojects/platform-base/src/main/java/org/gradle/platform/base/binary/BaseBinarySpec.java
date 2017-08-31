@@ -19,7 +19,6 @@ package org.gradle.platform.base.binary;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.AbstractBuildableComponentSpec;
 import org.gradle.api.internal.DefaultDomainObjectSet;
@@ -27,17 +26,29 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.reflect.ObjectInstantiationException;
+import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelActionRole;
+import org.gradle.model.internal.core.ModelMaps;
+import org.gradle.model.internal.core.ModelRegistration;
+import org.gradle.model.internal.core.ModelRegistrations;
+import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.UnmanagedModelProjection;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ModelInstantiationException;
-import org.gradle.platform.base.internal.*;
+import org.gradle.platform.base.internal.BinaryBuildAbility;
+import org.gradle.platform.base.internal.BinaryNamingScheme;
+import org.gradle.platform.base.internal.BinarySpecInternal;
+import org.gradle.platform.base.internal.ComponentSpecIdentifier;
+import org.gradle.platform.base.internal.DefaultBinaryNamingScheme;
+import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
+import org.gradle.platform.base.internal.FixedBuildAbility;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Set;
 
@@ -121,7 +132,7 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
     public LibraryBinaryIdentifier getId() {
         // TODO: This can throw a NPE: will need an identifier for a variant without an owning component
         ComponentSpec component = getComponent();
-        return DefaultLibraryBinaryIdentifier.of(component.getProjectPath(), component.getName(), getName());
+        return new DefaultLibraryBinaryIdentifier(component.getProjectPath(), component.getName(), getName());
     }
 
     @Override

@@ -34,9 +34,7 @@ class ScalaBasePluginIntegrationTest extends MultiVersionIntegrationSpec {
            custom
         }
 
-        repositories {
-           mavenCentral()
-        }
+        ${mavenCentralRepository()}
 
         dependencies {
            customCompile "org.scala-lang:scala-library:$version"
@@ -66,9 +64,7 @@ sourceSets {
     custom
 }
 
-repositories {
-    mavenCentral()
-}
+${mavenCentralRepository()}
 
 dependencies {
     customCompile "org.scala-lang:scala-library:$version"
@@ -99,9 +95,7 @@ task verify {
                 main {}
             }
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 compile "com.google.guava:guava:11.0.2"
@@ -116,7 +110,7 @@ task verify {
         fails "compileScala"
 
         then:
-        failure.assertThatDescription(startsWith("Cannot infer Scala class path because no Scala library Jar was found."))
+        failure.assertThatCause(startsWith("Cannot infer Scala class path because no Scala library Jar was found."))
     }
 
 }

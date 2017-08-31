@@ -17,9 +17,11 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 
 import static org.hamcrest.Matchers.containsString
 
+@TestReproducibleArchives
 class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
 
     @Override
@@ -40,9 +42,7 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
         buildFile << """
         apply plugin: 'java-library-distribution'
 
-        repositories {
-            mavenCentral()
-        }
+        ${mavenCentralRepository()}
         dependencies {
             compile 'commons-collections:commons-collections:3.2.2'
             runtime 'commons-lang:commons-lang:2.6'
@@ -101,9 +101,7 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
             }
         }
 
-        repositories {
-            mavenCentral()
-        }
+        ${mavenCentralRepository()}
         dependencies {
             runtime 'commons-lang:commons-lang:2.6'
         }

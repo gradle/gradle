@@ -17,7 +17,7 @@
 
 import org.gradle.testing.DistributedPerformanceTest
 import org.gradle.testing.PerformanceTest
-import org.gradle.testing.performance.generator.tasks.AbstractProjectGeneratorTask
+import org.gradle.testing.performance.generator.tasks.JavaExecProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.ProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.RemoteProject
@@ -80,6 +80,8 @@ tasks.withType(JvmProjectGeneratorTask) {
 
 task prepareSamples {
     dependsOn tasks.withType(ProjectGeneratorTask)
+    dependsOn tasks.withType(RemoteProject)
+    dependsOn tasks.withType(JavaExecProjectGeneratorTask)
     group = "Project Setup"
     description = "Generates all sample projects for automated performance tests"
 }
@@ -87,6 +89,7 @@ task prepareSamples {
 task cleanSamples(type: Delete) {
     delete {tasks.withType(ProjectGeneratorTask)*.destDir}
     delete {tasks.withType(RemoteProject)*.outputDirectory}
+    delete {tasks.withType(JavaExecProjectGeneratorTask)*.outputs}
 }
 
 def withPerformanceDb = { task ->
@@ -111,9 +114,6 @@ ext.performanceReportTasks = tasks.withType(PerformanceReport)
 performanceReportTasks.all(withPerformanceDb)
 
 task performanceReport(type: PerformanceReport) {
-    //jvmArgs '-Xverify:none', '-XX:+UnlockCommercialFeatures', '-XX:+FlightRecorder', '-XX:+UnlockDiagnosticVMOptions', '-XX:+DebugNonSafepoints', '-XX:FlightRecorderOptions=stackdepth=1024,disk=true,dumponexit=true,defaultrecording=true'
-    minHeapSize = '1g'
-    maxHeapSize = '2g'
     classpath = sourceSets.performanceTest.runtimeClasspath
     resultStoreClass = "org.gradle.performance.results.AllResultsStore"
     reportDir = new File(buildDir, "performance-tests/report")
@@ -124,9 +124,15 @@ ext.performanceTestTasks = tasks.withType(PerformanceTest)
 
 performanceTestTasks.all { PerformanceTest task ->
     withPerformanceDb(task)
-    testClassesDir = sourceSets.performanceTest.output.classesDir
+    testClassesDirs = sourceSets.performanceTest.output.classesDirs
     classpath = sourceSets.performanceTest.runtimeClasspath
-    dependsOn( prepareSamples, { project(':toolingApi').publishLocalArchives }, ':distributions:binZip')
+    dependsOn prepareSamples
+    mustRunAfter tasks.withType(ProjectGeneratorTask)
+    mustRunAfter tasks.withType(RemoteProject)
+    mustRunAfter tasks.withType(JavaExecProjectGeneratorTask)
+    requiresBinZip = true
+    requiresLibsRepo = true
+
     finalizedBy performanceReport
 
     project.task("clean${task.name.capitalize()}", type: Delete) {
@@ -139,17 +145,8 @@ performanceTestTasks.all { PerformanceTest task ->
     }
 
     maxParallelForks = 1
-    checks = 'speed'
-
 
     doFirst {
-        // Some performance builds generate a lot of output,
-        // that is buffered until the test finishes via GradleExecuter.
-        if (System.getProperty('sun.arch.data.model').contains("64")) {
-            jvmArgs '-Xmx4g'
-        } else {
-            println "not increasing JVM heap size due to use of 32bit JVM"
-        }
         if (task.channel) {
             performanceReport.systemProperty 'org.gradle.performance.execution.channel', task.channel
         }
@@ -158,13 +155,13 @@ performanceTestTasks.all { PerformanceTest task ->
 
 task performanceTest(type: PerformanceTest) {
     options {
-        excludeCategories 'org.gradle.performance.categories.Experiment'
+        excludeCategories 'org.gradle.performance.categories.PerformanceExperiment'
     }
 }
 
 task performanceExperiment(type: PerformanceTest) {
     options {
-        includeCategories 'org.gradle.performance.categories.Experiment'
+        includeCategories 'org.gradle.performance.categories.PerformanceExperiment'
     }
 }
 
@@ -182,21 +179,29 @@ tasks.withType(DistributedPerformanceTest) {
     buildTypeId = project.findProperty("org.gradle.performance.buildTypeId")
     workerTestTaskName = project.findProperty("org.gradle.performance.workerTestTaskName")?:'fullPerformanceTest'
     coordinatorBuildId = project.findProperty("org.gradle.performance.coordinatorBuildId")
+    branchName = project.findProperty("org.gradle.performance.branchName")
     teamCityUrl = "https://builds.gradle.org/"
     teamCityUsername = project.findProperty("teamCityUsername")
     teamCityPassword = project.findProperty("teamCityPassword")
+    afterEvaluate { p ->
+      if (branchName) {
+        channel = channel + "-" + branchName
+      }
+    }
 }
 
 task distributedPerformanceTest(type: DistributedPerformanceTest) {
     options {
-        excludeCategories 'org.gradle.performance.categories.Experiment'
+        excludeCategories 'org.gradle.performance.categories.PerformanceExperiment'
     }
+    channel = 'commits'
 }
 
 task distributedPerformanceExperiment(type: DistributedPerformanceTest) {
     options {
-        includeCategories 'org.gradle.performance.categories.Experiment'
+        includeCategories 'org.gradle.performance.categories.PerformanceExperiment'
     }
+    channel = 'experiments'
 }
 
 task distributedFullPerformanceTest(type: DistributedPerformanceTest) {
@@ -206,16 +211,12 @@ task distributedFullPerformanceTest(type: DistributedPerformanceTest) {
 }
 
 configure([performanceTest, performanceExperiment, fullPerformanceTest, performanceAdhocTest]) {
+    group = 'verification'
+
     if (project.hasProperty('org.gradle.performance.use_yourkit')) {
         testLogging.showStandardStreams = true
         systemProperties['org.gradle.performance.use_yourkit'] = '1'
         outputs.upToDateWhen { false }
-    }
-    if (project.hasProperty('org.gradle.performance.heapdump')) {
-        systemProperties['org.gradle.performance.heapdump'] = project.property('org.gradle.performance.heapdump')?:'1'
-    }
-    if (project.hasProperty('org.gradle.performance.hotspotlog')) {
-        systemProperties['org.gradle.performance.hotspotlog'] = '1'
     }
     if (project.hasProperty('org.gradle.performance.honestprofiler')) {
         systemProperties['org.gradle.performance.honestprofiler'] = '1'
@@ -261,17 +262,6 @@ class PerformanceReport extends JavaExec {
 
 tasks.withType(ProjectGeneratorTask) {
     sharedTemplateDirectory = project.findProject(':internalPerformanceTesting').file('src/templates')
-}
-
-tasks.withType(AbstractProjectGeneratorTask) {
-    dependsOn ':internalPerformanceTesting:measurementPluginJar'
-    doFirst {
-        templateArgs.measurementPluginJarFile = project.tasks.findByPath(':internalPerformanceTesting:measurementPluginJar')?.archivePath
-    }
-}
-
-tasks.withType(RemoteProject).all {
-    dependsOn ':internalPerformanceTesting:measurementPluginJar'
 }
 
 // add task that zips the junit xml test report files to a zip file

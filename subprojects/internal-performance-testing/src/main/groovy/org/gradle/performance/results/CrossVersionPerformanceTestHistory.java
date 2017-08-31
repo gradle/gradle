@@ -18,8 +18,8 @@ package org.gradle.performance.results;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
-import org.gradle.api.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -120,6 +120,11 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
                     }
 
                     @Override
+                    public List<String> getCleanTasks() {
+                        return mostRecent.getCleanTasks();
+                    }
+
+                    @Override
                     public List<String> getArgs() {
                         return mostRecent.getArgs();
                     }
@@ -198,6 +203,11 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
         }
 
         @Override
+        public String getHost() {
+            return result.getHost();
+        }
+
+        @Override
         public String getJvm() {
             return result.getJvm();
         }
@@ -218,6 +228,12 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
         @Override
         public List<String> getTasks() {
             return result.getTasks();
+        }
+
+        @Nullable
+        @Override
+        public List<String> getCleanTasks() {
+            return result.getCleanTasks();
         }
 
         @Nullable

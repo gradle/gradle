@@ -148,6 +148,11 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
     }
 
     @Override
+    public Rule addRule(String description, Action<String> ruleAction) {
+        return delegate.addRule(description, ruleAction);
+    }
+
+    @Override
     public List<Rule> getRules() {
         return delegate.getRules();
     }

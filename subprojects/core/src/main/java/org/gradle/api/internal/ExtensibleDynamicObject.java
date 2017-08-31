@@ -17,7 +17,6 @@ package org.gradle.api.internal;
 
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.plugins.ExtraPropertiesDynamicObjectAdapter;
 import org.gradle.api.plugins.Convention;
@@ -25,13 +24,12 @@ import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.CompositeDynamicObject;
+import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.metaobject.GetPropertyResult;
-import org.gradle.internal.metaobject.InvokeMethodResult;
 import org.gradle.internal.metaobject.MixInClosurePropertiesAsMethodsDynamicObject;
-import org.gradle.internal.metaobject.SetPropertyResult;
 import org.gradle.internal.reflect.Instantiator;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -211,8 +209,9 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         }
 
         @Override
-        public void setProperty(String name, Object value, SetPropertyResult result) {
+        public DynamicInvokeResult trySetProperty(String name, Object value) {
             setProperty(name, value);
+            return DynamicInvokeResult.found();
         }
 
         @Override
@@ -226,8 +225,8 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         }
 
         @Override
-        public void getProperty(String name, GetPropertyResult result) {
-            snapshotInheritable().getProperty(name, result);
+        public DynamicInvokeResult tryGetProperty(String name) {
+            return snapshotInheritable().tryGetProperty(name);
         }
 
         @Override
@@ -241,8 +240,8 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         }
 
         @Override
-        public void invokeMethod(String name, InvokeMethodResult result, Object... arguments) {
-            snapshotInheritable().invokeMethod(name, result, arguments);
+        public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
+            return snapshotInheritable().tryInvokeMethod(name, arguments);
         }
 
         @Override

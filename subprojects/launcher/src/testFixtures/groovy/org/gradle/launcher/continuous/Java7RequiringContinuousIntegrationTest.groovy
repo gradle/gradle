@@ -16,5 +16,7 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
+
 abstract class Java7RequiringContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 }

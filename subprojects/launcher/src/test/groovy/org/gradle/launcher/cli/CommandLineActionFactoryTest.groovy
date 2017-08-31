@@ -22,15 +22,15 @@ import org.gradle.cli.CommandLineParser
 import org.gradle.internal.Factory
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.logging.LoggingManagerInternal
-import org.gradle.internal.logging.services.LoggingServiceRegistry
+import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.internal.logging.services.LoggingServiceRegistry
+import org.gradle.internal.logging.text.StreamingStyledTextOutput
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.bootstrap.ExecutionListener
-import org.gradle.internal.logging.events.OutputEventListener
-import org.gradle.internal.logging.text.StreamingStyledTextOutput
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
 import org.gradle.util.RedirectStdOutAndErr
@@ -217,19 +217,21 @@ class CommandLineActionFactoryTest extends Specification {
 
     def "displays version message"() {
         def version = GradleVersion.current()
-        def expectedText = """
-------------------------------------------------------------
-Gradle ${version.version}
-------------------------------------------------------------
-
-Build time:   $version.buildTime
-Revision:     $version.revision
-
-Groovy:       $GroovySystem.version
-Ant:          $Main.antVersion
-JVM:          ${Jvm.current()}
-OS:           ${OperatingSystem.current()}
-"""
+        def expectedText = [
+            "",
+            "------------------------------------------------------------",
+            "Gradle ${version.version}",
+            "------------------------------------------------------------",
+            "",
+            "Build time:   $version.buildTime",
+            "Revision:     $version.revision",
+            "",
+            "Groovy:       $GroovySystem.version",
+            "Ant:          $Main.antVersion",
+            "JVM:          ${Jvm.current()}",
+            "OS:           ${OperatingSystem.current()}",
+            ""
+        ].join(System.lineSeparator())
 
         when:
         def action = factory.convert([option])

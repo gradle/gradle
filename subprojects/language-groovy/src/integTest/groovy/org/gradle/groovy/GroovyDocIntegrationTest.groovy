@@ -19,10 +19,10 @@ package org.gradle.groovy
 import org.apache.commons.lang.StringEscapeUtils
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.fixture.GroovydocCoverage
+import org.gradle.testing.fixture.GroovyCoverage
 import spock.lang.Issue
 
-@TargetCoverage({GroovydocCoverage.ALL_COVERAGE})
+@TargetCoverage({GroovyCoverage.SUPPORTS_GROOVYDOC})
 class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3116")
@@ -31,9 +31,7 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
         buildFile << """
             apply plugin: "groovy"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 compile "org.codehaus.groovy:${module}:${version}"
@@ -69,9 +67,7 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
         buildFile << """
             apply plugin: "groovy"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 compile "org.codehaus.groovy:${module}:${version}"
@@ -114,20 +110,17 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
     }
 
     @Issue(["GRADLE-3174", "GRADLE-3463"])
-    def "Error in Groovydoc generation is logged"() {
+    def "output from Groovydoc generation is logged"() {
         when:
         buildScript """
             apply plugin: "groovy"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
-                compile "org.codehaus.groovy:${module}:${version}"
+                compile "org.codehaus.groovy:groovy:${version}"
             }
         """
-
 
         file("src/main/groovy/pkg/Thing.java") << """
             package pkg;
@@ -142,9 +135,6 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
 
         then:
         succeeds 'groovydoc'
-        outputContains('[ant:groovydoc] line 8:87: unexpected token: >')
-
-        where:
-        module << ['groovy', 'groovy-all']
+        outputContains '[ant:groovydoc]'
     }
 }

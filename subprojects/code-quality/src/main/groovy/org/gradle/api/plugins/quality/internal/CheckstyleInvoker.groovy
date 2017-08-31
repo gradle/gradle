@@ -22,9 +22,11 @@ import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.api.plugins.quality.CheckstyleReports
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.util.GFileUtils
+import org.gradle.util.SingleMessageLogger
 
 abstract class CheckstyleInvoker {
     private final static String FAILURE_PROPERTY_NAME = 'org.gradle.checkstyle.violations'
+    private final static String CONFIG_LOC_PROPERTY = "config_loc"
 
     static void invoke(Checkstyle checkstyleTask) {
         def antBuilder = checkstyleTask.antBuilder
@@ -32,11 +34,14 @@ abstract class CheckstyleInvoker {
         def source = checkstyleTask.source
         def classpath = checkstyleTask.classpath
         def showViolations = checkstyleTask.showViolations
+        def maxErrors = checkstyleTask.maxErrors
+        def maxWarnings = checkstyleTask.maxWarnings
         def reports = checkstyleTask.reports
         def configProperties = checkstyleTask.configProperties
         def ignoreFailures = checkstyleTask.ignoreFailures
         def logger = checkstyleTask.logger
         def config = checkstyleTask.config
+        def configDir = checkstyleTask.configDir
         def xmlDestination = reports.xml.destination
 
         if (isHtmlReportEnabledOnly(reports)) {
@@ -50,7 +55,9 @@ abstract class CheckstyleInvoker {
                 ant.taskdef(name: 'checkstyle', classname: 'com.puppycrawl.tools.checkstyle.ant.CheckstyleAntTask')
             }
 
-            ant.checkstyle(config: config.asFile(), failOnViolation: false, failureProperty: FAILURE_PROPERTY_NAME) {
+            ant.checkstyle(config: config.asFile(), failOnViolation: false,
+                    maxErrors: maxErrors, maxWarnings: maxWarnings, failureProperty: FAILURE_PROPERTY_NAME) {
+
                 source.addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
                 classpath.addToAntBuilder(ant, 'classpath')
 
@@ -60,6 +67,16 @@ abstract class CheckstyleInvoker {
 
                 if (reports.xml.enabled || reports.html.enabled) {
                     formatter(type: 'xml', toFile: xmlDestination)
+                }
+
+                // User provided their own config_loc
+                def userProvidedConfigLoc = configProperties[CONFIG_LOC_PROPERTY]
+
+                if (userProvidedConfigLoc) {
+                    SingleMessageLogger.nagUserOfDeprecated("Adding 'config_loc' to checkstyle.configProperties", "Use checkstyle.configDir instead as this will behave better with up-to-date checks")
+                } else if (configDir) {
+                    // Use configDir for config_loc
+                    property(key: CONFIG_LOC_PROPERTY, value: configDir.toString())
                 }
 
                 configProperties.each { key, value ->
@@ -98,6 +115,6 @@ abstract class CheckstyleInvoker {
     }
 
     private static boolean isHtmlReportEnabledOnly(CheckstyleReports reports) {
-        return !reports.xml.enabled && reports.html.enabled;
+        return !reports.xml.enabled && reports.html.enabled
     }
 }

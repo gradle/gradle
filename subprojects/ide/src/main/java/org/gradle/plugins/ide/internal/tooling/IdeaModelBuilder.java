@@ -18,7 +18,9 @@ package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.composite.internal.IncludedBuildInternal;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.Dependency;
@@ -81,7 +83,10 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         for (Project p : allProjects) {
             p.getPluginManager().apply(IdeaPlugin.class);
         }
-        ideaPluginFor(root).performPostEvaluationActions();
+        for (IncludedBuild includedBuild : root.getGradle().getIncludedBuilds()) {
+            IncludedBuildInternal includedBuildInternal = (IncludedBuildInternal) includedBuild;
+            applyIdeaPlugin(includedBuildInternal.getConfiguredBuild().getRootProject());
+        }
     }
 
     private DefaultIdeaProject build(Project project, DefaultGradleProject rootGradleProject) {
@@ -164,6 +169,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
             .setParent(ideaProject)
             .setGradleProject(rootGradleProject.findByPath(ideaModule.getProject().getPath()))
             .setContentRoots(Collections.singletonList(contentRoot))
+            .setJdkName(ideaModule.getJdkName())
             .setCompilerOutput(new DefaultIdeaCompilerOutput()
                 .setInheritOutputDirs(ideaModule.getInheritOutputDirs() != null ? ideaModule.getInheritOutputDirs() : false)
                 .setOutputDir(ideaModule.getOutputDir())

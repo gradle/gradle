@@ -1,0 +1,39 @@
+class Person {
+    String name
+}
+
+class GreetingPluginExtension {
+    String message
+    final Person greeter
+
+    @javax.inject.Inject
+    GreetingPluginExtension(ObjectFactory objectFactory) {
+        // Create a Person instance
+        greeter = objectFactory.newInstance(Person)
+    }
+
+    void greeter(Action<? super Person> action) {
+        action.execute(greeter)
+    }
+}
+
+class GreetingPlugin implements Plugin<Project> {
+    void apply(Project project) {
+        // Create the extension, passing in an ObjectFactory for it to use
+        def extension = project.extensions.create('greeting', GreetingPluginExtension, project.objects)
+        project.task('hello') {
+            doLast {
+                println "${extension.message} from ${extension.greeter.name}"
+            }
+        }
+    }
+}
+
+apply plugin: GreetingPlugin
+
+greeting {
+    message = 'Hi'
+    greeter {
+        name = 'Gradle'
+    }
+}

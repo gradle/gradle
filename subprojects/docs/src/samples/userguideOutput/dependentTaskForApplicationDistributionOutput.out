@@ -1,11 +1,10 @@
 :createDocs
 :compileJava
-:processResources UP-TO-DATE
+:processResources NO-SOURCE
 :classes
 :jar
 :startScripts
 :distZip
 
-BUILD SUCCESSFUL
-
-Total time: 1 secs
+BUILD SUCCESSFUL in 0s
+5 actionable tasks: 5 executed

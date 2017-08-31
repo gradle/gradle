@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,14 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 import org.gradle.api.artifacts.ComponentMetadata;
 
-public abstract class AbstractVersionSelector implements VersionSelector {
+abstract class AbstractVersionSelector implements VersionSelector {
     private final String selector;
 
     protected AbstractVersionSelector(String selector) {
         this.selector = selector;
     }
 
-    protected String getSelector() {
+    protected final String getSelector() {
         return selector;
     }
 

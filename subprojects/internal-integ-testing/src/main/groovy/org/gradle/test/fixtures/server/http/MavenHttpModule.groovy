@@ -19,26 +19,24 @@ import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.DelegatingMavenModule
 import org.gradle.test.fixtures.maven.MavenFileModule
-import org.gradle.test.fixtures.maven.MavenModule
+import org.gradle.test.fixtures.maven.RemoteMavenModule
 
-class MavenHttpModule extends DelegatingMavenModule<MavenHttpModule> implements MavenModule, HttpModule {
+class MavenHttpModule extends DelegatingMavenModule<MavenHttpModule> implements RemoteMavenModule, HttpModule {
     private final HttpServer server
-    private final String moduleRootPath
+    private final String moduleRootUriPath
+    private final String uriPath
     private final MavenFileModule backingModule
 
     MavenHttpModule(HttpServer server, String repoRoot, MavenFileModule backingModule) {
         super(backingModule)
         this.backingModule = backingModule
         this.server = server
-        this.moduleRootPath = "${repoRoot}/${backingModule.groupId.replace('.', '/')}/${backingModule.artifactId}"
-    }
-
-    protected String getModuleVersionPath() {
-        "${moduleRootPath}/${backingModule.version}"
+        this.moduleRootUriPath = "${repoRoot}/${backingModule.moduleRootPath}"
+        this.uriPath = "${repoRoot}/${backingModule.path}"
     }
 
     HttpArtifact getArtifact(Map options = [:]) {
-        return new MavenHttpArtifact(server, "${moduleRootPath}/${backingModule.version}", backingModule, options)
+        return new MavenHttpArtifact(server, uriPath, backingModule, options)
     }
 
     /**
@@ -47,7 +45,7 @@ class MavenHttpModule extends DelegatingMavenModule<MavenHttpModule> implements 
      */
     HttpArtifact artifact(Map<String, ?> options = [:]) {
         backingModule.artifact(options)
-        return new MavenHttpArtifact(server, "${moduleRootPath}/${backingModule.version}", backingModule, options)
+        return new MavenHttpArtifact(server, uriPath, backingModule, options)
     }
 
     MavenHttpModule withSourceAndJavadoc() {
@@ -62,11 +60,11 @@ class MavenHttpModule extends DelegatingMavenModule<MavenHttpModule> implements 
     }
 
     PomHttpArtifact getPom() {
-        return new PomHttpArtifact(server, getModuleVersionPath(), backingModule)
+        return new PomHttpArtifact(server, uriPath, backingModule)
     }
 
     MetaDataArtifact getRootMetaData() {
-        return new MetaDataArtifact(server, "$moduleRootPath", backingModule)
+        return new MetaDataArtifact(server, moduleRootUriPath, backingModule)
     }
 
     TestFile getRootMetaDataFile() {
@@ -74,7 +72,7 @@ class MavenHttpModule extends DelegatingMavenModule<MavenHttpModule> implements 
     }
 
     MavenHttpModule allowAll() {
-        server.allowGetOrHead(moduleVersionPath, backingModule.moduleDir)
+        server.allowGetOrHead(uriPath, backingModule.moduleDir)
         return this
     }
 
@@ -96,14 +94,14 @@ class MavenHttpModule extends DelegatingMavenModule<MavenHttpModule> implements 
     }
 
     String getMetaDataPath() {
-        "$moduleVersionPath/$metaDataFile.name"
+        return "$uriPath/$metaDataFile.name"
     }
 
     String getArtifactPath() {
-        "$moduleVersionPath/$artifactFile.name"
+        return "$uriPath/$artifactFile.name"
     }
 
     String getPomPath() {
-        "$moduleVersionPath/$pomFile.name"
+        return "$uriPath/$pomFile.name"
     }
 }

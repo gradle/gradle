@@ -19,16 +19,18 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.tasks.compile.CompileOptions;
 
 import java.io.File;
+import java.util.List;
 
 public interface JavaCompileSpec extends JvmLanguageCompileSpec {
     CompileOptions getCompileOptions();
 
-    @Deprecated
-    File getDependencyCacheDir();
-
-    @Deprecated
-    void setDependencyCacheDir(File dependencyCacheDir);
-
     @Override
     File getDestinationDir();
+
+    /**
+     * The annotation processor path to use. When empty, no processing should be done. When not empty, processing should be done.
+     */
+    List<File> getAnnotationProcessorPath();
+
+    void setAnnotationProcessorPath(List<File> path);
 }

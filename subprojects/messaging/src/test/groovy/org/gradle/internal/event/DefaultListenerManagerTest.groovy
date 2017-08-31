@@ -17,6 +17,7 @@
 package org.gradle.internal.event
 
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import spock.lang.Ignore
 import spock.lang.Timeout
 
 import java.util.concurrent.CopyOnWriteArrayList
@@ -31,11 +32,10 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
     def barListener1 = Mock(TestBarListener.class)
 
     def broadcasterDoesNothingWhenNoListenersRegistered() {
-        given:
-        def broadcaster = manager.getBroadcaster(TestFooListener.class)
-
         when:
-        broadcaster.foo("param");
+        manager.getBroadcaster(TestFooListener.class).foo("param")
+        manager.createChild().getBroadcaster(TestFooListener.class).foo("param")
+        manager.createChild().createAnonymousBroadcaster(TestFooListener.class).source.foo("param")
 
         then:
         0 * _
@@ -392,6 +392,31 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         e.causes == [failure1, failure2]
     }
 
+    def collectsMultipleFailuresFromParent() {
+        given:
+        def failure1 = new RuntimeException()
+        def failure2 = new RuntimeException()
+        def failure3 = new RuntimeException()
+        manager.addListener(fooListener1)
+        manager.addListener(fooListener2)
+        def child = manager.createChild()
+        child.addListener(fooListener3)
+        def testFooListener = child.getBroadcaster(TestFooListener.class)
+
+        when:
+        testFooListener.foo("param")
+
+        then:
+        1 * fooListener1.foo("param") >> { throw failure1 }
+        1 * fooListener2.foo("param") >> { throw failure2 }
+        1 * fooListener3.foo("param") >> { throw failure3 }
+        0 * _
+
+        and:
+        ListenerNotificationException e = thrown()
+        e.causes == [failure1, failure2, failure3]
+    }
+
     def listenerReceivesEventsFromAnonymousBroadcasters() {
         given:
         manager.addListener(fooListener1)
@@ -414,6 +439,32 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
 
         then:
         0 * _
+    }
+
+    def anonymousBroadcasterCollectsMultipleFailures() {
+        given:
+        def failure1 = new RuntimeException()
+        def failure2 = new RuntimeException()
+        def failure3 = new RuntimeException()
+        manager.addListener(fooListener1)
+        def child = manager.createChild()
+        child.addListener(fooListener2)
+        def broadcast = child.createAnonymousBroadcaster(TestFooListener.class)
+        broadcast.add(fooListener3)
+        def testFooListener = broadcast.getSource()
+
+        when:
+        testFooListener.foo("param")
+
+        then:
+        1 * fooListener1.foo("param") >> { throw failure1 }
+        1 * fooListener2.foo("param") >> { throw failure2 }
+        1 * fooListener3.foo("param") >> { throw failure3 }
+        0 * _
+
+        and:
+        ListenerNotificationException e = thrown()
+        e.causes == [failure1, failure2, failure3]
     }
 
     def listenerReceivesEventsFromChildren() {
@@ -651,6 +702,93 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         0 * _
     }
 
+    def "can remove a listener which tries to add another listener"() {
+        given:
+        def listener1 = {
+            sleep 100
+            manager.addListener(barListener1)
+        } as TestFooListener
+        def listener2 = {
+            sleep 20
+            manager.removeListener(listener1)
+        } as TestBarListener
+        manager.addListener(listener1)
+        manager.addListener(listener2)
+
+        when:
+        async {
+            start {
+                manager.getBroadcaster(TestFooListener.class).foo("param")
+            }
+            start {
+                manager.getBroadcaster(TestBarListener.class).bar(1)
+            }
+        }
+        then:
+        0 * _
+    }
+
+    def "can remove a listener which tries to notify another broadcaster"() {
+        given:
+        def listener1 = {
+            sleep 1000
+            // Try to get broadcaster, should not block
+            def broadcaster = manager.getBroadcaster(TestBazListener)
+            // Notify broadcaster, should not block
+            broadcaster.baz()
+        } as TestFooListener
+        def listener2 = {
+            sleep 20
+            // Try to remove listener, should be blocked until listener 1 is done
+            manager.removeListener(listener1)
+        } as TestBarListener
+        manager.addListener(listener1)
+        manager.addListener(listener2)
+
+        when:
+        async {
+            start {
+                manager.getBroadcaster(TestFooListener.class).foo("param")
+            }
+            start {
+                manager.getBroadcaster(TestBarListener.class).bar(1)
+            }
+        }
+        then:
+        0 * _
+    }
+
+    @Ignore("This test highlights a very pelicular use case which is not supported yet")
+    def "can remove a listener which tries to notify a broadcaster itself trying to notify the same listener"() {
+        given:
+        def listener1 = {
+            sleep 1000
+            // Try to get broadcaster, should not block
+            def broadcaster = manager.getBroadcaster(TestBarListener)
+            // Notify broadcaster, should not block
+            broadcaster.bar(1) // today, deadlocks here
+        } as TestFooListener
+        def listener2 = {
+            sleep 20
+            // Try to remove listener, should be blocked until listener 1 is done
+            manager.removeListener(listener1)
+        } as TestBarListener
+        manager.addListener(listener1)
+        manager.addListener(listener2)
+
+        when:
+        async {
+            start {
+                manager.getBroadcaster(TestFooListener.class).foo("param")
+            }
+            start {
+                manager.getBroadcaster(TestBarListener.class).bar(1)
+            }
+        }
+        then:
+        0 * _
+    }
+
     def addingListenerDoesNotBlockWhileAnotherThreadIsNotifying() {
         given:
         def listener1 = {
@@ -759,5 +897,9 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
     }
 
     public interface BothListener extends TestFooListener, TestBarListener {
+    }
+
+    public interface TestBazListener {
+        void baz()
     }
 }

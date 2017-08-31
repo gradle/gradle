@@ -18,7 +18,7 @@ package org.gradle.plugins.javascript.jshint.internal;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerUtils;
+import org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
@@ -26,7 +26,7 @@ import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static org.gradle.plugins.javascript.rhino.worker.RhinoWorkerUtils.*;
+import static org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerUtils.*;
 
 public class JsHintWorker implements JsHintProtocol {
 

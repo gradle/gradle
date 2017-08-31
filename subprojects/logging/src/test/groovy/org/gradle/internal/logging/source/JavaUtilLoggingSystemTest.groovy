@@ -39,7 +39,7 @@ class JavaUtilLoggingSystemTest extends Specification {
         Logger.getLogger('test').severe('error message')
 
         then:
-        outputEventListener.toString() == '[INFO info message][ERROR error message]'
+        outputEventListener.toString() == '[[INFO] [test] info message][[ERROR] [test] error message]'
     }
 
     @NotYetImplemented
@@ -52,7 +52,7 @@ class JavaUtilLoggingSystemTest extends Specification {
         Logger.getLogger('test').fine('debug message')
 
         then:
-        outputEventListener.toString() == '[INFO info message][ERROR error message]'
+        outputEventListener.toString() == '[[INFO] [test] info message][[ERROR] [test] error message]'
     }
 
     def stopsRoutingWhenRestored() {
@@ -65,7 +65,7 @@ class JavaUtilLoggingSystemTest extends Specification {
         Logger.getLogger('test').info('ignore me')
 
         then:
-        outputEventListener.toString() == '[INFO info message]'
+        outputEventListener.toString() == '[[INFO] [test] info message]'
     }
 
     def "Log level is not propagated if the logging system was not started"() {

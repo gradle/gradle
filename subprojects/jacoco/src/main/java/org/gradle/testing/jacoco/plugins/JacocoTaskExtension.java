@@ -19,9 +19,12 @@ package org.gradle.testing.jacoco.plugins;
 import com.google.common.base.Joiner;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Incubating;
+import org.gradle.api.Project;
+import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.JavaForkOptions;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.RelativePathUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -51,11 +54,11 @@ public class JacocoTaskExtension {
         }
     }
 
-    private JacocoAgentJar agent;
+    private final JacocoAgentJar agent;
     private final JavaForkOptions task;
 
     private boolean enabled = true;
-    private File destinationFile;
+    private final PropertyState<File> destinationFile;
     private boolean append = true;
     private List<String> includes = new ArrayList<String>();
     private List<String> excludes = new ArrayList<String>();
@@ -66,18 +69,20 @@ public class JacocoTaskExtension {
     private Output output = Output.FILE;
     private String address;
     private int port;
-    private File classDumpFile;
+    private File classDumpDir;
     private boolean jmx;
 
     /**
      * Creates a Jacoco task extension.
      *
+     * @param project the project
      * @param agent the agent JAR to use for analysis
      * @param task the task we extend
      */
-    public JacocoTaskExtension(JacocoAgentJar agent, JavaForkOptions task) {
+    public JacocoTaskExtension(Project project, JacocoAgentJar agent, JavaForkOptions task) {
         this.agent = agent;
         this.task = task;
+        destinationFile = project.property(File.class);
     }
 
     /**
@@ -95,11 +100,21 @@ public class JacocoTaskExtension {
      * The path for the execution data to be written to.
      */
     public File getDestinationFile() {
-        return destinationFile;
+        return destinationFile.getOrNull();
+    }
+
+    /**
+     * Set the provider for calculating the destination file.
+     *
+     * @param destinationFile Destination file provider
+     * @since 4.0
+     */
+    public void setDestinationFile(Provider<File> destinationFile) {
+        this.destinationFile.set(destinationFile);
     }
 
     public void setDestinationFile(File destinationFile) {
-        this.destinationFile = destinationFile;
+        this.destinationFile.set(destinationFile);
     }
 
     /**
@@ -149,7 +164,7 @@ public class JacocoTaskExtension {
     /**
      * Whether or not classes without source location should be instrumented. Defaults to {@code false}.
      *
-     * This property is only taken into account if the used JaCoCo version supports this option (JaCoCo version >= 0.7.6)
+     * This property is only taken into account if the used JaCoCo version supports this option (JaCoCo version &gt;= 0.7.6)
      */
     public boolean isIncludeNoLocationClasses() {
         return includeNoLocationClasses;
@@ -216,19 +231,26 @@ public class JacocoTaskExtension {
 
     /**
      * Path to dump all class files the agent sees are dumped to. Defaults to no dumps.
+     *
+     * @since 3.4
      */
-    public File getClassDumpFile() {
-        return classDumpFile;
+    public File getClassDumpDir() {
+        return classDumpDir;
     }
 
-    public void setClassDumpFile(File classDumpFile) {
-        this.classDumpFile = classDumpFile;
+    /**
+     * Sets path to dump all class files the agent sees are dumped to. Defaults to no dumps.
+     *
+     * @since 3.4
+     */
+    public void setClassDumpDir(File classDumpDir) {
+        this.classDumpDir = classDumpDir;
     }
 
     /**
      * Whether or not to expose functionality via JMX under {@code org.jacoco:type=Runtime}. Defaults to {@code false}.
      *
-     * The configuration of the jmx property is only taken into account if the used JaCoCo version supports this option (JaCoCo version >= 0.6.2)
+     * The configuration of the jmx property is only taken into account if the used JaCoCo version supports this option (JaCoCo version &gt;= 0.6.2)
      */
     public boolean isJmx() {
         return jmx;
@@ -236,24 +258,6 @@ public class JacocoTaskExtension {
 
     public void setJmx(boolean jmx) {
         this.jmx = jmx;
-    }
-
-    /**
-     * agent
-     * @deprecated Agent should be considered final.
-     */
-    @Deprecated
-    public JacocoAgentJar getAgent() {
-        return agent;
-    }
-
-    /**
-     * agent
-     * @deprecated Agent should be considered final.
-     */
-    @Deprecated
-    public void setAgent(JacocoAgentJar agent) {
-        this.agent = agent;
     }
 
     /**
@@ -265,7 +269,7 @@ public class JacocoTaskExtension {
         StringBuilder builder = new StringBuilder();
         ArgumentAppender argument = new ArgumentAppender(builder, task.getWorkingDir());
         builder.append("-javaagent:");
-        builder.append(GFileUtils.relativePath(task.getWorkingDir(), agent.getJar()));
+        builder.append(RelativePathUtil.relativePath(task.getWorkingDir(), agent.getJar()));
         builder.append('=');
         argument.append("destfile", getDestinationFile());
         argument.append("append", isAppend());
@@ -280,7 +284,7 @@ public class JacocoTaskExtension {
         argument.append("output", getOutput().getAsArg());
         argument.append("address", getAddress());
         argument.append("port", getPort());
-        argument.append("classdumpdir", getClassDumpFile());
+        argument.append("classdumpdir", getClassDumpDir());
 
         if (agent.supportsJmx()) {
             argument.append("jmx", isJmx());
@@ -312,7 +316,7 @@ public class JacocoTaskExtension {
                 if (value instanceof Collection) {
                     builder.append(Joiner.on(':').join((Collection) value));
                 } else if (value instanceof File) {
-                    builder.append(GFileUtils.relativePath(workingDirectory, (File) value));
+                    builder.append(RelativePathUtil.relativePath(workingDirectory, (File) value));
                 } else {
                     builder.append(value);
                 }

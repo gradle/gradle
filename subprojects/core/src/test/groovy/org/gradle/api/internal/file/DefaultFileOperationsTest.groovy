@@ -32,6 +32,8 @@ import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.copy.DefaultCopySpec
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.internal.classloader.ClasspathUtil
+import org.gradle.internal.hash.FileHasher
+import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecResult
@@ -45,7 +47,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 @UsesNativeServices
-public class DefaultFileOperationsTest extends Specification {
+class DefaultFileOperationsTest extends Specification {
     private final FileResolver resolver = Mock() {
         getPatternSetFactory() >> TestFiles.getPatternSetFactory()
     }
@@ -54,10 +56,12 @@ public class DefaultFileOperationsTest extends Specification {
     private final Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
     private final FileLookup fileLookup = Mock()
     private final DefaultDirectoryFileTreeFactory directoryFileTreeFactory = Mock()
+    private final StreamHasher streamHasher = Mock()
+    private final FileHasher fileHasher = Mock()
     private DefaultFileOperations fileOperations = instance()
 
     private DefaultFileOperations instance(FileResolver resolver = resolver) {
-        instantiator.newInstance(DefaultFileOperations, resolver, taskResolver, temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory)
+        instantiator.newInstance(DefaultFileOperations, resolver, taskResolver, temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher)
     }
 
     @Rule
@@ -239,7 +243,7 @@ public class DefaultFileOperationsTest extends Specification {
     def javaexec() {
         File testFile = tmpDir.file("someFile")
         fileOperations = instance(resolver())
-        List files = ClasspathUtil.getClasspath(getClass().classLoader)
+        List files = ClasspathUtil.getClasspath(getClass().classLoader).asFiles
 
         when:
         ExecResult result = fileOperations.javaexec {

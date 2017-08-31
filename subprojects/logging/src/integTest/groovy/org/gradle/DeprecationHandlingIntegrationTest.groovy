@@ -78,10 +78,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.withFullDeprecationStackTraceDisabled()
-        executer.expectDeprecationWarning()
-        executer.expectDeprecationWarning()
-        executer.expectDeprecationWarning()
-        executer.expectDeprecationWarning()
+        executer.expectDeprecationWarnings(4)
         run('deprecated', 'broken')
 
         then:
@@ -98,6 +95,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         output.count('\tat') == 3
+        output.count('(Run with --stacktrace to get the full stack trace of this deprecation warning.)') == 3
     }
 
     def 'DeprecatedPlugin and DeprecatedTask - with full stacktrace.'() {
@@ -116,10 +114,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
-        executer.expectDeprecationWarning()
-        executer.expectDeprecationWarning()
-        executer.expectDeprecationWarning()
-        executer.expectDeprecationWarning()
+        executer.expectDeprecationWarnings(4)
         run('deprecated', 'broken')
 
         then:
@@ -135,6 +130,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         output.count('\tat') > 3
+        output.count('(Run with --stacktrace to get the full stack trace of this deprecation warning.)') == 0
     }
 
     def 'DeprecatedPlugin from init script - without full stacktrace.'() {
@@ -157,6 +153,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         output.count(PLUGIN_DEPRECATION_MESSAGE) == 1
 
         output.count('\tat') == 1
+        output.count('(Run with --stacktrace to get the full stack trace of this deprecation warning.)') == 1
     }
 
     def 'DeprecatedPlugin from applied script - without full stacktrace.'() {
@@ -182,6 +179,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         output.count(PLUGIN_DEPRECATION_MESSAGE) == 1
 
         output.count('\tat') == 1
+        output.count('(Run with --stacktrace to get the full stack trace of this deprecation warning.)') == 1
     }
 
     def 'DeprecatedPlugin from applied script - with full stacktrace.'() {
@@ -207,5 +205,6 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         output.count(PLUGIN_DEPRECATION_MESSAGE) == 1
 
         output.count('\tat') > 1
+        output.count('(Run with --stacktrace to get the full stack trace of this deprecation warning.)') == 0
     }
 }

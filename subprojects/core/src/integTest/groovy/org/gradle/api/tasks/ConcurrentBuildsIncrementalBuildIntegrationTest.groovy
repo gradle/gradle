@@ -33,12 +33,16 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
 class ConcurrentBuildsIncrementalBuildIntegrationTest extends AbstractIntegrationSpec {
-    @Rule CyclicBarrierHttpServer server1 = new CyclicBarrierHttpServer()
-    @Rule CyclicBarrierHttpServer server2 = new CyclicBarrierHttpServer()
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
+
+    def setup() {
+        server.start()
+    }
 
     private void prepareTransformTask() {
         buildFile << '''
@@ -93,18 +97,21 @@ task a(type: TransformerTask) {
 task block1 {
     dependsOn a
     doLast {
-        new URL("$server1.uri").text
+        ${server.callFromBuild("block1")}
     }
 }
 task block2 {
     dependsOn a
     doLast {
-        new URL("$server2.uri").text
+        ${server.callFromBuild("block2")}
     }
 }
 """
         TestFile inputFile = file('src.txt')
         inputFile.text = 'content'
+
+        def block1 = server.expectAndBlock("block1")
+        def block2 = server.expectAndBlock("block2")
 
         given:
         succeeds "a"
@@ -113,23 +120,23 @@ task block2 {
         // Start build 1 then wait until it has run task 'a'. Should see 'a' is up-to-date
         executer.withTasks("block1")
         def build1 = executer.start()
-        server1.waitFor()
+        block1.waitForAllPendingCalls()
 
         // Change content and start build 2 then wait until it has run task 'a'. Should see 'a' is not up-to-date
         inputFile.text = 'new content'
         executer.withTasks("block2")
         def build2 = executer.start()
-        server2.waitFor()
+        block2.waitForAllPendingCalls()
 
         // Finish up build 1
-        server1.release()
+        block1.releaseAll()
         def result1 = build1.waitForFinish()
 
         // Run build 3 before build 2 has completed. This happens after build 2 has run 'a'. Should see 'a' is up-to-date
         def result3 = executer.withTasks("a").run()
 
         // Finish up build 2
-        server2.release()
+        block2.releaseAll()
         def result2 = build2.waitForFinish()
 
         then:
@@ -153,7 +160,7 @@ task b(type: TransformerTask) {
 }
 task block1 {
     doLast {
-        new URL("$server1.uri").text
+        ${server.callFromBuild("block1")}
     }
 }
 block1.mustRunAfter a
@@ -161,7 +168,7 @@ b.mustRunAfter block1
 
 task block2 {
     doLast {
-        new URL("$server2.uri").text
+        ${server.callFromBuild("block2")}
     }
 }
 block2.mustRunAfter b
@@ -171,21 +178,24 @@ block2.mustRunAfter b
 
         succeeds('help') // Ensure build scripts are compiled
 
+        def block1 = server.expectAndBlock("block1")
+        def block2 = server.expectAndBlock("block2")
+
         when:
         // Start build 1 then wait until it has run task 'a'.
         executer.withTasks("a", "block1", "b")
         def build1 = executer.start()
-        server1.waitFor()
+        block1.waitForAllPendingCalls()
 
         // Start build 2 then wait until it has run both 'a' and 'b'.
         executer.withTasks("a", "b", "block2")
         def build2 = executer.start()
-        server2.waitFor()
+        block2.waitForAllPendingCalls()
 
         // Finish up build 1 and 2
-        server1.release() // finish build 1 while build 2 is still running
+        block1.releaseAll() // finish build 1 while build 2 is still running
         def result1 = build1.waitForFinish()
-        server2.release()
+        block2.releaseAll()
         def result2 = build2.waitForFinish()
 
         then:

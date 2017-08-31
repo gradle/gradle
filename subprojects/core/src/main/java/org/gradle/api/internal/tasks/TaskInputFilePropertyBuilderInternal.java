@@ -17,13 +17,13 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
+import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 
 public interface TaskInputFilePropertyBuilderInternal extends TaskInputFilePropertyBuilder, TaskFilePropertyBuilderInternal {
     @Override
-    TaskInputFilePropertyBuilderInternal withSnapshotNormalizationStrategy(SnapshotNormalizationStrategy snapshotNormalizationStrategy);
+    TaskInputFilePropertyBuilderInternal withPathNormalizationStrategy(PathNormalizationStrategy pathNormalizationStrategy);
 
     @Override
     TaskInputFilePropertyBuilderInternal withSnapshotter(Class<? extends FileCollectionSnapshotter> snapshotter);
@@ -45,10 +45,4 @@ public interface TaskInputFilePropertyBuilderInternal extends TaskInputFilePrope
 
     @Override
     TaskInputFilePropertyBuilderInternal optional(boolean optional);
-
-    @Override
-    TaskInputFilePropertyBuilderInternal orderSensitive();
-
-    @Override
-    TaskInputFilePropertyBuilderInternal orderSensitive(boolean orderSensitive);
 }

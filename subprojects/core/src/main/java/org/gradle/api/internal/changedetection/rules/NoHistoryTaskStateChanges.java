@@ -18,12 +18,13 @@ package org.gradle.api.internal.changedetection.rules;
 
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 class NoHistoryTaskStateChanges extends SimpleTaskStateChanges {
     private final TaskExecution previousExecution;
 
-    public NoHistoryTaskStateChanges(TaskExecution previousExecution) {
+    public NoHistoryTaskStateChanges(@Nullable TaskExecution previousExecution) {
         this.previousExecution = previousExecution;
     }
 

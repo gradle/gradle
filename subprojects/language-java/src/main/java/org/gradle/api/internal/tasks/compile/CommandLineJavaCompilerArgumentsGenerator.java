@@ -33,27 +33,9 @@ public class CommandLineJavaCompilerArgumentsGenerator implements CompileSpecToA
     }
 
     public Iterable<String> generate(JavaCompileSpec spec) {
-        List<String> launcherOptions = new JavaCompilerArgumentsBuilder(spec).includeLauncherOptions(true).includeMainOptions(false).includeClasspath(false).includeCustomizations(false).build();
+        List<String> launcherOptions = new JavaCompilerArgumentsBuilder(spec).includeLauncherOptions(true).includeMainOptions(false).includeClasspath(false).build();
         List<String> remainingArgs = new JavaCompilerArgumentsBuilder(spec).includeSourceFiles(true).build();
-        Iterable<String> allArgs = Iterables.concat(launcherOptions, remainingArgs);
-        if (exceedsWindowsCommandLineLengthLimit(allArgs)) {
-            return Iterables.concat(launcherOptions, shortenArgs(spec.getTempDir(), remainingArgs));
-        }
-        return allArgs;
-    }
-
-    private boolean exceedsWindowsCommandLineLengthLimit(Iterable<String> args) {
-        int length = 0;
-        for (String arg : args) {
-            length += arg.length() + 1;
-            // limit is 2047 on older Windows systems, and 8191 on newer ones
-            // http://support.microsoft.com/kb/830473
-            // let's play it safe, no need to optimize
-            if (length > 1500) {
-                return true;
-            }
-        }
-        return false;
+        return Iterables.concat(launcherOptions, shortenArgs(spec.getTempDir(), remainingArgs));
     }
 
     private Iterable<String> shortenArgs(File tempDir, List<String> args) {

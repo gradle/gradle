@@ -19,17 +19,15 @@ package org.gradle.integtests.composite
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.maven.MavenModule
+import org.gradle.util.ToBeImplemented
 /**
  * Tests for resolving dependency artifacts with substitution within a composite build.
  */
 class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildB
-    MavenModule publishedModuleB
     List arguments = []
 
     def setup() {
-        publishedModuleB = mavenRepo.module("org.test", "buildB", "1.0").publish()
         new ResolveTestFixture(buildA.buildFile).prepare()
 
         buildA.buildFile << """
@@ -57,7 +55,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         resolveArtifacts()
 
         then:
-        executed ":buildB:jar"
+        executedInOrder ":buildB:jar", ":resolve"
         assertResolved buildB.file('build/libs/buildB-1.0.jar')
     }
 
@@ -80,7 +78,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         resolveArtifacts()
 
         then:
-        executed ":buildB:myJar", ":buildB:jar"
+        executed ":buildB:compileJava", ":buildB:jar", ":buildB:myJar"
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file('build/libs/buildB-1.0-my.jar')
     }
 
@@ -93,7 +91,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         resolveArtifacts()
 
         then:
-        executed ":buildB:b1:jar", ":buildB:b2:jar"
+        executed ":buildB:b1:compileJava", ":buildB:b1:jar", ":buildB:b2:compileJava", ":buildB:b2:jar"
         assertResolved buildB.file('b1/build/libs/b1-1.0.jar'), buildB.file('b2/build/libs/b2-1.0.jar')
     }
 
@@ -139,7 +137,8 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         resolveArtifacts()
 
         then:
-        executedInOrder ":buildC:jar", ":buildB:jar"
+        executedInOrder ":buildC:jar", ":buildB:jar", ":resolve"
+        executedInOrder ":buildC:compileJava", ":buildB:compileJava", ":resolve"
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildC.file('build/libs/buildC-1.0.jar')
     }
 
@@ -164,7 +163,8 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         resolveArtifacts()
 
         then:
-        executedInOrder ":buildC:jar", ":buildB:jar"
+        executedInOrder ":buildC:jar", ":buildB:jar", ":resolve"
+        executedInOrder ":buildC:compileJava", ":buildB:compileJava", ":resolve"
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildC.file('build/libs/buildC-1.0.jar')
     }
 
@@ -182,7 +182,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         resolveArtifacts()
 
         then:
-        executedInOrder ":buildB:b1:jar", ":buildB:jar"
+        executedInOrder ":buildB:b1:compileJava", ":buildB:b1:jar", ":buildB:compileJava", ":buildB:jar"
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file('b1/build/libs/b1-1.0.jar')
     }
 
@@ -271,6 +271,32 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/libs/buildB-1.0-my.jar'), moduleC.artifactFile
     }
 
+    def "builds substituted dependency with non-default artifactType"() {
+        given:
+        buildA.buildFile << """
+            dependencies {
+                compile 'org.test:buildB:1.0@zip'
+            }
+"""
+
+        buildB.buildFile << """
+            task myZip(type: Zip) {
+                extension 'zip'
+                from 'src'
+            }
+            artifacts {
+                compile myZip
+            }
+"""
+
+        when:
+        resolveArtifacts()
+
+        then:
+        executed ":buildB:myZip"
+        assertResolved buildB.file('build/distributions/buildB-1.0.zip')
+    }
+
     def "builds substituted dependency with defined artifacts"() {
         given:
         buildA.buildFile << """
@@ -351,7 +377,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         resolveArtifacts()
 
         then:
-        executedInOrder ":buildB:b2:jar", ":buildB:b1:jar"
+        executedInOrder ":buildB:b2:compileJava", ":buildB:b2:jar", ":buildB:b1:compileJava", ":buildB:b1:jar"
         result.executedTasks.count {it == ":buildB:b2:jar"} == 1
         assertResolved buildB.file('b1/build/libs/b1-1.0.jar'), buildB.file('b2/build/libs/b2-1.0.jar')
     }
@@ -387,6 +413,9 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         // Need to assert order separately to cater for parallel execution
         executedInOrder ":buildC:jar", ":b1:classes", ":b1:jar"
         executedInOrder ":buildC:jar", ":b2:classes", ":b2:jar"
+
+        executedInOrder ":buildC:compileJava", ":buildC:jar", ":b1:compileJava", ":b1:jar"
+        executedInOrder ":buildC:compileJava", ":buildC:jar", ":b2:compileJava", ":b2:jar"
     }
 
     def "builds multiple configurations for the same project via separate dependency paths"() {
@@ -428,6 +457,143 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file('build/libs/buildB-1.0-my.jar'), buildC.file("build/libs/buildC-1.0.jar")
     }
 
+    def "builds artifacts for different subprojects from the same build included via separate dependency paths"() {
+        given:
+        dependency 'org.test:b1:1.0'
+        dependency 'org.test:buildC:1.0'
+
+        def buildC = singleProjectBuild("buildC") {
+            buildFile << """
+                apply plugin: 'java'
+                dependencies {
+                    compile 'org.test:b2:1.0'
+                }
+"""
+        }
+        includedBuilds << buildC
+
+
+        when:
+        resolveArtifacts()
+
+        then:
+        executed ":buildB:b1:jar", ":buildB:b2:jar", ":buildC:jar"
+        executed ":buildB:b1:compileJava", ":buildB:b2:compileJava", ":buildC:compileJava"
+    }
+
+    def "substitutes and builds compileOnly dependency"() {
+        given:
+        buildA.buildFile << """
+            dependencies {
+                compileOnly 'org.test:buildB:1.0'
+            }
+"""
+        when:
+        execute(buildA, ":jar")
+
+        then:
+        executedInOrder ":buildB:compileJava", ":buildB:classes", ":compileJava", ":jar"
+    }
+
+    def "substitutes and builds transitive compileOnly dependency"() {
+        given:
+        dependency 'org.test:buildB:1.0'
+
+        buildB.buildFile << """
+            dependencies {
+                compileOnly 'org.test:buildC:1.0'
+            }
+"""
+
+        def buildC = singleProjectBuild("buildC") {
+            buildFile << """
+                apply plugin: 'java'
+"""
+        }
+        includedBuilds << buildC
+
+        when:
+        resolveArtifacts()
+
+        then:
+        executedInOrder ":buildC:jar", ":buildB:jar"
+    }
+
+    def "only builds dependency once when included as transitive compile and compileOnly dependency"() {
+        given:
+        dependency 'org.test:buildB:1.0'
+        dependency 'org.test:buildC:1.0'
+
+        def buildC = singleProjectBuild("buildC") {
+            buildFile << """
+                apply plugin: 'java'
+                dependencies {
+                    compileOnly 'org.test:buildB:1.0'
+                }
+"""
+        }
+        includedBuilds << buildC
+
+        when:
+        resolveArtifacts()
+
+        then:
+        executedInOrder ":buildB:compileJava", ":buildB:jar", ":buildC:compileJava", ":buildC:jar"
+    }
+
+    def "handles compileOnly dependencies for different subprojects from the same build included via separate dependency paths"() {
+        given:
+        dependency 'org.test:b1:1.0'
+        dependency 'org.test:buildC:1.0'
+
+        def buildC = singleProjectBuild("buildC") {
+            buildFile << """
+                apply plugin: 'java'
+                dependencies {
+                    compileOnly 'org.test:b2:1.0'
+                }
+"""
+        }
+        includedBuilds << buildC
+
+
+        when:
+        resolveArtifacts()
+
+        then:
+        executed ":buildB:b1:jar", ":buildB:b2:jar", ":buildC:jar"
+        executed ":buildB:b1:compileJava", ":buildB:b2:compileJava", ":buildC:compileJava"
+    }
+
+    def "handles separate compile and compileOnly dependencies on different subprojects"() {
+        given:
+        dependency 'org.test:buildC:1.0'
+
+        buildB.buildFile << """
+            gradle.taskGraph.whenReady {
+                println "Executing buildB: " + it.allTasks.collect { it.identityPath }
+            }
+"""
+
+        def buildC = singleProjectBuild("buildC") {
+            buildFile << """
+                apply plugin: 'java'
+                dependencies {
+                    compile 'org.test:b1:1.0'
+                    compileOnly 'org.test:b2:1.0'
+                }
+"""
+        }
+        includedBuilds << buildC
+
+        when:
+        resolveArtifacts()
+
+        then:
+        executedInOrder ":buildB:b1:jar", ":buildC:compileJava", ":buildC:jar"
+        executedInOrder ":buildB:b2:jar", ":buildC:compileJava", ":buildC:jar"
+    }
+
     def "reports failure to build dependent artifact"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -442,8 +608,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         then:
         failure
-            .assertHasDescription("Failed to build artifacts for build 'buildB'")
-            .assertHasCause("Execution failed for task ':jar'")
+            .assertHasDescription("Execution failed for task ':buildB:jar'")
             .assertHasCause("jar task failed")
     }
 
@@ -471,10 +636,43 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         then:
         failure
-            .assertHasDescription("Failed to build artifacts for build 'buildB'")
-            .assertHasCause("Failed to build artifacts for build 'buildC'")
-            .assertHasCause("Execution failed for task ':jar'")
+            .assertHasDescription("Execution failed for task ':buildC:jar'")
             .assertHasCause("jar task failed")
+    }
+
+    @ToBeImplemented
+    // We execute do not execute included build with --continue,
+    // and we attach the single failure to every delegated task
+    def "builds artifacts and reports failures for dependency on multiple subprojects where one fails"() {
+        given:
+        dependency 'org.test:b1:1.0'
+        buildA.buildFile << """
+            dependencies {
+                runtime 'org.test:b2:1.0'
+            }
+            task resolveRuntime(type: Copy) {
+                dependsOn "resolve"
+                from configurations.runtime
+                into 'libs-runtime'
+            }
+                
+"""
+
+        buildB.buildFile << """
+            project(':b2') {
+                jar.doLast {
+                    throw new GradleException("jar task failed")
+                }
+            }
+"""
+
+        when:
+        fails buildA, ":resolveRuntime"
+
+        then:
+        // TODO These should pass
+        !!! executedTasks.containsAll(":buildB:b1:jar", ":resolve", ":buildB:b2:jar", ":resolveRuntime")
+        // assertResolved buildB.file('b1/build/libs/b1-1.0.jar')
     }
 
     private void resolveArtifacts() {
@@ -497,7 +695,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         def executedTasks = result.executedTasks
         def beforeTask
         for (String task : tasks) {
-            executedOnce(task)
+            containsOnce(executedTasks, task)
 
             if (beforeTask != null) {
                 assert executedTasks.indexOf(beforeTask) < executedTasks.indexOf(task) : "task ${beforeTask} must be executed before ${task}"

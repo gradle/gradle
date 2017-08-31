@@ -22,7 +22,20 @@ import org.gradle.testkit.runner.TaskOutcome
  * For these tests to run you need to set ANDROID_HOME to your Android SDK directory
  */
 class AndroidPluginsSmokeTest extends AbstractSmokeTest {
-    public static final ANDROID_PLUGIN_VERSION = '2.2.0'
+    public static final ANDROID_PLUGIN_VERSION = '2.3.1'
+    public static final ANDROID_BUILD_TOOLS_VERSION = '25.0.0'
+
+    def setup() {
+        assertAndroidHomeSet()
+    }
+
+    static void assertAndroidHomeSet() {
+        assert System.getenv().containsKey('ANDROID_HOME'): '''
+            In order to run these tests the ANDROID_HOME directory must be set.
+            It is not necessary to install the whole android SDK via Android Studio - it is enough if there is a $ANDROID_HOME/licenses/android-sdk-license containing the license keys from an Android Studio installation.
+            The Gradle Android plugin will then download the SDK by itself, see https://developer.android.com/studio/intro/update.html#download-with-gradle
+        '''.stripIndent()
+    }
 
     def "android application plugin"() {
         given:
@@ -59,9 +72,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         buildFile << buildscript() << """
             apply plugin: 'com.android.application'
 
-            repositories {
-                jcenter()
-            }
+           ${jcenterRepository()}
 
             android.defaultConfig.applicationId "org.gradle.android.myapplication"
         """.stripIndent() << androidPluginConfiguration() << activityDependency()
@@ -123,9 +134,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
 
         file('build.gradle') << buildscript() << """
             subprojects {
-                repositories {
-                    jcenter()
-                }
+                ${jcenterRepository()}
             }
         """
 
@@ -165,9 +174,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
     private String buildscript() {
         """
             buildscript {
-                repositories {
-                    jcenter()
-                }
+                ${jcenterRepository()}
 
 
                 dependencies {
@@ -227,7 +234,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         """
             android {
                 compileSdkVersion 22
-                buildToolsVersion "23.0.2"
+                buildToolsVersion "${ANDROID_BUILD_TOOLS_VERSION}"
 
                 defaultConfig {
                     minSdkVersion 22

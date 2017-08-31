@@ -17,10 +17,13 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
+import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.maven.MavenPom
 
 import static org.hamcrest.Matchers.containsString
 
+@TestReproducibleArchives
 class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
     @Override
     String getMainTask() {
@@ -427,5 +430,21 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         and:
         file('build/distributions/TestProject-custom.tar').usingNativeTools().untarTo(file("untar"))
         file("untar/TestProject-custom/someFile").assertIsFile()
+    }
+
+    def "can create distribution with .tar in project name"() {
+        when:
+        buildFile << """
+            apply plugin: 'application'
+            apply plugin: 'java'
+            mainClassName = "Main"
+        """
+        file("src/main/java/Main.java") << "public class Main {}"
+        settingsFile << """
+            rootProject.name = 'projectWithtarInName'
+        """
+        then:
+        succeeds("distTar")
+        new TarTestFixture(file("build/distributions/projectWithtarInName.tar")).assertContainsFile("projectWithtarInName/lib/projectWithtarInName.jar")
     }
 }

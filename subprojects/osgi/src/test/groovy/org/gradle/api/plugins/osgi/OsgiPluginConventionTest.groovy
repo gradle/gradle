@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins.osgi
 
+import org.gradle.api.Action
 import org.gradle.api.internal.plugins.osgi.DefaultOsgiManifest
 import org.gradle.api.internal.plugins.osgi.OsgiHelper
 import org.gradle.api.plugins.JavaBasePlugin
@@ -41,6 +42,16 @@ class OsgiPluginConventionTest extends AbstractProjectBuilderSpec {
         OsgiManifest osgiManifest = osgiPluginConvention.osgiManifest {
             description = 'myDescription'
         }
+
+        expect:
+        matchesExpectedConfig(osgiManifest)
+        osgiManifest.description == 'myDescription'
+    }
+
+    def osgiManifestWithAction() {
+        OsgiManifest osgiManifest = osgiPluginConvention.osgiManifest({ OsgiManifest manifest ->
+            manifest.description = 'myDescription'
+        } as Action<OsgiManifest>)
 
         expect:
         matchesExpectedConfig(osgiManifest)

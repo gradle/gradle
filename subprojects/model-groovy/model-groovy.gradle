@@ -18,15 +18,18 @@
 /*
  * Groovy specific adaptions to the model management.
  */
-apply plugin: "groovy"
+apply plugin: 'java-library'
 
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies {
-    compile libraries.slf4j_api
-    compile project(':baseServicesGroovy')
-    compile project(':modelCore')
-    compile libraries.groovy
+    api project(':baseServices')
+    api project(':modelCore')
+    api libraries.groovy
+
+    implementation project(':baseServicesGroovy')
+    implementation libraries.jcip
+    implementation libraries.guava
 }
 
 useTestFixtures()

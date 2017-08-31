@@ -16,22 +16,36 @@
 
 package org.gradle.configuration.project
 
+import org.gradle.StartParameter
 import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.ProjectEvaluationListener
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateInternal
+import org.gradle.internal.progress.BuildOperationDescriptor
+import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.util.Path
 import spock.lang.Specification
 
-public class LifecycleProjectEvaluatorTest extends Specification {
+class LifecycleProjectEvaluatorTest extends Specification {
     private project = Mock(ProjectInternal)
+    private gradle = Mock(GradleInternal)
     private listener = Mock(ProjectEvaluationListener)
     private delegate = Mock(ProjectEvaluator)
-    private evaluator = new LifecycleProjectEvaluator(delegate)
+    private buildOperationExecutor = new TestBuildOperationExecutor()
+    private evaluator = new LifecycleProjectEvaluator(buildOperationExecutor, delegate)
     private state = Mock(ProjectStateInternal)
 
     void setup() {
         project.getProjectEvaluationBroadcaster() >> listener
-        project.toString() >> "project1"
+        project.displayName >> "<project>"
+        project.gradle >> gradle
+        gradle.findIdentityPath() >> Path.path(":")
+        gradle.identityPath >> gradle.findIdentityPath()
+        gradle.startParameter >> new StartParameter()
+        project.projectPath >> Path.path(":project1")
+        project.path >> project.projectPath.toString()
+        project.identityPath >> Path.path(":project1")
     }
 
     void "nothing happens if project was already configured"() {
@@ -69,6 +83,10 @@ public class LifecycleProjectEvaluatorTest extends Specification {
         1 * state.setExecuting(false)
         1 * state.executed()
         1 * listener.afterEvaluate(project, state)
+
+        and:
+        buildOperationExecutor.operations[0].name == 'Configure project :project1'
+        buildOperationExecutor.operations[0].displayName == 'Configure project :project1'
     }
 
     void "notifies listeners and updates state on evaluation failure"() {
@@ -78,7 +96,7 @@ public class LifecycleProjectEvaluatorTest extends Specification {
         evaluator.evaluate(project, state)
 
         then:
-        delegate.evaluate(project, state) >> { throw failure }
+        1 * delegate.evaluate(project, state) >> { throw failure }
 
         and:
         1 * state.executed({
@@ -131,7 +149,7 @@ public class LifecycleProjectEvaluatorTest extends Specification {
 
     def assertIsConfigurationFailure(def it, def cause) {
         assert it instanceof ProjectConfigurationException
-        assert it.message == "A problem occurred configuring project1."
+        assert it.message == "A problem occurred configuring <project>."
         assert it.cause == cause
         true
     }
@@ -154,6 +172,23 @@ public class LifecycleProjectEvaluatorTest extends Specification {
         1 * listener.afterEvaluate(project, state) >> { throw new RuntimeException("afterEvaluate") }
         _ * state.hasFailure() >> true
         0 * state.executed(_)
+    }
+
+    def "forwards project details to configure project operation descriptor"() {
+        when:
+        evaluator.evaluate(project, state)
+
+        then:
+        buildOperationExecutor.operations.size() == 1
+        BuildOperationDescriptor descriptor = buildOperationExecutor.operations[0]
+        ConfigureProjectBuildOperationType.Details details = descriptor.details
+
+        and:
+        descriptor.name == 'Configure project :project1'
+        descriptor.displayName == 'Configure project :project1'
+        descriptor.progressDisplayName == null
+        details.buildPath == Path.path(':').path
+        details.projectPath == Path.path(':project1').path
     }
 
 }

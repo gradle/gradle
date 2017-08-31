@@ -22,11 +22,13 @@ import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport;
 import org.gradle.api.reporting.internal.TaskReportContainer;
 
-public class JDependReportsImpl extends TaskReportContainer<SingleFileReport> implements JDependReports {
+import javax.inject.Inject;
 
+public class JDependReportsImpl extends TaskReportContainer<SingleFileReport> implements JDependReports {
+    @Inject
     public JDependReportsImpl(Task task) {
         super(SingleFileReport.class, task);
-        
+
         add(TaskGeneratedSingleFileReport.class, "xml", task);
         add(TaskGeneratedSingleFileReport.class, "text", task);
     }

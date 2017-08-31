@@ -96,17 +96,22 @@ public class CrossBuildPerformanceTestHistory implements PerformanceTestHistory 
                     }
 
                     @Override
+                    public List<String> getCleanTasks() {
+                        return input.getCleanTasks();
+                    }
+
+                    @Override
                     public List<String> getArgs() {
                         return input.getArgs();
                     }
 
-                    @org.gradle.api.Nullable
+                    @Nullable
                     @Override
                     public List<String> getGradleOpts() {
                         return input.getGradleOpts();
                     }
 
-                    @org.gradle.api.Nullable
+                    @Nullable
                     @Override
                     public Boolean getDaemon() {
                         return input.getDaemon();
@@ -169,35 +174,46 @@ public class CrossBuildPerformanceTestHistory implements PerformanceTestHistory 
         }
 
         @Override
+        public String getHost() {
+            return results.getHost();
+        }
+
+        @Override
         public String getJvm() {
             return results.getJvm();
         }
 
-        @org.gradle.api.Nullable
+        @Nullable
         @Override
         public String getTestProject() {
             return null;
         }
 
-        @org.gradle.api.Nullable
+        @Nullable
         @Override
         public List<String> getTasks() {
             return null;
         }
 
-        @org.gradle.api.Nullable
+        @Nullable
+        @Override
+        public List<String> getCleanTasks() {
+            return null;
+        }
+
+        @Nullable
         @Override
         public List<String> getArgs() {
             return null;
         }
 
-        @org.gradle.api.Nullable
+        @Nullable
         @Override
         public List<String> getGradleOpts() {
             return null;
         }
 
-        @org.gradle.api.Nullable
+        @Nullable
         @Override
         public Boolean getDaemon() {
             return null;

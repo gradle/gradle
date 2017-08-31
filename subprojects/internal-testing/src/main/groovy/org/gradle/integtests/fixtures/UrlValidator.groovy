@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.testing.internal.util.RetryUtil
 import org.gradle.util.TextUtil
 import org.junit.Assert
 
@@ -35,10 +36,13 @@ class UrlValidator {
     }
 
     static void notAvailable(String theUrl) {
-        try {
-            String content = new URL(theUrl).text
-            Assert.fail(String.format("Expected url '%s' to be unavailable instead we got:\n%s", theUrl, content));
-        } catch (SocketException ex) {
+        RetryUtil.retry {
+            try {
+                String content = new URL(theUrl).text
+                Thread.sleep(500)
+                Assert.fail(String.format("Expected url '%s' to be unavailable instead we got:\n%s", theUrl, content));
+            } catch (SocketException ex) {
+            }
         }
     }
 

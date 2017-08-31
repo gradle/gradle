@@ -17,8 +17,9 @@
 package org.gradle.internal.reflect
 
 import org.gradle.api.Incubating
-import org.gradle.api.Nullable
 import spock.lang.Specification
+
+import javax.annotation.Nullable
 
 class TypesTest extends Specification {
     def "base object types are not visited"() {
@@ -34,7 +35,9 @@ class TypesTest extends Specification {
         Object doSomething() { null }
     }
 
-    class Child extends Base implements Serializable {
+    interface Iface {}
+
+    class Child extends Base implements Serializable, Iface {
         @Nullable
         Object doSomething() { null }
     }
@@ -47,6 +50,7 @@ class TypesTest extends Specification {
         then: 1 * visitor.visitType(Child)
         then: 1 * visitor.visitType(Base)
         then: 1 * visitor.visitType(Serializable)
+        then: 1 * visitor.visitType(Iface)
         then: 0 * _
     }
 }

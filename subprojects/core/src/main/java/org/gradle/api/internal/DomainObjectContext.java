@@ -15,6 +15,16 @@
  */
 package org.gradle.api.internal;
 
+import org.gradle.util.Path;
+
 public interface DomainObjectContext {
-    String absoluteProjectPath(String name);
+    /**
+     * Returns a path for the item with the given name that is unique within the current Gradle invocation.
+     */
+    Path identityPath(String name);
+
+    /**
+     * Returns a path for the item with the given name that is unique within the current build.
+     */
+    Path projectPath(String name);
 }

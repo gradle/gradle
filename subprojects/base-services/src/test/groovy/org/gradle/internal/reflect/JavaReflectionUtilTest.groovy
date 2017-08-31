@@ -29,36 +29,15 @@ import static org.gradle.internal.reflect.JavaReflectionUtil.*
 class JavaReflectionUtilTest extends Specification {
     JavaTestSubject myProperties = new JavaTestSubject()
 
-    def "property exists"() {
+    def "property names"() {
         expect:
-        propertyExists(new JavaTestSubject(), "myBooleanProperty")
-        propertyExists(new JavaTestSubject(), "myProperty")
-        propertyExists(new JavaTestSubject(), "publicField")
-        !propertyExists(new JavaTestSubject(), "myBooleanProp")
-        !propertyExists(new JavaTestSubject(), "protectedProperty")
-        !propertyExists(new JavaTestSubject(), "privateProperty")
+        propertyNames(new JavaTestSubject()) == ['myBooleanProperty', 'myOtherBooleanProperty', 'myProperty', 'myProperty2', 'myProperty3', 'protectedProperty', 'writeOnly', 'multiValue'] as Set
 
         and:
-        propertyExists(new JavaTestSubjectSubclass(), "myBooleanProperty")
-        propertyExists(new JavaTestSubjectSubclass(), "myProperty")
-        propertyExists(new JavaTestSubjectSubclass(), "publicField")
-        !propertyExists(new JavaTestSubjectSubclass(), "myBooleanProp")
-        !propertyExists(new JavaTestSubjectSubclass(), "protectedProperty")
-        !propertyExists(new JavaTestSubjectSubclass(), "privateProperty")
+        propertyNames(new JavaTestSubjectSubclass()) == ['myBooleanProperty', 'myOtherBooleanProperty', 'myProperty', 'myProperty2', 'myProperty3', 'protectedProperty', 'writeOnly', 'multiValue', 'subclassBoolean'] as Set
 
         and:
-        propertyExists(new JavaTestSubjectSubclass(), "subclassBoolean")
-    }
-
-    def "readable properties"() {
-        expect:
-        def properties = readableProperties(JavaTestSubjectSubclass)
-        properties.size() == 5
-        properties.class
-        properties.myProperty
-        properties.myBooleanProperty
-        properties.myOtherBooleanProperty
-        properties.subclassBoolean
+        propertyNames(new WithProperties()) == ['metaClass', 'prop1', 'prop2', 'something', 'somethingElse', 'writeOnly'] as Set
     }
 
     def "read property"() {
@@ -83,10 +62,86 @@ class JavaReflectionUtilTest extends Specification {
 
     def "write property"() {
         when:
-        writeableProperty(JavaTestSubject, "myProperty").setValue(myProperties, "otherValue")
+        writeableProperty(JavaTestSubject, "myProperty", String.class).setValue(myProperties, "otherValue")
 
         then:
         readableProperty(JavaTestSubject, String, "myProperty").getValue(myProperties) == "otherValue"
+    }
+
+    def "write property with multiple setters"() {
+        when:
+        writeableProperty(JavaTestSubject, "myProperty2", String.class).setValue(myProperties, "stringValue")
+
+        then:
+        readableProperty(JavaTestSubject, String, "myProperty2").getValue(myProperties) == "stringValue"
+
+        when:
+        writeableProperty(JavaTestSubject, "myProperty2", File.class).setValue(myProperties, new File("fileValue"))
+
+        then:
+        readableProperty(JavaTestSubject, String, "myProperty2").getValue(myProperties) == "fileValue"
+    }
+
+    def "picks the generic object setter if the typed setter does not match the value type"() {
+        when:
+        def property = writeableProperty(JavaTestSubject, "myProperty", File.class)
+
+        then:
+        property.type == Object.class
+    }
+
+    def "picks the typed setter if it is the better match"() {
+        when:
+        def property = writeableProperty(JavaTestSubject, "myProperty", String.class)
+
+        then:
+        property.type == String.class
+    }
+
+    def "picks the best matching typed setter"() {
+        when:
+        def property = writeableProperty(JavaTestSubject, "myProperty3", Arrays.asList("foo", "bar").class)
+
+        then:
+        property.type == Collection.class
+
+        when:
+        property = writeableProperty(JavaTestSubject, "myProperty3", "bar".class)
+
+        then:
+        property.type == CharSequence.class
+
+        when:
+        property = writeableProperty(JavaTestSubject, "myProperty3", int.class)
+
+        then:
+        property.type == Object.class
+    }
+
+    def "picks the generic iterable setter if the typed setter does not match the value type"() {
+        when:
+        def property = writeableProperty(JavaTestSubject, "multiValue", List.class)
+
+        then:
+        property.type == Iterable.class
+    }
+
+    def "can handle null as property type"() {
+        when:
+        writeableProperty(JavaTestSubject, "myProperty", null)
+
+        then:
+        //we do not know which 'myProperty' setter is picked, as both fit equally well
+        noExceptionThrown()
+    }
+
+    def "cannot write primitive type properties if type is unknown"() {
+        when:
+        writeableProperty(JavaTestSubject, "myBooleanProperty", null)
+
+        then:
+        def e = thrown(NoSuchPropertyException)
+        e.message == "Could not find setter method for property 'myBooleanProperty' accepting null value on class JavaTestSubject."
     }
 
     def "read boolean property"() {
@@ -115,10 +170,9 @@ class JavaReflectionUtilTest extends Specification {
         thrown(NoSuchPropertyException);
     }
 
-
     def "write boolean property"() {
         when:
-        writeableProperty(JavaTestSubject, "myBooleanProperty").setValue(myProperties, false)
+        writeableProperty(JavaTestSubject, "myBooleanProperty", Boolean.class).setValue(myProperties, false)
 
         then:
         readableProperty(JavaTestSubject, Boolean, "myBooleanProperty").getValue(myProperties) == false
@@ -158,11 +212,11 @@ class JavaReflectionUtilTest extends Specification {
 
     def "cannot write property that doesn't have a well formed setter"() {
         when:
-        writeableProperty(JavaTestSubject, property)
+        writeableProperty(JavaTestSubject, property, Object.class)
 
         then:
         NoSuchPropertyException e = thrown()
-        e.message == "Could not find setter method for property '${property}' on class JavaTestSubject."
+        e.message == "Could not find setter method for property '${property}' of type Object on class JavaTestSubject."
 
         where:
         property                 | _
@@ -174,11 +228,11 @@ class JavaReflectionUtilTest extends Specification {
 
     def "cannot write property that is not public"() {
         when:
-        writeableProperty(JavaTestSubject, property)
+        writeableProperty(JavaTestSubject, property, Object.class)
 
         then:
         NoSuchPropertyException e = thrown()
-        e.message == "Could not find setter method for property '${property}' on class JavaTestSubject."
+        e.message == "Could not find setter method for property '${property}' of type Object on class JavaTestSubject."
 
         where:
         property            | _
@@ -289,15 +343,6 @@ class JavaReflectionUtilTest extends Specification {
         }
     }
 
-    def "new instance"() {
-        def instantiator = DirectInstantiator.INSTANCE
-
-        expect:
-        factory(instantiator, Thing).create().name == null
-        factory(instantiator, Thing, "foo").create().name == "foo"
-        !factory(instantiator, Thing).create().is(factory(instantiator, Thing).create())
-    }
-
     def "default toString methods"() {
         expect:
         hasDefaultToString(clazz)
@@ -357,4 +402,19 @@ class ClassWithToString {
     public String toString() {
         return "ClassWithToString{}";
     }
+}
+
+class WithProperties {
+    String prop1
+    boolean prop2
+
+    void setWriteOnly(String s1) { }
+
+    Boolean isSomething() { return null }
+
+    boolean isSomethingElse() { return true }
+
+    String isNotAThing() { "no" }
+
+    private String getPrivateThing() { null }
 }

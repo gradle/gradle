@@ -17,29 +17,36 @@
 package org.gradle.initialization;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.BuildAdapter;
+import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.tasks.cache.TaskExecutionStatisticsEventAdapter;
+import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.configuration.BuildConfigurer;
-import org.gradle.deployment.internal.DeploymentRegistry;
+import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
-import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.buildevents.BuildLogger;
-import org.gradle.internal.buildevents.CacheStatisticsReporter;
+import org.gradle.internal.buildevents.ProjectEvaluationLogger;
 import org.gradle.internal.buildevents.TaskExecutionLogger;
+import org.gradle.internal.buildevents.TaskExecutionStatisticsReporter;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
-import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.invocation.BuildController;
+import org.gradle.internal.invocation.GradleBuildController;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.operations.notify.BuildOperationNotificationBridge;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildProgressFilter;
 import org.gradle.internal.progress.BuildProgressLogger;
 import org.gradle.internal.progress.LoggerProvider;
@@ -47,6 +54,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.BuildSessionScopeServices;
+import org.gradle.internal.service.scopes.BuildTreeScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.invocation.DefaultGradle;
@@ -54,121 +62,97 @@ import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ReportGeneratingProfileListener;
 import org.gradle.util.DeprecationLogger;
 
-import java.util.Arrays;
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
-    private final ListenerManager listenerManager;
     private final GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry;
-    private final NestedBuildTracker tracker;
     private final BuildProgressLogger buildProgressLogger;
-    private final TimeProvider timeProvider;
+    private DefaultGradleLauncher rootBuild;
 
     public DefaultGradleLauncherFactory(
-        ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory, GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry, TimeProvider timeProvider) {
-        this.listenerManager = listenerManager;
+        ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory, GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry) {
         this.userHomeDirServiceRegistry = userHomeDirServiceRegistry;
-        this.timeProvider = timeProvider;
-        tracker = new NestedBuildTracker();
 
         // Register default loggers
         buildProgressLogger = new BuildProgressLogger(progressLoggerFactory);
         listenerManager.addListener(new BuildProgressFilter(buildProgressLogger));
-        listenerManager.useLogger(new DependencyResolutionLogger(progressLoggerFactory));
+        listenerManager.useLogger(new ProjectEvaluationLogger(progressLoggerFactory));
     }
 
-    public void addListener(Object listener) {
-        listenerManager.addListener(listener);
-    }
-
-    public void removeListener(Object listener) {
-        listenerManager.removeListener(listener);
-    }
-
-    @Override
-    public GradleLauncher nestedInstance(StartParameter startParameter) {
-        final ServiceRegistry userHomeServices = userHomeDirServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
-        final BuildScopeServices buildScopeServices = BuildScopeServices.singleSession(userHomeServices, startParameter);
-        return createChildInstance(startParameter, buildScopeServices, new Stoppable() {
-            @Override
-            public void stop() {
-                userHomeDirServiceRegistry.release(userHomeServices);
-            }
-        });
-    }
-
-    public GradleLauncher nestedInstance(StartParameter startParameter, ServiceRegistry buildSessionServices) {
-        final BuildScopeServices buildScopeServices = createBuildScopeServices(buildSessionServices);
-
-        return createChildInstance(startParameter, buildScopeServices);
-    }
-
-    private GradleLauncher createChildInstance(StartParameter startParameter, BuildScopeServices buildScopeServices, Object... servicesToStopAtEndOfBuild) {
-        if (tracker.getCurrentBuild() == null) {
-            throw new IllegalStateException("Must have a current build");
-        }
-
-        ServiceRegistry services = tracker.getCurrentBuild().getServices();
+    private GradleLauncher createChildInstance(StartParameter startParameter, GradleLauncher parent, BuildTreeScopeServices buildTreeScopeServices, List<?> servicesToStop) {
+        ServiceRegistry services = parent.getGradle().getServices();
         BuildRequestMetaData requestMetaData = new DefaultBuildRequestMetaData(services.get(BuildClientMetaData.class));
         BuildCancellationToken cancellationToken = services.get(BuildCancellationToken.class);
         BuildEventConsumer buildEventConsumer = services.get(BuildEventConsumer.class);
-
-        return doNewInstance(startParameter, true, cancellationToken, requestMetaData, buildEventConsumer, buildScopeServices, Arrays.asList(servicesToStopAtEndOfBuild));
+        return doNewInstance(startParameter, parent, cancellationToken, requestMetaData, buildEventConsumer, buildTreeScopeServices, servicesToStop);
     }
 
     @Override
     public GradleLauncher newInstance(StartParameter startParameter, BuildRequestContext requestContext, ServiceRegistry parentRegistry) {
         // This should only be used for top-level builds
-        if (tracker.getCurrentBuild() != null) {
+        if (rootBuild != null) {
             throw new IllegalStateException("Cannot have a current build");
         }
 
-        BuildScopeServices buildScopeServices = createBuildScopeServices(parentRegistry);
+        if (!(parentRegistry instanceof BuildTreeScopeServices)) {
+            throw new IllegalArgumentException("Service registry must be of build-tree scope");
+        }
+        BuildTreeScopeServices buildTreeScopeServices = (BuildTreeScopeServices) parentRegistry;
 
-        DefaultGradleLauncher launcher = doNewInstance(startParameter, false, requestContext.getCancellationToken(), requestContext, requestContext.getEventConsumer(), buildScopeServices, ImmutableList.of());
-        DeploymentRegistry deploymentRegistry = parentRegistry.get(DeploymentRegistry.class);
-        deploymentRegistry.onNewBuild(launcher.getGradle());
+        DefaultGradleLauncher launcher = doNewInstance(startParameter, null,
+            requestContext.getCancellationToken(),
+            requestContext, requestContext.getEventConsumer(), buildTreeScopeServices,
+            ImmutableList.of(new Stoppable() {
+            @Override
+            public void stop() {
+                rootBuild = null;
+            }
+        }));
+        rootBuild = launcher;
+
+        final DefaultDeploymentRegistry deploymentRegistry = parentRegistry.get(DefaultDeploymentRegistry.class);
+        launcher.getGradle().addBuildListener(new BuildAdapter() {
+            @Override
+            public void buildFinished(BuildResult result) {
+                deploymentRegistry.buildFinished(result);
+            }
+        });
+
+        // Start collecting operations for this build invocation
+        parentRegistry.get(BuildOperationNotificationBridge.class).start(launcher.getGradle());
+
         return launcher;
     }
 
-    private BuildScopeServices createBuildScopeServices(ServiceRegistry parentRegistry) {
-        if (!(parentRegistry instanceof BuildSessionScopeServices)) {
-            throw new IllegalArgumentException("Service registry must be of build session scope");
-        }
-
-        return BuildScopeServices.forSession((BuildSessionScopeServices) parentRegistry);
-    }
-
-    private DefaultGradleLauncher doNewInstance(StartParameter startParameter, boolean nestedInstance,
-                                                BuildCancellationToken cancellationToken, BuildRequestMetaData requestMetaData, BuildEventConsumer buildEventConsumer, BuildScopeServices serviceRegistry, List<?> servicesToStopAtEndOfBuild) {
+    private DefaultGradleLauncher doNewInstance(StartParameter startParameter, GradleLauncher parent,
+                                                BuildCancellationToken cancellationToken,
+                                                BuildRequestMetaData requestMetaData, BuildEventConsumer buildEventConsumer,
+                                                final BuildTreeScopeServices buildTreeScopeServices, List<?> servicesToStop) {
+        BuildScopeServices serviceRegistry = new BuildScopeServices(buildTreeScopeServices);
         serviceRegistry.add(BuildRequestMetaData.class, requestMetaData);
         serviceRegistry.add(BuildClientMetaData.class, requestMetaData.getClient());
         serviceRegistry.add(BuildEventConsumer.class, buildEventConsumer);
         serviceRegistry.add(BuildCancellationToken.class, cancellationToken);
+        NestedBuildFactoryImpl nestedBuildFactory = new NestedBuildFactoryImpl(buildTreeScopeServices);
+        serviceRegistry.add(NestedBuildFactory.class, nestedBuildFactory);
+
         ListenerManager listenerManager = serviceRegistry.get(ListenerManager.class);
-        LoggingManagerInternal loggingManager = serviceRegistry.newInstance(LoggingManagerInternal.class);
-        loggingManager.setLevelInternal(startParameter.getLogLevel());
 
-        //this hooks up the ListenerManager and LoggingConfigurer so you can call Gradle.addListener() with a StandardOutputListener.
-        loggingManager.addStandardOutputListener(listenerManager.getBroadcaster(StandardOutputListener.class));
-        loggingManager.addStandardErrorListener(listenerManager.getBroadcaster(StandardOutputListener.class));
-
-        LoggerProvider loggerProvider = (tracker.getCurrentBuild() == null) ? buildProgressLogger : LoggerProvider.NO_OP;
+        LoggerProvider loggerProvider = (parent == null) ? buildProgressLogger : LoggerProvider.NO_OP;
         listenerManager.useLogger(new TaskExecutionLogger(serviceRegistry.get(ProgressLoggerFactory.class), loggerProvider));
-        if (tracker.getCurrentBuild() == null) {
+        if (parent == null) {
             listenerManager.useLogger(new BuildLogger(Logging.getLogger(BuildLogger.class), serviceRegistry.get(StyledTextOutputFactory.class), startParameter, requestMetaData));
         }
-        listenerManager.addListener(tracker);
 
-        if (startParameter.isTaskOutputCacheEnabled()) {
-            listenerManager.addListener(serviceRegistry.get(TaskExecutionStatisticsEventAdapter.class));
-            listenerManager.addListener(new CacheStatisticsReporter(serviceRegistry.get(StyledTextOutputFactory.class)));
-        }
+        listenerManager.addListener(serviceRegistry.get(TaskExecutionStatisticsEventAdapter.class));
+        listenerManager.addListener(new TaskExecutionStatisticsReporter(serviceRegistry.get(StyledTextOutputFactory.class)));
 
         listenerManager.addListener(serviceRegistry.get(ProfileEventAdapter.class));
         if (startParameter.isProfile()) {
-            listenerManager.addListener(new ReportGeneratingProfileListener());
+            listenerManager.addListener(new ReportGeneratingProfileListener(serviceRegistry.get(StyledTextOutputFactory.class)));
         }
+
         ScriptUsageLocationReporter usageLocationReporter = new ScriptUsageLocationReporter();
         listenerManager.addListener(usageLocationReporter);
         ShowStacktrace showStacktrace = startParameter.getShowStacktrace();
@@ -183,16 +167,17 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         DeprecationLogger.useLocationReporter(usageLocationReporter);
 
         SettingsLoaderFactory settingsLoaderFactory = serviceRegistry.get(SettingsLoaderFactory.class);
-        SettingsLoader settingsLoader = nestedInstance ? settingsLoaderFactory.forNestedBuild() : settingsLoaderFactory.forTopLevelBuild();
+        SettingsLoader settingsLoader = parent != null ? settingsLoaderFactory.forNestedBuild() : settingsLoaderFactory.forTopLevelBuild();
+        GradleInternal parentBuild = parent == null ? null : parent.getGradle();
 
-        GradleInternal gradle = serviceRegistry.get(Instantiator.class).newInstance(DefaultGradle.class, tracker.getCurrentBuild(), startParameter, serviceRegistry.get(ServiceRegistryFactory.class));
-        return new DefaultGradleLauncher(
+        GradleInternal gradle = serviceRegistry.get(Instantiator.class).newInstance(DefaultGradle.class, parentBuild, startParameter, serviceRegistry.get(ServiceRegistryFactory.class));
+        DefaultGradleLauncher gradleLauncher = new DefaultGradleLauncher(
             gradle,
             serviceRegistry.get(InitScriptHandler.class),
             settingsLoader,
+            serviceRegistry.get(BuildLoader.class),
             serviceRegistry.get(BuildConfigurer.class),
             serviceRegistry.get(ExceptionAnalyser.class),
-            loggingManager,
             gradle.getBuildListenerBroadcaster(),
             listenerManager.getBroadcaster(ModelConfigurationListener.class),
             listenerManager.getBroadcaster(BuildCompletionListener.class),
@@ -200,7 +185,96 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             gradle.getServices().get(BuildConfigurationActionExecuter.class),
             gradle.getServices().get(BuildExecuter.class),
             serviceRegistry,
-            servicesToStopAtEndOfBuild
+            servicesToStop
         );
+        nestedBuildFactory.setParent(gradleLauncher);
+        return gradleLauncher;
+    }
+
+    private class NestedBuildFactoryImpl implements NestedBuildFactory {
+        private final BuildTreeScopeServices buildTreeScopeServices;
+        private DefaultGradleLauncher parent;
+
+        public NestedBuildFactoryImpl(BuildTreeScopeServices buildTreeScopeServices) {
+            this.buildTreeScopeServices = buildTreeScopeServices;
+        }
+
+        @Override
+        public GradleLauncher nestedInstance(StartParameter startParameter) {
+            return createChildInstance(startParameter, parent, buildTreeScopeServices, ImmutableList.of());
+        }
+
+        @Override
+        public BuildController nestedBuildController(StartParameter startParameter) {
+            final ServiceRegistry userHomeServices = userHomeDirServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
+            BuildSessionScopeServices sessionScopeServices = new BuildSessionScopeServices(userHomeServices, startParameter, ClassPath.EMPTY);
+            BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices(sessionScopeServices);
+            GradleLauncher childInstance = createChildInstance(startParameter, parent, buildTreeScopeServices, ImmutableList.of(buildTreeScopeServices, sessionScopeServices, new Stoppable() {
+                @Override
+                public void stop() {
+                    userHomeDirServiceRegistry.release(userHomeServices);
+                }
+            }));
+            return new NestedBuildController(new GradleBuildController(childInstance));
+        }
+
+        public void setParent(DefaultGradleLauncher parent) {
+            this.parent = parent;
+        }
+
+        private class NestedBuildController implements BuildController {
+            private final BuildController delegate;
+
+            NestedBuildController(BuildController delegate) {
+                this.delegate = delegate;
+            }
+
+            @Override
+            public void stop() {
+                delegate.stop();
+            }
+
+            @Override
+            public GradleInternal getGradle() {
+                return delegate.getGradle();
+            }
+
+            @Override
+            public GradleInternal run() {
+                BuildOperationExecutor executor = getGradle().getServices().get(BuildOperationExecutor.class);
+                return executor.call(new CallableBuildOperation<GradleInternal>() {
+                    @Override
+                    public GradleInternal call(BuildOperationContext context) {
+                        return delegate.run();
+                    }
+
+                    @Override
+                    public BuildOperationDescriptor.Builder description() {
+                        return BuildOperationDescriptor.displayName("Run nested build").parent(parent.getGradle().getBuildOperation());
+                    }
+                });
+            }
+
+            @Override
+            public GradleInternal configure() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public boolean hasResult() {
+                return delegate.hasResult();
+            }
+
+            @Nullable
+            @Override
+            public Object getResult() {
+                return delegate.getResult();
+            }
+
+            @Override
+            public void setResult(@Nullable Object result) {
+                delegate.setResult(result);
+            }
+        }
     }
 }

@@ -38,16 +38,16 @@ class GroovyCrossCompilationIntegrationTest extends MultiVersionIntegrationSpec 
     def setup() {
         Assume.assumeTrue(target != null)
         def java = TextUtil.escapeString(target.getJavaExecutable())
-        def javac = TextUtil.escapeString(target.getExecutable("javac"))
+        def javaHome = TextUtil.escapeString(target.javaHome.absolutePath)
 
         buildFile << """
 apply plugin: 'groovy'
 sourceCompatibility = ${MultiVersionIntegrationSpec.version}
 targetCompatibility = ${MultiVersionIntegrationSpec.version}
-repositories { mavenCentral() }
+${mavenCentralRepository()}
 
 dependencies {
-    compile 'org.codehaus.groovy:groovy-all:2.4.6'
+    compile 'org.codehaus.groovy:groovy-all:2.4.10'
 }
 
 tasks.withType(AbstractCompile) {
@@ -55,7 +55,7 @@ sourceCompatibility = ${MultiVersionIntegrationSpec.version}
 targetCompatibility = ${MultiVersionIntegrationSpec.version}
     options.with {
         fork = true
-        forkOptions.executable = "$javac"
+        forkOptions.javaHome = file("$javaHome")
     }
 }
 tasks.withType(Test) {
@@ -95,8 +95,8 @@ class ThingSpec {
 
         expect:
         succeeds 'test'
-        new ClassFile(file("build/classes/main/Thing.class")).javaVersion == javaVersion
-        new ClassFile(file("build/classes/main/GroovyThing.class")).javaVersion == javaVersion
-        new ClassFile(file("build/classes/test/ThingSpec.class")).javaVersion == javaVersion
+        new ClassFile(groovyClassFile("Thing.class")).javaVersion == javaVersion
+        new ClassFile(groovyClassFile("GroovyThing.class")).javaVersion == javaVersion
+        new ClassFile(classFile("groovy", "test", "ThingSpec.class")).javaVersion == javaVersion
     }
 }

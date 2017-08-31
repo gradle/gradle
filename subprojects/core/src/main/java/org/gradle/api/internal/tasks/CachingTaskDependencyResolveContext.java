@@ -16,10 +16,11 @@
 
 package org.gradle.api.internal.tasks;
 
+import com.google.common.base.Preconditions;
 import org.gradle.api.Buildable;
-import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.TaskReference;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraph;
 
@@ -64,7 +65,7 @@ public class CachingTaskDependencyResolveContext implements TaskDependencyResolv
         try {
             return doResolve();
         } catch (Exception e) {
-            throw new GradleException(String.format("Could not determine the dependencies of %s.", task), e);
+            throw new TaskDependencyResolveException(String.format("Could not determine the dependencies of %s.", task), e);
         } finally {
             queue.clear();
             this.task = null;
@@ -77,6 +78,7 @@ public class CachingTaskDependencyResolveContext implements TaskDependencyResolv
     }
 
     public void add(Object dependency) {
+        Preconditions.checkNotNull(dependency);
         queue.add(dependency);
     }
 
@@ -95,6 +97,10 @@ public class CachingTaskDependencyResolveContext implements TaskDependencyResolv
                 values.addAll(dependency.getDependencies(task));
             } else if (node instanceof Task) {
                 values.add((Task) node);
+            } else if (node instanceof TaskReference) {
+                TaskContainerInternal tasks = (TaskContainerInternal) task.getProject().getTasks();
+                Task task = tasks.resolveTask((TaskReference) node);
+                values.add(task);
             } else {
                 throw new IllegalArgumentException(String.format("Cannot resolve object of unknown type %s to a Task.",
                         node.getClass().getSimpleName()));

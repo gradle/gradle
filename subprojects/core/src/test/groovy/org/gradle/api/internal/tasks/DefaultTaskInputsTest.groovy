@@ -191,7 +191,7 @@ class DefaultTaskInputsTest extends Specification {
 
     def canRegisterSourceFile() {
         when:
-        inputs.source('file')
+        inputs.file('file').skipWhenEmpty()
 
         then:
         inputs.sourceFiles.files == ([new File('file')] as Set)
@@ -199,7 +199,7 @@ class DefaultTaskInputsTest extends Specification {
 
     def canRegisterSourceFiles() {
         when:
-        inputs.source('file', 'file2')
+        inputs.files('file', 'file2').skipWhenEmpty()
 
         then:
         inputs.sourceFiles.files == ([new File('file'), new File('file2')] as Set)
@@ -207,7 +207,7 @@ class DefaultTaskInputsTest extends Specification {
 
     def canRegisterSourceDir() {
         when:
-        inputs.sourceDir('dir')
+        inputs.dir('dir').skipWhenEmpty()
 
         then:
         inputs.sourceFiles.files == [treeFile] as Set
@@ -215,7 +215,7 @@ class DefaultTaskInputsTest extends Specification {
 
     def sourceFilesAreAlsoInputFiles() {
         when:
-        inputs.source('file')
+        inputs.file('file').skipWhenEmpty()
 
         then:
         inputs.sourceFiles.files == ([new File('file')] as Set)
@@ -251,7 +251,7 @@ class DefaultTaskInputsTest extends Specification {
 
     def hasInputsWhenEmptySourceFilesRegistered() {
         when:
-        inputs.source([])
+        inputs.files([]).skipWhenEmpty()
 
         then:
         inputs.hasInputs
@@ -260,7 +260,7 @@ class DefaultTaskInputsTest extends Specification {
 
     def hasInputsWhenSourceFilesRegistered() {
         when:
-        inputs.source('a')
+        inputs.file('a').skipWhenEmpty()
 
         then:
         inputs.hasInputs

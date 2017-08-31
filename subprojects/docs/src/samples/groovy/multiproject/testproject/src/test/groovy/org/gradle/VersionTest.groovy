@@ -9,6 +9,6 @@ class GroovycVersionTest {
 
   @Test
   void versionShouldBeCurrent() {
-    assertEquals("2.4.7", groovycVersion)
+    assertEquals("2.4.10", groovycVersion)
   }
 }

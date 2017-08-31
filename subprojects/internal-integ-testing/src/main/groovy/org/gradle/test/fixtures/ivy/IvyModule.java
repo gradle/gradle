@@ -18,6 +18,7 @@ package org.gradle.test.fixtures.ivy;
 
 import groovy.lang.Closure;
 import org.gradle.test.fixtures.Module;
+import org.gradle.test.fixtures.ModuleArtifact;
 import org.gradle.test.fixtures.file.TestFile;
 
 import java.util.Map;
@@ -26,6 +27,10 @@ public interface IvyModule extends Module {
     String getOrganisation();
     String getModule();
     String getRevision();
+
+    ModuleArtifact getIvy();
+
+    ModuleArtifact getJar();
 
     TestFile getIvyFile();
 

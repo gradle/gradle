@@ -21,11 +21,13 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.tooling.internal.consumer.ConnectionParameters
 import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection
+import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import spock.lang.Specification
 
 class CachingToolingImplementationLoaderTest extends Specification {
     final ToolingImplementationLoader target = Mock()
     final ProgressLoggerFactory loggerFactory = Mock()
+    final InternalBuildProgressListener progressListener = Mock()
     final ConnectionParameters params = Mock()
     final BuildCancellationToken cancellationToken = Mock()
     final CachingToolingImplementationLoader loader = new CachingToolingImplementationLoader(target)
@@ -36,13 +38,13 @@ class CachingToolingImplementationLoaderTest extends Specification {
         def userHomeDir = new File("user-home")
 
         when:
-        def impl = loader.create(distribution, loggerFactory, params, cancellationToken)
+        def impl = loader.create(distribution, loggerFactory, progressListener, params, cancellationToken)
 
         then:
         impl == connection
-        1 * target.create(distribution, loggerFactory, params, cancellationToken) >> connection
+        1 * target.create(distribution, loggerFactory, progressListener, params, cancellationToken) >> connection
         1 * params.getGradleUserHomeDir() >> userHomeDir
-        _ * distribution.getToolingImplementationClasspath(loggerFactory, userHomeDir, cancellationToken) >> new DefaultClassPath(new File('a.jar'))
+        _ * distribution.getToolingImplementationClasspath(loggerFactory, progressListener, userHomeDir, cancellationToken) >> new DefaultClassPath(new File('a.jar'))
         0 * _._
     }
 
@@ -52,15 +54,15 @@ class CachingToolingImplementationLoaderTest extends Specification {
         def userHomeDir = new File("user-home")
 
         when:
-        def impl = loader.create(distribution, loggerFactory, params, cancellationToken)
-        def impl2 = loader.create(distribution, loggerFactory, params, cancellationToken)
+        def impl = loader.create(distribution, loggerFactory, progressListener, params, cancellationToken)
+        def impl2 = loader.create(distribution, loggerFactory, progressListener, params, cancellationToken)
 
         then:
         impl == connection
         impl2 == connection
-        1 * target.create(distribution, loggerFactory, params, cancellationToken) >> connection
+        1 * target.create(distribution, loggerFactory, progressListener, params, cancellationToken) >> connection
         2 * params.getGradleUserHomeDir() >> userHomeDir
-        _ * distribution.getToolingImplementationClasspath(loggerFactory, userHomeDir, cancellationToken) >> { new DefaultClassPath(new File('a.jar')) }
+        _ * distribution.getToolingImplementationClasspath(loggerFactory, progressListener, userHomeDir, cancellationToken) >> { new DefaultClassPath(new File('a.jar')) }
         0 * _._
     }
 
@@ -71,17 +73,17 @@ class CachingToolingImplementationLoaderTest extends Specification {
         def distribution2 = Mock(Distribution)
 
         when:
-        def impl = loader.create(distribution1, loggerFactory, params, cancellationToken)
-        def impl2 = loader.create(distribution2, loggerFactory, params, cancellationToken)
+        def impl = loader.create(distribution1, loggerFactory, progressListener, params, cancellationToken)
+        def impl2 = loader.create(distribution2, loggerFactory, progressListener, params, cancellationToken)
 
         then:
         impl == connection1
         impl2 == connection2
-        1 * target.create(distribution1, loggerFactory, params, cancellationToken) >> connection1
-        1 * target.create(distribution2, loggerFactory, params, cancellationToken) >> connection2
+        1 * target.create(distribution1, loggerFactory, progressListener, params, cancellationToken) >> connection1
+        1 * target.create(distribution2, loggerFactory, progressListener, params, cancellationToken) >> connection2
         2 * params.getGradleUserHomeDir() >> null
-        _ * distribution1.getToolingImplementationClasspath(loggerFactory, null, cancellationToken) >> new DefaultClassPath(new File('a.jar'))
-        _ * distribution2.getToolingImplementationClasspath(loggerFactory, null, cancellationToken) >> new DefaultClassPath(new File('b.jar'))
+        _ * distribution1.getToolingImplementationClasspath(loggerFactory, progressListener, null, cancellationToken) >> new DefaultClassPath(new File('a.jar'))
+        _ * distribution2.getToolingImplementationClasspath(loggerFactory, progressListener, null, cancellationToken) >> new DefaultClassPath(new File('b.jar'))
         0 * _._
     }
 
@@ -92,15 +94,15 @@ class CachingToolingImplementationLoaderTest extends Specification {
         def distribution2 = Mock(Distribution)
 
         given:
-        loader.create(distribution1, loggerFactory, params, cancellationToken)
-        loader.create(distribution2, loggerFactory, params, cancellationToken)
-        loader.create(distribution1, loggerFactory, params, cancellationToken)
+        loader.create(distribution1, loggerFactory, progressListener, params, cancellationToken)
+        loader.create(distribution2, loggerFactory, progressListener, params, cancellationToken)
+        loader.create(distribution1, loggerFactory, progressListener, params, cancellationToken)
 
-        _ * target.create(distribution1, loggerFactory, params, cancellationToken) >> connection1
-        _ * target.create(distribution2, loggerFactory, params, cancellationToken) >> connection2
+        _ * target.create(distribution1, loggerFactory, progressListener, params, cancellationToken) >> connection1
+        _ * target.create(distribution2, loggerFactory, progressListener, params, cancellationToken) >> connection2
         _ * params.getGradleUserHomeDir() >> null
-        _ * distribution1.getToolingImplementationClasspath(loggerFactory, null, cancellationToken) >> new DefaultClassPath(new File('a.jar'))
-        _ * distribution2.getToolingImplementationClasspath(loggerFactory, null, cancellationToken) >> new DefaultClassPath(new File('b.jar'))
+        _ * distribution1.getToolingImplementationClasspath(loggerFactory, progressListener, null, cancellationToken) >> new DefaultClassPath(new File('a.jar'))
+        _ * distribution2.getToolingImplementationClasspath(loggerFactory, progressListener, null, cancellationToken) >> new DefaultClassPath(new File('b.jar'))
 
         when:
         loader.close()

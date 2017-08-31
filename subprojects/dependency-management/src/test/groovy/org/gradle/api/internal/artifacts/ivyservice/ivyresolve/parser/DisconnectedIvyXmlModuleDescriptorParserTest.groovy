@@ -15,25 +15,25 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
+
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
-import org.gradle.internal.resource.local.LocallyAvailableResource
 import spock.lang.Specification
 
 class DisconnectedIvyXmlModuleDescriptorParserTest extends Specification {
-    LocallyAvailableExternalResource localExternalResource = Mock()
-    LocallyAvailableResource localResource = Mock()
+    LocallyAvailableExternalResource localResource = Mock()
     ExternalResource externalResource = Mock()
-    IvyXmlModuleDescriptorParser parser = new DisconnectedIvyXmlModuleDescriptorParser()
+    IvyXmlModuleDescriptorParser parser = new DisconnectedIvyXmlModuleDescriptorParser(null, new DefaultImmutableModuleIdentifierFactory(), TestFiles.fileRepository())
     DescriptorParseContext parseContext = Mock()
 
     def "creates overridden internal Ivy parser"() throws Exception {
         when:
-        IvyXmlModuleDescriptorParser.Parser disconnectedParser = parser.createParser(parseContext, localExternalResource, [:])
+        IvyXmlModuleDescriptorParser.Parser disconnectedParser = parser.createParser(parseContext, localResource, [:])
 
         then:
-        localExternalResource.getLocalResource() >> localResource
         localResource.getFile() >> new File('ivy.xml')
         disconnectedParser != null
         disconnectedParser instanceof DisconnectedIvyXmlModuleDescriptorParser.DisconnectedParser
@@ -41,13 +41,12 @@ class DisconnectedIvyXmlModuleDescriptorParserTest extends Specification {
 
     def "creates new internal Ivy parser"() throws Exception {
         when:
-        IvyXmlModuleDescriptorParser.Parser disconnectedParser = parser.createParser(parseContext, localExternalResource, [:])
+        IvyXmlModuleDescriptorParser.Parser disconnectedParser = parser.createParser(parseContext, localResource, [:])
 
         and:
         IvyXmlModuleDescriptorParser.Parser newDisconnectedParser = disconnectedParser.newParser(externalResource, new File('ivy.xml').toURI().toURL())
 
         then:
-        localExternalResource.getLocalResource() >> localResource
         localResource.getFile() >> new File('ivy.xml')
         disconnectedParser != null
         disconnectedParser instanceof DisconnectedIvyXmlModuleDescriptorParser.DisconnectedParser
@@ -57,13 +56,12 @@ class DisconnectedIvyXmlModuleDescriptorParserTest extends Specification {
 
     def "parses other Ivy file and return with standard module descriptor"() throws Exception {
         when:
-        IvyXmlModuleDescriptorParser.Parser disconnectedParser = parser.createParser(parseContext, localExternalResource, [:])
+        IvyXmlModuleDescriptorParser.Parser disconnectedParser = parser.createParser(parseContext, localResource, [:])
 
         and:
         ModuleDescriptor moduleDescriptor = disconnectedParser.parseOtherIvyFile('myorg', 'parentMod', 'parentRev')
 
         then:
-        localExternalResource.getLocalResource() >> localResource
         localResource.getFile() >> new File('ivy.xml')
         disconnectedParser
         disconnectedParser instanceof DisconnectedIvyXmlModuleDescriptorParser.DisconnectedParser

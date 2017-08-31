@@ -15,12 +15,10 @@
  */
 package org.gradle.groovy.scripts.internal;
 
-import com.google.common.hash.HashCode;
 import com.google.common.io.Files;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
-import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.cache.CacheRepository;
@@ -29,7 +27,9 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.HashUtil;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.model.dsl.internal.transform.RuleVisitor;
@@ -56,12 +56,12 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private final ProgressLoggerFactory progressLoggerFactory;
     private final CacheRepository cacheRepository;
     private final CacheValidator validator;
-    private final FileHasher hasher;
+    private final ScriptSourceHasher hasher;
     private final ClassLoaderCache classLoaderCache;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
 
     public FileCacheBackedScriptClassCompiler(CacheRepository cacheRepository, CacheValidator validator, ScriptCompilationHandler scriptCompilationHandler,
-                                              ProgressLoggerFactory progressLoggerFactory, FileHasher hasher, ClassLoaderCache classLoaderCache,
+                                              ProgressLoggerFactory progressLoggerFactory, ScriptSourceHasher hasher, ClassLoaderCache classLoaderCache,
                                               ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         this.cacheRepository = cacheRepository;
         this.validator = validator;
@@ -84,10 +84,14 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             return emptyCompiledScript(classLoaderId, operation);
         }
 
-        HashCode sourceHashCode = hasher.hash(source.getResource());
+        HashCode sourceHashCode = hasher.hash(source);
         final String sourceHash = HashUtil.compactStringFor(sourceHashCode);
         final String dslId = operation.getId();
-        final String classpathHash = dslId + classLoaderHierarchyHasher.getLenientHash(classLoader);
+        HashCode classLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(classLoader);
+        if (classLoaderHash == null) {
+            throw new IllegalArgumentException("Unknown classloader: " + classLoader);
+        }
+        final String classpathHash = dslId + classLoaderHash;
         final RemappingScriptSource remapped = new RemappingScriptSource(source);
 
         // Caching involves 2 distinct caches, so that 2 scripts with the same (hash, classpath) do not get compiled twice
@@ -101,7 +105,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             .withValidator(validator)
             .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new RemapBuildScriptsAction<M, T>(remapped, classpathHash, sourceHash, dslId, classLoader, operation, verifier, scriptBaseClass),
                 "Compiling script into cache",
-                "Compiling " + source.getFileName() + " into local build cache"))
+                "Compiling " + source.getFileName() + " into local compilation cache"))
             .open();
         remappedClassesCache.close();
 
@@ -205,20 +209,70 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     }
 
     private static class BuildScriptRemapper extends ClassVisitor implements Opcodes {
+        private static final String SCRIPT_ORIGIN = "org/gradle/internal/scripts/ScriptOrigin";
         private final ScriptSource scriptSource;
+        private final String originalClassName;
+        private final String contentHash;
 
-        public BuildScriptRemapper(ClassVisitor cv, ScriptSource source) {
-            super(ASM5, cv);
+        public BuildScriptRemapper(ClassVisitor cv, ScriptSource source, String originalClassName, String contentHash) {
+            super(ASM6, cv);
             this.scriptSource = source;
+            this.originalClassName = originalClassName;
+            this.contentHash = contentHash;
         }
 
         public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-            cv.visit(version, access, remap(name), remap(signature), remap(superName), remap(interfaces));
+            String owner = remap(name);
+            boolean shouldAddScriptOrigin = shouldAddScriptOrigin(access);
+            cv.visit(version, access, owner, remap(signature), remap(superName), remapAndAddInterfaces(interfaces, shouldAddScriptOrigin));
+            if (shouldAddScriptOrigin) {
+                addOriginalClassName(cv, owner, originalClassName);
+                addContentHash(cv, owner, contentHash);
+            }
+        }
+
+        private static boolean shouldAddScriptOrigin(int access) {
+            return ((access & ACC_INTERFACE) == 0) && ((access & ACC_ANNOTATION) == 0);
+        }
+
+        private static void addOriginalClassName(ClassVisitor cv, String owner, String originalClassName) {
+            cv.visitField(ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC | ACC_FINAL, "__originalClassName", Type.getDescriptor(String.class), "", originalClassName);
+            MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "getOriginalClassName", Type.getMethodDescriptor(Type.getType(String.class)), null, null);
+            mv.visitCode();
+            mv.visitFieldInsn(GETSTATIC, owner, "__originalClassName", Type.getDescriptor(String.class));
+            mv.visitInsn(ARETURN);
+            mv.visitMaxs(1, 1);
+            mv.visitEnd();
+        }
+
+        private static void addContentHash(ClassVisitor cv, String owner, String contentHash) {
+            cv.visitField(ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC | ACC_FINAL, "__signature", Type.getDescriptor(String.class), "", contentHash);
+            MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "getContentHash", Type.getMethodDescriptor(Type.getType(String.class)), null, null);
+            mv.visitCode();
+            mv.visitFieldInsn(GETSTATIC, owner, "__signature", Type.getDescriptor(String.class));
+            mv.visitInsn(ARETURN);
+            mv.visitMaxs(1, 1);
+            mv.visitEnd();
         }
 
         @Override
         public void visitSource(String source, String debug) {
             cv.visitSource(scriptSource.getFileName(), debug);
+        }
+
+        private String[] remapAndAddInterfaces(String[] interfaces, boolean shouldAddScriptOrigin) {
+            if (!shouldAddScriptOrigin) {
+                return remap(interfaces);
+            }
+            if (interfaces == null) {
+                return new String[]{SCRIPT_ORIGIN};
+            }
+            String[] remapped = new String[interfaces.length + 1];
+            for (int i = 0; i < interfaces.length; i++) {
+                remapped[i] = remap(interfaces[i]);
+            }
+            remapped[remapped.length - 1] = SCRIPT_ORIGIN;
+            return remapped;
         }
 
         private String[] remap(String[] names) {
@@ -284,7 +338,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         class MethodRenamer extends MethodVisitor {
 
             public MethodRenamer(final MethodVisitor mv) {
-                super(ASM5, mv);
+                super(ASM6, mv);
             }
 
             public void visitTypeInsn(int i, String name) {
@@ -372,9 +426,12 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
                         renamed = className + renamed.substring(RemappingScriptSource.MAPPED_SCRIPT.length());
                     }
                     ClassWriter cv = new ClassWriter(0);
-                    BuildScriptRemapper remapper = new BuildScriptRemapper(cv, origin);
                     try {
-                        ClassReader cr = new ClassReader(Files.toByteArray(file));
+                        byte[] contents = Files.toByteArray(file);
+                        ClassReader cr = new ClassReader(contents);
+                        String originalClassName = cr.getClassName();
+                        String contentHash = Hashing.md5().hashBytes(contents).toString();
+                        BuildScriptRemapper remapper = new BuildScriptRemapper(cv, origin, originalClassName, contentHash);
                         cr.accept(remapper, 0);
                         Files.write(cv.toByteArray(), new File(relocalizedDir, renamed));
                     } catch (IOException ex) {

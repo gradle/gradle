@@ -16,11 +16,14 @@
 
 package org.gradle.external.javadoc;
 
+import org.gradle.internal.HasInternalProtocol;
+
 /**
  * Represents a Javadoc command-line option.
  *
  * @param <T> The type which this option represents.
  */
+@HasInternalProtocol
 public interface JavadocOptionFileOption<T> extends OptionLessJavadocOptionFileOption<T> {
     String getOption();
 }

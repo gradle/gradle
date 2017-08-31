@@ -16,8 +16,8 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**

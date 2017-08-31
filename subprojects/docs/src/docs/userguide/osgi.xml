@@ -10,10 +10,10 @@
   ~ Unless required by applicable law or agreed to in writing, software
   ~ distributed under the License is distributed on an "AS IS" BASIS,
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
+    ~ See the License for the specific language governing permissions and
+    ~ limitations under the License.
   -->
-<chapter id='osgi_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='osgi_plugin'>
     <title>The OSGi Plugin</title>
     <para>The OSGi plugin provides a factory method to create an
         <apilink class="org.gradle.api.plugins.osgi.OsgiManifest"/> object. <literal>OsgiManifest</literal> extends
@@ -22,8 +22,10 @@
         replaces the manifest object of the default jar with an <literal>OsgiManifest</literal> object. The replaced manifest
         is merged into the new one.
     </para>
-    <para>The OSGi plugin makes heavy use of Peter Kriens <ulink url='http://www.aqute.biz/Bnd/Bnd'>BND tool</ulink>.
-    </para>
+    <note>
+        The OSGi plugin makes heavy use of the <ulink url='http://bnd.bndtools.org/'>BND tool</ulink>.
+        A separate <ulink url="https://github.com/bndtools/bnd/blob/master/biz.aQute.bnd.gradle/README.md">plugin implementation</ulink> is maintained by the BND authors that has more advanced features.
+    </note>
 
     <section id="sec:osgi_usage">
         <title>Usage</title>
@@ -40,12 +42,26 @@
 
     <section id="sec:osgi_tasks">
         <title>Tasks</title>
-        <para>This plugin does not add any tasks.</para>
-    </section>
-
-    <section id="sec:osgi_dependency_management">
-        <title>Dependency management</title>
-        <para>TBD</para>
+        <para>The OSGi plugin adds the following tasks to the project:</para>
+        <table>
+            <title>OSGi plugin - tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>osgiClasses</literal>
+                </td>
+                <td><literal>classes</literal></td>
+                <td><apilink class="org.gradle.api.tasks.Sync"/></td>
+                <td>Copies all classes from the main source set to a single directory that is processed by BND.</td>
+            </tr>
+        </table>
     </section>
 
     <section id="sec:osgi_convention_object">

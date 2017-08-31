@@ -18,12 +18,14 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 
 import java.util.jar.Manifest
 
+@TestReproducibleArchives
 class OsgiProjectSampleIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final Sample sample = new Sample(testDirectoryProvider, 'osgi')
@@ -42,7 +44,7 @@ class OsgiProjectSampleIntegrationTest extends AbstractIntegrationSpec {
         manifest != null
         manifest.mainAttributes.getValue('Bundle-Name') == 'Example Gradle Activator'
         manifest.mainAttributes.getValue('Bundle-ManifestVersion') == '2'
-        manifest.mainAttributes.getValue('Tool') == 'Bnd-3.2.0.201605172007'
+        manifest.mainAttributes.getValue('Tool') == 'Bnd-3.4.0.201707252008'
         manifest.mainAttributes.getValue('Bundle-Version') == '1.0.0'
         manifest.mainAttributes.getValue('Bundle-SymbolicName') == 'gradle_tooling.osgi'
         manifest.mainAttributes.getValue('Built-By') ==  GradleVersion.current().version

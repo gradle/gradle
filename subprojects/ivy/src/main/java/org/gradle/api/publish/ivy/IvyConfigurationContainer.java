@@ -25,7 +25,7 @@ import org.gradle.api.NamedDomainObjectContainer;
  * Being a {@link org.gradle.api.NamedDomainObjectContainer}, a {@code IvyConfigurationContainer} provides
  * convenient methods for adding, querying, filtering, and applying actions to the set of {@link IvyConfiguration}s.
  *
- * <pre autoTested="true">
+ * <pre class='autoTested'>
  * apply plugin: 'ivy-publish'
  *
  * def publication = publishing.publications.create("my-pub", IvyPublication)

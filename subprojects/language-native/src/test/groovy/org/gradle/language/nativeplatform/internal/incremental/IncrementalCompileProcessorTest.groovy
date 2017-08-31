@@ -15,10 +15,9 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental
 
-import com.google.common.hash.Hashing
-import com.google.common.io.Files
-import org.gradle.api.internal.hash.FileHasher
 import org.gradle.cache.PersistentStateCache
+import org.gradle.internal.hash.FileHasher
+import org.gradle.internal.hash.Hashing
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultIncludeDirectives
 import org.gradle.test.fixtures.file.TestFile
@@ -48,7 +47,7 @@ class IncrementalCompileProcessorTest extends Specification {
 
     def setup() {
         hasher.hash(_) >> { File file ->
-            Files.asByteSource(file).hash(Hashing.sha1())
+            Hashing.sha1().hashBytes(file.bytes)
         }
 
         // S1 - D1 \
@@ -430,8 +429,13 @@ class IncrementalCompileProcessorTest extends Specification {
             this.compilationState = newValue
         }
 
-        void update(PersistentStateCache.UpdateAction<CompilationState> updateAction) {
+        CompilationState update(PersistentStateCache.UpdateAction<CompilationState> updateAction) {
+            throw new UnsupportedOperationException()
+        }
 
+        @Override
+        CompilationState maybeUpdate(PersistentStateCache.UpdateAction<CompilationState> updateAction) {
+            throw new UnsupportedOperationException()
         }
     }
 }

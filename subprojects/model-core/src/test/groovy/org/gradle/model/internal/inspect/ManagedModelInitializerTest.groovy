@@ -32,6 +32,8 @@ import spock.lang.Unroll
 
 import java.util.concurrent.atomic.AtomicInteger
 
+import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
+
 class ManagedModelInitializerTest extends ProjectRegistrySpec {
 
     def classLoader = new GroovyClassLoader(getClass().classLoader)
@@ -49,7 +51,7 @@ class ManagedModelInitializerTest extends ProjectRegistrySpec {
 
         then:
         def ex = thrown(ModelRuleExecutionException)
-        ex.cause.message == TextUtil.toPlatformLineSeparators("""A model element of type: '$ManagedWithInvalidModelMap.name' can not be constructed.
+        ex.cause.message == TextUtil.toPlatformLineSeparators("""A model element of type: '${fullyQualifiedNameOf(ManagedWithInvalidModelMap)}' can not be constructed.
 Its property 'org.gradle.model.ModelMap<java.io.FileInputStream> map' is not a valid managed collection
 A managed collection can not contain 'java.io.FileInputStream's
 A valid managed collection takes the form of ModelSet<T> or ModelMap<T> where 'T' is:
@@ -72,7 +74,7 @@ A valid managed collection takes the form of ModelSet<T> or ModelMap<T> where 'T
 
         then:
         def ex = thrown(ModelRuleExecutionException)
-        ex.cause.message == TextUtil.toPlatformLineSeparators("""A model element of type: '$ManagedWithInvalidScalarCollection.name' can not be constructed.
+        ex.cause.message == TextUtil.toPlatformLineSeparators("""A model element of type: '${fullyQualifiedNameOf(ManagedWithInvalidScalarCollection)}' can not be constructed.
 Its property 'java.util.List<java.io.FileInputStream> scalarThings' is not a valid scalar collection
 A scalar collection can not contain 'java.io.FileInputStream's
 A valid scalar collection takes the form of List<T> or Set<T> where 'T' is one of (String, Boolean, Character, Byte, Short, Integer, Float, Long, Double, BigInteger, BigDecimal, File)""")
@@ -89,7 +91,7 @@ A valid scalar collection takes the form of List<T> or Set<T> where 'T' is one o
 
         then:
         def ex = thrown(ModelRuleExecutionException)
-        ex.cause.message == TextUtil.toPlatformLineSeparators("""A model element of type: '$ManagedReadOnlyWithInvalidProperty.name' can not be constructed.
+        ex.cause.message == TextUtil.toPlatformLineSeparators("""A model element of type: '${fullyQualifiedNameOf(ManagedReadOnlyWithInvalidProperty)}' can not be constructed.
 Its property 'java.io.FileInputStream stream' can not be constructed
 It must be one of:
     - A managed type (annotated with @Managed)
@@ -110,7 +112,7 @@ It must be one of:
 
         then:
         def ex = thrown(ModelRuleExecutionException)
-        ex.cause.message == TextUtil.toPlatformLineSeparators("""A model element of type: '$ManagedReadWriteWithInvalidProperty.name' can not be constructed.
+        ex.cause.message == TextUtil.toPlatformLineSeparators("""A model element of type: '${fullyQualifiedNameOf(ManagedReadWriteWithInvalidProperty)}' can not be constructed.
 Its property 'java.io.FileInputStream stream' can not be constructed
 It must be one of:
     - A managed type (annotated with @Managed)
@@ -160,8 +162,8 @@ It must be one of:
     def "only selected unmanaged property types are allowed #type"() {
         expect:
         failWhenRealized(type,
-            canNotBeConstructed("${type.name}"),
-            "Its property '$failingProperty.name $propertyName' can not be constructed",
+            canNotBeConstructed(fullyQualifiedNameOf(type)),
+            "Its property '${fullyQualifiedNameOf(failingProperty)} $propertyName' can not be constructed",
             "It must be one of:",
             "    - A managed collection.",
             "    - A scalar collection.",
@@ -177,7 +179,7 @@ It must be one of:
     def "unmanaged types must be annotated with unmanaged"() {
         expect:
         failWhenRealized(MissingUnmanaged,
-            canNotBeConstructed(MissingUnmanaged.name),
+            canNotBeConstructed(fullyQualifiedNameOf(MissingUnmanaged)),
             "Its property 'java.io.InputStream thing' can not be constructed",
             "It must be one of:",
             "- An unmanaged property (i.e. annotated with @Unmanaged)"
@@ -224,7 +226,7 @@ interface Managed${typeName} {
     @Unroll
     def "must have a setter - #managedType.simpleName"() {
         expect:
-        failWhenRealized(managedType, "Invalid managed model type '$managedType.name': read only property 'thing' has non managed type boolean, only managed types can be used")
+        failWhenRealized(managedType, "Invalid managed model type '${fullyQualifiedNameOf(managedType)}': read only property 'thing' has non managed type boolean, only managed types can be used")
 
         where:
         managedType << [OnlyIsGetter, OnlyGetGetter]

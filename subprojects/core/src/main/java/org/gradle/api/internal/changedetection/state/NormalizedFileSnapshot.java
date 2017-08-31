@@ -16,15 +16,12 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
-
 /**
- * An immutable snapshot of the relevant aspects of a file's path and content.
+ * An immutable snapshot of some aspects of a file's metadata and content.
  *
  * Should implement {@link #equals(Object)} and {@link #hashCode()} to compare these aspects.
  */
-public interface NormalizedFileSnapshot extends Comparable<NormalizedFileSnapshot> {
+public interface NormalizedFileSnapshot extends Comparable<NormalizedFileSnapshot>, Snapshot {
     String getNormalizedPath();
-    IncrementalFileSnapshot getSnapshot();
-    void appendToCacheKey(TaskCacheKeyBuilder hasher);
+    FileContentSnapshot getSnapshot();
 }

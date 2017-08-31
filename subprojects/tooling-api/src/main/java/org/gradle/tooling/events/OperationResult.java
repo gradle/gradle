@@ -17,6 +17,7 @@
 package org.gradle.tooling.events;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * Describes the result of running an operation.
@@ -24,6 +25,7 @@ import org.gradle.api.Incubating;
  * @since 2.4
  */
 @Incubating
+@UsedByScanPlugin
 public interface OperationResult {
 
     /**

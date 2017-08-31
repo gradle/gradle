@@ -92,12 +92,11 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
         then:
         project.idea.project.languageLevel.level == new IdeaLanguageLevel(project.sourceCompatibility).level
 
-        // def configurations = project.configurations
         project.idea.module.scopes == [
-                PROVIDED: [plus: [], minus: []],
+                PROVIDED: [plus: [project.configurations.compileClasspath], minus: []],
                 COMPILE: [plus: [], minus: []],
-                RUNTIME: [plus: [], minus: []],
-                TEST: [plus: [], minus: []],
+                RUNTIME: [plus: [project.configurations.runtimeClasspath], minus: []],
+                TEST: [plus: [project.configurations.testCompileClasspath, project.configurations.testRuntimeClasspath], minus: []],
         ]
     }
 

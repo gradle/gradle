@@ -23,7 +23,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.configuration.ScriptTarget;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Factory;
-import org.gradle.plugin.use.internal.PluginRequests;
+import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.use.internal.PluginUseScriptBlockMetadataExtractor;
 
 import java.util.Arrays;
@@ -32,7 +32,7 @@ import java.util.List;
 public class InitialPassStatementTransformer implements StatementTransformer, Factory<PluginRequests> {
 
     public static final String PLUGINS = "plugins";
-    public static final String PLUGIN_REPOS = "pluginRepositories";
+    public static final String PLUGIN_MANAGEMENT = "pluginManagement";
 
     private final ScriptTarget scriptTarget;
     private final List<String> scriptBlockNames;
@@ -41,12 +41,12 @@ public class InitialPassStatementTransformer implements StatementTransformer, Fa
 
     private boolean seenNonClasspathStatement;
     private boolean seenPluginsBlock;
-    private boolean seenPluginRepositoriesBlock;
+    private boolean seenPluginManagementBlock;
     private boolean seenClasspathBlock;
 
     public InitialPassStatementTransformer(ScriptSource scriptSource, ScriptTarget scriptTarget, DocumentationRegistry documentationRegistry) {
         this.scriptTarget = scriptTarget;
-        this.scriptBlockNames = Arrays.asList(scriptTarget.getClasspathBlockName(), PLUGINS, PLUGIN_REPOS);
+        this.scriptBlockNames = Arrays.asList(scriptTarget.getClasspathBlockName(), PLUGINS, PLUGIN_MANAGEMENT);
         this.documentationRegistry = documentationRegistry;
         this.pluginBlockMetadataExtractor = new PluginUseScriptBlockMetadataExtractor(scriptSource, documentationRegistry);
     }
@@ -82,21 +82,21 @@ public class InitialPassStatementTransformer implements StatementTransformer, Fa
                 }
 
                 return null;
-            } else if (scriptBlock.getName().equals(PLUGIN_REPOS)) {
+            } else if (scriptBlock.getName().equals(PLUGIN_MANAGEMENT)) {
                 String failureMessage = null;
-                if (!scriptTarget.getSupportsPluginRepositoriesBlock()) {
-                    failureMessage = "Only Settings scripts can contain a pluginRepositories {} block.";
+                if (!scriptTarget.getSupportsPluginManagementBlock()) {
+                    failureMessage = "Only Settings scripts can contain a pluginManagement {} block.";
                 } else if (seenClasspathBlock || seenNonClasspathStatement || seenPluginsBlock) {
-                    failureMessage = String.format("The %s {} block must appear before any other statements in the script.", PLUGIN_REPOS);
-                } else if (seenPluginRepositoriesBlock) {
-                    failureMessage = String.format("At most, one %s {} block may appear in the script.", PLUGIN_REPOS);
+                    failureMessage = String.format("The %s {} block must appear before any other statements in the script.", PLUGIN_MANAGEMENT);
+                } else if (seenPluginManagementBlock) {
+                    failureMessage = String.format("At most, one %s {} block may appear in the script.", PLUGIN_MANAGEMENT);
                 }
                 if (failureMessage != null) {
                     sourceUnit.getErrorCollector().addError(
-                        new SyntaxException(makePluginRepositoriesError(failureMessage), statement.getLineNumber(), statement.getColumnNumber()), sourceUnit);
+                        new SyntaxException(makePluginManagementError(failureMessage), statement.getLineNumber(), statement.getColumnNumber()), sourceUnit);
                 }
-                seenPluginRepositoriesBlock = true;
-                return statement; // don't transform the pluginRepositories block
+                seenPluginManagementBlock = true;
+                return statement;
             } else {
                 if (seenPluginsBlock) {
                     String message = String.format(
@@ -114,16 +114,16 @@ public class InitialPassStatementTransformer implements StatementTransformer, Fa
         }
     }
 
-    private String makePluginRepositoriesError(String failureMessage) {
+    private String makePluginManagementError(String failureMessage) {
         return String.format(
-            "%s%n%nSee %s for information on the pluginRepositories {} block%n%n",
+            "%s%n%nSee %s for information on the pluginManagement {} block%n%n",
             failureMessage,
-            documentationRegistry.getDocumentationFor("plugins", "sec:plugin_repositories"));
+            documentationRegistry.getDocumentationFor("plugins", "sec:plugin_management"));
     }
 
     @Override
     public PluginRequests create() {
-        return pluginBlockMetadataExtractor.getRequests();
+        return pluginBlockMetadataExtractor.getPluginRequests();
     }
 
 }

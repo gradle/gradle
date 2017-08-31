@@ -17,32 +17,12 @@
 package org.gradle.jvm.test.internal.services;
 
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.jvm.test.internal.JUnitTestSuiteBinaryRenderer;
 
-public class JvmTestingServices implements PluginServiceRegistry {
+public class JvmTestingServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(JUnitTestSuiteBinaryRenderer.class);
-    }
-
-    @Override
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-
-    }
-
-    @Override
-    public void registerBuildServices(ServiceRegistration registration) {
-
-    }
-
-    @Override
-    public void registerGradleServices(ServiceRegistration registration) {
-
-    }
-
-    @Override
-    public void registerProjectServices(ServiceRegistration registration) {
-
     }
 }

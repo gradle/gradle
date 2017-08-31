@@ -19,30 +19,15 @@ package org.gradle.language.jvm.internal;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.base.artifact.SourcesArtifact;
 
-public class JvmPluginServiceRegistry implements PluginServiceRegistry {
-    @Override
-    public void registerGlobalServices(ServiceRegistration registration) {
-    }
-
-    @Override
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-    }
+public class JvmPluginServiceRegistry extends AbstractPluginServiceRegistry {
 
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new ComponentRegistrationAction());
-    }
-
-    @Override
-    public void registerGradleServices(ServiceRegistration registration) {
-    }
-
-    @Override
-    public void registerProjectServices(ServiceRegistration registration) {
     }
 
     private static class ComponentRegistrationAction {

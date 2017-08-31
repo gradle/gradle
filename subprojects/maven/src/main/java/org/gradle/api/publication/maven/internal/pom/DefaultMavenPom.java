@@ -16,6 +16,7 @@
 package org.gradle.api.publication.maven.internal.pom;
 
 import groovy.lang.Closure;
+import groovy.lang.GroovyObject;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
@@ -31,7 +32,7 @@ import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.xml.XmlTransformer;
-import org.gradle.listener.ActionBroadcast;
+import org.gradle.internal.MutableActionSet;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.BufferedWriter;
@@ -46,7 +47,7 @@ public class DefaultMavenPom implements MavenPom {
     private PathToFileResolver fileResolver;
     private Model model = new MavenProject().getModel();
     private Conf2ScopeMappingContainer scopeMappings;
-    private ActionBroadcast<MavenPom> whenConfiguredActions = new ActionBroadcast<MavenPom>();
+    private MutableActionSet<MavenPom> whenConfiguredActions = new MutableActionSet<MavenPom>();
     private XmlTransformer withXmlActions = new XmlTransformer();
     private ConfigurationContainer configurations;
 
@@ -131,6 +132,16 @@ public class DefaultMavenPom implements MavenPom {
         CustomModelBuilder pomBuilder = new CustomModelBuilder(getModel());
         InvokerHelper.invokeMethod(pomBuilder, "project", cl);
         return this;
+    }
+
+    @Override
+    public DefaultMavenPom project(final Action<? super GroovyObject> action) {
+        return project(new Closure(this, this) {
+            @SuppressWarnings("unused")
+            public void doCall() {
+                action.execute((GroovyObject) getDelegate());
+            }
+        });
     }
 
     public Model getModel() {

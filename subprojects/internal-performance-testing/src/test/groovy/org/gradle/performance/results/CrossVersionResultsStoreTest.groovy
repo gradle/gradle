@@ -22,7 +22,6 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Shared
 
-import static org.gradle.performance.measure.DataAmount.kbytes
 import static org.gradle.performance.measure.Duration.minutes
 
 class CrossVersionResultsStoreTest extends ResultSpecification {
@@ -35,11 +34,13 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
     def "persists results"() {
         def result1 = crossVersionResults(testId: "test1",
                 testProject: "test-project",
-                tasks: ["clean", "build"],
+                tasks: ["build"],
+                cleanTasks: ["clean"],
                 args: ["--arg1"],
                 gradleOpts: ["--opt-1", "--opt-2"],
                 daemon: true,
                 operatingSystem: "some-os",
+                host: "me",
                 jvm: "java 6",
                 startTime: now + 10000,
                 versionUnderTest: "1.7-rc-1",
@@ -48,13 +49,7 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         def baseline1 = result1.baseline("1.0")
         def baseline2 = result1.baseline("1.5")
         result1.current << operation(totalTime: minutes(12),
-                configurationTime: minutes(1),
-                executionTime: minutes(10),
-                totalMemoryUsed: kbytes(12.33),
-                totalHeapUsage: kbytes(5612.45),
-                maxHeapUsage: kbytes(124.01),
-                maxUncollectedHeap: kbytes(45.22),
-                maxCommittedHeap: kbytes(200))
+                configurationTime: minutes(1))
         baseline1.results << operation()
         baseline2.results << operation()
         baseline2.results << operation()
@@ -96,7 +91,8 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         history.scenarios[1].displayName == "1.5"
         history.scenarios[2].displayName == "master"
         history.scenarios.every { it.testProject == "test-project" }
-        history.scenarios.every { it.tasks == ["clean", "build"] }
+        history.scenarios.every { it.tasks == ["build"] }
+        history.scenarios.every { it.cleanTasks == ["clean"] }
         history.scenarios.every { it.args == ["--arg1"] }
         history.scenarios.every { it.gradleOpts == ["--opt-1", "--opt-2"] }
         history.scenarios.every { it.daemon }
@@ -105,13 +101,15 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         def results = history.results
         results.size() == 1
         results[0].testId == "test1"
-        results[0].displayName == "Results for test project 'test-project' with tasks clean, build"
+        results[0].displayName == "Results for test project 'test-project' with tasks build, cleaned with clean"
         results[0].testProject == "test-project"
-        results[0].tasks == ["clean", "build"]
+        results[0].tasks == ["build"]
+        results[0].cleanTasks == ["clean"]
         results[0].args == ["--arg1"]
         results[0].gradleOpts == ["--opt-1", "--opt-2"]
         results[0].daemon
         results[0].operatingSystem == "some-os"
+        results[0].host == "me"
         results[0].jvm == "java 6"
         results[0].startTime == now + 10000
         results[0].versionUnderTest == '1.7-rc-1'
@@ -119,13 +117,6 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         results[0].vcsCommits == ['1234567', 'abcdefg']
         results[0].current.size() == 1
         results[0].current[0].totalTime == minutes(12)
-        results[0].current[0].configurationTime == minutes(1)
-        results[0].current[0].executionTime == minutes(10)
-        results[0].current[0].totalMemoryUsed == kbytes(12.33)
-        results[0].current[0].totalHeapUsage == kbytes(5612.45)
-        results[0].current[0].maxHeapUsage == kbytes(124.01)
-        results[0].current[0].maxUncollectedHeap == kbytes(45.22)
-        results[0].current[0].maxCommittedHeap == kbytes(200)
         results[0].baselineVersions*.version == ["1.0", "1.5"]
         results[0].baseline("1.0").results.size() == 1
         results[0].baseline("1.5").results.size() == 3
@@ -279,7 +270,8 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         results.scenarios[5].displayName == "master"
         results.scenarios[6].displayName == "release"
         results.scenarios.every { it.testProject == "test-project" }
-        results.scenarios.every { it.tasks == ["clean", "build"] }
+        results.scenarios.every { it.tasks == ["build"] }
+        results.scenarios.every { it.cleanTasks == ["clean"] }
         results.scenarios.every { it.args == [] }
         results.scenarios.every { it.gradleOpts == [] }
         results.scenarios.every { !it.daemon }

@@ -26,7 +26,7 @@ package org.gradle.testing.performance.generator
  *   total_number_of_projects = x + (x * r) + (x * r^2) + (x * r^3) + ... + (x * r^(n-1))
  *   where r = layer ratio, x = size of first layer, n = number of layers
  * when numberOfProjects = 150, numberOfLayers = 5 and layerRatio = 2.0, this results in layer sizes of 4, 9, 19, 38, 80
- * The last layer size is adjusted so the the sum of layer sizes equals the number of projects.
+ * The last layer size is adjusted so the sum of layer sizes equals the number of projects.
  *
  * The dependencies are picked randomly with a random number generator that is seeded with the project number.
  * This way the function returns the same results each time it is evaluated.

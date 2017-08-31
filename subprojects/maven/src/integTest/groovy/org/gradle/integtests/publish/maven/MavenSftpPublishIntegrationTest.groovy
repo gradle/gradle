@@ -29,6 +29,13 @@ class MavenSftpPublishIntegrationTest extends AbstractMavenPublishIntegTest {
         new MavenSftpRepository(server, '/repo')
     }
 
+    def setup() {
+        // SFTP test fixture does not handle parallel resolution requests
+        executer.beforeExecute {
+            it.withArgument("--max-workers=1")
+        }
+    }
+
     @Ignore
     def "can publish to a SFTP repository"() {
         given:
@@ -41,9 +48,7 @@ class MavenSftpPublishIntegrationTest extends AbstractMavenPublishIntegTest {
             apply plugin: 'maven'
             version = '1.0'
             group = 'org.group.name'
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
             configurations {
                 deployerJars
             }

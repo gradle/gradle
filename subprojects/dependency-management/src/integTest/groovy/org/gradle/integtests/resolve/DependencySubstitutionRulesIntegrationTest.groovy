@@ -360,8 +360,6 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 configurations.conf.resolutionStrategy.dependencySubstitution {
                     substitute module("$selector") with project(":api")
                 }
-
-                task("buildConf", dependsOn: configurations.conf)
             }
 """
 
@@ -378,10 +376,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             }
         }
 
-        when:
-        run ":impl:buildConf"
-
-        then:
+        and:
         executedAndNotSkipped ":api:jar"
 
         where:
@@ -520,10 +515,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             }
         }
 
-        when:
-        run ":test:buildConf"
-
-        then:
+        and:
         executedAndNotSkipped ":api:jar"
     }
 
@@ -709,8 +701,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         fails ":impl:checkDeps"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':impl:checkDeps'.")
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':impl:conf'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':impl:checkDeps'.")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':impl:conf'.")
         failure.assertHasCause("project :doesnotexist not found.")
     }
 
@@ -1054,8 +1046,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         fails "checkDeps"
 
         then:
-        failure.assertResolutionFailure(":conf")
-            .assertHasCause("Could not find org.utils:api:1.123.15")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':conf'.")
+        failure.assertHasCause("Could not find org.utils:api:1.123.15")
     }
 
     void "rules triggered exactly once per the same dependency"()
@@ -1086,7 +1078,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 conf 'org.utils:impl:1.3', 'org.stuff:foo:2.0', 'org.stuff:bar:2.0'
             }
 
-            List requested = []
+            List requested = [].asSynchronized()
 
             configurations.conf.resolutionStrategy {
                 dependencySubstitution {
@@ -1099,7 +1091,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             task check {
                 doLast {
                     configurations.conf.resolve()
-                    assert requested == ['impl:1.3', 'foo:2.0', 'bar:2.0', 'api:1.3', 'api:1.5']
+                    requested = requested.sort()
+                    assert requested == [ 'api:1.3', 'api:1.5', 'bar:2.0', 'foo:2.0', 'impl:1.3']
                 }
             }
 """
@@ -1139,10 +1132,11 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         fails "checkDeps"
 
         then:
-        failure.assertResolutionFailure(":conf")
-                .assertHasCause("Could not resolve org.utils:impl:1.3.")
-                .assertHasCause("Unhappy :(")
-                .assertFailedDependencyRequiredBy("project :")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':conf'.")
+        failure.assertHasCause("""Could not resolve org.utils:impl:1.3.
+Required by:
+    project :""")
+        failure.assertHasCause("Unhappy :(")
     }
 
     void "reasonable error message when attempting to substitute with an unversioned module selector"() {
@@ -1346,7 +1340,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         fails "checkDeps"
 
         then:
-        failure.assertResolutionFailure(":conf").assertHasCause("Invalid format: 'foobar'")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':conf'.")
+        failure.assertHasCause("Invalid format: 'foobar'")
     }
 
     def "substituted module version participates in conflict resolution"()

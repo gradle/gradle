@@ -16,10 +16,11 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -52,6 +53,11 @@ public interface ComponentResolveMetadata {
     ModuleSource getSource();
 
     /**
+     * Returns the schema used by this component.
+     */
+    AttributesSchemaInternal getAttributesSchema();
+
+    /**
      * Creates a copy of this meta-data with the given source.
      */
     ComponentResolveMetadata withSource(ModuleSource source);
@@ -62,6 +68,8 @@ public interface ComponentResolveMetadata {
      * Returns the names of all of the configurations for this component.
      */
     Set<String> getConfigurationNames();
+
+    List<? extends ConfigurationMetadata> getConsumableConfigurationsHavingAttributes();
 
     /**
      * Locates the configuration with the given name, if any.

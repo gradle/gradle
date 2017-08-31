@@ -23,11 +23,16 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ResourceExceptions;
-import org.gradle.internal.resource.transport.ExternalResourceRepository;
+import org.gradle.internal.resource.ExternalResourceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -80,7 +85,7 @@ public class ResourceVersionLister implements VersionLister {
                         return Collections.emptyList();
                     }
                     result.attempted(parent);
-                    List<String> all = repository.list(parent.getUri());
+                    List<String> all = repository.resource(parent).list();
                     if (all == null) {
                         return Collections.emptyList();
                     }
@@ -138,7 +143,7 @@ public class ResourceVersionLister implements VersionLister {
                 }
                 LOGGER.debug("using {} to list all in {}", repository, parent);
                 result.attempted(parent.toString());
-                List<String> paths = repository.list(parent.getUri());
+                List<String> paths = repository.resource(parent).list();
                 if (paths == null) {
                     return Collections.emptyList();
                 }

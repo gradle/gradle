@@ -3,6 +3,5 @@
 :intro
 Hello, from Gradle
 
-BUILD SUCCESSFUL
-
-Total time: 1 secs
+BUILD SUCCESSFUL in 0s
+2 actionable tasks: 2 executed

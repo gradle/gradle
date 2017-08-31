@@ -15,23 +15,23 @@
  */
 package org.gradle.internal.classloader;
 
-import com.google.common.base.Charsets;
-import com.google.common.hash.HashCode;
-import com.google.common.hash.Hasher;
-import com.google.common.hash.Hashing;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
 public class DefaultHashingClassLoaderFactory extends DefaultClassLoaderFactory implements HashingClassLoaderFactory {
-    private final ClassPathSnapshotter snapshotter;
-    private final Map<ClassLoader, HashCode> hashCodes = new WeakHashMap<ClassLoader, HashCode>();
+    private final ClasspathHasher classpathHasher;
+    private final Map<ClassLoader, HashCode> hashCodes = Collections.synchronizedMap(new WeakHashMap<ClassLoader, HashCode>());
 
-    public DefaultHashingClassLoaderFactory(ClassPathSnapshotter snapshotter) {
-        this.snapshotter = snapshotter;
+    public DefaultHashingClassLoaderFactory(ClasspathHasher classpathHasher) {
+        this.classpathHasher = classpathHasher;
     }
 
     @Override
@@ -49,9 +49,9 @@ public class DefaultHashingClassLoaderFactory extends DefaultClassLoaderFactory 
     }
 
     @Override
-    public ClassLoader createChildClassLoader(ClassLoader parent, ClassPath classPath, HashCode overrideHashCode) {
-        HashCode hashCode = overrideHashCode != null
-            ? overrideHashCode
+    public ClassLoader createChildClassLoader(ClassLoader parent, ClassPath classPath, HashCode implementationHash) {
+        HashCode hashCode = implementationHash != null
+            ? implementationHash
             : calculateClassLoaderHash(classPath);
         ClassLoader classLoader = super.doCreateClassLoader(parent, classPath);
         hashCodes.put(classLoader, hashCode);
@@ -60,11 +60,15 @@ public class DefaultHashingClassLoaderFactory extends DefaultClassLoaderFactory 
 
     @Override
     public HashCode getHash(ClassLoader classLoader) {
+        if (classLoader instanceof ImplementationHashAware) {
+            ImplementationHashAware loader = (ImplementationHashAware) classLoader;
+            return loader.getImplementationHash();
+        }
         return hashCodes.get(classLoader);
     }
 
     private HashCode calculateClassLoaderHash(ClassPath classPath) {
-        return snapshotter.snapshot(classPath).getStrongHash();
+        return classpathHasher.hash(classPath);
     }
 
     private static HashCode calculateFilterSpecHash(FilteringClassLoader.Spec spec) {
@@ -89,7 +93,7 @@ public class DefaultHashingClassLoaderFactory extends DefaultClassLoaderFactory 
         Arrays.sort(sortedItems);
         for (String item : sortedItems) {
             hasher.putInt(0);
-            hasher.putString(item, Charsets.UTF_8);
+            hasher.putString(item);
         }
     }
 }

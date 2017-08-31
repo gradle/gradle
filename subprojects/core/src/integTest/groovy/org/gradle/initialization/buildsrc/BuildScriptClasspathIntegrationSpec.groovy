@@ -66,7 +66,6 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
         builder.buildJar(jarFile, deleteIfExists)
 
         then:
-        Thread.sleep(sleepBefore)
         succeeds("hello")
         result.assertOutputContains("hello world")
 
@@ -81,14 +80,12 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
         builder.buildJar(jarFile, deleteIfExists)
 
         then:
-        Thread.sleep(sleepBefore)
         succeeds("hello")
         result.assertOutputContains("hello again")
 
         where:
         deleteIfExists << [false, true] * 3
         loopNumber << (1..6).toList()
-        sleepBefore = 1000L // fails on Linux when set to 1L
     }
 
     def "build script classloader copies only non-cached jar files"() {
@@ -133,13 +130,9 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
         builder.buildJar(jarFile)
 
         then:
-        Thread.sleep(sleepBefore)
         succeeds("showBuildscript")
         inJarCache("test-1.3-BUILD-SNAPSHOT.jar")
         notInJarCache("commons-io-1.4.jar")
-
-        where:
-        sleepBefore = 1000L // fails on Linux when set to 1L
     }
 
     def "url connection caching is not disabled by default"() {
@@ -176,7 +169,8 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
         File jarFile = file("repo/test-1.3-BUILD-SNAPSHOT.jar")
 
         when:
-        builder.sourceFile("org/gradle/test/BuildClass.java").createFile().text = '''
+        def originalSourceFile = builder.sourceFile("org/gradle/test/BuildClass.java")
+        originalSourceFile.text = '''
             package org.gradle.test;
             import java.util.Properties;
             import java.io.IOException;
@@ -194,24 +188,19 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
         builder.buildJar(jarFile)
 
         then:
-        Thread.sleep(sleepBefore)
         succeeds("hello")
         result.assertOutputContains("hello world")
 
         when:
         builder = artifactBuilder()
-        builder.sourceFile("org/gradle/test/BuildClass.java").text = builder.sourceFile("org/gradle/test/BuildClass.java").text.replace("test.properties", "test2.properties")
+        builder.sourceFile("org/gradle/test/BuildClass.java").text = originalSourceFile.text.replace("test.properties", "test2.properties")
         builder.resourceFile("org/gradle/test/test2.properties").createFile().text = "text=hello again"
         builder.resourceFile("org/gradle/test/test.properties").delete()
         builder.buildJar(jarFile)
 
         then:
-        Thread.sleep(sleepBefore)
         succeeds("hello")
         result.assertOutputContains("hello again")
-
-        where:
-        sleepBefore = 1000L // fails on Linux when set to 1L
     }
 
     void notInJarCache(String filename) {
@@ -220,6 +209,6 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
 
     void inJarCache(String filename, boolean shouldBeFound=true) {
         String fullpath = result.output.readLines().find { it.matches(">>>file:.*${filename}") }
-        assert fullpath.contains("/caches/jars-2/") == shouldBeFound
+        assert fullpath.contains("/caches/jars-3/") == shouldBeFound
     }
 }

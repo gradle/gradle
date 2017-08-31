@@ -57,7 +57,7 @@ class CompositeBuildCommandLineArgsIntegrationTest extends AbstractCompositeBuil
         execute(buildA, ":checkDeps", ["-PpassedProperty=foo"])
 
         then:
-        executed ":buildB:jar"
+        assertTaskExecuted(":buildB", ":jar")
     }
 
     def "passes system property arguments to included build"() {
@@ -77,7 +77,7 @@ class CompositeBuildCommandLineArgsIntegrationTest extends AbstractCompositeBuil
         execute(buildA, ":checkDeps", ["-DpassedProperty=foo"])
 
         then:
-        executed ":buildB:jar"
+        assertTaskExecuted(":buildB", ":jar")
     }
 
     def "can include same build multiple times using --include-build and settings.gradle"() {
@@ -96,7 +96,7 @@ includeBuild '${buildB.toURI()}'
         execute(buildA, ":checkDeps", args)
 
         then:
-        executed ":buildB:jar"
+        assertTaskExecuted(":buildB", ":jar")
     }
 
     def "does not pass build-file argument when configuring included build"() {
@@ -113,7 +113,7 @@ rootProject.buildFileName='build-copy.gradle'
         execute(buildA, ":checkDeps", ["--build-file", "build-copy.gradle"])
 
         then:
-        executed ":buildB:jar"
+        assertTaskExecuted(":buildB", ":jar")
     }
 
     def "does not pass settings-file argument when configuring included build"() {
@@ -129,7 +129,7 @@ includeBuild '../buildB'
         execute(buildA, ":checkDeps", ["--settings-file", "settings-copy.gradle"])
 
         then:
-        executed ":buildB:jar"
+        assertTaskExecuted(":buildB", ":jar")
     }
 
     def "does not exclude tasks when building artifact for included build"() {
@@ -140,7 +140,27 @@ includeBuild '../buildB'
         execute(buildA, ":checkDeps", ["--exclude-task", "jar"])
 
         then:
-        executed ":buildB:jar"
+        assertTaskExecuted(":buildB", ":jar")
+    }
+
+    // Included build tasks are incorrect executed with `--dry-run`. See gradle/composite-builds#113
+    def "does not execute task actions when dry run specified on composite build"() {
+        given:
+        dependency 'org.test:buildB:1.0'
+
+        when:
+        execute(buildA, ":build", ["--dry-run"])
+
+        then:
+        skipped(
+            ":compileJava", ":processResources", ":classes", ":jar", ":assemble",
+            ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":check", ":build")
+    }
+
+    void skipped(String... taskNames) {
+        for (String taskName : taskNames) {
+            result.assertOutputContains(taskName + " SKIPPED\n")
+        }
     }
 
 }

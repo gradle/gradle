@@ -15,450 +15,387 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
-import com.google.common.hash.HashCode;
+import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import org.gradle.api.Task;
+import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.ContextAwareTaskAction;
+import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.internal.AsyncCacheAccessContext;
-import org.gradle.internal.Cast;
-import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.file.FileType;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
+import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
+import org.gradle.normalization.internal.InputNormalizationStrategy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.SortedSet;
+
+import static org.gradle.api.internal.changedetection.state.InputPathNormalizationStrategy.ABSOLUTE;
 
 public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
-    private static final int MAX_HISTORY_ENTRIES = 3;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CacheBackedTaskHistoryRepository.class);
 
     private final FileSnapshotRepository snapshotRepository;
-    private final PersistentIndexedCache<String, ImmutableList<TaskExecutionSnapshot>> taskHistoryCache;
-    private final TaskExecutionListSerializer serializer;
+    private final PersistentIndexedCache<String, TaskExecutionSnapshot> taskHistoryCache;
     private final StringInterner stringInterner;
+    private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
+    private final ValueSnapshotter valueSnapshotter;
+    private final FileCollectionSnapshotterRegistry snapshotterRegistry;
+    private final FileCollectionFactory fileCollectionFactory;
+    private final BuildInvocationScopeId buildInvocationScopeId;
 
-    public CacheBackedTaskHistoryRepository(TaskHistoryStore cacheAccess, FileSnapshotRepository snapshotRepository, StringInterner stringInterner) {
+    public CacheBackedTaskHistoryRepository(
+        TaskHistoryStore cacheAccess,
+        FileSnapshotRepository snapshotRepository,
+        StringInterner stringInterner,
+        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+        ValueSnapshotter valueSnapshotter,
+        FileCollectionSnapshotterRegistry snapshotterRegistry,
+        FileCollectionFactory fileCollectionFactory,
+        BuildInvocationScopeId buildInvocationScopeId
+    ) {
         this.snapshotRepository = snapshotRepository;
         this.stringInterner = stringInterner;
-        this.serializer = new TaskExecutionListSerializer(stringInterner);
-        taskHistoryCache = cacheAccess.createCache("taskArtifacts", String.class, serializer);
+        this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
+        this.valueSnapshotter = valueSnapshotter;
+        this.snapshotterRegistry = snapshotterRegistry;
+        this.fileCollectionFactory = fileCollectionFactory;
+        this.buildInvocationScopeId = buildInvocationScopeId;
+        TaskExecutionSnapshotSerializer serializer = new TaskExecutionSnapshotSerializer(stringInterner);
+        this.taskHistoryCache = cacheAccess.createCache("taskHistory", String.class, serializer, 10000, false);
     }
 
+    @Override
     public History getHistory(final TaskInternal task) {
-        final TaskExecutionList previousExecutions = loadPreviousExecutions(task);
-        final LazyTaskExecution currentExecution = new LazyTaskExecution();
-        currentExecution.snapshotRepository = snapshotRepository;
-        currentExecution.setCacheableOutputProperties(getCacheableOutputProperties(task));
-        currentExecution.setDeclaredOutputFilePaths(getDeclaredOutputFilePaths(task));
-        final LazyTaskExecution previousExecution = findBestMatchingPreviousExecution(currentExecution, previousExecutions.executions);
-        if (previousExecution != null) {
-            previousExecution.snapshotRepository = snapshotRepository;
-        }
+        final InputNormalizationStrategy normalizationStrategy = ((InputNormalizationHandlerInternal) task.getProject().getNormalization()).buildFinalStrategy();
 
         return new History() {
-            public TaskExecution getPreviousExecution() {
+            private boolean previousExecutionLoadAttempted;
+            private LazyTaskExecution previousExecution;
+            private LazyTaskExecution currentExecution;
+
+            @Override
+            public LazyTaskExecution getPreviousExecution() {
+                if (!previousExecutionLoadAttempted) {
+                    previousExecutionLoadAttempted = true;
+                    previousExecution = loadPreviousExecution(task);
+                }
                 return previousExecution;
             }
 
-            public TaskExecution getCurrentExecution() {
+            @Override
+            public LazyTaskExecution getCurrentExecution() {
+                if (currentExecution == null) {
+                    currentExecution = createExecution(task, getPreviousExecution(), normalizationStrategy);
+                }
                 return currentExecution;
             }
 
-            public void update() {
-                previousExecutions.executions.addFirst(currentExecution);
-                if (currentExecution.inputFilesSnapshotIds == null && currentExecution.inputFilesSnapshot != null) {
-                    ImmutableSortedMap.Builder<String, Long> builder = ImmutableSortedMap.naturalOrder();
-                    for (Map.Entry<String, FileCollectionSnapshot> entry : currentExecution.inputFilesSnapshot.entrySet()) {
-                        builder.put(entry.getKey(), snapshotRepository.add(entry.getValue()));
-                    }
-                    currentExecution.inputFilesSnapshotIds = builder.build();
+            @Override
+            public void updateCurrentExecution(IncrementalTaskInputsInternal taskInputs) {
+                updateExecution(getPreviousExecution(), getCurrentExecution(), task, taskInputs, normalizationStrategy);
+            }
+
+            @Override
+            public void updateCurrentExecutionWithOutputs(IncrementalTaskInputsInternal taskInputs, ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot) {
+                updateExecution(getCurrentExecution(), task, taskInputs, newOutputSnapshot, normalizationStrategy);
+            }
+
+            @Override
+            public void persist() {
+                LazyTaskExecution currentExecution = getCurrentExecution();
+                LazyTaskExecution previousExecution = getPreviousExecution();
+
+                currentExecution.storeSnapshots();
+                if (previousExecution != null) {
+                    previousExecution.removeUnnecessarySnapshots();
                 }
-                if (currentExecution.outputFilesSnapshotIds == null && currentExecution.outputFilesSnapshot != null) {
-                    ImmutableSortedMap.Builder<String, Long> builder = ImmutableSortedMap.naturalOrder();
-                    for (Map.Entry<String, FileCollectionSnapshot> entry : currentExecution.outputFilesSnapshot.entrySet()) {
-                        builder.put(entry.getKey(), snapshotRepository.add(entry.getValue()));
-                    }
-                    currentExecution.outputFilesSnapshotIds = builder.build();
-                }
-                if (currentExecution.discoveredFilesSnapshotId == null && currentExecution.discoveredFilesSnapshot != null) {
-                    currentExecution.discoveredFilesSnapshotId = snapshotRepository.add(currentExecution.discoveredFilesSnapshot);
-                }
-                while (previousExecutions.executions.size() > MAX_HISTORY_ENTRIES) {
-                    LazyTaskExecution execution = previousExecutions.executions.removeLast();
-                    if (execution.inputFilesSnapshotIds != null) {
-                        for (Long id : execution.inputFilesSnapshotIds.values()) {
-                            snapshotRepository.remove(id);
-                        }
-                    }
-                    if (execution.outputFilesSnapshotIds != null) {
-                        for (Long id : execution.outputFilesSnapshotIds.values()) {
-                            snapshotRepository.remove(id);
-                        }
-                    }
-                    if (execution.discoveredFilesSnapshotId != null) {
-                        snapshotRepository.remove(execution.discoveredFilesSnapshotId);
-                    }
-                }
-                taskHistoryCache.put(task.getPath(), previousExecutions.snapshot());
+                taskHistoryCache.put(task.getPath(), currentExecution.snapshot());
             }
         };
     }
 
-    private TaskExecutionList loadPreviousExecutions(final TaskInternal task) {
-        boolean contextCreated = AsyncCacheAccessContext.createWhenMissing();
-        ClassLoader projectClassLoader = Cast.cast(ProjectInternal.class, task.getProject()).getClassLoaderScope().getLocalClassLoader();
-        try {
-            serializer.setClassLoader(projectClassLoader);
-            List<TaskExecutionSnapshot> history = taskHistoryCache.get(task.getPath());
-            TaskExecutionList result = new TaskExecutionList();
-            if (history != null) {
-                for (TaskExecutionSnapshot taskExecutionSnapshot : history) {
-                    result.executions.add(new LazyTaskExecution(taskExecutionSnapshot));
+    private LazyTaskExecution createExecution(TaskInternal task, TaskExecution previousExecution, InputNormalizationStrategy normalizationStrategy) {
+        Class<? extends TaskInternal> taskClass = task.getClass();
+        List<ContextAwareTaskAction> taskActions = task.getTaskActions();
+        ImplementationSnapshot taskImplementation = new ImplementationSnapshot(taskClass.getName(), classLoaderHierarchyHasher.getClassLoaderHash(taskClass.getClassLoader()));
+        ImmutableList<ImplementationSnapshot> taskActionImplementations = collectActionImplementations(taskActions, classLoaderHierarchyHasher);
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Implementation for {}: {}", task, taskImplementation);
+            LOGGER.debug("Action implementations for {}: {}", task, taskActionImplementations);
+        }
+
+        ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = previousExecution == null ? ImmutableSortedMap.<String, ValueSnapshot>of() : previousExecution.getInputProperties();
+        ImmutableSortedMap<String, ValueSnapshot> inputProperties = snapshotTaskInputProperties(task, previousInputProperties, valueSnapshotter);
+
+        ImmutableSortedSet<String> outputPropertyNames = getOutputPropertyNamesForCacheKey(task);
+        ImmutableSet<String> declaredOutputFilePaths = getDeclaredOutputFilePaths(task, stringInterner);
+
+        ImmutableSortedMap<String, FileCollectionSnapshot> inputFiles = snapshotTaskFiles(task, "Input",  normalizationStrategy, task.getInputs().getFileProperties(), snapshotterRegistry);
+
+        ImmutableSortedMap<String, FileCollectionSnapshot> outputFiles = snapshotTaskFiles(task, "Output",  normalizationStrategy, task.getOutputs().getFileProperties(), snapshotterRegistry);
+
+        FileCollectionSnapshot previousDiscoveredInputs = previousExecution == null ? null : previousExecution.getDiscoveredInputFilesSnapshot();
+        FileCollectionSnapshot discoveredInputs;
+        if (previousDiscoveredInputs != null) {
+            discoveredInputs = snapshotDiscoveredInputs(task, normalizationStrategy, previousDiscoveredInputs.getElements(), snapshotterRegistry, fileCollectionFactory);
+        } else {
+            discoveredInputs = FileCollectionSnapshot.EMPTY;
+        }
+
+        OverlappingOutputs overlappingOutputs = detectOverlappingOutputs(outputFiles, previousExecution);
+
+        return new LazyTaskExecution(
+            snapshotRepository,
+            buildInvocationScopeId.getId(),
+            taskImplementation,
+            taskActionImplementations,
+            inputProperties,
+            outputPropertyNames,
+            declaredOutputFilePaths,
+            inputFiles,
+            discoveredInputs,
+            outputFiles,
+            overlappingOutputs
+        );
+    }
+
+    private void updateExecution(final LazyTaskExecution previousExecution, LazyTaskExecution currentExecution, TaskInternal task, IncrementalTaskInputsInternal taskInputs, InputNormalizationStrategy normalizationStrategy) {
+        final ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesAfter = snapshotTaskFiles(task, "Output", normalizationStrategy, task.getOutputs().getFileProperties(), snapshotterRegistry);
+
+        ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot;
+        if (currentExecution.getDetectedOverlappingOutputs() == null) {
+            newOutputSnapshot = outputFilesAfter;
+        } else {
+            newOutputSnapshot = ImmutableSortedMap.copyOfSorted(Maps.transformEntries(currentExecution.getOutputFilesSnapshot(), new Maps.EntryTransformer<String, FileCollectionSnapshot, FileCollectionSnapshot>() {
+                @Override
+                public FileCollectionSnapshot transformEntry(String propertyName, FileCollectionSnapshot beforeExecution) {
+                    FileCollectionSnapshot afterExecution = outputFilesAfter.get(propertyName);
+                    FileCollectionSnapshot afterPreviousExecution = getSnapshotAfterPreviousExecution(previousExecution, propertyName);
+                    return filterOutputSnapshot(afterPreviousExecution, beforeExecution, afterExecution);
                 }
-            }
-            return result;
-        } finally {
-            serializer.setClassLoader(null);
-            if (contextCreated) {
-                AsyncCacheAccessContext.remove();
-            }
+            }));
+        }
+        updateExecution(currentExecution, task, taskInputs, newOutputSnapshot, normalizationStrategy);
+    }
+
+    private void updateExecution(LazyTaskExecution currentExecution, TaskInternal task, IncrementalTaskInputsInternal taskInputs, ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot, InputNormalizationStrategy normalizationStrategy) {
+        currentExecution.setSuccessful(task.getState().getFailure() == null);
+
+        currentExecution.setOutputFilesSnapshot(newOutputSnapshot);
+
+        FileCollectionSnapshot discoveredFilesSnapshot;
+        if (taskInputs != null) {
+            discoveredFilesSnapshot = snapshotDiscoveredInputs(task, normalizationStrategy, taskInputs.getDiscoveredInputs(), snapshotterRegistry, fileCollectionFactory);
+        } else {
+            discoveredFilesSnapshot = FileCollectionSnapshot.EMPTY;
+        }
+        currentExecution.setDiscoveredInputFilesSnapshot(discoveredFilesSnapshot);
+    }
+
+    private static FileCollectionSnapshot snapshotDiscoveredInputs(Task task, InputNormalizationStrategy normalizationStrategy, Collection<File> discoveredInputs, FileCollectionSnapshotterRegistry snapshotterRegistry, FileCollectionFactory fileCollectionFactory) {
+        GenericFileCollectionSnapshotter snapshotter = snapshotterRegistry.getSnapshotter(GenericFileCollectionSnapshotter.class);
+        if (discoveredInputs.isEmpty()) {
+            LOGGER.debug("No discovered inputs for {}", task);
+            return FileCollectionSnapshot.EMPTY;
+        }
+        LOGGER.debug("Snapshotting discovered inputs for {}", task);
+        try {
+            return snapshotter.snapshot(fileCollectionFactory.fixed("Discovered input files", discoveredInputs), ABSOLUTE, normalizationStrategy);
+        } catch (Exception e) {
+            throw new UncheckedIOException(String.format("Failed to capture snapshot of discovered input files for %s during up-to-date check.", task), e);
         }
     }
 
-    private Iterable<String> getCacheableOutputProperties(TaskInternal task) {
-        Iterable<TaskOutputFilePropertySpec> cacheable = Iterables.filter(task.getOutputs().getFileProperties(), new Predicate<TaskOutputFilePropertySpec>() {
-            @Override
-            public boolean apply(TaskOutputFilePropertySpec propertySpec) {
-                if (!(propertySpec instanceof CacheableTaskOutputFilePropertySpec)) {
-                    return false;
+    /**
+     * Returns a new snapshot that filters out entries that should not be considered outputs of the task.
+     */
+    private static FileCollectionSnapshot filterOutputSnapshot(
+        FileCollectionSnapshot afterPreviousExecution,
+        FileCollectionSnapshot beforeExecution,
+        FileCollectionSnapshot afterExecution
+    ) {
+        FileCollectionSnapshot filesSnapshot;
+        Map<String, NormalizedFileSnapshot> afterSnapshots = afterExecution.getSnapshots();
+        if (!beforeExecution.getSnapshots().isEmpty() && !afterSnapshots.isEmpty()) {
+            Map<String, NormalizedFileSnapshot> beforeSnapshots = beforeExecution.getSnapshots();
+            Map<String, NormalizedFileSnapshot> afterPreviousSnapshots = afterPreviousExecution != null ? afterPreviousExecution.getSnapshots() : new HashMap<String, NormalizedFileSnapshot>();
+            int newEntryCount = 0;
+            ImmutableMap.Builder<String, NormalizedFileSnapshot> outputEntries = ImmutableMap.builder();
+
+            for (Map.Entry<String, NormalizedFileSnapshot> entry : afterSnapshots.entrySet()) {
+                final String path = entry.getKey();
+                NormalizedFileSnapshot fileSnapshot = entry.getValue();
+                if (isOutputEntry(path, fileSnapshot, beforeSnapshots, afterPreviousSnapshots)) {
+                    outputEntries.put(entry.getKey(), fileSnapshot);
+                    newEntryCount++;
                 }
-                if (((CacheableTaskOutputFilePropertySpec) propertySpec).getOutputFile() == null) {
-                    return false;
-                }
-                return true;
             }
-        });
-        return Iterables.transform(cacheable, new Function<TaskOutputFilePropertySpec, String>() {
-            @Override
-            public String apply(TaskOutputFilePropertySpec propertySpec) {
-                return propertySpec.getPropertyName();
+            // Are all files snapshot after execution accounted for as new entries?
+            if (newEntryCount == afterSnapshots.size()) {
+                filesSnapshot = afterExecution;
+            } else {
+                filesSnapshot = new DefaultFileCollectionSnapshot(outputEntries.build(), TaskFilePropertyCompareStrategy.UNORDERED, true);
             }
-        });
+        } else {
+            filesSnapshot = afterExecution;
+        }
+        return filesSnapshot;
     }
 
-    private ImmutableSet<String> getDeclaredOutputFilePaths(TaskInternal task) {
-        ImmutableSet.Builder<String> declaredOutputFilePaths = ImmutableSet.builder();
+    /**
+     * Decide whether an entry should be considered to be part of the output. Entries that are considered outputs are:
+     * <ul>
+     *     <li>an entry that did not exist before the execution, but exists after the execution</li>
+     *     <li>an entry that did exist before the execution, and has been changed during the execution</li>
+     *     <li>an entry that did wasn't changed during the execution, but was already considered an output during the previous execution</li>
+     * </ul>
+     */
+    private static boolean isOutputEntry(String path, NormalizedFileSnapshot fileSnapshot, Map<String, NormalizedFileSnapshot> beforeSnapshots, Map<String, NormalizedFileSnapshot> afterPreviousSnapshots) {
+        if (fileSnapshot.getSnapshot().getType() == FileType.Missing) {
+            return false;
+        }
+        NormalizedFileSnapshot beforeSnapshot = beforeSnapshots.get(path);
+        // Was it created during execution?
+        if (beforeSnapshot == null) {
+            return true;
+        }
+        // Was it updated during execution?
+        if (!fileSnapshot.getSnapshot().isContentAndMetadataUpToDate(beforeSnapshot.getSnapshot())) {
+            return true;
+        }
+        // Did we already consider it as an output after the previous execution?
+        return afterPreviousSnapshots.containsKey(path);
+    }
+
+    private static ImmutableList<ImplementationSnapshot> collectActionImplementations(Collection<ContextAwareTaskAction> taskActions, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+        if (taskActions.isEmpty()) {
+            return ImmutableList.of();
+        }
+        ImmutableList.Builder<ImplementationSnapshot> actionImplementations = ImmutableList.builder();
+        for (ContextAwareTaskAction taskAction : taskActions) {
+            String typeName = taskAction.getActionClassName();
+            HashCode classLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(taskAction.getClassLoader());
+            actionImplementations.add(new ImplementationSnapshot(typeName, classLoaderHash));
+        }
+        return actionImplementations.build();
+    }
+
+    private static ImmutableSortedMap<String, ValueSnapshot> snapshotTaskInputProperties(TaskInternal task, ImmutableSortedMap<String, ValueSnapshot> previousInputProperties, ValueSnapshotter valueSnapshotter) {
+        ImmutableSortedMap.Builder<String, ValueSnapshot> builder = ImmutableSortedMap.naturalOrder();
+        for (Map.Entry<String, Object> entry : task.getInputs().getProperties().entrySet()) {
+            String propertyName = entry.getKey();
+            Object value = entry.getValue();
+            try {
+                ValueSnapshot previousSnapshot = previousInputProperties.get(propertyName);
+                if (previousSnapshot == null) {
+                    builder.put(propertyName, valueSnapshotter.snapshot(value));
+                } else {
+                    builder.put(propertyName, valueSnapshotter.snapshot(value, previousSnapshot));
+                }
+            } catch (Exception e) {
+                throw new UncheckedIOException(String.format("Unable to store input properties for %s. Property '%s' with value '%s' cannot be serialized.", task, propertyName, value), e);
+            }
+        }
+
+        return builder.build();
+    }
+
+    @VisibleForTesting
+    static ImmutableSortedMap<String, FileCollectionSnapshot> snapshotTaskFiles(TaskInternal task, String title, InputNormalizationStrategy normalizationStrategy, SortedSet<? extends TaskFilePropertySpec> fileProperties, FileCollectionSnapshotterRegistry snapshotterRegistry) {
+        ImmutableSortedMap.Builder<String, FileCollectionSnapshot> builder = ImmutableSortedMap.naturalOrder();
+        for (TaskFilePropertySpec propertySpec : fileProperties) {
+            FileCollectionSnapshot result;
+            try {
+                FileCollectionSnapshotter snapshotter = snapshotterRegistry.getSnapshotter(propertySpec.getSnapshotter());
+                LOGGER.debug("Snapshotting property {} for {}", propertySpec, task);
+                result = snapshotter.snapshot(propertySpec.getPropertyFiles(), propertySpec.getPathNormalizationStrategy(), normalizationStrategy);
+            } catch (Exception e) {
+                throw new UncheckedIOException(String.format("Failed to capture snapshot of %s files for %s property '%s' during up-to-date check.", title.toLowerCase(), task, propertySpec.getPropertyName()), e);
+            }
+            builder.put(propertySpec.getPropertyName(), result);
+        }
+        return builder.build();
+    }
+
+    private static OverlappingOutputs detectOverlappingOutputs(ImmutableSortedMap<String, FileCollectionSnapshot> taskOutputs, TaskExecution previousExecution) {
+        for (Map.Entry<String, FileCollectionSnapshot> entry : taskOutputs.entrySet()) {
+            String propertyName = entry.getKey();
+            FileCollectionSnapshot beforeExecution = entry.getValue();
+            FileCollectionSnapshot afterPreviousExecution = getSnapshotAfterPreviousExecution(previousExecution, propertyName);
+            OverlappingOutputs overlappingOutputs = OverlappingOutputs.detect(propertyName, afterPreviousExecution, beforeExecution);
+            if (overlappingOutputs != null) {
+                return overlappingOutputs;
+            }
+        }
+        return null;
+    }
+
+    private static FileCollectionSnapshot getSnapshotAfterPreviousExecution(TaskExecution previousExecution, String propertyName) {
+        if (previousExecution != null) {
+            Map<String, FileCollectionSnapshot> previousSnapshots = previousExecution.getOutputFilesSnapshot();
+            if (previousSnapshots != null) {
+                FileCollectionSnapshot afterPreviousExecution = previousSnapshots.get(propertyName);
+                if (afterPreviousExecution != null) {
+                    return afterPreviousExecution;
+                }
+            }
+        }
+        return FileCollectionSnapshot.EMPTY;
+    }
+
+    private LazyTaskExecution loadPreviousExecution(TaskInternal task) {
+        TaskExecutionSnapshot taskExecutionSnapshot = taskHistoryCache.get(task.getPath());
+        if (taskExecutionSnapshot != null) {
+            return new LazyTaskExecution(snapshotRepository, taskExecutionSnapshot);
+        } else {
+            return null;
+        }
+    }
+
+    private static ImmutableSortedSet<String> getOutputPropertyNamesForCacheKey(TaskInternal task) {
+        ImmutableSortedSet<TaskOutputFilePropertySpec> fileProperties = task.getOutputs().getFileProperties();
+        List<String> outputPropertyNames = Lists.newArrayListWithCapacity(fileProperties.size());
+        for (TaskOutputFilePropertySpec propertySpec : fileProperties) {
+            if (propertySpec instanceof CacheableTaskOutputFilePropertySpec) {
+                CacheableTaskOutputFilePropertySpec cacheablePropertySpec = (CacheableTaskOutputFilePropertySpec) propertySpec;
+                if (cacheablePropertySpec.getOutputFile() != null) {
+                    outputPropertyNames.add(propertySpec.getPropertyName());
+                }
+            }
+        }
+        return ImmutableSortedSet.copyOf(outputPropertyNames);
+    }
+
+    private static ImmutableSet<String> getDeclaredOutputFilePaths(TaskInternal task, StringInterner stringInterner) {
+        ImmutableSet.Builder<String> declaredOutputFilePaths = ImmutableSortedSet.naturalOrder();
         for (File file : task.getOutputs().getFiles()) {
             declaredOutputFilePaths.add(stringInterner.intern(file.getAbsolutePath()));
         }
         return declaredOutputFilePaths.build();
     }
 
-    private LazyTaskExecution findBestMatchingPreviousExecution(TaskExecution currentExecution, Collection<LazyTaskExecution> previousExecutions) {
-        Set<String> declaredOutputFilePaths = currentExecution.getDeclaredOutputFilePaths();
-        LazyTaskExecution bestMatch = null;
-        int bestMatchOverlap = 0;
-        for (LazyTaskExecution previousExecution : previousExecutions) {
-            Set<String> previousDeclaredOutputFilePaths = previousExecution.getDeclaredOutputFilePaths();
-            if (declaredOutputFilePaths.isEmpty() && previousDeclaredOutputFilePaths.isEmpty()) {
-                bestMatch = previousExecution;
-                break;
-            }
-
-            Set<String> intersection = Sets.intersection(declaredOutputFilePaths, previousDeclaredOutputFilePaths);
-            int overlap = intersection.size();
-            if (overlap > bestMatchOverlap) {
-                bestMatch = previousExecution;
-                bestMatchOverlap = overlap;
-            }
-            if (bestMatchOverlap == declaredOutputFilePaths.size()) {
-                break;
-            }
-        }
-        return bestMatch;
-    }
-
-    private static class TaskExecutionListSerializer implements Serializer<ImmutableList<TaskExecutionSnapshot>> {
-        private static final String CONTEXT_KEY_FOR_CLASSLOADER = AsyncCacheAccessContext.createKey(TaskExecutionListSerializer.class, "classLoader");
-        private final StringInterner stringInterner;
-
-        TaskExecutionListSerializer(StringInterner stringInterner) {
-            this.stringInterner = stringInterner;
-        }
-
-        public ImmutableList<TaskExecutionSnapshot> read(Decoder decoder) throws Exception {
-            byte count = decoder.readByte();
-            List<TaskExecutionSnapshot> executions = new ArrayList<TaskExecutionSnapshot>(count);
-            LazyTaskExecution.TaskExecutionSnapshotSerializer executionSerializer = new LazyTaskExecution.TaskExecutionSnapshotSerializer(getClassLoader(), stringInterner);
-            for (int i = 0; i < count; i++) {
-                TaskExecutionSnapshot exec = executionSerializer.read(decoder);
-                executions.add(exec);
-            }
-            return ImmutableList.copyOf(executions);
-        }
-
-        public void write(Encoder encoder, ImmutableList<TaskExecutionSnapshot> value) throws Exception {
-            int size = value.size();
-            encoder.writeByte((byte) size);
-            LazyTaskExecution.TaskExecutionSnapshotSerializer executionSerializer = new LazyTaskExecution.TaskExecutionSnapshotSerializer(getClassLoader(), stringInterner);
-            for (TaskExecutionSnapshot execution : value) {
-                executionSerializer.write(encoder, execution);
-            }
-        }
-
-        public ClassLoader getClassLoader() {
-            AsyncCacheAccessContext context = AsyncCacheAccessContext.current();
-            if (context != null) {
-                return context.get(CONTEXT_KEY_FOR_CLASSLOADER, ClassLoader.class);
-            } else {
-                return getClass().getClassLoader();
-            }
-        }
-
-        public void setClassLoader(ClassLoader classLoader) {
-            AsyncCacheAccessContext context = AsyncCacheAccessContext.current();
-            if (context != null) {
-                context.put(CONTEXT_KEY_FOR_CLASSLOADER, classLoader);
-            }
-        }
-    }
-
-    private static class TaskExecutionList {
-        private final Deque<LazyTaskExecution> executions = new ArrayDeque<LazyTaskExecution>();
-
-        public String toString() {
-            return super.toString() + "[" + executions.size() + "]";
-        }
-
-        public ImmutableList<TaskExecutionSnapshot> snapshot() {
-            List<TaskExecutionSnapshot> snapshots = new ArrayList<TaskExecutionSnapshot>(executions.size());
-            for (LazyTaskExecution execution : executions) {
-                snapshots.add(execution.snapshot());
-            }
-            return ImmutableList.copyOf(snapshots);
-        }
-    }
-
-    private static class LazyTaskExecution extends TaskExecution {
-        private ImmutableSortedMap<String, Long> inputFilesSnapshotIds;
-        private ImmutableSortedMap<String, Long> outputFilesSnapshotIds;
-        private Long discoveredFilesSnapshotId;
-        private FileSnapshotRepository snapshotRepository;
-        private Map<String, FileCollectionSnapshot> inputFilesSnapshot;
-        private Map<String, FileCollectionSnapshot> outputFilesSnapshot;
-        private FileCollectionSnapshot discoveredFilesSnapshot;
-
-        /**
-         * Creates a mutable copy of the given snapshot.
-         */
-        LazyTaskExecution(TaskExecutionSnapshot taskExecutionSnapshot) {
-            setTaskClass(taskExecutionSnapshot.getTaskClass());
-            setTaskClassLoaderHash(taskExecutionSnapshot.getTaskClassLoaderHash());
-            setTaskActionsClassLoaderHash(taskExecutionSnapshot.getTaskActionsClassLoaderHash());
-            // Take copy of input properties map
-            setInputProperties(new HashMap<String, Object>(taskExecutionSnapshot.getInputProperties()));
-            setCacheableOutputProperties(taskExecutionSnapshot.getCacheableOutputProperties());
-            setDeclaredOutputFilePaths(taskExecutionSnapshot.getDeclaredOutputFilePaths());
-            inputFilesSnapshotIds = taskExecutionSnapshot.getInputFilesSnapshotIds();
-            outputFilesSnapshotIds = taskExecutionSnapshot.getOutputFilesSnapshotIds();
-            discoveredFilesSnapshotId = taskExecutionSnapshot.getDiscoveredFilesSnapshotId();
-        }
-
-        LazyTaskExecution() {
-        }
-
-        @Override
-        public Map<String, FileCollectionSnapshot> getInputFilesSnapshot() {
-            if (inputFilesSnapshot == null) {
-                ImmutableSortedMap.Builder<String, FileCollectionSnapshot> builder = ImmutableSortedMap.naturalOrder();
-                for (Map.Entry<String, Long> entry : inputFilesSnapshotIds.entrySet()) {
-                    builder.put(entry.getKey(), snapshotRepository.get(entry.getValue()));
-                }
-                inputFilesSnapshot = builder.build();
-            }
-            return inputFilesSnapshot;
-        }
-
-        @Override
-        public void setInputFilesSnapshot(Map<String, FileCollectionSnapshot> inputFilesSnapshot) {
-            this.inputFilesSnapshot = inputFilesSnapshot;
-            this.inputFilesSnapshotIds = null;
-        }
-
-        @Override
-        public FileCollectionSnapshot getDiscoveredInputFilesSnapshot() {
-            if (discoveredFilesSnapshot == null) {
-                discoveredFilesSnapshot = snapshotRepository.get(discoveredFilesSnapshotId);
-            }
-            return discoveredFilesSnapshot;
-        }
-
-        @Override
-        public void setDiscoveredInputFilesSnapshot(FileCollectionSnapshot discoveredFilesSnapshot) {
-            this.discoveredFilesSnapshot = discoveredFilesSnapshot;
-            this.discoveredFilesSnapshotId = null;
-        }
-
-        @Override
-        public Map<String, FileCollectionSnapshot> getOutputFilesSnapshot() {
-            if (outputFilesSnapshot == null) {
-                ImmutableSortedMap.Builder<String, FileCollectionSnapshot> builder = ImmutableSortedMap.naturalOrder();
-                for (Map.Entry<String, Long> entry : outputFilesSnapshotIds.entrySet()) {
-                    String propertyName = entry.getKey();
-                    builder.put(propertyName, snapshotRepository.get(entry.getValue()));
-                }
-                outputFilesSnapshot = builder.build();
-            }
-            return outputFilesSnapshot;
-        }
-
-        @Override
-        public void setOutputFilesSnapshot(Map<String, FileCollectionSnapshot> outputFilesSnapshot) {
-            this.outputFilesSnapshot = outputFilesSnapshot;
-            outputFilesSnapshotIds = null;
-        }
-
-        public TaskExecutionSnapshot snapshot() {
-            return new TaskExecutionSnapshot(
-                getTaskClass(),
-                getCacheableOutputProperties(),
-                getDeclaredOutputFilePaths(),
-                getTaskClassLoaderHash(),
-                getTaskActionsClassLoaderHash(),
-                new HashMap<String, Object>(getInputProperties()),
-                inputFilesSnapshotIds,
-                discoveredFilesSnapshotId,
-                outputFilesSnapshotIds);
-        }
-
-        static class TaskExecutionSnapshotSerializer implements Serializer<TaskExecutionSnapshot> {
-            private final InputPropertiesSerializer inputPropertiesSerializer;
-            private final StringInterner stringInterner;
-
-            TaskExecutionSnapshotSerializer(ClassLoader classLoader, StringInterner stringInterner) {
-                this.inputPropertiesSerializer = new InputPropertiesSerializer(classLoader);
-                this.stringInterner = stringInterner;
-            }
-
-            public TaskExecutionSnapshot read(Decoder decoder) throws Exception {
-                ImmutableSortedMap<String, Long> inputFilesSnapshotIds = readSnapshotIds(decoder);
-                ImmutableSortedMap<String, Long> outputFilesSnapshotIds = readSnapshotIds(decoder);
-                Long discoveredFilesSnapshotId = decoder.readLong();
-                String taskClass = decoder.readString();
-                HashCode taskClassLoaderHash = null;
-                if (decoder.readBoolean()) {
-                    taskClassLoaderHash = HashCode.fromBytes(decoder.readBinary());
-                }
-                HashCode taskActionsClassLoaderHash = null;
-                if (decoder.readBoolean()) {
-                    taskActionsClassLoaderHash = HashCode.fromBytes(decoder.readBinary());
-                }
-
-                int cacheableOutputPropertiesCount = decoder.readSmallInt();
-                ImmutableSet.Builder<String> cacheableOutputPropertiesBuilder = ImmutableSet.builder();
-                for (int j = 0; j < cacheableOutputPropertiesCount; j++) {
-                    cacheableOutputPropertiesBuilder.add(decoder.readString());
-                }
-                ImmutableSet<String> cacheableOutputProperties = cacheableOutputPropertiesBuilder.build();
-
-                int outputFilesCount = decoder.readSmallInt();
-                ImmutableSet.Builder<String> declaredOutputFilePathsBuilder = ImmutableSet.builder();
-                for (int j = 0; j < outputFilesCount; j++) {
-                    declaredOutputFilePathsBuilder.add(stringInterner.intern(decoder.readString()));
-                }
-                ImmutableSet<String> declaredOutputFilePaths = declaredOutputFilePathsBuilder.build();
-
-                boolean hasInputProperties = decoder.readBoolean();
-                Map<String, Object> inputProperties;
-                if (hasInputProperties) {
-                    inputProperties = inputPropertiesSerializer.read(decoder);
-                } else {
-                    inputProperties = ImmutableMap.of();
-                }
-                return new TaskExecutionSnapshot(
-                    taskClass,
-                    cacheableOutputProperties,
-                    declaredOutputFilePaths,
-                    taskClassLoaderHash,
-                    taskActionsClassLoaderHash,
-                    inputProperties,
-                    inputFilesSnapshotIds,
-                    discoveredFilesSnapshotId,
-                    outputFilesSnapshotIds
-                );
-            }
-
-            public void write(Encoder encoder, TaskExecutionSnapshot execution) throws Exception {
-                writeSnapshotIds(encoder, execution.getInputFilesSnapshotIds());
-                writeSnapshotIds(encoder, execution.getOutputFilesSnapshotIds());
-                encoder.writeLong(execution.getDiscoveredFilesSnapshotId());
-                encoder.writeString(execution.getTaskClass());
-                HashCode classLoaderHash = execution.getTaskClassLoaderHash();
-                if (classLoaderHash == null) {
-                    encoder.writeBoolean(false);
-                } else {
-                    encoder.writeBoolean(true);
-                    encoder.writeBinary(classLoaderHash.asBytes());
-                }
-                HashCode actionsClassLoaderHash = execution.getTaskActionsClassLoaderHash();
-                if (actionsClassLoaderHash == null) {
-                    encoder.writeBoolean(false);
-                } else {
-                    encoder.writeBoolean(true);
-                    encoder.writeBinary(actionsClassLoaderHash.asBytes());
-                }
-                encoder.writeSmallInt(execution.getCacheableOutputProperties().size());
-                for (String outputFile : execution.getCacheableOutputProperties()) {
-                    encoder.writeString(outputFile);
-                }
-                encoder.writeSmallInt(execution.getDeclaredOutputFilePaths().size());
-                for (String outputFile : execution.getDeclaredOutputFilePaths()) {
-                    encoder.writeString(outputFile);
-                }
-                if (execution.getInputProperties() == null || execution.getInputProperties().isEmpty()) {
-                    encoder.writeBoolean(false);
-                } else {
-                    encoder.writeBoolean(true);
-                    inputPropertiesSerializer.write(encoder, execution.getInputProperties());
-                }
-            }
-
-            private static ImmutableSortedMap<String, Long> readSnapshotIds(Decoder decoder) throws IOException {
-                int count = decoder.readSmallInt();
-                ImmutableSortedMap.Builder<String, Long> builder = ImmutableSortedMap.naturalOrder();
-                for (int snapshotIdx = 0; snapshotIdx < count; snapshotIdx++) {
-                    String property = decoder.readString();
-                    long id = decoder.readLong();
-                    builder.put(property, id);
-                }
-                return builder.build();
-            }
-
-            private static void writeSnapshotIds(Encoder encoder, Map<String, Long> ids) throws IOException {
-                encoder.writeSmallInt(ids.size());
-                for (Map.Entry<String, Long> entry : ids.entrySet()) {
-                    encoder.writeString(entry.getKey());
-                    encoder.writeLong(entry.getValue());
-                }
-            }
-        }
-    }
 }

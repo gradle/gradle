@@ -15,46 +15,54 @@
  */
 
 package org.gradle.play.internal.toolchain
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory
+
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.compile.BaseForkOptions
+import org.gradle.internal.Factory
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.play.internal.spec.PlayCompileSpec
+import org.gradle.workers.internal.WorkerDaemonFactory
 import spock.lang.Specification
 
 class DaemonPlayCompilerTest extends Specification {
 
     def workingDirectory = Mock(File)
     def delegate = Mock(Compiler)
-    def compilerDaemonFactory = Mock(CompilerDaemonFactory)
+    def workerDaemonFactory = Mock(WorkerDaemonFactory)
     def spec = Mock(PlayCompileSpec)
     def forkOptions = Mock(BaseForkOptions)
+    def fileResolver = Mock(FileResolver)
 
     def setup(){
         _ * spec.getForkOptions() >> forkOptions
+        _ * forkOptions.jvmArgs >> []
+        _ * fileResolver.resolveLater(_) >> Stub(Factory) {
+            create() >> Mock(File)
+        }
     }
 
     def "passes compile classpath and packages to daemon options"() {
         given:
         def classpath = someClasspath()
         def packages = ["foo", "bar"]
-        def compiler = new DaemonPlayCompiler(workingDirectory, delegate, compilerDaemonFactory, classpath, packages)
+        def compiler = new DaemonPlayCompiler(workingDirectory, delegate, workerDaemonFactory, classpath, packages, fileResolver)
         when:
-        def options = compiler.toDaemonOptions(spec);
+        def context = compiler.toInvocationContext(spec)
         then:
-        options.getClasspath() == classpath
-        options.getSharedPackages() == packages
+        context.daemonForkOptions.getClasspath() == classpath
+        context.daemonForkOptions.getSharedPackages() == packages
     }
 
     def "applies fork settings to daemon options"(){
         given:
-        def compiler = new DaemonPlayCompiler(workingDirectory, delegate, compilerDaemonFactory, someClasspath(), [])
+        def compiler = new DaemonPlayCompiler(workingDirectory, delegate, workerDaemonFactory, someClasspath(), [], fileResolver)
         when:
         1 * forkOptions.getMemoryInitialSize() >> "256m"
         1 * forkOptions.getMemoryMaximumSize() >> "512m"
         then:
-        def options = compiler.toDaemonOptions(spec);
-        options.getMinHeapSize() == "256m"
-        options.getMaxHeapSize() == "512m"
+        def context = compiler.toInvocationContext(spec)
+        context.daemonForkOptions.javaForkOptions.getMinHeapSize() == "256m"
+        context.daemonForkOptions.javaForkOptions.getMaxHeapSize() == "512m"
     }
 
     def someClasspath() {

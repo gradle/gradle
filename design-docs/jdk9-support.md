@@ -17,16 +17,6 @@ Useful links:
 
 The stories found here use the terminology defined in the `buildingJavaLibraries.xml` chapter. Please make sure you have those terms in mind before going further.
 
-
-# ASM 6
-
-This section lists the mandatory items to be fixes as soon as ASM 6 is available. ASM is the library we use to parse classes,
-and it is used in a lot of different places in Gradle. The ASM 5 library cannot read the Java 9 class format
-(version 53). We have worked around this in several places of Gradle:
-
-- remove usages of `org.gradle.util.internal.Java9ClassReader` and replace them with a standard `org.objectweb.asm.ClassReader`
-- remove hack in `org.gradle.test.fixtures.file.ClassFile`
-
 # Feature: Java library author specifies library API
 
 Given a description of the API of a library, Gradle will prevent at compile time the consumers of a library from using classes that are not part of the API of the library. This is intended to help teams materialize and describe the APIs of and dependencies between the various components of their software stack, and enforce the boundaries between them, helping prepare them for transition to the Java module system.
@@ -404,7 +394,7 @@ Allow a Java library to build for Java 9, and produce both modular and non-modul
 - Implementation forks `javac`
 - To compile Java source, select the closest compatible toolchain to compile the variant.
 
-TBD - alternatively, select the toolchain with the highest version and use bootstrap classpath or `-release` to cross compile.
+TBD - alternatively, select the toolchain with the highest version and use bootstrap classpath or `--release` to cross compile.
 
 TBD - fail or warn when source code is not compiled against exactly the target Java API. Currently, toolchain selection is lenient.
 
@@ -432,7 +422,7 @@ TBD - fail or warn when source code is not compiled against exactly the target J
 ## Backlog
 
 - Generate the module descriptor from the Gradle model.
-- Use Java 9 `-release` flag for compiling against older versions.
+- Use Java 9 `--release` flag for compiling against older versions.
 - Use bootstrap classpath for cross compilation against older versions.
 - Add a toolchain resolve that reuses JVM discovery code from test fixtures to locate installed JVMs.
 
@@ -511,7 +501,7 @@ In no particular order:
     - `JavaExec` task
     - daemon launcher
     - generated application start scripts
-- Use `-release` javac flag for JVM binary that target older Java platform versions
+- Use `--release` javac flag for JVM binary that target older Java platform versions
 - Extract or validate module dependencies declared in `module-info.java`
     - Infer API and runtime requirements based on required and exported modules
 - Extract or validate platform dependencies declared in `module-info.java`
@@ -639,7 +629,7 @@ org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':compile
 	at org.gradle.execution.taskgraph.AbstractTaskPlanExecutor$TaskExecutorWorker.run(AbstractTaskPlanExecutor.java:50)
 	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:54)
 	at org.gradle.internal.concurrent.StoppableExecutorImpl$1.run(StoppableExecutorImpl.java:40)
-Caused by: org.gradle.internal.reflect.ObjectInstantiationException: Could not create an instance of type com.sun.tools.javac.api.JavacTool.
+Caused by: org.gradle.api.reflect.ObjectInstantiationException: Could not create an instance of type com.sun.tools.javac.api.JavacTool.
 	at org.gradle.internal.reflect.DirectInstantiator.newInstance(DirectInstantiator.java:53)
 	at org.gradle.internal.reflect.DirectInstantiator.instantiate(DirectInstantiator.java:29)
 	at org.gradle.internal.jvm.JdkTools.getSystemJavaCompiler(JdkTools.java:74)

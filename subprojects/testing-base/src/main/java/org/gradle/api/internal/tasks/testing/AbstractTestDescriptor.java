@@ -16,11 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.Nullable;
+import javax.annotation.Nullable;
 
-import java.io.Serializable;
-
-public abstract class AbstractTestDescriptor implements TestDescriptorInternal, Serializable {
+public abstract class AbstractTestDescriptor implements TestDescriptorInternal {
     private final Object id;
     private final String name;
 

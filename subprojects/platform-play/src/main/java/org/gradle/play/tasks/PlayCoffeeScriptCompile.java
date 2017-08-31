@@ -32,11 +32,6 @@ public class PlayCoffeeScriptCompile extends CoffeeScriptCompile {
         super.setCoffeeScriptJs(getDetachedConfiguration(notation));
     }
 
-    @Override
-    public void setCoffeeScriptJs(Object coffeeScriptJs) {
-        super.setCoffeeScriptJs(coffeeScriptJs);
-    }
-
     public void setRhinoClasspathNotation(String notation) {
         setRhinoClasspath(getDetachedConfiguration(notation));
     }

@@ -12,7 +12,8 @@ configurations {
     outputDirs
 
     testFixturesCompile.extendsFrom compile
-    testFixturesRuntime.extendsFrom runtime, testFixturesCompile
+    testFixturesImplementation.extendsFrom implementation
+    testFixturesRuntime.extendsFrom runtime
 
     // Expose configurations that include the test fixture classes for clients to use
     testFixturesUsageCompile.extendsFrom testFixturesCompile, outputDirs
@@ -25,8 +26,8 @@ configurations {
 
 sourceSets {
     testFixtures {
-        compileClasspath = sourceSets.main.output + configurations.testFixturesCompile
-        runtimeClasspath = output + compileClasspath + configurations.testFixturesRuntime
+        compileClasspath = sourceSets.main.output + configurations.testFixturesCompileClasspath
+        runtimeClasspath = output + compileClasspath + configurations.testFixturesRuntimeClasspath
     }
 }
 

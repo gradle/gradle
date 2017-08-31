@@ -68,11 +68,8 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     private ClassLoader buildLockedLoader(ClassLoaderId id, ClassPath classPath, List<ClassLoader> loaders) {
         if (loaders != null) {
             return new CachingClassLoader(buildMultiLoader(id, classPath, loaders));
-        } else if (!classPath.isEmpty()) {
-            return buildLockedLoader(id, classPath);
-        } else {
-            return parent.getExportClassLoader();
         }
+        return buildLockedLoader(id, classPath);
     }
 
     private MultiParentClassLoader buildMultiLoader(ClassLoaderId id, ClassPath classPath, List<ClassLoader> loaders) {

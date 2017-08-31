@@ -18,9 +18,9 @@ package org.gradle.groovy
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.fixture.GroovydocCoverage
+import org.gradle.testing.fixture.GroovyCoverage
 
-@TargetCoverage({GroovydocCoverage.STAMPS_COVERAGE})
+@TargetCoverage({GroovyCoverage.SUPPORTS_TIMESTAMP})
 class GroovyDocStampsIntegrationTest extends MultiVersionIntegrationSpec {
 
     def "time and version stamp switches work"() {
@@ -28,9 +28,7 @@ class GroovyDocStampsIntegrationTest extends MultiVersionIntegrationSpec {
         buildFile << """
             apply plugin: "groovy"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 compile "org.codehaus.groovy:groovy:${version}"

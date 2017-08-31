@@ -45,7 +45,7 @@ class ExceptionPlaceholder implements Serializable {
         type = throwable.getClass().getName();
 
         try {
-            stackTrace = throwable.getStackTrace();
+            stackTrace = throwable.getStackTrace() == null ? new StackTraceElement[0] : throwable.getStackTrace();
         } catch (Throwable ignored) {
 // TODO:ADAM - switch the logging back on. Need to make sending messages from daemon to client async wrt log event generation
 //                LOGGER.debug("Ignoring failure to extract throwable stack trace.", ignored);

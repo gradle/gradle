@@ -1,23 +1,28 @@
 /**
  * Logging infrastructure.
  */
+apply plugin: 'java-library'
 
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies {
-    compile libraries.groovy
-    compile libraries.slf4j_api
-    compile libraries.jul_to_slf4j
-    compile libraries.ant
-    compile project(':baseServices')
-    compile project(":native")
-    compile project(":messaging")
-    compile project(":cli")
+    api project(':baseServices')
+    api project(":messaging")
+    api project(":cli")
+    api libraries.slf4j_api
 
-    runtime libraries.log4j_to_slf4j
-    runtime libraries.jcl_to_slf4j
+    implementation project(":native")
+    implementation libraries.jul_to_slf4j
+    implementation libraries.ant
+    implementation libraries.commons_lang
+    implementation libraries.guava
+    implementation libraries.jansi
+    implementation libraries.jcip
 
-    testCompile project(":internalTesting")
+    runtimeOnly libraries.log4j_to_slf4j
+    runtimeOnly libraries.jcl_to_slf4j
+
+    testImplementation project(":internalTesting")
 }
 
 useTestFixtures()

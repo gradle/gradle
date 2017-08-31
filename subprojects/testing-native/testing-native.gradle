@@ -19,8 +19,7 @@ dependencies {
     compile project(':platformNative')
     compile project(':languageNative')
     compile project(':testingBase')
-
-    testCompile libraries.groovy
+    compile project(':testingJvm')
 
     integTestRuntime project(':ideNative')
 }

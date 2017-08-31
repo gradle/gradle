@@ -39,18 +39,18 @@ class JavaCrossCompilationIntegrationTest extends MultiVersionIntegrationSpec {
     def setup() {
         Assume.assumeTrue(target != null)
         def java = TextUtil.escapeString(target.getJavaExecutable())
-        def javac = TextUtil.escapeString(target.getExecutable("javac"))
+        def javaHome = TextUtil.escapeString(target.getJavaHome())
         def javadoc = TextUtil.escapeString(target.getExecutable("javadoc"))
 
         buildFile << """
 apply plugin: 'java'
 sourceCompatibility = ${version}
 targetCompatibility = ${version}
-repositories { mavenCentral() }
+${mavenCentralRepository()}
 tasks.withType(JavaCompile) {
     options.with {
         fork = true
-        forkOptions.executable = "$javac"
+        forkOptions.javaHome = file("$javaHome")
     }
 }
 tasks.withType(Javadoc) {
@@ -91,8 +91,8 @@ public class ThingTest {
 
         expect:
         succeeds 'test'
-        new ClassFile(file("build/classes/main/Thing.class")).javaVersion == javaVersion
-        new ClassFile(file("build/classes/test/ThingTest.class")).javaVersion == javaVersion
+        new ClassFile(javaClassFile("Thing.class")).javaVersion == javaVersion
+        new ClassFile(classFile("java", "test", "ThingTest.class")).javaVersion == javaVersion
     }
 
     def "can compile source and run TestNG tests using target Java version"() {

@@ -16,7 +16,9 @@
 package org.gradle.plugins.ide.eclipse.model;
 
 import groovy.lang.Closure;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.api.Action;
+
+import static org.gradle.util.ConfigureUtil.configure;
 
 /**
  * Enables fine-tuning wtp/wst details of the Eclipse plugin
@@ -25,7 +27,7 @@ import org.gradle.util.ConfigureUtil;
  * <p>
  * More interesting examples you will find in docs for {@link EclipseWtpComponent} and {@link EclipseWtpFacet}
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'war' //or 'ear' or 'java'
  * apply plugin: 'eclipse-wtp'
  *
@@ -69,11 +71,20 @@ public class EclipseWtp {
      * Configures wtp component.
      * <p>
      * For examples see docs for {@link EclipseWtpComponent}
-     *
-     * @param action
      */
     public void component(Closure action) {
-        ConfigureUtil.configure(action, component);
+        configure(action, component);
+    }
+
+    /**
+     * Configures wtp component.
+     * <p>
+     * For examples see docs for {@link EclipseWtpComponent}
+     *
+     * @since 3.5
+     */
+    public void component(Action<? super EclipseWtpComponent> action) {
+        action.execute(component);
     }
 
     /**
@@ -93,10 +104,19 @@ public class EclipseWtp {
      * Configures wtp facet.
      * <p>
      * For examples see docs for {@link EclipseWtpFacet}
-     *
-     * @param action
      */
     public void facet(Closure action) {
-        ConfigureUtil.configure(action, facet);
+        configure(action, facet);
+    }
+
+    /**
+     * Configures wtp facet.
+     * <p>
+     * For examples see docs for {@link EclipseWtpFacet}
+     *
+     * @since 3.5
+     */
+    public void facet(Action<? super EclipseWtpFacet> action) {
+        action.execute(facet);
     }
 }

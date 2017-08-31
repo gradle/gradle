@@ -17,6 +17,7 @@
 package org.gradle.process.internal;
 
 import com.google.common.collect.ImmutableSet;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.internal.file.PathToFileResolver;
@@ -35,16 +36,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class JvmOptions {
+    private static final String XMS_PREFIX = "-Xms";
+    private static final String XMX_PREFIX = "-Xmx";
+    private static final String BOOTCLASSPATH_PREFIX = "-Xbootclasspath:";
 
-    private static final Pattern SYS_PROP_PATTERN = Pattern.compile("(?s)-D(.+?)=(.*)");
-    private static final Pattern NO_ARG_SYS_PROP_PATTERN = Pattern.compile("-D([^=]+)");
-    private static final Pattern MIN_HEAP_PATTERN = Pattern.compile("-Xms(.+)");
-    private static final Pattern MAX_HEAP_PATTERN = Pattern.compile("-Xmx(.+)");
-    private static final Pattern BOOTSTRAP_PATTERN = Pattern.compile("-Xbootclasspath:(.+)");
     public static final String FILE_ENCODING_KEY = "file.encoding";
     public static final String USER_LANGUAGE_KEY = "user.language";
     public static final String USER_COUNTRY_KEY = "user.country";
@@ -62,6 +59,7 @@ public class JvmOptions {
 
     private final List<Object> extraJvmArgs = new ArrayList<Object>();
     private final Map<String, Object> mutableSystemProperties = new TreeMap<String, Object>();
+    private final PathToFileResolver resolver;
 
     private DefaultConfigurableFileCollection bootstrapClasspath;
     private String minHeapSize;
@@ -72,7 +70,7 @@ public class JvmOptions {
     protected final Map<String, Object> immutableSystemProperties = new TreeMap<String, Object>();
 
     public JvmOptions(PathToFileResolver resolver) {
-        this.bootstrapClasspath = new DefaultConfigurableFileCollection(resolver, null);
+        this.resolver = resolver;
         immutableSystemProperties.put(FILE_ENCODING_KEY, Charset.defaultCharset().name());
         immutableSystemProperties.put(USER_LANGUAGE_KEY, DEFAULT_LOCALE.getLanguage());
         immutableSystemProperties.put(USER_COUNTRY_KEY, DEFAULT_LOCALE.getCountry());
@@ -122,14 +120,13 @@ public class JvmOptions {
     public List<String> getManagedJvmArgs() {
         List<String> args = new ArrayList<String>();
         if (minHeapSize != null) {
-            args.add("-Xms" + minHeapSize);
+            args.add(XMS_PREFIX + minHeapSize);
         }
         if (maxHeapSize != null) {
-            args.add("-Xmx" + maxHeapSize);
+            args.add(XMX_PREFIX + maxHeapSize);
         }
-        FileCollection bootstrapClasspath = getBootstrapClasspath();
-        if (!bootstrapClasspath.isEmpty()) {
-            args.add("-Xbootclasspath:" + bootstrapClasspath.getAsPath());
+        if (bootstrapClasspath != null && !bootstrapClasspath.isEmpty()) {
+            args.add(BOOTCLASSPATH_PREFIX + bootstrapClasspath.getAsPath());
         }
 
         // These are implemented as a system property, but don't really function like one
@@ -172,41 +169,28 @@ public class JvmOptions {
         for (Object argument : arguments) {
             String argStr = argument.toString();
 
-            Matcher matcher = SYS_PROP_PATTERN.matcher(argStr);
-            if (matcher.matches()) {
-                systemProperty(matcher.group(1), matcher.group(2));
-                continue;
-            }
-            matcher = NO_ARG_SYS_PROP_PATTERN.matcher(argStr);
-            if (matcher.matches()) {
-                systemProperty(matcher.group(1), "");
-                continue;
-            }
-            matcher = MIN_HEAP_PATTERN.matcher(argStr);
-            if (matcher.matches()) {
-                minHeapSize = matcher.group(1);
-                continue;
-            }
-            matcher = MAX_HEAP_PATTERN.matcher(argStr);
-            if (matcher.matches()) {
-                maxHeapSize = matcher.group(1);
-                continue;
-            }
-            matcher = BOOTSTRAP_PATTERN.matcher(argStr);
-            if (matcher.matches()) {
-                setBootstrapClasspath((Object[]) matcher.group(1).split(Pattern.quote(File.pathSeparator)));
-                continue;
-            }
             if (argStr.equals("-ea") || argStr.equals("-enableassertions")) {
                 assertionsEnabled = true;
-                continue;
-            }
-            if (argStr.equals("-da") || argStr.equals("-disableassertions")) {
+            } else if (argStr.equals("-da") || argStr.equals("-disableassertions")) {
                 assertionsEnabled = false;
-                continue;
+            } else if (argStr.startsWith(XMS_PREFIX)) {
+                minHeapSize = argStr.substring(XMS_PREFIX.length());
+            } else if (argStr.startsWith(XMX_PREFIX)) {
+                maxHeapSize = argStr.substring(XMX_PREFIX.length());
+            } else if (argStr.startsWith(BOOTCLASSPATH_PREFIX)) {
+                String[] bootClasspath = StringUtils.split(argStr.substring(BOOTCLASSPATH_PREFIX.length()), File.pathSeparatorChar);
+                setBootstrapClasspath((Object[]) bootClasspath);
+            } else if (argStr.startsWith("-D")) {
+                String keyValue = argStr.substring(2);
+                int equalsIndex = keyValue.indexOf("=");
+                if (equalsIndex == -1) {
+                    systemProperty(keyValue, "");
+                } else {
+                    systemProperty(keyValue.substring(0, equalsIndex), keyValue.substring(equalsIndex + 1));
+                }
+            } else {
+                extraJvmArgs.add(argument);
             }
-
-            extraJvmArgs.add(argument);
         }
 
         boolean xdebugFound = false;
@@ -263,19 +247,26 @@ public class JvmOptions {
     }
 
     public FileCollection getBootstrapClasspath() {
+        return internalGetBootstrapCLasspath();
+    }
+
+    private DefaultConfigurableFileCollection internalGetBootstrapCLasspath() {
+        if (bootstrapClasspath == null) {
+            bootstrapClasspath = new DefaultConfigurableFileCollection(resolver, null);
+        }
         return bootstrapClasspath;
     }
 
     public void setBootstrapClasspath(FileCollection classpath) {
-        this.bootstrapClasspath.setFrom(classpath);
+        internalGetBootstrapCLasspath().setFrom(classpath);
     }
 
     public void setBootstrapClasspath(Object... classpath) {
-        this.bootstrapClasspath.setFrom(classpath);
+        internalGetBootstrapCLasspath().setFrom(classpath);
     }
 
     public void bootstrapClasspath(Object... classpath) {
-        this.bootstrapClasspath.from(classpath);
+        internalGetBootstrapCLasspath().from(classpath);
     }
 
     public String getMinHeapSize() {
@@ -323,7 +314,7 @@ public class JvmOptions {
         target.setSystemProperties(mutableSystemProperties);
         target.setMinHeapSize(minHeapSize);
         target.setMaxHeapSize(maxHeapSize);
-        target.setBootstrapClasspath(bootstrapClasspath);
+        target.setBootstrapClasspath(getBootstrapClasspath());
         target.setEnableAssertions(assertionsEnabled);
         target.setDebug(debug);
         target.systemProperties(immutableSystemProperties);

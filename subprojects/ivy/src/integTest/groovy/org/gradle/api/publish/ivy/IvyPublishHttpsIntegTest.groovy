@@ -17,11 +17,11 @@
 
 
 package org.gradle.api.publish.ivy
+
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
-import org.gradle.util.Matchers
 import org.junit.Rule
 
 class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
@@ -79,7 +79,7 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
 
         then:
         failure.assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
-        failure.assertThatCause(Matchers.containsText("javax.net.ssl.SSLHandshakeException"))
+        failure.assertHasCause("Could not write to resource '${module.jar.uri}'")
     }
 
     def "build fails when server can't authenticate client"() {
@@ -94,7 +94,7 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
 
         then:
         failure.assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
-        failure.error.contains("at org.apache.http.conn.ssl.SSLConnectionSocketFactory.createLayeredSocket")
+        failure.assertHasCause("Could not write to resource '${module.jar.uri}'")
     }
 
     def expectPublication() {

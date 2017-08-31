@@ -19,15 +19,29 @@ package org.gradle.testkit.runner
 import groovy.transform.Sortable
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner
+import org.gradle.integtests.fixtures.RetryRuleUtil
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
-import org.gradle.integtests.fixtures.executer.*
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testkit.runner.fixtures.*
+import org.gradle.testing.internal.util.RetryRule
+import org.gradle.testkit.runner.fixtures.CustomDaemonDirectory
+import org.gradle.testkit.runner.fixtures.Debug
+import org.gradle.testkit.runner.fixtures.InjectsPluginClasspath
+import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
+import org.gradle.testkit.runner.fixtures.InspectsExecutedTasks
+import org.gradle.testkit.runner.fixtures.NoDebug
+import org.gradle.testkit.runner.fixtures.NonCrossVersion
+import org.gradle.testkit.runner.fixtures.WithNoSourceTaskOutcome
 import org.gradle.testkit.runner.internal.GradleProvider
 import org.gradle.testkit.runner.internal.feature.TestKitFeature
 import org.gradle.util.GradleVersion
@@ -35,7 +49,6 @@ import org.gradle.util.SetSystemProperties
 import org.gradle.wrapper.GradleUserHomeLookup
 import org.junit.Rule
 import org.junit.runner.RunWith
-import spock.lang.Shared
 
 import java.lang.annotation.Annotation
 
@@ -46,15 +59,13 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
     public static final GradleVersion MIN_TESTED_VERSION = TestKitFeature.RUN_BUILDS.since
     public static final GradleVersion CUSTOM_DAEMON_DIR_SUPPORT_VERSION = GradleVersion.version("2.2")
+    public static final GradleVersion NO_SOURCE_TASK_OUTCOME_SUPPORT_VERSION = GradleVersion.version("3.4")
 
     // Context set by multi run infrastructure
     public static GradleVersion gradleVersion
     public static GradleProvider gradleProvider
     public static boolean debug
     public static boolean crossVersion
-
-    @Shared
-    IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 
     @Rule
     SetSystemProperties setSystemProperties = new SetSystemProperties(
@@ -68,6 +79,10 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
         requireIsolatedTestKitDir ? file("test-kit-workspace") : buildContext.gradleUserHomeDir
     }
 
+    TestFile getProjectDir() {
+        temporaryFolder.testDirectory
+    }
+
     String getRootProjectName() {
         testDirectory.name
     }
@@ -77,10 +92,16 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     GradleRunner runner(String... arguments) {
+        boolean closeServices = (debug && requireIsolatedTestKitDir) || arguments.contains("-g")
+        List<String> allArgs = arguments as List
+        if (closeServices) {
+            // Do not keep user home dir services open when running embedded or when using a custom user home dir
+            allArgs.add(("-D" + DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES + "=false") as String)
+        }
         def gradleRunner = GradleRunner.create()
             .withTestKitDir(testKitDir)
             .withProjectDir(testDirectory)
-            .withArguments(arguments)
+            .withArguments(allArgs)
             .withDebug(debug)
 
         gradleProvider.applyTo(gradleRunner)
@@ -97,8 +118,16 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    String getReleasedGradleVersion() {
+        return gradleVersion.baseVersion.version
+    }
+
     DaemonsFixture testKitDaemons() {
         testKitDaemons(gradleVersion)
+    }
+
+    DaemonsFixture getDaemonsFixture() {
+        testKitDaemons()
     }
 
     DaemonsFixture testKitDaemons(GradleVersion gradleVersion) {
@@ -123,6 +152,9 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
     ExecutionFailure execFailure(BuildResult buildResult) {
         new OutputScrapingExecutionFailure(buildResult.output, buildResult.output)
     }
+
+    @Rule
+    RetryRule retryRule = RetryRuleUtil.retryCrossVersionTestOnIssueWithReleasedGradleVersion(this)
 
     static class Runner extends AbstractMultiTestRunner {
 
@@ -308,6 +340,11 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
                 if (testDetails.getAnnotation(CustomDaemonDirectory)) {
                     if (gradleVersion < BaseGradleRunnerIntegrationTest.CUSTOM_DAEMON_DIR_SUPPORT_VERSION) {
+                        return false
+                    }
+                }
+                if (testDetails.getAnnotation(WithNoSourceTaskOutcome)) {
+                    if (gradleVersion < BaseGradleRunnerIntegrationTest.NO_SOURCE_TASK_OUTCOME_SUPPORT_VERSION) {
                         return false
                     }
                 }

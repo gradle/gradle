@@ -1,7 +1,5 @@
 
 // START SNIPPET add-action
-task hello(type: GreetingTask)
-
 // START SNIPPET define-task
 class GreetingTask extends DefaultTask {
 // END SNIPPET define-task
@@ -12,4 +10,7 @@ class GreetingTask extends DefaultTask {
 // START SNIPPET define-task
 }
 // END SNIPPET define-task
+
+// Create a task using the task type
+task hello(type: GreetingTask)
 // END SNIPPET add-action

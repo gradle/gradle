@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.hash.DefaultFileHasher;
-import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.CachingClassDependenciesAnalyzer;
@@ -32,6 +31,8 @@ import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapsho
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotMaker;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotter;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.hash.StreamHasher;
 import org.gradle.language.base.internal.compile.Compiler;
 
 import java.util.List;
@@ -41,22 +42,20 @@ public class IncrementalCompilerFactory {
     private final IncrementalCompilerDecorator incrementalSupport;
     private final IncrementalTaskInputs inputs;
 
-    public IncrementalCompilerFactory(FileOperations fileOperations, FileHasher snapshotter, String compileDisplayName, CleaningJavaCompiler cleaningJavaCompiler,
-                                      List<Object> source, CompileCaches compileCaches, IncrementalTaskInputsInternal inputs) {
+    public IncrementalCompilerFactory(FileOperations fileOperations, StreamHasher streamHasher, FileHasher fileHasher, String compileDisplayName, CleaningJavaCompiler cleaningJavaCompiler,
+                                      List<Object> source, CompileCaches compileCaches, IncrementalTaskInputsInternal inputs, FileCollection annotationProcessorClasspath) {
         this.inputs = inputs;
         //bunch of services that enable incremental java compilation.
-        FileHasher hasher = new DefaultFileHasher(); //TODO SF use caching hasher
-        ClassDependenciesAnalyzer analyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(), hasher, compileCaches.getClassAnalysisCache());
-        JarSnapshotter jarSnapshotter = new CachingJarSnapshotter(snapshotter, analyzer, compileCaches.getJarSnapshotCache());
-
+        ClassDependenciesAnalyzer analyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(), compileCaches.getClassAnalysisCache());
+        JarSnapshotter jarSnapshotter = new CachingJarSnapshotter(streamHasher, fileHasher, analyzer, compileCaches.getJarSnapshotCache());
         JarClasspathSnapshotMaker jarClasspathSnapshotMaker = new JarClasspathSnapshotMaker(compileCaches.getLocalJarClasspathSnapshotStore(), new JarClasspathSnapshotFactory(jarSnapshotter), new ClasspathJarFinder(fileOperations));
         CompilationSourceDirs sourceDirs = new CompilationSourceDirs(source);
         SourceToNameConverter sourceToNameConverter = new SourceToNameConverter(sourceDirs); //TODO SF replace with converter that parses input source class
         RecompilationSpecProvider recompilationSpecProvider = new RecompilationSpecProvider(sourceToNameConverter, fileOperations);
-        ClassSetAnalysisUpdater classSetAnalysisUpdater = new ClassSetAnalysisUpdater(compileCaches.getLocalClassSetAnalysisStore(), fileOperations, analyzer);
+        ClassSetAnalysisUpdater classSetAnalysisUpdater = new ClassSetAnalysisUpdater(compileCaches.getLocalClassSetAnalysisStore(), fileOperations, analyzer, fileHasher);
         IncrementalCompilationInitializer compilationInitializer = new IncrementalCompilationInitializer(fileOperations);
         incrementalSupport = new IncrementalCompilerDecorator(jarClasspathSnapshotMaker, compileCaches, compilationInitializer,
-                cleaningJavaCompiler, compileDisplayName, recompilationSpecProvider, classSetAnalysisUpdater, sourceDirs);
+                cleaningJavaCompiler, compileDisplayName, recompilationSpecProvider, classSetAnalysisUpdater, sourceDirs, annotationProcessorClasspath);
     }
 
     public Compiler<JavaCompileSpec> createCompiler() {

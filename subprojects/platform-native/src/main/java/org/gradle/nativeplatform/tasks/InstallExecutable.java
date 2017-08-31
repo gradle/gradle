@@ -20,17 +20,22 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.RegularFileVar;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.Gcc;
 import org.gradle.platform.base.ToolChain;
@@ -43,18 +48,25 @@ import java.io.File;
  * Installs an executable with it's dependent libraries so it can be easily executed.
  */
 @Incubating
-@ParallelizableTask
 public class InstallExecutable extends DefaultTask {
-
     private ToolChain toolChain;
     private NativePlatform platform;
-    private File destinationDir;
-    private File executable;
-    private FileCollection libs;
+    private final DirectoryVar destinationDir;
+    private final RegularFileVar executable;
+    private final ConfigurableFileCollection libs;
+    private final WorkerLeaseService workerLeaseService;
 
+    /**
+     * Injects a {@link WorkerLeaseService} instance.
+     *
+     * @since 4.2
+     */
     @Inject
-    public InstallExecutable() {
+    public InstallExecutable(WorkerLeaseService workerLeaseService) {
+        this.workerLeaseService = workerLeaseService;
         this.libs = getProject().files();
+        destinationDir = newOutputDirectory();
+        executable = newInputFile();
     }
 
     /**
@@ -83,26 +95,62 @@ public class InstallExecutable extends DefaultTask {
 
     /**
      * The directory to install files into.
+     *
+     * @since 4.1
      */
     @OutputDirectory
-    public File getDestinationDir() {
+    public DirectoryVar getInstallDirectory() {
         return destinationDir;
     }
 
+    @Internal
+    public File getDestinationDir() {
+        return destinationDir.getAsFile().getOrNull();
+    }
+
     public void setDestinationDir(File destinationDir) {
-        this.destinationDir = destinationDir;
+        this.destinationDir.set(destinationDir);
+    }
+
+    /**
+     * Sets the destination directory to install the executable via a {@link Provider}
+     *
+     * @param destinationDir the destination directory provider to use
+     * @see #setDestinationDir(File)
+     * @since 4.1
+     */
+    public void setDestinationDir(Provider<? extends Directory> destinationDir) {
+        this.destinationDir.set(destinationDir);
     }
 
     /**
      * The executable file to install.
+     *
+     * @since 4.1
      */
     @InputFile
-    public File getExecutable() {
+    public RegularFileVar getSourceFile() {
         return executable;
     }
 
+    @Internal
+    public File getExecutable() {
+        return executable.getAsFile().getOrNull();
+    }
+
     public void setExecutable(File executable) {
-        this.executable = executable;
+        this.executable.set(executable);
+    }
+
+    /**
+     * Sets the executable to install via a {@link Provider}
+     *
+     * @param executable the executable provider to use
+     * @see #setExecutable(File)
+     * @since 4.1
+     */
+    public void setExecutable(Provider<? extends RegularFile> executable) {
+        this.executable.set(executable);
     }
 
     /**
@@ -114,14 +162,14 @@ public class InstallExecutable extends DefaultTask {
     }
 
     public void setLibs(FileCollection libs) {
-        this.libs = libs;
+        this.libs.setFrom(libs);
     }
 
     /**
      * Adds a set of library files to be installed. The provided libs object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      */
     public void lib(Object libs) {
-        ((ConfigurableFileCollection) this.libs).from(libs);
+        this.libs.from(libs);
     }
 
     /**
@@ -145,12 +193,17 @@ public class InstallExecutable extends DefaultTask {
 
     @TaskAction
     public void install() {
-        if (platform.getOperatingSystem().isWindows()) {
-            installWindows();
-        } else {
-            installUnix();
-        }
-
+        // TODO: Migrate this to the worker API once the FileSystem and FileOperations services can be injected
+        workerLeaseService.withoutProjectLock(new Runnable() {
+            @Override
+            public void run() {
+                if (platform.getOperatingSystem().isWindows()) {
+                    installWindows();
+                } else {
+                    installUnix();
+                }
+            }
+        });
     }
 
     private void installWindows() {
@@ -169,7 +222,6 @@ public class InstallExecutable extends DefaultTask {
 
             toolChainPath.append("%PATH%");
         }
-
 
         String runScriptText =
               "\n@echo off"

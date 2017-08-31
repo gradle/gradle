@@ -15,15 +15,20 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import org.gradle.api.artifacts.ComponentMetadataSupplier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextualMetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DownloadedIvyModuleDescriptorParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts;
@@ -35,6 +40,7 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
+import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -46,14 +52,24 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
 
     private final boolean dynamicResolve;
     private final MetaDataParser<MutableIvyModuleResolveMetadata> metaDataParser;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final Factory<ComponentMetadataSupplier> componentMetadataSupplierFactory;
     private boolean m2Compatible;
+    private final IvyLocalRepositoryAccess localRepositoryAccess;
+    private final IvyRemoteRepositoryAccess remoteRepositoryAccess;
 
     public IvyResolver(String name, RepositoryTransport transport,
                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                       boolean dynamicResolve, FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, IvyContextManager ivyContextManager) {
-        super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), new ResourceVersionLister(transport.getRepository()), locallyAvailableResourceFinder, artifactFileStore);
-        this.metaDataParser = new IvyContextualMetaDataParser<MutableIvyModuleResolveMetadata>(ivyContextManager, new DownloadedIvyModuleDescriptorParser());
+                       boolean dynamicResolve, FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, IvyContextManager ivyContextManager,
+                       ImmutableModuleIdentifierFactory moduleIdentifierFactory, Factory<ComponentMetadataSupplier> componentMetadataSupplierFactory,
+                       FileResourceRepository fileResourceRepository) {
+        super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), new ResourceVersionLister(transport.getRepository()), locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, fileResourceRepository);
+        this.componentMetadataSupplierFactory = componentMetadataSupplierFactory;
+        this.metaDataParser = new IvyContextualMetaDataParser<MutableIvyModuleResolveMetadata>(ivyContextManager, new DownloadedIvyModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, fileResourceRepository));
         this.dynamicResolve = dynamicResolve;
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.localRepositoryAccess = new IvyLocalRepositoryAccess();
+        this.remoteRepositoryAccess = new IvyRemoteRepositoryAccess();
     }
 
     @Override
@@ -77,7 +93,7 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
 
     @Override
     protected IvyArtifactName getMetaDataArtifactName(String moduleName) {
-        return DefaultIvyArtifactName.of("ivy", "ivy", "xml");
+        return new DefaultIvyArtifactName("ivy", "ivy", "xml");
     }
 
     @Override
@@ -102,15 +118,20 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
     }
 
     public ModuleComponentRepositoryAccess getLocalAccess() {
-        return new IvyLocalRepositoryAccess();
+        return localRepositoryAccess;
     }
 
     public ModuleComponentRepositoryAccess getRemoteAccess() {
-        return new IvyRemoteRepositoryAccess();
+        return remoteRepositoryAccess;
+    }
+
+    public ComponentMetadataSupplier createMetadataSupplier() {
+        return componentMetadataSupplierFactory.create();
     }
 
     protected MutableIvyModuleResolveMetadata createDefaultComponentResolveMetaData(ModuleComponentIdentifier moduleComponentIdentifier, Set<IvyArtifactName> artifacts) {
-        return new DefaultMutableIvyModuleResolveMetadata(moduleComponentIdentifier, artifacts);
+        ModuleVersionIdentifier mvi = moduleIdentifierFactory.moduleWithVersion(moduleComponentIdentifier.getGroup(), moduleComponentIdentifier.getModule(), moduleComponentIdentifier.getVersion());
+        return new DefaultMutableIvyModuleResolveMetadata(mvi, moduleComponentIdentifier, artifacts);
     }
 
     protected MutableIvyModuleResolveMetadata parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {

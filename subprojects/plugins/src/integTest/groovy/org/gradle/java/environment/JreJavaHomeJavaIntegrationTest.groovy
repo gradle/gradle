@@ -41,7 +41,7 @@ class JreJavaHomeJavaIntegrationTest extends AbstractIntegrationSpec {
         when:
         executer.withEnvironmentVars("JAVA_HOME": jreJavaHome.absolutePath).withTasks("compileJava").run().output
         then:
-        file("build/classes/main/org/test/JavaClazz.class").exists()
+        javaClassFile("org/test/JavaClazz.class").exists()
 
         where:
         forkMode << [true, false]
@@ -63,7 +63,7 @@ class JreJavaHomeJavaIntegrationTest extends AbstractIntegrationSpec {
         when:
         executer.withEnvironmentVars(envVars).withTasks("compileJava").run()
         then:
-        file("build/classes/main/org/test/JavaClazz.class").exists()
+        javaClassFile("org/test/JavaClazz.class").exists()
         where:
         forkMode << [true, false]
     }

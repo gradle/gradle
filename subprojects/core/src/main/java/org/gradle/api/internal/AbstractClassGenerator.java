@@ -25,15 +25,30 @@ import org.apache.commons.collections.map.ReferenceMap;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonExtensible;
-import org.gradle.api.Nullable;
 import org.gradle.api.plugins.ExtensionAware;
-import org.gradle.internal.reflect.*;
+import org.gradle.api.provider.PropertyState;
+import org.gradle.internal.reflect.ClassDetails;
+import org.gradle.internal.reflect.ClassInspector;
+import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.reflect.PropertyDetails;
+import org.gradle.internal.service.ServiceRegistry;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -96,7 +111,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
 
             ClassBuilder<T> builder = start(type, classMetaData);
 
-            builder.startClass();
+            builder.startClass(classMetaData.isShouldImplementWithServiceRegistry());
 
             if (!DynamicObjectAware.class.isAssignableFrom(type)) {
                 if (ExtensionAware.class.isAssignableFrom(type)) {
@@ -119,10 +134,19 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                 }
             }
 
+            if (classMetaData.isShouldImplementWithServiceRegistry()) {
+                builder.generateServiceRegistrySupportMethods();
+            }
+
             Set<PropertyMetaData> conventionProperties = new HashSet<PropertyMetaData>();
 
             for (PropertyMetaData property : classMetaData.properties.values()) {
                 if (SKIP_PROPERTIES.contains(property.name)) {
+                    continue;
+                }
+
+                if (!property.getters.isEmpty() && PropertyState.class.isAssignableFrom(property.getType())) {
+                    builder.addPropertyStateSetters(property, property.getters.get(0));
                     continue;
                 }
 
@@ -153,9 +177,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                     for (Method getter : property.getters) {
                         builder.applyConventionMappingToGetter(property, getter);
                     }
-                }
 
-                if (needsConventionMapping) {
                     for (Method setter : property.setters) {
                         if (!Modifier.isFinal(setter.getModifiers())) {
                             builder.applyConventionMappingToSetter(property, setter);
@@ -229,6 +251,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         }
     }
 
+    @Nullable
     private Method findClosureOverload(Method method, Collection<Method> candidates) {
         for (Method candidate : candidates) {
             if (candidate.getParameterTypes().length != method.getParameterTypes().length) {
@@ -258,6 +281,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
 
     private void inspectType(Class<?> type, ClassMetaData classMetaData) {
         ClassDetails classDetails = ClassInspector.inspect(type);
+        boolean hasGetServicesMethod = false;
         for (Method method : classDetails.getAllMethods()) {
             if (method.getAnnotation(Inject.class) != null) {
                 if (!Modifier.isPublic(method.getModifiers()) && !Modifier.isProtected(method.getModifiers())) {
@@ -266,6 +290,9 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                 if (Modifier.isStatic(method.getModifiers())) {
                     throw new UnsupportedOperationException(String.format("Cannot attach @Inject to method %s.%s() as it is static.", method.getDeclaringClass().getSimpleName(), method.getName()));
                 }
+            }
+            if ("getServices".equals(method.getName()) && (method.getParameterTypes().length == 0) && ServiceRegistry.class.equals(method.getReturnType())) {
+                hasGetServicesMethod = true;
             }
         }
         for (PropertyDetails property : classDetails.getProperties()) {
@@ -288,6 +315,13 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                 classMetaData.addClosureMethod(method);
             }
         }
+        if (!hasGetServicesMethod) {
+            for (PropertyMetaData metaData : classMetaData.properties.values()) {
+                if (metaData.injector) {
+                    classMetaData.shouldImplementWithServiceRegistry = true;
+                }
+            }
+        }
     }
 
     protected static class ClassMetaData {
@@ -295,9 +329,11 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         private final Set<Method> missingOverloads = new LinkedHashSet<Method>();
         private final boolean extensible;
         private final boolean conventionAware;
+
         private List<Method> actionMethods = new ArrayList<Method>();
         private SetMultimap<String, Method> closureMethods = LinkedHashMultimap.create();
         private List<Method> setMethods = new ArrayList<Method>();
+        private boolean shouldImplementWithServiceRegistry;
 
         public ClassMetaData(boolean extensible, boolean conventionAware) {
             this.extensible = extensible;
@@ -352,6 +388,10 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         public boolean isConventionAware() {
             return conventionAware;
         }
+
+        public boolean isShouldImplementWithServiceRegistry() {
+            return shouldImplementWithServiceRegistry;
+        }
     }
 
     protected static class PropertyMetaData {
@@ -397,7 +437,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     protected interface ClassBuilder<T> {
-        void startClass();
+        void startClass(boolean shouldImplementWithServices);
 
         void addConstructor(Constructor<?> constructor) throws Exception;
 
@@ -426,6 +466,10 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         void addSetMethod(PropertyMetaData propertyMetaData, Method setter) throws Exception;
 
         void addActionMethod(Method method) throws Exception;
+
+        void addPropertyStateSetters(PropertyMetaData property, Method getter) throws Exception;
+
+        void generateServiceRegistrySupportMethods() throws Exception;
 
         Class<? extends T> generate() throws Exception;
     }

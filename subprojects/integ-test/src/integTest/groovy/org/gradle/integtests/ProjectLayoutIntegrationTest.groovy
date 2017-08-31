@@ -33,18 +33,16 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationTest {
     public final TestResources resources = new TestResources(testDirectoryProvider)
 
     @Test
-    public void canHaveSomeSourceAndResourcesInSameDirectoryAndSomeInDifferentDirectories() {
+    void canHaveSomeSourceAndResourcesInSameDirectoryAndSomeInDifferentDirectories() {
         file('settings.gradle') << 'rootProject.name = "sharedSource"'
-        file('build.gradle') << '''
+        file('build.gradle') << """
 apply plugin: 'java'
 apply plugin: 'groovy'
 apply plugin: 'scala'
 
-repositories {
-    mavenCentral()
-}
+${mavenCentralRepository()}
 dependencies {
-    compile 'org.codehaus.groovy:groovy-all:2.4.7'
+    compile 'org.codehaus.groovy:groovy-all:2.4.10'
     compile 'org.scala-lang:scala-library:2.11.1'
 }
 
@@ -52,19 +50,19 @@ sourceSets.each {
     configure(it) {
         resources.srcDir 'src'
         resources.srcDir 'src/resources'
-        resources.include "org/gradle/$name/**"
+        resources.include "org/gradle/\$name/**"
         java.srcDir 'src'
         java.srcDir 'src/java'
-        java.include "org/gradle/$name/**"
+        java.include "org/gradle/\$name/**/*.java"
         groovy.srcDir 'src'
         groovy.srcDir 'src/groovy'
-        groovy.include "org/gradle/$name/**"
+        groovy.include "org/gradle/\$name/**/*.groovy"
         scala.srcDir 'src'
         scala.srcDir 'src/scala'
-        scala.include "org/gradle/$name/**"
+        scala.include "org/gradle/\$name/**/*.scala"
     }
 }
-'''
+"""
         file('src/org/gradle/main/resource.txt') << 'some text'
         file('src/org/gradle/test/resource.txt') << 'some text'
         file('src/resources/org/gradle/main/resource2.txt') << 'some text'
@@ -86,13 +84,17 @@ sourceSets.each {
 
         File buildDir = file('build')
 
-        buildDir.file('classes/main').assertHasDescendants(
-                'org/gradle/JavaClass.class',
-                'org/gradle/JavaClass2.class',
-                'org/gradle/GroovyClass.class',
-                'org/gradle/GroovyClass2.class',
-                'org/gradle/ScalaClass.class',
-                'org/gradle/ScalaClass2.class'
+        buildDir.file('classes/java/main').assertHasDescendants(
+            'org/gradle/JavaClass.class',
+            'org/gradle/JavaClass2.class'
+        )
+        buildDir.file('classes/groovy/main').assertHasDescendants(
+            'org/gradle/GroovyClass.class',
+            'org/gradle/GroovyClass2.class',
+        )
+        buildDir.file('classes/scala/main').assertHasDescendants(
+            'org/gradle/ScalaClass.class',
+            'org/gradle/ScalaClass2.class'
         )
 
         buildDir.file('resources/main').assertHasDescendants(
@@ -100,13 +102,17 @@ sourceSets.each {
                 'org/gradle/main/resource2.txt'
         )
 
-        buildDir.file('classes/test').assertHasDescendants(
+        buildDir.file('classes/java/test').assertHasDescendants(
                 'org/gradle/JavaClassTest.class',
                 'org/gradle/JavaClassTest2.class',
-                'org/gradle/GroovyClassTest.class',
-                'org/gradle/GroovyClassTest2.class',
-                'org/gradle/ScalaClassTest.class',
-                'org/gradle/ScalaClassTest2.class'
+        )
+        buildDir.file('classes/groovy/test').assertHasDescendants(
+            'org/gradle/GroovyClassTest.class',
+            'org/gradle/GroovyClassTest2.class',
+        )
+        buildDir.file('classes/scala/test').assertHasDescendants(
+            'org/gradle/ScalaClassTest.class',
+            'org/gradle/ScalaClassTest2.class'
         )
 
         buildDir.file('resources/test').assertHasDescendants(
@@ -145,7 +151,7 @@ sourceSets.each {
     }
 
     @Test
-    public void multipleProjectsCanShareTheSameSourceDirectory() {
+    void multipleProjectsCanShareTheSameSourceDirectory() {
         file('settings.gradle') << 'include "a", "b"'
         file('a/build.gradle') << '''
 apply plugin: 'java'
@@ -168,17 +174,17 @@ sourceSets.main.java {
 
         executer.withTasks('clean', 'assemble').run()
 
-        file('a/build/classes/main').assertHasDescendants(
+        file('a/build/classes/java/main').assertHasDescendants(
                 'org/gradle/a/ClassA.class'
         )
-        file('b/build/classes/main').assertHasDescendants(
+        file('b/build/classes/java/main').assertHasDescendants(
                 'org/gradle/b/ClassB.class'
         )
     }
 
     @Test
-    public void canUseANonStandardBuildDir() {
-        executer.withTasks('build').run()
+    void canUseANonStandardBuildDir() {
+        executer.expectDeprecationWarning().withTasks('build').run()
 
         file('build').assertDoesNotExist()
 
@@ -188,7 +194,7 @@ sourceSets.main.java {
     }
 
     @Test
-    public void projectPathsResolvedRelativeToRoot() {
+    void projectPathsResolvedRelativeToRoot() {
         file('relative/a/build.gradle') << """
             task someTask
         """

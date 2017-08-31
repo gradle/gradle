@@ -16,9 +16,9 @@
 
 package org.gradle.internal.resolve.result;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Set;
 

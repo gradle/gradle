@@ -16,8 +16,11 @@
 
 package org.gradle.performance.fixture
 
+import com.google.common.base.Joiner
 import groovy.transform.CompileStatic
-import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.gradle.api.Action
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
@@ -28,14 +31,12 @@ class ToolingApiBackedGradleSession implements GradleSession {
 
     final GradleInvocationSpec invocation
 
-    private final TestDirectoryProvider testDirectoryProvider
-    private final GradleExecuterBackedSession executerBackedSession
+    private final ForkingGradleSession executerBackedSession
     private ProjectConnection projectConnection
 
-    ToolingApiBackedGradleSession(GradleInvocationSpec invocation, TestDirectoryProvider testDirectoryProvider) {
-        this.testDirectoryProvider = testDirectoryProvider
+    ToolingApiBackedGradleSession(GradleInvocationSpec invocation) {
         this.invocation = invocation
-        this.executerBackedSession = new GradleExecuterBackedSession(invocation, testDirectoryProvider)
+        this.executerBackedSession = new ForkingGradleSession(invocation, IntegrationTestBuildContext.INSTANCE)
     }
 
     @Override
@@ -44,25 +45,51 @@ class ToolingApiBackedGradleSession implements GradleSession {
 
         DefaultGradleConnector connector = GradleConnector.newConnector() as DefaultGradleConnector
         projectConnection = connector
-                .daemonBaseDir(testDirectoryProvider.testDirectory.file("daemon"))
+                .daemonBaseDir(new File(invocation.workingDirectory, "daemon"))
                 .forProjectDirectory(invocation.workingDirectory)
-                .useInstallation(invocation.gradleDistribution.gradleHomeDir)
-                .useGradleUserHomeDir(testDirectoryProvider.testDirectory.file("gradleUserHome"))
+                .useInstallation(new PerformanceTestGradleDistribution(invocation.gradleDistribution, invocation.workingDirectory).gradleHomeDir)
+                .useGradleUserHomeDir(new File(invocation.workingDirectory, "gradleUserHome"))
                 .connect()
     }
 
 
-    Runnable runner(final BuildExperimentInvocationInfo invocationInfo, InvocationCustomizer invocationCustomizer) {
+    @Override
+    Action<MeasuredOperation> runner(final BuildExperimentInvocationInfo invocationInfo, InvocationCustomizer invocationCustomizer) {
         def invocation = invocationCustomizer ? invocationCustomizer.customize(invocationInfo, this.invocation) : this.invocation
+        BuildLauncher cleanLauncher
+        def cleanTasks = invocation.cleanTasks
+        if (cleanTasks) {
+            cleanLauncher = configureLauncher(invocation, cleanTasks)
+        } else {
+            cleanLauncher = null
+        }
 
+        def tasksToRun = invocation.tasksToRun
+        BuildLauncher buildLauncher = configureLauncher(invocation, tasksToRun)
+
+        return { MeasuredOperation measuredOperation ->
+            if (cleanLauncher != null) {
+                System.out.println("Cleaning up by running Gradle tasks: " + Joiner.on(" ").join(cleanTasks));
+                cleanLauncher.run()
+            }
+            System.out.println("Measuring Gradle tasks: " + Joiner.on(" ").join(tasksToRun));
+            DurationMeasurementImpl.measure(measuredOperation, new Runnable() {
+                @Override
+                void run() {
+                    buildLauncher.run()
+                }
+            })
+        } as Action<MeasuredOperation>
+    }
+
+    private BuildLauncher configureLauncher(GradleInvocationSpec invocation, List<String> tasks) {
         BuildLauncher buildLauncher = projectConnection.newBuild()
             .withArguments(invocation.args + ["-u"] as String[])
-            .forTasks(invocation.tasksToRun as String[])
+            .forTasks(tasks as String[])
             .setJvmArguments(invocation.jvmOpts as String[])
             .setStandardOutput(System.out)
             .setStandardError(System.err)
-
-        return { buildLauncher.run() }
+        buildLauncher
     }
 
     @Override

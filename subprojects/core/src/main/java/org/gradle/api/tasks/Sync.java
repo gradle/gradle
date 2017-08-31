@@ -41,7 +41,7 @@ import java.io.File;
  *
  * <p>
  * Examples:
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  *
  * // Sync can be used like a Copy task
  * // See the Copy documentation for more examples
@@ -74,7 +74,7 @@ public class Sync extends AbstractCopyTask {
         if (destinationDir == null) {
             throw new InvalidUserDataException("No copy destination directory has been specified, use 'into' to specify a target directory.");
         }
-        return new SyncCopyActionDecorator(destinationDir, new FileCopyAction(getFileLookup().getFileResolver(destinationDir)), preserveInDestination);
+        return new SyncCopyActionDecorator(destinationDir, new FileCopyAction(getFileLookup().getFileResolver(destinationDir)), preserveInDestination, getDirectoryFileTreeFactory());
     }
 
     @Override

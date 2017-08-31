@@ -21,6 +21,8 @@
 /out
 /subprojects/*/*.iml
 /subprojects/*/out
+/.teamcity/*.iml
+/.teamcity/target
 
 # Eclipse
 # -------
@@ -43,6 +45,8 @@ atlassian-ide-plugin.xml
 # Emacs
 # -----
 *~
+\#*\#
+.\#*
 
 # Textmate
 # --------
@@ -72,3 +76,6 @@ atlassian-ide-plugin.xml
 # Logs
 # ----
 /*.log
+
+# oh-my-zsh gradle plugin
+.gradletasknamecache

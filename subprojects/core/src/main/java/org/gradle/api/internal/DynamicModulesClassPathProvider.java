@@ -19,10 +19,10 @@ import org.gradle.api.internal.classpath.Module;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.DefaultClassPath;
 
-import java.util.Arrays;
 import java.util.Set;
+
+import static java.util.Collections.emptySet;
 
 public class DynamicModulesClassPathProvider implements ClassPathProvider {
     private final ModuleRegistry moduleRegistry;
@@ -35,16 +35,20 @@ public class DynamicModulesClassPathProvider implements ClassPathProvider {
 
     public ClassPath findClassPath(String name) {
         if (name.equals("GRADLE_EXTENSIONS")) {
-            Set<Module> coreModules = moduleRegistry.getModule("gradle-core").getAllRequiredModules();
-            ClassPath classpath = new DefaultClassPath();
-            for (String moduleName : Arrays.asList("gradle-dependency-management", "gradle-plugin-use")) {
-                for (Module module : moduleRegistry.getModule(moduleName).getAllRequiredModules()) {
-                    if (!coreModules.contains(module)) {
-                        classpath = classpath.plus(module.getClasspath());
-                    }
-                }
+            Set<Module> coreModules = allRequiredModulesOf("gradle-core");
+            ClassPath classpath = ClassPath.EMPTY;
+            for (String moduleName : GRADLE_EXTENSION_MODULES) {
+                Set<Module> extensionModules = allRequiredModulesOf(moduleName);
+                classpath = plusExtensionModules(classpath, extensionModules, coreModules);
             }
-            for (Module pluginModule : pluginModuleRegistry.getPluginModules()) {
+            for (String moduleName : GRADLE_OPTIONAL_EXTENSION_MODULES) {
+                Set<Module> optionalExtensionModules = allRequiredModulesOfOptional(moduleName);
+                classpath = plusExtensionModules(classpath, optionalExtensionModules, coreModules);
+            }
+            for (Module pluginModule : pluginModuleRegistry.getApiModules()) {
+                classpath = classpath.plus(pluginModule.getClasspath());
+            }
+            for (Module pluginModule : pluginModuleRegistry.getImplementationModules()) {
                 classpath = classpath.plus(pluginModule.getClasspath());
             }
             return classpath;
@@ -52,4 +56,35 @@ public class DynamicModulesClassPathProvider implements ClassPathProvider {
 
         return null;
     }
+
+    private Set<Module> allRequiredModulesOf(String name) {
+        return moduleRegistry.getModule(name).getAllRequiredModules();
+    }
+
+    private Set<Module> allRequiredModulesOfOptional(String moduleName) {
+        Module optionalModule = moduleRegistry.findModule(moduleName);
+        if (optionalModule != null) {
+            return optionalModule.getAllRequiredModules();
+        }
+        return emptySet();
+    }
+
+    private ClassPath plusExtensionModules(ClassPath classpath, Set<Module> extensionModules, Set<Module> coreModules) {
+        for (Module module : extensionModules) {
+            if (!coreModules.contains(module)) {
+                classpath = classpath.plus(module.getClasspath());
+            }
+        }
+        return classpath;
+    }
+
+    private static final String[] GRADLE_EXTENSION_MODULES = {
+        "gradle-workers",
+        "gradle-dependency-management",
+        "gradle-plugin-use"
+    };
+
+    private static final String[] GRADLE_OPTIONAL_EXTENSION_MODULES = {
+        "gradle-kotlin-dsl-tooling-builders"
+    };
 }

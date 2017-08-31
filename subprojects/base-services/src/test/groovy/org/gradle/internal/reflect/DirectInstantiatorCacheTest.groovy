@@ -18,25 +18,40 @@ package org.gradle.internal.reflect
 
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class DirectInstantiatorCacheTest extends Specification {
 
     @Shared
     def cache = new DirectInstantiator.ConstructorCache()
 
+    @Unroll("constructor cache returns the same constructors as 'getConstructors' for #clazz")
     def "constructor cache returns the same constructors as 'getConstructors'"() {
+        given:
+        def constructor = null
+        int i = 0
+        while (!constructor && ++i<50) {
+            // need a loop because IBM JDK is much more proactive in cleaning weak references
+            constructor = cache.get(clazz, [] as Class[]).method
+        }
+        def constructors = clazz.getConstructors().toList()
+
         expect:
-        cache.get(clazz).toList() == clazz.getConstructors().toList()
-        cache.cache.size() == expectedCacheSize
+        constructor == constructors.find { it.parameterTypes.length == 0 }
+        cache.size() == expectedCacheSize
 
         where:
         clazz              | expectedCacheSize
-        String             | 1
+        Foo                | 1
         LinkedList         | 2
         ArrayList          | 3
-        JavaMethod         | 4
-        String             | 4
+        HashSet            | 4
+        Foo                | 4
         ArrayList          | 4
         JavaReflectionUtil | 5
+    }
+
+    static class Foo {
+        public Foo() {}
     }
 }

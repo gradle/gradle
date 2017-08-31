@@ -166,9 +166,7 @@ dependencies {
 
         given:
         buildFile << """
-repositories {
-    mavenCentral()
-}
+${mavenCentralRepository()}
 
 configurations {
     compile
@@ -192,8 +190,8 @@ task check {
         def filteredFiles = compile.resolvedConfiguration.getFiles({ it.name == 'logback-classic' } as Spec)
         assert filteredFiles.collect { it.name } == [
             'logback-classic-0.9.30.jar',
-             'logback-core-0.9.30.jar',
-              'slf4j-api-1.6.2.jar'
+            'slf4j-api-1.6.2.jar',
+            'logback-core-0.9.30.jar'
         ]
     }
 }

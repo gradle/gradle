@@ -17,9 +17,10 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.base.Objects;
-import com.google.common.hash.HashCode;
+import org.gradle.internal.file.FileType;
+import org.gradle.internal.hash.HashCode;
 
-class FileHashSnapshot implements IncrementalFileSnapshot {
+public class FileHashSnapshot implements FileContentSnapshot {
     private final HashCode hash;
     private final transient long lastModified; // Currently not persisted
 
@@ -32,7 +33,7 @@ class FileHashSnapshot implements IncrementalFileSnapshot {
         this.lastModified = lastModified;
     }
 
-    public boolean isContentUpToDate(IncrementalFileSnapshot snapshot) {
+    public boolean isContentUpToDate(FileContentSnapshot snapshot) {
         if (!(snapshot instanceof FileHashSnapshot)) {
             return false;
         }
@@ -41,7 +42,7 @@ class FileHashSnapshot implements IncrementalFileSnapshot {
     }
 
     @Override
-    public boolean isContentAndMetadataUpToDate(IncrementalFileSnapshot snapshot) {
+    public boolean isContentAndMetadataUpToDate(FileContentSnapshot snapshot) {
         if (!(snapshot instanceof FileHashSnapshot)) {
             return false;
         }
@@ -72,7 +73,12 @@ class FileHashSnapshot implements IncrementalFileSnapshot {
     }
 
     @Override
-    public HashCode getHash() {
+    public FileType getType() {
+        return FileType.RegularFile;
+    }
+
+    @Override
+    public HashCode getContentMd5() {
         return hash;
     }
 }

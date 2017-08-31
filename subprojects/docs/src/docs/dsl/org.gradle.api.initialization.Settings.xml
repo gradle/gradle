@@ -8,6 +8,9 @@
                 </tr>
             </thead>
             <tr>
+                <td>buildCache</td>
+            </tr>
+            <tr>
                 <td>gradle</td>
             </tr>
             <tr>
@@ -35,6 +38,9 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>buildCache</td>
+            </tr>
             <tr>
                 <td>include</td>
             </tr>

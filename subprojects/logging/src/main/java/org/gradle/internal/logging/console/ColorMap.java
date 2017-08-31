@@ -17,13 +17,16 @@
 package org.gradle.internal.logging.console;
 
 import org.fusesource.jansi.Ansi;
+import org.gradle.internal.logging.text.Style;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
 public interface ColorMap {
     Color getColourFor(StyledTextOutput.Style style);
 
+    Color getColourFor(Style style);
+
     Color getStatusBarColor();
-    
+
     interface Color {
         void on(Ansi ansi);
 

@@ -16,12 +16,12 @@
 
 package org.gradle.api.tasks
 
-class CachedPathSensitivityIntegrationTest extends AbstractPathSensitivityIntegrationSpec {
-    File cacheDir
+import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import spock.lang.Unroll
 
+@Unroll
+class CachedPathSensitivityIntegrationTest extends AbstractPathSensitivityIntegrationSpec implements DirectoryBuildCacheFixture {
     def setup() {
-        // Make sure cache dir is empty for every test execution
-        cacheDir = temporaryFolder.file("cache-dir").deleteDir().createDir()
         buildFile << """
             task clean {
                 doLast {
@@ -33,13 +33,46 @@ class CachedPathSensitivityIntegrationTest extends AbstractPathSensitivityIntegr
 
     @Override
     void execute(String... tasks) {
-        executer.withArgument "-Dorg.gradle.cache.tasks=true"
-        executer.withArgument "-Dorg.gradle.cache.tasks.directory=" + cacheDir.absolutePath
-        succeeds tasks
+        withBuildCache().succeeds tasks
     }
 
     @Override
     void cleanWorkspace() {
         run "clean"
+    }
+
+    def "single #pathSensitivity input file loaded from cache can be used as input"() {
+        file("src/data/input.txt").text = "data"
+
+        buildFile << """
+            task producer {
+                outputs.cacheIf { true }
+                outputs.file("outputs/producer.txt")
+                doLast {
+                    mkdir("outputs")
+                    file("outputs/producer.txt").text = "alma"
+                }
+            }
+            
+            task consumer {
+                dependsOn producer
+                outputs.cacheIf { true }
+                inputs.file("outputs/producer.txt").withPathSensitivity(PathSensitivity.$pathSensitivity)
+                outputs.file("outputs/consumer.txt")
+                doLast {
+                    file("outputs/consumer.txt").text = file("outputs/producer.txt").text
+                }
+            }
+        """
+
+        withBuildCache().succeeds "consumer"
+        run "clean"
+
+        expect:
+        withBuildCache().succeeds "consumer"
+        skipped ":producer", ":consumer"
+
+        where:
+        pathSensitivity << PathSensitivity.values()
     }
 }

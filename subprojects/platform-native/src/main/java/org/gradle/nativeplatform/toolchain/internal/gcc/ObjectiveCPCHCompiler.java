@@ -17,14 +17,16 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import org.gradle.internal.Transformers;
-import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCPCHCompileSpec;
 
 public class ObjectiveCPCHCompiler extends GccCompatibleNativeCompiler<ObjectiveCPCHCompileSpec> {
-    public ObjectiveCPCHCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile) {
-        super(buildOperationProcessor, commandLineTool, invocationContext, new ObjectiveCPCHCompileArgsTransformer(), Transformers.<ObjectiveCPCHCompileSpec>noOpTransformer(), objectFileExtension, useCommandFile);
+    public ObjectiveCPCHCompiler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile, WorkerLeaseService workerLeaseService) {
+        super(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, invocationContext, new ObjectiveCPCHCompileArgsTransformer(), Transformers.<ObjectiveCPCHCompileSpec>noOpTransformer(), objectFileExtension, useCommandFile, workerLeaseService);
     }
 
     private static class ObjectiveCPCHCompileArgsTransformer extends GccCompilerArgsTransformer<ObjectiveCPCHCompileSpec> {

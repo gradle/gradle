@@ -17,13 +17,13 @@ package org.gradle.launcher.daemon.configuration;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,10 +32,10 @@ import java.util.Map;
 
 public class DaemonParameters {
     static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
-    static final int DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS = 10 * 1000;
+    public static final int DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS = 10 * 1000;
 
     public static final List<String> DEFAULT_JVM_ARGS = ImmutableList.of("-Xmx1024m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError");
-    public static final List<String> DEFAULT_JVM_9_ARGS = ImmutableList.of("-Xmx1024m", "-XX:+HeapDumpOnOutOfMemoryError");
+    public static final List<String> DEFAULT_JVM_8_ARGS = ImmutableList.of("-Xmx1024m", "-XX:+HeapDumpOnOutOfMemoryError");
     public static final String INTERACTIVE_TOGGLE = "org.gradle.interactive";
 
     private final File gradleUserHomeDir;
@@ -45,8 +45,10 @@ public class DaemonParameters {
 
     private int periodicCheckInterval = DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS;
     private final DaemonJvmOptions jvmOptions = new DaemonJvmOptions(new IdentityFileResolver());
+    private Map<String, String> envVariables;
     private boolean enabled = true;
     private boolean hasJvmArgs;
+    private boolean userDefinedImmutableJvmArgs;
     private boolean foreground;
     private boolean stop;
     private boolean status;
@@ -58,9 +60,15 @@ public class DaemonParameters {
     }
 
     public DaemonParameters(BuildLayoutParameters layout, Map<String, String> extraSystemProperties) {
-        jvmOptions.systemProperties(extraSystemProperties);
+        if (!extraSystemProperties.isEmpty()) {
+            List<String> immutableBefore = jvmOptions.getAllImmutableJvmArgs();
+            jvmOptions.systemProperties(extraSystemProperties);
+            List<String> immutableAfter = jvmOptions.getAllImmutableJvmArgs();
+            userDefinedImmutableJvmArgs = !immutableBefore.equals(immutableAfter);
+        }
         baseDir = new File(layout.getGradleUserHomeDir(), "daemon");
         gradleUserHomeDir = layout.getGradleUserHomeDir();
+        envVariables = new HashMap<String, String>(System.getenv());
     }
 
     public boolean isInteractive() {
@@ -121,8 +129,8 @@ public class DaemonParameters {
         if (hasJvmArgs) {
             return;
         }
-        if (javaVersion.compareTo(JavaVersion.VERSION_1_9) >= 0) {
-            jvmOptions.jvmArgs(DEFAULT_JVM_9_ARGS);
+        if (javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0) {
+            jvmOptions.jvmArgs(DEFAULT_JVM_8_ARGS);
         } else {
             jvmOptions.jvmArgs(DEFAULT_JVM_ARGS);
         }
@@ -144,10 +152,22 @@ public class DaemonParameters {
 
     public void setJvmArgs(Iterable<String> jvmArgs) {
         hasJvmArgs = true;
+        List<String> immutableBefore = jvmOptions.getAllImmutableJvmArgs();
         jvmOptions.setAllJvmArgs(jvmArgs);
+        List<String> immutableAfter = jvmOptions.getAllImmutableJvmArgs();
+        userDefinedImmutableJvmArgs = userDefinedImmutableJvmArgs || !immutableBefore.equals(immutableAfter);
+    }
+
+    public boolean hasUserDefinedImmutableJvmArgs() {
+        return userDefinedImmutableJvmArgs;
+    }
+
+    public void setEnvironmentVariables(Map<String, String> envVariables) {
+        this.envVariables = envVariables == null ? new HashMap<String, String>(System.getenv()) : envVariables;
     }
 
     public void setDebug(boolean debug) {
+        userDefinedImmutableJvmArgs = userDefinedImmutableJvmArgs || debug;
         jvmOptions.setDebug(debug);
     }
 
@@ -182,5 +202,9 @@ public class DaemonParameters {
 
     public void setStatus(boolean status) {
         this.status = status;
+    }
+
+    public Map<String, String> getEnvironmentVariables() {
+        return envVariables;
     }
 }

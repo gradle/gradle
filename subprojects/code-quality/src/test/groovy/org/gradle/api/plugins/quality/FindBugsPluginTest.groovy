@@ -84,7 +84,7 @@ class FindBugsPluginTest extends AbstractProjectBuilderSpec {
             description == "Run FindBugs analysis for ${sourceSet.name} classes"
             source as List == sourceSet.allJava as List
             findbugsClasspath == project.configurations.findbugs
-            classes.empty // no classes to analyze
+            candidateClassFiles.empty // no classes to analyze
             reports.xml.destination == project.file("build/reports/findbugs/${sourceSet.name}.xml")
             !ignoreFailures
             effort == null
@@ -250,7 +250,7 @@ class FindBugsPluginTest extends AbstractProjectBuilderSpec {
             html {
                 enabled true
             }
-            xml.destination "foo"
+            xml.destination project.file("foo")
         }
 
         then:

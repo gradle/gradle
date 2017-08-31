@@ -17,7 +17,6 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.GradleVersion
@@ -25,6 +24,7 @@ import org.gradle.util.TextUtil
 import org.gradle.util.UsesNativeServices
 import spock.lang.FailsWith
 import spock.lang.Issue
+
 // TODO: This needs a better home - Possibly in the test kit package in the future
 
 @UsesNativeServices
@@ -32,15 +32,13 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
     def testProjectPath
     def gradleUserHome
 
-    def buildContext = new IntegrationTestBuildContext()
-
     def setup() {
         testProjectPath = TextUtil.normaliseFileSeparators(file("test-project-dir").absolutePath)
         gradleUserHome = TextUtil.normaliseFileSeparators(buildContext.gradleUserHomeDir.absolutePath)
     }
 
     @Issue("GRADLE-2358")
-    @FailsWith(UnexpectedBuildFailure) // Test is currently failing
+    @FailsWith(UnexpectedBuildFailure)
     def "can reference plugin by id in unit test"() {
 
         given:
@@ -194,9 +192,7 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
         """
             apply plugin: 'groovy'
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 compile gradleApi()

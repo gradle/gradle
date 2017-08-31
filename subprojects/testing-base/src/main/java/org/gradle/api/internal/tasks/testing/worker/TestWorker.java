@@ -21,20 +21,19 @@ import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
-import org.gradle.internal.time.TimeProvider;
-import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.actor.ActorFactory;
+import org.gradle.internal.actor.internal.DefaultActorFactory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.dispatch.ContextClassLoaderProxy;
 import org.gradle.internal.id.CompositeIdGenerator;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
+import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.actor.ActorFactory;
-import org.gradle.internal.actor.internal.DefaultActorFactory;
-import org.gradle.internal.dispatch.ContextClassLoaderProxy;
-import org.gradle.internal.remote.ObjectConnection;
+import org.gradle.internal.time.TimeProvider;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -131,7 +130,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         }
 
         protected TimeProvider createTimeProvider() {
-            return new TrueTimeProvider();
+            return workerProcessContext.getServiceRegistry().get(TimeProvider.class);
         }
 
         protected IdGenerator<Object> createIdGenerator() {

@@ -16,7 +16,13 @@
 
 package org.gradle.api.tasks.diagnostics.internal.insight;
 
-import org.gradle.api.artifacts.component.*;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.VersionInfo;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyEdge;
@@ -37,11 +43,11 @@ public class DependencyResultSorter {
 
     private static class DependencyComparator implements Comparator<DependencyEdge> {
         private final VersionSelectorScheme versionSelectorScheme;
-        private final Comparator<String> versionComparator;
+        private final VersionComparator versionComparator;
 
         private DependencyComparator(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator) {
             this.versionSelectorScheme = versionSelectorScheme;
-            this.versionComparator = versionComparator.asStringComparator();
+            this.versionComparator = versionComparator;
         }
 
         @Override
@@ -187,7 +193,7 @@ public class DependencyResultSorter {
         }
 
         private int compareVersions(String left, String right) {
-            return versionComparator.compare(left, right);
+            return versionComparator.compare(new VersionInfo(left), new VersionInfo(right));
         }
 
         private boolean isLeftAndRightFromProjectComponentIdentifier(ComponentIdentifier left, ComponentIdentifier right) {

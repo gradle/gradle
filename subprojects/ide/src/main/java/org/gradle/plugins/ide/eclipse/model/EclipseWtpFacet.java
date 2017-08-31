@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.eclipse.model;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.util.ConfigureUtil;
 
@@ -25,12 +26,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static org.gradle.util.ConfigureUtil.configure;
+
 /**
  * Enables fine-tuning wtp facet details of the Eclipse plugin
  * <p>
  * Advanced configuration closures beforeMerged and whenMerged receive {@link WtpFacet} object as parameter.
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'war' //or 'ear' or 'java'
  * apply plugin: 'eclipse-wtp'
  *
@@ -52,13 +55,13 @@ import java.util.Map;
  *
  *         //closure executed after wtp facet file content is loaded from existing file
  *         //but before gradle build information is merged
- *         beforeMerged { wtpFacet ->
+ *         beforeMerged { wtpFacet -&gt;
  *           //tinker with {@link WtpFacet} here
  *         }
  *
  *         //closure executed after wtp facet file content is loaded from existing file
  *         //and after gradle build information is merged
- *         whenMerged { wtpFacet ->
+ *         whenMerged { wtpFacet -&gt;
  *           //you can tinker with the {@link WtpFacet} here
  *         }
  *       }
@@ -79,7 +82,7 @@ public class EclipseWtpFacet {
     }
 
     /**
-     * See {@link #file(Closure) }
+     * See {@link #file(Action) }
      */
     public XmlFileContentMerger getFile() {
         return file;
@@ -95,7 +98,20 @@ public class EclipseWtpFacet {
      * For example see docs for {@link EclipseWtpFacet}
      */
     public void file(Closure closure) {
-        ConfigureUtil.configure(closure, file);
+        configure(closure, file);
+    }
+
+    /**
+     * Enables advanced configuration like tinkering with the output XML
+     * or affecting the way existing wtp facet file content is merged with gradle build information.
+     * <p>
+     *
+     * For example see docs for {@link EclipseWtpFacet}
+     *
+     * @since 3.5
+     */
+    public void file(Action<? super XmlFileContentMerger> action) {
+        action.execute(file);
     }
 
     /**

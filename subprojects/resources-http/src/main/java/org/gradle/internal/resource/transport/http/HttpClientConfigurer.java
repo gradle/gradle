@@ -20,22 +20,41 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.auth.*;
+import org.apache.http.auth.AuthScheme;
+import org.apache.http.auth.AuthSchemeProvider;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.AuthState;
+import org.apache.http.auth.Credentials;
+import org.apache.http.auth.NTCredentials;
+import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.AuthSchemes;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.utils.DateUtils;
 import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.auth.*;
+import org.apache.http.conn.util.PublicSuffixMatcher;
+import org.apache.http.conn.util.PublicSuffixMatcherLoader;
+import org.apache.http.cookie.CookieSpecProvider;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.auth.BasicSchemeFactory;
+import org.apache.http.impl.auth.DigestSchemeFactory;
+import org.apache.http.impl.auth.KerberosSchemeFactory;
+import org.apache.http.impl.auth.SPNegoSchemeFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
 import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
+import org.apache.http.impl.cookie.DefaultCookieSpecProvider;
+import org.apache.http.impl.cookie.IgnoreSpecProvider;
+import org.apache.http.impl.cookie.NetscapeDraftSpecProvider;
+import org.apache.http.impl.cookie.RFC6265CookieSpecProvider;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
-import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.api.specs.Spec;
 import org.gradle.authentication.Authentication;
 import org.gradle.authentication.http.BasicAuthentication;
@@ -50,6 +69,7 @@ import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.HostnameVerifier;
 import java.io.IOException;
 import java.net.ProxySelector;
 import java.util.Collection;
@@ -57,7 +77,7 @@ import java.util.Collections;
 
 public class HttpClientConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientConfigurer.class);
-
+    private static final int MAX_HTTP_CONNECTIONS = 20;
     private final HttpSettings httpSettings;
 
     public HttpClientConfigurer(HttpSettings httpSettings) {
@@ -66,16 +86,20 @@ public class HttpClientConfigurer {
 
     public void configure(HttpClientBuilder builder) {
         SystemDefaultCredentialsProvider credentialsProvider = new SystemDefaultCredentialsProvider();
-        configureSslSocketConnectionFactory(builder, httpSettings.getSslContextFactory());
+        configureSslSocketConnectionFactory(builder, httpSettings.getSslContextFactory(), httpSettings.getHostnameVerifier());
         configureAuthSchemeRegistry(builder);
         configureCredentials(builder, credentialsProvider, httpSettings.getAuthenticationSettings());
         configureProxy(builder, credentialsProvider, httpSettings);
         configureUserAgent(builder);
+        configureCookieSpecRegistry(builder);
+        configureRequestConfig(builder);
         builder.setDefaultCredentialsProvider(credentialsProvider);
+        builder.setMaxConnTotal(MAX_HTTP_CONNECTIONS);
+        builder.setMaxConnPerRoute(MAX_HTTP_CONNECTIONS);
     }
 
-    private void configureSslSocketConnectionFactory(HttpClientBuilder builder, SslContextFactory sslContextFactory) {
-        builder.setSSLSocketFactory(new SSLConnectionSocketFactory(sslContextFactory.createSslContext(), new DefaultHostnameVerifier(null)));
+    private void configureSslSocketConnectionFactory(HttpClientBuilder builder, SslContextFactory sslContextFactory, HostnameVerifier hostnameVerifier) {
+        builder.setSSLSocketFactory(new SSLConnectionSocketFactory(sslContextFactory.createSslContext(), hostnameVerifier));
     }
 
     private void configureAuthSchemeRegistry(HttpClientBuilder builder) {
@@ -144,6 +168,41 @@ public class HttpClientConfigurer {
 
     public void configureUserAgent(HttpClientBuilder builder) {
         builder.setUserAgent(UriTextResource.getUserAgentString());
+    }
+
+    private void configureCookieSpecRegistry(HttpClientBuilder builder) {
+        PublicSuffixMatcher publicSuffixMatcher = PublicSuffixMatcherLoader.getDefault();
+        builder.setPublicSuffixMatcher(publicSuffixMatcher);
+        // Add more data patterns to the default configuration to work around https://github.com/gradle/gradle/issues/1596
+        final CookieSpecProvider defaultProvider = new DefaultCookieSpecProvider(DefaultCookieSpecProvider.CompatibilityLevel.DEFAULT, publicSuffixMatcher, new String[]{
+            "EEE, dd-MMM-yy HH:mm:ss z", // Netscape expires pattern
+            DateUtils.PATTERN_RFC1036,
+            DateUtils.PATTERN_ASCTIME,
+            DateUtils.PATTERN_RFC1123
+        }, false);
+        final CookieSpecProvider laxStandardProvider = new RFC6265CookieSpecProvider(
+            RFC6265CookieSpecProvider.CompatibilityLevel.RELAXED, publicSuffixMatcher);
+        final CookieSpecProvider strictStandardProvider = new RFC6265CookieSpecProvider(
+            RFC6265CookieSpecProvider.CompatibilityLevel.STRICT, publicSuffixMatcher);
+        builder.setDefaultCookieSpecRegistry(RegistryBuilder.<CookieSpecProvider>create()
+            .register(CookieSpecs.DEFAULT, defaultProvider)
+            .register("best-match", defaultProvider)
+            .register("compatibility", defaultProvider)
+            .register(CookieSpecs.STANDARD, laxStandardProvider)
+            .register(CookieSpecs.STANDARD_STRICT, strictStandardProvider)
+            .register(CookieSpecs.NETSCAPE, new NetscapeDraftSpecProvider())
+            .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecProvider())
+            .build()
+        );
+    }
+
+    private void configureRequestConfig(HttpClientBuilder builder) {
+        HttpTimeoutSettings timeoutSettings = httpSettings.getTimeoutSettings();
+        RequestConfig config = RequestConfig.custom()
+            .setConnectTimeout(timeoutSettings.getConnectionTimeout())
+            .setSocketTimeout(timeoutSettings.getSocketTimeout())
+            .build();
+        builder.setDefaultRequestConfig(config);
     }
 
     private PasswordCredentials getPasswordCredentials(Authentication authentication) {

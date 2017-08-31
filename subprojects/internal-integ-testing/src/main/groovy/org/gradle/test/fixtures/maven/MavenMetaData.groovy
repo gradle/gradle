@@ -16,7 +16,8 @@
 
 package org.gradle.test.fixtures.maven
 
-public interface MavenMetaData {
-    List<String> getVersions();
+import org.gradle.test.fixtures.ModuleArtifact
 
+interface MavenMetaData extends ModuleArtifact {
+    List<String> getVersions();
 }

@@ -73,7 +73,7 @@ public class PerformanceTest extends DistributionTest {
         return runs;
     }
 
-    @Option(option = "checks", description = "Tells which regressions to check. One of [none, speed, memory, all]")
+    @Option(option = "checks", description = "Tells which regressions to check. One of [none, speed, all]")
     public void setChecks(String checks) {
         this.checks = checks;
         systemProperty("org.gradle.performance.execution.checks", checks);
@@ -110,5 +110,10 @@ public class PerformanceTest extends DistributionTest {
             File artifactsDirectory = new File(getDebugArtifactsDirectory(), "flames");
             systemProperty("org.gradle.performance.honestprofiler", artifactsDirectory.getAbsolutePath());
         }
+    }
+
+    @Option(option = "sampling-interval", description = "How many ms to wait between two samples when profiling")
+    public void setSamplingInterval(String samplingInterval) {
+        systemProperty("org.gradle.performance.samplinginterval", samplingInterval);
     }
 }

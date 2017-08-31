@@ -19,11 +19,16 @@ package org.gradle.model.internal.type;
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 
+import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.*;
+import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.lang.reflect.WildcardType;
 import java.util.Collections;
 import java.util.List;
 
@@ -110,6 +115,22 @@ public abstract class ModelType<T> {
 
     public boolean isParameterized() {
         return wrapper instanceof ParameterizedTypeWrapper;
+    }
+
+    public ModelType<?> getRawType() {
+        return Simple.typed(((ParameterizedTypeWrapper) wrapper).getRawType());
+    }
+
+    public ModelType<?> withArguments(List<ModelType<?>> types) {
+        return Simple.typed(((ParameterizedTypeWrapper) wrapper).substituteAll(toWrappers(types)));
+    }
+
+    public boolean isGenericArray() {
+        return wrapper instanceof GenericArrayTypeWrapper;
+    }
+
+    public ModelType<?> getComponentType() {
+        return Simple.typed(((GenericArrayTypeWrapper) wrapper).getComponentType());
     }
 
     public List<ModelType<?>> getTypeVariables() {
@@ -266,7 +287,7 @@ public abstract class ModelType<T> {
         }
 
         public ModelType<T> build() {
-            return Simple.typed((TypeWrapper) wrapper);
+            return Simple.typed(wrapper);
         }
     }
 
@@ -330,6 +351,19 @@ public abstract class ModelType<T> {
             int i = 0;
             for (Type type : types) {
                 wrappers[i++] = wrap(type);
+            }
+            return wrappers;
+        }
+    }
+
+    static TypeWrapper[] toWrappers(List<ModelType<?>> types) {
+        if (types.isEmpty()) {
+            return EMPTY_TYPE_WRAPPER_ARRAY;
+        } else {
+            TypeWrapper[] wrappers = new TypeWrapper[types.size()];
+            int i = 0;
+            for (ModelType<?> type : types) {
+                wrappers[i++] = type.wrapper;
             }
             return wrappers;
         }

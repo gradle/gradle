@@ -20,27 +20,37 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.configuration.ConsoleOutput;
-import org.gradle.internal.time.TrueTimeProvider;
+import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.logging.config.LoggingRouter;
 import org.gradle.internal.logging.console.AnsiConsole;
+import org.gradle.internal.logging.console.BuildLogLevelFilterRenderer;
+import org.gradle.internal.logging.console.BuildStatusRenderer;
 import org.gradle.internal.logging.console.ColorMap;
 import org.gradle.internal.logging.console.Console;
-import org.gradle.internal.logging.console.ConsoleBackedProgressRenderer;
+import org.gradle.internal.logging.console.ConsoleLayoutCalculator;
 import org.gradle.internal.logging.console.DefaultColorMap;
-import org.gradle.internal.logging.console.DefaultStatusBarFormatter;
+import org.gradle.internal.logging.console.DefaultWorkInProgressFormatter;
 import org.gradle.internal.logging.console.StyledTextOutputBackedRenderer;
+import org.gradle.internal.logging.console.ThrottlingOutputEventListener;
+import org.gradle.internal.logging.console.WorkInProgressRenderer;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.events.ProgressCompleteEvent;
+import org.gradle.internal.logging.events.ProgressEvent;
+import org.gradle.internal.logging.events.ProgressStartEvent;
+import org.gradle.internal.logging.format.PrettyPrefixedLogHeaderFormatter;
 import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
 import org.gradle.internal.logging.text.StreamingStyledTextOutput;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
+import org.gradle.internal.time.TimeProvider;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A {@link OutputEventListener} implementation which renders output events to various
@@ -48,32 +58,43 @@ import java.io.OutputStreamWriter;
  */
 @ThreadSafe
 public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
+    private final Object lock = new Object();
+    private final AtomicReference<LogLevel> logLevel = new AtomicReference<LogLevel>(LogLevel.LIFECYCLE);
+    private final TimeProvider timeProvider;
     private final ListenerBroadcast<OutputEventListener> formatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
     private final ListenerBroadcast<StandardOutputListener> stdoutListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
     private final ListenerBroadcast<StandardOutputListener> stderrListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
-    private final Object lock = new Object();
-    private final DefaultColorMap colourMap = new DefaultColorMap();
-    private LogLevel logLevel = LogLevel.LIFECYCLE;
-    private final ConsoleConfigureAction consoleConfigureAction;
+
+    private ColorMap colourMap;
     private OutputStream originalStdOut;
     private OutputStream originalStdErr;
     private StreamBackedStandardOutputListener stdOutListener;
     private StreamBackedStandardOutputListener stdErrListener;
     private OutputEventListener console;
 
-    public OutputEventRenderer() {
-        OutputEventListener stdOutChain = onNonError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false));
+    public OutputEventRenderer(TimeProvider timeProvider) {
+        this.timeProvider = timeProvider;
+        OutputEventListener stdOutChain = new LazyListener(new Factory<OutputEventListener>() {
+            @Override
+            public OutputEventListener create() {
+                return onNonError(new BuildLogLevelFilterRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false)));
+            }
+        });
         formatters.add(stdOutChain);
-        OutputEventListener stdErrChain = onError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource())), false));
+        OutputEventListener stdErrChain = new LazyListener(new Factory<OutputEventListener>() {
+            @Override
+            public OutputEventListener create() {
+                return onError(new BuildLogLevelFilterRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource())), false)));
+            }
+        });
         formatters.add(stdErrChain);
-        this.consoleConfigureAction = new ConsoleConfigureAction();
     }
 
     @Override
     public Snapshot snapshot() {
         synchronized (lock) {
             // Currently only snapshot the console output listener. Should snapshot all output listeners, and cleanup in restore()
-            return new SnapshotImpl(logLevel, console);
+            return new SnapshotImpl(logLevel.get(), console);
         }
     }
 
@@ -81,11 +102,11 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     public void restore(Snapshot state) {
         synchronized (lock) {
             SnapshotImpl snapshot = (SnapshotImpl) state;
-            if (snapshot.logLevel != logLevel) {
+            if (snapshot.logLevel != logLevel.get()) {
                 configure(snapshot.logLevel);
             }
+
             // TODO - also close console when it is replaced
-            // TODO - remove console from formatters
             if (snapshot.console != console) {
                 if (snapshot.console == null) {
                     formatters.remove(console);
@@ -99,6 +120,11 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     public ColorMap getColourMap() {
+        synchronized (lock) {
+            if (colourMap == null) {
+                colourMap = new DefaultColorMap();
+            }
+        }
         return colourMap;
     }
 
@@ -112,15 +138,16 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
 
     public void attachProcessConsole(ConsoleOutput consoleOutput) {
         synchronized (lock) {
-            consoleConfigureAction.execute(this, consoleOutput);
+            ConsoleConfigureAction.execute(this, consoleOutput);
         }
     }
 
     public void attachAnsiConsole(OutputStream outputStream) {
         synchronized (lock) {
+            ConsoleMetaData consoleMetaData = new FallbackConsoleMetaData();
             OutputStreamWriter writer = new OutputStreamWriter(outputStream);
-            Console console = new AnsiConsole(writer, writer, colourMap, true);
-            addConsole(console, true, true, new FallbackConsoleMetaData());
+            Console console = new AnsiConsole(writer, writer, getColourMap(), consoleMetaData, true);
+            addConsole(console, true, true, consoleMetaData);
         }
     }
 
@@ -143,7 +170,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private void addStandardErrorListener() {
         synchronized (lock) {
             originalStdErr = System.err;
-            if(stdErrListener != null) {
+            if (stdErrListener != null) {
                 stderrListeners.remove(stdErrListener);
             }
             stdErrListener = new StreamBackedStandardOutputListener((Appendable) System.err);
@@ -162,7 +189,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
 
     private void removeStandardErrorListener() {
         synchronized (lock) {
-            if(stdErrListener != null) {
+            if (stdErrListener != null) {
                 stderrListeners.remove(stdErrListener);
                 stdErrListener = null;
             }
@@ -182,12 +209,14 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     public OutputEventRenderer addConsole(Console console, boolean stdout, boolean stderr, ConsoleMetaData consoleMetaData) {
-        final OutputEventListener consoleChain = new ConsoleBackedProgressRenderer(
-            new ProgressLogEventGenerator(
-                new StyledTextOutputBackedRenderer(console.getMainArea()), true),
-            console,
-            new DefaultStatusBarFormatter(consoleMetaData),
-            new TrueTimeProvider());
+        final OutputEventListener consoleChain = new ThrottlingOutputEventListener(
+            new BuildStatusRenderer(
+                new WorkInProgressRenderer(
+                    new BuildLogLevelFilterRenderer(
+                        new GroupingProgressLogEventGenerator(new StyledTextOutputBackedRenderer(console.getBuildOutputArea()), timeProvider, new PrettyPrefixedLogHeaderFormatter(), false)),
+                    console.getBuildProgressArea(), new DefaultWorkInProgressFormatter(consoleMetaData), new ConsoleLayoutCalculator(consoleMetaData)),
+                console.getStatusBar(), console, consoleMetaData, timeProvider),
+            timeProvider);
         synchronized (lock) {
             if (stdout && stderr) {
                 this.console = consoleChain;
@@ -200,7 +229,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                 this.console = onError(consoleChain);
                 removeStandardErrorListener();
             }
-            consoleChain.onOutput(new LogLevelChangeEvent(logLevel));
+            consoleChain.onOutput(new LogLevelChangeEvent(logLevel.get()));
             formatters.add(this.console);
         }
         return this;
@@ -263,30 +292,53 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         onOutput(new LogLevelChangeEvent(logLevel));
     }
 
+    @Override
     public void onOutput(OutputEvent event) {
-        synchronized (lock) {
-            if (event.getLogLevel() != null && event.getLogLevel().compareTo(logLevel) < 0) {
+        if (event.getLogLevel() != null && event.getLogLevel().compareTo(logLevel.get()) < 0 && !isProgressEvent(event)) {
+            return;
+        }
+        if (event instanceof LogLevelChangeEvent) {
+            LogLevelChangeEvent changeEvent = (LogLevelChangeEvent) event;
+            LogLevel newLogLevel = changeEvent.getNewLogLevel();
+            if (newLogLevel == this.logLevel.get()) {
                 return;
             }
-            if (event instanceof LogLevelChangeEvent) {
-                LogLevelChangeEvent changeEvent = (LogLevelChangeEvent) event;
-                LogLevel newLogLevel = changeEvent.getNewLogLevel();
-                if (newLogLevel == this.logLevel) {
-                    return;
-                }
-                this.logLevel = newLogLevel;
-            }
+            this.logLevel.set(newLogLevel);
+        }
+        synchronized (lock) {
             formatters.getSource().onOutput(event);
         }
     }
 
-    private class SnapshotImpl implements Snapshot {
+    private boolean isProgressEvent(OutputEvent event) {
+        return event instanceof ProgressStartEvent || event instanceof ProgressEvent || event instanceof ProgressCompleteEvent;
+    }
+
+    private static class SnapshotImpl implements Snapshot {
         private final LogLevel logLevel;
         private final OutputEventListener console;
 
         SnapshotImpl(LogLevel logLevel, OutputEventListener console) {
             this.logLevel = logLevel;
             this.console = console;
+        }
+    }
+
+    private static class LazyListener implements OutputEventListener {
+        private Factory<OutputEventListener> factory;
+        private OutputEventListener delegate;
+
+        private LazyListener(Factory<OutputEventListener> factory) {
+            this.factory = factory;
+        }
+
+        @Override
+        public void onOutput(OutputEvent event) {
+            if (delegate == null) {
+                delegate = factory.create();
+                factory = null;
+            }
+            delegate.onOutput(event);
         }
     }
 }

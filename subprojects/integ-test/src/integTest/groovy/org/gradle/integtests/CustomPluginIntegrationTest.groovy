@@ -18,8 +18,8 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 
-public class CustomPluginIntegrationTest extends AbstractIntegrationSpec {
-    public void "can reference plugin in buildSrc by id"() {
+class CustomPluginIntegrationTest extends AbstractIntegrationSpec {
+    void "can reference plugin in buildSrc by id"() {
         given:
         file('buildSrc/src/main/java/CustomPlugin.java') << '''
 import org.gradle.api.*;
@@ -46,7 +46,7 @@ task test
         succeeds('test')
     }
 
-    public void "can reference plugin in external jar by id"() {
+    void "can reference plugin in external jar by id"() {
         given:
         ArtifactBuilder builder = artifactBuilder()
         builder.sourceFile('CustomPlugin.java') << '''
@@ -80,7 +80,7 @@ task test
         succeeds('test')
     }
 
-    public void "loads plugin in correct environment"() {
+    void "loads plugin in correct environment"() {
         given:
         def implClassName = 'com.google.common.collect.Multimap'
         ArtifactBuilder builder = artifactBuilder()
@@ -158,7 +158,7 @@ class CustomPluginTest {
 
         buildFile << """
 apply plugin: 'groovy'
-repositories { mavenCentral() }
+${mavenCentralRepository()}
 dependencies {
     compile gradleApi()
     compile localGroovy()
@@ -199,7 +199,7 @@ class CustomPluginTest {
 
         buildFile << """
 apply plugin: 'groovy'
-repositories { mavenCentral() }
+${mavenCentralRepository()}
 dependencies {
     compile gradleApi()
     compile localGroovy()

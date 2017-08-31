@@ -17,8 +17,13 @@
 package org.gradle.tooling.model.idea;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
-import org.gradle.tooling.model.*;
+import org.gradle.tooling.model.DomainObjectSet;
+import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.HasGradleProject;
+import org.gradle.tooling.model.HierarchicalElement;
+import org.gradle.tooling.model.UnsupportedMethodException;
+
+import javax.annotation.Nullable;
 
 /**
  * Represents information about the IDEA module.
@@ -36,6 +41,15 @@ public interface IdeaModule extends HierarchicalElement, HasGradleProject {
      */
     @Nullable @Incubating
     IdeaJavaLanguageSettings getJavaLanguageSettings() throws UnsupportedMethodException;
+
+    /**
+     * Returns the name of the JDK.
+     *
+     * @return The name of the JDK.
+     * @since 3.4
+     */
+    @Incubating
+    String getJdkName() throws UnsupportedMethodException;
 
     /**
      * All content roots. Most idea modules have a single content root.

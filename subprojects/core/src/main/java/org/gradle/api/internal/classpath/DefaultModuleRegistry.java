@@ -15,16 +15,25 @@
  */
 package org.gradle.api.internal.classpath;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -40,7 +49,7 @@ public class DefaultModuleRegistry implements ModuleRegistry {
     private final Map<String, File> classpathJars = new LinkedHashMap<String, File>();
 
     public DefaultModuleRegistry(@Nullable GradleInstallation gradleInstallation) {
-        this(new DefaultClassPath(), gradleInstallation);
+        this(ClassPath.EMPTY, gradleInstallation);
     }
 
     public DefaultModuleRegistry(ClassPath additionalModuleClassPath, @Nullable GradleInstallation gradleInstallation) {
@@ -60,7 +69,7 @@ public class DefaultModuleRegistry implements ModuleRegistry {
 
     @Override
     public ClassPath getAdditionalClassPath() {
-        return gradleInstallation == null ? new DefaultClassPath(classpath) : new DefaultClassPath();
+        return gradleInstallation == null ? new DefaultClassPath(classpath) : ClassPath.EMPTY;
     }
 
     public Module getExternalModule(String name) {
@@ -80,7 +89,31 @@ public class DefaultModuleRegistry implements ModuleRegistry {
         return module;
     }
 
+    @Override
+    @Nullable
+    public Module findModule(String name) {
+        Module module = modules.get(name);
+        if (module == null) {
+            module = loadOptionalModule(name);
+            if (module != null) {
+                modules.put(name, module);
+            }
+        }
+        return module;
+    }
+
     private Module loadModule(String moduleName) {
+        Module module = loadOptionalModule(moduleName);
+        if (module != null) {
+            return module;
+        }
+        if (gradleInstallation == null) {
+            throw new UnknownModuleException(String.format("Cannot locate manifest for module '%s' in classpath: %s.", moduleName, classpath));
+        }
+        throw new UnknownModuleException(String.format("Cannot locate JAR for module '%s' in distribution directory '%s'.", moduleName, gradleInstallation.getGradleHome()));
+    }
+
+    private Module loadOptionalModule(String moduleName) {
         File jarFile = findJar(moduleName);
         if (jarFile != null) {
             Set<File> implementationClasspath = new LinkedHashSet<File>();
@@ -101,11 +134,7 @@ public class DefaultModuleRegistry implements ModuleRegistry {
                 }
             }
         }
-
-        if (gradleInstallation == null) {
-            throw new UnknownModuleException(String.format("Cannot locate manifest for module '%s' in classpath.", moduleName));
-        }
-        throw new UnknownModuleException(String.format("Cannot locate JAR for module '%s' in distribution directory '%s'.", moduleName, gradleInstallation.getGradleHome()));
+        return null;
     }
 
     private Module module(String moduleName, Properties properties, Set<File> implementationClasspath) {
@@ -156,6 +185,7 @@ public class DefaultModuleRegistry implements ModuleRegistry {
         suffixes.add(("/" + projectDirName + "/build/classes/main").replace('/', File.separatorChar));
         suffixes.add(("/" + projectDirName + "/build/resources/main").replace('/', File.separatorChar));
         suffixes.add(("/" + projectDirName + "/build/generated-resources/main").replace('/', File.separatorChar));
+        suffixes.add(("/" + projectDirName + "/build/generated-resources/test").replace('/', File.separatorChar));
         for (File file : classpath) {
             if (file.isDirectory()) {
                 for (String suffix : suffixes) {

@@ -21,6 +21,6 @@ import org.gradle.api.component.SoftwareComponent;
 import java.util.Set;
 
 public interface SoftwareComponentInternal extends SoftwareComponent {
-    Set<Usage> getUsages();
+    Set<UsageContext> getUsages();
 
 }

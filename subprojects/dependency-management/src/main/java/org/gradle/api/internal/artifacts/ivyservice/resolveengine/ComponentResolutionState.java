@@ -15,13 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.Versioned;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StringVersioned;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 
-public interface ComponentResolutionState extends Versioned {
+import javax.annotation.Nullable;
+
+public interface ComponentResolutionState extends StringVersioned {
     ModuleVersionIdentifier getId();
 
     /**

@@ -16,13 +16,12 @@
 
 package org.gradle.groovy.compile
 
-import groovy.transform.NotYetImplemented
-import org.gradle.AbstractCachedCompileIntegrationTest
+import org.gradle.api.tasks.compile.AbstractCachedCompileIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 
 class CachedGroovyCompileIntegrationTest extends AbstractCachedCompileIntegrationTest {
     String compilationTask = ':compileGroovy'
-    String compiledFile = "build/classes/main/Hello.class"
+    String compiledFile = "build/classes/groovy/main/Hello.class"
 
     @Override
     def setupProjectInDirectory(TestFile project = temporaryFolder.testDirectory) {
@@ -35,12 +34,10 @@ class CachedGroovyCompileIntegrationTest extends AbstractCachedCompileIntegratio
 
             mainClassName = "Hello"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
-                compile 'org.codehaus.groovy:groovy-all:2.4.7'
+                compile 'org.codehaus.groovy:groovy-all:2.4.10'
             }
         """.stripIndent()
 
@@ -61,7 +58,7 @@ class CachedGroovyCompileIntegrationTest extends AbstractCachedCompileIntegratio
         executer.requireOwnGradleUserHomeDir() // dependency will be downloaded into a different directory
 
         when:
-        withTaskCache().succeeds compilationTask
+        withBuildCache().succeeds compilationTask
 
         then:
         compileIsCached()
@@ -73,18 +70,17 @@ class CachedGroovyCompileIntegrationTest extends AbstractCachedCompileIntegratio
         buildFile.text = """
             plugins { id 'groovy' }
 
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies { compile 'org.codehaus.groovy:groovy-all:2.4.5' }
         """.stripIndent()
 
         when:
-        withTaskCache().succeeds compilationTask
+        withBuildCache().succeeds compilationTask
 
         then:
         compileIsNotCached()
     }
 
-    @NotYetImplemented
     def "joint Java and Groovy compilation can be cached"() {
         given:
         buildScript """
@@ -114,18 +110,18 @@ class CachedGroovyCompileIntegrationTest extends AbstractCachedCompileIntegratio
             }
         """
         file('src/main/groovy/UsesJava.groovy').makeOlder()
-        def compiledJavaClass = file('build/classes/main/RequiredByGroovy.class')
-        def compiledGroovyClass = file('build/classes/main/UsesJava.class')
+        def compiledJavaClass = javaClassFile('RequiredByGroovy.class')
+        def compiledGroovyClass = groovyClassFile('UsesJava.class')
 
         when:
-        withTaskCache().succeeds ':compileJava', ':compileGroovy'
+        withBuildCache().succeeds ':compileJava', ':compileGroovy'
 
         then:
         compiledJavaClass.exists()
         compiledGroovyClass.exists()
 
         when:
-        withTaskCache().succeeds ':clean', ':compileJava'
+        withBuildCache().succeeds ':clean', ':compileJava'
 
         then:
         skippedTasks.contains(':compileJava')
@@ -136,7 +132,7 @@ class CachedGroovyCompileIntegrationTest extends AbstractCachedCompileIntegratio
         // compileGroovy from the cache the compiled java
         // classes are replaced and recorded as changed
         compiledJavaClass.makeOlder()
-        withTaskCache().succeeds ':compileGroovy'
+        withBuildCache().succeeds ':compileGroovy'
 
         then:
         skippedTasks.containsAll([':compileJava', ':compileGroovy'])
@@ -160,7 +156,7 @@ class CachedGroovyCompileIntegrationTest extends AbstractCachedCompileIntegratio
             }
         """
 
-        withTaskCache().succeeds ':compileGroovy'
+        withBuildCache().succeeds ':compileGroovy'
 
         then:
         compiledJavaClass.exists()

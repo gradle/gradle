@@ -18,6 +18,7 @@ package org.gradle.initialization
 
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classloader.VisitableURLClassLoader
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -189,7 +190,7 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
 
     def "mixes in empty interfaces for old types that were removed"() {
         expect:
-        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, new DefaultClassPath(), new DefaultLegacyTypesSupport())
+        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, ClassPath.EMPTY, new DefaultLegacyTypesSupport())
 
         def cl = loader.loadClass("org.gradle.messaging.actor.ActorFactory")
         cl.classLoader.is(loader)
@@ -199,7 +200,7 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
     }
 
     def "fails for unknown class"() {
-        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, new DefaultClassPath(), new DefaultLegacyTypesSupport())
+        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, ClassPath.EMPTY, new DefaultLegacyTypesSupport())
 
         when:
         loader.loadClass("org.gradle.Unknown")

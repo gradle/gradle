@@ -48,6 +48,18 @@ class GroovyLibraryInitIntegrationTest extends AbstractIntegrationSpec {
         testResult.testClass("LibraryTest").assertTestPassed("someLibraryMethod returns true")
     }
 
+    def "supports the Spock test framework"() {
+        when:
+        succeeds('init', '--type', 'groovy-library', '--test-framework', 'spock')
+
+        then:
+        file(SAMPLE_LIBRARY_CLASS).exists()
+        file(SAMPLE_LIBRARY_TEST_CLASS).exists()
+        buildFile.exists()
+        settingsFile.exists()
+        wrapper.generated()
+    }
+
     def "setupProjectLayout is skipped when groovy sources detected"() {
         setup:
         file("src/main/groovy/org/acme/SampleMain.groovy") << """

@@ -16,7 +16,7 @@
 
 package org.gradle.testkit.runner.fixtures
 
-import org.gradle.integtests.fixtures.executer.ForkingGradleExecuter
+import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -69,13 +69,16 @@ class PluginUnderTest {
     }
 
     List<File> getImplClasspath() {
-        [projectDir.file("build/classes/main"), projectDir.file('build/resources/main')]
+        // TODO: This should come from a common place
+        [projectDir.file("build/classes/java/main"),
+         projectDir.file("build/classes/groovy/main"),
+         projectDir.file('build/resources/main')]
     }
 
     PluginUnderTest build() {
         writeSourceFiles()
         writeBuildScript()
-        new ForkingGradleExecuter(new UnderDevelopmentGradleDistribution(), testDirectoryProvider)
+        new NoDaemonGradleExecuter(new UnderDevelopmentGradleDistribution(), testDirectoryProvider)
             .usingProjectDirectory(projectDir)
             .withArguments('classes', '--no-daemon')
             .run()

@@ -32,16 +32,23 @@ import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.caching.configuration.BuildCacheConfiguration;
+import org.gradle.composite.internal.IncludedBuildFactory;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
+import org.gradle.internal.resource.TextResourceLoader;
+import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
+import org.gradle.plugin.management.PluginManagementSpec;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Map;
+
+import static org.gradle.util.NameValidator.asValidName;
 
 public class DefaultSettings extends AbstractPluginAware implements SettingsInternal {
     public static final String DEFAULT_BUILD_SRC_DIR = "buildSrc";
@@ -57,22 +64,22 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     private GradleInternal gradle;
 
-    private final ClassLoaderScope classLoaderScope;
-    private final ClassLoaderScope rootClassLoaderScope;
+    private final ClassLoaderScope settingsClassLoaderScope;
+    private final ClassLoaderScope buildRootClassLoaderScope;
     private final ServiceRegistry services;
     private final Map<File, ConfigurableIncludedBuild> includedBuilds = Maps.newLinkedHashMap();
 
     public DefaultSettings(ServiceRegistryFactory serviceRegistryFactory, GradleInternal gradle,
-                           ClassLoaderScope classLoaderScope, ClassLoaderScope rootClassLoaderScope, File settingsDir,
+                           ClassLoaderScope settingsClassLoaderScope, ClassLoaderScope buildRootClassLoaderScope, File settingsDir,
                            ScriptSource settingsScript, StartParameter startParameter) {
         this.gradle = gradle;
-        this.rootClassLoaderScope = rootClassLoaderScope;
+        this.buildRootClassLoaderScope = buildRootClassLoaderScope;
         this.settingsDir = settingsDir;
         this.settingsScript = settingsScript;
         this.startParameter = startParameter;
-        this.classLoaderScope = classLoaderScope;
+        this.settingsClassLoaderScope = settingsClassLoaderScope;
         services = serviceRegistryFactory.createFor(this);
-        rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
+        rootProjectDescriptor = createProjectDescriptor(null, asValidName(settingsDir.getName()), settingsDir);
     }
 
     @Override
@@ -89,7 +96,7 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     }
 
     public DefaultProjectDescriptor createProjectDescriptor(DefaultProjectDescriptor parent, String name, File dir) {
-        return new DefaultProjectDescriptor(parent, name, dir, getProjectDescriptorRegistry(), getFileResolver());
+        return new DefaultProjectDescriptor(parent, name, dir, getProjectDescriptorRegistry(), getFileResolver(), getScriptFileResolver());
     }
 
     public DefaultProjectDescriptor findProject(String path) {
@@ -136,7 +143,7 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     public void includeFlat(String[] projectNames) {
         for (String projectName : projectNames) {
             createProjectDescriptor(rootProjectDescriptor, projectName,
-                    new File(rootProjectDescriptor.getProjectDir().getParentFile(), projectName));
+                new File(rootProjectDescriptor.getProjectDir().getParentFile(), projectName));
         }
     }
 
@@ -202,19 +209,29 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getRootClassLoaderScope(), this);
+        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getRootClassLoaderScope(), getResourceLoader(), this);
     }
 
     public ClassLoaderScope getRootClassLoaderScope() {
-        return rootClassLoaderScope;
+        return buildRootClassLoaderScope;
     }
 
     public ClassLoaderScope getClassLoaderScope() {
-        return classLoaderScope;
+        return settingsClassLoaderScope;
     }
 
     protected ServiceRegistry getServices() {
         return services;
+    }
+
+    @Inject
+    protected ScriptFileResolver getScriptFileResolver() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected TextResourceLoader getResourceLoader() {
+        throw new UnsupportedOperationException();
     }
 
     @Inject
@@ -261,5 +278,27 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     @Override
     public Map<File, IncludedBuild> getIncludedBuilds() {
         return Cast.uncheckedCast(includedBuilds);
+    }
+
+    @Override
+    public void buildCache(Action<? super BuildCacheConfiguration> action) {
+        action.execute(getBuildCache());
+    }
+
+    @Inject
+    @Override
+    public BuildCacheConfiguration getBuildCache() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void pluginManagement(Action<? super PluginManagementSpec> rule) {
+        rule.execute(getPluginManagement());
+    }
+
+    @Override
+    @Inject
+    public PluginManagementSpec getPluginManagement() {
+        throw new UnsupportedOperationException();
     }
 }

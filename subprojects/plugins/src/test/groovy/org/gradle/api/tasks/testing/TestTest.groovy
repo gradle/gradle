@@ -35,6 +35,7 @@ import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework
 import org.gradle.api.internal.tasks.testing.junit.report.TestReporter
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
 import org.gradle.api.tasks.AbstractConventionTaskTest
+import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.process.internal.worker.WorkerProcessBuilder
 import org.gradle.util.GFileUtils
 
@@ -56,6 +57,7 @@ class TestTest extends AbstractConventionTaskTest {
     def testExecuterMock = Mock(TestExecuter)
     def testFrameworkMock = Mock(TestFramework)
 
+    private WorkerLeaseRegistry.WorkerLeaseCompletion completion
     private FileCollection classpathMock = new SimpleFileCollection(new File("classpath"))
     private Test test
 
@@ -66,8 +68,13 @@ class TestTest extends AbstractConventionTaskTest {
         resultsDir = temporaryFolder.createDir("testResults")
         binResultsDir = temporaryFolder.createDir("binResults")
         reportDir = temporaryFolder.createDir("report")
+        completion = project.services.get(WorkerLeaseRegistry).getWorkerLease().start()
 
         test = createTask(Test.class)
+    }
+
+    def cleanup() {
+        completion.leaseFinish()
     }
 
     public ConventionTask getTask() {
@@ -77,7 +84,7 @@ class TestTest extends AbstractConventionTaskTest {
     def "test default settings"() {
         expect:
         test.getTestFramework() instanceof JUnitTestFramework
-        test.getTestClassesDir() == null
+        test.getTestClassesDirs() == null
         test.getClasspath() == null
         test.getReports().getJunitXml().getDestination() == null
         test.getReports().getHtml().getDestination() == null
@@ -205,6 +212,48 @@ class TestTest extends AbstractConventionTaskTest {
 
         then:
         test.getExcludes() == toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3)
+    }
+
+    def "--tests is combined with includes and excludes"() {
+        given:
+        test.include(TEST_PATTERN_1)
+        test.exclude(TEST_PATTERN_1)
+
+        when:
+        test.setTestNameIncludePatterns([TEST_PATTERN_2])
+
+        then:
+        test.includes == [ TEST_PATTERN_1 ] as Set
+        test.excludes == [ TEST_PATTERN_1 ] as Set
+        test.filter.commandLineIncludePatterns == [ TEST_PATTERN_2] as Set
+    }
+
+    def "--tests is combined with filter.includeTestsMatching"() {
+        given:
+        test.filter.includeTestsMatching(TEST_PATTERN_1)
+
+        when:
+        test.setTestNameIncludePatterns([TEST_PATTERN_2])
+
+        then:
+        test.includes.empty
+        test.excludes.empty
+        test.filter.includePatterns == [TEST_PATTERN_1] as Set
+        test.filter.commandLineIncludePatterns == [ TEST_PATTERN_2] as Set
+    }
+
+    def "--tests is combined with filter.includePatterns"() {
+        given:
+        test.filter.includePatterns = [ TEST_PATTERN_1 ]
+
+        when:
+        test.setTestNameIncludePatterns([TEST_PATTERN_2])
+
+        then:
+        test.includes.empty
+        test.excludes.empty
+        test.filter.includePatterns == [TEST_PATTERN_1] as Set
+        test.filter.commandLineIncludePatterns == [ TEST_PATTERN_2] as Set
     }
 
     private void assertIsDirectoryTree(FileTree classFiles, Set<String> includes, Set<String> excludes) {

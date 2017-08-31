@@ -16,6 +16,7 @@
 package org.gradle.internal.logging.console
 
 import org.fusesource.jansi.Ansi
+import org.gradle.internal.logging.text.Style
 import org.gradle.internal.logging.text.StyledTextOutput
 
 class TestColorMap implements ColorMap {
@@ -38,5 +39,10 @@ class TestColorMap implements ColorMap {
         return [on : { ansi -> ansi.fg(Ansi.Color.YELLOW) },
                 off: { ansi -> ansi.fg(Ansi.Color.DEFAULT) }
         ] as ColorMap.Color
+    }
+
+    @Override
+    ColorMap.Color getColourFor(Style style) {
+        return null
     }
 }

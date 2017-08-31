@@ -17,13 +17,13 @@
 package org.gradle.internal.resource.transport.http;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.gradle.api.Nullable;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.net.URI;
 
 public class HttpResourceAccessor implements ExternalResourceAccessor {

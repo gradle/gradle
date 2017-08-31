@@ -159,8 +159,13 @@ public class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
             @Override
             public Collection<String> call() {
                 return extension.getJvmArgs();
-            }
-        });
+
+            }});
+        taskMapping.map("showProgress", new Callable<Boolean>() {
+            @Override
+            public Boolean call() {
+                return extension.isShowProgress();
+        }});
     }
 
     private void configureReportsConventionMapping(FindBugs task, final String baseName) {
@@ -192,9 +197,7 @@ public class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
         taskMapping.map("classes", new Callable<FileCollection>() {
             @Override
             public FileCollection call() {
-                // the simple "classes = sourceSet.output" may lead to non-existing resources directory
-                // being passed to FindBugs Ant task, resulting in an error
-                return project.fileTree(sourceSet.getOutput().getClassesDir()).builtBy(sourceSet.getOutput());
+                return sourceSet.getOutput().getClassesDirs();
             }
         });
         taskMapping.map("classpath", new Callable<FileCollection>() {

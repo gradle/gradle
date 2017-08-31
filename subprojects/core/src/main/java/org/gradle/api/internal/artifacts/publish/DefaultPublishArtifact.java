@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.publish;
 
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
+import org.gradle.api.internal.tasks.TaskResolver;
 
 import java.io.File;
 import java.util.Date;
@@ -28,6 +29,18 @@ public class DefaultPublishArtifact extends AbstractPublishArtifact implements C
     private String classifier;
     private Date date;
     private File file;
+
+    public DefaultPublishArtifact(TaskResolver resolver,
+                                  String name, String extension, String type,
+                                  String classifier, Date date, File file, Object... tasks) {
+        super(resolver, tasks);
+        this.name = name;
+        this.extension = extension;
+        this.type = type;
+        this.date = date;
+        this.classifier = classifier;
+        this.file = file;
+    }
 
     public DefaultPublishArtifact(String name, String extension, String type,
                                   String classifier, Date date, File file, Object... tasks) {

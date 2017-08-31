@@ -26,7 +26,7 @@ import java.io.File;
  *
  * Can be used as an optimisation if path contains a checksum of the file, as there is no point to perform the replace in that circumstance.
  */
-public class UniquePathKeyFileStore extends PathKeyFileStore {
+public class UniquePathKeyFileStore extends DefaultPathKeyFileStore {
 
     public UniquePathKeyFileStore(File baseDir) {
         super(baseDir);
@@ -42,10 +42,10 @@ public class UniquePathKeyFileStore extends PathKeyFileStore {
     }
 
     @Override
-    protected LocallyAvailableResource doAdd(File destination, String failureDescription, Action<File> action) {
+    protected LocallyAvailableResource doAdd(File destination, Action<File> action) {
         if (destination.exists()) {
             return entryAt(destination);
         }
-        return super.doAdd(destination, failureDescription, action);
+        return super.doAdd(destination, action);
     }
 }

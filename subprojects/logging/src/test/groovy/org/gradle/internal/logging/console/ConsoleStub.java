@@ -17,31 +17,107 @@ package org.gradle.internal.logging.console;
 
 import org.gradle.internal.logging.text.TestStyledTextOutput;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ConsoleStub implements Console {
-    private final TextAreaImpl mainArea = new TextAreaImpl();
+    private final TestableBuildOutputTextArea buildOutputArea = new TestableBuildOutputTextArea();
+    private final TestableRedrawableLabel buildStatusLabel = new TestableRedrawableLabel("0");
+    private final TestableBuildProgressTextArea buildProgressArea = new TestableBuildProgressTextArea();
 
-    public Label getStatusBar() {
-        return new Label() {
-            public void close() {
-            }
+    @Override
+    public StyledLabel getStatusBar() {
+        return buildStatusLabel;
+    }
 
-            public void setText(String text) {
-            }
-        };
+    @Override
+    public BuildProgressArea getBuildProgressArea() {
+        return buildProgressArea;
+    }
+
+    @Override
+    public TextArea getBuildOutputArea() {
+        return buildOutputArea;
     }
 
     @Override
     public void flush() {
+        buildStatusLabel.redraw(null);
+        buildProgressArea.redraw();
     }
 
-    public String getValue() {
-        return mainArea.toString();
+    protected class TestableBuildOutputTextArea extends TestStyledTextOutput implements TextArea {
     }
 
-    public TextArea getMainArea() {
-        return mainArea;
+    protected class TestableRedrawableLabel extends TestStyledLabel implements RedrawableLabel {
+        String id; // Allows individual identification for debugging
+        String buffer;
+
+        public TestableRedrawableLabel(String id) {
+            this.id = id;
+        }
+
+        @Override
+        public void setText(String text) {
+            buffer = text;
+        }
+
+        @Override
+        public void redraw(AnsiContext ansi) {
+            if (buffer != null) {
+                super.setDisplay(buffer);
+                buffer = null;
+            }
+        }
     }
 
-    private static class TextAreaImpl extends TestStyledTextOutput implements TextArea {
+    protected class TestableBuildProgressTextArea extends TestStyledTextOutput implements BuildProgressArea {
+        boolean visible;
+        int buildProgressLabelCount;
+        private final List<TestableRedrawableLabel> testableLabels = new ArrayList<TestableRedrawableLabel>();
+        private final List<StyledLabel> buildProgressLabels = new ArrayList<StyledLabel>();
+
+        @Override
+        public StyledLabel getProgressBar() {
+            return buildStatusLabel;
+        }
+
+        @Override
+        public List<StyledLabel> getBuildProgressLabels() {
+            return buildProgressLabels;
+        }
+
+        @Override
+        public void setVisible(boolean isVisible) {
+            visible = isVisible;
+        }
+
+        public boolean getVisible() {
+            return visible;
+        }
+
+        @Override
+        public void resizeBuildProgressTo(int buildProgressLabelCount) {
+            for (int i = buildProgressLabelCount - this.buildProgressLabelCount; i > 0; --i) {
+                final TestableRedrawableLabel label = new TestableRedrawableLabel(String.valueOf((buildProgressLabelCount - i) + 1));
+                buildProgressLabels.add(label);
+                testableLabels.add(label);
+            }
+            this.buildProgressLabelCount = buildProgressLabelCount;
+        }
+
+        public List<String> getDisplay() {
+            List<String> display = new ArrayList<String>(testableLabels.size());
+            for (TestableRedrawableLabel label : testableLabels) {
+                display.add(label.getDisplay());
+            }
+            return display;
+        }
+
+        void redraw() {
+            for (TestableRedrawableLabel label : testableLabels) {
+                label.redraw(null);
+            }
+        }
     }
 }

@@ -17,16 +17,17 @@
 package org.gradle.internal.resource.transport;
 
 
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.resource.BuildOperationFiringExternalResourceDecorator;
 import org.gradle.internal.resource.ExternalResource;
-import org.gradle.internal.resource.local.LocalResource;
-import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.gradle.internal.resource.transfer.*;
+import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.ExternalResourceRepository;
+import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
+import org.gradle.internal.resource.transfer.ExternalResourceLister;
+import org.gradle.internal.resource.transfer.ExternalResourceUploader;
+import org.gradle.internal.resource.transfer.AccessorBackedExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.*;
-import java.net.URI;
-import java.util.List;
 
 public class DefaultExternalResourceRepository implements ExternalResourceRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExternalResourceRepository.class);
@@ -36,19 +37,22 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
     private final ExternalResourceLister lister;
     private final ExternalResourceAccessor loggingAccessor;
     private final ExternalResourceUploader loggingUploader;
+    private final BuildOperationExecutor buildOperationExecutor;
 
     public DefaultExternalResourceRepository(String name,
                                              ExternalResourceAccessor accessor,
                                              ExternalResourceUploader uploader,
                                              ExternalResourceLister lister,
                                              ExternalResourceAccessor loggingAccessor,
-                                             ExternalResourceUploader loggingUploader) {
+                                             ExternalResourceUploader loggingUploader,
+                                             BuildOperationExecutor buildOperationExecutor) {
         this.name = name;
         this.accessor = accessor;
         this.uploader = uploader;
         this.lister = lister;
         this.loggingAccessor = loggingAccessor;
         this.loggingUploader = loggingUploader;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
@@ -56,25 +60,17 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
         if (loggingAccessor == accessor && loggingUploader == uploader) {
             return this;
         }
-        return new DefaultExternalResourceRepository(name, loggingAccessor, loggingUploader, lister, loggingAccessor, loggingUploader);
+        return new DefaultExternalResourceRepository(name, loggingAccessor, loggingUploader, lister, loggingAccessor, loggingUploader, buildOperationExecutor);
     }
 
-    public ExternalResource getResource(URI source, boolean revalidate) {
-        ExternalResourceReadResponse response = accessor.openResource(source, revalidate);
-        return response == null ? null : new DefaultExternalResource(source, response);
+    @Override
+    public ExternalResource resource(ExternalResourceName resource, boolean revalidate) {
+        return new BuildOperationFiringExternalResourceDecorator(resource, buildOperationExecutor, new AccessorBackedExternalResource(resource, accessor, uploader, lister, revalidate));
     }
 
-    public ExternalResourceMetaData getResourceMetaData(URI source, boolean revalidate) {
-        return accessor.getMetaData(source, revalidate);
-    }
-
-    public void put(LocalResource source, URI destination) throws IOException {
-        LOGGER.debug("Attempting to put resource {}.", destination);
-        uploader.upload(source, destination);
-    }
-
-    public List<String> list(URI parent) {
-        return lister.list(parent);
+    @Override
+    public ExternalResource resource(ExternalResourceName resource) {
+        return resource(resource, false);
     }
 
     public String toString() {

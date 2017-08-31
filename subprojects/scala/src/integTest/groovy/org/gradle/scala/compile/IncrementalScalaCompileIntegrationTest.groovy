@@ -16,10 +16,9 @@
 package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Issue
 
 class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
@@ -36,12 +35,7 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
             compileScala.options.debug = false
 '''
         then:
-        // This gets reset each time you run() is run.
-        executer.expectDeprecationWarning();
         run('compileScala').assertTasksSkipped(':compileJava')
-
-        // This gets reset each time you run() is run.
-        executer.expectDeprecationWarning();
         run('compileScala').assertTasksSkipped(':compileJava', ':compileScala')
     }
 
@@ -53,20 +47,15 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         file('src/main/scala/IPerson.scala').assertIsFile().copyFrom(file('NewIPerson.scala'))
 
         then:
-        // This gets reset each time you run() is run.
-        executer.expectDeprecationWarning();
         runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala'.")
     }
 
     @Issue("GRADLE-2548")
-    @Ignore
     def recompilesScalaWhenJavaChanges() {
         file("build.gradle") << """
             apply plugin: 'scala'
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 compile 'org.scala-lang:scala-library:2.11.1'
@@ -85,9 +74,8 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         file("src/main/java/Person.java").text = "public interface Person { String fooBar(); }"
 
         then:
-        // This gets reset each time you run() is run.
-        executer.expectDeprecationWarning();
         //the build should fail because the interface the scala class needs has changed
         runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala'.")
     }
+
 }

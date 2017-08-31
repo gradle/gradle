@@ -16,27 +16,27 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Nullable;
 import org.gradle.api.PathValidation;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
+import org.gradle.api.resources.internal.LocalResourceAdapter;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.resource.local.LocalFileStandInExternalResource;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.DeferredUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URI;
 import java.util.List;
-import java.util.concurrent.Callable;
-
-import static org.gradle.util.GUtil.uncheckedCall;
 
 public abstract class AbstractFileResolver implements FileResolver {
     private final FileSystem fileSystem;
@@ -57,6 +57,11 @@ public abstract class AbstractFileResolver implements FileResolver {
 
     public FileResolver withBaseDir(Object path) {
         return new BaseDirFileResolver(fileSystem, resolve(path), patternSetFactory);
+    }
+
+    @Override
+    public FileResolver newResolver(File baseDir) {
+        return new BaseDirFileResolver(fileSystem, baseDir, patternSetFactory);
     }
 
     public File resolve(Object path) {
@@ -96,6 +101,7 @@ public abstract class AbstractFileResolver implements FileResolver {
         };
     }
 
+    @Nullable
     public URI resolveUri(Object path) {
         return convertObjectToURI(path);
     }
@@ -103,7 +109,7 @@ public abstract class AbstractFileResolver implements FileResolver {
     protected abstract File doResolve(Object path);
 
     protected URI convertObjectToURI(Object path) {
-        Object object = unpack(path);
+        Object object = DeferredUtil.unpack(path);
         Object converted = fileNotationParser.parseNotation(object);
         if (converted instanceof File) {
             return resolve(converted).toURI();
@@ -113,7 +119,7 @@ public abstract class AbstractFileResolver implements FileResolver {
 
     @Nullable
     protected File convertObjectToFile(Object path) {
-        Object object = unpack(path);
+        Object object = DeferredUtil.unpack(path);
         if (object == null) {
             return null;
         }
@@ -122,20 +128,6 @@ public abstract class AbstractFileResolver implements FileResolver {
             return (File) converted;
         }
         throw new InvalidUserDataException(String.format("Cannot convert URL '%s' to a file.", converted));
-    }
-
-    private Object unpack(Object path) {
-        Object current = path;
-        while (current != null) {
-            if (current instanceof Callable) {
-                current = uncheckedCall((Callable) current);
-            } else if (current instanceof Factory) {
-                return ((Factory) current).create();
-            } else {
-                return current;
-            }
-        }
-        return null;
     }
 
     protected void validate(File file, PathValidation validation) {
@@ -185,7 +177,7 @@ public abstract class AbstractFileResolver implements FileResolver {
         if (path instanceof ReadableResourceInternal) {
             return (ReadableResourceInternal) path;
         }
-        return new FileResource(resolve(path));
+        return new LocalResourceAdapter(new LocalFileStandInExternalResource(resolve(path), fileSystem));
     }
 
     @Override

@@ -40,13 +40,13 @@ class ScalaCrossCompilationIntegrationTest extends MultiVersionIntegrationSpec {
         // Java Compiler does not fork for joint compilation - therefore we cannot compile for a Java Version bigger than the current JVM
         Assume.assumeTrue(javaVersion.compareTo(JavaVersion.current()) <= 0)
         def java = TextUtil.escapeString(target.getJavaExecutable())
-        def javac = TextUtil.escapeString(target.getExecutable("javac"))
+        def javaHome = TextUtil.escapeString(target.javaHome.absolutePath)
 
         buildFile << """
 apply plugin: 'scala'
 sourceCompatibility = ${MultiVersionIntegrationSpec.version}
 targetCompatibility = ${MultiVersionIntegrationSpec.version}
-repositories { mavenCentral() }
+${mavenCentralRepository()}
 
 dependencies {
     compile 'org.scala-lang:scala-library:2.11.1'
@@ -57,7 +57,7 @@ sourceCompatibility = ${MultiVersionIntegrationSpec.version}
 targetCompatibility = ${MultiVersionIntegrationSpec.version}
     options.with {
         fork = true
-        forkOptions.executable = "$javac"
+        forkOptions.javaHome = file("$javaHome")
     }
 }
 tasks.withType(Test) {
@@ -100,10 +100,10 @@ class ThingTest {
 
         expect:
         succeeds 'test'
-        new ClassFile(file("build/classes/main/Thing.class")).javaVersion == javaVersion
+        new ClassFile(scalaClassFile("Thing.class")).javaVersion == javaVersion
 
         // The Scala 2.11 compiler only produces Java 6 bytecode
-        new ClassFile(file("build/classes/main/ScalaThing.class")).javaVersion == JavaVersion.VERSION_1_6
-        new ClassFile(file("build/classes/test/ThingTest.class")).javaVersion == JavaVersion.VERSION_1_6
+        new ClassFile(scalaClassFile("ScalaThing.class")).javaVersion == JavaVersion.VERSION_1_6
+        new ClassFile(classFile("scala", "test", "ThingTest.class")).javaVersion == JavaVersion.VERSION_1_6
     }
 }

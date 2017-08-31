@@ -20,8 +20,10 @@ import org.spockframework.util.TextUtil
 import spock.lang.Issue
 import spock.lang.Unroll
 
-public class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
-    public void canPublishToLocalFileRepository() {
+import static org.hamcrest.core.StringContains.containsString
+
+class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
+    def canPublishToLocalFileRepository() {
         given:
         def module = ivyRepo.module("org.gradle", "publish", "2")
 
@@ -47,7 +49,7 @@ uploadArchives {
     }
 
     @Issue("GRADLE-2456")
-    public void generatesSHA1FileWithLeadingZeros() {
+    def generatesSHA1FileWithLeadingZeros() {
         given:
         def module = ivyRepo.module("org.gradle", "publish", "2")
         byte[] jarBytes = [0, 0, 0, 5]
@@ -81,7 +83,7 @@ uploadArchives {
     }
 
     @Issue("GRADLE-1811")
-    public void canGenerateTheIvyXmlWithoutPublishing() {
+    def canGenerateTheIvyXmlWithoutPublishing() {
         //this is more like documenting the current behavior.
         //Down the road we should add explicit task to create ivy.xml file
 
@@ -119,16 +121,26 @@ task ivyXml(type: Upload) {
         buildFile << """
 apply plugin: 'java'
 
+def foo = Attribute.of('foo', String)
+def baz = Attribute.of('baz', String)
+
 configurations {
   myJars {
      $attributes
   }
 }
+dependencies {
+  attributesSchema {
+    attribute(foo)
+    attribute(baz)
+  }
+  myJars 'a:b:1.2'
+}
 
 task myJar(type: Jar)
 
 artifacts {
-  'myJars' myJar
+  myJars myJar
 }
 
 task ivyXml(type: Upload) {
@@ -143,19 +155,54 @@ task ivyXml(type: Upload) {
         then:
         file('ivy.xml').assertIsFile()
         file('ivy.xml').text.contains '<conf name="myJars" visibility="public"/>'
+        file('ivy.xml').text.contains '<dependency org="a" name="b" rev="1.2" conf="myJars-&gt;default"/>'
 
         where:
         attributes << [
             '', // no attributes
-            'attribute "foo", "bar"', // single attribute
-            'attributes foo:"bar", baz: "baz"' // multiple attributes
+            'attributes.attribute(foo, "bar")', // single attribute
+            'attributes { attribute(foo, "bar"); attribute(baz, "baz") }' // multiple attributes
         ]
     }
 
     def "succeeds if trying to publish a file without extension"() {
+        def module = ivyRepo.module("org.gradle", "publish", "2")
+        settingsFile << 'rootProject.name = "publish"'
 
         given:
         file('someDir/a') << 'some text'
+        buildFile << """
+
+        apply plugin: 'base'
+
+        group = "org.gradle"
+        version = '2'
+        artifacts {
+            archives file("someDir/a")
+        }
+
+        uploadArchives {
+            repositories {
+                ivy {
+                    url "${ivyRepo.uri}"
+                }
+            }
+        }
+
+        """
+
+        when:
+        succeeds 'uploadArchives'
+
+        then:
+        def published = module.moduleDir.file("a-2")
+        published.assertIsCopyOf(file('someDir/a'))
+    }
+
+    def "fails gracefully if trying to publish a directory with ivy"() {
+
+        given:
+        file('someDir/a.txt') << 'some text'
         buildFile << """
 
         apply plugin: 'base'
@@ -165,16 +212,17 @@ task ivyXml(type: Upload) {
         }
 
         artifacts {
-            archives file("someDir/a")
+            archives file("someDir")
         }
 
         """
 
         when:
-        run 'uploadArchives'
+        fails 'uploadArchives'
 
         then:
-        noExceptionThrown()
+        failure.assertHasCause "Could not publish configuration 'archives'"
+        failure.assertThatCause(containsString('Cannot publish a directory'))
 
     }
 

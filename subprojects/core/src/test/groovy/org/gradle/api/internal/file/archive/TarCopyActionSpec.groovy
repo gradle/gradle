@@ -14,26 +14,24 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.file.archive
+
 import org.apache.commons.io.IOUtils
 import org.gradle.api.GradleException
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction
-import org.gradle.api.internal.file.FileResource
 import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory
 import org.gradle.api.internal.file.archive.compression.Bzip2Archiver
 import org.gradle.api.internal.file.archive.compression.GzipArchiver
 import org.gradle.api.internal.file.archive.compression.SimpleCompressor
 import org.gradle.api.internal.file.copy.CopyActionProcessingStream
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal
+import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.api.file.FileVisitorUtil.assertVisitsPermissions
-import static org.gradle.api.internal.file.TestFiles.directoryFileTreeFactory
-import static org.gradle.api.internal.file.TestFiles.fileSystem
 import static org.gradle.api.internal.file.copy.CopyActionExecuterUtil.visit
 import static org.hamcrest.Matchers.equalTo
 
@@ -78,8 +76,9 @@ public class TarCopyActionSpec extends Specification {
         tar(dir("dir"), file("file"));
 
         then:
-        def expected = [dir: 2, file: 1]
-        assertVisitsPermissions(new TarFileTree(tarFile, new FileResource(tarFile), null, fileSystem(), fileSystem(), directoryFileTreeFactory()), expected);
+        def tarFixture = new TarTestFixture(tarFile)
+        tarFixture.assertFileMode("dir/", 2)
+        tarFixture.assertFileMode("file", 1)
     }
 
     def "wraps failure to open output file"() {
@@ -111,7 +110,7 @@ public class TarCopyActionSpec extends Specification {
     }
 
     private TestFile initializeTarFile(final TestFile tarFile, final ArchiveOutputStreamFactory compressor) {
-        action = new TarCopyAction(tarFile, compressor);
+        action = new TarCopyAction(tarFile, compressor, false);
         return tarFile;
     }
 
@@ -119,11 +118,7 @@ public class TarCopyActionSpec extends Specification {
         action.execute(new CopyActionProcessingStream() {
             public void process(CopyActionProcessingStreamAction action) {
                 for (FileCopyDetailsInternal f : files) {
-                    if (f.isDirectory()) {
-                        action.processFile(f);
-                    } else {
-                        action.processFile(f);
-                    }
+                    action.processFile(f);
                 }
             }
         });

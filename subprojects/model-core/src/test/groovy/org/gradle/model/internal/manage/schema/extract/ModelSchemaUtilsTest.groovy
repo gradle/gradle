@@ -17,9 +17,10 @@
 package org.gradle.model.internal.manage.schema.extract
 
 import org.gradle.api.Incubating
-import org.gradle.api.Nullable
 import org.gradle.model.Managed
 import spock.lang.Specification
+
+import javax.annotation.Nullable
 
 class ModelSchemaUtilsTest extends Specification {
     def "base object types have no candidate methods"() {

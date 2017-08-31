@@ -17,10 +17,10 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
-import org.gradle.cache.internal.FileLockManager;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.Closeable;
@@ -28,13 +28,13 @@ import java.io.Closeable;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultTaskHistoryStore implements TaskHistoryStore, Closeable {
-    private final InMemoryTaskArtifactCache inMemoryTaskArtifactCache;
+    private final InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory;
     private final PersistentCache cache;
 
-    public DefaultTaskHistoryStore(Gradle gradle, CacheRepository cacheRepository, InMemoryTaskArtifactCache inMemoryTaskArtifactCache) {
-        this.inMemoryTaskArtifactCache = inMemoryTaskArtifactCache;
+    public DefaultTaskHistoryStore(Gradle gradle, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+        this.inMemoryCacheDecoratorFactory = inMemoryCacheDecoratorFactory;
         cache = cacheRepository
-                .cache(gradle, "taskArtifacts")
+                .cache(gradle, "taskHistory")
                 .withDisplayName("task history cache")
                 .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
                 .open();
@@ -44,14 +44,10 @@ public class DefaultTaskHistoryStore implements TaskHistoryStore, Closeable {
         cache.close();
     }
 
-    public <K, V> PersistentIndexedCache<K, V> createCache(final String cacheName, final Class<K> keyType, final Serializer<V> valueSerializer) {
-        PersistentIndexedCacheParameters<K, V> parameters = new PersistentIndexedCacheParameters<K, V>(cacheName, keyType, valueSerializer)
-                .cacheDecorator(inMemoryTaskArtifactCache);
-        return cache.createCache(parameters);
-    }
-
     @Override
-    public void flush() {
-        cache.flush();
+    public <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Class<K> keyType, Serializer<V> valueSerializer, int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {
+        PersistentIndexedCacheParameters<K, V> parameters = new PersistentIndexedCacheParameters<K, V>(cacheName, keyType, valueSerializer)
+                .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(maxEntriesToKeepInMemory, cacheInMemoryForShortLivedProcesses));
+        return cache.createCache(parameters);
     }
 }

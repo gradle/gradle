@@ -18,8 +18,6 @@ package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.internal.component.BuildableJavaComponent
-import org.gradle.api.internal.component.ComponentRegistry
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
@@ -32,32 +30,14 @@ import org.gradle.util.TestUtil
 import org.junit.Assert
 
 import static org.gradle.api.file.FileCollectionMatchers.sameCollection
-import static org.gradle.api.tasks.TaskDependencyMatchers.builtBy
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.gradle.util.WrapUtil.toLinkedSet
 import static org.gradle.util.WrapUtil.toSet
 
 class JavaPluginTest extends AbstractProjectBuilderSpec {
-    private final def javaPlugin = new JavaPlugin()
-
-    def appliesBasePluginsAndAddsConventionObject() {
-        given:
-        javaPlugin.apply(project)
-
-        when:
-        def component = project.services.get(ComponentRegistry).mainComponent
-
-        then:
-        component instanceof BuildableJavaComponent
-        component.rebuildTasks == [BasePlugin.CLEAN_TASK_NAME, JavaBasePlugin.BUILD_TASK_NAME]
-        component.buildTasks == [JavaBasePlugin.BUILD_TASK_NAME]
-        component.runtimeClasspath != null
-        component.compileDependencies == project.configurations.compile
-    }
-
     def addsConfigurationsToTheProject() {
         given:
-        javaPlugin.apply(project)
+        project.pluginManager.apply(JavaPlugin)
 
         when:
         def compile = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
@@ -68,6 +48,15 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         compile.transitive
 
         when:
+        def implementation = project.configurations.getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
+
+        then:
+        implementation.extendsFrom == toSet(compile)
+        !implementation.visible
+        !implementation.canBeConsumed
+        !implementation.canBeResolved
+
+        when:
         def runtime = project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME)
 
         then:
@@ -76,10 +65,40 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         runtime.transitive
 
         when:
+        def runtimeOnly = project.configurations.getByName(JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME)
+
+        then:
+        runtimeOnly.transitive
+        !runtimeOnly.visible
+        !runtimeOnly.canBeConsumed
+        !runtimeOnly.canBeResolved
+        runtimeOnly.extendsFrom == [] as Set
+
+        when:
+        def runtimeElements = project.configurations.getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
+
+        then:
+        runtimeElements.transitive
+        !runtimeElements.visible
+        runtimeElements.canBeConsumed
+        !runtimeElements.canBeResolved
+        runtimeElements.extendsFrom == [implementation, runtimeOnly, runtime] as Set
+
+        when:
+        def runtimeClasspath = project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME)
+
+        then:
+        runtimeClasspath.transitive
+        !runtimeClasspath.visible
+        !runtimeClasspath.canBeConsumed
+        runtimeClasspath.canBeResolved
+        runtimeClasspath.extendsFrom == [runtimeOnly, runtime, implementation] as Set
+
+        when:
         def compileOnly = project.configurations.getByName(JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME)
 
         then:
-        compileOnly.extendsFrom == toSet(compile)
+        compileOnly.extendsFrom == [] as Set
         !compileOnly.visible
         compileOnly.transitive
 
@@ -87,7 +106,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def compileClasspath = project.configurations.getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME)
 
         then:
-        compileClasspath.extendsFrom == toSet(compileOnly)
+        compileClasspath.extendsFrom == toSet(compileOnly, implementation)
         !compileClasspath.visible
         compileClasspath.transitive
 
@@ -100,6 +119,14 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         testCompile.transitive
 
         when:
+        def testImplementation = project.configurations.getByName(JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME)
+
+        then:
+        testImplementation.extendsFrom == toSet(testCompile, implementation)
+        !testImplementation.visible
+        testImplementation.transitive
+
+        when:
         def testRuntime = project.configurations.getByName(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME)
 
         then:
@@ -108,10 +135,20 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         testRuntime.transitive
 
         when:
+        def testRuntimeOnly = project.configurations.getByName(JavaPlugin.TEST_RUNTIME_ONLY_CONFIGURATION_NAME)
+
+        then:
+        testRuntimeOnly.transitive
+        !testRuntimeOnly.visible
+        !testRuntimeOnly.canBeConsumed
+        !testRuntimeOnly.canBeResolved
+        testRuntimeOnly.extendsFrom == [runtimeOnly] as Set
+
+        when:
         def testCompileOnly = project.configurations.getByName(JavaPlugin.TEST_COMPILE_ONLY_CONFIGURATION_NAME)
 
         then:
-        testCompileOnly.extendsFrom == toSet(testCompile)
+        testCompileOnly.extendsFrom == toSet()
         !testCompileOnly.visible
         testCompileOnly.transitive
 
@@ -119,20 +156,40 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def testCompileClasspath = project.configurations.getByName(JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)
 
         then:
-        testCompileClasspath.extendsFrom == toSet(testCompileOnly)
+        testCompileClasspath.extendsFrom == toSet(testCompileOnly, testImplementation)
         !testCompileClasspath.visible
         testCompileClasspath.transitive
+
+        when:
+        def testRuntimeClasspath = project.configurations.getByName(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)
+
+        then:
+        testRuntimeClasspath.extendsFrom == toSet(testRuntime, testRuntimeOnly, testImplementation)
+        !testRuntimeClasspath.visible
+        testRuntimeClasspath.transitive
+        !testRuntimeClasspath.canBeConsumed
+        testRuntimeClasspath.canBeResolved
+
+        when:
+        def apiElements = project.configurations.getByName(JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME)
+
+        then:
+        !apiElements.visible
+        apiElements.extendsFrom == [runtime] as Set
+        apiElements.canBeConsumed
+        !apiElements.canBeResolved
+
 
         when:
         def defaultConfig = project.configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
 
         then:
-        defaultConfig.extendsFrom == toSet(runtime)
+        defaultConfig.extendsFrom == toSet(runtimeElements)
     }
 
     def addsJarAsPublication() {
         given:
-        javaPlugin.apply(project)
+        project.pluginManager.apply(JavaPlugin)
 
         when:
         def runtimeConfiguration = project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME)
@@ -149,7 +206,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
     def addsJavaLibraryComponent() {
         given:
-        javaPlugin.apply(project)
+        project.pluginManager.apply(JavaPlugin)
 
         when:
         def jarTask = project.tasks.getByName(JavaPlugin.JAR_TASK_NAME)
@@ -157,25 +214,25 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         javaLibrary.artifacts.collect {it.archiveTask} == [jarTask]
-        javaLibrary.runtimeDependencies == project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).allDependencies
+        javaLibrary.runtimeUsage.dependencies == project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).allDependencies
     }
 
     def createsStandardSourceSetsAndAppliesMappings() {
         given:
-        javaPlugin.apply(project)
+        project.pluginManager.apply(JavaPlugin)
 
         when:
-        def set = project.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
+        SourceSet set = project.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
 
         then:
         set.java.srcDirs == toLinkedSet(project.file('src/main/java'))
         set.resources.srcDirs == toLinkedSet(project.file('src/main/resources'))
         set.compileClasspath.is(project.configurations.compileClasspath)
-        set.output.classesDir == new File(project.buildDir, 'classes/main')
+        set.java.outputDir == new File(project.buildDir, 'classes/java/main')
         set.output.resourcesDir == new File(project.buildDir, 'resources/main')
-        set.getOutput() builtBy(JavaPlugin.CLASSES_TASK_NAME)
-        set.runtimeClasspath.sourceCollections.contains(project.configurations.runtime)
-        set.runtimeClasspath.contains(new File(project.buildDir, 'classes/main'))
+        set.getOutput().getBuildDependencies().getDependencies(null)*.name == [ JavaPlugin.CLASSES_TASK_NAME ]
+        set.runtimeClasspath.sourceCollections.contains(project.configurations.runtimeClasspath)
+        set.runtimeClasspath.contains(new File(project.buildDir, 'classes/java/main'))
 
         when:
         set = project.sourceSets[SourceSet.TEST_SOURCE_SET_NAME]
@@ -184,18 +241,18 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         set.java.srcDirs == toLinkedSet(project.file('src/test/java'))
         set.resources.srcDirs == toLinkedSet(project.file('src/test/resources'))
         set.compileClasspath.sourceCollections.contains(project.configurations.testCompileClasspath)
-        set.compileClasspath.contains(new File(project.buildDir, 'classes/main'))
-        set.output.classesDir == new File(project.buildDir, 'classes/test')
+        set.compileClasspath.contains(new File(project.buildDir, 'classes/java/main'))
+        set.java.outputDir == new File(project.buildDir, 'classes/java/test')
         set.output.resourcesDir == new File(project.buildDir, 'resources/test')
-        set.getOutput() builtBy(JavaPlugin.TEST_CLASSES_TASK_NAME)
-        set.runtimeClasspath.sourceCollections.contains(project.configurations.testRuntime)
-        set.runtimeClasspath.contains(new File(project.buildDir, 'classes/main'))
-        set.runtimeClasspath.contains(new File(project.buildDir, 'classes/test'))
+        set.getOutput().getBuildDependencies().getDependencies(null)*.name == [ JavaPlugin.TEST_CLASSES_TASK_NAME ]
+        set.runtimeClasspath.sourceCollections.contains(project.configurations.testRuntimeClasspath)
+        set.runtimeClasspath.contains(new File(project.buildDir, 'classes/java/main'))
+        set.runtimeClasspath.contains(new File(project.buildDir, 'classes/java/test'))
     }
 
     def createsMappingsForCustomSourceSets() {
         given:
-        javaPlugin.apply(project)
+        project.pluginManager.apply(JavaPlugin)
 
         when:
         SourceSet set = project.sourceSets.create('custom')
@@ -204,14 +261,14 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         set.java.srcDirs == toLinkedSet(project.file('src/custom/java'))
         set.resources.srcDirs == toLinkedSet(project.file('src/custom/resources'))
         set.compileClasspath.is(project.configurations.customCompileClasspath)
-        set.output.classesDir == new File(project.buildDir, 'classes/custom')
-        set.getOutput() builtBy('customClasses')
-        Assert.assertThat(set.runtimeClasspath, sameCollection(set.output + project.configurations.customRuntime))
+        set.java.outputDir == new File(project.buildDir, 'classes/java/custom')
+        set.getOutput().getBuildDependencies().getDependencies(null)*.name == [ 'customClasses' ]
+        Assert.assertThat(set.runtimeClasspath, sameCollection(set.output + project.configurations.customRuntimeClasspath))
     }
 
     def createsStandardTasksAndAppliesMappings() {
         given:
-        javaPlugin.apply(project)
+        project.pluginManager.apply(JavaPlugin)
         new TestFile(project.file("src/main/java/File.java")) << "foo"
         new TestFile(project.file("src/main/resources/thing.txt")) << "foo"
         new TestFile(project.file("src/test/java/File.java")) << "foo"
@@ -233,7 +290,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task instanceof JavaCompile
         task dependsOn()
         task.classpath.is(project.sourceSets.main.compileClasspath)
-        task.destinationDir == project.sourceSets.main.output.classesDir
+        task.destinationDir == project.sourceSets.main.java.outputDir
         task.source.files == project.sourceSets.main.java.files
 
         when:
@@ -259,7 +316,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task instanceof JavaCompile
         task dependsOn(JavaPlugin.CLASSES_TASK_NAME)
         task.classpath.is(project.sourceSets.test.compileClasspath)
-        task.destinationDir == project.sourceSets.test.output.classesDir
+        task.destinationDir == project.sourceSets.test.java.outputDir
         task.source.files == project.sourceSets.test.java.files
 
         when:
@@ -337,7 +394,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
     def "configures test task"() {
         given:
-        javaPlugin.apply(project)
+        project.pluginManager.apply(JavaPlugin)
 
         when:
         def task = project.tasks[JavaPlugin.TEST_TASK_NAME]
@@ -346,20 +403,20 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task instanceof org.gradle.api.tasks.testing.Test
         task dependsOn(JavaPlugin.TEST_CLASSES_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME)
         task.classpath == project.sourceSets.test.runtimeClasspath
-        task.testClassesDir == project.sourceSets.test.output.classesDir
+        task.testClassesDirs.contains(project.sourceSets.test.java.outputDir)
         task.workingDir == project.projectDir
     }
 
     def appliesMappingsToTasksAddedByTheBuildScript() {
         given:
-        javaPlugin.apply(project);
+        project.pluginManager.apply(JavaPlugin)
 
         when:
         def task = project.task('customTest', type: org.gradle.api.tasks.testing.Test.class)
 
         then:
         task.classpath == project.sourceSets.test.runtimeClasspath
-        task.testClassesDir == project.sourceSets.test.output.classesDir
+        task.testClassesDirs.contains(project.sourceSets.test.java.outputDir)
         task.workingDir == project.projectDir
         task.reports.junitXml.destination == new File(project.testResultsDir, 'customTest')
         task.reports.html.destination == new File(project.testReportDir, 'customTest')
@@ -367,15 +424,15 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
     def buildOtherProjects() {
         given:
-        def commonProject = TestUtil.createChildProject(project, "common");
-        def middleProject = TestUtil.createChildProject(project, "middle");
-        def appProject = TestUtil.createChildProject(project, "app");
+        def commonProject = TestUtil.createChildProject(project, "common")
+        def middleProject = TestUtil.createChildProject(project, "middle")
+        def appProject = TestUtil.createChildProject(project, "app")
 
         when:
-        javaPlugin.apply(project);
-        javaPlugin.apply(commonProject);
-        javaPlugin.apply(middleProject);
-        javaPlugin.apply(appProject);
+        project.pluginManager.apply(JavaPlugin)
+        commonProject.pluginManager.apply(JavaPlugin)
+        middleProject.pluginManager.apply(JavaPlugin)
+        appProject.pluginManager.apply(JavaPlugin)
 
         appProject.dependencies {
             compile middleProject
@@ -385,13 +442,13 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         }
 
         and:
-        def task = middleProject.tasks['buildNeeded'];
+        def task = middleProject.tasks['buildNeeded']
 
         then:
         task.taskDependencies.getDependencies(task)*.path as Set == [':middle:build', ':common:buildNeeded'] as Set
 
         when:
-        task = middleProject.tasks['buildDependents'];
+        task = middleProject.tasks['buildDependents']
 
         then:
         task.taskDependencies.getDependencies(task)*.path as Set == [':middle:build', ':app:buildDependents'] as Set

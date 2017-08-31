@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.reflect;
 
-import com.google.common.base.Joiner;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.internal.UncheckedException;
 
@@ -54,7 +54,7 @@ public class JavaMethod<T, R> {
 
         Class<?> parent = target.getSuperclass();
         if (parent == null) {
-            throw new NoSuchMethodException(String.format("Could not find method %s(%s) on %s.", name, Joiner.on(", ").join(paramTypes), origTarget.getSimpleName()));
+            throw new NoSuchMethodException(String.format("Could not find method %s(%s) on %s.", name, StringUtils.join(paramTypes, ", "), origTarget.getSimpleName()));
         } else {
             return findMethod(origTarget, parent, name, allowStatic, paramTypes);
         }

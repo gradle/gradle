@@ -38,18 +38,23 @@ import static org.gradle.util.CollectionUtils.sort;
  */
 public class ReleasedVersionDistributions {
 
-    private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext();
+    private final IntegrationTestBuildContext buildContext;
 
     private final Factory<Properties> versionsFactory;
     private Properties properties;
     private List<GradleDistribution> distributions;
 
     public ReleasedVersionDistributions() {
-        this(new ClasspathVersionSource());
+        this(IntegrationTestBuildContext.INSTANCE);
     }
 
-    ReleasedVersionDistributions(Factory<Properties> versionsFactory) {
+    public ReleasedVersionDistributions(IntegrationTestBuildContext buildContext) {
+        this(new ClasspathVersionSource(), buildContext);
+    }
+
+    ReleasedVersionDistributions(Factory<Properties> versionsFactory, IntegrationTestBuildContext buildContext) {
         this.versionsFactory = versionsFactory;
+        this.buildContext = buildContext;
     }
 
     private Properties getProperties() {

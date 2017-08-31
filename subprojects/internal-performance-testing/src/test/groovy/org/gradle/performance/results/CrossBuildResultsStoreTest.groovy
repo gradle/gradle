@@ -21,7 +21,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
-import static org.gradle.performance.measure.DataAmount.kbytes
 import static org.gradle.performance.measure.Duration.minutes
 
 class CrossBuildResultsStoreTest extends ResultSpecification {
@@ -37,30 +36,23 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         def results1 = crossBuildResults(testId: "test1", testGroup: "group1")
         def buildResults1 = results1.buildResult(
                 new BuildDisplayInfo(
-                        "simple",
-                        "simple display",
-                        ["build"],
-                        ["-i"],
-                        [],
-                        true
+                    "simple",
+                    "simple display",
+                    ["build"],
+                    ["clean"],
+                    ["-i"],
+                    [],
+                    true
                 )
         )
-        buildResults1 << operation(totalTime: minutes(12),
-                configurationTime: minutes(1),
-                executionTime: minutes(10),
-                totalMemoryUsed: kbytes(12.33),
-                totalHeapUsage: kbytes(5612.45),
-                maxHeapUsage: kbytes(124.01),
-                maxUncollectedHeap: kbytes(45.22),
-                maxCommittedHeap: kbytes(200)
-        )
-        def buildResults2 = results1.buildResult(new BuildDisplayInfo("complex", "complex display", [], [], ["--go-faster"], false))
+        buildResults1 << operation(totalTime: minutes(12))
+        def buildResults2 = results1.buildResult(new BuildDisplayInfo("complex", "complex display", [], [], [], ["--go-faster"], false))
         buildResults2 << operation()
         buildResults2 << operation()
 
         and:
         def results2 = crossBuildResults(testId: "test2", testGroup: "group2")
-        results2.buildResult(new BuildDisplayInfo("simple", "simple display", ["build"], ["-i"], [], true))
+        results2.buildResult(new BuildDisplayInfo("simple", "simple display", ["build"], [], ["-i"], [], true))
 
         when:
         def writeStore = new BaseCrossBuildResultsStore(dbName)
@@ -90,19 +82,21 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         history.scenarios[0].displayName == "complex display"
         history.scenarios[0].testProject == "complex"
         history.scenarios[0].tasks == []
+        history.scenarios[0].cleanTasks == []
         history.scenarios[0].args == []
         history.scenarios[0].gradleOpts == ["--go-faster"]
         history.scenarios[0].daemon == false
         history.scenarios[1].displayName == "simple display"
         history.scenarios[1].testProject == "simple"
         history.scenarios[1].tasks == ["build"]
+        history.scenarios[1].cleanTasks == ["clean"]
         history.scenarios[1].args == ["-i"]
         history.scenarios[1].gradleOpts == []
         history.scenarios[1].daemon
 
         and:
         def firstSpecification = history.builds[0]
-        firstSpecification == new BuildDisplayInfo("complex", "complex display", [], [], ["--go-faster"], false)
+        firstSpecification == new BuildDisplayInfo("complex", "complex display", [], [], [], ["--go-faster"], false)
         history.results.first().buildResult(firstSpecification).size() == 2
         history.results.first().buildResult("complex display").size() == 2
 
@@ -112,22 +106,16 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         crossBuildPerformanceResults.jvm == "java 7"
         crossBuildPerformanceResults.versionUnderTest == "Gradle 1.0"
         crossBuildPerformanceResults.operatingSystem == "windows"
+        crossBuildPerformanceResults.host == "me"
         crossBuildPerformanceResults.startTime == 100
         crossBuildPerformanceResults.vcsBranch == "master"
         crossBuildPerformanceResults.vcsCommits[0] == "abcdef"
 
         and:
         def secondSpecification = history.builds[1]
-        secondSpecification == new BuildDisplayInfo("simple", "simple display", ["build"], ["-i"], [], true)
+        secondSpecification == new BuildDisplayInfo("simple", "simple display", ["build"], ["clean"], ["-i"], [], true)
         def operation = crossBuildPerformanceResults.buildResult(secondSpecification).first
         operation.totalTime == minutes(12)
-        operation.configurationTime == minutes(1)
-        operation.executionTime == minutes(10)
-        operation.totalMemoryUsed == kbytes(12.33)
-        operation.totalHeapUsage == kbytes(5612.45)
-        operation.maxHeapUsage == kbytes(124.01)
-        operation.maxUncollectedHeap == kbytes(45.22)
-        operation.maxCommittedHeap == kbytes(200)
 
         cleanup:
         writeStore?.close()
@@ -139,12 +127,13 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         def results1 = crossBuildResults(testId: "test1", testGroup: "group1")
         def buildResults1 = results1.buildResult(
                 new BuildDisplayInfo(
-                        "simple",
-                        "simple display",
-                        ["build"],
-                        ["-i"],
-                        null,
-                        null
+                    "simple",
+                    "simple display",
+                    ["build"],
+                    ["clean"],
+                    ["-i"],
+                    null,
+                    null
                 )
         )
         buildResults1 << operation()
@@ -166,7 +155,7 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         history.displayName == "test1"
         history.scenarioCount == 1
         def firstSpecification = history.builds[0]
-        firstSpecification == new BuildDisplayInfo("simple", "simple display", ["build"], ["-i"], null, null)
+        firstSpecification == new BuildDisplayInfo("simple", "simple display", ["build"], ["clean"], ["-i"], null, null)
         history.results.first().buildResult(firstSpecification).size() == 1
         history.results.first().buildResult("simple display").size() == 1
 
@@ -180,23 +169,25 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         def results1 = crossBuildResults(testId: "test1", testGroup: "group1", startTime: 100)
         def buildResults1 = results1.buildResult(
                 new BuildDisplayInfo(
-                        "project-1",
-                        "scenario 1",
-                        ["build"],
-                        ["-1"],
-                        null,
-                        null
+                    "project-1",
+                    "scenario 1",
+                    ["build"],
+                    [],
+                    ["-1"],
+                    null,
+                    null
                 )
         )
         buildResults1 << operation()
         def buildResults2 = results1.buildResult(
                 new BuildDisplayInfo(
-                        "project-1",
-                        "scenario 2",
-                        ["clean", "build"],
-                        ["-1"],
-                        null,
-                        null
+                    "project-1",
+                    "scenario 2",
+                    ["build"],
+                    ["clean"],
+                    ["-1"],
+                    null,
+                    null
                 )
         )
         buildResults2 << operation()
@@ -204,23 +195,25 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         def results2 = crossBuildResults(testId: "test1", testGroup: "group1", startTime: 200)
         def buildResults3 = results2.buildResult(
                 new BuildDisplayInfo(
-                        "project-1",
-                        "scenario 1",
-                        ["build"],
-                        ["-2"],
-                        ["--new"],
-                        true
+                    "project-1",
+                    "scenario 1",
+                    ["build"],
+                    [],
+                    ["-2"],
+                    ["--new"],
+                    true
                 )
         )
         buildResults3 << operation()
         def buildResults4 = results2.buildResult(
                 new BuildDisplayInfo(
-                        "project-1",
-                        "scenario 2",
-                        ["clean", "build"],
-                        ["-1"],
-                        ["--new"],
-                        true
+                    "project-1",
+                    "scenario 2",
+                    ["build"],
+                    ["clean"],
+                    ["-1"],
+                    ["--new"],
+                    true
                 )
         )
         buildResults4 << operation()
@@ -228,23 +221,25 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         def results3 = crossBuildResults(testId: "test1", testGroup: "group1", startTime: 300)
         def buildResults5 = results3.buildResult(
                 new BuildDisplayInfo(
-                        "project-1-new",
-                        "scenario 1",
-                        ["assemble"],
-                        ["-2", "-3"],
-                        ["--new", "--old"],
-                        true
+                    "project-1-new",
+                    "scenario 1",
+                    ["assemble"],
+                    [],
+                    ["-2", "-3"],
+                    ["--new", "--old"],
+                    true
                 )
         )
         buildResults5 << operation()
         def buildResults6 = results3.buildResult(
                 new BuildDisplayInfo(
-                        "project-2-new",
-                        "scenario 2",
-                        ["clean", "assemble"],
-                        ["-4"],
-                        [],
-                        true
+                    "project-2-new",
+                    "scenario 2",
+                    ["assemble"],
+                    ["clean"],
+                    ["-4"],
+                    [],
+                    true
                 )
         )
         buildResults6 << operation()
@@ -299,23 +294,25 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         def results1 = crossBuildResults(testId: "test1", testGroup: "group1", startTime: 100)
         def buildResults1 = results1.buildResult(
                 new BuildDisplayInfo(
-                        "project-1",
-                        "scenario 1",
-                        ["build"],
-                        ["-1"],
-                        null,
-                        null
+                    "project-1",
+                    "scenario 1",
+                    ["build"],
+                    [],
+                    ["-1"],
+                    null,
+                    null
                 )
         )
         buildResults1 << operation()
         def buildResults2 = results1.buildResult(
                 new BuildDisplayInfo(
-                        "project-1",
-                        "scenario 2",
-                        ["clean", "build"],
-                        ["-1"],
-                        null,
-                        null
+                    "project-1",
+                    "scenario 2",
+                    ["build"],
+                    ["clean"],
+                    ["-1"],
+                    null,
+                    null
                 )
         )
         buildResults2 << operation()
@@ -323,23 +320,25 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         def results2 = crossBuildResults(testId: "test1", testGroup: "group1", startTime: 200)
         def buildResults3 = results2.buildResult(
                 new BuildDisplayInfo(
-                        "project-1",
-                        "scenario 1",
-                        ["build"],
-                        ["-2"],
-                        ["--new"],
-                        true
+                    "project-1",
+                    "scenario 1",
+                    ["build"],
+                    [],
+                    ["-2"],
+                    ["--new"],
+                    true
                 )
         )
         buildResults3 << operation()
         def buildResults4 = results2.buildResult(
                 new BuildDisplayInfo(
-                        "project-1",
-                        "scenario 3",
-                        ["clean", "build"],
-                        ["-1"],
-                        ["--new"],
-                        true
+                    "project-1",
+                    "scenario 3",
+                    ["build"],
+                    ["clean"],
+                    ["-1"],
+                    ["--new"],
+                    true
                 )
         )
         buildResults4 << operation()
@@ -347,12 +346,13 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         def results3 = crossBuildResults(testId: "test1", testGroup: "group1", startTime: 300)
         def buildResults5 = results3.buildResult(
                 new BuildDisplayInfo(
-                        "project-1-old",
-                        "scenario 4",
-                        ["assemble"],
-                        ["-2", "-3"],
-                        ["--new", "--old"],
-                        true
+                    "project-1-old",
+                    "scenario 4",
+                    ["assemble"],
+                    [],
+                    ["-2", "-3"],
+                    ["--new", "--old"],
+                    true
                 )
         )
         buildResults5 << operation()
@@ -406,15 +406,15 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
     def "returns top n results in descending date order"() {
         given:
         def results1 = crossBuildResults(testId: "test1", startTime: 1000)
-        results1.buildResult(new BuildDisplayInfo("simple1", "simple 1", ["build"], ["-i"], [], true))
+        results1.buildResult(new BuildDisplayInfo("simple1", "simple 1", ["build"], [], ["-i"], [], true))
 
         and:
         def results2 = crossBuildResults(testId: "test1", startTime: 2000)
-        results2.buildResult(new BuildDisplayInfo("simple2", "simple 2", ["build"], ["-i"], [], true))
+        results2.buildResult(new BuildDisplayInfo("simple2", "simple 2", ["build"], [], ["-i"], [], true))
 
         and:
         def results3 = crossBuildResults(testId: "test1", startTime: 3000)
-        results3.buildResult(new BuildDisplayInfo("simple3", "simple 3", ["build"], ["-i"], [], true))
+        results3.buildResult(new BuildDisplayInfo("simple3", "simple 3", ["build"], [], ["-i"], [], true))
 
         and:
         def writeStore = new BaseCrossBuildResultsStore(dbName)

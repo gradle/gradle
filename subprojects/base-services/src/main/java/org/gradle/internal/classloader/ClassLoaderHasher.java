@@ -16,11 +16,13 @@
 
 package org.gradle.internal.classloader;
 
-import com.google.common.hash.HashCode;
+import org.gradle.internal.hash.HashCode;
+
+import javax.annotation.Nullable;
 
 public interface ClassLoaderHasher {
     /**
      * Returns the hash associated with the classloader, or {@link null} otherwise.
      */
-    HashCode getHash(ClassLoader classLoader);
+    @Nullable HashCode getHash(ClassLoader classLoader);
 }

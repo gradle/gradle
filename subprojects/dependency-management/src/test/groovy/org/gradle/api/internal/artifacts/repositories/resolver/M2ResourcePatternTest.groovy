@@ -78,8 +78,8 @@ class M2ResourcePatternTest extends Specification {
 
     def "substitutes attributes into pattern to determine version list pattern"() {
         def pattern = new M2ResourcePattern("prefix/[organisation]/[module]/[revision]/[type]s/[revision]/[artifact].[ext]")
-        def ivyName = DefaultIvyArtifactName.of("projectA", "pom", "pom")
-        def moduleId = DefaultModuleIdentifier.of(group, module)
+        def ivyName = new DefaultIvyArtifactName("projectA", "pom", "pom")
+        def moduleId = new DefaultModuleIdentifier(group, module)
 
         expect:
         pattern.toVersionListPattern(moduleId, ivyName).path == expectedPath
@@ -92,8 +92,8 @@ class M2ResourcePatternTest extends Specification {
 
     def "can build module path"() {
         def pattern = new M2ResourcePattern("prefix/" + MavenPattern.M2_PATTERN)
-        def module1 = DefaultModuleIdentifier.of("group", "projectA")
-        def module2 = DefaultModuleIdentifier.of("org.group", "projectA")
+        def module1 = new DefaultModuleIdentifier("group", "projectA")
+        def module2 = new DefaultModuleIdentifier("org.group", "projectA")
 
         expect:
         pattern.toModulePath(module1).path == 'prefix/group/projectA'
@@ -114,7 +114,7 @@ class M2ResourcePatternTest extends Specification {
         def pattern = new M2ResourcePattern("/non/m2/pattern")
 
         when:
-        pattern.toModulePath(DefaultModuleIdentifier.of("group", "module"))
+        pattern.toModulePath(new DefaultModuleIdentifier("group", "module"))
 
         then:
         thrown(UnsupportedOperationException)

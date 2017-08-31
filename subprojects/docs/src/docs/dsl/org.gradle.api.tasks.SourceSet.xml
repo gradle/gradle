@@ -27,7 +27,7 @@
             </tr>
             <tr>
                 <td>compileClasspath</td>
-                <td><literal>project.configurations.compile</literal> (or <literal>project.configurations.testCompile</literal> for the <literal>test</literal> source set).</td>
+                <td><literal>project.configurations.compileClasspath</literal> (or <literal>project.configurations.testCompileClasspath</literal> for the <literal>test</literal> source set).</td>
             </tr>
             <tr>
                 <td>java</td>

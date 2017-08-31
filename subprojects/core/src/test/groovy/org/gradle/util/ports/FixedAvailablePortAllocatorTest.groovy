@@ -24,7 +24,7 @@ class FixedAvailablePortAllocatorTest extends AbstractPortAllocatorTest {
     def "assigns a unique fixed port range based on worker id (maxForks: #maxForks, totalAgents: #totalAgents)" () {
         int rangeSize = FixedAvailablePortAllocator.DEFAULT_RANGE_SIZE - 1
         def portAllocators = (1..totalAgents).collect { agentNum ->
-            (1..maxForks).collect { workerId ->
+            (1..totalWorkers).collect { workerId ->
                 def portAllocator = new FixedAvailablePortAllocator(workerId, agentNum, totalAgents)
                 portAllocator.assignPort()
                 return portAllocator
@@ -33,8 +33,8 @@ class FixedAvailablePortAllocatorTest extends AbstractPortAllocatorTest {
 
         expect:
         (1..totalAgents).each { agentNum ->
-            (1..maxForks).each {
-                def portAllocator = portAllocators[agentNum-1].remove(0)
+            (1..totalWorkers).each { workerNum ->
+                def portAllocator = portAllocators[agentNum - 1].remove(0)
                 def otherRanges = portAllocators.flatten()
                 assert portAllocator.reservations.size() == 1
                 assert portAllocator.reservations[0].endPort - portAllocator.reservations[0].startPort == rangeSize
@@ -47,14 +47,14 @@ class FixedAvailablePortAllocatorTest extends AbstractPortAllocatorTest {
         }
 
         where:
-        maxForks | totalAgents
-        2        | 1
-        2        | 2
-        4        | 1
-        4        | 2
-        8        | 1
-        8        | 2
-        8        | 4
+        totalWorkers | totalAgents
+        2            | 1
+        2            | 2
+        4            | 1
+        4            | 2
+        8            | 1
+        8            | 2
+        8            | 4
     }
 
     @Unroll
