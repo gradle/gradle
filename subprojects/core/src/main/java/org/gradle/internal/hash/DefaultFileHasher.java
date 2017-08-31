@@ -20,6 +20,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.internal.file.FileMetadataSnapshot;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -27,6 +28,7 @@ import java.io.InputStream;
 
 public class DefaultFileHasher implements FileHasher {
     private final StreamHasher streamHasher;
+    private static final byte[] EMPTY_BYTES = {};
 
     public DefaultFileHasher(StreamHasher streamHasher) {
         this.streamHasher = streamHasher;
@@ -35,6 +37,10 @@ public class DefaultFileHasher implements FileHasher {
     @Override
     public HashCode hash(File file) {
         try {
+            // Do not try to read empty files, to avoid blocking on reading from named pipes:
+            if (file.length() == 0) {
+                return streamHasher.hash(new ByteArrayInputStream(EMPTY_BYTES));
+            }
             InputStream inputStream = new FileInputStream(file);
             try {
                 return streamHasher.hash(inputStream);
