@@ -17,8 +17,7 @@ data class CIBuildModel (
         val stages: List<Stage> = listOf(
             Stage("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer)",
                     specificBuilds = listOf(
-                            SpecificBuild.SanityCheck,
-                            SpecificBuild.BuildDistributions),
+                            SpecificBuild.SanityCheck),
                     functionalTests = listOf(
                             TestCoverage(TestType.quick, OS.linux, JvmVersion.java8))),
             Stage("Quick Feedback", "Run checks and functional tests (embedded executer)",
@@ -26,6 +25,7 @@ data class CIBuildModel (
                             TestCoverage(TestType.quick, OS.windows, JvmVersion.java7))),
             Stage("Branch Build Accept", "Run performance and functional tests (against distribution)",
                     specificBuilds = listOf(
+                            SpecificBuild.BuildDistributions,
                             SpecificBuild.Gradleception),
                     functionalTests = listOf(
                             TestCoverage(TestType.platform, OS.linux, JvmVersion.java7),

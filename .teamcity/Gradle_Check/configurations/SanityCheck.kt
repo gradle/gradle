@@ -20,4 +20,8 @@ class SanityCheck(model: CIBuildModel) : BuildType({
     }
 
     applyDefaults(model, this, "compileAll sanityCheck", extraParameters = "-DenableCodeQuality=true --parallel")
+
+    artifactRules = """$artifactRules
+        build/build-receipt.properties
+    """.trimIndent()
 })

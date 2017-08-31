@@ -29,5 +29,5 @@ class Gradleception(model: CIBuildModel) : BuildType({
             gradleParams = gradleParameters.joinToString(separator = " ")
             param("ui.gradleRunner.gradle.wrapper.useWrapper", "false")
         }
-    }, requiresDistribution = true)
+    }, notQuick = true)
 })

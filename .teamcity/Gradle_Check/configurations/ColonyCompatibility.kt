@@ -32,5 +32,17 @@ class ColonyCompatibility(model: CIBuildModel) : BuildType({
         }
     }
 
-    applyDefaultDependencies(model, this, true, "distributions/*-bin.zip => gradle-test/incoming-distributions/release\n-:distributions/*-test-bin.zip")
+    applyDefaultDependencies(model, this, true)
+
+    dependencies {
+        val buildDistributions = BuildDistributions(model)
+        artifacts(buildDistributions) {
+            id = "ARTIFACT_DEPENDENCY_${buildDistributions.extId}"
+            cleanDestination = true
+            artifactRules = """
+                distributions/*-bin.zip => gradle-test/incoming-distributions/release
+                -:distributions/*-test-bin.zip
+            """.trimIndent()
+        }
+    }
 })

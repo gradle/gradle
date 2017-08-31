@@ -88,7 +88,7 @@ fun ProjectFeatures.buildReportTab(title: String, startPage: String) {
     }
 }
 
-fun applyDefaults(model: CIBuildModel, buildType: BuildType, gradleTasks: String, subProject: String = "", requiresDistribution: Boolean = false, runsOnWindows: Boolean = false, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}) {
+fun applyDefaults(model: CIBuildModel, buildType: BuildType, gradleTasks: String, subProject: String = "", notQuick: Boolean = false, runsOnWindows: Boolean = false, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}) {
     applyDefaultSettings(buildType, runsOnWindows, timeout)
 
     val java7HomeParameter = if (runsOnWindows) java7Windows else java7HomeLinux
@@ -138,12 +138,12 @@ fun applyDefaults(model: CIBuildModel, buildType: BuildType, gradleTasks: String
         }
     }
 
-    applyDefaultDependencies(model, buildType, requiresDistribution)
+    applyDefaultDependencies(model, buildType, notQuick)
 }
 
-fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, requiresDistribution: Boolean = false, distributionsArtifactRule: String = "distributions/*-all.zip => incoming-distributions") {
-    if (requiresDistribution) {
-        val buildDistributions = BuildDistributions(model)
+fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, notQuick: Boolean = false) {
+    if (notQuick) {
+        // wait for quick feedback phase to finish successfully
         buildType.dependencies {
             dependency("${model.projectPrefix}Stage_QuickFeedback_Trigger") {
                 snapshot {
@@ -151,22 +151,25 @@ fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, requires
                     onDependencyCancel = FailureAction.CANCEL
                 }
             }
-            artifacts(buildDistributions) {
-                id = "ARTIFACT_DEPENDENCY_${buildDistributions.extId}"
-                cleanDestination = true
-                artifactRules = """
-                    $distributionsArtifactRule
-                    build-receipt.properties => incoming-distributions
-                """.trimIndent()
-            }
+
         }
-    } else if (buildType !is SanityCheck) {
+    }
+
+    if (buildType !is SanityCheck) {
         buildType.dependencies {
-            dependency(SanityCheck(model)) {
+            val sanityCheck = SanityCheck(model)
+            // Sanity Check has to succeed before anything else is started
+            dependency(sanityCheck) {
                 snapshot {
                     onDependencyFailure = FailureAction.CANCEL
                     onDependencyCancel = FailureAction.CANCEL
                 }
+            }
+            // Get the build receipt from sanity check to reuse the timestamp
+            artifacts(sanityCheck) {
+                id = "ARTIFACT_DEPENDENCY_${sanityCheck.extId}"
+                cleanDestination = true
+                artifactRules = "build-receipt.properties => incoming-distributions"
             }
         }
     }

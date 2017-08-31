@@ -14,5 +14,5 @@ class SmokeTests(model: CIBuildModel) : BuildType({
         param("env.JAVA_HOME", "%linux.java8.oracle.64bit%")
     }
 
-    applyDefaults(model, this, "smokeTest:smokeTest", requiresDistribution = true)
+    applyDefaults(model, this, "smokeTest:smokeTest", notQuick = true)
 })
