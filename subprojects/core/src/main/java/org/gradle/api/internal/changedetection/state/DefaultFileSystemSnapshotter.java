@@ -65,9 +65,9 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
     private final FileSystem fileSystem;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final FileSystemMirror fileSystemMirror;
-    private final ProducerGuard<String> producingSelfSnapshots = ProducerGuard.striped();
-    private final ProducerGuard<String> producingTrees = ProducerGuard.striped();
-    private final ProducerGuard<String> producingAllSnapshots = ProducerGuard.striped();
+    private final ProducerGuard<String> producingSelfSnapshots = ProducerGuard.adaptive();
+    private final ProducerGuard<String> producingTrees = ProducerGuard.adaptive();
+    private final ProducerGuard<String> producingAllSnapshots = ProducerGuard.adaptive();
     private final DefaultGenericFileCollectionSnapshotter snapshotter;
     private final ExecutorService executorService;
 
