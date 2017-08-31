@@ -70,7 +70,7 @@ public class ParallelismBuildOptionFactory implements BuildOptionFactory<Paralle
         }
 
         private void invalidMaxWorkersSwitchValue(String value) {
-            throw new IllegalArgumentException(String.format("Argument value '%s' given for system property %s or --%s option is invalid (must be a positive, non-zero, integer)", value, gradleProperty, commandLineOptionConfiguration.getOption()));
+            throw new IllegalArgumentException(String.format("Argument value '%s' given for system property %s or --%s option is invalid (must be a positive, non-zero, integer)", value, gradleProperty, commandLineOptionConfiguration.getLongOption()));
         }
     }
 }

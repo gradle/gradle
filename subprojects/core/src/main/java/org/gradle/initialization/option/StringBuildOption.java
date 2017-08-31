@@ -50,7 +50,7 @@ public abstract class StringBuildOption<T> extends AbstractBuildOption<T> {
     @Override
     public void configure(CommandLineParser parser) {
         if (hasCommandLineOption()) {
-            CommandLineOption option = parser.option(commandLineOptionConfiguration.getOption()).hasDescription(commandLineOptionConfiguration.getDescription());
+            CommandLineOption option = parser.option(commandLineOptionConfiguration.getAllOptions()).hasDescription(commandLineOptionConfiguration.getDescription());
 
             if (commandLineOptionConfiguration.isIncubating()) {
                 option.incubating();
@@ -65,8 +65,8 @@ public abstract class StringBuildOption<T> extends AbstractBuildOption<T> {
     @Override
     public void applyFromCommandLine(ParsedCommandLine options, T settings) {
         if (hasCommandLineOption()) {
-            if (options.hasOption(commandLineOptionConfiguration.getOption())) {
-                String value = options.option(commandLineOptionConfiguration.getOption()).getValue();
+            if (options.hasOption(commandLineOptionConfiguration.getLongOption())) {
+                String value = options.option(commandLineOptionConfiguration.getLongOption()).getValue();
 
                 if (value != null) {
                     applyTo(value, settings);

@@ -16,24 +16,37 @@
 
 package org.gradle.initialization.option;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Configuration for a command line option.
  *
  * @since 4.2
  */
 public final class CommandLineOptionConfiguration {
-    private final String option;
+    private final String longOption;
+    private final String shortOption;
     private final String description;
     private boolean incubating;
     private boolean argument;
 
-    private CommandLineOptionConfiguration(String option, String description) {
-        this.option = option;
+    private CommandLineOptionConfiguration(String longOption, String description) {
+        this(longOption, null, description);
+    }
+
+    private CommandLineOptionConfiguration(String longOption, String shortOption, String description) {
+        this.longOption = longOption;
+        this.shortOption = shortOption;
         this.description = description;
     }
 
-    public static CommandLineOptionConfiguration create(String option, String description) {
-        return new CommandLineOptionConfiguration(option, description);
+    public static CommandLineOptionConfiguration create(String longOption, String description) {
+        return new CommandLineOptionConfiguration(longOption, description);
+    }
+
+    public static CommandLineOptionConfiguration create(String longOption, String shortOption, String description) {
+        return new CommandLineOptionConfiguration(longOption, shortOption, description);
     }
 
     public CommandLineOptionConfiguration incubating() {
@@ -46,8 +59,23 @@ public final class CommandLineOptionConfiguration {
         return this;
     }
 
-    public String getOption() {
-        return option;
+    public String getLongOption() {
+        return longOption;
+    }
+
+    public String getShortOption() {
+        return shortOption;
+    }
+
+    public String[] getAllOptions() {
+        List<String> allOptions = new ArrayList<String>();
+        allOptions.add(longOption);
+
+        if (shortOption != null) {
+            allOptions.add(shortOption);
+        }
+
+        return allOptions.toArray(new String[allOptions.size()]);
     }
 
     public String getDescription() {

@@ -38,15 +38,9 @@ import java.util.Map;
 import static org.gradle.StartParameter.GRADLE_USER_HOME_PROPERTY_KEY;
 
 public class DefaultCommandLineConverter extends AbstractCommandLineConverter<StartParameter> {
-    private static final String NO_PROJECT_DEPENDENCY_REBUILD = "a";
     private static final String BUILD_FILE = "b";
     public static final String INIT_SCRIPT = "I";
-    private static final String SETTINGS_FILE = "c";
-    private static final String DRY_RUN = "m";
     private static final String EXCLUDE_TASK = "x";
-
-    private static final String CONTINUOUS = "continuous";
-    private static final String CONTINUOUS_SHORT_FLAG = "t";
 
     private static final String INCLUDE_BUILD = "include-build";
 
@@ -69,13 +63,9 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         layoutCommandLineConverter.configure(parser);
 
         parser.allowMixedSubcommandsAndOptions();
-        parser.option(DRY_RUN, "dry-run").hasDescription("Run the builds with all task actions disabled.");
         parser.option(INIT_SCRIPT, "init-script").hasArguments().hasDescription("Specify an initialization script.");
-        parser.option(SETTINGS_FILE, "settings-file").hasArgument().hasDescription("Specify the settings file.");
         parser.option(BUILD_FILE, "build-file").hasArgument().hasDescription("Specify the build file.");
-        parser.option(NO_PROJECT_DEPENDENCY_REBUILD, "no-rebuild").hasDescription("Do not rebuild project dependencies.");
         parser.option(EXCLUDE_TASK, "exclude-task").hasArguments().hasDescription("Specify a task to be excluded from execution.");
-        parser.option(CONTINUOUS, CONTINUOUS_SHORT_FLAG).hasDescription("Enables continuous build. Gradle does not exit and will re-execute tasks when task file inputs change.").incubating();
         parser.option(INCLUDE_BUILD).hasArguments().hasDescription("Include the specified build in the composite.").incubating();
 
         for (BuildOption<StartParameter> option : buildOptions) {
@@ -108,32 +98,16 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         if (options.hasOption(BUILD_FILE)) {
             startParameter.setBuildFile(resolver.transform(options.option(BUILD_FILE).getValue()));
         }
-        if (options.hasOption(SETTINGS_FILE)) {
-            startParameter.setSettingsFile(resolver.transform(options.option(SETTINGS_FILE).getValue()));
-        }
-
         for (String script : options.option(INIT_SCRIPT).getValues()) {
             startParameter.addInitScript(resolver.transform(script));
-        }
-
-        if (options.hasOption(NO_PROJECT_DEPENDENCY_REBUILD)) {
-            startParameter.setBuildProjectDependencies(false);
         }
 
         if (!options.getExtraArguments().isEmpty()) {
             startParameter.setTaskNames(options.getExtraArguments());
         }
 
-        if (options.hasOption(DRY_RUN)) {
-            startParameter.setDryRun(true);
-        }
-
         if (options.hasOption(EXCLUDE_TASK)) {
             startParameter.setExcludedTaskNames(options.option(EXCLUDE_TASK).getValues());
-        }
-
-        if (options.hasOption(CONTINUOUS)) {
-            startParameter.setContinuous(true);
         }
 
         for (String includedBuild : options.option(INCLUDE_BUILD).getValues()) {

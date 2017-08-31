@@ -42,6 +42,10 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
         options.add(new ContinueOption());
         options.add(new OfflineOption());
         options.add(new RefreshDependenciesOption());
+        options.add(new DryRunOption());
+        options.add(new ContinuousOption());
+        options.add(new NoProjectDependenciesRebuildOption());
+        options.add(new SettingsFileOption());
         options.add(new ConfigureOnDemandOption());
         options.add(new BuildCacheOption());
         options.add(new BuildScanOption());
@@ -123,6 +127,51 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
         @Override
         public void applyTo(StartParameter settings) {
             settings.setRefreshDependencies(true);
+        }
+    }
+
+    public static class DryRunOption extends NoArgumentBuildOption<StartParameter> {
+        public DryRunOption() {
+            super(StartParameter.class, null, CommandLineOptionConfiguration.create("dry-run", "m", "Run the builds with all task actions disabled."));
+        }
+
+        @Override
+        public void applyTo(StartParameter settings) {
+            settings.setDryRun(true);
+        }
+    }
+
+    public static class ContinuousOption extends NoArgumentBuildOption<StartParameter> {
+        public ContinuousOption() {
+            super(StartParameter.class, null, CommandLineOptionConfiguration.create("continuous", "t", "Enables continuous build. Gradle does not exit and will re-execute tasks when task file inputs change.").incubating());
+        }
+
+        @Override
+        public void applyTo(StartParameter settings) {
+            settings.setContinuous(true);
+        }
+    }
+
+    public static class NoProjectDependenciesRebuildOption extends NoArgumentBuildOption<StartParameter> {
+        public NoProjectDependenciesRebuildOption() {
+            super(StartParameter.class, null, CommandLineOptionConfiguration.create("no-rebuild", "a", "Do not rebuild project dependencies."));
+        }
+
+        @Override
+        public void applyTo(StartParameter settings) {
+            settings.setBuildProjectDependencies(false);
+        }
+    }
+
+    public static class SettingsFileOption extends StringBuildOption<StartParameter> {
+        public SettingsFileOption() {
+            super(StartParameter.class, null, CommandLineOptionConfiguration.create("settings-file", "c", "Specify the settings file.").hasArgument());
+        }
+
+        @Override
+        public void applyTo(String value, StartParameter settings) {
+            Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
+            settings.setSettingsFile(resolver.transform(value));
         }
     }
 

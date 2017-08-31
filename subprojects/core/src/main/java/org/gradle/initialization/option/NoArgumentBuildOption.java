@@ -47,7 +47,7 @@ public abstract class NoArgumentBuildOption<T> extends AbstractBuildOption<T> {
     @Override
     public void configure(CommandLineParser parser) {
         if (hasCommandLineOption()) {
-            CommandLineOption option = parser.option(commandLineOptionConfiguration.getOption()).hasDescription(commandLineOptionConfiguration.getDescription());
+            CommandLineOption option = parser.option(commandLineOptionConfiguration.getAllOptions()).hasDescription(commandLineOptionConfiguration.getDescription());
 
             if (commandLineOptionConfiguration.isIncubating()) {
                 option.incubating();
@@ -61,7 +61,7 @@ public abstract class NoArgumentBuildOption<T> extends AbstractBuildOption<T> {
 
     @Override
     public void applyFromCommandLine(ParsedCommandLine options, T settings) {
-        if (hasCommandLineOption() && options.hasOption(commandLineOptionConfiguration.getOption())) {
+        if (hasCommandLineOption() && options.hasOption(commandLineOptionConfiguration.getLongOption())) {
             applyTo(settings);
         }
     }

@@ -47,20 +47,20 @@ public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T> {
     @Override
     public void configure(CommandLineParser parser) {
         if (hasCommandLineOption()) {
-            parser.option(commandLineOptionConfiguration.getOption()).hasDescription(commandLineOptionConfiguration.getDescription());
-            parser.option("no-" + commandLineOptionConfiguration.getOption()).hasDescription("Disables option --" + commandLineOptionConfiguration.getOption() + ".");
-            parser.allowOneOf(commandLineOptionConfiguration.getOption(), "no-" + commandLineOptionConfiguration.getOption());
+            parser.option(commandLineOptionConfiguration.getLongOption()).hasDescription(commandLineOptionConfiguration.getDescription());
+            parser.option("no-" + commandLineOptionConfiguration.getLongOption()).hasDescription("Disables option --" + commandLineOptionConfiguration.getLongOption() + ".");
+            parser.allowOneOf(commandLineOptionConfiguration.getLongOption(), "no-" + commandLineOptionConfiguration.getLongOption());
         }
     }
 
     @Override
     public void applyFromCommandLine(ParsedCommandLine options, T settings) {
         if (hasCommandLineOption()) {
-            if (options.hasOption(commandLineOptionConfiguration.getOption())) {
+            if (options.hasOption(commandLineOptionConfiguration.getLongOption())) {
                 applyTo(true, settings);
             }
 
-            if (options.hasOption("no-" + commandLineOptionConfiguration.getOption())) {
+            if (options.hasOption("no-" + commandLineOptionConfiguration.getLongOption())) {
                 applyTo(false, settings);
             }
         }
