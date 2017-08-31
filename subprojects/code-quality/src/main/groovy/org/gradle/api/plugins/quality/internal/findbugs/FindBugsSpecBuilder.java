@@ -28,6 +28,7 @@ import org.gradle.util.CollectionUtils;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 
 public class FindBugsSpecBuilder {
@@ -251,7 +252,7 @@ public class FindBugsSpecBuilder {
             }
         }
 
-        return new FindBugsSpec(args, maxHeapSize, debugEnabled, jvmArgs);
+        return new FindBugsSpec(args, maxHeapSize, debugEnabled, jvmArgs == null ? Collections.<String>emptyList() : jvmArgs);
     }
 
     private boolean has(String str) {

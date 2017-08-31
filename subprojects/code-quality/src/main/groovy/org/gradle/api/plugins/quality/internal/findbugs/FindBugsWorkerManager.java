@@ -39,10 +39,7 @@ public class FindBugsWorkerManager {
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         javaCommand.setWorkingDir(workingDir);
         javaCommand.setMaxHeapSize(spec.getMaxHeapSize());
-
-        if (spec.getJvmArgs() != null) {
-            javaCommand.setJvmArgs(spec.getJvmArgs());
-        }
+        javaCommand.jvmArgs(spec.getJvmArgs());
 
         return builder.build();
     }

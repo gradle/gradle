@@ -638,6 +638,29 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         !!! output.contains("Analyzing classes")
     }
 
+    def "can use extra jvm args"() {
+        given:
+        badCode()
+        buildFile << extensionProgressConfiguration(true)
+        // We don't have many jvm args to use for FindBugs, see:
+        // http://findbugs.sourceforge.net/manual/running.html
+        // https://github.com/findbugsproject/findbugs/blob/master/findbugs/build.xml#L771
+        buildFile << '''
+            findbugs {
+                jvmArgs = ['-Duser.language=fr']
+            }
+            findbugsMain.reports {
+                html.enabled true
+                xml.enabled false
+            }
+        '''
+
+        fails('findbugsMain')
+
+        expect:
+        file('build/reports/findbugs/main.html').text.contains('DM_EXIT: La méthode invoque System.exit(...)') // <- this is french
+    }
+
     private static boolean containsXmlMessages(File xmlReportFile) {
         new XmlSlurper().parseText(xmlReportFile.text).BugInstance.children().collect { it.name() }.containsAll(['ShortMessage', 'LongMessage'])
     }
