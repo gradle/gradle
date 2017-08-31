@@ -41,8 +41,8 @@ import java.util.List;
  * - A fixed version of the build scan plugin is requested.
  */
 public class BuildScanPluginAutoApply implements PluginRequestsTransformer {
+    public static final String BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION = "1.10";
     private static final PluginId BUILD_SCAN_PLUGIN_ID = DefaultPluginId.of("com.gradle.build-scan");
-    private static final String BUILD_SCAN_PLUGIN_VERSION = "1.9";
     private static final String BUILD_SCAN_PLUGIN_GROUP = "com.gradle";
     private static final String BUILD_SCAN_PLUGIN_NAME = "build-scan-plugin";
 
@@ -66,7 +66,7 @@ public class BuildScanPluginAutoApply implements PluginRequestsTransformer {
             return requests;
         }
 
-        DefaultPluginRequest buildScanPluginRequest = new DefaultPluginRequest(BUILD_SCAN_PLUGIN_ID, BUILD_SCAN_PLUGIN_VERSION, true, 0, "auto-apply", null);
+        DefaultPluginRequest buildScanPluginRequest = new DefaultPluginRequest(BUILD_SCAN_PLUGIN_ID, BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION, true, 0, "auto-apply", null);
         return prependRequest(buildScanPluginRequest, requests);
     }
 

@@ -20,9 +20,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import spock.lang.Unroll
 
-class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
-    public static final String BUILD_SCAN_DEFAULT_VERSION = "1.9"
+import static org.gradle.internal.scan.config.BuildScanPluginAutoApply.BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION
 
+class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
+    private static final String BUILD_SCAN_PLUGIN_MINIMUM_VERSION = BuildScanPluginCompatibilityEnforcer.MIN_SUPPORTED_VERSION.toString()
     def setup() {
         buildFile << """
             task dummy {}
@@ -35,7 +36,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
             }
 """
 
-        publishDummyBuildScanPlugin(BUILD_SCAN_DEFAULT_VERSION)
+        publishDummyBuildScanPlugin(BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION)
     }
 
     def "automatically applies buildscan plugin when --scan is provided on command-line"() {
@@ -43,7 +44,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         runBuildWithScanRequest()
 
         then:
-        buildScanPluginApplied(BUILD_SCAN_DEFAULT_VERSION)
+        buildScanPluginApplied(BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION)
     }
 
     def "does not automatically apply buildscan plugin when --scan is not provided on command-line"() {
@@ -70,7 +71,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         runBuildWithScanRequest()
 
         then:
-        buildScanPluginApplied(BUILD_SCAN_DEFAULT_VERSION)
+        buildScanPluginApplied(BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION)
     }
 
     def "does not apply buildscan plugin to buildSrc build"() {
@@ -85,7 +86,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains 'in buildSrc'
-        buildScanPluginApplied(BUILD_SCAN_DEFAULT_VERSION)
+        buildScanPluginApplied(BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION)
     }
 
     def "does not apply buildscan plugin to nested builds in a composite"() {
@@ -106,13 +107,13 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains 'in nested build'
-        buildScanPluginApplied(BUILD_SCAN_DEFAULT_VERSION)
+        buildScanPluginApplied(BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION)
     }
 
     @Unroll
     def "uses #sequence version of plugin when explicit in plugins block"() {
         when:
-        if (version != BUILD_SCAN_DEFAULT_VERSION) {
+        if (version != BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION) {
             publishDummyBuildScanPlugin(version)
         }
         pluginsRequest "id 'com.gradle.build-scan' version '$version'"
@@ -125,15 +126,15 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         sequence | version
-        "older"  | "1.8"
-        "same"   | BUILD_SCAN_DEFAULT_VERSION
-        "newer"  | "1.10"
+        "older"  | BUILD_SCAN_PLUGIN_MINIMUM_VERSION
+        "same"   | BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION
+        "newer"  | "100.0"
     }
 
     @Unroll
     def "uses #sequence version of plugin when added to buildscript classpath"() {
         when:
-        if (version != BUILD_SCAN_DEFAULT_VERSION) {
+        if (version != BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION) {
             publishDummyBuildScanPlugin(version)
         }
         buildscriptApply "com.gradle:build-scan-plugin:$version"
@@ -146,14 +147,14 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         sequence | version
-        "older"  | "1.8"
-        "same"   | BUILD_SCAN_DEFAULT_VERSION
-        "newer"  | "1.10"
+        "older"  | BUILD_SCAN_PLUGIN_MINIMUM_VERSION
+        "same"   | BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION
+        "newer"  | "100.0"
     }
 
     def "does not auto-apply buildscan plugin when explicitly requested and not applied"() {
         when:
-        pluginsRequest "id 'com.gradle.build-scan' version '${BUILD_SCAN_DEFAULT_VERSION}' apply false"
+        pluginsRequest "id 'com.gradle.build-scan' version '${BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION}' apply false"
 
         and:
         runBuildWithScanRequest()
