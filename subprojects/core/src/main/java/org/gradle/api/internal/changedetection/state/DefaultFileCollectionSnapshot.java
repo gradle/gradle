@@ -72,7 +72,7 @@ public class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
         this(snapshots, null, compareStrategy, pathIsAbsolute);
     }
 
-    public DefaultFileCollectionSnapshot(Map<String, NormalizedFileSnapshot> snapshots, @Nullable HashCode hashCode, TaskFilePropertyCompareStrategy compareStrategy, boolean pathIsAbsolute) {
+    DefaultFileCollectionSnapshot(Map<String, NormalizedFileSnapshot> snapshots, @Nullable HashCode hashCode, TaskFilePropertyCompareStrategy compareStrategy, boolean pathIsAbsolute) {
         this.snapshots = snapshots;
         this.hashCode = hashCode;
         this.compareStrategy = compareStrategy;

@@ -91,8 +91,6 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class TaskExecutionServices {
 
-    public static final String BUILD_SCAN_PLUGIN_ID = "com.gradle.build-scan";
-
     void configure(ServiceRegistration registration) {
         registration.addProvider(new BuildCacheTaskServices());
     }
