@@ -33,6 +33,7 @@ dependencies {
     api project(":logging")
     api project(":resources")
     api project(":cli")
+    api project(":buildOption")
     api project(":native")
     api project(":persistentCache")
     api project(":buildCache")

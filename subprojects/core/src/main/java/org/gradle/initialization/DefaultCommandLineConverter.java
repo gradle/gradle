@@ -27,7 +27,7 @@ import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.ProjectPropertiesCommandLineConverter;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.concurrent.ParallelismConfiguration;
-import org.gradle.initialization.option.BuildOption;
+import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.logging.LoggingCommandLineConverter;
 
 import java.io.File;
@@ -42,7 +42,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private final CommandLineConverter<ParallelismConfiguration> parallelConfigurationCommandLineConverter = new ParallelismConfigurationCommandLineConverter();
     private final SystemPropertiesCommandLineConverter systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
     private final ProjectPropertiesCommandLineConverter projectPropertiesCommandLineConverter = new ProjectPropertiesCommandLineConverter();
-    private List<BuildOption<StartParameter>> buildOptions = new StartParameterBuildOptionFactory().create();
+    private final List<BuildOption<StartParameter>> buildOptions = new StartParameterBuildOptionFactory().create();
     private final LayoutCommandLineConverter layoutCommandLineConverter;
 
     public DefaultCommandLineConverter() {

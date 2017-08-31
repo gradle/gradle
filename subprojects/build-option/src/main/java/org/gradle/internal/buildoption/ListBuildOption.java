@@ -14,40 +14,47 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization.option;
+package org.gradle.internal.buildoption;
 
 import org.gradle.cli.CommandLineOption;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 /**
- * A build option that takes a no argument e.g. {@code "--foreground"}.
+ * A build option that takes a list value e.g. {@code "-Iinit1.gradle -Iinit2.gradle"}.
  *
  * @since 4.2
  */
-public abstract class NoArgumentBuildOption<T> extends AbstractBuildOption<T> {
+public abstract class ListBuildOption<T> extends AbstractBuildOption<T> {
 
-    public NoArgumentBuildOption(Class<T> settingsType, String gradleProperty) {
+    protected ListBuildOption(Class<T> settingsType, String gradleProperty) {
         super(settingsType, gradleProperty);
     }
 
-    public NoArgumentBuildOption(Class<T> settingsType, String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
+    public ListBuildOption(Class<T> settingsType, String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
         super(settingsType, gradleProperty, commandLineOptionConfiguration);
     }
 
     @Override
     public void applyFromProperty(Map<String, String> properties, T settings) {
-        if (properties.get(gradleProperty) != null) {
-            applyTo(settings);
+        String value = properties.get(gradleProperty);
+
+        if (value != null) {
+            String[] splitValues = value.split(",");
+            applyTo(Arrays.asList(splitValues), settings);
         }
     }
 
     @Override
     public void configure(CommandLineParser parser) {
         if (hasCommandLineOption()) {
-            CommandLineOption option = parser.option(commandLineOptionConfiguration.getAllOptions()).hasDescription(commandLineOptionConfiguration.getDescription());
+            CommandLineOption option = parser.option(commandLineOptionConfiguration.getAllOptions())
+                .hasDescription(commandLineOptionConfiguration.getDescription())
+                .hasArguments();
 
             if (commandLineOptionConfiguration.isIncubating()) {
                 option.incubating();
@@ -57,10 +64,16 @@ public abstract class NoArgumentBuildOption<T> extends AbstractBuildOption<T> {
 
     @Override
     public void applyFromCommandLine(ParsedCommandLine options, T settings) {
-        if (hasCommandLineOption() && options.hasOption(commandLineOptionConfiguration.getLongOption())) {
-            applyTo(settings);
+        if (hasCommandLineOption()) {
+            if (options.hasOption(commandLineOptionConfiguration.getLongOption())) {
+                List<String> value = options.option(commandLineOptionConfiguration.getLongOption()).getValues();
+
+                if (value != null) {
+                    applyTo(value, settings);
+                }
+            }
         }
     }
 
-    public abstract void applyTo(T settings);
+    public abstract void applyTo(List<String> values, T settings);
 }

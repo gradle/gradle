@@ -24,7 +24,7 @@ import org.gradle.initialization.ParallelismBuildOptionFactory;
 import org.gradle.initialization.StartParameterBuildOptionFactory;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
-import org.gradle.initialization.option.BuildOption;
+import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptionFactory;
 import org.gradle.launcher.logging.configuration.LoggingConfigurationBuildOptionFactory;
 import org.gradle.util.CollectionUtils;

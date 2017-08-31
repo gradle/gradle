@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.cli.converter;
 
-import org.gradle.initialization.option.BuildOption;
+import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptionFactory;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 

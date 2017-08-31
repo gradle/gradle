@@ -17,7 +17,7 @@
 package org.gradle.launcher.cli.converter;
 
 import org.gradle.api.logging.configuration.LoggingConfiguration;
-import org.gradle.initialization.option.BuildOption;
+import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.launcher.logging.configuration.LoggingConfigurationBuildOptionFactory;
 
 import java.util.List;

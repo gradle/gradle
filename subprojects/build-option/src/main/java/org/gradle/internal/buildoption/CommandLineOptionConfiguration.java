@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization.option;
+package org.gradle.internal.buildoption;
 
 import java.util.ArrayList;
 import java.util.List;

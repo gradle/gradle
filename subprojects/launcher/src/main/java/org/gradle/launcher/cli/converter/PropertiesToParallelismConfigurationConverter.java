@@ -17,8 +17,8 @@
 package org.gradle.launcher.cli.converter;
 
 import org.gradle.concurrent.ParallelismConfiguration;
-import org.gradle.initialization.option.BuildOption;
 import org.gradle.initialization.ParallelismBuildOptionFactory;
+import org.gradle.internal.buildoption.BuildOption;
 
 import java.util.List;
 import java.util.Map;

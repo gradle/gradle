@@ -19,11 +19,11 @@ package org.gradle.initialization;
 import org.gradle.api.Transformer;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.file.BasicFileResolver;
-import org.gradle.initialization.option.BuildOption;
-import org.gradle.initialization.option.BuildOptionFactory;
-import org.gradle.initialization.option.CommandLineOptionConfiguration;
-import org.gradle.initialization.option.NoArgumentBuildOption;
-import org.gradle.initialization.option.StringBuildOption;
+import org.gradle.internal.buildoption.BuildOption;
+import org.gradle.internal.buildoption.BuildOptionFactory;
+import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
+import org.gradle.internal.buildoption.NoArgumentBuildOption;
+import org.gradle.internal.buildoption.StringBuildOption;
 
 import java.io.File;
 import java.util.ArrayList;

@@ -21,7 +21,7 @@ import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.concurrent.ParallelismConfiguration;
-import org.gradle.initialization.option.BuildOption;
+import org.gradle.internal.buildoption.BuildOption;
 
 import java.util.List;
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization.option;
+package org.gradle.internal.buildoption;
 
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;

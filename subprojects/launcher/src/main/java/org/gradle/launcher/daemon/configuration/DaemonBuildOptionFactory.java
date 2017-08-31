@@ -17,12 +17,12 @@
 package org.gradle.launcher.daemon.configuration;
 
 import org.gradle.api.GradleException;
-import org.gradle.initialization.option.BooleanBuildOption;
-import org.gradle.initialization.option.BuildOption;
-import org.gradle.initialization.option.BuildOptionFactory;
-import org.gradle.initialization.option.CommandLineOptionConfiguration;
-import org.gradle.initialization.option.NoArgumentBuildOption;
-import org.gradle.initialization.option.StringBuildOption;
+import org.gradle.internal.buildoption.BooleanBuildOption;
+import org.gradle.internal.buildoption.BuildOption;
+import org.gradle.internal.buildoption.BuildOptionFactory;
+import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
+import org.gradle.internal.buildoption.NoArgumentBuildOption;
+import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.internal.jvm.JavaHomeException;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;

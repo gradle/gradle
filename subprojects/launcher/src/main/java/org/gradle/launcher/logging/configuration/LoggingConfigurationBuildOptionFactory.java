@@ -18,9 +18,9 @@ package org.gradle.launcher.logging.configuration;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
-import org.gradle.initialization.option.BuildOption;
-import org.gradle.initialization.option.BuildOptionFactory;
-import org.gradle.initialization.option.StringBuildOption;
+import org.gradle.internal.buildoption.BuildOption;
+import org.gradle.internal.buildoption.BuildOptionFactory;
+import org.gradle.internal.buildoption.StringBuildOption;
 
 import java.util.ArrayList;
 import java.util.List;

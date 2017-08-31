@@ -17,11 +17,11 @@
 package org.gradle.initialization;
 
 import org.gradle.concurrent.ParallelismConfiguration;
-import org.gradle.initialization.option.BooleanBuildOption;
-import org.gradle.initialization.option.BuildOption;
-import org.gradle.initialization.option.BuildOptionFactory;
-import org.gradle.initialization.option.CommandLineOptionConfiguration;
-import org.gradle.initialization.option.StringBuildOption;
+import org.gradle.internal.buildoption.BooleanBuildOption;
+import org.gradle.internal.buildoption.BuildOption;
+import org.gradle.internal.buildoption.BuildOptionFactory;
+import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
+import org.gradle.internal.buildoption.StringBuildOption;
 
 import java.util.ArrayList;
 import java.util.List;

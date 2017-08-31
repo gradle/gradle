@@ -18,7 +18,7 @@ package org.gradle.launcher.cli.converter;
 
 import org.gradle.StartParameter;
 import org.gradle.initialization.StartParameterBuildOptionFactory;
-import org.gradle.initialization.option.BuildOption;
+import org.gradle.internal.buildoption.BuildOption;
 
 import java.util.List;
 import java.util.Map;
