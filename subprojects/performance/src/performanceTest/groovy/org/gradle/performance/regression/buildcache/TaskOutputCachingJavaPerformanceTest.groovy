@@ -269,7 +269,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = tasks.split(' ') as List
         runner.cleanTasks = ["clean"]
-        runner.addBuildExperimentListener(new ApplyAlternatingAbiChangeToJavaSourceFileMutator(testProject.config.fileToChangeByScenario[tasks]))
+        runner.addBuildExperimentListener(new ApplyAlternatingAbiChangeToJavaSourceFileMutator(testProject.config.fileToChangeByScenario["assemble"]))
     }
 
 }
