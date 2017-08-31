@@ -17,7 +17,7 @@
 package org.gradle.test.fixtures.server.http;
 
 import com.sun.net.httpserver.HttpExchange;
-import org.gradle.internal.time.ReliableTimeProvider;
+import org.gradle.internal.time.MonotonicTimeProvider;
 import org.gradle.internal.time.TimeProvider;
 
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ class CyclicBarrierAnyOfRequestHandler implements TrackingHttpHandler, WaitPreco
     private final Map<String, ResourceHandlerWrapper> expected = new TreeMap<String, ResourceHandlerWrapper>();
     private final int testId;
     private final int timeoutMs;
-    private final TimeProvider timeProvider = new ReliableTimeProvider();
+    private final TimeProvider timeProvider = MonotonicTimeProvider.global();
     private int waitingFor;
     private final WaitPrecondition previous;
     private long mostRecentEvent;

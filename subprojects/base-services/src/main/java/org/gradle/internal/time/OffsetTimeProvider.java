@@ -15,22 +15,32 @@
  */
 package org.gradle.internal.time;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.util.concurrent.TimeUnit;
 
 /**
- * A time provider that attempts to be as reliable and as granular as possible,
- * by utilizing {@link System#nanoTime()} for time measurement.
+ * A time provider that disregards wall clock time adjustments after construction.
+ * <p>
+ * System.currentTimeMillis() provides the system wall clock time,
+ * which may be adjusted during the JVM's lifetime.
+ * This provider provides the time based on the system wall clock time
+ * at construction and the elapsed time since.
+ *
+ * @see MonotonicTimeProvider
  */
-public class ReliableTimeProvider implements TimeProvider {
+class OffsetTimeProvider implements TimeProvider {
+
     private final TimeSource timeSource;
     private final long startMillis;
     private final long startNanos;
 
-    public ReliableTimeProvider() {
+    OffsetTimeProvider() {
         this(new TimeSource.True());
     }
 
-    public ReliableTimeProvider(TimeSource timeSource) {
+    @VisibleForTesting
+    OffsetTimeProvider(TimeSource timeSource) {
         this.timeSource = timeSource;
         startMillis = timeSource.currentTimeMillis();
         startNanos = timeSource.nanoTime();

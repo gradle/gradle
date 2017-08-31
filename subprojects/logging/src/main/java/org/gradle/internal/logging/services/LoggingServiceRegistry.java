@@ -34,7 +34,7 @@ import org.gradle.internal.logging.source.JavaUtilLoggingSystem;
 import org.gradle.internal.logging.source.NoOpLoggingSystem;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.time.ReliableTimeProvider;
+import org.gradle.internal.time.MonotonicTimeProvider;
 import org.gradle.internal.time.TimeProvider;
 
 /**
@@ -110,7 +110,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     }
 
     protected TimeProvider createTimeProvider() {
-        return new ReliableTimeProvider();
+        return MonotonicTimeProvider.global();
     }
 
     protected StyledTextOutputFactory createStyledTextOutputFactory() {
@@ -135,11 +135,11 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
         LoggingSourceSystem stderr = new DefaultStdErrLoggingSystem(new TextStreamOutputEventListener(get(OutputEventListener.class)), get(TimeProvider.class));
         stderr.setLevel(LogLevel.ERROR);
         return new DefaultLoggingManagerFactory(
-                renderer,
-                new LoggingSystemAdapter(new Slf4jLoggingConfigurer(renderer)),
-                new JavaUtilLoggingSystem(),
-                stdout,
-                stderr);
+            renderer,
+            new LoggingSystemAdapter(new Slf4jLoggingConfigurer(renderer)),
+            new JavaUtilLoggingSystem(),
+            stdout,
+            stderr);
     }
 
     protected OutputEventRenderer createOutputEventRenderer(TimeProvider timeProvider) {
@@ -154,10 +154,10 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
             OutputEventRenderer renderer = get(OutputEventRenderer.class);
             // Don't configure anything
             return new DefaultLoggingManagerFactory(renderer,
-                    new NoOpLoggingSystem(),
-                    new NoOpLoggingSystem(),
-                    new NoOpLoggingSystem(),
-                    new NoOpLoggingSystem());
+                new NoOpLoggingSystem(),
+                new NoOpLoggingSystem(),
+                new NoOpLoggingSystem(),
+                new NoOpLoggingSystem());
         }
     }
 }

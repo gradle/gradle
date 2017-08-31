@@ -64,7 +64,6 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
-import org.gradle.internal.scan.config.BuildScanConfigServices;
 import org.gradle.internal.scan.scopeids.BuildScanScopeIds;
 import org.gradle.internal.scan.scopeids.DefaultBuildScanScopeIds;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
@@ -100,10 +99,6 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             }
         });
 
-        if (gradle.getParent() == null) {
-            // Should move to build tree scope once it is there
-            addProvider(new BuildScanConfigServices());
-        }
     }
 
     TaskSelector createTaskSelector(GradleInternal gradle, ProjectConfigurer projectConfigurer) {
