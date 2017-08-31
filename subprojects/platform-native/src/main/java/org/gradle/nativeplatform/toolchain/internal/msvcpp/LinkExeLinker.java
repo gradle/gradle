@@ -21,6 +21,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.SharedLibraryLinkerSpec;
 import org.gradle.nativeplatform.toolchain.internal.AbstractCompiler;
@@ -40,8 +41,8 @@ class LinkExeLinker extends AbstractCompiler<LinkerSpec> {
     private final Transformer<LinkerSpec, LinkerSpec> specTransformer;
     private final CommandLineToolContext invocationContext;
 
-    LinkExeLinker(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, Transformer<LinkerSpec, LinkerSpec> specTransformer) {
-        super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new LinkerArgsTransformer(), true);
+    LinkExeLinker(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, Transformer<LinkerSpec, LinkerSpec> specTransformer, WorkerLeaseService workerLeaseService) {
+        super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new LinkerArgsTransformer(), true, workerLeaseService);
         this.invocationContext = invocationContext;
         this.specTransformer = specTransformer;
     }
@@ -54,8 +55,7 @@ class LinkExeLinker extends AbstractCompiler<LinkerSpec> {
     }
 
     @Override
-    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(final LinkerSpec spec) {
-        List<String> args = getArguments(spec);
+    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(final LinkerSpec spec, List<String> args) {
         final CommandLineToolInvocation invocation = invocationContext.createInvocation(
             "linking " + spec.getOutputFile().getName(), spec.getOutputFile().getParentFile(), args, spec.getOperationLogger());
 

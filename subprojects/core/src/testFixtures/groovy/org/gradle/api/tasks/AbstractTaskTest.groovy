@@ -22,10 +22,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.AbstractTask
-import org.gradle.api.internal.InstantiatorFactory
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.model.DefaultObjectFactory
-import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.tasks.TaskExecuter
@@ -48,8 +45,7 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
     public static final String TEST_TASK_NAME = "testTask"
 
     protected DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry()
-    private InstantiatorFactory instantiatorFactory = TestUtil.instantiatorFactory()
-    protected ObjectFactory objectFactory = new DefaultObjectFactory(instantiatorFactory.injectAndDecorate(serviceRegistry), NamedObjectInstantiator.INSTANCE)
+    protected ObjectFactory objectFactory = TestUtil.objectFactory()
 
     public abstract AbstractTask getTask()
 

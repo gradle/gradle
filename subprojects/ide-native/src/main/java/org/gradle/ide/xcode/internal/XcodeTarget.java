@@ -18,12 +18,12 @@ package org.gradle.ide.xcode.internal;
 
 import org.gradle.api.Named;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFileVar;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget;
 
 import javax.inject.Inject;
-import java.io.File;
 
 /**
  * @see <a href="https://developer.apple.com/library/content/featuredarticles/XcodeConcepts/Concept-Schemes.html">XCode Scheme Concept</a>
@@ -33,19 +33,21 @@ public class XcodeTarget implements Named {
     private final String name;
     private final ConfigurableFileCollection headerSearchPaths;
     private final ConfigurableFileCollection importPaths;
-    private FileCollection sources;
+    private final ConfigurableFileCollection sources;
     private String taskName;
     private String gradleCommand;
 
-    private File outputFile;
+    private final RegularFileVar outputFile;
     private PBXTarget.ProductType productType;
     private String productName;
     private String outputFileType;
 
     @Inject
-    public XcodeTarget(String name, String id, FileOperations fileOperations) {
+    public XcodeTarget(String name, String id, FileOperations fileOperations, ProjectLayout projectLayout) {
         this.name = name;
         this.id = id;
+        this.outputFile = projectLayout.newFileVar();
+        this.sources = fileOperations.files();
         this.headerSearchPaths = fileOperations.files();
         this.importPaths = fileOperations.files();
     }
@@ -59,12 +61,8 @@ public class XcodeTarget implements Named {
         return name;
     }
 
-    public File getOutputFile() {
+    public RegularFileVar getOutputFile() {
         return outputFile;
-    }
-
-    public void setOutputFile(File outputFile) {
-        this.outputFile = outputFile;
     }
 
     public String getOutputFileType() {
@@ -107,12 +105,8 @@ public class XcodeTarget implements Named {
         this.gradleCommand = gradleCommand;
     }
 
-    public FileCollection getSources() {
+    public ConfigurableFileCollection getSources() {
         return sources;
-    }
-
-    public void setSources(FileCollection sources) {
-        this.sources = sources;
     }
 
     public ConfigurableFileCollection getHeaderSearchPaths() {

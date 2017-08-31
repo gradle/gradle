@@ -22,6 +22,7 @@ import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.HasInternalProtocol;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -178,6 +179,7 @@ public interface ExtensionContainer {
      * @param type extension type
      * @return extension or null
      */
+    @Nullable
     <T> T findByType(Class<T> type);
 
     /**
@@ -188,6 +190,7 @@ public interface ExtensionContainer {
      * @since 3.5
      */
     @Incubating
+    @Nullable
     <T> T findByType(TypeOf<T> type);
 
     /**
@@ -205,6 +208,7 @@ public interface ExtensionContainer {
      * @param name extension name
      * @return extension or null
      */
+    @Nullable
     Object findByName(String name);
 
     /**

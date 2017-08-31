@@ -16,29 +16,34 @@
 
 package org.gradle.internal.operations.notify
 
+import org.gradle.api.internal.GradleInternal
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.progress.BuildOperationDescriptor
 import org.gradle.internal.progress.BuildOperationListener
 import org.gradle.internal.progress.BuildOperationListenerManager
 import org.gradle.internal.progress.DefaultBuildOperationListenerManager
 import org.gradle.internal.progress.OperationFinishEvent
+import org.gradle.internal.progress.OperationStartEvent
 import org.gradle.testing.internal.util.Specification
 
 class BuildOperationNotificationBridgeTest extends Specification {
 
     def rawListenerManager = new DefaultListenerManager()
     def listenerManager = new DefaultBuildOperationListenerManager(rawListenerManager)
-    BuildOperationNotificationBridge bridge
     def broadcast = rawListenerManager.getBroadcaster(BuildOperationListener)
     def listener = Mock(BuildOperationNotificationListener)
+    def gradle = Mock(GradleInternal)
+    BuildOperationNotificationBridge bridge
 
     def "removes listener when stopped"() {
         given:
         listenerManager = Mock(BuildOperationListenerManager)
+        BuildOperationNotificationBridge bridge = new BuildOperationNotificationBridge(listenerManager)
+
         def buildOperationListener
 
         when:
-        register(listener)
+        bridge.start(gradle)
 
         then:
         1 * listenerManager.addListener(_) >> {
@@ -55,12 +60,32 @@ class BuildOperationNotificationBridgeTest extends Specification {
     }
 
     def "does not allow duplicate registration"() {
+        bridge = new BuildOperationNotificationBridge(listenerManager)
+
         when:
-        register(listener)
-        register(listener)
+        bridge.registerBuildScopeListener(listener)
+        bridge.registerBuildScopeListener(listener)
 
         then:
         thrown IllegalStateException
+    }
+
+    def "passes recorded events to listeners registering"() {
+        def d1 = d(1, null, 1)
+
+        when:
+        bridge = new BuildOperationNotificationBridge(listenerManager)
+        bridge.start(gradle)
+
+        broadcast.started(d1, new OperationStartEvent(0))
+        broadcast.finished(d1, new OperationFinishEvent(0, 1, null, ""))
+
+        and:
+        bridge.registerBuildScopeListenerAndReceiveStoredOperations(listener)
+
+        then:
+        1 * listener.started(_)
+        1 * listener.finished(_)
     }
 
     def "forwards operations with details"() {
@@ -243,6 +268,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
         if (bridge == null) {
             bridge = new BuildOperationNotificationBridge(listenerManager)
         }
+        bridge.start(gradle)
         bridge.registerBuildScopeListener(listener)
     }
 }

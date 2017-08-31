@@ -24,7 +24,7 @@ import org.gradle.wrapper.GradleUserHomeLookup
 @EqualsAndHashCode
 class MavenInvocationSpec implements InvocationSpec {
 
-    private static final String DEFAULT_MAVEN_VERSION = "3.3.9"
+    private static final String DEFAULT_MAVEN_VERSION = "3.5.0"
 
     final MavenInstallation installation
     final String mavenVersion

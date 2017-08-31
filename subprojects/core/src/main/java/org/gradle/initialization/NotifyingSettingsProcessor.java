@@ -25,6 +25,9 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 
+import static org.gradle.initialization.EvaluateSettingsBuildOperationType.Details;
+import static org.gradle.initialization.EvaluateSettingsBuildOperationType.Result;
+
 public class NotifyingSettingsProcessor implements SettingsProcessor {
     private final SettingsProcessor settingsProcessor;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -39,13 +42,26 @@ public class NotifyingSettingsProcessor implements SettingsProcessor {
         return buildOperationExecutor.call(new CallableBuildOperation<SettingsInternal>() {
             @Override
             public SettingsInternal call(BuildOperationContext context) {
-                return settingsProcessor.process(gradle, settingsLocation, buildRootClassLoaderScope, startParameter);
+                SettingsInternal settingsInternal = settingsProcessor.process(gradle, settingsLocation, buildRootClassLoaderScope, startParameter);
+                context.setResult(new Result(){});
+                return settingsInternal;
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Configure settings").
-                    progressDisplayName("settings");
+                return BuildOperationDescriptor.displayName("Evaluate settings").
+                    progressDisplayName("settings").
+                    details(new Details(){
+                        @Override
+                        public String getSettingsDir() {
+                            return settingsLocation.getSettingsDir().getAbsolutePath();
+                        }
+
+                        @Override
+                        public String getSettingsFile() {
+                            return settingsLocation.getSettingsScriptSource().getFileName();
+                        }
+                    });
             }
         });
     }

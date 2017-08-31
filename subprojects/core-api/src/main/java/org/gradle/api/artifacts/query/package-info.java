@@ -17,4 +17,5 @@
 /**
  * Classes used for querying the artifacts.
  */
+@org.gradle.api.NonNullApi
 package org.gradle.api.artifacts.query;

@@ -1,7 +1,6 @@
 import org.gradle.testing.IntegrationTest
 
 apply plugin: 'java'
-apply from: "${rootDir}/gradle/distributionTesting.gradle"
 
 sourceSets {
     integTest {

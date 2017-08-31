@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state
 
-import com.google.common.base.Charsets
-import com.google.common.hash.Hashing
 import org.gradle.api.internal.cache.StringInterner
+import org.gradle.internal.hash.Hashing
 import org.gradle.internal.serialize.SerializerSpec
 
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.ORDERED
@@ -30,7 +29,7 @@ class DefaultFileCollectionSnapshotSerializerTest extends SerializerSpec {
 
     def "reads and writes the snapshot"() {
         when:
-        def hash = Hashing.md5().hashString("foo", Charsets.UTF_8)
+        def hash = Hashing.md5().hashString("foo")
         DefaultFileCollectionSnapshot out = serialize(new DefaultFileCollectionSnapshot([
             "/1": new DefaultNormalizedFileSnapshot("1", DirContentSnapshot.getInstance()),
             "/2": new DefaultNormalizedFileSnapshot("2", MissingFileContentSnapshot.getInstance()),
@@ -51,7 +50,7 @@ class DefaultFileCollectionSnapshotSerializerTest extends SerializerSpec {
 
     def "should retain order in serialization"() {
         when:
-        def hash = Hashing.md5().hashString("foo", Charsets.UTF_8)
+        def hash = Hashing.md5().hashString("foo")
         DefaultFileCollectionSnapshot out = serialize(new DefaultFileCollectionSnapshot([
             "/3": new DefaultNormalizedFileSnapshot("3", new FileHashSnapshot(hash)),
             "/2": new DefaultNormalizedFileSnapshot("2", MissingFileContentSnapshot.getInstance()),

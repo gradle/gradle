@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 import static org.gradle.util.TestPrecondition.JDK8_OR_EARLIER
 
 @Issue("GRADLE-3558")
@@ -163,7 +164,7 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
 
             repositories {
                 maven { url '${repoDir.toURI().toURL()}' }
-                mavenCentral()
+                ${mavenCentralRepositoryDefinition()}
             }
         """
     }

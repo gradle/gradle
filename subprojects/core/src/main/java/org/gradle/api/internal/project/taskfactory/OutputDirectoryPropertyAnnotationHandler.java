@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
@@ -60,6 +61,9 @@ public class OutputDirectoryPropertyAnnotationHandler extends AbstractOutputProp
         Object unpacked = DeferredUtil.unpack(value);
         if (unpacked instanceof Path) {
             return ((Path) unpacked).toFile();
+        }
+        if (unpacked instanceof FileSystemLocation) {
+            return ((FileSystemLocation) unpacked).getAsFile();
         }
         return (File) unpacked;
     }

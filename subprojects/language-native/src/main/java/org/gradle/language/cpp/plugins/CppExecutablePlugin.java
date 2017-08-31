@@ -21,27 +21,20 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.DirectoryVar;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppComponent;
-import org.gradle.language.cpp.internal.DefaultCppComponent;
-import org.gradle.language.cpp.tasks.CppCompile;
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
+import org.gradle.language.cpp.internal.DefaultCppApplication;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
-import org.gradle.nativeplatform.toolchain.NativeToolChain;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
-import java.util.Collections;
+import java.util.concurrent.Callable;
 
 /**
  * <p>A plugin that produces a native executable from C++ source.</p>
@@ -67,48 +60,31 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
 
         DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
         ConfigurationContainer configurations = project.getConfigurations();
+        ProviderFactory providers = project.getProviders();
         TaskContainer tasks = project.getTasks();
 
-        // Add the component extension
-        CppComponent component = project.getExtensions().create(CppComponent.class, "executable", DefaultCppComponent.class, fileOperations);
+        // Add the application extension
+        final CppApplication application = project.getExtensions().create(CppApplication.class, "executable", DefaultCppApplication.class,  "main", project.getObjects(), fileOperations, providers, configurations);
+        project.getComponents().add(application);
+        project.getComponents().add(application.getDebugExecutable());
+        project.getComponents().add(application.getReleaseExecutable());
 
-        // Wire in dependencies
-        component.getCompileIncludePath().from(configurations.getByName(CppBasePlugin.CPP_INCLUDE_PATH));
+        // Configure the component
+        application.getBaseName().set(project.getName());
 
-        // Add a compile task
-        CppCompile compile = tasks.create("compileCpp", CppCompile.class);
-        compile.includes(component.getCompileIncludePath());
-        compile.source(component.getCppSource());
-
-        compile.setCompilerArgs(Collections.<String>emptyList());
-        compile.setMacros(Collections.<String, String>emptyMap());
-        compile.setObjectFileDir(buildDirectory.dir("main/objs"));
-
-        DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
-        compile.setTargetPlatform(currentPlatform);
-
-        // TODO - make this lazy
-        NativeToolChain toolChain = project.getModelRegistry().realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
-        compile.setToolChain(toolChain);
-
-        // Add a link task
-        LinkExecutable link = tasks.create("linkMain", LinkExecutable.class);
-        // TODO - need to set basename
-        link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
-        link.lib(configurations.getByName(CppBasePlugin.NATIVE_LINK));
-        link.setLinkerArgs(Collections.<String>emptyList());
-        PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
-        Provider<RegularFile> exeLocation = buildDirectory.file(toolProvider.getExecutableName("exe/" + project.getName()));
-        link.setOutputFile(exeLocation);
-        link.setTargetPlatform(currentPlatform);
-        link.setToolChain(toolChain);
+        LinkExecutable link = (LinkExecutable) tasks.getByName("linkDebug");
 
         // Add an install task
+        // TODO - move this up to the base plugin
         final InstallExecutable install = tasks.create("installMain", InstallExecutable.class);
-        // TODO - need to set basename
-        install.setPlatform(currentPlatform);
-        install.setToolChain(toolChain);
-        install.setDestinationDir(buildDirectory.dir("install/" + project.getName()));
+        install.setPlatform(link.getTargetPlatform());
+        install.setToolChain(link.getToolChain());
+        install.setDestinationDir(buildDirectory.dir(providers.provider(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                return "install/" + application.getBaseName().get();
+            }
+        })));
         install.setExecutable(link.getBinaryFile());
         // TODO - infer this
         install.onlyIf(new Spec<Task>() {
@@ -117,7 +93,7 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
                 return install.getExecutable().exists();
             }
         });
-        install.lib(configurations.getByName(CppBasePlugin.NATIVE_RUNTIME));
+        install.lib(application.getDebugExecutable().getRuntimeLibraries());
 
         tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(install);
 

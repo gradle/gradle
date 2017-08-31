@@ -36,7 +36,11 @@ public class CacheBackedFileSnapshotRepository implements FileSnapshotRepository
     }
 
     public FileCollectionSnapshot get(Long id) {
-        return cache.get(id);
+        FileCollectionSnapshot snapshot = cache.get(id);
+        if (snapshot == null) {
+            throw new IllegalArgumentException("Cannot find snapshot for id: " + id);
+        }
+        return snapshot;
     }
 
     public void remove(Long id) {

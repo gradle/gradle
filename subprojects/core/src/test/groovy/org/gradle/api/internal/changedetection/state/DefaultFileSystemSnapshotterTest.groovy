@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.hash.TestFileHasher
+import org.gradle.internal.hash.TestFileHasher
 import org.gradle.caching.internal.DefaultBuildCacheHasher
 import org.gradle.internal.file.FileType
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

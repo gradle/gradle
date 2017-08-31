@@ -37,13 +37,18 @@ apply plugin: 'cpp-executable'
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme${rootProjectName}Executable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         def project = xcodeProject("${rootProjectName}.xcodeproj").projectFile
         project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
         project.targets.size() == 2
         project.assertTargetsAreTools()
-        project.targets.every { it.productName == rootProjectName }
+        project.targets.every { it.productName == 'App' }
+        project.targets[0].name == 'App Executable'
+        project.targets[0].productReference.path == exe("build/exe/main/debug/app").absolutePath
+        project.targets[1].name == '[INDEXING ONLY] App Executable'
+        project.products.children.size() == 1
+        project.products.children[0].path == exe("build/exe/main/debug/app").absolutePath
 
         assertProjectHasEqualsNumberOfGradleAndIndexTargets(project.targets)
     }
@@ -62,13 +67,18 @@ apply plugin: 'cpp-library'
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":xcodeProject", ":xcodeScheme${rootProjectName}SharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
+        executedAndNotSkipped(":xcodeProject", ":xcodeSchemeAppSharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
 
         def project = xcodeProject("${rootProjectName}.xcodeproj").projectFile
         project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.library.files*.name)
         project.targets.size() == 2
         project.assertTargetsAreDynamicLibraries()
-        project.targets.every { it.productName == rootProjectName }
+        project.targets.every { it.productName == "App" }
+        project.targets[0].name == 'App SharedLibrary'
+        project.targets[0].productReference.path == sharedLib("build/lib/main/debug/app").absolutePath
+        project.targets[1].name == '[INDEXING ONLY] App SharedLibrary'
+        project.products.children.size() == 1
+        project.products.children[0].path == sharedLib("build/lib/main/debug/app").absolutePath
 
         assertProjectHasEqualsNumberOfGradleAndIndexTargets(project.targets)
     }
@@ -169,5 +179,57 @@ library {
         then:
         xcodeProject("${rootProjectName}.xcodeproj").projectFile
             .mainGroup.assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
+    }
+
+    def "honors changes to executable output locations"() {
+        given:
+        buildFile << """
+apply plugin: 'cpp-executable'
+buildDir = 'output'
+executable.baseName = 'test_app'
+"""
+
+        app.writeSources(file('src/main'))
+
+        when:
+        succeeds("xcode")
+
+        then:
+        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+
+        def project = xcodeProject("${rootProjectName}.xcodeproj").projectFile
+        project.targets.size() == 2
+        project.targets.every { it.productName == 'App' }
+        project.targets[0].name == 'App Executable'
+        project.targets[0].productReference.path == exe("output/exe/main/debug/test_app").absolutePath
+        project.targets[1].name == '[INDEXING ONLY] App Executable'
+        project.products.children.size() == 1
+        project.products.children[0].path == exe("output/exe/main/debug/test_app").absolutePath
+    }
+
+    def "honors changes to library output locations"() {
+        given:
+        buildFile << """
+apply plugin: 'cpp-library'
+buildDir = 'output'
+library.baseName = 'test_lib'
+"""
+
+        app.library.writeSources(file('src/main'))
+
+        when:
+        succeeds("xcode")
+
+        then:
+        executedAndNotSkipped(":xcodeProject", ":xcodeSchemeAppSharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
+
+        def project = xcodeProject("${rootProjectName}.xcodeproj").projectFile
+        project.targets.size() == 2
+        project.targets.every { it.productName == "App" }
+        project.targets[0].name == 'App SharedLibrary'
+        project.targets[0].productReference.path == sharedLib("output/lib/main/debug/test_lib").absolutePath
+        project.targets[1].name == '[INDEXING ONLY] App SharedLibrary'
+        project.products.children.size() == 1
+        project.products.children[0].path == sharedLib("output/lib/main/debug/test_lib").absolutePath
     }
 }

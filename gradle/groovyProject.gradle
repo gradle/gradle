@@ -86,13 +86,19 @@ ext.useTestFixtures = { params = [:] ->
     }
 }
 
+apply from: "$rootDir/gradle/distributionTesting.gradle"
+
 if (file("src/testFixtures").exists()) {
     apply from: "$rootDir/gradle/testFixtures.gradle"
 }
 
-apply from: "$rootDir/gradle/integTest.gradle"
+if (file("src/integTest").exists()) {
+    apply from: "$rootDir/gradle/integTest.gradle"
+}
 
-apply from: "$rootDir/gradle/crossVersionTest.gradle"
+if (file("src/crossVersionTest").exists()) {
+    apply from: "$rootDir/gradle/crossVersionTest.gradle"
+}
 
 if (file("src/performanceTest").exists()) {
     apply from: "$rootDir/gradle/performanceTest.gradle"

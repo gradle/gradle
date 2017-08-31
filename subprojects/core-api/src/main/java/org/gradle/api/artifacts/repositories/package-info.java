@@ -17,4 +17,5 @@
 /**
  * Classes for declaring and using artifact repositories.
  */
+@org.gradle.api.NonNullApi
 package org.gradle.api.artifacts.repositories;

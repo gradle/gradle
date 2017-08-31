@@ -23,29 +23,20 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.file.DirectoryVar;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.PropertyState;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.language.cpp.plugins.CppBasePlugin;
-import org.gradle.language.swift.internal.DefaultSwiftComponent;
-import org.gradle.language.swift.model.SwiftComponent;
+import org.gradle.language.cpp.CppBinary;
+import org.gradle.language.swift.SwiftComponent;
+import org.gradle.language.swift.SwiftLibrary;
+import org.gradle.language.swift.internal.DefaultSwiftLibrary;
 import org.gradle.language.swift.tasks.SwiftCompile;
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
-import org.gradle.nativeplatform.toolchain.NativeToolChain;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
-import java.util.Collections;
 
 /**
  * <p>A plugin that produces a shared library from Swift source.</p>
@@ -71,74 +62,78 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
 
         TaskContainer tasks = project.getTasks();
         ConfigurationContainer configurations = project.getConfigurations();
-        DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
         ObjectFactory objectFactory = project.getObjects();
 
-        SwiftComponent component = project.getExtensions().create(SwiftComponent.class, "library", DefaultSwiftComponent.class, fileOperations);
+        SwiftLibrary library = project.getExtensions().create(SwiftLibrary.class, "library", DefaultSwiftLibrary.class, "main", objectFactory, fileOperations, project.getProviders(), configurations);
+        project.getComponents().add(library);
+        project.getComponents().add(library.getDebugSharedLibrary());
+        project.getComponents().add(library.getReleaseSharedLibrary());
 
-        // TODO - extract some common code to setup the compile task and conventions
-        // Add a compile task
-        final SwiftCompile compile = tasks.create("compileSwift", SwiftCompile.class);
+        // Setup component
+        final PropertyState<String> module = library.getModule();
+        module.set(GUtil.toCamelCase(project.getName()));
 
-        compile.includes(configurations.getByName(SwiftBasePlugin.SWIFT_IMPORT_PATH));
+        // Configure compile task
+        SwiftCompile compileDebug = (SwiftCompile) tasks.getByName("compileDebugSwift");
+        compileDebug.setCompilerArgs(Lists.newArrayList("-g", "-enable-testing"));
+        SwiftCompile compileRelease = (SwiftCompile) tasks.getByName("compileReleaseSwift");
 
-        FileCollection sourceTree = component.getSwiftSource();
-        compile.source(sourceTree);
+        LinkSharedLibrary linkDebug = (LinkSharedLibrary) tasks.getByName("linkDebug");
+        LinkSharedLibrary linkRelease = (LinkSharedLibrary) tasks.getByName("linkRelease");
 
-        compile.setCompilerArgs(Lists.newArrayList("-g"));
-        compile.setMacros(Collections.<String, String>emptyMap());
-        compile.setModuleName(project.getName());
-
-        compile.setObjectFileDir(buildDirectory.dir("main/objs"));
-
-        DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
-        compile.setTargetPlatform(currentPlatform);
-
-        // TODO - make this lazy
-        NativeToolChain toolChain = ((ProjectInternal) project).getModelRegistry().realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
-        final PlatformToolProvider platformToolChain = ((NativeToolChainInternal) toolChain).select(currentPlatform);
-        compile.setToolChain(toolChain);
-
-        // Add a link task
-        final LinkSharedLibrary link = tasks.create("linkMain", LinkSharedLibrary.class);
-        link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
-        link.lib(configurations.getByName(CppBasePlugin.NATIVE_LINK));
-        link.setLinkerArgs(Collections.<String>emptyList());
-        // TODO - need to set basename and soname
-        Provider<RegularFile> runtimeFile = buildDirectory.file(platformToolChain.getSharedLibraryName("lib/" + project.getName()));
-        link.setOutputFile(runtimeFile);
-        link.setTargetPlatform(currentPlatform);
-        link.setToolChain(toolChain);
-
-        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(link);
+        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(linkDebug);
 
         // TODO - add lifecycle tasks
-        Configuration api = configurations.getByName(SwiftBasePlugin.API);
-
+        // TODO - extract some common code to setup the configurations
         // TODO - extract common code with C++ plugins
-        Configuration apiElements = configurations.create("swiftApiElements");
-        apiElements.extendsFrom(api);
-        apiElements.setCanBeResolved(false);
-        apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
-        // TODO - should reflect changes to output file
-        apiElements.getOutgoing().artifact(compile.getObjectFileDirectory());
 
-        Configuration implementation = configurations.getByName(SwiftBasePlugin.IMPLEMENTATION);
+        Configuration implementation = library.getImplementationDependencies();
+        Configuration api = library.getApiDependencies();
 
-        Configuration linkElements = configurations.create("linkElements");
-        linkElements.extendsFrom(implementation);
-        linkElements.setCanBeResolved(false);
-        linkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
-        // TODO - should reflect changes to task output file
+        Configuration debugApiElements = configurations.create("debugSwiftApiElements");
+        debugApiElements.extendsFrom(api);
+        debugApiElements.setCanBeResolved(false);
+        debugApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
+        debugApiElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, true);
+        debugApiElements.getOutgoing().artifact(compileDebug.getObjectFileDirectory());
+
+        Configuration debugLinkElements = configurations.create("debugLinkElements");
+        debugLinkElements.extendsFrom(implementation);
+        debugLinkElements.setCanBeResolved(false);
+        debugLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
         // TODO - should distinguish between link-time and runtime files
-        linkElements.getOutgoing().artifact(link.getBinaryFile());
+        debugLinkElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, true);
+        debugLinkElements.getOutgoing().artifact(linkDebug.getBinaryFile());
 
-        Configuration runtimeElements = configurations.create("runtimeElements");
-        runtimeElements.extendsFrom(implementation);
-        runtimeElements.setCanBeResolved(false);
-        runtimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
-        // TODO - should reflect changes to task output file
+        Configuration debugRuntimeElements = configurations.create("debugRuntimeElements");
+        debugRuntimeElements.extendsFrom(implementation);
+        debugRuntimeElements.setCanBeResolved(false);
+        debugRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
+        debugRuntimeElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, true);
         // TODO - should distinguish between link-time and runtime files
-        runtimeElements.getOutgoing().artifact(link.getBinaryFile());
+        debugRuntimeElements.getOutgoing().artifact(linkDebug.getBinaryFile());
+
+        Configuration releaseApiElements = configurations.create("releaseSwiftApiElements");
+        releaseApiElements.extendsFrom(api);
+        releaseApiElements.setCanBeResolved(false);
+        releaseApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
+        releaseApiElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, false);
+        releaseApiElements.getOutgoing().artifact(compileRelease.getObjectFileDirectory());
+
+        Configuration releaseLinkElements = configurations.create("releaseLinkElements");
+        releaseLinkElements.extendsFrom(implementation);
+        releaseLinkElements.setCanBeResolved(false);
+        releaseLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
+        releaseLinkElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, false);
+        // TODO - should distinguish between link-time and runtime files
+        releaseLinkElements.getOutgoing().artifact(linkRelease.getBinaryFile());
+
+        Configuration releaseRuntimeElements = configurations.create("releaseRuntimeElements");
+        releaseRuntimeElements.extendsFrom(implementation);
+        releaseRuntimeElements.setCanBeResolved(false);
+        releaseRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
+        releaseRuntimeElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, false);
+        // TODO - should distinguish between link-time and runtime files
+        releaseRuntimeElements.getOutgoing().artifact(linkRelease.getBinaryFile());
     }
 }

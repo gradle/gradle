@@ -33,9 +33,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
             apply plugin: "groovy"
             apply plugin: "codenarc"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             codenarc {
                 toolVersion = '${version}'

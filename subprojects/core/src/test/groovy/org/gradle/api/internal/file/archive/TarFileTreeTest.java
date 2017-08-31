@@ -27,12 +27,12 @@ import org.gradle.util.Resources;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.gradle.api.file.FileVisitorUtil.*;
-import static org.gradle.api.internal.file.TestFiles.directoryFileTreeFactory;
-import static org.gradle.api.internal.file.TestFiles.fileSystem;
+import static org.gradle.api.internal.file.TestFiles.*;
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes;
 import static org.gradle.util.WrapUtil.toList;
 import static org.hamcrest.Matchers.*;
@@ -45,7 +45,7 @@ public class TarFileTreeTest {
     private final TestFile tarFile = tmpDir.getTestDirectory().file("test.tar");
     private final TestFile rootDir = tmpDir.getTestDirectory().file("root");
     private final TestFile expandDir = tmpDir.getTestDirectory().file("tmp");
-    private final TarFileTree tree = new TarFileTree(tarFile, new MaybeCompressedFileResource(new LocalResourceAdapter(TestFiles.fileRepository().localResource(tarFile))), expandDir, fileSystem(), fileSystem(), directoryFileTreeFactory());
+    private final TarFileTree tree = new TarFileTree(tarFile, new MaybeCompressedFileResource(new LocalResourceAdapter(TestFiles.fileRepository().localResource(tarFile))), expandDir, fileSystem(), fileSystem(), directoryFileTreeFactory(), streamHasher());
 
     @Test
     public void displayName() {
@@ -71,7 +71,7 @@ public class TarFileTreeTest {
         rootDir.tgzTo(tgz);
 
         MaybeCompressedFileResource resource = new MaybeCompressedFileResource(new LocalResourceAdapter(TestFiles.fileRepository().localResource(tgz)));
-        TarFileTree tree = new TarFileTree(tarFile, resource, expandDir, fileSystem(), fileSystem(), directoryFileTreeFactory());
+        TarFileTree tree = new TarFileTree(tarFile, resource, expandDir, fileSystem(), fileSystem(), directoryFileTreeFactory(), streamHasher());
 
         assertVisits(tree, toList("subdir/file1.txt", "subdir2/file2.txt"), toList("subdir", "subdir2"));
         assertSetContainsForAllTypes(tree, toList("subdir/file1.txt", "subdir2/file2.txt"));
@@ -86,7 +86,7 @@ public class TarFileTreeTest {
         rootDir.tbzTo(tbz2);
 
         MaybeCompressedFileResource resource = new MaybeCompressedFileResource(new LocalResourceAdapter(TestFiles.fileRepository().localResource(tbz2)));
-        TarFileTree tree = new TarFileTree(tarFile, resource, expandDir, fileSystem(), fileSystem(), directoryFileTreeFactory());
+        TarFileTree tree = new TarFileTree(tarFile, resource, expandDir, fileSystem(), fileSystem(), directoryFileTreeFactory(), streamHasher());
 
         assertVisits(tree, toList("subdir/file1.txt", "subdir2/file2.txt"), toList("subdir", "subdir2"));
         assertSetContainsForAllTypes(tree, toList("subdir/file1.txt", "subdir2/file2.txt"));
@@ -156,5 +156,18 @@ public class TarFileTreeTest {
         expected.put("bin", 0755);
 
         assertVisitsPermissions(tree, expected);
+    }
+
+    @Test
+    public void doesNotOverwriteFilesOnSecondVisit() throws InterruptedException {
+        rootDir.file("file1.txt").write("content");
+        rootDir.tarTo(tarFile);
+
+        assertVisits(tree, toList("file1.txt"), new ArrayList<String>());
+        TestFile content = expandDir.listFiles()[0].listFiles()[0];
+        content.makeOlder();
+        TestFile.Snapshot snapshot = content.snapshot();
+        assertVisits(tree, toList("file1.txt"), new ArrayList<String>());
+        content.assertHasNotChangedSince(snapshot);
     }
 }

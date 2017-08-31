@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.caching.internal.BuildCacheHasher;
@@ -59,6 +61,15 @@ public class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
     @Override
     public Map<String, NormalizedFileSnapshot> getSnapshots() {
         return snapshots;
+    }
+
+    public Map<String, FileContentSnapshot> getContentSnapshots() {
+        return Maps.transformValues(snapshots, new Function<NormalizedFileSnapshot, FileContentSnapshot>() {
+            @Override
+            public FileContentSnapshot apply(NormalizedFileSnapshot normalizedSnapshot) {
+                return normalizedSnapshot.getSnapshot();
+            }
+        });
     }
 
     @Override

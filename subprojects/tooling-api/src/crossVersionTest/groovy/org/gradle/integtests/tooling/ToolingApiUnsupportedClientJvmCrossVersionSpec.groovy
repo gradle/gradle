@@ -38,7 +38,7 @@ repositories {
     maven {
         url '${buildContext.libsRepo.toURI()}'
     }
-    mavenCentral()
+    ${mavenCentralRepository()}
 }
 
 dependencies {

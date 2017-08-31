@@ -37,7 +37,7 @@ class FileProvidersIntegrationTest extends AbstractIntegrationSpec {
             ext.childDirName = "child"
             def t = tasks.create("show", SomeTask)
             t.outputDir = layout.buildDirectory.dir(providers.provider { childDirName })
-            println "output dir before: " + t.outputDir.get()
+            println "output dir before: " + t.outputDir
             buildDir = "output/some-dir"
             childDirName = "other-child"
 """
@@ -48,6 +48,61 @@ class FileProvidersIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("output dir before: " + testDirectory.file("build/child"))
         outputContains("task output dir: " + testDirectory.file("output/some-dir/other-child"))
+    }
+
+    def "reports failure to set directory property value using incompatible type"() {
+        given:
+        buildFile << """
+class SomeExtension {
+    final PropertyState<Directory> prop
+    
+    @javax.inject.Inject
+    SomeExtension(ProjectLayout layout) {
+        prop = layout.newDirectoryVar()
+    }
+}
+
+extensions.create('custom', SomeExtension, layout)
+
+task useIntType {
+    doLast {
+        custom.prop = 123
+    }
+}
+
+task useFileType {
+    doLast {
+        custom.prop = layout.projectDirectory.file("build.gradle")
+    }
+}
+
+task useFileProvider {
+    doLast {
+        custom.prop = layout.buildDirectory.file("build.gradle")
+    }
+}
+"""
+
+        when:
+        fails("useIntType")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':useIntType'.")
+        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using an instance of type java.lang.Integer.")
+
+        when:
+        fails("useFileType")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':useFileType'.")
+        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using an instance of type org.gradle.api.internal.file.DefaultProjectLayout\$FixedFile.")
+
+        when:
+        fails("useFileProvider")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':useFileProvider'.")
+        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using a provider of type org.gradle.api.file.RegularFile.")
     }
 
     def "can attach a calculated file to task property"() {
@@ -68,7 +123,7 @@ class FileProvidersIntegrationTest extends AbstractIntegrationSpec {
             ext.childDirName = "child"
             def t = tasks.create("show", SomeTask)
             t.outputFile = layout.buildDirectory.file(providers.provider { childDirName })
-            println "output file before: " + t.outputFile.get()
+            println "output file before: " + t.outputFile
             buildDir = "output/some-dir"
             childDirName = "other-child"
 """
@@ -79,6 +134,61 @@ class FileProvidersIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("output file before: " + testDirectory.file("build/child"))
         outputContains("task output file: " + testDirectory.file("output/some-dir/other-child"))
+    }
+
+    def "reports failure to set regular file property value using incompatible type"() {
+        given:
+        buildFile << """
+class SomeExtension {
+    final PropertyState<RegularFile> prop
+    
+    @javax.inject.Inject
+    SomeExtension(ProjectLayout layout) {
+        prop = layout.newFileVar()
+    }
+}
+
+extensions.create('custom', SomeExtension, layout)
+
+task useIntType {
+    doLast {
+        custom.prop = 123
+    }
+}
+
+task useDirType {
+    doLast {
+        custom.prop = layout.projectDirectory.dir("src")
+    }
+}
+
+task useDirProvider {
+    doLast {
+        custom.prop = layout.buildDirectory
+    }
+}
+"""
+
+        when:
+        fails("useIntType")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':useIntType'.")
+        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.RegularFile using an instance of type java.lang.Integer.")
+
+        when:
+        fails("useDirType")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':useDirType'.")
+        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.RegularFile using an instance of type org.gradle.api.internal.file.DefaultProjectLayout\$FixedDirectory.")
+
+        when:
+        fails("useDirProvider")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':useDirProvider'.")
+        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.RegularFile using a provider of type org.gradle.api.file.Directory.")
     }
 
     def "can wire the output of a task as input to another task"() {
@@ -130,19 +240,19 @@ class FileProvidersIntegrationTest extends AbstractIntegrationSpec {
             task createFile1(type: FileOutputTask)
             task createFile2(type: FileOutputTask)
             task merge(type: MergeTask) {
-                outputFile.set(layout.buildDirectory.file("merged.txt"))
-                inputFile.set(createFile1.outputFile)
+                outputFile = layout.buildDirectory.file("merged.txt")
+                inputFile = createFile1.outputFile
                 inputFiles.from(createFile2.outputFile)
                 inputFiles.from(createDir.outputDir.asFileTree)
             }
             
             // Set values lazily
-            createDir.inputFile.set(layout.projectDirectory.file("dir1-source.txt"))
-            createDir.outputDir.set(layout.buildDirectory.dir("dir1"))
-            createFile1.inputFile.set(layout.projectDirectory.file("file1-source.txt"))
-            createFile1.outputFile.set(layout.buildDirectory.file("file1.txt"))
-            createFile2.inputFile.set(layout.projectDirectory.file("file2-source.txt"))
-            createFile2.outputFile.set(layout.buildDirectory.file("file2.txt"))
+            createDir.inputFile = layout.projectDirectory.file("dir1-source.txt")
+            createDir.outputDir = layout.buildDirectory.dir("dir1")
+            createFile1.inputFile = layout.projectDirectory.file("file1-source.txt")
+            createFile1.outputFile = layout.buildDirectory.file("file1.txt")
+            createFile2.inputFile = layout.projectDirectory.file("file2-source.txt")
+            createFile2.outputFile = layout.buildDirectory.file("file2.txt")
             
             buildDir = "output"
 """

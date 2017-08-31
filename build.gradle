@@ -279,8 +279,8 @@ def patchedExternalModules = files({ -> fileTree(patchedExternalModulesDir).file
 patchedExternalModules.builtBy 'patchExternalModules'
 
 dependencies {
-    externalModules 'org.gradle:gradle-kotlin-dsl:0.10.3'
-    externalModules 'org.gradle:gradle-kotlin-dsl-tooling-builders:0.10.3'
+    externalModules 'org.gradle:gradle-kotlin-dsl:0.11.0'
+    externalModules 'org.gradle:gradle-kotlin-dsl-tooling-builders:0.11.0'
     coreRuntime project(':launcher')
     coreRuntime project(':runtimeApiInfo')
     runtime project(':wrapper')
@@ -340,7 +340,6 @@ task installAll(type: Install) {
 }
 
 apply from: "gradle/intTestImage.gradle"
-apply from: 'gradle/pullRequestBuild.gradle'
 
 // Generate a report showing which tests in a subproject are leaving
 // files around.

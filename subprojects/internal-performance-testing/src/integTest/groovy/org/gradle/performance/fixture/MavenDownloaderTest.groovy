@@ -17,6 +17,7 @@
 package org.gradle.performance.fixture
 
 import org.gradle.api.UncheckedIOException
+import org.gradle.testing.internal.util.RetryUtil
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
@@ -41,7 +42,11 @@ class MavenDownloaderTest extends Specification {
     @Unroll
     def "can download Maven distribution with version #mavenVersion"() {
         when:
-        def install = downloader.getMavenInstallation(mavenVersion)
+        def install
+        RetryUtil.retry(3, 5000) {
+            // Retry on connection timed out
+            install = downloader.getMavenInstallation(mavenVersion)
+        }
 
         then:
         install.home.isDirectory()
@@ -50,7 +55,7 @@ class MavenDownloaderTest extends Specification {
         MavenInstallation.probeVersion(install.home) == mavenVersion
 
         where:
-        mavenVersion << ['3.2.5', '3.3.9']
+        mavenVersion << ['3.3.9', '3.5.0']
     }
 
     def "throws exception if Maven distribution cannot be downloaded from any repository"() {

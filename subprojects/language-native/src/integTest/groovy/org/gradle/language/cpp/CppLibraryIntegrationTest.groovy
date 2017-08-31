@@ -44,7 +44,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         expect:
         fails "assemble"
-        failure.assertHasDescription("Execution failed for task ':compileCpp'.");
+        failure.assertHasDescription("Execution failed for task ':compileDebugCpp'.");
         failure.assertHasCause("A build operation failed.")
         failure.assertThatCause(containsText("C++ compiler failed while compiling broken.cpp"))
     }
@@ -62,8 +62,25 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
-        sharedLibrary("build/lib/hello").assertExists()
+        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":assemble")
+        sharedLibrary("build/lib/main/debug/hello").assertExists()
+    }
+
+    def "can build release variant of library"() {
+        given:
+        settingsFile << "rootProject.name = 'hello'"
+        def lib = new CppLib()
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-library'
+         """
+
+        expect:
+        succeeds "linkRelease"
+        result.assertTasksExecuted(":compileReleaseCpp", ":linkRelease")
+        sharedLibrary("build/lib/main/release/hello").assertExists()
     }
 
     def "build logic can change source layout convention"() {
@@ -90,9 +107,9 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
+        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":assemble")
 
-        sharedLibrary("build/lib/hello").assertExists()
+        sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 
     def "build logic can add individual source files"() {
@@ -118,9 +135,9 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
+        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":assemble")
 
-        sharedLibrary("build/lib/hello").assertExists()
+        sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 
     def "honors changes to buildDir"() {
@@ -137,11 +154,11 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
+        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":assemble")
 
         !file("build").exists()
-        file("output/main/objs").assertIsDir()
-        sharedLibrary("output/lib/hello").assertExists()
+        file("output/obj/main/debug").assertIsDir()
+        sharedLibrary("output/lib/main/debug/hello").assertExists()
     }
 
     def "honors changes to task output locations"() {
@@ -153,13 +170,13 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         and:
         buildFile << """
             apply plugin: 'cpp-library'
-            compileCpp.objectFileDirectory.set(layout.buildDirectory.dir("object-files"))
-            linkMain.binaryFile.set(layout.buildDirectory.file("some-lib/main.bin"))
+            compileDebugCpp.objectFileDirectory = layout.buildDirectory.dir("object-files")
+            linkDebug.binaryFile = layout.buildDirectory.file("some-lib/main.bin")
          """
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
+        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":assemble")
 
         file("build/object-files").assertIsDir()
         file("build/some-lib/main.bin").assertIsFile()
@@ -181,8 +198,8 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileCpp", ":linkMain", ":assemble")
-        sharedLibrary("build/lib/hello").assertExists()
+        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":assemble")
+        sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 
     def "can compile and link against another library"() {
@@ -206,9 +223,48 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         expect:
         succeeds ":lib1:assemble"
-        result.assertTasksExecuted(":lib2:compileCpp", ":lib2:linkMain", ":lib1:compileCpp", ":lib1:linkMain", ":lib1:assemble")
-        sharedLibrary("lib1/build/lib/lib1").assertExists()
-        sharedLibrary("lib2/build/lib/lib2").assertExists()
+
+        result.assertTasksExecuted(":lib2:compileDebugCpp", ":lib2:linkDebug", ":lib1:compileDebugCpp", ":lib1:linkDebug", ":lib1:assemble")
+        sharedLibrary("lib1/build/lib/main/debug/lib1").assertExists()
+        sharedLibrary("lib2/build/lib/main/debug/lib2").assertExists()
+
+        succeeds ":lib1:linkRelease"
+
+        result.assertTasksExecuted(":lib2:compileReleaseCpp", ":lib2:linkRelease", ":lib1:compileReleaseCpp", ":lib1:linkRelease")
+        sharedLibrary("lib1/build/lib/main/release/lib1").assertExists()
+        sharedLibrary("lib2/build/lib/main/release/lib2").assertExists()
+    }
+
+    def "can change default base name and successfully link against library"() {
+        settingsFile << "include 'lib1', 'lib2'"
+        def app = new CppAppWithLibraries()
+
+        given:
+        buildFile << """
+            project(':lib1') {
+                apply plugin: 'cpp-library'
+                library {
+                    baseName = 'hello'
+                }
+                dependencies {
+                    implementation project(':lib2')
+                }
+            }
+            project(':lib2') {
+                apply plugin: 'cpp-library'
+                library {
+                    baseName = 'log'
+                }
+            }
+"""
+        app.greeterLib.writeToProject(file("lib1"))
+        app.loggerLib.writeToProject(file("lib2"))
+
+        expect:
+        succeeds ":lib1:assemble"
+        result.assertTasksExecuted(":lib2:compileDebugCpp", ":lib2:linkDebug", ":lib1:compileDebugCpp", ":lib1:linkDebug", ":lib1:assemble")
+        sharedLibrary("lib1/build/lib/main/debug/hello").assertExists()
+        sharedLibrary("lib2/build/lib/main/debug/log").assertExists()
     }
 
 }

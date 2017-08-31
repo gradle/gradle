@@ -30,12 +30,11 @@ import java.io.File;
  * @since 4.1
  */
 @Incubating
-public interface Directory extends Provider<File> {
+public interface Directory extends FileSystemLocation {
     /**
-     * Returns the location of this directory, as a {@link File}.
+     * Returns the location of this directory, as an absolute {@link File}.
      */
-    @Override
-    File get();
+    File getAsFile();
 
     /**
      * Returns a {@link FileTree} that allows the files and directories contained in this directory to be queried.

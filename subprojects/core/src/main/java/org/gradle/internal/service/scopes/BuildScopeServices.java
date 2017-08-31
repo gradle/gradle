@@ -109,6 +109,7 @@ import org.gradle.initialization.IGradlePropertiesLoader;
 import org.gradle.initialization.InitScriptHandler;
 import org.gradle.initialization.InstantiatingBuildLoader;
 import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.initialization.NotifyingBuildLoader;
 import org.gradle.initialization.NotifyingSettingsProcessor;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.ProjectPropertySettingBuildLoader;
@@ -131,6 +132,8 @@ import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.composite.CompositeContextBuilder;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -204,10 +207,16 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultGradlePropertiesLoader(get(StartParameter.class));
     }
 
-    protected BuildLoader createBuildLoader() {
-        return new ProjectPropertySettingBuildLoader(
-            get(IGradlePropertiesLoader.class),
-            new InstantiatingBuildLoader(get(IProjectFactory.class)));
+    protected BuildLoader createBuildLoader(IGradlePropertiesLoader propertiesLoader, IProjectFactory projectFactory, BuildOperationExecutor buildOperationExecutor) {
+        return new NotifyingBuildLoader(
+            new ProjectPropertySettingBuildLoader(
+                propertiesLoader,
+                new InstantiatingBuildLoader(
+                    projectFactory
+                )
+            ),
+            buildOperationExecutor
+        );
     }
 
     protected ProjectEvaluator createProjectEvaluator(BuildOperationExecutor buildOperationExecutor, CachingServiceLocator cachingServiceLocator, ScriptPluginFactory scriptPluginFactory) {
@@ -291,12 +300,14 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(PluginRepositoryRegistry.class),
             get(PluginRepositoryFactory.class),
             get(ProviderFactory.class),
-            get(TextResourceLoader.class));
+            get(TextResourceLoader.class),
+            get(StreamHasher.class),
+            get(FileHasher.class));
     }
 
     protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, NestedBuildFactory nestedBuildFactory,
                                                                 ClassLoaderScopeRegistry classLoaderScopeRegistry, CacheRepository cacheRepository,
-                                                                BuildLoader buildLoader, BuildOperationExecutor buildOperationExecutor,
+                                                                BuildOperationExecutor buildOperationExecutor,
                                                                 CachedClasspathTransformer cachedClasspathTransformer,
                                                                 CachingServiceLocator cachingServiceLocator,
                                                                 CompositeContextBuilder compositeContextBuilder,
@@ -314,7 +325,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                     PluginsProjectConfigureActions.of(
                         BuildSrcProjectConfigurationAction.class,
                         cachingServiceLocator))),
-            buildLoader, compositeContextBuilder, includedBuildFactory
+            compositeContextBuilder, includedBuildFactory
         );
     }
 

@@ -78,6 +78,7 @@ public interface ContentFilterable {
      * @param transformer to implement line based filtering
      * @return this
      */
+    //TODO:rbo Change the parameter type to `Transformer<String, @Nullable String>` once we migrate to Java 8
     ContentFilterable filter(Transformer<String, String> transformer);
 
     /**

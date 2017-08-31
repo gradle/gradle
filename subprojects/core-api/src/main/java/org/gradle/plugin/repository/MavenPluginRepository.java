@@ -19,6 +19,7 @@ package org.gradle.plugin.repository;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.repositories.AuthenticationSupported;
 
+import javax.annotation.Nullable;
 import java.net.URI;
 
 /**
@@ -31,6 +32,7 @@ public interface MavenPluginRepository extends PluginRepository, AuthenticationS
      *
      * @return The URL.
      */
+    @Nullable
     URI getUrl();
 
     /**

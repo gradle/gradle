@@ -40,7 +40,7 @@
         <xi:include href='../../../build/asciidoc/userguide/gradleWrapper.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/gradleDaemon.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/artifactDependenciesTutorial.xml'/>
-        <xi:include href='introMultiProjectBuilds.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/introMultiProjectBuilds.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/continuousBuild.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/compositeBuilds.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/buildEnvironment.xml'/>
@@ -59,16 +59,16 @@
         <xi:include href='../../../build/asciidoc/userguide/ant.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/buildLifecycle.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/wrapperPlugin.xml'/>
-        <xi:include href='logging.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/logging.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/depMngmt.xml'/>
-        <xi:include href='multiproject.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/multiproject.xml'/>
         <xi:include href='plugins.xml'/>
         <xi:include href='standardPlugins.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/projectReports.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/buildDashboardPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/comparingBuilds.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/artifactMngmt.xml'/>
-        <xi:include href='mavenPlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/mavenPlugin.xml'/>
         <xi:include href='signingPlugin.xml'/>
         <xi:include href='publishingIvy.xml'/>
         <xi:include href='publishingMaven.xml'/>
@@ -89,13 +89,13 @@
         <title>Building JVM projects</title>
         <xi:include href='../../../build/asciidoc/userguide/javaTutorial.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/javaPlugin.xml'/>
-        <xi:include href='javaLibraryPlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/javaLibraryPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/webTutorial.xml'/>
         <xi:include href='warPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/earPlugin.xml'/>
-        <xi:include href='jettyPlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/jettyPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/applicationPlugin.xml'/>
-        <xi:include href='javaLibraryDistributionPlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/javaLibraryDistributionPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/groovyTutorial.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/groovyPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/scalaPlugin.xml'/>
@@ -103,9 +103,9 @@
         <xi:include href='../../../build/asciidoc/userguide/checkstylePlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/codeNarcPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/findBugsPlugin.xml'/>
-        <xi:include href='jdependPlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/jdependPlugin.xml'/>
         <xi:include href='pmdPlugin.xml'/>
-        <xi:include href='jacocoPlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/jacocoPlugin.xml'/>
         <xi:include href='osgi.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/eclipsePlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/ideaPlugin.xml'/>
@@ -127,6 +127,6 @@
         <xi:include href='../../../build/asciidoc/userguide/potentialTraps.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/featureLifecycle.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/commandLine.xml'/>
-        <xi:include href='licenses.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/licenses.xml'/>
     </part>
 </book>

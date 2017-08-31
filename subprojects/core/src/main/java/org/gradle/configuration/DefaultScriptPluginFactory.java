@@ -44,6 +44,8 @@ import org.gradle.groovy.scripts.internal.InitialPassStatementTransformer;
 import org.gradle.groovy.scripts.internal.SubsetScriptTransformer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
+import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextResourceLoader;
@@ -74,6 +76,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final PluginRepositoryFactory pluginRepositoryFactory;
     private final ProviderFactory providerFactory;
     private final TextResourceLoader textResourceLoader;
+    private final StreamHasher streamHasher;
+    private final FileHasher fileHasher;
     private ScriptPluginFactory scriptPluginFactory;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
@@ -88,7 +92,9 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       PluginRepositoryRegistry pluginRepositoryRegistry,
                                       PluginRepositoryFactory pluginRepositoryFactory,
                                       ProviderFactory providerFactory,
-                                      TextResourceLoader textResourceLoader) {
+                                      TextResourceLoader textResourceLoader,
+                                      StreamHasher streamHasher,
+                                      FileHasher fileHasher) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.loggingManagerFactory = loggingManagerFactory;
         this.instantiator = instantiator;
@@ -103,6 +109,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.providerFactory = providerFactory;
         this.textResourceLoader = textResourceLoader;
         this.scriptPluginFactory = this;
+        this.streamHasher = streamHasher;
+        this.fileHasher = fileHasher;
     }
 
     public void setScriptPluginFactory(ScriptPluginFactory scriptPluginFactory) {
@@ -151,6 +159,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(PluginRepositoryFactory.class, pluginRepositoryFactory);
             services.add(ProviderFactory.class, providerFactory);
             services.add(TextResourceLoader.class, textResourceLoader);
+            services.add(StreamHasher.class, streamHasher);
+            services.add(FileHasher.class, fileHasher);
 
             final ScriptTarget initialPassScriptTarget = initialPassTarget(target);
 

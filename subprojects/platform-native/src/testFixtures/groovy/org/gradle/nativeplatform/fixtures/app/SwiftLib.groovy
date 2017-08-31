@@ -19,15 +19,16 @@ package org.gradle.nativeplatform.fixtures.app
 import org.gradle.integtests.fixtures.SourceFile
 
 /**
- * A Swift library with 2 source files.
+ * A Swift library with 3 source files.
  */
-class SwiftLib extends SourceElement implements GreeterElement, SumElement {
+class SwiftLib extends SourceElement implements GreeterElement, SumElement, MultiplyElement {
     final greeter = new SwiftGreeter()
     final sum = new SwiftSum()
+    final multiply = new SwiftMultiply()
 
     @Override
     List<SourceFile> getFiles() {
-        return [greeter.sourceFile, sum.sourceFile]
+        return [greeter.sourceFile, sum.sourceFile, multiply.sourceFile]
     }
 
     @Override
@@ -38,5 +39,10 @@ class SwiftLib extends SourceElement implements GreeterElement, SumElement {
     @Override
     int sum(int a, int b) {
         return sum.sum(a, b)
+    }
+
+    @Override
+    int multiply(int a, int b) {
+        return multiply.multiply(a, b)
     }
 }

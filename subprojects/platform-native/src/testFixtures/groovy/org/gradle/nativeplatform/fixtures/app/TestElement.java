@@ -29,7 +29,8 @@ public interface TestElement {
 
     interface TestSuite extends Named {
         List<TestCase> getTestCases();
-        List<String> getImports();
+        List<String> getTestableImports();
+        List<String> getStandardImports();
     }
 
     interface TestCase extends Named {

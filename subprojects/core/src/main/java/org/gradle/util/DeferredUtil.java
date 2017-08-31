@@ -36,7 +36,7 @@ public class DeferredUtil {
             if (current instanceof Callable) {
                 current = uncheckedCall((Callable) current);
             } else if (current instanceof Provider) {
-                current = ((Provider<?>) current).get();
+                return ((Provider<?>) current).get();
             } else if (current instanceof Factory) {
                 return ((Factory) current).create();
             } else {

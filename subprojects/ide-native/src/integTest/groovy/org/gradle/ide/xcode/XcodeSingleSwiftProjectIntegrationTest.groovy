@@ -34,13 +34,18 @@ apply plugin: 'swift-executable'
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme${rootProjectName}Executable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
-        def project = xcodeProject("${rootProjectName}.xcodeproj").projectFile
+        def project = xcodeProject("app.xcodeproj").projectFile
         project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
         project.targets.size() == 2
         project.assertTargetsAreTools()
-        project.targets.every { it.productName == rootProjectName }
+        project.targets.every { it.productName == 'App' }
+        project.targets[0].name == 'App Executable'
+        project.targets[0].productReference.path == exe("build/exe/main/debug/App").absolutePath
+        project.targets[1].name == '[INDEXING ONLY] App Executable'
+        project.products.children.size() == 1
+        project.products.children[0].path == exe("build/exe/main/debug/App").absolutePath
 
         assertProjectHasEqualsNumberOfGradleAndIndexTargets(project.targets)
     }
@@ -57,13 +62,18 @@ apply plugin: 'swift-library'
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":xcodeProject", ":xcodeScheme${rootProjectName}SharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
+        executedAndNotSkipped(":xcodeProject", ":xcodeSchemeAppSharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
 
-        def project = xcodeProject("${rootProjectName}.xcodeproj").projectFile
+        def project = xcodeProject("app.xcodeproj").projectFile
         project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
         project.targets.size() == 2
         project.assertTargetsAreDynamicLibraries()
-        project.targets.every { it.productName == rootProjectName }
+        project.targets.every { it.productName == "App" }
+        project.targets[0].name == 'App SharedLibrary'
+        project.targets[0].productReference.path == sharedLib("build/lib/main/debug/App").absolutePath
+        project.targets[1].name == '[INDEXING ONLY] App SharedLibrary'
+        project.products.children.size() == 1
+        project.products.children[0].path == sharedLib("build/lib/main/debug/App").absolutePath
 
         assertProjectHasEqualsNumberOfGradleAndIndexTargets(project.targets)
     }
@@ -159,5 +169,60 @@ library {
         then:
         xcodeProject("${rootProjectName}.xcodeproj").projectFile
             .mainGroup.assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
+    }
+
+    def "honors changes to executable output file locations"() {
+        given:
+        buildFile << """
+apply plugin: 'swift-executable'
+buildDir = 'output'
+executable.module = 'TestApp'
+"""
+
+        def app = new SwiftApp()
+        app.writeToProject(testDirectory)
+
+        when:
+        succeeds("xcode")
+
+        then:
+        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+
+        def project = xcodeProject("app.xcodeproj").projectFile
+        project.targets.size() == 2
+        project.targets.every { it.productName == 'App' }
+        project.targets[0].name == 'App Executable'
+        project.targets[0].productReference.path == exe("output/exe/main/debug/TestApp").absolutePath
+        project.targets[1].name == '[INDEXING ONLY] App Executable'
+        project.products.children.size() == 1
+        project.products.children[0].path == exe("output/exe/main/debug/TestApp").absolutePath
+    }
+
+    def "honors changes to library output file locations"() {
+        given:
+        buildFile << """
+apply plugin: 'swift-library'
+buildDir = 'output'
+library.module = 'TestLib'
+"""
+        def lib = new SwiftLib()
+        lib.writeToProject(testDirectory)
+
+        when:
+        succeeds("xcode")
+
+        then:
+        executedAndNotSkipped(":xcodeProject", ":xcodeSchemeAppSharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
+
+        def project = xcodeProject("app.xcodeproj").projectFile
+        project.targets.size() == 2
+        project.targets.every { it.productName == "App" }
+        project.targets[0].name == 'App SharedLibrary'
+        project.targets[0].productReference.path == sharedLib("output/lib/main/debug/TestLib").absolutePath
+        project.targets[1].name == '[INDEXING ONLY] App SharedLibrary'
+        project.products.children.size() == 1
+        project.products.children[0].path == sharedLib("output/lib/main/debug/TestLib").absolutePath
+
+        assertProjectHasEqualsNumberOfGradleAndIndexTargets(project.targets)
     }
 }

@@ -15,6 +15,8 @@
  */
 package org.gradle.api.artifacts.repositories;
 
+import javax.annotation.Nullable;
+
 /**
  * A username/password credentials that can be used to login to password-protected remote repository.
  */
@@ -24,6 +26,7 @@ public interface PasswordCredentials extends org.gradle.api.credentials.Password
      *
      * @return The user name. May be null.
      */
+    @Nullable
     String getUsername();
 
     /**
@@ -31,13 +34,14 @@ public interface PasswordCredentials extends org.gradle.api.credentials.Password
      *
      * @param userName The user name. May be null.
      */
-    void setUsername(String userName);
+    void setUsername(@Nullable String userName);
 
     /**
      * Returns the password to use when authenticating to this repository.
      *
      * @return The password. May be null.
      */
+    @Nullable
     String getPassword();
 
     /**
@@ -45,5 +49,5 @@ public interface PasswordCredentials extends org.gradle.api.credentials.Password
      *
      * @param password The password. May be null.
      */
-    void setPassword(String password);
+    void setPassword(@Nullable String password);
 }

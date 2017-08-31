@@ -17,7 +17,7 @@
 package org.gradle.play.internal.run;
 
 import org.gradle.api.GradleException;
-import org.gradle.deployment.Deployment;
+import org.gradle.deployment.internal.Deployment;
 import org.gradle.internal.UncheckedException;
 import org.gradle.process.internal.worker.WorkerProcess;
 import org.slf4j.Logger;

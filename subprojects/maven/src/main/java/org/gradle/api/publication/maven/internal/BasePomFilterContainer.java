@@ -17,6 +17,7 @@ package org.gradle.api.publication.maven.internal;
 
 import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
+import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
@@ -73,6 +74,20 @@ public class BasePomFilterContainer implements PomFilterContainer {
 
     public MavenPom pom(String name, Closure configureClosure) {
         return ConfigureUtil.configure(configureClosure, pom(name));
+    }
+
+    @Override
+    public MavenPom pom(Action<? super MavenPom> configureAction) {
+        MavenPom pom = getPom();
+        configureAction.execute(pom);
+        return pom;
+    }
+
+    @Override
+    public MavenPom pom(String name, Action<? super MavenPom> configureAction) {
+        MavenPom pom = pom(name);
+        configureAction.execute(pom);
+        return pom;
     }
 
     public MavenPom addFilter(String name, PublishFilter publishFilter) {

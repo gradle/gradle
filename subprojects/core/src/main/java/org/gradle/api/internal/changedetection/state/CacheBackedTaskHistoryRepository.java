@@ -23,8 +23,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.hash.HashCode;
-import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.OverlappingOutputs;
@@ -39,6 +37,7 @@ import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
@@ -93,12 +92,14 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         final InputNormalizationStrategy normalizationStrategy = ((InputNormalizationHandlerInternal) task.getProject().getNormalization()).buildFinalStrategy();
 
         return new History() {
+            private boolean previousExecutionLoadAttempted;
             private LazyTaskExecution previousExecution;
             private LazyTaskExecution currentExecution;
 
             @Override
             public LazyTaskExecution getPreviousExecution() {
-                if (previousExecution == null) {
+                if (!previousExecutionLoadAttempted) {
+                    previousExecutionLoadAttempted = true;
                     previousExecution = loadPreviousExecution(task);
                 }
                 return previousExecution;
@@ -114,7 +115,12 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
             @Override
             public void updateCurrentExecution(IncrementalTaskInputsInternal taskInputs) {
-                CacheBackedTaskHistoryRepository.this.updateExecution(getPreviousExecution(), getCurrentExecution(), task, taskInputs, normalizationStrategy);
+                updateExecution(getPreviousExecution(), getCurrentExecution(), task, taskInputs, normalizationStrategy);
+            }
+
+            @Override
+            public void updateCurrentExecutionWithOutputs(IncrementalTaskInputsInternal taskInputs, ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot) {
+                updateExecution(getCurrentExecution(), task, taskInputs, newOutputSnapshot, normalizationStrategy);
             }
 
             @Override
@@ -177,16 +183,14 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         );
     }
 
-    private void updateExecution(final TaskExecution previousExecution, LazyTaskExecution currentExecution, TaskInternal task, IncrementalTaskInputsInternal taskInputs, InputNormalizationStrategy normalizationStrategy) {
-        currentExecution.setSuccessful(task.getState().getFailure() == null);
-
+    private void updateExecution(final LazyTaskExecution previousExecution, LazyTaskExecution currentExecution, TaskInternal task, IncrementalTaskInputsInternal taskInputs, InputNormalizationStrategy normalizationStrategy) {
         final ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesAfter = snapshotTaskFiles(task, "Output", normalizationStrategy, task.getOutputs().getFileProperties(), snapshotterRegistry);
 
-        ImmutableSortedMap<String, FileCollectionSnapshot> results;
+        ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot;
         if (currentExecution.getDetectedOverlappingOutputs() == null) {
-            results = outputFilesAfter;
+            newOutputSnapshot = outputFilesAfter;
         } else {
-            results = ImmutableSortedMap.copyOfSorted(Maps.transformEntries(currentExecution.getOutputFilesSnapshot(), new Maps.EntryTransformer<String, FileCollectionSnapshot, FileCollectionSnapshot>() {
+            newOutputSnapshot = ImmutableSortedMap.copyOfSorted(Maps.transformEntries(currentExecution.getOutputFilesSnapshot(), new Maps.EntryTransformer<String, FileCollectionSnapshot, FileCollectionSnapshot>() {
                 @Override
                 public FileCollectionSnapshot transformEntry(String propertyName, FileCollectionSnapshot beforeExecution) {
                     FileCollectionSnapshot afterExecution = outputFilesAfter.get(propertyName);
@@ -195,7 +199,13 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 }
             }));
         }
-        currentExecution.setOutputFilesSnapshot(results);
+        updateExecution(currentExecution, task, taskInputs, newOutputSnapshot, normalizationStrategy);
+    }
+
+    private void updateExecution(LazyTaskExecution currentExecution, TaskInternal task, IncrementalTaskInputsInternal taskInputs, ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot, InputNormalizationStrategy normalizationStrategy) {
+        currentExecution.setSuccessful(task.getState().getFailure() == null);
+
+        currentExecution.setOutputFilesSnapshot(newOutputSnapshot);
 
         FileCollectionSnapshot discoveredFilesSnapshot;
         if (taskInputs != null) {
@@ -208,9 +218,14 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     private static FileCollectionSnapshot snapshotDiscoveredInputs(Task task, InputNormalizationStrategy normalizationStrategy, Collection<File> discoveredInputs, FileCollectionSnapshotterRegistry snapshotterRegistry, FileCollectionFactory fileCollectionFactory) {
         GenericFileCollectionSnapshotter snapshotter = snapshotterRegistry.getSnapshotter(GenericFileCollectionSnapshotter.class);
+        if (discoveredInputs.isEmpty()) {
+            LOGGER.debug("No discovered inputs for {}", task);
+            return FileCollectionSnapshot.EMPTY;
+        }
+        LOGGER.debug("Snapshotting discovered inputs for {}", task);
         try {
             return snapshotter.snapshot(fileCollectionFactory.fixed("Discovered input files", discoveredInputs), ABSOLUTE, normalizationStrategy);
-        } catch (UncheckedIOException e) {
+        } catch (Exception e) {
             throw new UncheckedIOException(String.format("Failed to capture snapshot of discovered input files for %s during up-to-date check.", task), e);
         }
     }
@@ -302,7 +317,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                     builder.put(propertyName, valueSnapshotter.snapshot(value, previousSnapshot));
                 }
             } catch (Exception e) {
-                throw new GradleException(String.format("Unable to store input properties for %s. Property '%s' with value '%s' cannot be serialized.", task, propertyName, value), e);
+                throw new UncheckedIOException(String.format("Unable to store input properties for %s. Property '%s' with value '%s' cannot be serialized.", task, propertyName, value), e);
             }
         }
 
@@ -316,8 +331,9 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             FileCollectionSnapshot result;
             try {
                 FileCollectionSnapshotter snapshotter = snapshotterRegistry.getSnapshotter(propertySpec.getSnapshotter());
+                LOGGER.debug("Snapshotting property {} for {}", propertySpec, task);
                 result = snapshotter.snapshot(propertySpec.getPropertyFiles(), propertySpec.getPathNormalizationStrategy(), normalizationStrategy);
-            } catch (UncheckedIOException e) {
+            } catch (Exception e) {
                 throw new UncheckedIOException(String.format("Failed to capture snapshot of %s files for %s property '%s' during up-to-date check.", title.toLowerCase(), task, propertySpec.getPropertyName()), e);
             }
             builder.put(propertySpec.getPropertyName(), result);

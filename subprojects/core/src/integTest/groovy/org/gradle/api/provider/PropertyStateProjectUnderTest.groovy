@@ -54,7 +54,7 @@ class PropertyStateProjectUnderTest {
     }
 
     static enum Language {
-        GROOVY('Java'), JAVA('Java')
+        GROOVY('Groovy'), JAVA('Java')
 
         private final String description
 

@@ -18,6 +18,8 @@ package org.gradle.api.provider;
 
 import org.gradle.api.Incubating;
 
+import javax.annotation.Nullable;
+
 /**
  * A {@code Provider} representation for capturing property state. The value can be provided by using the method {@code set()}.
  * <p>
@@ -34,9 +36,9 @@ public interface PropertyState<T> extends Provider<T> {
     /**
      * Sets the value defined for the property.
      *
-     * @param value Value
+     * @param value Value, can be null.
      */
-    void set(T value);
+    void set(@Nullable T value);
 
     /**
      * Sets the value defined by an external provider.

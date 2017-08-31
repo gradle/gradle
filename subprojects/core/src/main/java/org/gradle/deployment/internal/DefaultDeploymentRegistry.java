@@ -22,8 +22,6 @@ import org.gradle.BuildResult;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.deployment.Deployment;
-import org.gradle.deployment.DeploymentHandle;
 import org.gradle.initialization.ContinuousExecutionGate;
 import org.gradle.initialization.DefaultContinuousExecutionGate;
 import org.gradle.internal.Cast;

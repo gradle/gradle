@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.provider.Provider;
-
-public abstract class AbstractProvider<T> implements Provider<T> {
+public abstract class AbstractProvider<T> implements ProviderInternal<T> {
     static final String NON_NULL_VALUE_EXCEPTION_MESSAGE = "No value has been specified for this provider.";
 
     @Override

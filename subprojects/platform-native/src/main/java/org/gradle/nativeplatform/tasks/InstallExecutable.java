@@ -35,6 +35,7 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.Gcc;
 import org.gradle.platform.base.ToolChain;
@@ -53,8 +54,11 @@ public class InstallExecutable extends DefaultTask {
     private final DirectoryVar destinationDir;
     private final RegularFileVar executable;
     private final ConfigurableFileCollection libs;
+    private final WorkerLeaseService workerLeaseService;
 
-    public InstallExecutable() {
+    @Inject
+    public InstallExecutable(WorkerLeaseService workerLeaseService) {
+        this.workerLeaseService = workerLeaseService;
         this.libs = getProject().files();
         destinationDir = newOutputDirectory();
         executable = newInputFile();
@@ -184,11 +188,17 @@ public class InstallExecutable extends DefaultTask {
 
     @TaskAction
     public void install() {
-        if (platform.getOperatingSystem().isWindows()) {
-            installWindows();
-        } else {
-            installUnix();
-        }
+        // TODO: Migrate this to the worker API once the FileSystem and FileOperations services can be injected
+        workerLeaseService.withoutProjectLock(new Runnable() {
+            @Override
+            public void run() {
+                if (platform.getOperatingSystem().isWindows()) {
+                    installWindows();
+                } else {
+                    installUnix();
+                }
+            }
+        });
     }
 
     private void installWindows() {

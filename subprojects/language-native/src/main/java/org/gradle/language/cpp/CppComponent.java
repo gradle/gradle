@@ -18,19 +18,29 @@ package org.gradle.language.cpp;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.provider.PropertyState;
 
 /**
- * Configuration for a C++ library or executable, defining the source files that make up the component.
+ * Configuration for a C++ component, such as a library or executable, defining the source files and private header directories that make up the component. Private headers are those that are visible only to the source files of the component.
+ *
+ * <p>A C++ component is composed of some C++ source files that are compiled and then linked into some binary.</p>
  *
  * <p>An instance of this type is added as a project extension by the C++ plugins.</p>
  *
  * @since 4.2
  */
 @Incubating
-public interface CppComponent {
+public interface CppComponent extends SoftwareComponent {
+    /**
+     * Specifies the base name for this component. This name is used to calculate various output file names. The default value is calculated from the project name.
+     */
+    PropertyState<String> getBaseName();
+
     /**
      * Defines the source files or directories of this component. You can add files or directories to this collection. When a directory is added, all source files are included for compilation.
      *
@@ -66,12 +76,17 @@ public interface CppComponent {
     FileCollection getPrivateHeaderDirs();
 
     /**
-     * Returns the header directories to use to compile this component. Includes the header directories of this component plus those of its dependencies.
-     */
-    ConfigurableFileCollection getCompileIncludePath();
-
-    /**
      * Returns all header files of this component. Includes public and private header files.
      */
     FileTree getHeaderFiles();
+
+    /**
+     * Returns the implementation dependencies of this component.
+     */
+    Configuration getImplementationDependencies();
+
+    /**
+     * Returns the binary of the component to use as the default for development.
+     */
+    CppBinary getDevelopmentBinary();
 }

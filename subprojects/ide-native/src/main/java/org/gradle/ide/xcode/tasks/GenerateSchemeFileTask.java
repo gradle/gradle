@@ -73,7 +73,7 @@ public class GenerateSchemeFileTask extends XmlGeneratorTask<XcodeSchemeFile> {
 
     private void configureLaunchAction(XcodeSchemeFile.LaunchAction action) {
         action.setBuildConfiguration("Debug");
-        action.setRunnablePath(xcodeProject.getTarget().getOutputFile().getAbsolutePath());
+        action.setRunnablePath(xcodeProject.getTarget().getOutputFile().get().getAsFile().getAbsolutePath());
     }
 
     private void configureArchiveAction(XcodeSchemeFile.ArchiveAction action) {

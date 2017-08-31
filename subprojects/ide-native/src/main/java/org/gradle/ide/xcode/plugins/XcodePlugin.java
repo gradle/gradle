@@ -17,6 +17,7 @@
 package org.gradle.ide.xcode.plugins;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
@@ -25,11 +26,13 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectLocalComponentProvider;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
@@ -52,10 +55,10 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.plugins.CppExecutablePlugin;
 import org.gradle.language.cpp.plugins.CppLibraryPlugin;
-import org.gradle.language.swift.model.SwiftComponent;
+import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
-import org.gradle.language.swift.tasks.SwiftCompile;
+import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
@@ -97,7 +100,7 @@ public class XcodePlugin extends IdePlugin {
         getCleanTask().setDescription("Cleans XCode project files (xcodeproj)");
 
         xcode = (DefaultXcodeExtension) project.getExtensions().create(XcodeExtension.class, "xcode", DefaultXcodeExtension.class, objectFactory);
-        xcode.getProject().setLocationDir(project.file(projectName(project) + ".xcodeproj"));
+        xcode.getProject().setLocationDir(project.file(project.getName() + ".xcodeproj"));
 
         projectTask = createProjectTask(project);
         workspaceTask = createWorkspaceTask(project);
@@ -196,11 +199,11 @@ public class XcodePlugin extends IdePlugin {
         xcode.getProject().getSources().from(sources);
 
         // TODO - Reuse the logic from `swift-executable` or `swift-library` to determine the link task path
-        // TODO - Reuse the logic from `swift-executable` or `swift-library` to determine the header dirs
-        SwiftCompile compileTask = (SwiftCompile) project.getTasks().getByName("compileSwift");
-        Task linkTask = project.getTasks().getByName("linkMain");
-        XcodeTarget target = newTarget(projectName(project) + " " + toString(productType), productType, toGradleCommand(project.getRootProject()), linkTask.getPath(), project.file("build/exe/" + project.getName()), sources);
-        target.getImportPaths().from(compileTask.getIncludes());
+        // TODO - should use the _install_ task for an executable
+        AbstractLinkTask linkTask = (AbstractLinkTask) project.getTasks().getByName("linkDebug");
+        // TODO - should reflect changes to module name
+        XcodeTarget target = newTarget(component.getModule().get() + " " + toString(productType), component.getModule().get(), productType, toGradleCommand(project.getRootProject()), linkTask.getPath(), linkTask.getBinaryFile(), sources);
+        target.getImportPaths().from(component.getDevelopmentBinary().getCompileImportPath());
         xcode.getProject().setTarget(target);
 
         getProjectTask().dependsOn(createSchemeTask(project.getTasks(), xcode.getProject()));
@@ -231,15 +234,20 @@ public class XcodePlugin extends IdePlugin {
         xcode.getProject().getSources().from(headers);
 
         // TODO - Reuse the logic from `cpp-executable` or `cpp-library` to find the link task path
-        Task linkTask = project.getTasks().getByName("linkMain");
-        XcodeTarget target = newTarget(projectName(project) + " " + toString(productType), productType, toGradleCommand(project.getRootProject()), linkTask.getPath(), project.file("build/exe/" + project.getName()), sources);
-        target.getHeaderSearchPaths().from(component.getCompileIncludePath());
+        // TODO - should use the _install_ task for an executable
+        // TODO - should use the basename of the component to calculate the target names
+        AbstractLinkTask linkTask = (AbstractLinkTask) project.getTasks().getByName("linkDebug");
+        String targetName = StringUtils.capitalize(project.getName());
+        XcodeTarget target = newTarget(targetName + " " + toString(productType), targetName, productType, toGradleCommand(project.getRootProject()), linkTask.getPath(), linkTask.getBinaryFile(), sources);
+        target.getHeaderSearchPaths().from(component.getDevelopmentBinary().getCompileIncludePath());
         xcode.getProject().setTarget(target);
 
         getProjectTask().dependsOn(createSchemeTask(project.getTasks(), xcode.getProject()));
     }
 
     private static GenerateSchemeFileTask createSchemeTask(TaskContainer tasks, DefaultXcodeProject xcodeProject) {
+        // TODO - capitalise the target name in the task name
+        // TODO - don't create a launch target for a library
         GenerateSchemeFileTask schemeFileTask = tasks.create("xcodeScheme" + xcodeProject.getTarget().getName().replaceAll(" ", ""), GenerateSchemeFileTask.class);
         schemeFileTask.setXcodeProject(xcodeProject);
         schemeFileTask.setOutputFile(new File(xcodeProject.getLocationDir(), "xcshareddata/xcschemes/" + xcodeProject.getTarget().getName() + ".xcscheme"));
@@ -250,21 +258,23 @@ public class XcodePlugin extends IdePlugin {
     private static String toGradleCommand(Project project) {
         if (project.file("gradlew").exists()) {
             return project.file("gradlew").getAbsolutePath();
+        } else if (project.getGradle().getGradleHomeDir() != null){
+            return project.getGradle().getGradleHomeDir().getAbsolutePath() + "/bin/gradle";
         } else {
             return "gradle";
         }
     }
 
-    private XcodeTarget newTarget(String name, PBXTarget.ProductType productType, String gradleCommand, String taskName, File outputFile, FileCollection sources) {
+    private XcodeTarget newTarget(String name, String productName, PBXTarget.ProductType productType, String gradleCommand, String taskName, Provider<? extends RegularFile> outputFile, FileCollection sources) {
         String id = gidGenerator.generateGid("PBXLegacyTarget", name.hashCode());
         XcodeTarget target = objectFactory.newInstance(XcodeTarget.class, name, id);
-        target.setOutputFile(outputFile);
+        target.getOutputFile().set(outputFile);
         target.setTaskName(taskName);
         target.setGradleCommand(gradleCommand);
         target.setOutputFileType(toFileType(productType));
         target.setProductType(productType);
-        target.setProductName(outputFile.getName());
-        target.setSources(sources);
+        target.setProductName(productName);
+        target.getSources().setFrom(sources);
 
         return target;
     }
@@ -295,10 +305,6 @@ public class XcodePlugin extends IdePlugin {
 
     private static boolean isRoot(Project project) {
         return project.getParent() == null;
-    }
-
-    private static String projectName(Project project) {
-        return project.getName();
     }
 
     private void registerXcodeProjectArtifact(Project project) {

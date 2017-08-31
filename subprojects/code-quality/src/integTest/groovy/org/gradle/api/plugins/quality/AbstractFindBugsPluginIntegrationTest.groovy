@@ -636,9 +636,7 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
             apply plugin: "java"
             apply plugin: "findbugs"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
         """
     }
 

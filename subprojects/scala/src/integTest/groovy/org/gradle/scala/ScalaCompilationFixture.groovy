@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider
 import org.gradle.test.fixtures.file.TestFile
 
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
+
 class ScalaCompilationFixture {
     private final TestFile root
     final ScalaClass basicClassSource
@@ -70,9 +72,7 @@ class ScalaCompilationFixture {
         return """
             apply plugin: 'scala'
                         
-            repositories {
-                jcenter()
-            }
+            ${jcenterRepository()}
 
             dependencies {
                 zinc "com.typesafe.zinc:zinc:${zincVersion}"

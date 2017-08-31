@@ -55,9 +55,7 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         file("build.gradle") << """
             apply plugin: 'scala'
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 compile 'org.scala-lang:scala-library:2.11.1'
@@ -79,5 +77,5 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         //the build should fail because the interface the scala class needs has changed
         runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala'.")
     }
-    
+
 }

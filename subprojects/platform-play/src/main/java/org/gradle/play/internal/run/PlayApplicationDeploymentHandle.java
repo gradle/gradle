@@ -16,8 +16,8 @@
 
 package org.gradle.play.internal.run;
 
-import org.gradle.deployment.Deployment;
-import org.gradle.deployment.DeploymentHandle;
+import org.gradle.deployment.internal.Deployment;
+import org.gradle.deployment.internal.DeploymentHandle;
 
 import javax.inject.Inject;
 import java.net.InetSocketAddress;

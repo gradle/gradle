@@ -16,12 +16,11 @@
 
 package org.gradle.groovy.scripts.internal
 
-import com.google.common.base.Charsets
-import com.google.common.hash.HashCode
-import com.google.common.hash.Hasher
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.hash.FileContentHasherFactory
+import org.gradle.internal.hash.ContentHasherFactory
 import org.gradle.internal.hash.FileHasher
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.Hasher
 import org.gradle.internal.resource.TextResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -33,7 +32,7 @@ class DefaultScriptSourceHasherTest extends Specification {
     def hash = HashCode.fromInt(123)
 
     def fileHasher = Mock(FileHasher)
-    def contentHasherFactory = Mock(FileContentHasherFactory)
+    def contentHasherFactory = Mock(ContentHasherFactory)
     def scriptHasher = new DefaultScriptSourceHasher(fileHasher, contentHasherFactory)
 
     def hashesBackingFileWhenResourceIsBackedByFile() {
@@ -70,7 +69,7 @@ class DefaultScriptSourceHasherTest extends Specification {
         1 * resource.file >> null
         1 * resource.text >> "alma"
         1 * contentHasherFactory.create() >> hasher
-        1 * hasher.putString("alma", Charsets.UTF_8)
+        1 * hasher.putString("alma")
         1 * hasher.hash() >> hash
         0 * _
     }

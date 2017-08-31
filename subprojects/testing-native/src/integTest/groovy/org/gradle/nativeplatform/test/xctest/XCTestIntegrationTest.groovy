@@ -182,7 +182,7 @@ apply plugin: 'xctest'
         def testApp = new SwiftXcTestTestApp([
             newTestSuite("PassingTestSuite", [
                 newTestCase("testPass", TestElement.TestCase.Result.PASS, "XCTAssert(sum(a: 40, b: 2) == 42)")
-            ], ["Greeter"])
+            ], [], ["Greeter"])
         ])
 
         given:
@@ -205,7 +205,7 @@ dependencies {
         succeeds("test")
 
         then:
-        executedAndNotSkipped(":Greeter:compileSwift", ":compileTestSwift", ":Greeter:linkMain",
+        executedAndNotSkipped(":Greeter:compileDebugSwift", ":compileTestSwift", ":Greeter:linkDebug",
             ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
     }
 

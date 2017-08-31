@@ -18,6 +18,9 @@ package org.gradle.api.provider;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Internal;
+import org.gradle.internal.HasInternalProtocol;
+
+import javax.annotation.Nullable;
 
 /**
  * A container object which provides a value of a specific type. The value can be retrieved by the method {@code get()} or {@code getOrNull()}.
@@ -30,6 +33,7 @@ import org.gradle.api.tasks.Internal;
  * @since 4.0
  */
 @Incubating
+@HasInternalProtocol
 public interface Provider<T> {
 
     /**
@@ -46,6 +50,7 @@ public interface Provider<T> {
      * @return Value
      */
     @Internal
+    @Nullable
     T getOrNull();
 
     /**

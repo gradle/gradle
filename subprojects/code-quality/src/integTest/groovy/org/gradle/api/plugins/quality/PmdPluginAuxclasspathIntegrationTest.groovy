@@ -35,9 +35,8 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
 
         buildFile << """
             allprojects {
-                repositories {
-                    mavenCentral()
-                }
+                ${mavenCentralRepository()}
+
                 apply plugin: 'java'
 
                 ${!TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled ? "sourceCompatibility = 1.6" : ""}

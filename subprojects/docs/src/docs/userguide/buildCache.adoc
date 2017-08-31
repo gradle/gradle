@@ -297,6 +297,22 @@ Note that by using the following configuration the local build cache will be use
 </sample>
 ++++
 
+[NOTE]
+====
+You may encounter problems with an untrusted SSL certificate when you try to use a build cache backend with an HTTPS URL.
+The ideal solution is for someone to add a valid SSL certificate to the build cache backend, but we recognize that you may not be able to do that.
+In that case, set api:org.gradle.caching.http.HttpBuildCache#isAllowUntrustedServer()[] to `true`:
+
+++++
+<sample id="httpBuildCacheAllowUntrustedServer" dir="buildCache/http-build-cache" title="Allow untrusted SSL certificate for HttpBuildCache">
+    <sourcefile file="settings.gradle" snippet="allow-untrusted-server"/>
+</sample>
+++++
+
+This is a convenient workaround, but you shouldn’t use it as a long-term solution.
+====
+
+
 The recommended use case for the build cache is that your continuous integration server populates the remote build cache with clean builds while developers pull
 from the remote build cache and push to a local build cache. The configuration would then look as follows.
 

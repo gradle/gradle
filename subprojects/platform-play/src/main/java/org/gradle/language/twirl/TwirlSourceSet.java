@@ -35,6 +35,8 @@ import java.util.List;
  *               // Use template format views.formats.csv.CsvFormat for all files named *.scala.csv
  *               // Additionally, include views.formats.csv._ package imports in generated sources.
  *               addUserTemplateFormat("csv", "views.formats.csv.CsvFormat", "views.formats.csv._")
+ *               // Add these additional imports to all generated Scala code from Twirl templates
+ *               additionalImports = [ 'my.pkg._', 'my.pkg.MyClass' ]
  *             }
  *           }
  *         }
@@ -73,4 +75,17 @@ public interface TwirlSourceSet extends LanguageSourceSet {
      * @param imports additional imports to add for the custom template format.
      */
     void addUserTemplateFormat(final String extension, String templateType, String... imports);
+
+
+    /**
+     * Returns the list of additional imports to add to the generated Scala code.
+     */
+    List<String> getAdditionalImports();
+
+    /**
+     * Sets the additional imports to add to all generated Scala code.
+     *
+     * @param additionalImports additional imports
+     */
+    void setAdditionalImports(List<String> additionalImports);
 }

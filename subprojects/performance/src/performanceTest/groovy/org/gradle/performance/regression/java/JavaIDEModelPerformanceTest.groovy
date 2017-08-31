@@ -32,7 +32,7 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
         given:
         experiment(testProject.projectName) {
             minimumVersion = "2.11"
-            targetVersions = ["4.1-20170607235835+0000"]
+            targetVersions = ["4.2-20170817235727+0000"]
             action {
                 def model = model(tapiClass(EclipseProject)).setJvmArguments("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").get()
                 // we must actually do something to highlight some performance issues
@@ -90,7 +90,7 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
         given:
         experiment(testProject.projectName) {
             minimumVersion = "2.11"
-            targetVersions = ["4.1-20170607235835+0000"]
+            targetVersions = ["4.2-20170817235727+0000"]
             action {
                 def model = model(tapiClass(IdeaProject)).setJvmArguments("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").get()
                 // we must actually do something to highlight some performance issues

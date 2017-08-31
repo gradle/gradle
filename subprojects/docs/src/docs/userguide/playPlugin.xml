@@ -439,8 +439,8 @@
                 <sourcefile file="build.gradle" snippet="play-injected-routes-compiler"/>
             </sample>
         </section>
-        <section id="sec:configuring_a_custom_twirl_template_format">
-            <title>Configuring a custom Twirl template format</title>
+        <section id="sec:configuring_twirl_templates">
+            <title>Configuring Twirl templates</title>
             <para>
                 A custom Twirl template format can be configured independently for each Twirl source set. See the <apilink class="org.gradle.language.twirl.TwirlSourceSet"/> for an example.
             </para>

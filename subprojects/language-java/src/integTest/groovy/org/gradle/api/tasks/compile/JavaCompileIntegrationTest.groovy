@@ -437,9 +437,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
             buildFile.text = """
                 apply plugin: 'java'
                                   
-                repositories {
-                    mavenCentral()
-                }
+                ${mavenCentralRepository()}
 
                 dependencies {
                     ${dependencies.collect { "compile ${it}"}.join('\n') }
