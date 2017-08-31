@@ -614,6 +614,18 @@ task fastTask { }
 
     def "script don't get recompiled if daemon disappears"() {
         root {
+            buildSrc {
+                'build.gradle'('''
+                    apply plugin: 'java'
+                ''')
+                src {
+                    main {
+                        java {
+                            'Foo.java'('public class Foo {}')
+                        }
+                    }
+                }
+            }
             'build.gradle'('''apply from:'main.gradle' ''')
             'main.gradle'('''
                 task success {
@@ -623,6 +635,7 @@ task fastTask { }
                 }
             ''')
         }
+
         executer.requireIsolatedDaemons()
         executer.requireDaemon()
         executer.withGradleUserHomeDir(homeDirectory)
