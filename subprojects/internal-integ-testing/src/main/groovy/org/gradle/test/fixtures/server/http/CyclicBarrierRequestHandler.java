@@ -17,7 +17,7 @@
 package org.gradle.test.fixtures.server.http;
 
 import com.sun.net.httpserver.HttpExchange;
-import org.gradle.internal.time.ReliableTimeProvider;
+import org.gradle.internal.time.MonotonicTimeProvider;
 import org.gradle.internal.time.TimeProvider;
 
 import java.util.ArrayList;
@@ -30,7 +30,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
 class CyclicBarrierRequestHandler implements TrackingHttpHandler, WaitPrecondition {
-    private final TimeProvider timeProvider = new ReliableTimeProvider();
+    private final TimeProvider timeProvider = MonotonicTimeProvider.global();
     private final Lock lock;
     private final Condition condition;
     private final List<String> received = new ArrayList<String>();
