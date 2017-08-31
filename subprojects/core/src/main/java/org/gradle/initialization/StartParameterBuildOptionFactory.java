@@ -23,6 +23,7 @@ import org.gradle.initialization.option.BooleanBuildOption;
 import org.gradle.initialization.option.BuildOption;
 import org.gradle.initialization.option.BuildOptionFactory;
 import org.gradle.initialization.option.CommandLineOptionConfiguration;
+import org.gradle.initialization.option.ListBuildOption;
 import org.gradle.initialization.option.NoArgumentBuildOption;
 import org.gradle.initialization.option.StringBuildOption;
 
@@ -47,6 +48,9 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
         options.add(new NoProjectDependenciesRebuildOption());
         options.add(new BuildFileOption());
         options.add(new SettingsFileOption());
+        options.add(new InitScriptOption());
+        options.add(new ExcludeTaskOption());
+        options.add(new IncludeBuildOption());
         options.add(new ConfigureOnDemandOption());
         options.add(new BuildCacheOption());
         options.add(new BuildScanOption());
@@ -55,7 +59,7 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
 
     public static class ProjectCacheDirOption extends StringBuildOption<StartParameter> {
         public ProjectCacheDirOption() {
-            super(StartParameter.class, null, CommandLineOptionConfiguration.create("project-cache-dir", "Specify the project-specific cache directory. Defaults to .gradle in the root project directory.").hasArgument());
+            super(StartParameter.class, null, CommandLineOptionConfiguration.create("project-cache-dir", "Specify the project-specific cache directory. Defaults to .gradle in the root project directory."));
         }
 
         @Override
@@ -166,7 +170,7 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
 
     public static class BuildFileOption extends StringBuildOption<StartParameter> {
         public BuildFileOption() {
-            super(StartParameter.class, null, CommandLineOptionConfiguration.create("build-file", "b", "Specify the build file.").hasArgument());
+            super(StartParameter.class, null, CommandLineOptionConfiguration.create("build-file", "b", "Specify the build file."));
         }
 
         @Override
@@ -178,13 +182,54 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
 
     public static class SettingsFileOption extends StringBuildOption<StartParameter> {
         public SettingsFileOption() {
-            super(StartParameter.class, null, CommandLineOptionConfiguration.create("settings-file", "c", "Specify the settings file.").hasArgument());
+            super(StartParameter.class, null, CommandLineOptionConfiguration.create("settings-file", "c", "Specify the settings file."));
         }
 
         @Override
         public void applyTo(String value, StartParameter settings) {
             Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
             settings.setSettingsFile(resolver.transform(value));
+        }
+    }
+
+    public static class InitScriptOption extends ListBuildOption<StartParameter> {
+        public InitScriptOption() {
+            super(StartParameter.class, null, CommandLineOptionConfiguration.create("init-script", "I", "Specify an initialization script."));
+        }
+
+        @Override
+        public void applyTo(List<String> values, StartParameter settings) {
+            Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
+
+            for (String script : values) {
+                settings.addInitScript(resolver.transform(script));
+            }
+        }
+    }
+
+    public static class ExcludeTaskOption extends ListBuildOption<StartParameter> {
+        public ExcludeTaskOption() {
+            super(StartParameter.class, null, CommandLineOptionConfiguration.create("exclude-task", "x", "Specify a task to be excluded from execution."));
+        }
+
+        @Override
+        public void applyTo(List<String> values, StartParameter settings) {
+            settings.setExcludedTaskNames(values);
+        }
+    }
+
+    public static class IncludeBuildOption extends ListBuildOption<StartParameter> {
+        public IncludeBuildOption() {
+            super(StartParameter.class, null, CommandLineOptionConfiguration.create("include-build", "Include the specified build in the composite.").incubating());
+        }
+
+        @Override
+        public void applyTo(List<String> values, StartParameter settings) {
+            Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
+
+            for (String includedBuild : values) {
+                settings.includeBuild(resolver.transform(includedBuild));
+            }
         }
     }
 

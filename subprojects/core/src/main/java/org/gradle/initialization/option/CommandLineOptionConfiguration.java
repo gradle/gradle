@@ -29,7 +29,6 @@ public final class CommandLineOptionConfiguration {
     private final String shortOption;
     private final String description;
     private boolean incubating;
-    private boolean argument;
 
     private CommandLineOptionConfiguration(String longOption, String description) {
         this(longOption, null, description);
@@ -51,11 +50,6 @@ public final class CommandLineOptionConfiguration {
 
     public CommandLineOptionConfiguration incubating() {
         incubating = true;
-        return this;
-    }
-
-    public CommandLineOptionConfiguration hasArgument() {
-        argument = true;
         return this;
     }
 
@@ -84,9 +78,5 @@ public final class CommandLineOptionConfiguration {
 
     public boolean isIncubating() {
         return incubating;
-    }
-
-    public boolean isArgument() {
-        return argument;
     }
 }

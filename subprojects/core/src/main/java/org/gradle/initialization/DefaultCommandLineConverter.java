@@ -38,11 +38,6 @@ import java.util.Map;
 import static org.gradle.StartParameter.GRADLE_USER_HOME_PROPERTY_KEY;
 
 public class DefaultCommandLineConverter extends AbstractCommandLineConverter<StartParameter> {
-    public static final String INIT_SCRIPT = "I";
-    private static final String EXCLUDE_TASK = "x";
-
-    private static final String INCLUDE_BUILD = "include-build";
-
     private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new LoggingCommandLineConverter();
     private final CommandLineConverter<ParallelismConfiguration> parallelConfigurationCommandLineConverter = new ParallelismConfigurationCommandLineConverter();
     private final SystemPropertiesCommandLineConverter systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
@@ -60,11 +55,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         systemPropertiesCommandLineConverter.configure(parser);
         projectPropertiesCommandLineConverter.configure(parser);
         layoutCommandLineConverter.configure(parser);
-
         parser.allowMixedSubcommandsAndOptions();
-        parser.option(INIT_SCRIPT, "init-script").hasArguments().hasDescription("Specify an initialization script.");
-        parser.option(EXCLUDE_TASK, "exclude-task").hasArguments().hasDescription("Specify a task to be excluded from execution.");
-        parser.option(INCLUDE_BUILD).hasArguments().hasDescription("Include the specified build in the composite.").incubating();
 
         for (BuildOption<StartParameter> option : buildOptions) {
             option.configure(parser);
@@ -93,20 +84,8 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         }
         startParameter.setSearchUpwards(layout.getSearchUpwards());
 
-        for (String script : options.option(INIT_SCRIPT).getValues()) {
-            startParameter.addInitScript(resolver.transform(script));
-        }
-
         if (!options.getExtraArguments().isEmpty()) {
             startParameter.setTaskNames(options.getExtraArguments());
-        }
-
-        if (options.hasOption(EXCLUDE_TASK)) {
-            startParameter.setExcludedTaskNames(options.option(EXCLUDE_TASK).getValues());
-        }
-
-        for (String includedBuild : options.option(INCLUDE_BUILD).getValues()) {
-            startParameter.includeBuild(resolver.transform(includedBuild));
         }
 
         for (BuildOption<StartParameter> option : buildOptions) {
