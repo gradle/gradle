@@ -20,7 +20,7 @@ import spock.lang.Unroll
 /**
  * Test that app requests block while a build is in progress when using `--continuous`.
  */
-class ContinuousBuildPlayReloadWaitingIntegrationTest extends AbstractPlayReloadIntegrationTest {
+class PlayContinuousBuildReloadWaitingIntegrationTest extends AbstractPlayReloadIntegrationTest {
 
     def setup() {
         server.start()

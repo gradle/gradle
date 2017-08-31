@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
 /**
  * Test Play reload with `--continuous`
  */
-class ContinuousBuildPlayReloadIntegrationTest extends AbstractPlayReloadIntegrationTest {
+class PlayContinuousBuildReloadIntegrationTest extends AbstractPlayReloadIntegrationTest {
 
     int pendingChangesMarker
 

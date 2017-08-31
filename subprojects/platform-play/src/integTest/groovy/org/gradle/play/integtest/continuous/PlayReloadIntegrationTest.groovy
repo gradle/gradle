@@ -19,7 +19,7 @@ package org.gradle.play.integtest.continuous
 /**
  * Test Play reload without `--continuous`
  */
-class PlayReloadIntegrationTest extends ContinuousBuildPlayReloadIntegrationTest {
+class PlayReloadIntegrationTest extends PlayContinuousBuildReloadIntegrationTest {
 
     def setup() {
         withoutContinuousBuild()
