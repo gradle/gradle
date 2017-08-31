@@ -37,13 +37,13 @@ Please see https://gradle.com/scans/help/gradle-incompatible-plugin-version for 
                     def c = services.get(${BuildScanConfigProvider.name}).collect([getVersion: { "$pluginVersionNumber" }] as $BuildScanPluginMetadata.name) 
                     println "buildScan.enabled: " + c.enabled 
                     println "buildScan.disabled: " + c.disabled 
-                """.stripIndent()
+                """
             }
 
             buildFile << """    
                 def pluginApplied = services.get(${BuildScanPluginApplied.name}).isBuildScanPluginApplied()
                 println "buildScan plugin applied: " + pluginApplied
-            """.stripIndent()
+            """
 
             buildFile << "task t"
         }

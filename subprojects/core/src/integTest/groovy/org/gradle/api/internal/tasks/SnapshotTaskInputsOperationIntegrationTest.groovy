@@ -67,7 +67,8 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
                 licenseAgree = 'yes'
             }
         """.stripIndent()
-        // Using the embedded executer, we get an NPE. We force forking by requiring a Gradle distribution
+        // Using the embedded executer, we get an NPE from the build scan plugin since it is trying to get the Gradle installation - which is null for the embedded executer.
+        // We force forking by requiring a Gradle distribution.
         executer.requireGradleDistribution()
 
         when:
@@ -82,7 +83,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.outputPropertyNames == ['outputFile1', 'outputFile2']
     }
 
-    def "task output caching key is not exposed when build cache is disabled"() {
+    def "task output caching key is not exposed by default"() {
         when:
         buildFile << customTaskCode('foo', 'bar')
         succeeds('customTask')
