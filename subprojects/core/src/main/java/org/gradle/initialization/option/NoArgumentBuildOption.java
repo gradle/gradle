@@ -52,10 +52,6 @@ public abstract class NoArgumentBuildOption<T> extends AbstractBuildOption<T> {
             if (commandLineOptionConfiguration.isIncubating()) {
                 option.incubating();
             }
-
-            if (commandLineOptionConfiguration.isArgument()) {
-                option.hasArgument();
-            }
         }
     }
 
