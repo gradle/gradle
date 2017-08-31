@@ -51,6 +51,8 @@ public interface BuildOperationStartedNotification {
 
     /**
      * The time that the operation started.
+     *
+     * @since 4.2
      */
     long getNotificationOperationStartedTimestamp();
 

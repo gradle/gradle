@@ -54,6 +54,8 @@ public interface BuildOperationFinishedNotification {
 
     /**
      * The time that the operation finished.
+     *
+     * @since 4.2
      */
     long getNotificationOperationFinishedTimestamp();
 
