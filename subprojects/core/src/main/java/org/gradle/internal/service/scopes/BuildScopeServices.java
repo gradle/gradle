@@ -304,7 +304,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(ProviderFactory.class),
             get(TextResourceLoader.class),
             get(StreamHasher.class),
-            get(FileHasher.class));
+            get(FileHasher.class),
+            get(BuildOperationExecutor.class));
     }
 
     protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, NestedBuildFactory nestedBuildFactory,
