@@ -90,6 +90,8 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class TaskExecutionServices {
 
+    public static final String BUILD_SCAN_PLUGIN_ID = "com.gradle.build-scan";
+
     void configure(ServiceRegistration registration) {
         registration.addProvider(new BuildCacheTaskServices());
     }
@@ -103,9 +105,11 @@ public class TaskExecutionServices {
                                     BuildOperationExecutor buildOperationExecutor,
                                     AsyncWorkTracker asyncWorkTracker,
                                     BuildOutputCleanupRegistry cleanupRegistry,
-                                    TaskOutputFilesRepository taskOutputFilesRepository) {
+                                    TaskOutputFilesRepository taskOutputFilesRepository,
+                                    Gradle gradle) {
 
         boolean taskOutputCacheEnabled = startParameter.isBuildCacheEnabled();
+        boolean scanPluginApplied = gradle.getRootProject().getPluginManager().hasPlugin(BUILD_SCAN_PLUGIN_ID);
         TaskOutputsGenerationListener taskOutputsGenerationListener = listenerManager.getBroadcaster(TaskOutputsGenerationListener.class);
 
         TaskExecuter executer = new ExecuteActionsTaskExecuter(
@@ -128,7 +132,9 @@ public class TaskExecutionServices {
         }
         executer = new SkipUpToDateTaskExecuter(executer);
         executer = new ResolveTaskOutputCachingStateExecuter(taskOutputCacheEnabled, executer);
-        executer = new ResolveBuildCacheKeyExecuter(executer, buildOperationExecutor);
+        if (verifyInputsEnabled || taskOutputCacheEnabled || scanPluginApplied) {
+            executer = new ResolveBuildCacheKeyExecuter(executer, buildOperationExecutor);
+        }
         executer = new ValidatingTaskExecuter(executer);
         executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, cleanupRegistry, taskOutputsGenerationListener, executer);
         executer = new CleanupStaleOutputsExecuter(cleanupRegistry, taskOutputFilesRepository, buildOperationExecutor, executer);

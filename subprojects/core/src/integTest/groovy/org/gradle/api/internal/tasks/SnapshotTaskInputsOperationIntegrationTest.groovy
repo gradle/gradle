@@ -31,11 +31,9 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
-    def "task output caching key is exposed when build cache is #enabled"() {
+    def "task output caching key is exposed when build cache is enabled"() {
         given:
-        if (buildCacheEnabled) {
-            executer.withBuildCacheEnabled()
-        }
+        executer.withBuildCacheEnabled()
 
         when:
         buildFile << customTaskCode('foo', 'bar')
@@ -48,11 +46,49 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.buildCacheKey != null
         result.inputHashes.keySet() == ['input1', 'input2'] as Set
         result.outputPropertyNames == ['outputFile1', 'outputFile2']
+    }
 
-        where:
-        buildCacheEnabled << [true, false]
-        enabled = buildCacheEnabled ? 'enabled' : 'disabled'
+    def "task output caching key is exposed when scan plugin is applied"() {
+        given:
+        buildFile << customTaskCode('foo', 'bar')
+        buildFile << """
+            buildscript {
+                repositories {
+                    maven { url "https://plugins.gradle.org/m2" }
+                }
+                dependencies {
+                    classpath "com.gradle:build-scan-plugin:1.9"
+                }
+            }
+            
+            apply plugin: "com.gradle.build-scan"
+            buildScan {
+                licenseAgreementUrl = 'https://gradle.com/terms-of-service'
+                licenseAgree = 'yes'
+            }
+        """.stripIndent()
+        // Using the embedded executer, we get an NPE. We force forking by requiring a Gradle distribution
+        executer.requireGradleDistribution()
 
+        when:
+        succeeds('customTask', '-Dscan.dump')
+
+        then:
+        def result = operations.first(SnapshotTaskInputsBuildOperationType).result
+
+        then:
+        result.buildCacheKey != null
+        result.inputHashes.keySet() == ['input1', 'input2'] as Set
+        result.outputPropertyNames == ['outputFile1', 'outputFile2']
+    }
+
+    def "task output caching key is not exposed when build cache is disabled"() {
+        when:
+        buildFile << customTaskCode('foo', 'bar')
+        succeeds('customTask')
+
+        then:
+        !operations.hasOperation(SnapshotTaskInputsBuildOperationType)
     }
 
     def "handles task with no outputs"() {
