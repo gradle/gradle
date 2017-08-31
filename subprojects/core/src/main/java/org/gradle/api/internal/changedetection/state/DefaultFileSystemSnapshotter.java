@@ -227,7 +227,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
         private final ArrayList<FileSnapshot> fileTreeElements;
         private final Runnable[] buffer;
         private int bufferSize;
-        private boolean completed = false;
+        private boolean completed;
 
         FileVisitorImpl() {
             this.fileTreeElements = Lists.newArrayList();
@@ -273,6 +273,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
                 }
                 i++;
             }
+            completed = true;
             return fileTreeElements;
 
         }
