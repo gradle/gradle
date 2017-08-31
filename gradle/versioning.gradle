@@ -1,3 +1,4 @@
+import org.gradle.build.BuildReceipt
 import org.gradle.internal.os.OperatingSystem
 
 if (buildTypes.promotionBuild.active) {
@@ -15,22 +16,28 @@ if ((milestoneNumber != null && rcNumber != null) ||
 
 ext.baseVersion = rootProject.file("version.txt").text.trim()
 
-def timestampFormat = new java.text.SimpleDateFormat('yyyyMMddHHmmssZ')
-timestampFormat.timeZone = TimeZone.getTimeZone("UTC")
-Date buildTime
-if (project.hasProperty("buildTimestamp")) {
-    buildTime = timestampFormat.parse(buildTimestamp)
+File incomingBuildReceiptDir = file("incoming-distributions")
+if (new File(incomingBuildReceiptDir, BuildReceipt.BUILD_RECEIPT_FILE_NAME).exists()) {
+    def incomingDistributionsBuildReceipt = BuildReceipt.readBuildReceipt(incomingBuildReceiptDir)
+    ext.buildTimestamp = incomingDistributionsBuildReceipt.buildTimestamp
+    println "Using timestamp from incoming build receipt: $buildTimestamp"
 } else {
-    if (isCiServer || gradle.startParameter.taskNames.contains("install") || gradle.startParameter.taskNames.contains("installAll")) {
-        buildTime = new Date()
+    def timestampFormat = new java.text.SimpleDateFormat('yyyyMMddHHmmssZ')
+    timestampFormat.timeZone = TimeZone.getTimeZone("UTC")
+    Date buildTime
+    if (project.hasProperty("buildTimestamp")) {
+        buildTime = timestampFormat.parse(buildTimestamp)
     } else {
-        def sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
-        Date dateWithoutTime = sdf.parse(sdf.format(new Date()))
-        buildTime = dateWithoutTime
+        if (isCiServer || gradle.startParameter.taskNames.contains("install") || gradle.startParameter.taskNames.contains("installAll")) {
+            buildTime = new Date()
+        } else {
+            def sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+            Date dateWithoutTime = sdf.parse(sdf.format(new Date()))
+            buildTime = dateWithoutTime
+        }
     }
+    ext.buildTimestamp = timestampFormat.format(buildTime)
 }
-ext.buildTimestamp = timestampFormat.format(buildTime)
-
 
 task determineCommitId {
     ext.commitId = null
