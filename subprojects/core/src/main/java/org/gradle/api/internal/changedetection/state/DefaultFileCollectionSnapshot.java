@@ -164,7 +164,7 @@ public class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
 
         public void write(Encoder encoder, DefaultFileCollectionSnapshot value) throws Exception {
             encoder.writeSmallInt(value.compareStrategy.ordinal());
-            boolean hasHash = value.getHash() != null;
+            boolean hasHash = value.hashCode != null;
             encoder.writeBoolean(hasHash);
             if (hasHash) {
                 hashCodeSerializer.write(encoder, value.getHash());
