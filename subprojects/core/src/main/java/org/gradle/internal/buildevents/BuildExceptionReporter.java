@@ -25,7 +25,7 @@ import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.exceptions.FailureResolutionAware;
 import org.gradle.internal.exceptions.LocationAwareException;
-import org.gradle.internal.logging.LoggingCommandLineConverter;
+import org.gradle.internal.logging.LoggingConfigurationBuildOptionFactory;
 import org.gradle.internal.logging.text.BufferingStyledTextOutput;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -188,16 +188,16 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
         }
         if (details.exceptionStyle == ExceptionStyle.NONE) {
             resolution.text("Run with ");
-            resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.STACKTRACE_LONG);
+            resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptionFactory.StacktraceOption.LONG_OPTION);
             resolution.text(" option to get the stack trace. ");
         }
         if (loggingConfiguration.getLogLevel() != LogLevel.DEBUG) {
             resolution.text("Run with ");
             if (loggingConfiguration.getLogLevel() != LogLevel.INFO) {
-                resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.INFO_LONG);
+                resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptionFactory.InfoOption.LONG_OPTION);
                 resolution.text(" or ");
             }
-            resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.DEBUG_LONG);
+            resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptionFactory.DebugOption.LONG_OPTION);
             resolution.text(" option to get more log output.");
         }
     }
