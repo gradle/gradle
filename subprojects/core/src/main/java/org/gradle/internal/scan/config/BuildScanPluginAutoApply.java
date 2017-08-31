@@ -66,9 +66,13 @@ public class BuildScanPluginAutoApply implements PluginRequestsTransformer {
             return requests;
         }
 
-        List<PluginRequestInternal> copyRequests = Lists.newArrayList();
         DefaultPluginRequest buildScanPluginRequest = new DefaultPluginRequest(BUILD_SCAN_PLUGIN_ID, BUILD_SCAN_PLUGIN_VERSION, true, 0, "auto-apply", null);
-        copyRequests.add(0, buildScanPluginRequest);
+        return prependRequest(buildScanPluginRequest, requests);
+    }
+
+    private PluginRequests prependRequest(PluginRequestInternal buildScanPluginRequest, PluginRequests requests) {
+        List<PluginRequestInternal> copyRequests = Lists.newArrayList();
+        copyRequests.add(buildScanPluginRequest);
         CollectionUtils.addAll(copyRequests, requests);
         return new DefaultPluginRequests(copyRequests);
     }
@@ -79,7 +83,8 @@ public class BuildScanPluginAutoApply implements PluginRequestsTransformer {
         }
 
         Project project = (Project) pluginTarget;
-        return project == project.getRootProject();
+        return project.getGradle().getParent() == null
+            && project == project.getRootProject();
     }
 
     private boolean isPluginAlreadyRequested(PluginRequests requests, Project project) {

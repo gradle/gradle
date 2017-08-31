@@ -54,6 +54,61 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         buildScanPluginNotApplied()
     }
 
+    def "does not automatically apply buildscan plugin to subprojects"() {
+        when:
+        settingsFile << """
+            include 'a', 'b'
+"""
+        buildFile << """
+            assert pluginManager.hasPlugin('com.gradle.build-scan')
+            subprojects {
+                assert !pluginManager.hasPlugin('com.gradle.build-scan')
+            }
+"""
+
+        and:
+        runBuildWithScanRequest()
+
+        then:
+        buildScanPluginApplied(BUILD_SCAN_DEFAULT_VERSION)
+    }
+
+    def "does not apply buildscan plugin to buildSrc build"() {
+        when:
+        file('buildSrc/build.gradle') << """
+            println 'in buildSrc'
+            assert !pluginManager.hasPlugin('com.gradle.build-scan')
+"""
+
+        and:
+        runBuildWithScanRequest()
+
+        then:
+        outputContains 'in buildSrc'
+        buildScanPluginApplied(BUILD_SCAN_DEFAULT_VERSION)
+    }
+
+    def "does not apply buildscan plugin to nested builds in a composite"() {
+        when:
+        settingsFile << """
+            includeBuild 'a'
+"""
+        file('a/settings.gradle') << """
+            rootProject.name = 'a'
+"""
+        file('a/build.gradle') << """
+            println 'in nested build'
+            assert !pluginManager.hasPlugin('com.gradle.build-scan')
+"""
+
+        and:
+        runBuildWithScanRequest()
+
+        then:
+        outputContains 'in nested build'
+        buildScanPluginApplied(BUILD_SCAN_DEFAULT_VERSION)
+    }
+
     @Unroll
     def "uses #sequence version of plugin when explicit in plugins block"() {
         when:
