@@ -101,8 +101,15 @@ If Gradle is run with `--continuous` (or `-t`), the application will be rebuilt 
 Without the `--continuous` flag, Gradle will only rebuild the application on-demand, when an HTTP request is received by the application.
 
 In summary:
-- `gradle --continuous runPlay` will start the application, monitor changes, and rebuild/reload the application as soon as a change is detected.
-- `gradle runPlay` will start the application, monitor changes, and rebuild/reload the application only when a request is received after a change is detected.
+
+1. To start the application, monitor changes, and rebuild/reload the application *as soon as a change is detected*:
+
+    `gradle --continuous runPlay`
+
+2. To start the application, monitor changes, and rebuild/reload the application *only when a request is received after a change is detected*.
+
+    `gradle runPlay`
+
 
 #### Improved Twirl template support
 
