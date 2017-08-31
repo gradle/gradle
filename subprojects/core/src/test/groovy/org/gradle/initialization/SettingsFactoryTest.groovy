@@ -21,7 +21,6 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.RootClassLoaderScope
-import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
 import org.gradle.configuration.ScriptApplicator
 import org.gradle.groovy.scripts.ScriptSource
