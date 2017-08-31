@@ -44,6 +44,7 @@ import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.TextResourceLoader
+import org.gradle.internal.scan.config.CompositePluginRequestsTransformer
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.plugin.management.internal.PluginRequests
@@ -80,9 +81,11 @@ class DefaultScriptPluginFactoryTest extends Specification {
     def textResourceLoader = Mock(TextResourceLoader)
     def streamHasher = Mock(StreamHasher)
     def fileHasher = Mock(FileHasher)
+    def pluginRequestTransformer = new CompositePluginRequestsTransformer([])
 
     def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginRequestApplicator, fileLookup,
-        directoryFileTreeFactory, documentationRegistry, new ModelRuleSourceDetector(), pluginRepositoryRegistry, pluginRepositoryFactory, providerFactory, textResourceLoader, streamHasher, fileHasher)
+        directoryFileTreeFactory, documentationRegistry, new ModelRuleSourceDetector(), pluginRepositoryRegistry, pluginRepositoryFactory, providerFactory, textResourceLoader,
+        streamHasher, fileHasher, pluginRequestTransformer)
 
     def setup() {
         def configurations = Mock(ConfigurationContainer)
