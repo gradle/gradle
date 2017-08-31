@@ -17,7 +17,9 @@
 package org.gradle.api.tasks;
 
 /**
- * Helps create {@link WorkResult} objects.
+ * Helps access trivial {@link WorkResult} objects.
+ *
+ * @since 4.2
  */
 public class WorkResults {
     private static final WorkResult DID_WORK = new WorkResult() {
@@ -35,6 +37,9 @@ public class WorkResults {
 
     private WorkResults() {}
 
+    /**
+     * Returns a {@link WorkResult} object representing work done according to the given parameter.
+     */
     public static WorkResult didWork(boolean didWork) {
         return didWork ? DID_WORK : DID_NO_WORK;
     }
