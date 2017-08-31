@@ -96,10 +96,6 @@ public class HashCode implements Serializable, Comparable<HashCode> {
         return bytes.clone();
     }
 
-    public void appendToHasher(Hasher hasher) {
-        hasher.putBytes(bytes);
-    }
-
     @Override
     public int hashCode() {
         return (bytes[0] & 0xFF)
@@ -158,5 +154,10 @@ public class HashCode implements Serializable, Comparable<HashCode> {
             sb.append(HEX_DIGITS[(b >> 4) & 0xf]).append(HEX_DIGITS[b & 0xf]);
         }
         return sb.toString();
+    }
+
+    // Package private accessor used by MessageDigestHasher.putHash for performance reasons
+    byte[] getBytes() {
+        return bytes;
     }
 }
