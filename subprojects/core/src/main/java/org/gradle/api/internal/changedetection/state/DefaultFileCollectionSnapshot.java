@@ -18,8 +18,6 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -59,14 +57,6 @@ public class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
         }
     });
     private HashCode hashCode;
-    private final Supplier<HashCode> hashCodeSupplier = Suppliers.memoize(new Supplier<HashCode>() {
-        @Override
-        public HashCode get() {
-            DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
-            compareStrategy.appendToHasher(hasher, snapshots.values());
-            return hasher.hash();
-        }
-    });
 
     public DefaultFileCollectionSnapshot(Map<String, NormalizedFileSnapshot> snapshots, TaskFilePropertyCompareStrategy compareStrategy, boolean pathIsAbsolute) {
         this(snapshots, null, compareStrategy, pathIsAbsolute);
@@ -109,7 +99,9 @@ public class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
     @Override
     public HashCode getHash() {
         if (hashCode == null) {
-            hashCode = hashCodeSupplier.get();
+            DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
+            compareStrategy.appendToHasher(hasher, snapshots.values());
+            hashCode = hasher.hash();
         }
         return hashCode;
     }
