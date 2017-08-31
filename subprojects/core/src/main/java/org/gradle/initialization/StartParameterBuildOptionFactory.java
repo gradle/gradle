@@ -36,9 +36,9 @@ import java.util.List;
 
 public class StartParameterBuildOptionFactory implements BuildOptionFactory<StartParameter> {
 
-    @Override
-    public List<BuildOption<StartParameter>> create() {
-        List<BuildOption<StartParameter>> options = new ArrayList<BuildOption<StartParameter>>();
+    private final List<BuildOption<StartParameter>> options = new ArrayList<BuildOption<StartParameter>>();
+
+    public StartParameterBuildOptionFactory() {
         options.add(new ProjectCacheDirOption());
         options.add(new RerunTasksOption());
         options.add(new RecompileScriptsOption());
@@ -57,6 +57,10 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
         options.add(new ConfigureOnDemandOption());
         options.add(new BuildCacheOption());
         options.add(new BuildScanOption());
+    }
+
+    @Override
+    public List<BuildOption<StartParameter>> create() {
         return options;
     }
 

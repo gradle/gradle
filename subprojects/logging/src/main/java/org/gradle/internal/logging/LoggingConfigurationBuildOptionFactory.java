@@ -34,9 +34,9 @@ import java.util.Locale;
 
 public class LoggingConfigurationBuildOptionFactory implements BuildOptionFactory<LoggingConfiguration> {
 
-    @Override
-    public List<BuildOption<LoggingConfiguration>> create() {
-        List<BuildOption<LoggingConfiguration>> options = new ArrayList<BuildOption<LoggingConfiguration>>();
+    private final List<BuildOption<LoggingConfiguration>> options = new ArrayList<BuildOption<LoggingConfiguration>>();
+
+    public LoggingConfigurationBuildOptionFactory() {
         options.add(new QuietOption());
         options.add(new WarnOption());
         options.add(new InfoOption());
@@ -44,6 +44,10 @@ public class LoggingConfigurationBuildOptionFactory implements BuildOptionFactor
         options.add(new StacktraceOption());
         options.add(new FullStacktraceOption());
         options.add(new ConsoleOption());
+    }
+
+    @Override
+    public List<BuildOption<LoggingConfiguration>> create() {
         return options;
     }
 

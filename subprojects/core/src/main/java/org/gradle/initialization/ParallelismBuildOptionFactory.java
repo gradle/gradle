@@ -28,11 +28,15 @@ import java.util.List;
 
 public class ParallelismBuildOptionFactory implements BuildOptionFactory<ParallelismConfiguration> {
 
-    @Override
-    public List<BuildOption<ParallelismConfiguration>> create() {
-        List<BuildOption<ParallelismConfiguration>> options = new ArrayList<BuildOption<ParallelismConfiguration>>();
+    private final List<BuildOption<ParallelismConfiguration>> options = new ArrayList<BuildOption<ParallelismConfiguration>>();
+
+    public ParallelismBuildOptionFactory() {
         options.add(new ParallelOption());
         options.add(new MaxWorkersOption());
+    }
+
+    @Override
+    public List<BuildOption<ParallelismConfiguration>> create() {
         return options;
     }
 

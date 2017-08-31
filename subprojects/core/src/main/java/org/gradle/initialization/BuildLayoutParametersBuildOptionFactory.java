@@ -31,12 +31,16 @@ import java.util.List;
 
 public class BuildLayoutParametersBuildOptionFactory implements BuildOptionFactory<BuildLayoutParameters> {
 
-    @Override
-    public List<BuildOption<BuildLayoutParameters>> create() {
-        List<BuildOption<BuildLayoutParameters>> options = new ArrayList<BuildOption<BuildLayoutParameters>>();
+    private final List<BuildOption<BuildLayoutParameters>> options = new ArrayList<BuildOption<BuildLayoutParameters>>();
+
+    public BuildLayoutParametersBuildOptionFactory() {
         options.add(new GradleUserHomeOption());
         options.add(new ProjectDirOption());
         options.add(new NoSearchUpwardsOption());
+    }
+
+    @Override
+    public List<BuildOption<BuildLayoutParameters>> create() {
         return options;
     }
 

@@ -34,9 +34,9 @@ import java.util.List;
 
 public class DaemonBuildOptionFactory implements BuildOptionFactory<DaemonParameters> {
 
-    @Override
-    public List<BuildOption<DaemonParameters>> create() {
-        List<BuildOption<DaemonParameters>> options = new ArrayList<BuildOption<DaemonParameters>>();
+    private final List<BuildOption<DaemonParameters>> options = new ArrayList<BuildOption<DaemonParameters>>();
+
+    public DaemonBuildOptionFactory() {
         options.add(new IdleTimeoutOption());
         options.add(new HealthCheckOption());
         options.add(new BaseDirOption());
@@ -47,6 +47,10 @@ public class DaemonBuildOptionFactory implements BuildOptionFactory<DaemonParame
         options.add(new ForegroundOption());
         options.add(new StopOption());
         options.add(new StatusOption());
+    }
+
+    @Override
+    public List<BuildOption<DaemonParameters>> create() {
         return options;
     }
 

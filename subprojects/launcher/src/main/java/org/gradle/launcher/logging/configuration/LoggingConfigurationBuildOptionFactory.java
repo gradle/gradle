@@ -27,10 +27,14 @@ import java.util.List;
 
 public class LoggingConfigurationBuildOptionFactory implements BuildOptionFactory<LoggingConfiguration> {
 
+    private final List<BuildOption<LoggingConfiguration>> options = new ArrayList<BuildOption<LoggingConfiguration>>();
+
+    public LoggingConfigurationBuildOptionFactory() {
+        options.add(new LogLevelOption());
+    }
+
     @Override
     public List<BuildOption<LoggingConfiguration>> create() {
-        List<BuildOption<LoggingConfiguration>> options = new ArrayList<BuildOption<LoggingConfiguration>>();
-        options.add(new LogLevelOption());
         return options;
     }
 
