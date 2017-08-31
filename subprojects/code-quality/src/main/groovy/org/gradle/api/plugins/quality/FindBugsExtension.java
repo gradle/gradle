@@ -264,7 +264,7 @@ public class FindBugsExtension extends CodeQualityExtension {
      * This should only be used for arguments that cannot be provided by Gradle directly.
      * Gradle does not try to interpret or validate the arguments before passing them to FindBugs.
      * <p>
-     * See the <a href="https://code.google.com/p/findbugs/source/browse/findbugs/src/java/edu/umd/cs/findbugs/TextUICommandLine.java">FindBugs
+     * See the <a href="https://github.com/findbugsproject/findbugs/blob/master/findbugs/src/java/edu/umd/cs/findbugs/TextUICommandLine.java">FindBugs
      * TextUICommandLine source</a> for available options.
      *
      * @since 2.6
@@ -280,7 +280,7 @@ public class FindBugsExtension extends CodeQualityExtension {
      * This should only be used for arguments that cannot be provided by Gradle directly.
      * Gradle does not try to interpret or validate the arguments before passing them to FindBugs.
      * <p>
-     * See the <a href="https://code.google.com/p/findbugs/source/browse/findbugs/src/java/edu/umd/cs/findbugs/TextUICommandLine.java">FindBugs
+     * See the <a href="https://github.com/findbugsproject/findbugs/blob/master/findbugs/src/java/edu/umd/cs/findbugs/TextUICommandLine.java">FindBugs
      * TextUICommandLine source</a> for available options.
      *
      * @since 2.6

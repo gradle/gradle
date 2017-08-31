@@ -54,7 +54,7 @@ public class FindBugsSpecBuilder {
     private boolean showProgress;
 
     public FindBugsSpecBuilder(FileCollection classesDirs) {
-        if(classesDirs == null || classesDirs.isEmpty()){
+        if (classesDirs == null || classesDirs.isEmpty()) {
             throw new InvalidUserDataException("No class directories configured for FindBugs analysis.");
         }
         this.classesDirs = classesDirs;
@@ -148,7 +148,7 @@ public class FindBugsSpecBuilder {
         return this;
     }
 
-    public FindBugsSpecBuilder withDebugging(boolean debugEnabled){
+    public FindBugsSpecBuilder withDebugging(boolean debugEnabled) {
         this.debugEnabled = debugEnabled;
         return this;
     }
@@ -161,7 +161,7 @@ public class FindBugsSpecBuilder {
     public FindBugsSpec build() {
         ArrayList<String> args = new ArrayList<String>();
         args.add("-pluginList");
-        args.add(pluginsList==null ? "" : pluginsList.getAsPath());
+        args.add(pluginsList == null ? "" : pluginsList.getAsPath());
         args.add("-sortByClass");
         args.add("-timestampNow");
         if (showProgress) {
