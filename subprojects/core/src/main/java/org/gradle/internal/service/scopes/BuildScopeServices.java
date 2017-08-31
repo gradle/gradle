@@ -142,6 +142,7 @@ import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextResourceLoader;
+import org.gradle.internal.scan.config.BuildScanPluginAutoApply;
 import org.gradle.internal.scripts.ScriptingLanguages;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -149,6 +150,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
+import org.gradle.plugin.management.internal.PluginRequestsTransformer;
 import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
@@ -286,6 +288,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return scriptPluginFactorySelector;
     }
 
+    PluginRequestsTransformer createBuildScanAutoApply(StartParameter startParameter) {
+        return new BuildScanPluginAutoApply(startParameter);
+    }
+
     private DefaultScriptPluginFactory defaultScriptPluginFactory() {
         return new DefaultScriptPluginFactory(
             get(ScriptCompilerFactory.class),
@@ -302,7 +308,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(ProviderFactory.class),
             get(TextResourceLoader.class),
             get(StreamHasher.class),
-            get(FileHasher.class));
+            get(FileHasher.class),
+            get(PluginRequestsTransformer.class));
     }
 
     protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, NestedBuildFactory nestedBuildFactory,
