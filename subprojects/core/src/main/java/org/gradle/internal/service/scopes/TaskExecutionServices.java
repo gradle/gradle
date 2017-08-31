@@ -74,6 +74,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.RandomLongIdGenerator;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.scan.config.BuildScanPluginApplied;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.SerializerRegistry;
@@ -106,10 +107,10 @@ public class TaskExecutionServices {
                                     AsyncWorkTracker asyncWorkTracker,
                                     BuildOutputCleanupRegistry cleanupRegistry,
                                     TaskOutputFilesRepository taskOutputFilesRepository,
-                                    Gradle gradle) {
+                                    BuildScanPluginApplied buildScanPlugin) {
 
         boolean taskOutputCacheEnabled = startParameter.isBuildCacheEnabled();
-        boolean scanPluginApplied = gradle.getRootProject().getPluginManager().hasPlugin(BUILD_SCAN_PLUGIN_ID);
+        boolean scanPluginApplied = buildScanPlugin.isBuildScanPluginApplied();
         TaskOutputsGenerationListener taskOutputsGenerationListener = listenerManager.getBroadcaster(TaskOutputsGenerationListener.class);
 
         TaskExecuter executer = new ExecuteActionsTaskExecuter(
