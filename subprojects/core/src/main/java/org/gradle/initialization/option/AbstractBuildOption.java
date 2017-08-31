@@ -46,7 +46,7 @@ public abstract class AbstractBuildOption<T> implements BuildOption<T> {
         return value != null && value.trim().equalsIgnoreCase("true");
     }
 
-    boolean hasCommandLineOption() {
+    protected boolean hasCommandLineOption() {
         return commandLineOptionConfiguration != null;
     }
 }

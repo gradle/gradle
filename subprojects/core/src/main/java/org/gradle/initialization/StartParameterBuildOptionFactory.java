@@ -19,6 +19,9 @@ package org.gradle.initialization;
 import org.gradle.StartParameter;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.BasicFileResolver;
+import org.gradle.cli.CommandLineArgumentException;
+import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.ParsedCommandLine;
 import org.gradle.initialization.option.BooleanBuildOption;
 import org.gradle.initialization.option.BuildOption;
 import org.gradle.initialization.option.BuildOptionFactory;
@@ -265,8 +268,37 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
         }
 
         @Override
+        public void configure(CommandLineParser parser) {
+            if (hasCommandLineOption()) {
+                String disabledOption = getDisabledCommandLineOption();
+                parser.option(commandLineOptionConfiguration.getLongOption()).hasDescription(commandLineOptionConfiguration.getDescription());
+                parser.option(disabledOption).hasDescription(getDisabledCommandLineDescription());
+                // does not behave like a regular boolean option and therefore doesn't call CommandLineParser.allowOneOf
+            }
+        }
+
+        @Override
+        public void applyFromCommandLine(ParsedCommandLine options, StartParameter settings) {
+            if (hasCommandLineOption()) {
+                String enabledOption = commandLineOptionConfiguration.getLongOption();
+                String disabledOption = getDisabledCommandLineOption();
+
+                if (options.hasOption(enabledOption)) {
+                    settings.setBuildScan(true);
+                }
+
+                if (options.hasOption(disabledOption)) {
+                    if(options.hasOption(enabledOption)){
+                        throw new CommandLineArgumentException(String.format("Command line switches '--%s' and '--%s' are mutually exclusive and must not be used together.", enabledOption, disabledOption));
+                    }
+                    settings.setNoBuildScan(true);
+                }
+            }
+        }
+
+        @Override
         public void applyTo(boolean value, StartParameter settings) {
-            settings.setBuildScan(value);
+            // needs special handling
         }
     }
 }
