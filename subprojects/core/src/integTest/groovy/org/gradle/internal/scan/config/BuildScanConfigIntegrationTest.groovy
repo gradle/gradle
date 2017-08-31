@@ -17,7 +17,10 @@
 package org.gradle.internal.scan.config
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.plugin.PluginBuilder
 import spock.lang.Unroll
+
+import static org.gradle.internal.scan.config.BuildScanPluginAutoApply.BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION
 
 class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
 
@@ -30,6 +33,8 @@ Please see https://gradle.com/scans/help/gradle-incompatible-plugin-version for 
     String pluginVersionNumber = "2.0"
 
     def setup() {
+        publishDummyBuildScanPlugin(BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION)
+
         executer.beforeExecute {
             if (collect) {
                 buildScript """
@@ -41,6 +46,19 @@ Please see https://gradle.com/scans/help/gradle-incompatible-plugin-version for 
 
             buildFile << "task t"
         }
+    }
+
+    private void publishDummyBuildScanPlugin(String version) {
+        settingsFile << """
+            pluginManagement {
+                repositories {
+                    maven { url '${mavenRepo.uri}' }
+                }
+            }
+"""
+        def builder = new PluginBuilder(testDirectory.file('plugin-' + version))
+        builder.addPlugin("", "com.gradle.build-scan", "DummyBuildScanPlugin")
+        builder.publishAs("com.gradle:build-scan-plugin:${version}", mavenRepo, executer)
     }
 
     def "enabled and disabled are false with no flags"() {
