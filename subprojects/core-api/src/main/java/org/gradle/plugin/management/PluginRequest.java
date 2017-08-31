@@ -33,7 +33,7 @@ import javax.annotation.Nullable;
 public interface PluginRequest {
 
     /**
-     * The ID of the plugin requested. Never null.
+     * The ID of the plugin requested. Null if the request represents a script plugin.
      */
     @Nullable
     PluginId getId();
