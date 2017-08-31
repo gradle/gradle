@@ -42,6 +42,70 @@
             "changes": [
                 "Method has been removed in superclass"
             ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.plugins.XCTestConventionPlugin",
+            "member": "Constructor XCTestConventionPlugin",
+            "acceptation": "Injectable constructor, shouldn't be used directly by users",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.CreateXcTestBundle",
+            "member": "Constructor CreateXcTestBundle",
+            "acceptation": "The incubating task was moved and renamed",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.CreateXcTestBundle",
+            "member": "Implemented interface org.gradle.api.Task",
+            "acceptation": "The incubating task was moved and renamed",
+            "changes": [
+                "Interface has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.CreateXcTestBundle",
+            "member": "Implemented interface org.gradle.util.Configurable",
+            "acceptation": "The incubating task was moved and renamed",
+            "changes": [
+                "Interface has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.CreateXcTestBundle",
+            "member": "Implemented interface org.gradle.api.internal.TaskInternal",
+            "acceptation": "The incubating task was moved and renamed",
+            "changes": [
+                "Interface has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.CreateXcTestBundle",
+            "member": "Implemented interface org.gradle.api.plugins.ExtensionAware",
+            "acceptation": "The incubating task was moved and renamed",
+            "changes": [
+                "Interface has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.CreateXcTestBundle",
+            "member": "Implemented interface java.lang.Comparable",
+            "acceptation": "The incubating task was moved and renamed",
+            "changes": [
+                "Interface has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.CreateXcTestBundle",
+            "member": "Implemented interface org.gradle.api.internal.DynamicObjectAware",
+            "acceptation": "The incubating task was moved and renamed",
+            "changes": [
+                "Interface has been removed"
+            ]
         }
 
     ]
