@@ -41,6 +41,11 @@ public interface FileCollectionSnapshot extends Snapshot {
      */
     Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, String title, boolean includeAdded);
 
+    /**
+     * Returns the combined hash of the contents.
+     *
+     * We short-circuit {@link #iterateContentChangesSince(FileCollectionSnapshot, String, boolean)} if we already know the hash.
+     */
     HashCode getHash();
 
     /**
