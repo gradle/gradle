@@ -166,14 +166,10 @@ ext {
         'platformNative', 'platformPlay', 'idePlay', 'languageNative', 'ideNative', 'testingBase',
         'testingNative', 'testingJvm', 'pluginDevelopment', 'pluginUse', 'resourcesHttp',
         'resourcesSftp', 'resourcesS3', 'resourcesGcs', 'compositeBuilds', 'buildCacheHttp'
-    ].collect {
-        project(it)
-    }
+    ].collect { project(it) }
     implementationPluginProjects = [
-            'toolingApiBuilders'
-    ].collect {
-        project(it)
-    }
+        project('toolingApiBuilders')
+    ]
     publishedProjects = [
         project(':logging'),
         project(':core'),
@@ -188,7 +184,6 @@ ext {
         project(':processServices'),
         project(':resources')
     ]
-    removedProjects = ['sonar']
 }
 
 apply from: "gradle/buildScanUserData.gradle"
@@ -351,11 +346,6 @@ subprojects { prj ->
         errorWhenNotEmpty = true
     }
 }
-
-task cleanUpRemovedProjects(type: Delete) {
-    delete removedProjects.collect { "subprojects/$it" }
-}
-clean.dependsOn(cleanUpRemovedProjects)
 
 gradle.buildFinished { result ->
     def rootProject = result.gradle.rootProject
