@@ -99,7 +99,6 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
         resolvers.add(new NoopPluginResolver(pluginRegistry));
         resolvers.add(new CorePluginResolver(documentationRegistry, pluginRegistry));
 
-        // Use buildSrc scope
         ClassLoaderScope scriptPluginsScope = ScriptPluginsScope.from(projectRegistry);
         resolvers.add(new ScriptPluginPluginResolver(textResourceLoader, scriptPluginsScope));
 
