@@ -45,6 +45,7 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
         options.add(new DryRunOption());
         options.add(new ContinuousOption());
         options.add(new NoProjectDependenciesRebuildOption());
+        options.add(new BuildFileOption());
         options.add(new SettingsFileOption());
         options.add(new ConfigureOnDemandOption());
         options.add(new BuildCacheOption());
@@ -160,6 +161,18 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
         @Override
         public void applyTo(StartParameter settings) {
             settings.setBuildProjectDependencies(false);
+        }
+    }
+
+    public static class BuildFileOption extends StringBuildOption<StartParameter> {
+        public BuildFileOption() {
+            super(StartParameter.class, null, CommandLineOptionConfiguration.create("build-file", "b", "Specify the build file.").hasArgument());
+        }
+
+        @Override
+        public void applyTo(String value, StartParameter settings) {
+            Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
+            settings.setBuildFile(resolver.transform(value));
         }
     }
 

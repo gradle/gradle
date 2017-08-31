@@ -38,7 +38,6 @@ import java.util.Map;
 import static org.gradle.StartParameter.GRADLE_USER_HOME_PROPERTY_KEY;
 
 public class DefaultCommandLineConverter extends AbstractCommandLineConverter<StartParameter> {
-    private static final String BUILD_FILE = "b";
     public static final String INIT_SCRIPT = "I";
     private static final String EXCLUDE_TASK = "x";
 
@@ -64,7 +63,6 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
         parser.allowMixedSubcommandsAndOptions();
         parser.option(INIT_SCRIPT, "init-script").hasArguments().hasDescription("Specify an initialization script.");
-        parser.option(BUILD_FILE, "build-file").hasArgument().hasDescription("Specify the build file.");
         parser.option(EXCLUDE_TASK, "exclude-task").hasArguments().hasDescription("Specify a task to be excluded from execution.");
         parser.option(INCLUDE_BUILD).hasArguments().hasDescription("Include the specified build in the composite.").incubating();
 
@@ -95,9 +93,6 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         }
         startParameter.setSearchUpwards(layout.getSearchUpwards());
 
-        if (options.hasOption(BUILD_FILE)) {
-            startParameter.setBuildFile(resolver.transform(options.option(BUILD_FILE).getValue()));
-        }
         for (String script : options.option(INIT_SCRIPT).getValues()) {
             startParameter.addInitScript(resolver.transform(script));
         }
