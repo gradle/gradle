@@ -15,3 +15,7 @@
  */
 
 apply from: 'templates.gradle'
+
+dependencies {
+    performanceTestImplementation libraries.commons_compress
+}
