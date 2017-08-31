@@ -30,7 +30,7 @@ import java.util.Map;
 public abstract class NoArgumentBuildOption<T> extends AbstractBuildOption<T> {
 
     public NoArgumentBuildOption(Class<T> settingsType, String gradleProperty) {
-        super(settingsType, gradleProperty);
+        super(settingsType, gradleProperty, null);
     }
 
     public NoArgumentBuildOption(Class<T> settingsType, String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {

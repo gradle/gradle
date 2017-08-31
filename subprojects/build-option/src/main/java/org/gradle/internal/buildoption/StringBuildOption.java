@@ -27,7 +27,7 @@ import java.util.Map;
  */
 public abstract class StringBuildOption<T> extends AbstractBuildOption<T> {
 
-    protected StringBuildOption(Class<T> settingsType, String gradleProperty) {
+    public StringBuildOption(Class<T> settingsType, String gradleProperty) {
         super(settingsType, gradleProperty);
     }
 

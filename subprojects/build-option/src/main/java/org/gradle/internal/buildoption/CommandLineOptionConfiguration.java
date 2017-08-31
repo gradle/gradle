@@ -16,6 +16,7 @@
 
 package org.gradle.internal.buildoption;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +35,9 @@ public final class CommandLineOptionConfiguration {
         this(longOption, null, description);
     }
 
-    private CommandLineOptionConfiguration(String longOption, String shortOption, String description) {
+    private CommandLineOptionConfiguration(String longOption, @Nullable String shortOption, String description) {
+        assert longOption != null : "longOption cannot be null";
+        assert description != null : "description cannot be null";
         this.longOption = longOption;
         this.shortOption = shortOption;
         this.description = description;
@@ -57,6 +60,7 @@ public final class CommandLineOptionConfiguration {
         return longOption;
     }
 
+    @Nullable
     public String getShortOption() {
         return shortOption;
     }

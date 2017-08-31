@@ -24,13 +24,13 @@ import java.util.Map;
 /**
  * A build option that takes a boolean value.
  * <p>
- * If a command line option is provided, this build option automatically creates a disabled option out-of-the-box e.g. {@code "no-daemon"} for the provided option {@code "daemon"}.
+ * If a command line option is provided, this build option automatically creates a disabled option out-of-the-box e.g. {@code "--no-daemon"} for the provided option {@code "--daemon"}.
  *
  * @since 4.2
  */
 public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T> {
 
-    protected BooleanBuildOption(Class<T> settingsType, String gradleProperty) {
+    public BooleanBuildOption(Class<T> settingsType, String gradleProperty) {
         super(settingsType, gradleProperty);
     }
 

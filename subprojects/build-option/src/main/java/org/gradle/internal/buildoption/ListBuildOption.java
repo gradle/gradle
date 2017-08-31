@@ -31,7 +31,7 @@ import java.util.Map;
  */
 public abstract class ListBuildOption<T> extends AbstractBuildOption<T> {
 
-    protected ListBuildOption(Class<T> settingsType, String gradleProperty) {
+    public ListBuildOption(Class<T> settingsType, String gradleProperty) {
         super(settingsType, gradleProperty);
     }
 

@@ -27,11 +27,11 @@ public abstract class AbstractBuildOption<T> implements BuildOption<T> {
     protected final String gradleProperty;
     protected final CommandLineOptionConfiguration commandLineOptionConfiguration;
 
-    protected AbstractBuildOption(Class<T> settingsType, String gradleProperty) {
+    AbstractBuildOption(Class<T> settingsType, String gradleProperty) {
         this(settingsType, gradleProperty, null);
     }
 
-    public AbstractBuildOption(Class<T> settingsType, String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
+    AbstractBuildOption(Class<T> settingsType, String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
         this.settingsType = settingsType;
         this.gradleProperty = gradleProperty;
         this.commandLineOptionConfiguration = commandLineOptionConfiguration;
