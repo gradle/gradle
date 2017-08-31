@@ -77,12 +77,23 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
         addDefaultResolvers(resolvers);
         return resolvers;
     }
-
     /**
-     * Returns the default PluginResolvers used by Gradle. <p> The plugins will be searched in a chain from the first to the last until a plugin is found. So, order matters. <p> <ol> <li>{@link
-     * NoopPluginResolver} - Only used in tests.</li> <li>{@link CorePluginResolver} - distributed with Gradle</li> <li>{@link InjectedClasspathPluginResolver} - from a TestKit test's ClassPath</li>
-     * <li>Resolvers based on the entries of the `pluginRepositories` block</li> <li>{@link PluginResolutionServiceResolver} - from Gradle Plugin Portal if no `pluginRepositories` were defined</li>
-     * </ol> <p> This order is optimized for both performance and to allow resolvers earlier in the order to mask plugins which would have been found later in the order.
+     * Returns the default PluginResolvers used by Gradle.
+     * <p>
+     * The plugins will be searched in a chain from the first to the last until a plugin is found.
+     * So, order matters.
+     * <p>
+     * <ol>
+     *     <li>{@link NoopPluginResolver} - Only used in tests.</li>
+     *     <li>{@link CorePluginResolver} - distributed with Gradle</li>
+     *     <li>{@link ScriptPluginPluginResolver} - for script requests</li>
+     *     <li>{@link InjectedClasspathPluginResolver} - from a TestKit test's ClassPath</li>
+     *     <li>Resolvers based on the entries of the `pluginRepositories` block</li>
+     *     <li>{@link PluginResolutionServiceResolver} - from Gradle Plugin Portal if no `pluginRepositories` were defined</li>
+     * </ol>
+     * <p>
+     * This order is optimized for both performance and to allow resolvers earlier in the order
+     * to mask plugins which would have been found later in the order.
      */
     private void addDefaultResolvers(List<PluginResolver> resolvers) {
         resolvers.add(new NoopPluginResolver(pluginRegistry));
