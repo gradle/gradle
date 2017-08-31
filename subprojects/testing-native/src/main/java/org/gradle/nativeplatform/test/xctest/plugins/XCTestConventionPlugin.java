@@ -29,30 +29,25 @@ import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.PropertyState;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.language.nativeplatform.internal.Names;
-import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
 import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
+import org.gradle.language.swift.tasks.CreateBundle;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.LinkBundle;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.internal.MacOSSdkPlatformPathLocator;
-import org.gradle.nativeplatform.test.xctest.tasks.CreateXcTestBundle;
 import org.gradle.nativeplatform.test.xctest.tasks.XcTest;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.concurrent.Callable;
 
 /**
  * A plugin that sets up the infrastructure for testing native binaries with XCTest test framework. It also adds conventions on top of it.
@@ -83,7 +78,6 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         final DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
         ConfigurationContainer configurations = project.getConfigurations();
         TaskContainer tasks = project.getTasks();
-        ProviderFactory providers = project.getProviders();
 
         // TODO - Reuse logic from Swift*Plugin
         // TODO - component name and extension name aren't the same
@@ -92,7 +86,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         SwiftXCTestSuite component = objectFactory.newInstance(DefaultSwiftXCTestSuite.class, "test", configurations);
         project.getExtensions().add(SwiftXCTestSuite.class, "xctest", component);
         project.getComponents().add(component);
-        project.getComponents().add(component.getExecutable());
+        project.getComponents().add(component.getBundle());
 
         // Setup component
         final PropertyState<String> module = component.getModule();
@@ -110,34 +104,13 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
         configureTestedComponent(project);
 
-        final SwiftBinary binary = component.getExecutable();
-        final Names names = Names.of(binary.getName());
-        Provider<Directory> testBundleDir = buildDirectory.dir(providers.provider(new Callable<String>() {
-            @Override
-            public String call() {
-                return "bundle/" + names.getDirName() + binary.getModule().get() + ".xctest";
-            }
-        }));
-
-        final CreateXcTestBundle testBundle = tasks.create("createXcTestBundle", CreateXcTestBundle.class);
-        testBundle.setExecutableFile(link.getBinaryFile());
-        // TODO - should be defined on the component
-        testBundle.setInformationFile(component.getExecutable().getInformationPropertyList());
-        testBundle.setOutputDir(testBundleDir);
-        testBundle.onlyIf(new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return testBundle.getExecutableFile().exists();
-            }
-        });
+        CreateBundle bundle = (CreateBundle) tasks.getByName("bundleTest");
 
         final XcTest xcTest = tasks.create("xcTest", XcTest.class);
-        // TODO - should infer this
-        xcTest.dependsOn(testBundle);
         // TODO - should respect changes to build directory
         xcTest.setBinResultsDir(project.file("build/results/test/bin"));
-        xcTest.setTestBundleDir(testBundleDir);
-        xcTest.setWorkingDir(project.getProjectDir());
+        xcTest.setTestBundleDir(bundle.getOutputDir());
+        xcTest.setWorkingDir(buildDirectory.dir("bundle"));
         // TODO - should respect changes to reports dir
         xcTest.getReports().getHtml().setDestination(buildDirectory.dir("reports/test").map(new Transformer<File, Directory>() {
             @Override

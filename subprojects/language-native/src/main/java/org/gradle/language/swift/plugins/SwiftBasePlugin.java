@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -34,6 +35,7 @@ import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftBundle;
 import org.gradle.language.swift.SwiftExecutable;
 import org.gradle.language.swift.SwiftSharedLibrary;
+import org.gradle.language.swift.tasks.CreateBundle;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
@@ -155,6 +157,23 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     link.setTargetPlatform(currentPlatform);
                     link.setToolChain(toolChain);
                     link.setDebuggable(binary.isDebuggable());
+
+                    final CreateBundle bundle = tasks.create(names.getTaskName("bundle"), CreateBundle.class);
+                    bundle.getExecutableFile().set(link.getBinaryFile());
+                    bundle.getInformationFile().set(((SwiftBundle) binary).getInformationPropertyList());
+                    Provider<Directory> bundleLocation = buildDirectory.dir(providers.provider(new Callable<String>() {
+                        @Override
+                        public String call() throws Exception {
+                            return "bundle/" + names.getDirName() + binary.getModule().get() + ".xctest";
+                        }
+                    }));
+                    bundle.getOutputDir().set(bundleLocation);
+                    bundle.onlyIf(new Spec<Task>() {
+                        @Override
+                        public boolean isSatisfiedBy(Task element) {
+                            return bundle.getExecutableFile().getAsFile().get().exists();
+                        }
+                    });
                 }
             }
         });

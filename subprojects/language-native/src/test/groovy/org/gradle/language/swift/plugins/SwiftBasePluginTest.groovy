@@ -16,11 +16,13 @@
 
 package org.gradle.language.swift.plugins
 
+import org.gradle.api.file.RegularFile
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.SwiftBinary
 import org.gradle.language.swift.SwiftBundle
 import org.gradle.language.swift.SwiftExecutable
 import org.gradle.language.swift.SwiftSharedLibrary
+import org.gradle.language.swift.tasks.CreateBundle
 import org.gradle.language.swift.tasks.SwiftCompile
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkBundle
@@ -114,24 +116,31 @@ class SwiftBasePluginTest extends Specification {
     def "adds link task for bundle"() {
         def module = project.providers.property(String)
         module.set("TestBundle")
-        def bundle = Stub(SwiftBundle)
-        bundle.name >> name
-        bundle.module >> module
+        def infoPlist = project.providers.property(RegularFile)
+        def bundleBinary = Stub(SwiftBundle)
+        bundleBinary.name >> name
+        bundleBinary.module >> module
+        bundleBinary.informationPropertyList >> infoPlist
 
         when:
         project.pluginManager.apply(SwiftBasePlugin)
-        project.components.add(bundle)
+        project.components.add(bundleBinary)
 
         then:
-        def link = project.tasks[taskName]
+        def link = project.tasks[linkTaskName]
         link instanceof LinkBundle
         link.binaryFile.get().asFile == projectDir.file("build/exe/${bundleDir}" + OperatingSystem.current().getExecutableName("TestBundle"))
 
+        and:
+        def bundleTask = project.tasks[bundleTaskName]
+        bundleTask instanceof CreateBundle
+        bundleTask.outputDir.get().asFile == projectDir.file("build/bundle/${bundleDir}TestBundle.xctest")
+
         where:
-        name        | taskName        | bundleDir
-        "main"      | "link"          | "main/"
-        "mainDebug" | "linkDebug"     | "main/debug/"
-        "test"      | "linkTest"      | "test/"
-        "testDebug" | "linkTestDebug" | "test/debug/"
+        name        | linkTaskName    | bundleTaskName    | bundleDir
+        "main"      | "link"          | "bundle"          | "main/"
+        "mainDebug" | "linkDebug"     | "bundleDebug"     | "main/debug/"
+        "test"      | "linkTest"      | "bundleTest"      | "test/"
+        "testDebug" | "linkTestDebug" | "bundleTestDebug" | "test/debug/"
     }
 }

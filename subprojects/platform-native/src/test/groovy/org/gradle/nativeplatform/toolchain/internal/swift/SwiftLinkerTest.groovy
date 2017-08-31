@@ -185,7 +185,7 @@ class SwiftLinkerTest extends Specification {
         def outputFile = testDir.file("output/lib")
 
         final expectedArgs = [
-            "-Wl,-bundle",
+            "-Xlinker", "-bundle",
             "-o", outputFile.absolutePath,
             testDir.file("one.o").absolutePath].flatten()
 

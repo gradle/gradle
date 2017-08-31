@@ -20,13 +20,11 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.nativeplatform.test.xctest.internal.MacOSSdkPlatformPathLocator;
 import org.gradle.nativeplatform.test.xctest.internal.MacOSXCTestLocator;
-import org.gradle.nativeplatform.test.xctest.internal.SwiftStdlibToolLocator;
 
 public class XCTestTestingServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerBuildSessionServices(ServiceRegistration registration) {
         registration.add(MacOSSdkPlatformPathLocator.class);
         registration.add(MacOSXCTestLocator.class);
-        registration.add(SwiftStdlibToolLocator.class);
     }
 }

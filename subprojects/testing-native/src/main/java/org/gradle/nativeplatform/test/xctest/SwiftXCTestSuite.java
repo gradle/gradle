@@ -29,9 +29,9 @@ import org.gradle.language.swift.SwiftComponent;
 @Incubating
 public interface SwiftXCTestSuite extends SwiftComponent {
     /**
-     * Returns the executable that is built to run this test suite.
+     * Returns the bundle that is built to run this test suite.
      */
-    SwiftBundle getExecutable();
+    SwiftBundle getBundle();
 
     /**
      * Returns the resource directory for this component.

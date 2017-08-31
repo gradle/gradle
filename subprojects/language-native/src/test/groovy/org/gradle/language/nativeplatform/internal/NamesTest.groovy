@@ -41,7 +41,7 @@ class NamesTest extends Specification {
 
     def "names for main variant of main"() {
         expect:
-        def name = Names.of("mainExe")
+        def name = Names.of("mainBundle")
         name.getCompileTaskName("cpp") == "compileCpp"
         name.getTaskName("link") == "link"
         name.getDirName() == "main/"
@@ -71,7 +71,7 @@ class NamesTest extends Specification {
 
     def "names for main variants of custom"() {
         expect:
-        def name = Names.of("customExe")
+        def name = Names.of("customBundle")
         name.getCompileTaskName("cpp") == "compileCustomCpp"
         name.getTaskName("link") == "linkCustom"
         name.getDirName() == "custom/"

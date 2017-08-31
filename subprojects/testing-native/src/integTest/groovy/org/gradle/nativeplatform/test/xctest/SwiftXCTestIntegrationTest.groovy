@@ -24,8 +24,8 @@ import org.gradle.nativeplatform.fixtures.app.TestElement
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-import static org.gradle.nativeplatform.fixtures.app.SourceTestElement.newTestSuite
 import static org.gradle.nativeplatform.fixtures.app.SourceTestElement.newTestCase
+import static org.gradle.nativeplatform.fixtures.app.SourceTestElement.newTestSuite
 
 @Requires([TestPrecondition.SWIFT_SUPPORT, TestPrecondition.MAC_OS_X])
 class SwiftXCTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -45,8 +45,8 @@ apply plugin: 'swift-library'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
-        result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":bundleTest", ":xcTest", ":test")
+        result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":bundleTest", ":xcTest", ":test")
     }
 
     def "xctest plugin can test public and internal feature of a Swift library"() {
@@ -74,7 +74,7 @@ apply plugin: 'swift-library'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":bundleTest", ":xcTest", ":test")
         test.expectedSummaryOutputPattern.matcher(output).find()
     }
 
@@ -88,8 +88,8 @@ apply plugin: 'swift-executable'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
-        result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":bundleTest", ":xcTest", ":test")
+        result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":bundleTest", ":xcTest", ":test")
     }
 
     def "xctest plugin can test public and internal feature of a Swift executable"() {
@@ -117,6 +117,6 @@ linkTest.source = project.files(new HashSet(linkTest.source.from)).filter { !it.
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":bundleTest", ":xcTest", ":test")
     }
 }

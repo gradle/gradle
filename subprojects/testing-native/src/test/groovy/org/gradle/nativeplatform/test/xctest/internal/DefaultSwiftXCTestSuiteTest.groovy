@@ -35,11 +35,11 @@ class DefaultSwiftXCTestSuiteTest extends Specification {
     def projectLayout = new DefaultProjectLayout(tmpDir.testDirectory, TestFiles.resolver(tmpDir.testDirectory))
     def testSuite = new DefaultSwiftXCTestSuite("test", TestUtil.objectFactory(), fileOperations, providerFactory, Stub(ConfigurationContainer), projectLayout)
 
-    def "has an executable"() {
+    def "has a bundle"() {
         expect:
-        testSuite.executable.name == "testExe"
-        testSuite.executable.debuggable
-        testSuite.developmentBinary == testSuite.executable
+        testSuite.bundle.name == "testBundle"
+        testSuite.bundle.debuggable
+        testSuite.developmentBinary == testSuite.bundle
     }
 
     def "can change location of Info.plist by changing the test suite resource directory location"() {
@@ -47,11 +47,11 @@ class DefaultSwiftXCTestSuiteTest extends Specification {
 
         expect:
         testSuite.resourceDir.set(file)
-        testSuite.executable.informationPropertyList.get().asFile == tmpDir.file("Tests/Info.plist")
+        testSuite.bundle.informationPropertyList.get().asFile == tmpDir.file("Tests/Info.plist")
     }
 
     def "uses source layout convention when Info.plist not set"() {
         expect:
-        testSuite.executable.informationPropertyList.get().asFile == tmpDir.file("src/test/resources/Info.plist")
+        testSuite.bundle.informationPropertyList.get().asFile == tmpDir.file("src/test/resources/Info.plist")
     }
 }

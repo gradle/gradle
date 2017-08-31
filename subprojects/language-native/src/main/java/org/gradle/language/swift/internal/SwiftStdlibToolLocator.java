@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.test.xctest.internal;
+package org.gradle.language.swift.internal;
 
 import org.gradle.process.internal.ExecActionFactory;
 

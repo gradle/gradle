@@ -30,7 +30,7 @@ import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
 import javax.inject.Inject;
 
 public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements SwiftXCTestSuite {
-    private final DefaultSwiftBundle executable;
+    private final DefaultSwiftBundle bundle;
     private final DirectoryVar resourceDirectory;
 
     @Inject
@@ -39,7 +39,7 @@ public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements Sw
 
         resourceDirectory = projectLayout.newDirectoryVar();
         resourceDirectory.set(projectLayout.getProjectDirectory().dir("src/" + name + "/resources"));
-        executable = new DefaultSwiftBundle(name + "Exe", objectFactory, getModule(), true, getSwiftSource(), configurations, getImplementationDependencies(), getResourceDir());
+        bundle = new DefaultSwiftBundle(name + "Bundle", objectFactory, getModule(), true, getSwiftSource(), configurations, getImplementationDependencies(), getResourceDir());
     }
 
     @Override
@@ -49,11 +49,11 @@ public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements Sw
 
     @Override
     public SwiftBundle getDevelopmentBinary() {
-        return executable;
+        return bundle;
     }
 
     @Override
-    public SwiftBundle getExecutable() {
-        return executable;
+    public SwiftBundle getBundle() {
+        return bundle;
     }
 }

@@ -20,6 +20,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.language.nativeplatform.internal.incremental.DefaultCompilationStateCacheFactory;
 import org.gradle.language.nativeplatform.internal.incremental.DefaultIncrementalCompilerBuilder;
+import org.gradle.language.swift.internal.SwiftStdlibToolLocator;
 
 public class NativeLanguageServices extends AbstractPluginServiceRegistry {
     @Override
@@ -30,5 +31,10 @@ public class NativeLanguageServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
         registration.add(DefaultIncrementalCompilerBuilder.class);
+    }
+
+    @Override
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+        registration.add(SwiftStdlibToolLocator.class);
     }
 }

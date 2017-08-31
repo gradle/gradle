@@ -26,4 +26,6 @@ public interface TaskFileVarFactory {
     RegularFileVar newOutputFile(Task producer);
 
     RegularFileVar newInputFile(Task consumer);
+
+    DirectoryVar newInputDirectory(Task consumer);
 }
