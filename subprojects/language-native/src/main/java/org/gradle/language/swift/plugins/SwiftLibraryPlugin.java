@@ -45,7 +45,7 @@ import javax.inject.Inject;
  *
  * <p>Adds a {@link SwiftComponent} extension to the project to allow configuration of the library.</p>
  *
- * @since 4.1
+ * @since 4.2
  */
 @Incubating
 public class SwiftLibraryPlugin implements Plugin<Project> {

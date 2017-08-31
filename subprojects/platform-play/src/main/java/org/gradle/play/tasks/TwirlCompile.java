@@ -191,6 +191,8 @@ public class TwirlCompile extends SourceTask {
 
     /**
      * Returns the custom template formats configured for this task.
+     *
+     * @since 4.2
      */
     @Input
     public List<TwirlTemplateFormat> getUserTemplateFormats() {
@@ -199,6 +201,8 @@ public class TwirlCompile extends SourceTask {
 
     /**
      * Sets the custom template formats for this task.
+     *
+     * @since 4.2
      */
     public void setUserTemplateFormats(List<TwirlTemplateFormat> userTemplateFormats) {
         this.userTemplateFormats = userTemplateFormats;
@@ -210,6 +214,8 @@ public class TwirlCompile extends SourceTask {
      * @param extension file extension this template applies to (e.g., {@code html}).
      * @param templateType fully-qualified type for this template format.
      * @param imports additional imports to add for the custom template format.
+     *
+     * @since 4.2
      */
     public void addUserTemplateFormat(final String extension, String templateType, String... imports) {
         userTemplateFormats.add(new DefaultTwirlTemplateFormat(extension, templateType, Arrays.asList(imports)));
@@ -217,6 +223,8 @@ public class TwirlCompile extends SourceTask {
 
     /**
      * Returns the list of additional imports to add to the generated Scala code.
+     *
+     * @since 4.2
      */
     @Input
     public List<String> getAdditionalImports() {
@@ -227,6 +235,8 @@ public class TwirlCompile extends SourceTask {
      * Sets the additional imports to add to all generated Scala code.
      *
      * @param additionalImports additional imports
+     *
+     * @since 4.2
      */
     public void setAdditionalImports(List<String> additionalImports) {
         this.additionalImports = additionalImports;

@@ -16,164 +16,119 @@
 
 package org.gradle.play.integtest.continuous
 
-import org.gradle.deployment.internal.DefaultDeploymentRegistry
-import org.gradle.internal.filewatch.PendingChangesListener
-import org.gradle.internal.filewatch.PendingChangesManager
-import org.gradle.internal.filewatch.SingleFirePendingChangesListener
-import spock.lang.Unroll
+import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.TestParticipant
+import org.junit.Rule
 
-class PlayReloadWaitingIntegrationTest extends PlayReloadIntegrationTest {
+import java.util.concurrent.TimeUnit
+
+class PlayReloadWaitingIntegrationTest extends AbstractPlayReloadIntegrationTest {
+    @Rule
+    public ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
 
     def setup() {
+        withoutContinuousBuild()
         server.start()
         addPendingChangesHook()
-        buildFile << """
-            gradle.taskGraph.afterTask { task ->
-                if (task.path != ":compilePlayBinaryScala") {
-                    return
-                }
-                def markerFile = file('wait-for-changes')
-                if (markerFile.exists()) {
-                    println "WAITING FOR CHANGES"
-                    def pendingChanges = new java.util.concurrent.atomic.AtomicBoolean(false)
-                    def pendingChangesManager = gradle.services.get(${PendingChangesManager.canonicalName})
-                    def pendingChangesListener = new ${SingleFirePendingChangesListener.canonicalName}({
-                        synchronized(pendingChanges) {
-                            println "Pending changes detected"
-                            pendingChanges.set(true)
-                            pendingChanges.notifyAll()
-                        }
-                    } as ${PendingChangesListener.canonicalName})
-
-                    pendingChangesManager.addListener pendingChangesListener
-                    
-                    // Signal we are listening for changes
-                    ${server.callFromBuild("rebuild")}
-
-                    synchronized(pendingChanges) {
-                        while(!pendingChanges.get()) {
-                            pendingChanges.wait()
-                        }
-                    }
-                    
-                    markerFile.delete()
-                }
-            }
-        """
     }
 
-    def "wait for changes to be built when a request comes in during a build"() {
-        file('hooks.gradle') << """
+    def "waits for app request before building changes"() {
+        given:
+        def hooksFile = file('hooks.gradle') << """
             gradle.projectsLoaded {
                 ${server.callFromBuild("buildStarted")}
             }
-            gradle.buildFinished {
-                ${server.callFromBuild("buildFinished")}
-            }
         """
-        executer.withArguments("-I", file("hooks.gradle").absolutePath)
+        executer.withArguments("-I", hooksFile.absolutePath)
 
-        when:
-        server.expect("buildStarted")
-        server.expect("buildFinished")
-        succeeds("runPlayBinary")
-        then:
-        appIsRunningAndDeployed()
+        and:
+        2.times {
+            server.expect("buildStarted")
+        }
+        appRunning()
 
         when:
         def block = server.expectAndBlock( "buildStarted")
         addNewRoute("hello")
-        block.waitForAllPendingCalls()
-        block.releaseAll()
 
         then:
-        server.expect("buildFinished")
-        checkRoute 'hello'
-    }
-
-    def "wait for pending changes to be built if a request comes in during a build and there are pending changes"() {
-        when:
-        succeeds("runPlayBinary")
-        then:
-        appIsRunningAndDeployed()
-
-        when:
-        def block = blockBuildWaitingForChanges()
-
-        // Make a change that triggers the build
-        addNewRoute("hello")
-
-        // Wait for the build to be blocked waiting for next change
-        block.waitForAllPendingCalls()
-
-        // Trigger another change
-        addNewRoute("goodbye")
-        block.releaseAll()
-
-        then:
-        // goodbye route is added by second change, so if it's available, we know we've blocked
-        checkRoute 'goodbye'
-        checkRoute 'hello'
-     }
-
-    def "wait for pending changes to be built if a request comes in during a failing build and there are pending changes"() {
-        when:
-        succeeds("runPlayBinary")
-        then:
-        appIsRunningAndDeployed()
-
-        when:
-        def block = blockBuildWaitingForChanges()
-
-        // Trigger a change that breaks the build
-        addBadCode()
-
-        // Wait for the build to be blocked waiting for next change
-        block.waitForAllPendingCalls()
-
-        // Trigger another change during the build that works
-        fixBadCode()
-        block.releaseAll()
-
-        then:
-        checkRoute 'hello'
-    }
-
-    @Unroll
-    def "wait for changes to be built when a request comes in during initial app startup and there are pending changes and build is gated=#gated"() {
-        given:
-        // prebuild so the build doesn't timeout waiting for rebuild signal
-        executer.withTasks("playBinary").run()
-        when:
-        def rebuild = blockBuildWaitingForChanges()
-
-        // Start up the Play app, block waiting for changes before completion
-        if (gated) {
-            start("runPlayBinary", "-D${DefaultDeploymentRegistry.EAGER_SYS_PROP}=false")
-        } else {
-            start("runPlayBinary")
+        def op = concurrent.waitsForAsyncCallback().withWaitTime(2000)
+        TestParticipant routeChecker
+        op.start {
+            op.callbackLater {
+                // Starting the HTTP request releases the build
+                routeChecker = concurrent.start({
+                    checkRoute('hello')
+                })
+            }
+            block.waitForAllPendingCalls()
+            block.releaseAll()
         }
+        // Request should be complete soon after build completes
+        routeChecker.completesWithin(1, TimeUnit.SECONDS)
+    }
+    
+    def "wait for changes to be built when a change occurs during a build"() {
+        given:
+        appRunning()
 
-        rebuild.waitForAllPendingCalls()
+        when:
+        // Add a new route and wait for it to be detected
+        def initialChangeDelivered = changesReported()
+        addNewRoute("first")
+        initialChangeDelivered.waitForAllPendingCalls()
 
-        // Trigger a change
-        addNewRoute('hello')
-        rebuild.releaseAll()
+        // Once initial change is delivered, build will start when a request is received.
+        // Open an HTTP connection to the App: expect 'second' route to be incorporated
+        def secondRouteChecker = concurrent.start({
+            checkRoute('second')
+        })
+        def changeDeliveredDuringBuild = blockBuildWaitingForChanges()
+        initialChangeDelivered.releaseAll()
+
+        // During the build, add a new route, ensuring that the build blocks waiting for it to be delivered
+        changeDeliveredDuringBuild.waitForAllPendingCalls()
+        addNewRoute("second")
+        changeDeliveredDuringBuild.releaseAll()
 
         then:
-        appIsRunningAndDeployed()
-        checkRoute 'hello'
-
-        where:
-        gated << [ true, false ]
+        secondRouteChecker.completesWithin(5, TimeUnit.SECONDS)
     }
 
-    def blockBuildWaitingForChanges() {
-        file('wait-for-changes').touch()
-        return server.expectAndBlock("rebuild")
+    def "wait for changes to be built when a fix occurs during a failing build"() {
+        given:
+        appRunning()
+
+        when:
+        // Add a new route and wait for it to be detected
+        def initialChangeDelivered = changesReported()
+        addBadCode()
+        initialChangeDelivered.waitForAllPendingCalls()
+
+        // Once initial change is delivered, build will start when a request is received.
+        // Open an HTTP connection to the App: expect 'second' route to be incorporated
+        def routeChecker = concurrent.start({
+            checkRoute('hello')
+        })
+        def changeDeliveredDuringBuild = blockBuildWaitingForChanges()
+        initialChangeDelivered.releaseAll()
+
+        // During the build, add a new route, ensuring that the build blocks waiting for it to be delivered
+        changeDeliveredDuringBuild.waitForAllPendingCalls()
+        fixBadCode()
+        changeDeliveredDuringBuild.releaseAll()
+
+        then:
+        routeChecker.completesWithin(5, TimeUnit.SECONDS)
+    }
+
+    private void appRunning() {
+        succeeds("runPlayBinary")
+        appIsRunningAndDeployed()
     }
 
     void checkRoute(String route) {
+        runningApp.initialize(gradle)
         assert runningApp.playUrl(route).text == route + ' world'
     }
 }

@@ -15,7 +15,7 @@
  */
 
 
-package org.gradle.integtests.tooling
+package org.gradle.integtests.tooling.r42
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.ScriptExecuter

@@ -59,6 +59,11 @@ import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
 public class CppLibraryPlugin implements Plugin<ProjectInternal> {
     private final FileOperations fileOperations;
 
+    /**
+     * Injects a {@link FileOperations} instance.
+     *
+     * @since 4.2
+     */
     @Inject
     public CppLibraryPlugin(FileOperations fileOperations) {
         this.fileOperations = fileOperations;
