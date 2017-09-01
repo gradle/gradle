@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,12 @@
  */
 package org.gradle.internal.hash
 
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+
 import java.util.concurrent.TimeUnit
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.junit.Assume
 import org.junit.Rule
 
 import com.google.common.base.Charsets
@@ -53,8 +55,9 @@ class DefaultFileHasherTest extends Specification {
         0 * _._
     }
 
-    @Issue("gradle/gradle#2552")
+    @Issue("https://github.com/gradle/gradle/issues/2552")
     @Timeout(value = 5, unit = TimeUnit.SECONDS)
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
     def "named pipe returns correct hash"() {
         def hash = getStringHash("")
         def pipe = new File(tmpDir.createDir("testdir"), "testpipe")
@@ -86,16 +89,8 @@ class DefaultFileHasherTest extends Specification {
     }
 
     def createPipe(def name) {
-        def supportFifo = false
-        try {
-            def mkfifo = new ProcessBuilder("mkfifo", name).redirectErrorStream(true).start()
-            def exitValue = mkfifo.waitFor()
-            supportFifo = (exitValue == 0)
-        } catch (IOException e) {
-            supportFifo = false
-        }
-        // Skip test if mkfifo doesn't work on this platform:
-        Assume.assumeTrue(supportFifo)
+        def mkfifo = new ProcessBuilder("mkfifo", name).redirectErrorStream(true).start()
+        assert mkfifo.waitFor() == 0
     }
 
     def getStringHash(String text) {
