@@ -40,8 +40,8 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         succeeds "assemble"
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installMain", ":assemble")
-        result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":installMain", ":assemble")
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
+        result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
         executable("build/exe/main/debug/App").exec().out == app.expectedOutput
 
         when:
