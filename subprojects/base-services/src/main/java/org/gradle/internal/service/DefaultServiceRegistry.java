@@ -534,10 +534,10 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         }
 
         private void addServiceType(Class<?> serviceType) {
-            if (serviceType!=null && serviceTypes.add(serviceType)) {
+            if (serviceType != null && serviceTypes.add(serviceType)) {
                 addServiceType(serviceType.getSuperclass());
                 Class<?>[] interfaces = serviceType.getInterfaces();
-                if (interfaces!=null) {
+                if (interfaces != null) {
                     for (Class<?> intf : interfaces) {
                         addServiceType(intf);
                     }
@@ -708,7 +708,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         @Override
         protected void bind(LookupContext context) {
             Type[] parameterTypes = getParameterTypes();
-            if (parameterTypes.length==0) {
+            if (parameterTypes.length == 0) {
                 paramProviders = NO_DEPENDENTS;
                 return;
             }
@@ -1302,37 +1302,9 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
                 ParameterizedType parameterizedType = (ParameterizedType) serviceType;
                 Type rawType = parameterizedType.getRawType();
                 if (rawType.equals(Factory.class)) {
-                    final Type typeArg = parameterizedType.getActualTypeArguments()[0];
-                    if (typeArg instanceof Class) {
-                        return new BiFunction<ServiceProvider, LookupContext, Provider>() {
-                            @Override
-                            public ServiceProvider apply(LookupContext lookupContext, Provider provider) {
-                                return provider.getFactory(lookupContext, (Class) typeArg);
-                            }
-                        };
-                    }
-                    if (typeArg instanceof WildcardType) {
-                        final WildcardType wildcardType = (WildcardType) typeArg;
-                        if (wildcardType.getLowerBounds().length == 1 && wildcardType.getUpperBounds().length == 1) {
-                            if (wildcardType.getLowerBounds()[0] instanceof Class && wildcardType.getUpperBounds()[0].equals(Object.class)) {
-                                return new BiFunction<ServiceProvider, LookupContext, Provider>() {
-                                    @Override
-                                    public ServiceProvider apply(LookupContext lookupContext, Provider provider) {
-                                        return provider.getFactory(lookupContext, (Class<?>) wildcardType.getLowerBounds()[0]);
-                                    }
-                                };
-                            }
-                        }
-                        if (wildcardType.getLowerBounds().length == 0 && wildcardType.getUpperBounds().length == 1) {
-                            if (wildcardType.getUpperBounds()[0] instanceof Class) {
-                                return new BiFunction<ServiceProvider, LookupContext, Provider>() {
-                                    @Override
-                                    public ServiceProvider apply(LookupContext lookupContext, Provider provider) {
-                                        return provider.getFactory(lookupContext, (Class<?>) wildcardType.getUpperBounds()[0]);
-                                    }
-                                };
-                            }
-                        }
+                    final Class actualServiceType = serviceTypeFromTypeArgument(parameterizedType.getActualTypeArguments()[0]);
+                    if (actualServiceType != null) {
+                        return factoryLookupOf(actualServiceType);
                     }
                 }
                 if (rawType instanceof Class && ((Class<?>) rawType).isAssignableFrom(List.class)) {
@@ -1354,6 +1326,37 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
                 @Override
                 public ServiceProvider apply(LookupContext lookupContext, Provider provider) {
                     return provider.getService(lookupContext, serviceTypeSpec);
+                }
+            };
+        }
+
+        private static Class serviceTypeFromTypeArgument(Type typeArg) {
+            if (typeArg instanceof Class) {
+                return (Class) typeArg;
+            }
+            if (typeArg instanceof WildcardType) {
+                final WildcardType wildcardType = (WildcardType) typeArg;
+                if (wildcardType.getLowerBounds().length == 1 && wildcardType.getUpperBounds().length == 1) {
+                    Type lowerBound = wildcardType.getLowerBounds()[0];
+                    if (lowerBound instanceof Class && wildcardType.getUpperBounds()[0].equals(Object.class)) {
+                        return (Class<?>) lowerBound;
+                    }
+                }
+                if (wildcardType.getLowerBounds().length == 0 && wildcardType.getUpperBounds().length == 1) {
+                    Type upperBound = wildcardType.getUpperBounds()[0];
+                    if (upperBound instanceof Class) {
+                        return (Class<?>) upperBound;
+                    }
+                }
+            }
+            return null;
+        }
+
+        private static BiFunction<ServiceProvider, LookupContext, Provider> factoryLookupOf(final Class<?> type) {
+            return new BiFunction<ServiceProvider, LookupContext, Provider>() {
+                @Override
+                public ServiceProvider apply(LookupContext lookupContext, Provider provider) {
+                    return provider.getFactory(lookupContext, type);
                 }
             };
         }
