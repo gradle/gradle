@@ -19,6 +19,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
@@ -30,6 +31,7 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.MavenDependencyMetadata;
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
@@ -100,11 +102,11 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         if (pomReader.hasParent()) {
             //Is there any other parent properties?
 
-            ModuleComponentIdentifier parentId = DefaultModuleComponentIdentifier.newId(
+            PomReader parentPomReader = parsePom(parserSettings,
                 pomReader.getParentGroupId(),
                 pomReader.getParentArtifactId(),
-                pomReader.getParentVersion());
-            PomReader parentPomReader = parseParentPom(parserSettings, parentId, pomReader.getAllPomProperties());
+                pomReader.getParentVersion(),
+                pomReader.getAllPomProperties());
             pomReader.setPomParent(parentPomReader);
         }
         pomReader.resolveGAV();
@@ -194,33 +196,40 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
     }
 
     private PomReader parseImportedPom(DescriptorParseContext parseContext, PomDependencyMgt pomDependencyMgt) throws IOException, SAXException {
-        ModuleComponentIdentifier importedId = DefaultModuleComponentIdentifier.newId(pomDependencyMgt.getGroupId(), pomDependencyMgt.getArtifactId(), pomDependencyMgt.getVersion());
-        return parsePom(parseContext, importedId, Maps.<String, String>newHashMap());
+        return parsePom(parseContext, pomDependencyMgt.getGroupId(), pomDependencyMgt.getArtifactId(), pomDependencyMgt.getVersion(), Maps.<String, String>newHashMap());
     }
 
     private PomReader parseOtherPom(DescriptorParseContext parseContext, ModuleComponentIdentifier parentId) throws IOException, SAXException {
         return parsePom(parseContext, parentId, Maps.<String, String>newHashMap());
     }
 
-    private PomReader parseParentPom(DescriptorParseContext parseContext, ModuleComponentIdentifier parentId, Map<String, String> childProperties) throws IOException, SAXException {
-        return parsePom(parseContext, parentId, childProperties);
+    private PomReader parsePom(DescriptorParseContext parseContext, String groupId, String artifactId, String version, Map<String, String> childProperties) throws IOException, SAXException {
+        if (isDynamicVersion(version)) {
+            return parsePom(parseContext, DefaultModuleComponentSelector.newSelector(groupId, artifactId, version), childProperties);
+        } else {
+            return parsePom(parseContext, DefaultModuleComponentIdentifier.newId(groupId, artifactId, version), childProperties);
+        }
     }
 
-    private PomReader parsePom(DescriptorParseContext parseContext, ModuleComponentIdentifier parentId, Map<String, String> childProperties) throws IOException, SAXException {
-        LocallyAvailableExternalResource localResource = getMetaDataArtifact(parseContext, parentId);
+    private PomReader parsePom(DescriptorParseContext parseContext, ModuleComponentIdentifier identifier, Map<String, String> childProperties) throws IOException, SAXException {
+        return parsePomResource(parseContext, parseContext.getMetaDataArtifact(identifier, ArtifactType.MAVEN_POM), childProperties);
+    }
+
+    private PomReader parsePom(DescriptorParseContext parseContext, ModuleComponentSelector selector, Map<String, String> childProperties) throws IOException, SAXException {
+        ModuleVersionSelector versionSelector = DefaultModuleVersionSelector.newSelector(selector.getGroup(), selector.getModule(), selector.getVersion());
+        DependencyMetadata metadata = new MavenDependencyMetadata(MavenScope.Compile, false, versionSelector, new ArrayList<Artifact>(), new ArrayList<Exclude>());
+        LocallyAvailableExternalResource localResource = parseContext.getMetaDataArtifact(metadata, ArtifactType.MAVEN_POM);
+        return parsePomResource(parseContext, localResource, childProperties);
+    }
+
+    private PomReader parsePomResource(DescriptorParseContext parseContext, LocallyAvailableExternalResource localResource, Map<String, String> childProperties) throws SAXException, IOException {
         PomReader pomReader = new PomReader(localResource, moduleIdentifierFactory, childProperties);
         GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(pomReader, gradleVersionSelectorScheme, mavenVersionSelectorScheme, moduleIdentifierFactory);
         doParsePom(parseContext, mdBuilder, pomReader);
         return pomReader;
     }
 
-    private LocallyAvailableExternalResource getMetaDataArtifact(DescriptorParseContext parseContext, ModuleComponentIdentifier parentId) {
-        if (mavenVersionSelectorScheme.parseSelector(parentId.getVersion()).isDynamic()) {
-            ModuleVersionSelector selector = new DefaultModuleVersionSelector(parentId.getGroup(), parentId.getModule(), parentId.getVersion());
-            DependencyMetadata metadata = new MavenDependencyMetadata(MavenScope.Compile, false, selector, new ArrayList<Artifact>(), new ArrayList<Exclude>());
-            return parseContext.getMetaDataArtifact(metadata, ArtifactType.MAVEN_POM);
-        } else {
-            return parseContext.getMetaDataArtifact(parentId, ArtifactType.MAVEN_POM);
-        }
+    private boolean isDynamicVersion(String version) {
+        return mavenVersionSelectorScheme.parseSelector(version).isDynamic();
     }
 }
