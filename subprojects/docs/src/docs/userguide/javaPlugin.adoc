@@ -828,7 +828,7 @@ Setting a system property of __taskName.single__ = __testNamePattern__ will only
 * `gradle -Dtest.single=ThisUniquelyNamedTest test`
 * `gradle -Dtest.single=a/b/ test`
 * `gradle -DintegTest.single=\*IntegrationTest integTest`
-* `gradle -D:proj1:test.single=ThisUniquelyNamedTest build`
+* `gradle -D:proj1:test.single=Customer build`
 * `gradle -D:proj1:integTest.single=c/d/`
 
 
