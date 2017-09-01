@@ -117,6 +117,15 @@ fun applyDefaults(model: CIBuildModel, buildType: BuildType, gradleTasks: String
             gradleParams = gradleParameterString
             useGradleWrapper = true
         }
+        if (runsOnWindows) {
+            gradle {
+                name = "KILL_PROCESSES_STARTED_BY_GRADLE"
+                executionMode = BuildStep.ExecutionMode.ALWAYS
+                tasks = "killExistingProcessesStartedByGradle"
+                gradleParams = gradleParameterString
+                useGradleWrapper = true
+            }
+        }
         if (model.tagBuilds) {
             gradle {
                 name = "TAG_BUILD"
