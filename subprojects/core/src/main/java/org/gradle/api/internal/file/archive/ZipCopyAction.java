@@ -29,8 +29,8 @@ import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopyActionProcessingStream;
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
 import org.gradle.api.internal.file.copy.ZipCompressor;
-import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.WorkResults;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.internal.IoActions;
 
@@ -93,7 +93,7 @@ public class ZipCopyAction implements CopyAction {
             }
         }
 
-        return new SimpleWorkResult(true);
+        return WorkResults.didWork(true);
     }
 
     private class StreamAction implements CopyActionProcessingStreamAction {

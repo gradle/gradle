@@ -19,5 +19,5 @@ package org.gradle.api.tasks;
  * Provides information about some work which was performed.
  */
 public interface WorkResult {
-    public boolean getDidWork();
+    boolean getDidWork();
 }

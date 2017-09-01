@@ -146,7 +146,8 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
 
             active.put(id, "");
 
-            Started notification = new Started(id, parentId, buildOperation.getDetails());
+            Started notification = new Started(startEvent.getStartTime(), id, parentId, buildOperation.getDetails());
+
             try {
                 notificationListener.started(notification);
             } catch (Throwable e) {
@@ -169,7 +170,7 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
                 return;
             }
 
-            Finished notification = new Finished(id, parentId, buildOperation.getDetails(), finishEvent.getResult(), finishEvent.getFailure());
+            Finished notification = new Finished(finishEvent.getEndTime(), id, parentId, buildOperation.getDetails(), finishEvent.getResult(), finishEvent.getFailure());
             try {
                 notificationListener.finished(notification);
             } catch (Throwable e) {
@@ -226,14 +227,21 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
 
     private static class Started implements BuildOperationStartedNotification {
 
+        private final long timestamp;
         private final Object id;
         private final Object parentId;
         private final Object details;
 
-        private Started(Object id, Object parentId, Object details) {
+        private Started(long timestamp, Object id, Object parentId, Object details) {
+            this.timestamp = timestamp;
             this.id = id;
             this.parentId = parentId;
             this.details = details;
+        }
+
+        @Override
+        public long getNotificationOperationStartedTimestamp() {
+            return timestamp;
         }
 
         @Override
@@ -256,6 +264,7 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
             return "BuildOperationStartedNotification{"
                 + "id=" + id
                 + ", parentId=" + parentId
+                + ", timestamp=" + timestamp
                 + ", details=" + details
                 + '}';
         }
@@ -263,18 +272,25 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
 
     private static class Finished implements BuildOperationFinishedNotification {
 
+        private final long timestamp;
         private final Object id;
         private final Object parentId;
         private final Object details;
         private final Object result;
         private final Throwable failure;
 
-        private Finished(Object id, Object parentId, Object details, Object result, Throwable failure) {
+        private Finished(long timestamp, Object id, Object parentId, Object details, Object result, Throwable failure) {
+            this.timestamp = timestamp;
             this.id = id;
             this.parentId = parentId;
             this.details = details;
             this.result = result;
             this.failure = failure;
+        }
+
+        @Override
+        public long getNotificationOperationFinishedTimestamp() {
+            return timestamp;
         }
 
         @Override
@@ -308,6 +324,7 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
             return "BuildOperationFinishedNotification{"
                 + "id=" + id
                 + ", parentId=" + parentId
+                + ", timestamp=" + timestamp
                 + ", details=" + details
                 + ", result=" + result
                 + ", failure=" + failure

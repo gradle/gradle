@@ -18,8 +18,8 @@ package org.gradle.api.internal.file.copy
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.tasks.SimpleWorkResult
 import org.gradle.api.tasks.WorkResult
+import org.gradle.api.tasks.WorkResults
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.test.fixtures.file.WorkspaceTest
 
@@ -53,7 +53,7 @@ class CopyActionExecuterTest extends WorkspaceTest {
         def copyAction = new CopyAction() {
             WorkResult execute(CopyActionProcessingStream stream) {
                 stream.process(action)
-                new SimpleWorkResult(workResult)
+                WorkResults.didWork(workResult)
             }
         }
         def executer = new CopyActionExecuter(DirectInstantiator.INSTANCE, TestFiles.fileSystem(), false)
