@@ -30,6 +30,7 @@ import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileMetadataSnapshot;
@@ -305,11 +306,30 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
             executorService.submit(new Runnable() {
                 @Override
                 public void run() {
+                    List<Throwable> errors = null;
                     for (int i = 0; i < len; i++) {
-                        tasks[i].run();
+                        try {
+                            tasks[i].run();
+                        } catch (Throwable err) {
+                            if (errors == null) {
+                                errors = new ArrayList<Throwable>();
+                            }
+                            errors.add(err);
+                        }
+                    }
+                    if (errors != null) {
+                        rethrow(errors);
                     }
                 }
             });
+        }
+    }
+
+    private static void rethrow(List<Throwable> errors) {
+        if (errors.size() == 1) {
+            throw UncheckedException.throwAsUncheckedException(errors.get(0));
+        } else {
+            throw new MultipleBuildFailures(errors);
         }
     }
 
