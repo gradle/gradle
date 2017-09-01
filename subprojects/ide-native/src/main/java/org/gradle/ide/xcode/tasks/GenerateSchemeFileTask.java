@@ -73,7 +73,9 @@ public class GenerateSchemeFileTask extends XmlGeneratorTask<XcodeSchemeFile> {
 
     private void configureLaunchAction(XcodeSchemeFile.LaunchAction action) {
         action.setBuildConfiguration("Debug");
-        action.setRunnablePath(xcodeProject.getTarget().getOutputFile().get().getAsFile().getAbsolutePath());
+        XcodeSchemeFile.BuildableReference buildableReference = toBuildableReference(xcodeProject.getTarget());
+        action.setBuildableProductRunnable(buildableReference);
+        action.setBuildableReference(buildableReference);
     }
 
     private void configureArchiveAction(XcodeSchemeFile.ArchiveAction action) {
@@ -97,7 +99,7 @@ public class GenerateSchemeFileTask extends XmlGeneratorTask<XcodeSchemeFile> {
         XcodeSchemeFile.BuildableReference buildableReference = new XcodeSchemeFile.BuildableReference();
         buildableReference.setBuildableIdentifier("primary");
         buildableReference.setBlueprintIdentifier(target.getId());
-        buildableReference.setBuildableName(target.getName());
+        buildableReference.setBuildableName(target.getProductName());
         buildableReference.setBlueprintName(target.getName());
         buildableReference.setContainerRelativePath(getProject().getName() + ".xcodeproj");
 

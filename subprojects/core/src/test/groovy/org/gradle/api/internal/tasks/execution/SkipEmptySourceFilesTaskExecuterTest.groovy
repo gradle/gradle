@@ -103,7 +103,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
 
         then:
         1 * state.setOutcome(TaskExecutionOutcome.EXECUTED)
-        1 * taskArtifactState.snapshotAfterTask(null)
+        1 * taskArtifactState.snapshotAfterTaskExecution(null)
 
         then:
         1 * taskInputsListener.onExecute(task, sourceFiles)
@@ -139,7 +139,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
 
         then:
         1 * state.setOutcome(TaskExecutionOutcome.NO_SOURCE)
-        1 * taskArtifactState.snapshotAfterTask(null)
+        1 * taskArtifactState.snapshotAfterTaskExecution(null)
 
         then:
         1 * taskInputsListener.onExecute(task, sourceFiles)
@@ -183,7 +183,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
 
         then:
         1 * state.setOutcome(TaskExecutionOutcome.EXECUTED)
-        1 * taskArtifactState.snapshotAfterTask(null)
+        1 * taskArtifactState.snapshotAfterTaskExecution(null)
 
         then:
         1 * taskInputsListener.onExecute(task, sourceFiles)

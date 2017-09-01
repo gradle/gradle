@@ -17,18 +17,15 @@
 
 package org.gradle.language.assembler
 
-import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.language.AbstractNativeLanguageIntegrationTest
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.AvailableToolChains
+import org.gradle.nativeplatform.fixtures.app.AssemblerWithCHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
-import org.gradle.nativeplatform.fixtures.app.MixedLanguageHelloWorldApp
 
 import static org.gradle.util.Matchers.containsText
 
 class AssemblyLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
 
-    HelloWorldApp helloWorldApp = new AssemblerWithCHelloWorldApp(AbstractInstalledToolChainIntegrationSpec.toolChain)
+    HelloWorldApp helloWorldApp = new AssemblerWithCHelloWorldApp(toolChain)
 
     def "build fails when assemble fails"() {
         given:
@@ -87,31 +84,6 @@ model {
         def mainExecutable = executable("build/exe/main/main")
         mainExecutable.assertExists()
         mainExecutable.exec().out == helloWorldApp.englishOutput
-    }
-
-    static class AssemblerWithCHelloWorldApp extends MixedLanguageHelloWorldApp {
-        AssemblerWithCHelloWorldApp(AvailableToolChains.InstalledToolChain toolChain) {
-            super(toolChain)
-        }
-
-        @Override
-        List<String> getPluginList() {
-            return ['c', 'assembler']
-        }
-
-        @Override
-        SourceFile getMainSource() {
-            return new SourceFile("c", "main.c", """
-                #include <stdio.h>
-                #include "hello.h"
-
-                int main () {
-                    sayHello();
-                    printf("%d", sum(5, 7));
-                    return 0;
-                }
-            """);
-        }
     }
 }
 

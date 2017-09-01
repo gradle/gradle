@@ -18,6 +18,8 @@ package org.gradle.integtests.fixtures.publish.maven
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.maven.MavenFileModule
 
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
+
 class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
 
     protected def resolveArtifact(MavenFileModule module, def extension, def classifier) {
@@ -69,7 +71,7 @@ class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
             }
             repositories {
                 maven { url "${mavenRepo.uri}" }
-                mavenCentral()
+                ${mavenCentralRepositoryDefinition()}
             }
             $dependencies
             task resolveArtifacts(type: Sync) {

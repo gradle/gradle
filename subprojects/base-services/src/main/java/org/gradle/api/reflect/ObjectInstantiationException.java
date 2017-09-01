@@ -22,7 +22,7 @@ import org.gradle.internal.exceptions.Contextual;
 /**
  * Thrown when an object cannot be instantiated.
  *
- * @since 4.1
+ * @since 4.2
  */
 @Contextual @Incubating
 public class ObjectInstantiationException extends RuntimeException {

@@ -18,4 +18,5 @@
  * Classes that perform artifact transformations.
  */
 @org.gradle.api.Incubating
+@org.gradle.api.NonNullApi
 package org.gradle.api.artifacts.transform;

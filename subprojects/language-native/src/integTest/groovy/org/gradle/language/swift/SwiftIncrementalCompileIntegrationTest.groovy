@@ -40,18 +40,25 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         succeeds "assemble"
 
         then:
-        result.assertTasksExecuted(":compileSwift", ":linkMain", ":installMain", ":assemble")
-        result.assertTasksNotSkipped(":compileSwift", ":linkMain", ":installMain", ":assemble")
-        executable("build/exe/App").exec().out == app.app.expectedOutput
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
+        result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
+        executable("build/exe/main/debug/App").exec().out == app.app.expectedOutput
 
         when:
         app.alternateApp.files.first().writeToDir(file('src/main'))
         succeeds "assemble"
 
         then:
-        result.assertTasksExecuted(":compileSwift", ":linkMain", ":installMain", ":assemble")
-        result.assertTasksNotSkipped(":compileSwift", ":linkMain", ":installMain", ":assemble")
-        executable("build/exe/App").exec().out == app.alternateApp.expectedOutput
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
+        result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
+        executable("build/exe/main/debug/App").exec().out == app.alternateApp.expectedOutput
+
+        when:
+        succeeds "assemble"
+
+        then:
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
+        result.assertTasksSkipped(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
     }
 
     def "rebuilds application when a single source file in library changes"() {
@@ -77,17 +84,24 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         succeeds ":app:assemble"
 
         then:
-        result.assertTasksExecuted(":greeter:compileSwift", ":greeter:linkMain", ":app:compileSwift", ":app:linkMain", ":app:installMain", ":app:assemble")
-        result.assertTasksNotSkipped(":greeter:compileSwift", ":greeter:linkMain", ":app:compileSwift", ":app:linkMain", ":app:installMain", ":app:assemble")
-        installation("app/build/install/App").exec().out == app.expectedOutput
+        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        result.assertTasksNotSkipped(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        installation("app/build/install/main/debug").exec().out == app.expectedOutput
 
         when:
         app.alternateLibrary.files.first().writeToDir(file('greeter/src/main/'))
         succeeds ":app:assemble"
 
         then:
-        result.assertTasksExecuted(":greeter:compileSwift", ":greeter:linkMain", ":app:compileSwift", ":app:linkMain", ":app:installMain", ":app:assemble")
-        result.assertTasksNotSkipped(":greeter:compileSwift", ":greeter:linkMain", ":app:linkMain", ":app:installMain", ":app:assemble")
-        installation("app/build/install/App").exec().out == app.alternateLibraryOutput
+        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        result.assertTasksNotSkipped(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        installation("app/build/install/main/debug").exec().out == app.alternateLibraryOutput
+
+        when:
+        succeeds ":app:assemble"
+
+        then:
+        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        result.assertTasksSkipped(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
     }
 }

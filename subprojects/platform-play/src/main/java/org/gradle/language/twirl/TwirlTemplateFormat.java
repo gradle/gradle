@@ -22,6 +22,8 @@ import java.util.Collection;
 
 /**
  * Twirl Template format mapping
+ *
+ * @since 4.2
  */
 @Incubating
 public interface TwirlTemplateFormat {

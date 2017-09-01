@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.rules
 
 import com.google.common.collect.ImmutableList
-import com.google.common.hash.HashCode
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
@@ -28,11 +27,12 @@ import org.gradle.api.internal.tasks.ContextAwareTaskAction
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.internal.Cast
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
+import org.gradle.internal.hash.HashCode
 import org.gradle.util.Path
 import spock.lang.Specification
 
 class TaskTypeTaskStateChangesTest extends Specification {
-    def taskLoaderHash = HashCode.fromLong(123)
+    def taskLoaderHash = HashCode.fromInt(123)
     def taskLoader = SimpleTask.getClassLoader()
     def task = Stub(TaskInternal) {
         getIdentityPath() >> Path.path(":test")
@@ -69,7 +69,7 @@ class TaskTypeTaskStateChangesTest extends Specification {
     }
 
     def "not up-to-date when class-loader has changed"() {
-        def previousHash = HashCode.fromLong(987)
+        def previousHash = HashCode.fromInt(987)
         def previous =  mockExecution(impl(SimpleTask, previousHash), impl(TestAction, taskLoaderHash))
         def current =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, taskLoaderHash))
 
@@ -80,7 +80,7 @@ class TaskTypeTaskStateChangesTest extends Specification {
     }
 
     def "not up-to-date when action class-loader has changed"() {
-        def previousHash = HashCode.fromLong(987)
+        def previousHash = HashCode.fromInt(987)
         def previous =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, previousHash))
         def current =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, taskLoaderHash))
 

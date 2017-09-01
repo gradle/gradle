@@ -15,6 +15,8 @@
  */
 package org.gradle.api.artifacts;
 
+import javax.annotation.Nullable;
+
 /**
  * A {@code Dependency} represents a dependency on the artifacts from a particular source. A source can be an Ivy
  * module, a Maven POM, another Gradle project, a collection of Files, etc... A source can have zero or more artifacts.
@@ -29,6 +31,7 @@ public interface Dependency {
      * repository. For example, the group name corresponds to a directory name in a Maven like repository. Might return
      * null.
      */
+    @Nullable
     String getGroup();
 
     /**
@@ -42,6 +45,7 @@ public interface Dependency {
      * repository. For example the version name corresponds to a directory name in a Maven like repository. Might return
      * null.
      */
+    @Nullable
     String getVersion();
 
     /**

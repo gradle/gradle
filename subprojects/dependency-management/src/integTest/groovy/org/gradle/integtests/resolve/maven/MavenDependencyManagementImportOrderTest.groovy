@@ -21,15 +21,13 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
-public class MavenDependencyManagementImportOrderTest extends AbstractIntegrationSpec {
+class MavenDependencyManagementImportOrderTest extends AbstractIntegrationSpec {
 	@Issue("https://github.com/gradle/gradle/issues/2212")
     @Requires(TestPrecondition.ONLINE)
 	def "Verify that gradle resolves org.wildfly.swarm:undertow the same as maven"() {
 		when:
-		buildFile.text = '''
-repositories {
-	mavenCentral()
-}
+		buildFile.text = """
+${mavenCentralRepository()}
 configurations {
 	test
 }
@@ -45,7 +43,7 @@ task verifyUndertowVersion {
 		assert !fileNames.contains('undertow-servlet-1.2.9.Final.jar')
 	}
 }
-		'''
+		"""
 
 		then:
 		succeeds 'verifyUndertowVersion'

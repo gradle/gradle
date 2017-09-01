@@ -17,6 +17,8 @@
 package org.gradle.language.cpp.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -26,29 +28,45 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
+import org.gradle.language.nativeplatform.internal.Names;
 
 import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 
-public class DefaultCppComponent extends DefaultNativeComponent implements CppComponent {
+public abstract class DefaultCppComponent extends DefaultNativeComponent implements CppComponent {
     private final FileCollection cppSource;
+    private final String name;
     private final FileOperations fileOperations;
     private final ConfigurableFileCollection privateHeaders;
     private final FileCollection privateHeadersWithConvention;
-    private final ConfigurableFileCollection compileIncludePath;
     private final PropertyState<String> baseName;
+    private final Names names;
+    private final Configuration implementation;
 
     @Inject
-    public DefaultCppComponent(FileOperations fileOperations, ProviderFactory providerFactory) {
+    public DefaultCppComponent(String name, FileOperations fileOperations, ProviderFactory providerFactory, ConfigurationContainer configurations) {
         super(fileOperations);
+        this.name = name;
         this.fileOperations = fileOperations;
-        cppSource = createSourceView("src/main/cpp", Arrays.asList("cpp", "c++"));
+        cppSource = createSourceView("src/" + name + "/cpp", Arrays.asList("cpp", "c++"));
         privateHeaders = fileOperations.files();
-        privateHeadersWithConvention = createDirView(privateHeaders, "src/main/headers");
-        compileIncludePath = fileOperations.files();
-        compileIncludePath.from(privateHeadersWithConvention);
+        privateHeadersWithConvention = createDirView(privateHeaders, "src/" + name + "/headers");
         baseName = providerFactory.property(String.class);
+
+        names = Names.of(name);
+        implementation = configurations.create(names.withSuffix("implementation"));
+        implementation.setCanBeConsumed(false);
+        implementation.setCanBeResolved(false);
+    }
+
+    protected Names getNames() {
+        return names;
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     protected FileCollection createDirView(final ConfigurableFileCollection dirs, final String conventionLocation) {
@@ -89,8 +107,8 @@ public class DefaultCppComponent extends DefaultNativeComponent implements CppCo
     }
 
     @Override
-    public ConfigurableFileCollection getCompileIncludePath() {
-        return compileIncludePath;
+    public Configuration getImplementationDependencies() {
+        return implementation;
     }
 
     @Override

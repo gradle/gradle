@@ -251,6 +251,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         }
     }
 
+    @Nullable
     private Method findClosureOverload(Method method, Collection<Method> candidates) {
         for (Method candidate : candidates) {
             if (candidate.getParameterTypes().length != method.getParameterTypes().length) {

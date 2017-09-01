@@ -25,6 +25,8 @@ import org.gradle.util.GradleVersion
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
 
+import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.*
+
 @InspectsBuildOutput
 class GradleRunnerCaptureOutputIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
@@ -57,8 +59,8 @@ class GradleRunnerCaptureOutputIntegrationTest extends BaseGradleRunnerIntegrati
 
         // isn't empty if version < 2.8 or potentially contains Gradle dist download progress output
         if (isCompatibleVersion('2.8') && !crossVersion) {
-            assert stdStreams.stdOut.empty
-            assert stdStreams.stdErr.empty
+            assert normalize(stdStreams.stdOut).empty
+            assert normalize(stdStreams.stdErr).empty
         }
     }
 

@@ -18,6 +18,8 @@ package org.gradle.api.credentials;
 
 import org.gradle.api.Incubating;
 
+import javax.annotation.Nullable;
+
 /**
  * Represents credentials used to authenticate with Amazon Web Services.
  */
@@ -27,6 +29,7 @@ public interface AwsCredentials extends Credentials {
     /**
      * Returns the access key to use to authenticate with AWS.
      */
+    @Nullable
     String getAccessKey();
 
     /**
@@ -37,6 +40,7 @@ public interface AwsCredentials extends Credentials {
     /**
      * Returns the secret key to use to authenticate with AWS.
      */
+    @Nullable
     String getSecretKey();
 
     /**
@@ -49,6 +53,7 @@ public interface AwsCredentials extends Credentials {
      *
      * @since 3.3
      */
+    @Nullable
     String getSessionToken();
 
     /**

@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.hash.HashCode;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.util.BiFunction;
 
 import java.io.File;

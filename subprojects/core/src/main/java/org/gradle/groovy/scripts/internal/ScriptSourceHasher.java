@@ -16,8 +16,8 @@
 
 package org.gradle.groovy.scripts.internal;
 
-import com.google.common.hash.HashCode;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.hash.HashCode;
 
 public interface ScriptSourceHasher {
     HashCode hash(ScriptSource scriptSource);

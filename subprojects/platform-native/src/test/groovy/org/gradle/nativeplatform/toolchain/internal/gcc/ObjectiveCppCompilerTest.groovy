@@ -24,7 +24,7 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppComp
 class ObjectiveCppCompilerTest extends GccCompatibleNativeCompilerTest {
     @Override
     protected NativeCompiler getCompiler(CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile) {
-        return new ObjectiveCppCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, invocationContext, objectFileExtension, useCommandFile)
+        return new ObjectiveCppCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, invocationContext, objectFileExtension, useCommandFile, workerLeaseService)
     }
 
     @Override

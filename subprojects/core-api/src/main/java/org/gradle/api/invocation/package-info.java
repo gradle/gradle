@@ -17,4 +17,5 @@
 /**
  * Classes for invoking and monitoring gradle builds.
  */
+@org.gradle.api.NonNullApi
 package org.gradle.api.invocation;

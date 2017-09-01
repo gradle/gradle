@@ -295,6 +295,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @return The parent project, or null if this is the root project.
      */
+    @Nullable
     Project getParent();
 
     /**
@@ -315,6 +316,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @return the description. May return null.
      */
+    @Nullable
     String getDescription();
 
     /**
@@ -322,7 +324,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param description The description of the project. Might be null.
      */
-    void setDescription(String description);
+    void setDescription(@Nullable String description);
 
     /**
      * <p>Returns the group of this project. Gradle always uses the {@code toString()} value of the group. The group
@@ -567,6 +569,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param path The path.
      * @return The project with the given path. Returns null if no such project exists.
      */
+    @Nullable
     Project findProject(String path);
 
     /**
@@ -1370,6 +1373,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @throws MissingPropertyException When the given property is unknown.
      * @see Project#findProperty(String)
      */
+    @Nullable
     Object property(String propertyName) throws MissingPropertyException;
 
     /**

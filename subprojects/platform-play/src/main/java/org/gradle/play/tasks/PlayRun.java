@@ -26,7 +26,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.BaseForkOptions;
-import org.gradle.deployment.DeploymentRegistry;
+import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.play.internal.run.DefaultPlayRunSpec;
 import org.gradle.play.internal.run.PlayApplicationDeploymentHandle;
 import org.gradle.play.internal.run.PlayApplicationRunner;
@@ -81,10 +81,19 @@ public class PlayRun extends ConventionTask {
 
     @TaskAction
     public void run() {
-        PlayApplicationDeploymentHandle deploymentHandle = startOrFindDeploymentHandle(getPath());
-        InetSocketAddress playAppAddress = deploymentHandle.getPlayAppAddress();
-        String playUrl = "http://localhost:" + playAppAddress.getPort() + "/";
-        LOGGER.warn("Running Play App ({}) at {}", getPath(), playUrl);
+        String deploymentId = getPath();
+        DeploymentRegistry deploymentRegistry = getDeploymentRegistry();
+        PlayApplicationDeploymentHandle deploymentHandle = deploymentRegistry.get(deploymentId, PlayApplicationDeploymentHandle.class);
+
+        if (deploymentHandle == null) {
+            PlayRunSpec spec = new DefaultPlayRunSpec(runtimeClasspath, changingClasspath, applicationJar, assetsJar, assetsDirs, getProject().getProjectDir(), getForkOptions(), getHttpPort());
+            PlayApplicationRunner playApplicationRunner = playToolProvider.get(PlayApplicationRunner.class);
+            deploymentHandle = deploymentRegistry.start(deploymentId, DeploymentRegistry.ChangeBehavior.BLOCK, PlayApplicationDeploymentHandle.class, spec, playApplicationRunner);
+
+            InetSocketAddress playAppAddress = deploymentHandle.getPlayAppAddress();
+            String playUrl = "http://localhost:" + playAppAddress.getPort() + "/";
+            LOGGER.warn("Running Play App ({}) at {}", getPath(), playUrl);
+        }
     }
 
     /**
@@ -153,16 +162,4 @@ public class PlayRun extends ConventionTask {
         throw new UnsupportedOperationException();
     }
 
-    private PlayApplicationDeploymentHandle startOrFindDeploymentHandle(String deploymentId) {
-        DeploymentRegistry deploymentRegistry = getDeploymentRegistry();
-        PlayApplicationDeploymentHandle deploymentHandle = deploymentRegistry.get(deploymentId, PlayApplicationDeploymentHandle.class);
-
-        if (deploymentHandle == null) {
-            int httpPort = getHttpPort();
-            PlayRunSpec spec = new DefaultPlayRunSpec(runtimeClasspath, changingClasspath, applicationJar, assetsJar, assetsDirs, getProject().getProjectDir(), getForkOptions(), httpPort);
-            PlayApplicationRunner playApplicationRunner = playToolProvider.get(PlayApplicationRunner.class);
-            deploymentHandle = deploymentRegistry.start(deploymentId, DeploymentRegistry.ChangeBehavior.BLOCK, PlayApplicationDeploymentHandle.class, spec, playApplicationRunner);
-        }
-        return deploymentHandle;
-    }
 }

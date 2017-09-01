@@ -108,7 +108,7 @@ task verify {
         fails "compileGroovy"
 
         then:
-        failure.assertHasDescription "Cannot infer Groovy class path because no Groovy Jar was found on class path: "
+        failure.assertHasCause "Cannot infer Groovy class path because no Groovy Jar was found on class path: "
     }
 
 }

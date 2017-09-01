@@ -17,39 +17,42 @@
 package org.gradle.nativeplatform.test.xctest.plugins;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryVar;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.language.cpp.plugins.CppBasePlugin;
-import org.gradle.language.swift.internal.DefaultSwiftComponent;
-import org.gradle.language.swift.model.SwiftComponent;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
+import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
+import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
 import org.gradle.language.swift.tasks.SwiftCompile;
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
+import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
+import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
+import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.internal.MacOSSdkPlatformPathLocator;
 import org.gradle.nativeplatform.test.xctest.tasks.CreateXcTestBundle;
 import org.gradle.nativeplatform.test.xctest.tasks.XcTest;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Collections;
 
 /**
  * A plugin that sets up the infrastructure for testing native binaries with XCTest test framework. It also adds conventions on top of it.
@@ -78,51 +81,41 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         // TODO - Add dependency on main component when Swift plugins are applied
 
         final DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
-        Directory projectDirectory = project.getLayout().getProjectDirectory();
         ConfigurationContainer configurations = project.getConfigurations();
         TaskContainer tasks = project.getTasks();
+        ProviderFactory providers = project.getProviders();
 
         // TODO - Reuse logic from Swift*Plugin
+        // TODO - component name and extension name aren't the same
+        // TODO - should use `src/xctext/swift` as the convention?
         // Add the component extension
-        SwiftComponent component = project.getExtensions().create(SwiftComponent.class, "xctest", DefaultSwiftComponent.class, fileOperations);
-        // TODO - should reuse convention from the component
-        component.getSource().from(projectDirectory.dir("src/test/swift"));
+        SwiftXCTestSuite component = project.getExtensions().create(SwiftXCTestSuite.class, "xctest", DefaultSwiftXCTestSuite.class, "test", project.getObjects(), fileOperations, providers, configurations);
+        project.getComponents().add(component);
+        project.getComponents().add(component.getExecutable());
 
-        // Add a compile task
-        SwiftCompile compile = tasks.create("compileTestSwift", SwiftCompile.class);
-
-        // TODO - should add to component
-        compile.includes(configurations.getByName(SwiftBasePlugin.SWIFT_TEST_IMPORT_PATH));
-
-        FileCollection sourceFiles = component.getSwiftSource();
-        compile.source(sourceFiles);
-
+        // Configure compile task
+        SwiftCompile compile = (SwiftCompile) tasks.getByName("compileTestSwift");
         File frameworkDir = new File(sdkPlatformPathLocator.find(), "Developer/Library/Frameworks");
-
         compile.setCompilerArgs(Lists.newArrayList("-g", "-F" + frameworkDir.getAbsolutePath()));
-        compile.setMacros(Collections.<String, String>emptyMap());
-        compile.setModuleName(project.getName());
+        compile.setModuleName(project.getName() + "Test");
 
-        compile.setObjectFileDir(buildDirectory.dir("test/objs"));
+        NativeToolChain toolChain = compile.getToolChain();
+        NativePlatform targetPlatform = compile.getTargetPlatform();
 
-        DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
-        compile.setTargetPlatform(currentPlatform);
-
-        // TODO - make this lazy
-        NativeToolChain toolChain = project.getModelRegistry().realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
-        compile.setToolChain(toolChain);
-
+        // TODO - move up to base plugin
         // Add a link task
         LinkExecutable link = tasks.create("linkTest", LinkExecutable.class);
         // TODO - need to set basename from component
         link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
-        link.lib(configurations.getByName(CppBasePlugin.NATIVE_TEST_LINK));
+        link.lib(component.getExecutable().getLinkLibraries());
         link.setLinkerArgs(Lists.newArrayList("-Xlinker", "-bundle", "-F" + frameworkDir.getAbsolutePath(), "-framework", "XCTest", "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks", "-Xlinker", "-rpath", "-Xlinker", "@loader_path/../Frameworks"));
-        PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
+        PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select((NativePlatformInternal) targetPlatform);
         Provider<RegularFile> exeLocation = buildDirectory.file(toolProvider.getExecutableName("exe/" + project.getName() + "Test"));
         link.setOutputFile(exeLocation);
-        link.setTargetPlatform(currentPlatform);
+        link.setTargetPlatform(targetPlatform);
         link.setToolChain(toolChain);
+
+        configureTestedComponent(project);
 
         // TODO - need to set basename from component
         Provider<Directory> testBundleDir = buildDirectory.dir("bundle/" + project.getName() + "Test.xctest");
@@ -160,5 +153,32 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         test.dependsOn(xcTest);
 
         // TODO - check should depend on test
+    }
+
+    private void configureTestedComponent(final Project project) {
+        project.getPlugins().withType(SwiftExecutablePlugin.class, new Action<SwiftExecutablePlugin>() {
+            @Override
+            public void execute(SwiftExecutablePlugin plugin) {
+                configureTestedSwiftComponent(project);
+            }
+        });
+
+        project.getPlugins().withType(SwiftLibraryPlugin.class, new Action<SwiftLibraryPlugin>() {
+            @Override
+            public void execute(SwiftLibraryPlugin plugin) {
+                configureTestedSwiftComponent(project);
+            }
+        });
+    }
+
+    private void configureTestedSwiftComponent(Project project) {
+        TaskContainer tasks = project.getTasks();
+
+        SwiftCompile compileMain = tasks.withType(SwiftCompile.class).getByName("compileDebugSwift");
+        SwiftCompile compileTest = tasks.withType(SwiftCompile.class).getByName("compileTestSwift");
+        compileTest.includes(compileMain.getObjectFileDirectory());
+
+        AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkTest");
+        linkTest.source(compileMain.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
     }
 }

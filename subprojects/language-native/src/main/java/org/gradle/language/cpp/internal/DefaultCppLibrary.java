@@ -17,24 +17,42 @@
 package org.gradle.language.cpp.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.cpp.CppLibrary;
+import org.gradle.language.cpp.CppSharedLibrary;
 
 import javax.inject.Inject;
 
 public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary {
     private final ConfigurableFileCollection publicHeaders;
     private final FileCollection publicHeadersWithConvention;
+    private final DefaultCppSharedLibrary debug;
+    private final DefaultCppSharedLibrary release;
+    private final Configuration api;
 
     @Inject
-    public DefaultCppLibrary(FileOperations fileOperations, ProviderFactory providerFactory) {
-        super(fileOperations, providerFactory);
+    public DefaultCppLibrary(String name, ObjectFactory objectFactory, FileOperations fileOperations, ProviderFactory providerFactory, ConfigurationContainer configurations) {
+        super(name, fileOperations, providerFactory, configurations);
         publicHeaders = fileOperations.files();
-        publicHeadersWithConvention = createDirView(publicHeaders, "src/main/public");
-        getCompileIncludePath().setFrom(publicHeadersWithConvention, getPrivateHeaderDirs());
+        publicHeadersWithConvention = createDirView(publicHeaders, "src/" + name + "/public");
+        debug = new DefaultCppSharedLibrary(name + "Debug", objectFactory, getBaseName(), true, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
+        release = new DefaultCppSharedLibrary(name + "Release", objectFactory, getBaseName(), false, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
+
+        api = configurations.create(getNames().withSuffix("api"));
+        api.setCanBeConsumed(false);
+        api.setCanBeResolved(false);
+        getImplementationDependencies().extendsFrom(api);
+    }
+
+    @Override
+    public Configuration getApiDependencies() {
+        return api;
     }
 
     @Override
@@ -55,5 +73,20 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     @Override
     protected FileCollection getAllHeaderDirs() {
         return publicHeadersWithConvention.plus(super.getAllHeaderDirs());
+    }
+
+    @Override
+    public CppSharedLibrary getDevelopmentBinary() {
+        return debug;
+    }
+
+    @Override
+    public CppSharedLibrary getDebugSharedLibrary() {
+        return debug;
+    }
+
+    @Override
+    public CppSharedLibrary getReleaseSharedLibrary() {
+        return release;
     }
 }

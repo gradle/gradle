@@ -23,6 +23,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.text.TreeFormatter
+import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.VisualCppPlatformToolChain
@@ -43,6 +44,7 @@ class VisualCppToolChainTest extends Specification {
     final VisualStudioLocator.SearchResult visualStudioLookup = Stub(VisualStudioLocator.SearchResult)
     final WindowsSdkLocator.SearchResult windowsSdkLookup = Stub(WindowsSdkLocator.SearchResult)
 	final UcrtLocator.SearchResult ucrtLookup = Stub(UcrtLocator.SearchResult)
+    final WorkerLeaseService workerLeaseService = Stub(WorkerLeaseService)
     final Instantiator instantiator = DirectInstantiator.INSTANCE
     VisualCppToolChain toolChain
 
@@ -60,7 +62,7 @@ class VisualCppToolChainTest extends Specification {
     }
 
     def setup() {
-        toolChain = new VisualCppToolChain("visualCpp", buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, visualStudioLocator, windowsSdkLocator, ucrtLocator, instantiator)
+        toolChain = new VisualCppToolChain("visualCpp", buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, visualStudioLocator, windowsSdkLocator, ucrtLocator, instantiator, workerLeaseService)
     }
 
     def "installs an unavailable tool chain when not windows"() {
@@ -68,7 +70,7 @@ class VisualCppToolChainTest extends Specification {
         def operatingSystem = Stub(OperatingSystem)
         operatingSystem.isWindows() >> false
 		ucrtLookup.available >> false
-        def toolChain = new VisualCppToolChain("visualCpp", buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, visualStudioLocator, windowsSdkLocator, ucrtLocator, instantiator)
+        def toolChain = new VisualCppToolChain("visualCpp", buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, visualStudioLocator, windowsSdkLocator, ucrtLocator, instantiator, workerLeaseService)
 
         when:
         def availability = new ToolChainAvailability()

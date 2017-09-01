@@ -20,6 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 
+import javax.annotation.Nullable;
+
 /**
  * <p>A {@code PluginContainer} is used to manage a set of {@link org.gradle.api.Plugin} instances applied to a
  * particular project.</p>
@@ -67,6 +69,7 @@ public interface PluginContainer extends PluginCollection<Plugin> {
      * @param id The id of the plugin
      * @return the plugin or null if no plugin for the given id exists.
      */
+    @Nullable
     Plugin findPlugin(String id);
 
     /**
@@ -75,6 +78,7 @@ public interface PluginContainer extends PluginCollection<Plugin> {
      * @param type The type of the plugin
      * @return the plugin or null if no plugin for the given type exists.
      */
+    @Nullable
     <T extends Plugin> T findPlugin(Class<T> type);
 
     /**

@@ -36,7 +36,7 @@ public interface ExtensiblePolymorphicDomainObjectContainer<T> extends Polymorph
      *
      * @throws IllegalArgumentException if the specified type is not a subtype of the container element type
      */
-    public <U extends T> void registerFactory(Class<U> type, NamedDomainObjectFactory<? extends U> factory);
+    <U extends T> void registerFactory(Class<U> type, NamedDomainObjectFactory<? extends U> factory);
 
     /**
      * Registers a factory for creating elements of the specified type.
@@ -48,7 +48,7 @@ public interface ExtensiblePolymorphicDomainObjectContainer<T> extends Polymorph
      *
      * @throws IllegalArgumentException if the specified type is not a subtype of the container element type
      */
-    public <U extends T> void registerFactory(Class<U> type, final Closure<? extends U> factory);
+    <U extends T> void registerFactory(Class<U> type, final Closure<? extends U> factory);
 
     /**
      * Registers a binding from the specified "public" domain object type to the specified implementation type.
@@ -62,5 +62,5 @@ public interface ExtensiblePolymorphicDomainObjectContainer<T> extends Polymorph
      * @param implementationType the corresponding implementation type
      * @param <U> a public domain object type
      */
-    public <U extends T> void registerBinding(Class<U> type, final Class<? extends U> implementationType);
+    <U extends T> void registerBinding(Class<U> type, final Class<? extends U> implementationType);
 }

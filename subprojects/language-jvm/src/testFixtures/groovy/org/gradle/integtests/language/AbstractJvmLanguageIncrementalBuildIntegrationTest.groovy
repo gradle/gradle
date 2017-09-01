@@ -44,9 +44,7 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         id '${testComponent.languageName}-lang'
     }
 
-    repositories {
-        mavenCentral()
-    }
+    ${mavenCentralRepository()}
 
     model {
         components {
@@ -179,7 +177,7 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         executedAndNotSkipped mainCompileTaskName
         skipped ":createMainJar", ":mainJar"
     }
-    
+
     def assertOutputs(List<JvmSourceFile> expectedClasses, List<JvmSourceFile> expectedResources) {
         String[] classes = expectedClasses.collect { it.fullPath }
         String[] resources = expectedResources.collect { it.fullPath }

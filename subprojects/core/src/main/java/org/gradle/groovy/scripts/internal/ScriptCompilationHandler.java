@@ -15,12 +15,12 @@
  */
 package org.gradle.groovy.scripts.internal;
 
-import com.google.common.hash.HashCode;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
 

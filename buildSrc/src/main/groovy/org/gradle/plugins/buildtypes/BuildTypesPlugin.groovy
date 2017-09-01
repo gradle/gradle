@@ -46,13 +46,18 @@ class BuildTypesPlugin implements Plugin<Project> {
                     taskNames.remove(index)
                     if (subproject.empty || project.findProject(subproject)) {
                         buildType.tasks.reverse().each {
-                            taskNames.add(index, subproject + it)
+                            def path = subproject + it
+                            if (subproject.empty || project.tasks.findByPath(path)) {
+                                taskNames.add(index, path)
+                            } else {
+                                println "Skipping task '${path}' requested by build type ${name}, as it does not exist."
+                            }
                         }
                     } else {
                         println "Skipping execution of build type '${buildType.name}'. Project '$subproject' not found in root project '${project.name}'."
-                        if (taskNames.empty) {
-                            taskNames.add('help') //do not trigger the default tasks
-                        }
+                    }
+                    if (taskNames.empty) {
+                        taskNames.add('help') //do not trigger the default tasks
                     }
                     project.gradle.startParameter.taskNames = taskNames
                 }

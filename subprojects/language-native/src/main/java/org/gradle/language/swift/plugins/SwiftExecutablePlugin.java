@@ -19,35 +19,21 @@ package org.gradle.language.swift.plugins;
 import com.google.common.collect.Lists;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.file.DirectoryVar;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.PropertyState;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.language.cpp.plugins.CppBasePlugin;
-import org.gradle.language.swift.internal.DefaultSwiftComponent;
-import org.gradle.language.swift.model.SwiftComponent;
+import org.gradle.language.swift.SwiftApplication;
+import org.gradle.language.swift.SwiftComponent;
+import org.gradle.language.swift.internal.DefaultSwiftApplication;
 import org.gradle.language.swift.tasks.SwiftCompile;
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
-import org.gradle.nativeplatform.tasks.LinkExecutable;
-import org.gradle.nativeplatform.toolchain.NativeToolChain;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
-import java.util.Collections;
-import java.util.concurrent.Callable;
 
 /**
  * <p>A plugin that produces an executable from Swift source.</p>
@@ -62,6 +48,11 @@ import java.util.concurrent.Callable;
 public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
     private final FileOperations fileOperations;
 
+    /**
+     * Injects a {@link FileOperations} instance.
+     *
+     * @since 4.2
+     */
     @Inject
     public SwiftExecutablePlugin(FileOperations fileOperations) {
         this.fileOperations = fileOperations;
@@ -71,73 +62,26 @@ public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(SwiftBasePlugin.class);
 
-        final DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
         ProviderFactory providers = project.getProviders();
         ConfigurationContainer configurations = project.getConfigurations();
         TaskContainer tasks = project.getTasks();
 
         // Add the component extension
-        SwiftComponent component = project.getExtensions().create(SwiftComponent.class, "executable", DefaultSwiftComponent.class, fileOperations, providers);
-        final PropertyState<String> module = component.getModule();
+        SwiftApplication application = project.getExtensions().create(SwiftApplication.class, "executable", DefaultSwiftApplication.class, "main", project.getObjects(), fileOperations, providers, configurations);
+        project.getComponents().add(application);
+        project.getComponents().add(application.getDebugExecutable());
+        project.getComponents().add(application.getReleaseExecutable());
 
         // Setup component
+        final PropertyState<String> module = application.getModule();
         module.set(GUtil.toCamelCase(project.getName()));
-        component.getCompileImportPath().from(configurations.getByName(SwiftBasePlugin.SWIFT_IMPORT_PATH));
 
-        // Add a compile task
-        SwiftCompile compile = tasks.create("compileSwift", SwiftCompile.class);
-        compile.includes(component.getCompileImportPath());
-        compile.source(component.getSwiftSource());
+        // Configure compile task
+        SwiftCompile compile = (SwiftCompile) tasks.getByName("compileDebugSwift");
+        compile.setCompilerArgs(Lists.newArrayList("-g", "-enable-testing"));
 
-        compile.setCompilerArgs(Lists.newArrayList("-g"));
-        compile.setMacros(Collections.<String, String>emptyMap());
-        compile.setModuleName(component.getModule());
-
-        compile.setObjectFileDir(buildDirectory.dir("main/objs"));
-
-        DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
-        compile.setTargetPlatform(currentPlatform);
-
-        // TODO - make this lazy
-        NativeToolChain toolChain = project.getModelRegistry().realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
-        compile.setToolChain(toolChain);
-
-        // Add a link task
-        LinkExecutable link = tasks.create("linkMain", LinkExecutable.class);
-        link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
-        link.lib(configurations.getByName(CppBasePlugin.NATIVE_LINK));
-        link.setLinkerArgs(Collections.<String>emptyList());
-        final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
-        Provider<RegularFile> exeLocation = buildDirectory.file(providers.provider(new Callable<String>() {
-            @Override
-            public String call() {
-                return toolProvider.getExecutableName("exe/" + module.get());
-            }
-        }));
-        link.setOutputFile(exeLocation);
-        link.setTargetPlatform(currentPlatform);
-        link.setToolChain(toolChain);
-
-        // Add an install task
-        final InstallExecutable install = tasks.create("installMain", InstallExecutable.class);
-        install.setPlatform(currentPlatform);
-        install.setToolChain(toolChain);
-        install.setDestinationDir(buildDirectory.dir(providers.provider(new Callable<CharSequence>() {
-            @Override
-            public String call() {
-                return "install/" + module.get();
-            }
-        })));
-        install.setExecutable(link.getBinaryFile());
-        // TODO - infer this
-        install.onlyIf(new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return install.getExecutable().exists();
-            }
-        });
-        install.lib(configurations.getByName(CppBasePlugin.NATIVE_RUNTIME));
-
+        // Wire in this install task
+        InstallExecutable install = (InstallExecutable) tasks.getByName("installDebug");
         tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(install);
     }
 }

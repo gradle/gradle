@@ -22,6 +22,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
+import org.gradle.api.internal.file.UnauthorizedFileVisitDetails;
 import org.gradle.api.internal.file.collections.DirectoryWalker;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -59,7 +60,7 @@ public class Jdk7DirectoryWalker implements DirectoryWalker {
                 @Override
                 public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
                     FileVisitDetails details = getFileVisitDetails(dir, attrs, true);
-                    if (directoryDetailsHolder.size()==0 || isAllowed(details, spec)) {
+                    if (directoryDetailsHolder.size() == 0 || isAllowed(details, spec)) {
                         directoryDetailsHolder.push(details);
                         if (directoryDetailsHolder.size() > 1 && !postfix) {
                             visitor.visitDir(details);
@@ -91,15 +92,28 @@ public class Jdk7DirectoryWalker implements DirectoryWalker {
                     File child = file.toFile();
                     FileVisitDetails dirDetails = directoryDetailsHolder.peek();
                     RelativePath childPath = dirDetails != null ? dirDetails.getRelativePath().append(!isDirectory, child.getName()) : rootPath;
-                    return new DefaultFileVisitDetails(child, childPath, stopFlag, fileSystem, fileSystem, isDirectory, attrs.lastModifiedTime().toMillis(), attrs.size());
+                    if (attrs == null) {
+                        return new UnauthorizedFileVisitDetails(child, childPath);
+                    } else {
+                        return new DefaultFileVisitDetails(child, childPath, stopFlag, fileSystem, fileSystem, isDirectory, attrs.lastModifiedTime().toMillis(), attrs.size());
+                    }
+                }
+
+                private FileVisitDetails getUnauthorizedFileVisitDetails(Path file) {
+                    return getFileVisitDetails(file, null, false);
                 }
 
                 @Override
                 public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-                    if (exc != null && !(exc instanceof FileSystemLoopException)) {
+                    FileVisitDetails details = getUnauthorizedFileVisitDetails(file);
+                    if (isNotFileSystemLoopException(exc) && isAllowed(details, spec)) {
                         throw new GradleException(String.format("Could not read path '%s'.", file), exc);
                     }
                     return checkStopFlag();
+                }
+
+                private boolean isNotFileSystemLoopException(IOException e) {
+                    return e != null && !(e instanceof FileSystemLoopException);
                 }
 
                 @Override

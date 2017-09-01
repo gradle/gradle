@@ -16,10 +16,10 @@
 
 package org.gradle.internal.file;
 
-import com.google.common.hash.HashCode;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;

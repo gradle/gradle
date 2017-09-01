@@ -38,6 +38,7 @@ import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
 import org.gradle.util.SingleMessageLogger;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -145,7 +146,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     /**
      * Sets the project's cache location. Set to null to use the default location.
      */
-    public void setProjectCacheDir(File projectCacheDir) {
+    public void setProjectCacheDir(@Nullable File projectCacheDir) {
         this.projectCacheDir = projectCacheDir;
     }
 
@@ -154,6 +155,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @return project's cache dir, or null if the default location is to be used.
      */
+    @Nullable
     public File getProjectCacheDir() {
         return projectCacheDir;
     }
@@ -248,6 +250,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @return The build file. May be null.
      */
+    @Nullable
     public File getBuildFile() {
         return buildFile;
     }
@@ -257,7 +260,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @param buildFile The build file. May be null.
      */
-    public void setBuildFile(File buildFile) {
+    public void setBuildFile(@Nullable File buildFile) {
         if (buildFile == null) {
             this.buildFile = null;
             setCurrentDir(null);
@@ -312,7 +315,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @param taskNames the names of the tasks to execute in this build.
      */
-    public void setTaskNames(Iterable<String> taskNames) {
+    public void setTaskNames(@Nullable Iterable<String> taskNames) {
         if (taskNames == null) {
             this.taskRequests = Collections.emptyList();
         } else {
@@ -353,7 +356,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     /**
      * Sets the tasks to exclude from this build.
      *
-     * @param excludedTaskNames The task names. Can be null.
+     * @param excludedTaskNames The task names.
      */
     public void setExcludedTaskNames(Iterable<String> excludedTaskNames) {
         this.excludedTaskNames = Sets.newLinkedHashSet(excludedTaskNames);
@@ -373,7 +376,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @param currentDir The directory. Set to null to use the default.
      */
-    public void setCurrentDir(File currentDir) {
+    public void setCurrentDir(@Nullable File currentDir) {
         if (currentDir != null) {
             this.currentDir = FileUtils.canonicalize(currentDir);
         } else {
@@ -419,7 +422,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @param gradleUserHomeDir The home directory. May be null.
      */
-    public void setGradleUserHomeDir(File gradleUserHomeDir) {
+    public void setGradleUserHomeDir(@Nullable File gradleUserHomeDir) {
         this.gradleUserHomeDir = gradleUserHomeDir == null ? new BuildLayoutParameters().getGradleUserHomeDir() : FileUtils.canonicalize(gradleUserHomeDir);
     }
 
@@ -453,7 +456,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @param settingsFile The settings file to use. May be null.
      */
-    public void setSettingsFile(File settingsFile) {
+    public void setSettingsFile(@Nullable File settingsFile) {
         if (settingsFile == null) {
             this.settingsFile = null;
         } else {
@@ -471,6 +474,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @return The settings file. May be null.
      * @see #isUseEmptySettings()
      */
+    @Nullable
     public File getSettingsFile() {
         return settingsFile;
     }
@@ -524,7 +528,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @param projectDir The project directory. May be null.
      */
-    public void setProjectDir(File projectDir) {
+    public void setProjectDir(@Nullable File projectDir) {
         if (projectDir == null) {
             setCurrentDir(null);
             this.projectDir = null;
@@ -542,6 +546,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @return The project dir. May be null.
      */
+    @Nullable
     public File getProjectDir() {
         return projectDir;
     }

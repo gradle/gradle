@@ -35,7 +35,7 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.InputStreamBackedDecoder;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.time.ReliableTimeProvider;
+import org.gradle.internal.time.MonotonicTimeProvider;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.process.internal.health.memory.DefaultJvmMemoryInfo;
 import org.gradle.process.internal.health.memory.DefaultMemoryManager;
@@ -45,8 +45,8 @@ import org.gradle.process.internal.health.memory.JvmMemoryStatus;
 import org.gradle.process.internal.health.memory.JvmMemoryStatusListener;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.health.memory.OsMemoryInfo;
-import org.gradle.process.internal.worker.WorkerLoggingSerializer;
 import org.gradle.process.internal.worker.WorkerJvmMemoryInfoSerializer;
+import org.gradle.process.internal.worker.WorkerLoggingSerializer;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -186,7 +186,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         }
 
         TimeProvider createTimeProvider() {
-            return new ReliableTimeProvider();
+            return MonotonicTimeProvider.global();
         }
 
         ListenerManager createListenerManager() {

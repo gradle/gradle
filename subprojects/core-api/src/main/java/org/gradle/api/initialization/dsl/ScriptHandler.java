@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import groovy.lang.Closure;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URI;
 
@@ -50,6 +51,7 @@ public interface ScriptHandler {
      *
      * @return The source file. Returns null if the script source is not a file.
      */
+    @Nullable
     File getSourceFile();
 
     /**
@@ -57,6 +59,7 @@ public interface ScriptHandler {
      *
      * @return The source URI. Returns null if the script source has no URI.
      */
+    @Nullable
     URI getSourceURI();
 
     /**

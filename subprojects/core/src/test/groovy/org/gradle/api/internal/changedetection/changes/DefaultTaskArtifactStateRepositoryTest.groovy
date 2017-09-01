@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.changes
 
-import com.google.common.hash.HashCode
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.internal.TaskInternal
@@ -36,7 +35,6 @@ import org.gradle.api.internal.changedetection.state.TaskHistoryStore
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.hash.TestFileHasher
 import org.gradle.api.tasks.incremental.InputFileDetails
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheScopeMapping
@@ -44,6 +42,8 @@ import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.internal.classloader.ConfigurableClassLoaderHierarchyHasher
 import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.id.RandomLongIdGenerator
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.reflect.DirectInstantiator
@@ -379,7 +379,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         state.isUpToDate([])
         fileSystemMirror.beforeTaskOutputsGenerated()
         outputDirFile.createFile()
-        state.snapshotAfterTask(null)
+        state.snapshotAfterTaskExecution(null)
 
         then:
         !state.upToDate
@@ -398,7 +398,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         when:
         fileSystemMirror.beforeTaskOutputsGenerated()
         outputDirFile2.createFile()
-        state.snapshotAfterTask(null)
+        state.snapshotAfterTaskExecution(null)
 
         then:
         // Task should be out-of-date
@@ -512,7 +512,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         task.execute()
         fileSystemMirror.beforeTaskOutputsGenerated()
         otherFile.write("new content")
-        state.snapshotAfterTask(null)
+        state.snapshotAfterTaskExecution(null)
         otherFile.delete()
 
         then:
@@ -528,7 +528,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         outputDirFile.delete()
         TaskArtifactState state = repository.getStateFor(task)
         state.isUpToDate([])
-        state.snapshotAfterTask(null)
+        state.snapshotAfterTaskExecution(null)
 
         when:
         outputDirFile.write("ignore me")
@@ -656,7 +656,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
             // reset state
             fileSystemMirror.beforeTaskOutputsGenerated()
             task.execute()
-            state.snapshotAfterTask(null)
+            state.snapshotAfterTaskExecution(null)
         }
         // reset state
         fileSystemMirror.beforeTaskOutputsGenerated()

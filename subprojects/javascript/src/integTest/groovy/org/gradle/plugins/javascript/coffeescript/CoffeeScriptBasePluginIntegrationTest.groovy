@@ -62,7 +62,7 @@ class CoffeeScriptBasePluginIntegrationTest extends WellBehavedPluginTest {
         file("src/main/coffeescript/dir2/thing2.coffee") << "number = 2"
 
         buildFile << """
-            repositories.mavenCentral()
+            ${mavenCentralRepository()}
             task compile(type: ${CoffeeScriptCompile.name}) {
                 destinationDir file("build/compiled/js")
                 source fileTree("src/main/coffeescript")

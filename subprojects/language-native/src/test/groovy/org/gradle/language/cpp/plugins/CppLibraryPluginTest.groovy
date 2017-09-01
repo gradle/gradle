@@ -46,6 +46,16 @@ class CppLibraryPluginTest extends Specification {
         project.library.publicHeaderDirs.files == [publicHeaders] as Set
     }
 
+    def "registers a component for the library"() {
+        when:
+        project.pluginManager.apply(CppLibraryPlugin)
+
+        then:
+        project.components.main == project.library
+        project.components.mainDebug == project.library.debugSharedLibrary
+        project.components.mainRelease == project.library.releaseSharedLibrary
+    }
+
     def "adds compile and link tasks"() {
         given:
         def src = projectDir.file("src/main/cpp/lib.cpp").createFile()
@@ -56,15 +66,25 @@ class CppLibraryPluginTest extends Specification {
         project.pluginManager.apply(CppLibraryPlugin)
 
         then:
-        def compileCpp = project.tasks.compileCpp
-        compileCpp instanceof CppCompile
-        compileCpp.includes.files as List == [publicHeaders, privateHeaders]
-        compileCpp.source.files as List == [src]
-        compileCpp.objectFileDirectory.get().asFile == projectDir.file("build/main/objs")
+        def compileDebugCpp = project.tasks.compileDebugCpp
+        compileDebugCpp instanceof CppCompile
+        compileDebugCpp.includes.files as List == [publicHeaders, privateHeaders]
+        compileDebugCpp.source.files as List == [src]
+        compileDebugCpp.objectFileDirectory.get().asFile == projectDir.file("build/obj/main/debug")
 
-        def link = project.tasks.linkMain
-        link instanceof LinkSharedLibrary
-        link.binaryFile.get().asFile == projectDir.file("build/lib/" + OperatingSystem.current().getSharedLibraryName("testLib"))
+        def linkDebug = project.tasks.linkDebug
+        linkDebug instanceof LinkSharedLibrary
+        linkDebug.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("testLib"))
+
+        def compileReleaseCpp = project.tasks.compileReleaseCpp
+        compileReleaseCpp instanceof CppCompile
+        compileReleaseCpp.includes.files as List == [publicHeaders, privateHeaders]
+        compileReleaseCpp.source.files as List == [src]
+        compileReleaseCpp.objectFileDirectory.get().asFile == projectDir.file("build/obj/main/release")
+
+        def linkRelease = project.tasks.linkRelease
+        linkRelease instanceof LinkSharedLibrary
+        linkRelease.binaryFile.get().asFile == projectDir.file("build/lib/main/release/" + OperatingSystem.current().getSharedLibraryName("testLib"))
     }
 
     def "output locations are calculated using base name defined on extension"() {
@@ -73,8 +93,8 @@ class CppLibraryPluginTest extends Specification {
         project.library.baseName = "test_lib"
 
         then:
-        def link = project.tasks.linkMain
-        link.binaryFile.get().asFile == projectDir.file("build/lib/" + OperatingSystem.current().getSharedLibraryName("test_lib"))
+        def link = project.tasks.linkDebug
+        link.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("test_lib"))
     }
 
     def "output locations reflects changes to buildDir"() {
@@ -85,10 +105,10 @@ class CppLibraryPluginTest extends Specification {
         project.buildDir = "output"
 
         then:
-        def compileCpp = project.tasks.compileCpp
-        compileCpp.objectFileDir == project.file("output/main/objs")
+        def compileCpp = project.tasks.compileDebugCpp
+        compileCpp.objectFileDir == project.file("output/obj/main/debug")
 
-        def link = project.tasks.linkMain
-        link.outputFile == projectDir.file("output/lib/" + OperatingSystem.current().getSharedLibraryName("testLib"))
+        def link = project.tasks.linkDebug
+        link.outputFile == projectDir.file("output/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("testLib"))
     }
 }

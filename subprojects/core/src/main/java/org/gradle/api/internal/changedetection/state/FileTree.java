@@ -19,12 +19,12 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.internal.file.FileType;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Collection;
 
 public class FileTree implements ResourceTree {
-    private final List<FileSnapshot> descendants;
+    private final Collection<FileSnapshot> descendants;
 
-    public FileTree(List<FileSnapshot> descendants) {
+    public FileTree(Collection<FileSnapshot> descendants) {
         this.descendants = descendants;
     }
 

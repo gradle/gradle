@@ -17,4 +17,5 @@
 /**
  * Utility classes used by the standard task implementations.
  */
+@org.gradle.api.NonNullApi
 package org.gradle.api.tasks.util;

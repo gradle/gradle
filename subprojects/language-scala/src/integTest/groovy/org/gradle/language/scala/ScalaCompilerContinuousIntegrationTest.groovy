@@ -57,9 +57,7 @@ class ScalaCompilerContinuousIntegrationTest extends AbstractCompilerContinuousI
                 id 'scala-lang'
             }
 
-            repositories{
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             model {
                 components {

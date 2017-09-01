@@ -16,15 +16,14 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.base.Charsets;
-import com.google.common.hash.HashCode;
-import com.google.common.hash.Hashing;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hashing;
 
 public class ResourceSnapshotterCacheService {
-    private static final HashCode NO_HASH = Hashing.md5().hashString(CachingResourceHasher.class.getName() + " : no hash", Charsets.UTF_8);
+    private static final HashCode NO_HASH = Hashing.md5().hashString(CachingResourceHasher.class.getName() + " : no hash");
     private final PersistentIndexedCache<HashCode, HashCode> persistentCache;
 
     public ResourceSnapshotterCacheService(PersistentIndexedCache<HashCode, HashCode> persistentCache) {

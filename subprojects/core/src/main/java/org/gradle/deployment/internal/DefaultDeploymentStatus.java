@@ -16,8 +16,6 @@
 
 package org.gradle.deployment.internal;
 
-import org.gradle.deployment.Deployment;
-
 class DefaultDeploymentStatus implements Deployment.Status {
     private final boolean changed;
     private final Throwable failure;

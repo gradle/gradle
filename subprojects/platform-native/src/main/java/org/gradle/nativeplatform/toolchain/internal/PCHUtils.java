@@ -44,7 +44,7 @@ public class PCHUtils {
         }
     }
 
-    public static void generatePCHFile(List<String> headers, File headerFile) {
+    public static void generatePrefixHeaderFile(List<String> headers, File headerFile) {
         if (!headerFile.getParentFile().exists()) {
             headerFile.getParentFile().mkdirs();
         }

@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import java.util.List;
+import java.util.Collection;
 
 /**
  * Represents the state of a directory tree.
@@ -25,11 +25,11 @@ public class DirectoryTreeDetails implements FileTreeSnapshot {
     // Interned path
     private final String path;
     // All elements, not just direct children
-    private final List<FileSnapshot> elements;
+    private final Collection<FileSnapshot> descendants;
 
-    public DirectoryTreeDetails(String path, List<FileSnapshot> elements) {
+    public DirectoryTreeDetails(String path, Collection<FileSnapshot> descendants) {
         this.path = path;
-        this.elements = elements;
+        this.descendants = descendants;
     }
 
     @Override
@@ -38,7 +38,12 @@ public class DirectoryTreeDetails implements FileTreeSnapshot {
     }
 
     @Override
-    public List<FileSnapshot> getDescendants() {
-        return elements;
+    public Collection<FileSnapshot> getDescendants() {
+        return descendants;
+    }
+
+    @Override
+    public String toString() {
+        return path + " (" + descendants.size() + " descendants)";
     }
 }

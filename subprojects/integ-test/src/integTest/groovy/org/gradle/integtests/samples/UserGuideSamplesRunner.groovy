@@ -216,6 +216,43 @@ class UserGuideSamplesRunner extends Runner {
         return text.replaceAll(Pattern.quote('/home/user/gradle/samples'), normalisedSamplesDir)
     }
 
+    private configureJava6CrossCompilationForGroovyAndScala(ArrayListMultimap<String,GradleRun> samplesByDir){
+        def java6CrossCompilation = ['groovy', 'scala'].collectMany {
+            samplesByDir.get(it + '/crossCompilation')
+        }
+
+        def java6jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_6)
+        if (!java6jdk || OperatingSystem.current().isWindows()) {
+            java6CrossCompilation*.expectFailure = true
+        } else {
+            java6CrossCompilation*.args = ['build', "-Pjava6Home=${java6jdk.javaHome.absolutePath}"]
+        }
+    }
+
+    private configureJava67CrossCompilationForJava(ArrayListMultimap<String, GradleRun> samplesByDir) {
+        List<GradleRun> javaCrossCompilation = samplesByDir.get('java/crossCompilation')
+
+        configureJavaCrossCompilationWithJdk(JavaVersion.VERSION_1_6, javaCrossCompilation[0])
+        configureJavaCrossCompilationWithJdk(JavaVersion.VERSION_1_7, javaCrossCompilation[1])
+    }
+
+    private configureJavaCrossCompilationWithJdk(JavaVersion version, GradleRun crossCompilation) {
+        def jdk = AvailableJavaHomes.getJdk(version)
+        if (!jdk || OperatingSystem.current().isWindows()) {
+            crossCompilation.expectFailure = true
+        } else {
+            crossCompilation.args = ['build', "-PjavaHome=${jdk.javaHome.absolutePath}", "-PtargetJavaVersion=${version.toString()}"]
+        }
+    }
+
+    private GradleRun createRun(String id, Map params, Node sample) {
+        def run = new GradleRun(params)
+        run.id = id
+        sample.file.each { file -> run.files << file.'@path' }
+        sample.dir.each { file -> run.dirs << file.'@path' }
+        run
+    }
+
     private Collection<SampleRun> getScriptsForSamples(File userguideInfoDir) {
         def samplesXml = new File(userguideInfoDir, 'samples.xml')
         assertSamplesGenerated(samplesXml.exists())
@@ -234,19 +271,20 @@ class UserGuideSamplesRunner extends Runner {
             boolean ignoreLineOrder = Boolean.valueOf(sample.'@ignoreLineOrder')
             boolean expectFailure = Boolean.valueOf(sample.'@expectFailure')
 
-            def run = new GradleRun(id: id)
-            run.subDir = dir
-            run.args = args ? args.split('\\s+') as List : []
-            run.outputFile = outputFile
-            run.ignoreExtraLines = ignoreExtraLines
-            run.ignoreLineOrder = ignoreLineOrder
-            run.expectFailure = expectFailure
-            run.index = index
+            Map params = [subDir          : dir,
+                          args            : args ? args.split('\\s+') as List : [],
+                          outputFile      : outputFile,
+                          ignoreExtraLines: ignoreExtraLines,
+                          ignoreLineOrder : ignoreLineOrder,
+                          expectFailure   : expectFailure,
+                          index           : index]
 
-            sample.file.each { file -> run.files << file.'@path' }
-            sample.dir.each { file -> run.dirs << file.'@path' }
-
-            samplesByDir.put(dir, run)
+            if (id == 'javaCrossCompilation') {
+                samplesByDir.put(dir, createRun('java6CrossCompilation', params, sample))
+                samplesByDir.put(dir, createRun('java7CrossCompilation', params, sample))
+            } else {
+                samplesByDir.put(dir, createRun(id, params, sample))
+            }
         }
 
         // Some custom values
@@ -261,16 +299,9 @@ class UserGuideSamplesRunner extends Runner {
             it.args = ['--build-cache', 'help']
         }
 
-        def java6CrossCompilation = ['java', 'groovy', 'scala'].collectMany {
-            samplesByDir.get(it + '/crossCompilation')
-        }
+        configureJava6CrossCompilationForGroovyAndScala(samplesByDir)
 
-        def java6jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_6)
-        if (!java6jdk || OperatingSystem.current().isWindows()) {
-            java6CrossCompilation*.expectFailure = true
-        } else {
-            java6CrossCompilation*.args = ['build', "-Pjava6Home=${java6jdk.javaHome.absolutePath}"]
-        }
+        configureJava67CrossCompilationForJava(samplesByDir)
 
         Map<String, SampleRun> samplesById = new TreeMap<String, SampleRun>()
 

@@ -32,9 +32,7 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
             id 'jvm-component'
             id '${app.languageName}-lang'
         }
-        repositories{
-            mavenCentral()
-        }
+        ${mavenCentralRepository()}
     """
     }
 

@@ -28,6 +28,7 @@ import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.util.GUtil;
+import org.gradle.util.NameValidator;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -107,6 +108,7 @@ public class TaskFactory implements ITaskFactory {
                     "Cannot create task of type '%s' as it does not implement the Task interface.",
                     type.getSimpleName()));
         }
+        NameValidator.validate(name);
 
         final Class<? extends Task> generatedType;
         if (type.isAssignableFrom(DefaultTask.class)) {

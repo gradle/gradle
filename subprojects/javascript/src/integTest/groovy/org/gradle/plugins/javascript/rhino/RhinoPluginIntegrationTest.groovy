@@ -24,9 +24,7 @@ class RhinoPluginIntegrationTest extends WellBehavedPluginTest {
         applyPlugin()
 
         buildFile << """
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
         """
     }
 

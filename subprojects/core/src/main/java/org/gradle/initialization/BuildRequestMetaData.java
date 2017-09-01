@@ -21,7 +21,7 @@ import org.gradle.util.Clock;
 /**
  * A bunch of information about the request which launched a build.
  */
-@UsedByScanPlugin
+@UsedByScanPlugin("Loaded via root project service registry, and getBuildTimeClock() called")
 public interface BuildRequestMetaData {
     /**
      * Returns the meta-data about the client used to launch this build.

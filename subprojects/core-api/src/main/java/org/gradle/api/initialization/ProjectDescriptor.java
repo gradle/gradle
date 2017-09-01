@@ -15,6 +15,7 @@
  */
 package org.gradle.api.initialization;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Set;
 
@@ -82,6 +83,7 @@ public interface ProjectDescriptor {
      *
      * @return The parent, or null if this is the root project.
      */
+    @Nullable
     ProjectDescriptor getParent();
 
     /**

@@ -16,8 +16,6 @@
 
 package org.gradle.deployment.internal;
 
-import org.gradle.deployment.Deployment;
-import org.gradle.deployment.DeploymentRegistry;
 import org.gradle.initialization.ContinuousExecutionGate;
 
 import java.util.Collection;

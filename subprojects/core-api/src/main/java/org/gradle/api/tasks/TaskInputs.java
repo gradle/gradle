@@ -19,6 +19,7 @@ package org.gradle.api.tasks;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.HasInternalProtocol;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -87,7 +88,7 @@ public interface TaskInputs extends CompatibilityAdapterForTaskInputs {
      * @param name The name of the property. Must not be null.
      * @param value The value for the property. Can be null.
      */
-    TaskInputs property(String name, Object value);
+    TaskInputs property(String name, @Nullable Object value);
 
     /**
      * Registers a set of input properties for this task. See {@link #property(String, Object)} for details.

@@ -16,26 +16,44 @@
 
 package org.gradle.language.swift.internal;
 
-import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
-import org.gradle.language.swift.model.SwiftComponent;
+import org.gradle.language.nativeplatform.internal.Names;
+import org.gradle.language.swift.SwiftComponent;
 
 import java.util.Collections;
 
-public class DefaultSwiftComponent extends DefaultNativeComponent implements SwiftComponent {
+public abstract class DefaultSwiftComponent extends DefaultNativeComponent implements SwiftComponent {
     private final FileCollection swiftSource;
-    private final ConfigurableFileCollection importPath;
     private final PropertyState<String> module;
+    private final String name;
+    private final Names names;
+    private final Configuration implementation;
 
-    public DefaultSwiftComponent(FileOperations fileOperations, ProviderFactory providerFactory) {
+    public DefaultSwiftComponent(String name, FileOperations fileOperations, ProviderFactory providerFactory, ConfigurationContainer configurations) {
         super(fileOperations);
-        swiftSource = createSourceView("src/main/swift", Collections.singletonList("swift"));
-        importPath = fileOperations.files();
+        this.name = name;
+        swiftSource = createSourceView("src/"+ name + "/swift", Collections.singletonList("swift"));
         module = providerFactory.property(String.class);
+
+        names = Names.of(name);
+        implementation = configurations.create(names.withSuffix("implementation"));
+        implementation.setCanBeConsumed(false);
+        implementation.setCanBeResolved(false);
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    protected Names getNames() {
+        return names;
     }
 
     @Override
@@ -49,7 +67,7 @@ public class DefaultSwiftComponent extends DefaultNativeComponent implements Swi
     }
 
     @Override
-    public ConfigurableFileCollection getCompileImportPath() {
-        return importPath;
+    public Configuration getImplementationDependencies() {
+        return implementation;
     }
 }

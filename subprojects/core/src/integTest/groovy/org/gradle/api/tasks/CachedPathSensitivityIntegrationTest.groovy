@@ -17,7 +17,9 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import spock.lang.Unroll
 
+@Unroll
 class CachedPathSensitivityIntegrationTest extends AbstractPathSensitivityIntegrationSpec implements DirectoryBuildCacheFixture {
     def setup() {
         buildFile << """
@@ -37,5 +39,40 @@ class CachedPathSensitivityIntegrationTest extends AbstractPathSensitivityIntegr
     @Override
     void cleanWorkspace() {
         run "clean"
+    }
+
+    def "single #pathSensitivity input file loaded from cache can be used as input"() {
+        file("src/data/input.txt").text = "data"
+
+        buildFile << """
+            task producer {
+                outputs.cacheIf { true }
+                outputs.file("outputs/producer.txt")
+                doLast {
+                    mkdir("outputs")
+                    file("outputs/producer.txt").text = "alma"
+                }
+            }
+            
+            task consumer {
+                dependsOn producer
+                outputs.cacheIf { true }
+                inputs.file("outputs/producer.txt").withPathSensitivity(PathSensitivity.$pathSensitivity)
+                outputs.file("outputs/consumer.txt")
+                doLast {
+                    file("outputs/consumer.txt").text = file("outputs/producer.txt").text
+                }
+            }
+        """
+
+        withBuildCache().succeeds "consumer"
+        run "clean"
+
+        expect:
+        withBuildCache().succeeds "consumer"
+        skipped ":producer", ":consumer"
+
+        where:
+        pathSensitivity << PathSensitivity.values()
     }
 }

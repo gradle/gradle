@@ -75,8 +75,10 @@ import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.DefaultFileWatcherFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
-import org.gradle.internal.hash.DefaultFileContentHasherFactory;
-import org.gradle.internal.hash.FileContentHasherFactory;
+import org.gradle.internal.hash.ContentHasherFactory;
+import org.gradle.internal.hash.DefaultContentHasherFactory;
+import org.gradle.internal.hash.DefaultStreamHasher;
+import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -97,9 +99,8 @@ import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.time.ReliableTimeProvider;
+import org.gradle.internal.time.MonotonicTimeProvider;
 import org.gradle.internal.time.TimeProvider;
-import org.gradle.internal.time.TimeSource;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractors;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
@@ -299,7 +300,7 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
     }
 
     TimeProvider createTimeProvider() {
-        return new ReliableTimeProvider(new TimeSource.True());
+        return MonotonicTimeProvider.global();
     }
 
     OsMemoryInfo createOsMemoryInfo() {
@@ -350,7 +351,11 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return new DefaultBuildOperationIdFactory();
     }
 
-    FileContentHasherFactory createFileHasherFactory() {
-        return new DefaultFileContentHasherFactory();
+    ContentHasherFactory createHasherFactory() {
+        return new DefaultContentHasherFactory();
+    }
+
+    StreamHasher createStreamHasher(ContentHasherFactory hasherFactory) {
+        return new DefaultStreamHasher(hasherFactory);
     }
 }

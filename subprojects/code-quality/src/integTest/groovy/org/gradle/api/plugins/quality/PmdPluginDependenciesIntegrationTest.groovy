@@ -26,9 +26,7 @@ class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: "java"
             apply plugin: "pmd"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             tasks.withType(Pmd) {
                 // clear the classpath to avoid file locking issues on PMD version < 5.5.1
