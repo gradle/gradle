@@ -1,6 +1,6 @@
 The Gradle team is pleased to announce Gradle 4.2.
 
-First and foremost, progress has been made to improve Gradle's support for building native applications. The first outcome is [parallel task execution for native compilation and linking tasks](#parallel-native-compilation-and-linking) _by default_ in both current and software models. This has reduced build times for native performance scenarios by as much as half.
+First and foremost, progress has been made to improve Gradle's support for building native applications. The first outcome is [parallel task execution for native compilation and linking tasks](#parallel-native-compilation-and-linking-tasks) _by default_ in both current and software models. This has reduced build times for native performance scenarios by as much as half.
 
 Native apps aren't the only ones that will benefit from upgrading to Gradle 4.2. We've been working hard to ensure the build cache introduces very little overhead; builds that resolve all task outputs from the local build cache are up to 20% faster due to improvements in unpacking. One of the most significant performance improvements comes from `zipTree` and `tarTree` now avoiding redundant tree visitation. 
 
