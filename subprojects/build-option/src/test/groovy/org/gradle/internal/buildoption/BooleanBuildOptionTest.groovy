@@ -21,7 +21,7 @@ import org.gradle.cli.CommandLineParser
 import org.gradle.cli.ParsedCommandLine
 import spock.lang.Specification
 
-class NoArgumentBuildOptionTest extends Specification {
+class BooleanBuildOptionTest extends Specification {
 
     private static final String GRADLE_PROPERTY = 'org.gradle.test'
     private static final String LONG_OPTION = 'test'
@@ -39,13 +39,13 @@ class NoArgumentBuildOptionTest extends Specification {
         testOption.applyFromProperty([:], testSettings)
 
         then:
-        !testSettings.flag
+        !testSettings.value
 
         when:
-        testOption.applyFromProperty([(GRADLE_PROPERTY): 'val'], testSettings)
+        testOption.applyFromProperty([(GRADLE_PROPERTY): 'true'], testSettings)
 
         then:
-        testSettings.flag
+        testSettings.value
     }
 
     def "can configure command line parser"() {
@@ -63,7 +63,7 @@ class NoArgumentBuildOptionTest extends Specification {
 
         then:
         assertNoArguments(commandLineParser.optionsByString[LONG_OPTION])
-        assertNoArguments(commandLineParser.optionsByString[SHORT_OPTION])
+        assertNoArguments(commandLineParser.optionsByString[testOption.disabledCommandLineOption])
     }
 
     def "can configure incubating command line option"() {
@@ -79,7 +79,7 @@ class NoArgumentBuildOptionTest extends Specification {
 
         then:
         assertIncubating(commandLineParser.optionsByString[LONG_OPTION], incubating)
-        assertIncubating(commandLineParser.optionsByString[SHORT_OPTION], incubating)
+        assertIncubating(commandLineParser.optionsByString[testOption.disabledCommandLineOption], incubating)
 
         where:
         incubating << [false, true]
@@ -93,18 +93,27 @@ class NoArgumentBuildOptionTest extends Specification {
         testOption.applyFromCommandLine(parsedCommandLine, testSettings)
 
         then:
-        !testSettings.flag
+        !testSettings.value
 
         when:
         testOption = new TestOption(TestSettings, GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION))
-        def option = new CommandLineOption([LONG_OPTION])
-        options << option
+        def enabledOption = new CommandLineOption([LONG_OPTION])
+        def disabledOption = new CommandLineOption([testOption.disabledCommandLineOption])
+        options << enabledOption
+        options << disabledOption
         parsedCommandLine = new ParsedCommandLine(options)
-        parsedCommandLine.addOption(LONG_OPTION, option)
+        parsedCommandLine.addOption(LONG_OPTION, enabledOption)
         testOption.applyFromCommandLine(parsedCommandLine, testSettings)
 
         then:
-        testSettings.flag
+        testSettings.value
+
+        when:
+        parsedCommandLine.addOption(testOption.disabledCommandLineOption, disabledOption)
+        testOption.applyFromCommandLine(parsedCommandLine, testSettings)
+
+        then:
+        !testSettings.value
     }
 
     static void assertNoArguments(CommandLineOption option) {
@@ -116,7 +125,7 @@ class NoArgumentBuildOptionTest extends Specification {
         assert option.incubating == incubating
     }
 
-    static class TestOption extends NoArgumentBuildOption<TestSettings> {
+    static class TestOption extends BooleanBuildOption<TestSettings> {
 
         TestOption(Class<TestSettings> settingsType, String gradleProperty) {
             super(settingsType, gradleProperty)
@@ -127,12 +136,13 @@ class NoArgumentBuildOptionTest extends Specification {
         }
 
         @Override
-        void applyTo(TestSettings settings) {
-            settings.flag = true
+        void applyTo(boolean value, TestSettings settings) {
+            settings.value = value
         }
     }
 
     static class TestSettings {
-        boolean flag
+        boolean value
     }
 }
+

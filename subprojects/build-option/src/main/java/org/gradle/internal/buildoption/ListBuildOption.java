@@ -44,7 +44,7 @@ public abstract class ListBuildOption<T> extends AbstractBuildOption<T> {
         String value = properties.get(gradleProperty);
 
         if (value != null) {
-            String[] splitValues = value.split(",");
+            String[] splitValues = value.split("\\s*,\\s*");
             applyTo(Arrays.asList(splitValues), settings);
         }
     }

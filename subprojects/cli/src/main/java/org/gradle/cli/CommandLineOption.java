@@ -101,6 +101,10 @@ public class CommandLineOption {
         return deprecationWarning;
     }
 
+    public boolean isIncubating() {
+        return incubating;
+    }
+
     Set<CommandLineOption> getGroupWith() {
         return groupWith;
     }
