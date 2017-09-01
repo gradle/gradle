@@ -175,7 +175,6 @@ class ScriptPluginUseClassLoadingIntegrationSpec extends AbstractIntegrationSpec
     def userTypeUsage = """
 
         new $userTypeName()
-        getClass().classLoader.loadClass('$userTypeName')
 
     """.stripIndent()
 
