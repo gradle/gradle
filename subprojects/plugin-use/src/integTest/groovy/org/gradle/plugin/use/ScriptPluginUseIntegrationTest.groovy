@@ -310,6 +310,114 @@ class ScriptPluginUseIntegrationTest extends AbstractIntegrationSpec {
         operations.hasOperation("Apply script plugin 'gradle/other.gradle' to root project 'root'")
     }
 
+    def "plugin resolution strategy see all about script plugin requests"() {
+
+        given:
+        file("other.gradle") << ""
+
+        and:
+        settingsFile.text = """
+
+            pluginManagement {
+                resolutionStrategy {
+                    eachPlugin {
+                        println("Requested \${it.requested}")
+                        assert it.requested.id == null
+                        assert it.requested.version == null
+                        assert it.requested.script == 'other.gradle'
+                        assert it.requested.module == null
+                    }
+                }
+            }
+
+        """.stripIndent()
+
+        and:
+        buildFile << """
+
+            plugins {
+                script("other.gradle")
+            }
+
+        """.stripIndent()
+
+        when:
+        succeeds "help"
+
+        then:
+        outputContains("Requested script 'other.gradle'")
+    }
+
+    def "plugin resolution strategy cannot change `version` on a script plugin request"() {
+
+        given:
+        file("other.gradle") << ""
+
+        and:
+        settingsFile.text = """
+
+            pluginManagement {
+                resolutionStrategy {
+                    eachPlugin {
+                        it.useVersion("1.0")
+                    }
+                }
+            }
+
+        """.stripIndent()
+
+        and:
+        buildFile << """
+
+            plugins {
+                script("other.gradle")
+            }
+
+        """.stripIndent()
+
+        when:
+        fails "help"
+
+        then:
+        failureDescriptionStartsWith("Error resolving plugin [script 'other.gradle' version '1.0']")
+        failureHasCause("explicit version is not supported for script plugins applied using the plugins block")
+    }
+
+    def "plugin resolution strategy cannot change `artifact` on a script plugin request"() {
+
+        given:
+        file("other.gradle") << ""
+
+        and:
+        settingsFile.text = """
+
+            pluginManagement {
+                resolutionStrategy {
+                    eachPlugin {
+                        it.useModule("foo:bar:1.0")
+                    }
+                }
+            }
+
+        """.stripIndent()
+
+        and:
+        buildFile << """
+
+            plugins {
+                script("other.gradle")
+            }
+
+        """.stripIndent()
+
+        when:
+        fails "help"
+
+        then:
+        failureDescriptionStartsWith("Error resolving plugin [script 'other.gradle' artifact 'foo:bar:1.0']")
+        failureHasCause("explicit artifact coordinates are not supported for script plugins applied using the plugins block")
+    }
+
     def "build operations for the application of script plugins requested from files display canonicalized paths relative to build root dir"() {
 
         given:
