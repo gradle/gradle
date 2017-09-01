@@ -273,12 +273,12 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
         int count = 0
         dir.eachFile { File cacheArchiveFile ->
             if (cacheArchiveFile.name ==~ /[a-z0-9]{32}/) {
-                def tempFile = temporaryFolder.file("re-tar-temp");
+                def tempFile = temporaryFolder.file("re-tar-temp")
                 tempFile.withOutputStream { outputStream ->
                     def tarOutput = new TarArchiveOutputStream(new GZIPOutputStream(outputStream))
-                    tarOutput.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX);
-                    tarOutput.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_POSIX);
-                    tarOutput.setAddPaxHeadersForNonAsciiNames(true);
+                    tarOutput.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX)
+                    tarOutput.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_POSIX)
+                    tarOutput.setAddPaxHeadersForNonAsciiNames(true)
                     cacheArchiveFile.withInputStream { inputStream ->
                         def tarInput = new TarArchiveInputStream(new GZIPInputStream(inputStream))
                         while (true) {
@@ -289,14 +289,16 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
 
                             tarEntry.setModTime(tarEntry.modTime + 3743)
                             tarOutput.putArchiveEntry(tarEntry)
-                            tarOutput << tarInput
+                            if (!tarEntry.directory) {
+                                tarOutput << tarInput
+                            }
                             tarOutput.closeArchiveEntry()
                         }
                     }
                     tarOutput.close()
                 }
-                cacheArchiveFile.delete()
-                tempFile.renameTo(cacheArchiveFile)
+                assert cacheArchiveFile.delete()
+                assert tempFile.renameTo(cacheArchiveFile)
             }
             count++
         }
