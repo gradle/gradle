@@ -22,6 +22,8 @@ import javax.xml.transform.TransformerFactory
 import javax.xml.transform.stream.StreamResult
 import javax.xml.transform.stream.StreamSource
 
+import org.asciidoctor.gradle.AsciidoctorPlugin
+import org.asciidoctor.gradle.AsciidoctorProxyImpl
 import org.asciidoctor.gradle.AsciidoctorTask
 import org.gradle.build.docs.UserGuideSectionVerifier
 import org.gradle.build.docs.UserGuideTransformTask
@@ -123,7 +125,37 @@ outputs.docs = files(docsDir) {
     builtBy 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes'
 }
 
-tasks.withType(AsciidoctorTask) {
+class StreamClosingAsciidoctorProxyImpl extends AsciidoctorProxyImpl {
+    @Override
+    String renderFile(File filename, Map<String, Object> options) {
+        def content = filename.text
+        options['to_file'] = filename.name.replace(".adoc", ".xml")
+        delegate.render(content, options)
+    }
+}
+
+class StreamClosingAsciidoctorTask extends AsciidoctorTask {
+
+    void processAsciidocSources() {
+        def originalCL =  Thread.currentThread().contextClassLoader
+        // This is a copy of the initialization code of the super implementation that injects our custom AsciidoctorProxy implementation
+        def classpath = project.configurations.getByName(AsciidoctorPlugin.ASCIIDOCTOR)
+        def urls = classpath.files.collect { it.toURI().toURL() }
+        def cl = new URLClassLoader(urls as URL[], Thread.currentThread().contextClassLoader)
+        Thread.currentThread().contextClassLoader = cl
+        if (!asciidoctorExtensions?.empty) {
+            Class asciidoctorExtensionsDslRegistry = cl.loadClass('org.asciidoctor.groovydsl.AsciidoctorExtensions')
+            asciidoctorExtensions.each { asciidoctorExtensionsDslRegistry.extensions(it) }
+        }
+        this.asciidoctor = new StreamClosingAsciidoctorProxyImpl(delegate: cl.loadClass(ASCIIDOCTOR_FACTORY_CLASSNAME).create(null as String))
+        super.processAsciidocSources()
+        Thread.currentThread().contextClassLoader = originalCL
+    }
+
+
+}
+
+tasks.withType(StreamClosingAsciidoctorTask) {
     backends = ['docbook']
     separateOutputDirs = false
     options doctype: 'book'
@@ -254,7 +286,7 @@ task userguideStyleSheets(type: Copy) {
 
 tasks.remove(asciidoctor)
 
-task userguideAsciidoc(type: AsciidoctorTask) {
+task userguideAsciidoc(type: StreamClosingAsciidoctorTask) {
     sourceDir = userguideSrcDir
     sources { include '*.adoc' }
     outputDir = asciidocOutputDir
