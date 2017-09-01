@@ -23,10 +23,6 @@ class IncrementalSwiftModifyExpectedOutputAppWithLib {
     final lib = new IncrementalSwiftLib()
     final main = new IncrementalSwiftAppWithDep(lib)
 
-    IncrementalSwiftModifyExpectedOutputAppWithLib() {
-        assert lib.original.files.size() > 1
-    }
-
     IncrementalSwiftAppWithDep getExecutable() {
         return main
     }
@@ -49,7 +45,7 @@ class IncrementalSwiftModifyExpectedOutputAppWithLib {
         final alternateGreeter = new SwiftAlternateGreeter()
 
         final String moduleName = "Greeter"
-        final List<IncrementalElement.Transform> transforms = [modify(greeter, alternateGreeter), identity(sum)]
+        final List<IncrementalElement.Transform> incrementalChanges = [modify(greeter, alternateGreeter), preserve(sum)]
 
         @Override
         int sum(int a, int b) {
@@ -67,8 +63,8 @@ class IncrementalSwiftModifyExpectedOutputAppWithLib {
         }
 
         @Override
-        final List<IncrementalElement.Transform> getTransforms() {
-            [identity(main)]
+        final List<IncrementalElement.Transform> getIncrementalChanges() {
+            [preserve(main)]
         }
 
         final String moduleName = "App"

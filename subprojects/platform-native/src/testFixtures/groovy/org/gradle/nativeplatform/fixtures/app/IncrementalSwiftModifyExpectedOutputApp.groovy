@@ -25,14 +25,8 @@ class IncrementalSwiftModifyExpectedOutputApp extends IncrementalSwiftElement {
     private final main = new SwiftMain(greeter, sum)
     private final alternateMain = new SwiftAlternateMain(greeter)
 
-    IncrementalSwiftModifyExpectedOutputApp() {
-        // Verify some assumptions that the tests make
-        assert original.files.size() > 1
-        assert alternate.files.size() == original.files.size()
-    }
-
-    final List<IncrementalElement.Transform> transforms = [
-        identity(greeter), identity(sum), identity(main), modify(main, alternateMain)]
+    final List<IncrementalElement.Transform> incrementalChanges = [
+        preserve(greeter), preserve(sum), preserve(main), modify(main, alternateMain)]
     final String expectedOutput = main.expectedOutput
     final String expectedAlternateOutput = alternateMain.expectedOutput
     final String moduleName = "App"
