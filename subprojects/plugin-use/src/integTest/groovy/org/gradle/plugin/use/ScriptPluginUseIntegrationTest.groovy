@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugin.use.resolve.service
+package org.gradle.plugin.use
 
 import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
