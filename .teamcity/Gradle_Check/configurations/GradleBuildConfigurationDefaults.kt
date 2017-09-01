@@ -13,7 +13,7 @@ private val java7Windows = "${'"'}-Djava7.home=%windows.java7.oracle.64bit%${'"'
 val gradleParameters: List<String> = asList(
         "-PmaxParallelForks=%maxParallelForks%",
         "-s",
-        "--no-daemon",
+        "--daemon",
         "--continue",
         "-I ./gradle/buildScanInit.gradle",
         java7HomeLinux
