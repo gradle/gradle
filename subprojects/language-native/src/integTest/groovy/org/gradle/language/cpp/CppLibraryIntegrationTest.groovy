@@ -18,6 +18,7 @@ package org.gradle.language.cpp
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
+import org.gradle.nativeplatform.fixtures.app.CppGreeterWithOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.junit.Assume
 
@@ -27,6 +28,19 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
     def setup() {
         // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
         Assume.assumeTrue(toolChain.id != "mingw" && toolChain.id != "gcccygwin")
+    }
+
+    def "skip compile and link tasks when no source"() {
+        given:
+        buildFile << """
+            apply plugin: 'cpp-library'
+        """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":assemble")
+        // TODO - should skip the task as NO-SOURCE
+        result.assertTasksSkipped(":compileDebugCpp", ":linkDebug", ":assemble")
     }
 
     def "build fails when compilation fails"() {
@@ -66,21 +80,32 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 
-    def "can build release variant of library"() {
+    def "can build debug and release variants of library"() {
         given:
         settingsFile << "rootProject.name = 'hello'"
-        def lib = new CppLib()
+        def lib = new CppGreeterWithOptionalFeature()
         lib.writeToProject(testDirectory)
 
         and:
         buildFile << """
             apply plugin: 'cpp-library'
+            compileReleaseCpp.macros(WITH_FEATURE: "true")
          """
 
         expect:
+        executer.withArgument("--info")
         succeeds "linkRelease"
+
         result.assertTasksExecuted(":compileReleaseCpp", ":linkRelease")
         sharedLibrary("build/lib/main/release/hello").assertExists()
+        output.contains('compiling with feature enabled')
+
+        executer.withArgument("--info")
+        succeeds "linkDebug"
+
+        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug")
+        sharedLibrary("build/lib/main/debug/hello").assertExists()
+        !output.contains('compiling with feature enabled')
     }
 
     def "build logic can change source layout convention"() {

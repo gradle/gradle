@@ -120,7 +120,6 @@ public class XcodeSchemeFile extends XmlPersistableConfigurationObject {
         }
     }
 
-
     public static class TestAction {
         private final Node xml;
 
@@ -144,8 +143,12 @@ public class XcodeSchemeFile extends XmlPersistableConfigurationObject {
             xml.attributes().put("buildConfiguration", buildConfiguration);
         }
 
-        public void setRunnablePath(String runnablePath) {
-            getOrAppendNode(xml, "PathRunnable").attributes().put("FilePath", runnablePath);
+        public void setBuildableProductRunnable(BuildableReference buildableReference) {
+            xml.appendNode("BuildableProductRunnable").append(buildableReference.toXml());
+        }
+
+        public void setBuildableReference(BuildableReference buildableReference) {
+            xml.append(buildableReference.toXml());
         }
     }
 

@@ -14,30 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.fixtures.app
+package org.gradle.internal.scan.config;
 
-import org.gradle.integtests.fixtures.SourceFile
-
-
-class CppAlternateMain extends SourceFileElement implements AppElement {
-    final GreeterElement greeter
-
-    CppAlternateMain(GreeterElement greeter) {
-        this.greeter = greeter
-    }
-
-    final SourceFile sourceFile = sourceFile("cpp", "main.cpp", """
-    #include "greeter.h"
-    
-    int main(int argc, char** argv) {
-        Greeter greeter;
-        greeter.sayHello();
-        return 0;
-    }
-    """)
-
-    @Override
-    String getExpectedOutput() {
-        return greeter.expectedOutput
-    }
+/**
+ * Can be used to determine if the build scan plugin has been applied.
+ *
+ * This is available as a build scoped service.
+ * We use a dedicated service for detecting the plugin application since
+ *  - we want to have a deep integration
+ *  - we want to have only one way how to ask if the plugin has been applied
+ */
+public interface BuildScanPluginApplied {
+    boolean isBuildScanPluginApplied();
 }

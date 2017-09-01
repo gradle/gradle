@@ -16,28 +16,21 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
+import org.gradle.integtests.fixtures.SourceFile
+
 /**
- * A single project C++ library, with several source files.
+ * A single module Swift app, with several source files, and an optional compile time feature.
  */
-class CppLib extends CppSourceElement {
-    final greeter = new CppGreeter()
-    final sum = new CppSum()
+class SwiftAppWithOptionalFeature extends SourceElement {
+    final greeter = new SwiftGreeterWithOptionalFeature()
+    final main = new SwiftMainWithOptionalFeature(greeter.withFeatureDisabled())
+    final List<SourceFile> files = [main.sourceFile, greeter.sourceFile]
 
-    @Override
-    SourceElement getHeaders() {
-        ofElements(greeter.headers, sum.headers)
+    AppElement withFeatureEnabled() {
+        return new SwiftMainWithOptionalFeature(greeter.withFeatureEnabled()).withFeatureEnabled()
     }
 
-    SourceElement getPublicHeaders() {
-        ofElements(greeter.publicHeaders, sum.publicHeaders)
-    }
-
-    SourceElement getPrivateHeaders() {
-        ofElements(greeter.privateHeaders, sum.privateHeaders)
-    }
-
-    @Override
-    SourceElement getSources() {
-        ofElements(greeter.source, sum.source)
+    AppElement withFeatureDisabled() {
+        return main.withFeatureDisabled()
     }
 }

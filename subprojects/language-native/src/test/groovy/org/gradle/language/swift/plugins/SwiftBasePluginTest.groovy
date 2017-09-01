@@ -21,6 +21,7 @@ import org.gradle.language.swift.SwiftBinary
 import org.gradle.language.swift.SwiftExecutable
 import org.gradle.language.swift.SwiftSharedLibrary
 import org.gradle.language.swift.tasks.SwiftCompile
+import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -56,7 +57,7 @@ class SwiftBasePluginTest extends Specification {
         "testDebug" | "compileTestDebugSwift" | "test/debug"
     }
 
-    def "adds link task for executable"() {
+    def "adds link and install task for executable"() {
         def module = project.providers.property(String)
         module.set("TestApp")
         def executable = Stub(SwiftExecutable)
@@ -68,16 +69,20 @@ class SwiftBasePluginTest extends Specification {
         project.components.add(executable)
 
         then:
-        def link = project.tasks[taskName]
+        def link = project.tasks[linkTask]
         link instanceof LinkExecutable
-        link.binaryFile.get().asFile == projectDir.file("build/exe/${exeDir}" + OperatingSystem.current().getExecutableName("TestApp"))
+        link.binaryFile.get().asFile == projectDir.file("build/exe/$exeDir" + OperatingSystem.current().getExecutableName("TestApp"))
+
+        def install = project.tasks[installTask]
+        install instanceof InstallExecutable
+        install.installDirectory.get().asFile == projectDir.file("build/install/$exeDir")
 
         where:
-        name        | taskName        | exeDir
-        "main"      | "link"          | "main/"
-        "mainDebug" | "linkDebug"     | "main/debug/"
-        "test"      | "linkTest"      | "test/"
-        "testDebug" | "linkTestDebug" | "test/debug/"
+        name        | linkTask        | installTask        | exeDir
+        "main"      | "link"          | "install"          | "main/"
+        "mainDebug" | "linkDebug"     | "installDebug"     | "main/debug/"
+        "test"      | "linkTest"      | "installTest"      | "test/"
+        "testDebug" | "linkTestDebug" | "installTestDebug" | "test/debug/"
     }
 
     def "adds link task for shared library"() {

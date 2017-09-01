@@ -20,11 +20,11 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.WorkResults;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.CollectionUtils;
 
@@ -127,7 +127,7 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
                 throw e;
             }
             LOGGER.debug("Ignoring compilation failure.");
-            return new SimpleWorkResult(false);
+            return WorkResults.didWork(false);
         }
     }
 }

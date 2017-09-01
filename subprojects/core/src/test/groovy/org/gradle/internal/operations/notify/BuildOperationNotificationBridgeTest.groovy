@@ -98,16 +98,17 @@ class BuildOperationNotificationBridgeTest extends Specification {
 
         // operation with details and non null result
         when:
-        broadcast.started(d1, null)
+        broadcast.started(d1, new OperationStartEvent(0))
 
         then:
         1 * listener.started(_) >> { BuildOperationStartedNotification n ->
             assert n.notificationOperationId == 1
             assert n.notificationOperationDetails.is(d1.details)
+            assert n.notificationOperationStartedTimestamp == 0
         }
 
         when:
-        broadcast.finished(d1, new OperationFinishEvent(-1, -1, null, 10))
+        broadcast.finished(d1, new OperationFinishEvent(0, 10, null, 10))
 
         then:
         1 * listener.finished(_) >> { BuildOperationFinishedNotification n ->
@@ -115,33 +116,35 @@ class BuildOperationNotificationBridgeTest extends Specification {
             assert n.notificationOperationResult == 10
             assert n.notificationOperationFailure == null
             assert n.notificationOperationDetails.is(d1.details)
+            assert n.notificationOperationFinishedTimestamp == 10
         }
 
         // operation with no details
         when:
-        broadcast.started(d2, null)
+        broadcast.started(d2, new OperationStartEvent(20))
 
         then:
         0 * listener.started(_)
 
         when:
-        broadcast.finished(d2, new OperationFinishEvent(-1, -1, null, 10))
+        broadcast.finished(d2, new OperationFinishEvent(20, 30, null, 10))
 
         then:
         0 * listener.finished(_)
 
         // operation with details and null result
         when:
-        broadcast.started(d3, null)
+        broadcast.started(d3, new OperationStartEvent(40))
 
         then:
         1 * listener.started(_) >> { BuildOperationStartedNotification n ->
             assert n.notificationOperationId == d3.id
             assert n.notificationOperationDetails.is(d3.details)
+            assert n.notificationOperationStartedTimestamp == 40
         }
 
         when:
-        broadcast.finished(d3, new OperationFinishEvent(-1, -1, null, null))
+        broadcast.finished(d3, new OperationFinishEvent(40, 50, null, null))
 
         then:
         1 * listener.finished(_) >> { BuildOperationFinishedNotification n ->
@@ -149,11 +152,12 @@ class BuildOperationNotificationBridgeTest extends Specification {
             assert n.notificationOperationResult == null
             assert n.notificationOperationFailure == null
             assert n.notificationOperationDetails.is(d3.details)
+            assert n.notificationOperationFinishedTimestamp == 50
         }
 
         // operation with details and failure
         when:
-        broadcast.started(d3, null)
+        broadcast.started(d3, new OperationStartEvent(60))
 
         then:
         1 * listener.started(_) >> { BuildOperationStartedNotification n ->
@@ -162,7 +166,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
         }
 
         when:
-        broadcast.finished(d3, new OperationFinishEvent(-1, -1, e1, null))
+        broadcast.finished(d3, new OperationFinishEvent(60, 70, e1, null))
 
         then:
         1 * listener.finished(_) >> { BuildOperationFinishedNotification n ->
@@ -189,16 +193,16 @@ class BuildOperationNotificationBridgeTest extends Specification {
         def d7 = d(7, 6, 7)
 
         when:
-        broadcast.started(d1, null)
+        broadcast.started(d1, new OperationStartEvent(0))
         broadcast.started(d2, null)
 
-        broadcast.started(d3, null)
+        broadcast.started(d3, new OperationStartEvent(0))
         broadcast.finished(d3, new OperationFinishEvent(-1, -1, null, null))
 
-        broadcast.started(d4, null)
-        broadcast.started(d5, null)
-        broadcast.started(d6, null)
-        broadcast.started(d7, null)
+        broadcast.started(d4, new OperationStartEvent(0))
+        broadcast.started(d5, new OperationStartEvent(0))
+        broadcast.started(d6, new OperationStartEvent(0))
+        broadcast.started(d7, new OperationStartEvent(0))
 
         broadcast.finished(d7, new OperationFinishEvent(-1, -1, null, null))
         broadcast.finished(d6, new OperationFinishEvent(-1, -1, null, null))
@@ -261,7 +265,6 @@ class BuildOperationNotificationBridgeTest extends Specification {
         1 * listener.finished(_) >> { BuildOperationFinishedNotification n ->
             assert n.notificationOperationId == d1.id
         }
-
     }
 
     void register(BuildOperationNotificationListener listener) {

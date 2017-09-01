@@ -17,6 +17,7 @@
 package org.gradle.ide.xcode.tasks;
 
 import com.dd.plist.NSDictionary;
+import com.dd.plist.NSString;
 import com.google.common.base.Optional;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
@@ -33,7 +34,6 @@ import org.gradle.ide.xcode.internal.xcodeproj.PBXProject;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXReference;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXSourcesBuildPhase;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget;
-import org.gradle.ide.xcode.internal.xcodeproj.XCBuildConfiguration;
 import org.gradle.ide.xcode.internal.xcodeproj.XcodeprojSerializer;
 import org.gradle.ide.xcode.tasks.internal.XcodeProjectFile;
 import org.gradle.plugins.ide.api.PropertyListGeneratorTask;
@@ -66,9 +66,8 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
     protected void configure(XcodeProjectFile projectFile) {
         PBXProject project = new PBXProject(getProject().getPath());
 
-        // Required for making think the project isn't corrupted...
-        XCBuildConfiguration buildConfiguration = project.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked("Debug");
-        buildConfiguration.setBuildSettings(new NSDictionary());
+        project.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked("Debug");
+        project.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked("Release");
 
         for (File source : xcodeProject.getSources()) {
             PBXFileReference fileReference = toFileReference(source);
@@ -81,8 +80,8 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
             project.getTargets().add(toGradlePbxTarget(target));
             project.getTargets().add(toIndexPbxTarget(target));
 
-            File outputFile = target.getOutputFile().get().getAsFile();
-            PBXFileReference fileReference = new PBXFileReference(outputFile.getName(), outputFile.getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE);
+            File debugOutputFile = target.getDebugOutputFile().get().getAsFile();
+            PBXFileReference fileReference = new PBXFileReference(debugOutputFile.getName(), debugOutputFile.getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE);
             fileReference.setExplicitFileType(Optional.of(target.getOutputFileType()));
             project.getMainGroup().getOrCreateChildGroupByName(PRODUCTS_GROUP_NAME).getChildren().add(fileReference);
         }
@@ -112,14 +111,22 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         PBXLegacyTarget target = new PBXLegacyTarget(xcodeTarget.getName(), xcodeTarget.getProductType());
         target.setProductName(xcodeTarget.getProductName());
 
-        NSDictionary buildSettings = new NSDictionary();
+        NSDictionary debugSettings = target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked("Debug").getBuildSettings();
+        NSDictionary releaseSettings = target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked("Release").getBuildSettings();
 
-        target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked("Debug").setBuildSettings(buildSettings);
         target.setBuildToolPath(xcodeTarget.getGradleCommand());
         target.setBuildArgumentsString(xcodeTarget.getTaskName());
         target.setGlobalID(xcodeTarget.getId());
-        File outputFile = xcodeTarget.getOutputFile().get().getAsFile();
+        File outputFile = xcodeTarget.getDebugOutputFile().get().getAsFile();
         target.setProductReference(new PBXFileReference(outputFile.getName(), outputFile.getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE));
+
+        File debugOutputFile = xcodeTarget.getDebugOutputFile().get().getAsFile();
+        debugSettings.put("CONFIGURATION_BUILD_DIR", new NSString(debugOutputFile.getParentFile().getAbsolutePath()));
+        debugSettings.put("PRODUCT_NAME", new NSString(debugOutputFile.getName()));
+
+        File releaseOutputFile = xcodeTarget.getReleaseOutputFile().get().getAsFile();
+        releaseSettings.put("CONFIGURATION_BUILD_DIR", new NSString(releaseOutputFile.getParentFile().getAbsolutePath()));
+        releaseSettings.put("PRODUCT_NAME", new NSString(releaseOutputFile.getName()));
 
         return target;
     }

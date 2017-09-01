@@ -16,28 +16,28 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
-/**
- * A single project C++ library, with several source files.
- */
-class CppLib extends CppSourceElement {
-    final greeter = new CppGreeter()
-    final sum = new CppSum()
+import org.gradle.integtests.fixtures.SourceFile
+
+
+class CppMainUsesGreeter extends SourceFileElement implements AppElement {
+    final GreeterElement greeter
+
+    CppMainUsesGreeter(GreeterElement greeter) {
+        this.greeter = greeter
+    }
+
+    final SourceFile sourceFile = sourceFile("cpp", "main.cpp", """
+    #include "greeter.h"
+    
+    int main(int argc, char** argv) {
+        Greeter greeter;
+        greeter.sayHello();
+        return 0;
+    }
+    """)
 
     @Override
-    SourceElement getHeaders() {
-        ofElements(greeter.headers, sum.headers)
-    }
-
-    SourceElement getPublicHeaders() {
-        ofElements(greeter.publicHeaders, sum.publicHeaders)
-    }
-
-    SourceElement getPrivateHeaders() {
-        ofElements(greeter.privateHeaders, sum.privateHeaders)
-    }
-
-    @Override
-    SourceElement getSources() {
-        ofElements(greeter.source, sum.source)
+    String getExpectedOutput() {
+        return greeter.expectedOutput
     }
 }

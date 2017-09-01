@@ -22,7 +22,7 @@ package org.gradle.nativeplatform.fixtures.app
 class CppAppWithLibraries implements AppElement {
     private final greeter = new CppGreeterUsesLogger()
     private final logger = new CppLogger()
-    final main = new CppAlternateMain(greeter)
+    final main = new CppMainUsesGreeter(greeter)
     final greeterLib = greeter.asLib()
     final loggerLib = logger.asLib()
 

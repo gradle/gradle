@@ -19,12 +19,12 @@ package org.gradle.api.internal.tasks.scala;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.CompilationFailedException;
 import org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.WorkResults;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.CollectionUtils;
 
@@ -104,7 +104,7 @@ public class NormalizingScalaCompiler implements Compiler<ScalaJavaJointCompileS
                 throw e;
             }
             LOGGER.debug("Ignoring compilation failure.");
-            return new SimpleWorkResult(false);
+            return WorkResults.didWork(false);
         }
     }
 }
