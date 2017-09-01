@@ -132,7 +132,7 @@ class ScriptPluginUseClassLoadingIntegrationSpec extends AbstractIntegrationSpec
         fails "help"
 
         then:
-        failureCauseContains("/build.gradle': 9: unable to resolve class $userTypeName")
+        failureCauseContains("${File.separatorChar}build.gradle': 9: unable to resolve class $userTypeName")
     }
 
     def "child project build script cannot see classes defined in script plugin applied to a parent project"() {
@@ -161,7 +161,7 @@ class ScriptPluginUseClassLoadingIntegrationSpec extends AbstractIntegrationSpec
         fails "help"
 
         then:
-        failureCauseContains("/sub/build.gradle': 3: unable to resolve class $userTypeName")
+        failureCauseContains("${File.separatorChar}sub${File.separatorChar}build.gradle': 3: unable to resolve class $userTypeName")
     }
 
     def userTypeName = "UserType"
