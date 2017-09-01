@@ -27,12 +27,12 @@ import java.util.Map;
  */
 public abstract class StringBuildOption<T> extends AbstractBuildOption<T> {
 
-    public StringBuildOption(Class<T> settingsType, String gradleProperty) {
-        super(settingsType, gradleProperty);
+    public StringBuildOption(String gradleProperty) {
+        super(gradleProperty);
     }
 
-    public StringBuildOption(Class<T> settingsType, String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
-        super(settingsType, gradleProperty, commandLineOptionConfiguration);
+    public StringBuildOption(String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
+        super(gradleProperty, commandLineOptionConfiguration);
     }
 
 

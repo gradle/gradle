@@ -56,7 +56,7 @@ public class LoggingConfigurationBuildOptionFactory implements BuildOptionFactor
         public static final String SHORT_OPTION = "q";
 
         public QuietOption() {
-            super(LoggingConfiguration.class, null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, "Log errors only."));
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, "Log errors only."));
         }
 
         @Override
@@ -70,7 +70,7 @@ public class LoggingConfigurationBuildOptionFactory implements BuildOptionFactor
         public static final String SHORT_OPTION = "w";
 
         public WarnOption() {
-            super(LoggingConfiguration.class, null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, "Set log level to warn."));
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, "Set log level to warn."));
         }
 
         @Override
@@ -84,7 +84,7 @@ public class LoggingConfigurationBuildOptionFactory implements BuildOptionFactor
         public static final String SHORT_OPTION = "i";
 
         public InfoOption() {
-            super(LoggingConfiguration.class, null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, "Set log level to info."));
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, "Set log level to info."));
         }
 
         @Override
@@ -98,7 +98,7 @@ public class LoggingConfigurationBuildOptionFactory implements BuildOptionFactor
         public static final String SHORT_OPTION = "d";
 
         public DebugOption() {
-            super(LoggingConfiguration.class, null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, "Log in debug mode (includes normal stacktrace)."));
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, "Log in debug mode (includes normal stacktrace)."));
         }
 
         @Override
@@ -112,7 +112,7 @@ public class LoggingConfigurationBuildOptionFactory implements BuildOptionFactor
         public static final String SHORT_OPTION = "s";
 
         public StacktraceOption() {
-            super(LoggingConfiguration.class, null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, "Print out the stacktrace for all exceptions."));
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, "Print out the stacktrace for all exceptions."));
         }
 
         @Override
@@ -126,7 +126,7 @@ public class LoggingConfigurationBuildOptionFactory implements BuildOptionFactor
         public static final String SHORT_OPTION = "S";
 
         public FullStacktraceOption() {
-            super(LoggingConfiguration.class, null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, "Print out the full (very verbose) stacktrace for all exceptions."));
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, "Print out the full (very verbose) stacktrace for all exceptions."));
         }
 
         @Override
@@ -138,7 +138,7 @@ public class LoggingConfigurationBuildOptionFactory implements BuildOptionFactor
     public static class ConsoleOption extends StringBuildOption<LoggingConfiguration> {
 
         public ConsoleOption() {
-            super(LoggingConfiguration.class, null, CommandLineOptionConfiguration.create("console", "Specifies which type of console output to generate. Values are 'plain', 'auto' (default) or 'rich'."));
+            super(null, CommandLineOptionConfiguration.create("console", "Specifies which type of console output to generate. Values are 'plain', 'auto' (default) or 'rich'."));
         }
 
         @Override

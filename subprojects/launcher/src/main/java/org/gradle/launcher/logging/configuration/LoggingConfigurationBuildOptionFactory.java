@@ -42,7 +42,7 @@ public class LoggingConfigurationBuildOptionFactory implements BuildOptionFactor
         public static final String GRADLE_PROPERTY = "org.gradle.logging.level";
 
         public LogLevelOption() {
-            super(LoggingConfiguration.class, GRADLE_PROPERTY);
+            super(GRADLE_PROPERTY);
         }
 
         @Override

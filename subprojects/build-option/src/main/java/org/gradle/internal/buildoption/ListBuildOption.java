@@ -31,12 +31,12 @@ import java.util.Map;
  */
 public abstract class ListBuildOption<T> extends AbstractBuildOption<T> {
 
-    public ListBuildOption(Class<T> settingsType, String gradleProperty) {
-        super(settingsType, gradleProperty);
+    public ListBuildOption(String gradleProperty) {
+        super(gradleProperty);
     }
 
-    public ListBuildOption(Class<T> settingsType, String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
-        super(settingsType, gradleProperty, commandLineOptionConfiguration);
+    public ListBuildOption(String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
+        super(gradleProperty, commandLineOptionConfiguration);
     }
 
     @Override

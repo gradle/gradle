@@ -58,7 +58,7 @@ public class DaemonBuildOptionFactory implements BuildOptionFactory<DaemonParame
         public static final String GRADLE_PROPERTY = "org.gradle.daemon.idletimeout";
 
         public IdleTimeoutOption() {
-            super(DaemonParameters.class, GRADLE_PROPERTY);
+            super(GRADLE_PROPERTY);
         }
 
         @Override
@@ -75,7 +75,7 @@ public class DaemonBuildOptionFactory implements BuildOptionFactory<DaemonParame
         public static final String GRADLE_PROPERTY = "org.gradle.daemon.healthcheckinterval";
 
         public HealthCheckOption() {
-            super(DaemonParameters.class, GRADLE_PROPERTY);
+            super(GRADLE_PROPERTY);
         }
 
         @Override
@@ -92,7 +92,7 @@ public class DaemonBuildOptionFactory implements BuildOptionFactory<DaemonParame
         public static final String GRADLE_PROPERTY = "org.gradle.daemon.registry.base";
 
         public BaseDirOption() {
-            super(DaemonParameters.class, GRADLE_PROPERTY);
+            super(GRADLE_PROPERTY);
         }
 
         @Override
@@ -105,7 +105,7 @@ public class DaemonBuildOptionFactory implements BuildOptionFactory<DaemonParame
         public static final String GRADLE_PROPERTY = "org.gradle.jvmargs";
 
         public JvmArgsOption() {
-            super(DaemonParameters.class, GRADLE_PROPERTY);
+            super(GRADLE_PROPERTY);
         }
 
         @Override
@@ -118,7 +118,7 @@ public class DaemonBuildOptionFactory implements BuildOptionFactory<DaemonParame
         public static final String GRADLE_PROPERTY = "org.gradle.java.home";
 
         public JavaHomeOption() {
-            super(DaemonParameters.class, GRADLE_PROPERTY);
+            super(GRADLE_PROPERTY);
         }
 
         @Override
@@ -141,7 +141,7 @@ public class DaemonBuildOptionFactory implements BuildOptionFactory<DaemonParame
         public static final String GRADLE_PROPERTY = "org.gradle.debug";
 
         public DebugOption() {
-            super(DaemonParameters.class, GRADLE_PROPERTY);
+            super(GRADLE_PROPERTY);
         }
 
         @Override
@@ -154,7 +154,7 @@ public class DaemonBuildOptionFactory implements BuildOptionFactory<DaemonParame
         public static final String GRADLE_PROPERTY = "org.gradle.daemon";
 
         public DaemonOption() {
-            super(DaemonParameters.class, GRADLE_PROPERTY, CommandLineOptionConfiguration.create("daemon", "Uses the Gradle Daemon to run the build. Starts the Daemon if not running."));
+            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create("daemon", "Uses the Gradle Daemon to run the build. Starts the Daemon if not running."));
         }
 
         @Override
@@ -165,7 +165,7 @@ public class DaemonBuildOptionFactory implements BuildOptionFactory<DaemonParame
 
     public static class ForegroundOption extends NoArgumentBuildOption<DaemonParameters> {
         public ForegroundOption() {
-            super(DaemonParameters.class, null, CommandLineOptionConfiguration.create("foreground", "Starts the Gradle Daemon in the foreground.").incubating());
+            super(null, CommandLineOptionConfiguration.create("foreground", "Starts the Gradle Daemon in the foreground.").incubating());
         }
 
         @Override
@@ -176,7 +176,7 @@ public class DaemonBuildOptionFactory implements BuildOptionFactory<DaemonParame
 
     public static class StopOption extends NoArgumentBuildOption<DaemonParameters> {
         public StopOption() {
-            super(DaemonParameters.class, null, CommandLineOptionConfiguration.create("stop", "Stops the Gradle Daemon if it is running."));
+            super(null, CommandLineOptionConfiguration.create("stop", "Stops the Gradle Daemon if it is running."));
         }
 
         @Override
@@ -187,7 +187,7 @@ public class DaemonBuildOptionFactory implements BuildOptionFactory<DaemonParame
 
     public static class StatusOption extends NoArgumentBuildOption<DaemonParameters> {
         public StatusOption() {
-            super(DaemonParameters.class, null, CommandLineOptionConfiguration.create("status", "Shows status of running and recently stopped Gradle Daemon(s)."));
+            super(null, CommandLineOptionConfiguration.create("status", "Shows status of running and recently stopped Gradle Daemon(s)."));
         }
 
         @Override

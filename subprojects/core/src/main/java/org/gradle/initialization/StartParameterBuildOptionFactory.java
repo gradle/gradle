@@ -66,7 +66,7 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
 
     public static class ProjectCacheDirOption extends StringBuildOption<StartParameter> {
         public ProjectCacheDirOption() {
-            super(StartParameter.class, null, CommandLineOptionConfiguration.create("project-cache-dir", "Specify the project-specific cache directory. Defaults to .gradle in the root project directory."));
+            super(null, CommandLineOptionConfiguration.create("project-cache-dir", "Specify the project-specific cache directory. Defaults to .gradle in the root project directory."));
         }
 
         @Override
@@ -78,7 +78,7 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
 
     public static class RerunTasksOption extends NoArgumentBuildOption<StartParameter> {
         public RerunTasksOption() {
-            super(StartParameter.class, null, CommandLineOptionConfiguration.create("rerun-tasks", "Ignore previously cached task results."));
+            super(null, CommandLineOptionConfiguration.create("rerun-tasks", "Ignore previously cached task results."));
         }
 
         @Override
@@ -89,7 +89,7 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
 
     public static class RecompileScriptsOption extends NoArgumentBuildOption<StartParameter> {
         public RecompileScriptsOption() {
-            super(StartParameter.class, null, CommandLineOptionConfiguration.create("recompile-scripts", "Force build script recompiling."));
+            super(null, CommandLineOptionConfiguration.create("recompile-scripts", "Force build script recompiling."));
         }
 
         @Override
@@ -100,7 +100,7 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
 
     public static class ProfileOption extends NoArgumentBuildOption<StartParameter> {
         public ProfileOption() {
-            super(StartParameter.class, null, CommandLineOptionConfiguration.create("profile", "Profile build execution time and generates a report in the <build_dir>/reports/profile directory."));
+            super(null, CommandLineOptionConfiguration.create("profile", "Profile build execution time and generates a report in the <build_dir>/reports/profile directory."));
         }
 
         @Override
@@ -111,7 +111,7 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
 
     public static class ContinueOption extends NoArgumentBuildOption<StartParameter> {
         public ContinueOption() {
-            super(StartParameter.class, null, CommandLineOptionConfiguration.create("continue", "Continue task execution after a task failure."));
+            super(null, CommandLineOptionConfiguration.create("continue", "Continue task execution after a task failure."));
         }
 
         @Override
@@ -122,7 +122,7 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
 
     public static class OfflineOption extends NoArgumentBuildOption<StartParameter> {
         public OfflineOption() {
-            super(StartParameter.class, null, CommandLineOptionConfiguration.create("offline", "Execute the build without accessing network resources."));
+            super(null, CommandLineOptionConfiguration.create("offline", "Execute the build without accessing network resources."));
         }
 
         @Override
@@ -133,7 +133,7 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
 
     public static class RefreshDependenciesOption extends NoArgumentBuildOption<StartParameter> {
         public RefreshDependenciesOption() {
-            super(StartParameter.class, null, CommandLineOptionConfiguration.create("refresh-dependencies", "Refresh the state of dependencies."));
+            super(null, CommandLineOptionConfiguration.create("refresh-dependencies", "Refresh the state of dependencies."));
         }
 
         @Override
@@ -144,7 +144,7 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
 
     public static class DryRunOption extends NoArgumentBuildOption<StartParameter> {
         public DryRunOption() {
-            super(StartParameter.class, null, CommandLineOptionConfiguration.create("dry-run", "m", "Run the builds with all task actions disabled."));
+            super(null, CommandLineOptionConfiguration.create("dry-run", "m", "Run the builds with all task actions disabled."));
         }
 
         @Override
@@ -155,7 +155,7 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
 
     public static class ContinuousOption extends NoArgumentBuildOption<StartParameter> {
         public ContinuousOption() {
-            super(StartParameter.class, null, CommandLineOptionConfiguration.create("continuous", "t", "Enables continuous build. Gradle does not exit and will re-execute tasks when task file inputs change.").incubating());
+            super(null, CommandLineOptionConfiguration.create("continuous", "t", "Enables continuous build. Gradle does not exit and will re-execute tasks when task file inputs change.").incubating());
         }
 
         @Override
@@ -166,7 +166,7 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
 
     public static class NoProjectDependenciesRebuildOption extends NoArgumentBuildOption<StartParameter> {
         public NoProjectDependenciesRebuildOption() {
-            super(StartParameter.class, null, CommandLineOptionConfiguration.create("no-rebuild", "a", "Do not rebuild project dependencies."));
+            super(null, CommandLineOptionConfiguration.create("no-rebuild", "a", "Do not rebuild project dependencies."));
         }
 
         @Override
@@ -177,7 +177,7 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
 
     public static class BuildFileOption extends StringBuildOption<StartParameter> {
         public BuildFileOption() {
-            super(StartParameter.class, null, CommandLineOptionConfiguration.create("build-file", "b", "Specify the build file."));
+            super(null, CommandLineOptionConfiguration.create("build-file", "b", "Specify the build file."));
         }
 
         @Override
@@ -189,7 +189,7 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
 
     public static class SettingsFileOption extends StringBuildOption<StartParameter> {
         public SettingsFileOption() {
-            super(StartParameter.class, null, CommandLineOptionConfiguration.create("settings-file", "c", "Specify the settings file."));
+            super(null, CommandLineOptionConfiguration.create("settings-file", "c", "Specify the settings file."));
         }
 
         @Override
@@ -201,7 +201,7 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
 
     public static class InitScriptOption extends ListBuildOption<StartParameter> {
         public InitScriptOption() {
-            super(StartParameter.class, null, CommandLineOptionConfiguration.create("init-script", "I", "Specify an initialization script."));
+            super(null, CommandLineOptionConfiguration.create("init-script", "I", "Specify an initialization script."));
         }
 
         @Override
@@ -216,7 +216,7 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
 
     public static class ExcludeTaskOption extends ListBuildOption<StartParameter> {
         public ExcludeTaskOption() {
-            super(StartParameter.class, null, CommandLineOptionConfiguration.create("exclude-task", "x", "Specify a task to be excluded from execution."));
+            super(null, CommandLineOptionConfiguration.create("exclude-task", "x", "Specify a task to be excluded from execution."));
         }
 
         @Override
@@ -227,7 +227,7 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
 
     public static class IncludeBuildOption extends ListBuildOption<StartParameter> {
         public IncludeBuildOption() {
-            super(StartParameter.class, null, CommandLineOptionConfiguration.create("include-build", "Include the specified build in the composite.").incubating());
+            super(null, CommandLineOptionConfiguration.create("include-build", "Include the specified build in the composite.").incubating());
         }
 
         @Override
@@ -244,7 +244,7 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
         public static final String GRADLE_PROPERTY = "org.gradle.configureondemand";
 
         public ConfigureOnDemandOption() {
-            super(StartParameter.class, GRADLE_PROPERTY, CommandLineOptionConfiguration.create("configure-on-demand", "Configure necessary projects only. Gradle will attempt to reduce configuration time for large multi-project builds.").incubating());
+            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create("configure-on-demand", "Configure necessary projects only. Gradle will attempt to reduce configuration time for large multi-project builds.").incubating());
         }
 
         @Override
@@ -257,7 +257,7 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
         public static final String GRADLE_PROPERTY = "org.gradle.caching";
 
         public BuildCacheOption() {
-            super(StartParameter.class, GRADLE_PROPERTY, CommandLineOptionConfiguration.create("build-cache", "Enables the Gradle build cache. Gradle will try to reuse outputs from previous builds.").incubating());
+            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create("build-cache", "Enables the Gradle build cache. Gradle will try to reuse outputs from previous builds.").incubating());
         }
 
         @Override
@@ -268,7 +268,7 @@ public class StartParameterBuildOptionFactory implements BuildOptionFactory<Star
 
     public static class BuildScanOption extends BooleanBuildOption<StartParameter> {
         public BuildScanOption() {
-            super(StartParameter.class, null, CommandLineOptionConfiguration.create("scan", "Creates a build scan. Gradle will emit a warning if the build scan plugin has not been applied. (https://gradle.com/build-scans)").incubating());
+            super(null, CommandLineOptionConfiguration.create("scan", "Creates a build scan. Gradle will emit a warning if the build scan plugin has not been applied. (https://gradle.com/build-scans)").incubating());
         }
 
         @Override

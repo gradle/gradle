@@ -44,7 +44,7 @@ public class ParallelismBuildOptionFactory implements BuildOptionFactory<Paralle
         public static final String GRADLE_PROPERTY = "org.gradle.parallel";
 
         public ParallelOption() {
-            super(ParallelismConfiguration.class, GRADLE_PROPERTY, CommandLineOptionConfiguration.create("parallel", "Build projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.").incubating());
+            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create("parallel", "Build projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.").incubating());
         }
 
         @Override
@@ -57,7 +57,7 @@ public class ParallelismBuildOptionFactory implements BuildOptionFactory<Paralle
         public static final String GRADLE_PROPERTY = "org.gradle.workers.max";
 
         public MaxWorkersOption() {
-            super(ParallelismConfiguration.class, GRADLE_PROPERTY, CommandLineOptionConfiguration.create("max-workers", "Configure the number of concurrent workers Gradle is allowed to use.").incubating());
+            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create("max-workers", "Configure the number of concurrent workers Gradle is allowed to use.").incubating());
         }
 
         @Override

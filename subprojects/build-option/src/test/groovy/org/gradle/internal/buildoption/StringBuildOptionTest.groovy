@@ -34,7 +34,7 @@ class StringBuildOptionTest extends Specification {
 
     def "can apply from property"() {
         given:
-        def testOption = new TestOption(TestSettings, GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION))
+        def testOption = new TestOption(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION))
 
         when:
         testOption.applyFromProperty([:], testSettings)
@@ -51,7 +51,7 @@ class StringBuildOptionTest extends Specification {
 
     def "can configure command line parser"() {
         when:
-        def testOption = new TestOption(TestSettings, GRADLE_PROPERTY)
+        def testOption = new TestOption(GRADLE_PROPERTY)
         testOption.configure(commandLineParser)
 
         then:
@@ -59,7 +59,7 @@ class StringBuildOptionTest extends Specification {
         !commandLineParser.optionsByString.containsKey(SHORT_OPTION)
 
         when:
-        testOption = new TestOption(TestSettings, GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION))
+        testOption = new TestOption(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION))
         testOption.configure(commandLineParser)
 
         then:
@@ -75,7 +75,7 @@ class StringBuildOptionTest extends Specification {
             commandLineOptionConfiguration.incubating()
         }
 
-        def testOption = new TestOption(TestSettings, GRADLE_PROPERTY, commandLineOptionConfiguration)
+        def testOption = new TestOption(GRADLE_PROPERTY, commandLineOptionConfiguration)
         testOption.configure(commandLineParser)
 
         then:
@@ -88,7 +88,7 @@ class StringBuildOptionTest extends Specification {
 
     def "can apply from command line"() {
         when:
-        def testOption = new TestOption(TestSettings, GRADLE_PROPERTY)
+        def testOption = new TestOption(GRADLE_PROPERTY)
         def options = [] as List<CommandLineOption>
         def parsedCommandLine = new ParsedCommandLine(options)
         testOption.applyFromCommandLine(parsedCommandLine, testSettings)
@@ -97,7 +97,7 @@ class StringBuildOptionTest extends Specification {
         !testSettings.value
 
         when:
-        testOption = new TestOption(TestSettings, GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION))
+        testOption = new TestOption(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION))
         def option = new CommandLineOption([LONG_OPTION])
         options << option
         parsedCommandLine = new ParsedCommandLine(options)
@@ -120,12 +120,12 @@ class StringBuildOptionTest extends Specification {
 
     static class TestOption extends StringBuildOption<TestSettings> {
 
-        TestOption(Class<TestSettings> settingsType, String gradleProperty) {
-            super(settingsType, gradleProperty)
+        TestOption(String gradleProperty) {
+            super(gradleProperty)
         }
 
-        TestOption(Class<TestSettings> settingsType, String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
-            super(settingsType, gradleProperty, commandLineOptionConfiguration)
+        TestOption(String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
+            super(gradleProperty, commandLineOptionConfiguration)
         }
 
         @Override

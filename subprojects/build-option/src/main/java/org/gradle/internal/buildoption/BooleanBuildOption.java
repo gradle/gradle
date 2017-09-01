@@ -31,12 +31,12 @@ import java.util.Map;
  */
 public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T> {
 
-    public BooleanBuildOption(Class<T> settingsType, String gradleProperty) {
-        super(settingsType, gradleProperty);
+    public BooleanBuildOption(String gradleProperty) {
+        super(gradleProperty);
     }
 
-    public BooleanBuildOption(Class<T> settingsType, String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
-        super(settingsType, gradleProperty, commandLineOptionConfiguration);
+    public BooleanBuildOption(String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
+        super(gradleProperty, commandLineOptionConfiguration);
     }
 
     @Override

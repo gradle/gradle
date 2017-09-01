@@ -23,16 +23,14 @@ package org.gradle.internal.buildoption;
  */
 public abstract class AbstractBuildOption<T> implements BuildOption<T> {
 
-    private final Class<T> settingsType;
     protected final String gradleProperty;
     protected final CommandLineOptionConfiguration commandLineOptionConfiguration;
 
-    AbstractBuildOption(Class<T> settingsType, String gradleProperty) {
-        this(settingsType, gradleProperty, null);
+    AbstractBuildOption(String gradleProperty) {
+        this(gradleProperty, null);
     }
 
-    AbstractBuildOption(Class<T> settingsType, String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
-        this.settingsType = settingsType;
+    AbstractBuildOption(String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
         this.gradleProperty = gradleProperty;
         this.commandLineOptionConfiguration = commandLineOptionConfiguration;
     }

@@ -46,7 +46,7 @@ public class BuildLayoutParametersBuildOptionFactory implements BuildOptionFacto
 
     public static class GradleUserHomeOption extends StringBuildOption<BuildLayoutParameters> {
         public GradleUserHomeOption() {
-            super(BuildLayoutParameters.class, "gradle.user.home", CommandLineOptionConfiguration.create("gradle-user-home", "g", "Specifies the gradle user home directory."));
+            super("gradle.user.home", CommandLineOptionConfiguration.create("gradle-user-home", "g", "Specifies the gradle user home directory."));
         }
 
         @Override
@@ -58,7 +58,7 @@ public class BuildLayoutParametersBuildOptionFactory implements BuildOptionFacto
 
     public static class ProjectDirOption extends StringBuildOption<BuildLayoutParameters> {
         public ProjectDirOption() {
-            super(BuildLayoutParameters.class, null, CommandLineOptionConfiguration.create("project-dir", "p", "Specifies the start directory for Gradle. Defaults to current directory."));
+            super(null, CommandLineOptionConfiguration.create("project-dir", "p", "Specifies the start directory for Gradle. Defaults to current directory."));
         }
 
         @Override
@@ -70,7 +70,7 @@ public class BuildLayoutParametersBuildOptionFactory implements BuildOptionFacto
 
     public static class NoSearchUpwardsOption extends NoArgumentBuildOption<BuildLayoutParameters> {
         public NoSearchUpwardsOption() {
-            super(BuildLayoutParameters.class, null, CommandLineOptionConfiguration.create("no-search-upward", "u", "Don't search in parent folders for a " + Settings.DEFAULT_SETTINGS_FILE + " file."));
+            super(null, CommandLineOptionConfiguration.create("no-search-upward", "u", "Don't search in parent folders for a " + Settings.DEFAULT_SETTINGS_FILE + " file."));
         }
 
         @Override
