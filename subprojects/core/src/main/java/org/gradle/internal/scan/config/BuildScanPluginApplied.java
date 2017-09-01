@@ -20,6 +20,9 @@ package org.gradle.internal.scan.config;
  * Can be used to determine if the build scan plugin has been applied.
  *
  * This is available as a build scoped service.
+ * We use a dedicated service for detecting the plugin application since
+ *  - we want to have a deep integration
+ *  - we want to have only one way how to ask if the plugin has been applied
  */
 public interface BuildScanPluginApplied {
     boolean isBuildScanPluginApplied();
