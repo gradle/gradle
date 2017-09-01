@@ -296,6 +296,7 @@ public class FindBugsExtension extends CodeQualityExtension {
      *
      * @since 4.3
      */
+    @Incubating
     public Collection<String> getJvmArgs() {
         return jvmArgs;
     }
@@ -307,6 +308,7 @@ public class FindBugsExtension extends CodeQualityExtension {
      *
      * @since 4.3
      */
+    @Incubating
     public void setJvmArgs(Collection<String> jvmArgs) {
         this.jvmArgs = jvmArgs;
     }

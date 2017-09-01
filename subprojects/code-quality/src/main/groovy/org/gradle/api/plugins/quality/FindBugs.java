@@ -332,6 +332,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      *
      * @since 4.3
      */
+    @Incubating
     public FindBugs jvmArgs(Iterable<String> arguments) {
         for (String argument : arguments) {
             jvmArgs.add(argument);
@@ -347,6 +348,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      *
      * @since 4.3
      */
+    @Incubating
     public FindBugs jvmArgs(String... arguments) {
         jvmArgs.addAll(Arrays.asList(arguments));
         return this;
@@ -657,6 +659,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      */
     @Input
     @Optional
+    @Incubating
     public Collection<String> getJvmArgs() {
         return jvmArgs;
     }
@@ -668,6 +671,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      *
      * @since 4.3
      */
+    @Incubating
     public void setJvmArgs(Collection<String> jvmArgs) {
         this.jvmArgs = jvmArgs;
     }
