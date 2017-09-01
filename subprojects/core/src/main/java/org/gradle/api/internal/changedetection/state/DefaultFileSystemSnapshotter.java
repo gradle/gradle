@@ -381,10 +381,10 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
 
         @Override
         public void run() {
-            try {
-                delegate = new RegularFileSnapshot(internPath(details.getFile()), details.getRelativePath(), false, fileSnapshot(details));
-            } finally {
-                synchronized (lock) {
+            synchronized (lock) {
+                try {
+                    delegate = new RegularFileSnapshot(internPath(details.getFile()), details.getRelativePath(), false, fileSnapshot(details));
+                } finally {
                     lock.notifyAll();
                 }
             }
