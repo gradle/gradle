@@ -26,7 +26,6 @@ import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.TimeProvider;
-import org.testng.IClassListener;
 import org.testng.ISuite;
 import org.testng.ISuiteListener;
 import org.testng.ITestClass;
@@ -40,7 +39,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class TestNGTestResultProcessorAdapter implements ISuiteListener, IClassListener, ITestListener, TestNGConfigurationListener {
+public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestListener, TestNGConfigurationListener, TestNGClassListener {
     private final TestResultProcessor resultProcessor;
     private final IdGenerator<?> idGenerator;
     private final TimeProvider timeProvider;
