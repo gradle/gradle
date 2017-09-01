@@ -14,21 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.hash;
+package org.gradle.internal.scan.config;
 
 /**
- * Hasher abstraction that can be fed different kinds of primitives.
- * Inspired by the Google Guava project – https://github.com/google/guava.
+ * Can be used to determine if the build scan plugin has been applied.
+ *
+ * This is available as a build scoped service.
+ * We use a dedicated service for detecting the plugin application since
+ *  - we want to have a deep integration
+ *  - we want to have only one way how to ask if the plugin has been applied
  */
-public interface Hasher {
-    void putBytes(byte[] bytes);
-    void putBytes(byte[] bytes, int off, int len);
-    void putByte(byte value);
-    void putInt(int value);
-    void putLong(long value);
-    void putDouble(double value);
-    void putBoolean(boolean value);
-    void putString(CharSequence value);
-    void putHash(HashCode hashCode);
-    HashCode hash();
+public interface BuildScanPluginApplied {
+    boolean isBuildScanPluginApplied();
 }
