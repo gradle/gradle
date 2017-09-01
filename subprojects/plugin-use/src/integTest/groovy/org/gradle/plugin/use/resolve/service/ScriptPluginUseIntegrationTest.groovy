@@ -58,10 +58,17 @@ class ScriptPluginUseIntegrationTest extends AbstractIntegrationSpec {
         operations.hasOperation("Apply script plugin 'gradle/other.gradle' to root project 'root'")
     }
 
-    def "project script can request script plugin from a remote URL, is cached and work with --offline"() {
+    def "multiple project scripts can request script plugin from a remote URL, is cached and work with --offline"() {
 
         given:
-        def script = file("other.gradle") << "println('Hello from the other side')"
+        def script = file("other.gradle") << "println(\"Hello from the other side of \$name\")"
+
+        and:
+        settingsFile << """
+
+            include "a", "b"
+
+        """.stripIndent()
 
         and:
         server.expectUserAgent(UserAgentMatcher.matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
@@ -79,15 +86,34 @@ class ScriptPluginUseIntegrationTest extends AbstractIntegrationSpec {
             }
 
         """.stripIndent()
+        file("a/build.gradle") << """
+
+            plugins {
+                script("$scriptUrl")
+            }
+
+        """.stripIndent()
+        file("b/build.gradle") << """
+
+            plugins {
+                script("$scriptUrl")
+            }
+
+        """.stripIndent()
+
 
         when:
         succeeds "help"
 
         then:
-        output.contains("Hello from the other side")
+        output.contains("Hello from the other side of root")
+        output.contains("Hello from the other side of a")
+        output.contains("Hello from the other side of b")
 
         and:
         operations.hasOperation("Apply script plugin '$scriptUrl' to root project 'root'")
+        operations.hasOperation("Apply script plugin '$scriptUrl' to project ':a'")
+        operations.hasOperation("Apply script plugin '$scriptUrl' to project ':b'")
 
         then:
         server.stop()
@@ -96,10 +122,14 @@ class ScriptPluginUseIntegrationTest extends AbstractIntegrationSpec {
         succeeds "help", "--offline"
 
         then:
-        output.contains("Hello from the other side")
+        output.contains("Hello from the other side of root")
+        output.contains("Hello from the other side of a")
+        output.contains("Hello from the other side of b")
 
         and:
         operations.hasOperation("Apply script plugin '$scriptUrl' to root project 'root'")
+        operations.hasOperation("Apply script plugin '$scriptUrl' to project ':a'")
+        operations.hasOperation("Apply script plugin '$scriptUrl' to project ':b'")
     }
 
     def "project script can request multiple script plugins"() {
@@ -142,7 +172,6 @@ class ScriptPluginUseIntegrationTest extends AbstractIntegrationSpec {
         and:
         settingsFile << """
 
-            rootProject.name = "root"
             include "a", "b"
 
         """.stripIndent()
