@@ -16,9 +16,11 @@
 
 package org.gradle.cache.internal
 
+import org.gradle.api.GradleException
 import org.gradle.internal.Factory
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 class ProducerGuardTest extends ConcurrentSpec {
@@ -45,7 +47,36 @@ class ProducerGuardTest extends ConcurrentSpec {
         calls.get() == 100
 
         where:
-        guard << [ProducerGuard.serial(), ProducerGuard.striped(), ProducerGuard.adaptive()]
+        guard << [ProducerGuard.serial(), ProducerGuard.striped(), ProducerGuard.adaptive(), ProducerGuard.timingOut(10, TimeUnit.SECONDS)]
+    }
+
+    def "times out"() {
+        given:
+        def calls = new AtomicInteger()
+
+        when:
+        async {
+            2.times {
+                start {
+                    guard.guardByKey("foo", new Factory() {
+                        @Override
+                        Object create() {
+                            sleep(1000)
+                            return calls.getAndIncrement()
+                        }
+                    })
+                }
+            }
+        }
+
+        then:
+        def e = thrown(GradleException)
+        e.message == 'Timed out while trying to acquire a lock on: foo'
+        calls.get() == 1
+
+
+        where:
+        guard << [ProducerGuard.timingOut(10, TimeUnit.MILLISECONDS)]
     }
 
     def "does not call factories with the same key concurrently"() {
@@ -72,6 +103,6 @@ class ProducerGuardTest extends ConcurrentSpec {
         noExceptionThrown()
 
         where:
-        guard << [ProducerGuard.serial(), ProducerGuard.striped(), ProducerGuard.adaptive()]
+        guard << [ProducerGuard.serial(), ProducerGuard.striped(), ProducerGuard.adaptive(), ProducerGuard.timingOut(10, TimeUnit.SECONDS)]
     }
 }

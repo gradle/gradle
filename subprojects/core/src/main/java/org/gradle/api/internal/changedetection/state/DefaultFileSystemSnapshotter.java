@@ -348,8 +348,8 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
         }
 
         private FileSnapshot getResult() {
-            while (delegate == null) {
-                synchronized (lock) {
+            synchronized (lock) {
+                while (delegate == null) {
                     try {
                         lock.wait();
                     } catch (InterruptedException e) {
