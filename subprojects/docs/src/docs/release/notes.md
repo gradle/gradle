@@ -226,7 +226,7 @@ We highly recommend migrating to Java 8 as soon as possible to get better experi
 ### Deprecated usage of path separator characters in names
 
 We deprecated the usage of the following characters in domain object names such as project or task names:
-` `, `/`, `\\`, `:`, `<`, `>`, `"`, `?`, `*` and `|`. We also deprecated `.` as leading or trailing character.
+space character, `/`, `\\`, `:`, `<`, `>`, `"`, `?`, `*` and `|`. We also deprecated `.` as leading or trailing character.
 These character represent path separators or have other special semantics in file systems. This caused inconsistent and unexpected behavior in different Gradle features.
 Using these characters in names will be forbidden in Gradle 5.0. 
 
