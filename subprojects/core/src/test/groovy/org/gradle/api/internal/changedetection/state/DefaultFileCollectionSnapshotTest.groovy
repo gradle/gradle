@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.caching.internal.BuildCacheHasher
+import org.gradle.caching.internal.DefaultBuildCacheHasher
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
 
@@ -35,22 +36,28 @@ class DefaultFileCollectionSnapshotTest extends Specification {
             "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
             "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", new FileHashSnapshot(HashCode.fromInt(123))),
         ], UNORDERED, false)
+
         when:
         oldSnapshot.appendToHasher(hasher)
+
         then:
-        1 * hasher.putString("file1.txt")
-        1 * hasher.putHash(HashCode.fromInt(123))
-        1 * hasher.putString("file2.txt")
-        1 * hasher.putHash(HashCode.fromInt(234))
+        1 * hasher.putHash(new DefaultBuildCacheHasher()
+            .putString("file1.txt")
+            .putHash(HashCode.fromInt(123))
+            .putString("file2.txt")
+            .putHash(HashCode.fromInt(234))
+            .hash())
         0 * _
 
         when:
         newSnapshot.appendToHasher(hasher)
         then:
-        1 * hasher.putString("file1.txt")
-        1 * hasher.putHash(HashCode.fromInt(123))
-        1 * hasher.putString("file2.txt")
-        1 * hasher.putHash(HashCode.fromInt(234))
+        1 * hasher.putHash(new DefaultBuildCacheHasher()
+            .putString("file1.txt")
+            .putHash(HashCode.fromInt(123))
+            .putString("file2.txt")
+            .putHash(HashCode.fromInt(234))
+            .hash())
         0 * _
     }
 
@@ -67,19 +74,23 @@ class DefaultFileCollectionSnapshotTest extends Specification {
         when:
         oldSnapshot.appendToHasher(hasher)
         then:
-        1 * hasher.putString("file1.txt")
-        1 * hasher.putHash(HashCode.fromInt(123))
-        1 * hasher.putString("file2.txt")
-        1 * hasher.putHash(HashCode.fromInt(234))
+        1 * hasher.putHash(new DefaultBuildCacheHasher()
+            .putString("file1.txt")
+            .putHash(HashCode.fromInt(123))
+            .putString("file2.txt")
+            .putHash(HashCode.fromInt(234))
+            .hash())
         0 * _
 
         when:
         newSnapshot.appendToHasher(hasher)
         then:
-        1 * hasher.putString("file2.txt")
-        1 * hasher.putHash(HashCode.fromInt(234))
-        1 * hasher.putString("file1.txt")
-        1 * hasher.putHash(HashCode.fromInt(123))
+        1 * hasher.putHash(new DefaultBuildCacheHasher()
+            .putString("file2.txt")
+            .putHash(HashCode.fromInt(234))
+            .putString("file1.txt")
+            .putHash(HashCode.fromInt(123))
+            .hash())
         0 * _
     }
 }
