@@ -25,11 +25,11 @@ import org.gradle.internal.buildoption.StringBuildOption;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LoggingConfigurationBuildOptionFactory implements BuildOptionFactory<LoggingConfiguration> {
+public class LogLevelBuildOptionFactory implements BuildOptionFactory<LoggingConfiguration> {
 
     private final List<BuildOption<LoggingConfiguration>> options = new ArrayList<BuildOption<LoggingConfiguration>>();
 
-    public LoggingConfigurationBuildOptionFactory() {
+    public LogLevelBuildOptionFactory() {
         options.add(new LogLevelOption());
     }
 

@@ -20,7 +20,7 @@ import org.gradle.StartParameter
 import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.ParallelismBuildOptionFactory
 import org.gradle.initialization.StartParameterBuildOptionFactory
-import org.gradle.launcher.logging.configuration.LoggingConfigurationBuildOptionFactory
+import org.gradle.launcher.logging.configuration.LogLevelBuildOptionFactory
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -47,7 +47,7 @@ class PropertiesToStartParameterConverterTest extends Specification {
     @Unroll
     def "converts log levels"() {
         expect:
-        converter.convert([(LoggingConfigurationBuildOptionFactory.LogLevelOption.GRADLE_PROPERTY): level], new StartParameter()).logLevel == logLevel
+        converter.convert([(LogLevelBuildOptionFactory.LogLevelOption.GRADLE_PROPERTY): level], new StartParameter()).logLevel == logLevel
 
         where:
         level       | logLevel
@@ -60,11 +60,11 @@ class PropertiesToStartParameterConverterTest extends Specification {
 
     def "throws exception for invalid log level"() {
         when:
-        converter.convert([(LoggingConfigurationBuildOptionFactory.LogLevelOption.GRADLE_PROPERTY): "fakeLevel"], new StartParameter())
+        converter.convert([(LogLevelBuildOptionFactory.LogLevelOption.GRADLE_PROPERTY): "fakeLevel"], new StartParameter())
 
         then:
         def ex = thrown(IllegalArgumentException)
-        ex.getMessage().contains(LoggingConfigurationBuildOptionFactory.LogLevelOption.GRADLE_PROPERTY)
+        ex.getMessage().contains(LogLevelBuildOptionFactory.LogLevelOption.GRADLE_PROPERTY)
         LogLevel.values().each { level ->
             if(level != LogLevel.ERROR) {
                 ex.getMessage().contains(level.toString())
