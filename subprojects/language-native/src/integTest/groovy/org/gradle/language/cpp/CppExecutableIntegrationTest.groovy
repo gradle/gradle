@@ -41,9 +41,9 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":installMain", ":assemble")
+        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":installDebug", ":assemble")
         // TODO - should skip the task as NO-SOURCE
-        result.assertTasksSkipped(":compileDebugCpp", ":linkDebug", ":installMain", ":assemble")
+        result.assertTasksSkipped(":compileDebugCpp", ":linkDebug", ":installDebug", ":assemble")
     }
 
     def "build fails when compilation fails"() {
@@ -76,7 +76,6 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         and:
         buildFile << """
             apply plugin: 'cpp-executable'
-            compileReleaseCpp.macros(WITH_FEATURE: "true")
          """
 
         expect:
@@ -97,6 +96,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         and:
         buildFile << """
             apply plugin: 'cpp-executable'
+            compileReleaseCpp.macros(WITH_FEATURE: "true")
          """
 
         expect:

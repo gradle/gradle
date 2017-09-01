@@ -37,9 +37,9 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installMain", ":assemble")
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
         // TODO - should skip the task as NO-SOURCE
-        result.assertTasksSkipped(":compileDebugSwift", ":linkDebug", ":installMain", ":assemble")
+        result.assertTasksSkipped(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
     }
 
     def "build fails when compilation fails"() {
@@ -68,7 +68,6 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         and:
         buildFile << """
             apply plugin: 'swift-executable'
-            compileReleaseSwift.compilerArgs = ['-DWITH_FEATURE']
          """
 
         expect:
@@ -89,6 +88,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         and:
         buildFile << """
             apply plugin: 'swift-executable'
+            compileReleaseSwift.compilerArgs = ['-DWITH_FEATURE']
          """
 
         expect:
