@@ -22,7 +22,6 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectScript
@@ -42,7 +41,6 @@ import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.logging.LoggingManagerInternal
-import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.TextResourceLoader
 import org.gradle.internal.service.ServiceRegistry
@@ -65,7 +63,6 @@ class DefaultScriptPluginFactoryTest extends Specification {
     def baseScope = Mock(ClassLoaderScope)
     def scopeClassLoader = Mock(ClassLoader)
     def baseChildClassLoader = Mock(ClassLoader)
-    def scriptHandlerFactory = Mock(ScriptHandlerFactory)
     def pluginRequestApplicator = Mock(PluginRequestApplicator)
     def scriptHandler = Mock(ScriptHandlerInternal)
     def classPathScriptRunner = Mock(ScriptRunner)
@@ -81,10 +78,10 @@ class DefaultScriptPluginFactoryTest extends Specification {
     def textResourceLoader = Mock(TextResourceLoader)
     def streamHasher = Mock(StreamHasher)
     def fileHasher = Mock(FileHasher)
-    def buildOperationExecutor = Mock(BuildOperationExecutor)
+    def scriptApplicator = Mock(ScriptApplicator)
 
-    def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginRequestApplicator, fileLookup,
-        directoryFileTreeFactory, documentationRegistry, new ModelRuleSourceDetector(), pluginRepositoryRegistry, pluginRepositoryFactory, providerFactory, textResourceLoader, streamHasher, fileHasher, buildOperationExecutor)
+    def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, loggingManagerFactory, instantiator, pluginRequestApplicator, fileLookup,
+        directoryFileTreeFactory, documentationRegistry, new ModelRuleSourceDetector(), pluginRepositoryRegistry, pluginRepositoryFactory, providerFactory, textResourceLoader, streamHasher, fileHasher, scriptApplicator)
 
     def setup() {
         def configurations = Mock(ConfigurationContainer)
@@ -228,10 +225,8 @@ class DefaultScriptPluginFactoryTest extends Specification {
         0 * scriptRunner._
     }
 
-    void "configured target uses given script plugin factory for nested scripts"() {
+    void "configured target uses given script applicator for nested scripts"() {
         given:
-        def otherScriptPluginFactory = Mock(ScriptPluginFactory)
-        factory.setScriptPluginFactory(otherScriptPluginFactory)
         final Object target = new Object()
 
         when:
@@ -245,7 +240,7 @@ class DefaultScriptPluginFactoryTest extends Specification {
         1 * scriptCompiler.compile(DefaultScript, { it.transformer != null }, scopeClassLoader, !null) >> scriptRunner
         _ * scriptRunner.data >> new BuildScriptData(true)
         _ * scriptRunner.runDoesSomething >> true
-        1 * scriptRunner.run(target, { scriptServices -> scriptServices.get(ScriptPluginFactory) == otherScriptPluginFactory })
+        1 * scriptRunner.run(target, { scriptServices -> scriptServices.get(ScriptApplicator) == scriptApplicator })
         0 * scriptRunner._
     }
 
