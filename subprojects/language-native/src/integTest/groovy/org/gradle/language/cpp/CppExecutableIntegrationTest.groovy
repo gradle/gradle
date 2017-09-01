@@ -31,6 +31,19 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         Assume.assumeTrue(toolChain.id != "mingw" && toolChain.id != "gcccygwin")
     }
 
+    def "skip compile, link and install tasks when no source"() {
+        given:
+        buildFile << """
+            apply plugin: 'cpp-executable'
+        """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":installMain", ":assemble")
+        // TODO - should skip the task as NO-SOURCE
+        result.assertTasksSkipped(":compileDebugCpp", ":linkDebug", ":installMain", ":assemble")
+    }
+
     def "build fails when compilation fails"() {
         given:
         buildFile << """
