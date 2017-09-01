@@ -47,7 +47,9 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -61,11 +63,13 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private NativeToolChainInternal toolChain;
     private NativePlatformInternal targetPlatform;
     private boolean positionIndependentCode;
+    private boolean debug;
+    private boolean optimize;
     private final DirectoryVar objectFileDir;
     private final ConfigurableFileCollection includes;
     private final ConfigurableFileCollection source;
-    private Map<String, String> macros;
-    private List<String> compilerArgs;
+    private final Map<String, String> macros = new LinkedHashMap<String, String>();
+    private final List<String> compilerArgs = new ArrayList<String>();
     private ImmutableList<String> includePaths;
 
     public AbstractNativeCompileTask() {
@@ -103,6 +107,8 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         spec.setMacros(getMacros());
         spec.args(getCompilerArgs());
         spec.setPositionIndependentCode(isPositionIndependentCode());
+        spec.setDebuggable(isDebuggable());
+        spec.setOptimized(isOptimized());
         spec.setIncrementalCompile(inputs.isIncremental());
         spec.setDiscoveredInputRecorder((DiscoveredInputRecorder) inputs);
         spec.setOperationLogger(operationLogger);
@@ -160,6 +166,30 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
 
     public void setPositionIndependentCode(boolean positionIndependentCode) {
         this.positionIndependentCode = positionIndependentCode;
+    }
+
+    /**
+     * Should the compiler generate debuggable code?
+     */
+    @Input
+    public boolean isDebuggable() {
+        return debug;
+    }
+
+    public void setDebuggable(boolean debug) {
+        this.debug = debug;
+    }
+
+    /**
+     * Should the compiler generate omptimized code?
+     */
+    @Input
+    public boolean isOptimized() {
+        return optimize;
+    }
+
+    public void setOptimized(boolean optimize) {
+        this.optimize = optimize;
     }
 
     /**
@@ -244,7 +274,8 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     }
 
     public void setMacros(Map<String, String> macros) {
-        this.macros = macros;
+        this.macros.clear();
+        this.macros.putAll(macros);
     }
 
     /**
@@ -256,6 +287,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     }
 
     public void setCompilerArgs(List<String> compilerArgs) {
-        this.compilerArgs = compilerArgs;
+        this.compilerArgs.clear();
+        this.compilerArgs.addAll(compilerArgs);
     }
 }

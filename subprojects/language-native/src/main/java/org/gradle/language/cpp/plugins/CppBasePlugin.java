@@ -45,7 +45,6 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInter
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPlugin;
 
-import java.util.Collections;
 import java.util.concurrent.Callable;
 
 /**
@@ -73,9 +72,11 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 CppCompile compile = tasks.create(names.getCompileTaskName("cpp"), CppCompile.class);
                 compile.includes(binary.getCompileIncludePath());
                 compile.source(binary.getCppSource());
-
-                compile.setCompilerArgs(Collections.<String>emptyList());
-                compile.setMacros(Collections.<String, String>emptyMap());
+                if (binary.isDebuggable()) {
+                    compile.setDebuggable(true);
+                } else {
+                    compile.setOptimized(true);
+                }
                 compile.setObjectFileDir(buildDirectory.dir("obj/" + names.getDirName()));
 
                 DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
@@ -90,7 +91,6 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     LinkExecutable link = tasks.create(names.getTaskName("link"), LinkExecutable.class);
                     link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
                     link.lib(binary.getLinkLibraries());
-                    link.setLinkerArgs(Collections.<String>emptyList());
                     final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
                     link.setOutputFile(buildDirectory.file(providers.provider(new Callable<String>() {
                         @Override
@@ -125,7 +125,6 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     LinkSharedLibrary link = tasks.create(names.getTaskName("link"), LinkSharedLibrary.class);
                     link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
                     link.lib(binary.getLinkLibraries());
-                    link.setLinkerArgs(Collections.<String>emptyList());
                     // TODO - need to set soname
                     Provider<RegularFile> runtimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
                         @Override

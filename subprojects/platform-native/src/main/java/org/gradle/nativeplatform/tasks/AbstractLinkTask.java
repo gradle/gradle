@@ -44,6 +44,7 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -55,7 +56,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     private NativeToolChainInternal toolChain;
     private NativePlatformInternal targetPlatform;
     private final RegularFileVar outputFile;
-    private List<String> linkerArgs;
+    private final List<String> linkerArgs = new ArrayList<String>();
     private final ConfigurableFileCollection source;
     private final ConfigurableFileCollection libs;
 
@@ -142,7 +143,8 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     }
 
     public void setLinkerArgs(List<String> linkerArgs) {
-        this.linkerArgs = linkerArgs;
+        this.linkerArgs.clear();
+        this.linkerArgs.addAll(linkerArgs);
     }
 
     /**

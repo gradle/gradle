@@ -66,6 +66,8 @@ class SwiftLibraryPluginTest extends Specification {
         compileDebug instanceof SwiftCompile
         compileDebug.source.files == [src] as Set
         compileDebug.objectFileDirectory.get().asFile == projectDir.file("build/obj/main/debug")
+        compileDebug.debuggable
+        !compileDebug.optimized
 
         def linkDebug = project.tasks.linkDebug
         linkDebug instanceof LinkSharedLibrary
@@ -75,6 +77,8 @@ class SwiftLibraryPluginTest extends Specification {
         compileRelease instanceof SwiftCompile
         compileRelease.source.files == [src] as Set
         compileRelease.objectFileDirectory.get().asFile == projectDir.file("build/obj/main/release")
+        !compileRelease.debuggable
+        compileRelease.optimized
 
         def linkRelease = project.tasks.linkRelease
         linkRelease instanceof LinkSharedLibrary

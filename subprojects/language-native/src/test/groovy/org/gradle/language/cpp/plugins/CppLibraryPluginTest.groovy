@@ -71,6 +71,8 @@ class CppLibraryPluginTest extends Specification {
         compileDebugCpp.includes.files as List == [publicHeaders, privateHeaders]
         compileDebugCpp.source.files as List == [src]
         compileDebugCpp.objectFileDirectory.get().asFile == projectDir.file("build/obj/main/debug")
+        compileDebugCpp.debuggable
+        !compileDebugCpp.optimized
 
         def linkDebug = project.tasks.linkDebug
         linkDebug instanceof LinkSharedLibrary
@@ -81,6 +83,8 @@ class CppLibraryPluginTest extends Specification {
         compileReleaseCpp.includes.files as List == [publicHeaders, privateHeaders]
         compileReleaseCpp.source.files as List == [src]
         compileReleaseCpp.objectFileDirectory.get().asFile == projectDir.file("build/obj/main/release")
+        !compileReleaseCpp.debuggable
+        compileReleaseCpp.optimized
 
         def linkRelease = project.tasks.linkRelease
         linkRelease instanceof LinkSharedLibrary
