@@ -829,7 +829,7 @@ Setting a system property of __taskName.single__ = __testNamePattern__ will only
 * `gradle -Dtest.single=a/b/ test`
 * `gradle -DintegTest.single=\*IntegrationTest integTest`
 * `gradle -D:proj1:test.single=ThisUniquelyNamedTest build`
-* `gradle -DintegTest.single=c/d/ :proj1:integTest`
+* `gradle -D:proj1:integTest.single=c/d/`
 
 
 [[sec:test_detection]]
