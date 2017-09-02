@@ -63,16 +63,15 @@ public interface Provider<T> {
      *
      * @return the value or the default value.
      */
-    @Internal
     @Nullable
     T getOrElse(@Nullable T defaultValue);
 
     /**
      * Returns a new {@link Provider} whose value is the value of this provider transformed using the given function.
      *
-     * <p>The new provider will be live, so that each time it is queried, this provider is queried and the transformation applied. Whenever this provider has no value, the new provider will also have no value.
+     * <p>The new provider will be live, so that each time it is queried, it queries this provider and applies the transformation to the result. Whenever this provider has no value, the new provider will also have no value.
      *
-     * <p>Note that the new provider may cache the result of the transformations, and so there is no guarantee that the transformer is called on every query of the new provider. The new provider may call the transformer eagerly, calculating the value for the new provider now, or lazily, calculating the value for the new provider when queried.
+     * <p>Note that the new provider may cache the result of the transformations and so there is no guarantee that the transformer is called on every query of the new provider. The new provider will apply the transformation lazily, and calculate the value for the new provider when queried.
      *
      * @param transformer The transformer to apply to values. Should not return {@code null}.
      */
