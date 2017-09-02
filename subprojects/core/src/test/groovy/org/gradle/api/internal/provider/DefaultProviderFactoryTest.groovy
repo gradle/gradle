@@ -24,8 +24,6 @@ import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.api.internal.provider.DefaultProvider.NON_NULL_VALUE_EXCEPTION_MESSAGE
-
 class DefaultProviderFactoryTest extends Specification {
 
     static final PROJECT = ProjectBuilder.builder().build()
@@ -125,7 +123,7 @@ class DefaultProviderFactoryTest extends Specification {
 
         then:
         def t = thrown(IllegalStateException)
-        t.message == NON_NULL_VALUE_EXCEPTION_MESSAGE
+        t.message == 'No value has been specified for this provider.'
 
         where:
         type << [FileCollection, ConfigurableFileTree, FileTree, ConfigurableFileTree]

@@ -17,11 +17,8 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.provider.Provider
-import org.gradle.internal.UncheckedException
 import spock.lang.Specification
 import spock.lang.Unroll
-
-import static org.gradle.api.internal.provider.DefaultProvider.NON_NULL_VALUE_EXCEPTION_MESSAGE
 
 class DefaultProviderTest extends Specification {
 
@@ -51,7 +48,7 @@ class DefaultProviderTest extends Specification {
 
         then:
         def t = thrown(IllegalStateException)
-        t.message == NON_NULL_VALUE_EXCEPTION_MESSAGE
+        t.message == "No value has been specified for this provider."
 
         when:
         provider = createProvider(null)
@@ -59,7 +56,7 @@ class DefaultProviderTest extends Specification {
 
         then:
         t = thrown(IllegalStateException)
-        t.message == NON_NULL_VALUE_EXCEPTION_MESSAGE
+        t.message == "No value has been specified for this provider."
 
         when:
         provider = createProvider(true)
@@ -86,15 +83,17 @@ class DefaultProviderTest extends Specification {
     }
 
     def "rethrows exception if value calculation throws exception"() {
+        def failure = new RuntimeException('Something went wrong')
+
         given:
-        def provider = new DefaultProvider({ throw new RuntimeException('Something went wrong') })
+        def provider = new DefaultProvider({ throw failure })
 
         when:
         provider.get()
 
         then:
-        def t = thrown(UncheckedException)
-        t.cause.message == 'Something went wrong'
+        def t = thrown(RuntimeException)
+        t == failure
     }
 
     static Provider createProvider() {

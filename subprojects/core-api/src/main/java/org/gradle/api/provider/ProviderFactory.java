@@ -48,13 +48,15 @@ import java.util.concurrent.Callable;
 public interface ProviderFactory {
 
     /**
-     * Creates a {@code Provider} implementation based on the provided value.
+     * Creates a {@code Provider} whose value is calculated using the given {@link Callable}.
+     *
+     * <p>The provider is live and will call the {@link Callable} each time its value is queried. The {@link Callable} may return {@code null}, in which case the provider is considered to have no value.
      *
      * @param value The {@code java.util.concurrent.Callable} use to calculate the value.
      * @return The provider. Never returns null.
      * @throws org.gradle.api.InvalidUserDataException If the provided value is null.
      */
-    <T> Provider<T> provider(Callable<T> value);
+    <T> Provider<T> provider(Callable<? extends T> value);
 
     /**
      * Creates a {@code PropertyState} implementation based on the provided class.

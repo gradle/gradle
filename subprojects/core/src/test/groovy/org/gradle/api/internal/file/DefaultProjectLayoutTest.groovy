@@ -100,6 +100,7 @@ class DefaultProjectLayoutTest extends Specification {
     def "regular file is not present when path provider is not present"() {
         def pathProvider = Stub(Provider)
         _ * pathProvider.present >> false
+        _ * pathProvider.getOrNull() >> null
 
         expect:
         def provider = layout.projectDirectory.file(pathProvider)

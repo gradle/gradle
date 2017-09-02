@@ -19,17 +19,20 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.Transformer;
 import org.gradle.api.provider.Provider;
 
-import javax.annotation.Nullable;
+class TransformBackedProvider<S, T> extends AbstractMappingProvider<S, T> {
+    private final Transformer<? extends S, ? super T> transformer;
 
-public interface ProviderInternal<T> extends Provider<T> {
-    /**
-     * Return the upper bound on the type of all values that this provider may produce, if known.
-     *
-     * This could probably move to the public API.
-     */
-    @Nullable
-    Class<T> getType();
+    public TransformBackedProvider(Transformer<? extends S, ? super T> transformer, Provider<? extends T> provider) {
+        super(null, provider);
+        this.transformer = transformer;
+    }
 
     @Override
-    <S> ProviderInternal<S> map(Transformer<? extends S, ? super T> transformer);
+    protected S map(T v) {
+        S s = transformer.transform(v);
+        if (s == null) {
+            throw new IllegalStateException(Providers.NULL_TRANSFORMER_RESULT);
+        }
+        return s;
+    }
 }

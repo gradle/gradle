@@ -25,7 +25,7 @@ import java.util.concurrent.Callable;
 
 public class DefaultProviderFactory implements ProviderFactory {
 
-    public <T> Provider<T> provider(final Callable<T> value) {
+    public <T> Provider<T> provider(final Callable<? extends T> value) {
         if (value == null) {
             throw new InvalidUserDataException("Value cannot be null");
         }

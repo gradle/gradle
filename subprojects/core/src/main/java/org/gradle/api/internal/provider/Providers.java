@@ -16,18 +16,20 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 
-import static org.gradle.api.internal.provider.AbstractProvider.NON_NULL_VALUE_EXCEPTION_MESSAGE;
-
 public class Providers {
+    public static final String NULL_TRANSFORMER_RESULT = "Transformer for this provider returned a null value.";
+    public static final String NULL_VALUE = "No value has been specified for this provider.";
+
     private static final Provider<Object> NULL_PROVIDER = new ProviderInternal<Object>() {
         @Override
         public Object get() {
-            throw new IllegalStateException(NON_NULL_VALUE_EXCEPTION_MESSAGE);
+            throw new IllegalStateException(NULL_VALUE);
         }
 
         @Nullable
@@ -39,6 +41,17 @@ public class Providers {
         @Override
         public Object getOrNull() {
             return null;
+        }
+
+        @Nullable
+        @Override
+        public Object getOrElse(@Nullable Object defaultValue) {
+            return defaultValue;
+        }
+
+        @Override
+        public <S> ProviderInternal<S> map(Transformer<? extends S, ? super Object> transformer) {
+            return Cast.uncheckedCast(this);
         }
 
         @Override
@@ -62,17 +75,98 @@ public class Providers {
     }
 
     public static <T> Provider<T> of(final T value) {
-        return new AbstractProvider<T>() {
-            @Nullable
-            @Override
-            public Class<T> getType() {
+        return new FixedValueProvider<T>(value);
+    }
+
+    private static class FixedValueProvider<T> implements ProviderInternal<T> {
+        private final T value;
+
+        FixedValueProvider(T value) {
+            this.value = value;
+        }
+
+        @Nullable
+        @Override
+        public Class<T> getType() {
+            return Cast.uncheckedCast(value.getClass());
+        }
+
+        @Override
+        public T get() {
+            return value;
+        }
+
+        @Nullable
+        @Override
+        public T getOrElse(@Nullable T defaultValue) {
+            return value;
+        }
+
+        @Override
+        public T getOrNull() {
+            return value;
+        }
+
+        @Override
+        public boolean isPresent() {
+            return true;
+        }
+
+        @Override
+        public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super T> transformer) {
+            return new MappedFixedValueProvider<S, T>(transformer, this);
+        }
+    }
+
+    private static class MappedFixedValueProvider<S, T> implements ProviderInternal<S> {
+        private final Transformer<? extends S, ? super T> transformer;
+        private final Provider<T> provider;
+        private S value;
+
+        MappedFixedValueProvider(Transformer<? extends S, ? super T> transformer, Provider<T> provider) {
+            this.transformer = transformer;
+            this.provider = provider;
+        }
+
+        @Nullable
+        @Override
+        public Class<S> getType() {
+            if (value != null) {
                 return Cast.uncheckedCast(value.getClass());
             }
+            return null;
+        }
 
-            @Override
-            public T getOrNull() {
-                return value;
+        @Override
+        public boolean isPresent() {
+            return true;
+        }
+
+        @Override
+        public S get() {
+            if (value == null) {
+                value = transformer.transform(provider.get());
+                if (value == null) {
+                    throw new IllegalStateException(NULL_TRANSFORMER_RESULT);
+                }
             }
-        };
+            return value;
+        }
+
+        @Override
+        public S getOrElse(@Nullable S defaultValue) {
+            return get();
+        }
+
+        @Nullable
+        @Override
+        public S getOrNull() {
+            return get();
+        }
+
+        @Override
+        public <U> ProviderInternal<U> map(Transformer<? extends U, ? super S> transformer) {
+            return new MappedFixedValueProvider<U, S>(transformer, this);
+        }
     }
 }
