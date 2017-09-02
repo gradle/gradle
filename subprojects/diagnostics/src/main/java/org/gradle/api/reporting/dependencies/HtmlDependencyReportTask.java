@@ -95,6 +95,11 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
         return reports;
     }
 
+    /**
+     * Injects and returns an instance of {@link org.gradle.api.model.ObjectFactory}.
+     *
+     * @since 4.2
+     */
     @Inject
     public ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();

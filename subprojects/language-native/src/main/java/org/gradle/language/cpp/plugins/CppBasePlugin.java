@@ -19,12 +19,14 @@ package org.gradle.language.cpp.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
+import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppBinary;
@@ -34,6 +36,7 @@ import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
+import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
@@ -97,6 +100,22 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     })));
                     link.setTargetPlatform(currentPlatform);
                     link.setToolChain(toolChain);
+
+                    // Add an install task
+                    // TODO - should probably not add this for all executables?
+                    final InstallExecutable install = tasks.create(names.getTaskName("install"), InstallExecutable.class);
+                    install.setPlatform(link.getTargetPlatform());
+                    install.setToolChain(link.getToolChain());
+                    install.setDestinationDir(buildDirectory.dir("install/" + names.getDirName()));
+                    install.setExecutable(link.getBinaryFile());
+                    // TODO - infer this
+                    install.onlyIf(new Spec<Task>() {
+                        @Override
+                        public boolean isSatisfiedBy(Task element) {
+                            return install.getExecutable().exists();
+                        }
+                    });
+                    install.lib(binary.getRuntimeLibraries());
                 } else if (binary instanceof CppSharedLibrary) {
                     final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
 

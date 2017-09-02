@@ -23,6 +23,8 @@ import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 
 public class NativePlatformBackedFileMetadataAccessor implements FileMetadataAccessor {
     private final Files files;
@@ -44,5 +46,11 @@ public class NativePlatformBackedFileMetadataAccessor implements FileMetadataAcc
             default:
                 throw new IllegalArgumentException("Unrecognised file type: " + stat.getType());
         }
+    }
+
+    @Override
+    @SuppressWarnings("Since15")
+    public FileMetadataSnapshot stat(Path path) throws IOException {
+        return stat(path.toFile());
     }
 }

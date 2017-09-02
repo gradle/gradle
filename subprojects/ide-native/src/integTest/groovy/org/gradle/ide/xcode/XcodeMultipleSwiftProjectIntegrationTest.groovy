@@ -57,7 +57,8 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         xcodeWorkspace("${rootProjectName}.xcworkspace")
             .contentFile.assertHasProjects([file("${rootProjectName}.xcodeproj"), file('app/app.xcodeproj'), file('greeter/greeter.xcodeproj')]*.absolutePath)
 
-        buildSettings(xcodeProject("app/app.xcodeproj").projectFile).SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("greeter/build/obj/main/debug"))
+        def project = xcodeProject("app/app.xcodeproj").projectFile
+        project.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("greeter/build/obj/main/debug"))
     }
 
     def "create xcode project Swift executable with transitive dependencies"() {
@@ -101,8 +102,10 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         xcodeWorkspace("${rootProjectName}.xcworkspace")
             .contentFile.assertHasProjects([file("${rootProjectName}.xcodeproj"), file('app/app.xcodeproj'), file('log/log.xcodeproj'), file('hello/hello.xcodeproj')]*.absolutePath)
 
-        buildSettings(xcodeProject("app/app.xcodeproj").projectFile).SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("hello/build/obj/main/debug"), file("log/build/obj/main/debug"))
-        buildSettings(xcodeProject("hello/hello.xcodeproj").projectFile).SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("log/build/obj/main/debug"))
+        def appProject = xcodeProject("app/app.xcodeproj").projectFile
+        appProject.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("hello/build/obj/main/debug"), file("log/build/obj/main/debug"))
+        def helloProject = xcodeProject("hello/hello.xcodeproj").projectFile
+        helloProject.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("log/build/obj/main/debug"))
     }
 
     def "create xcode project Swift executable inside composite build"() {
@@ -142,6 +145,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         xcodeWorkspace("${rootProjectName}.xcworkspace")
             .contentFile.assertHasProjects([file("${rootProjectName}.xcodeproj"), file('greeter/greeter.xcodeproj')]*.absolutePath)
 
-        buildSettings(xcodeProject("${rootProjectName}.xcodeproj").projectFile).SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("greeter/build/obj/main/debug"))
+        def project = xcodeProject("${rootProjectName}.xcodeproj").projectFile
+        project.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("greeter/build/obj/main/debug"))
     }
 }

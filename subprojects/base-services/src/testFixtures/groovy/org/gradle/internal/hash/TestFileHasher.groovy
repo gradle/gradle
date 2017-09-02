@@ -16,31 +16,22 @@
 
 package org.gradle.internal.hash
 
-import com.google.common.hash.HashCode
-import com.google.common.hash.Hashing
-import com.google.common.hash.HashingOutputStream
 import com.google.common.io.Files
+import org.gradle.api.UncheckedIOException
 import org.gradle.api.file.FileTreeElement
 import org.gradle.internal.file.FileMetadataSnapshot
+import org.gradle.internal.io.NullOutputStream
 
 class TestFileHasher implements FileHasher {
-    private final static HASH_FUNCTION = Hashing.md5()
-
-    @Override
-    HashCode hash(InputStream inputStream) {
-        return HASH_FUNCTION.hashBytes(inputStream.bytes)
-    }
-
-    @Override
-    HashCode hashCopy(InputStream inputStream, OutputStream outputStream) throws IOException {
-        def hashOutputStream = new HashingOutputStream(HASH_FUNCTION, outputStream)
-        hashOutputStream << inputStream
-        return hashOutputStream.hash()
-    }
-
     @Override
     HashCode hash(File file) {
-        return Files.hash(file, HASH_FUNCTION)
+        HashingOutputStream hashingStream = new HashingOutputStream(Hashing.md5(), NullOutputStream.INSTANCE);
+        try {
+            Files.copy(file, hashingStream);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return hashingStream.hash();
     }
 
     @Override

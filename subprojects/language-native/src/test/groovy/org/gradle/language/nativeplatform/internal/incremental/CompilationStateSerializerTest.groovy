@@ -18,7 +18,7 @@ package org.gradle.language.nativeplatform.internal.incremental
 
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
-import com.google.common.hash.HashCode
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude
@@ -54,10 +54,10 @@ class CompilationStateSerializerTest extends SerializerSpec {
         when:
         def fileEmpty = new File("empty")
         def fileStates = [:]
-        fileStates.put(fileEmpty, compilationFileState(HashCode.fromString("1234"), createSourceIncludes(), []))
+        fileStates.put(fileEmpty, compilationFileState(HashCode.fromInt(0x12345678), createSourceIncludes(), []))
 
         def fileTwo = new File("two")
-        def stateTwo = compilationFileState(HashCode.fromString("2345"), createSourceIncludes("<system>", '"quoted"', "MACRO"), [resolvedInclude("ONE"), resolvedInclude("TWO")])
+        def stateTwo = compilationFileState(HashCode.fromInt(0x23456789), createSourceIncludes("<system>", '"quoted"', "MACRO"), [resolvedInclude("ONE"), resolvedInclude("TWO")])
         fileStates.put(fileTwo, stateTwo)
         def state = compilationState([], fileStates)
 
@@ -67,14 +67,14 @@ class CompilationStateSerializerTest extends SerializerSpec {
         newState.fileStates.size() == 2
 
         def emptyCompileState = newState.getState(fileEmpty)
-        emptyCompileState.hash == HashCode.fromString("1234")
+        emptyCompileState.hash == HashCode.fromInt(0x12345678)
         emptyCompileState.includeDirectives.macroIncludes.empty
         emptyCompileState.includeDirectives.quotedIncludes.empty
         emptyCompileState.includeDirectives.systemIncludes.empty
         emptyCompileState.resolvedIncludes.empty
 
         def otherCompileState = newState.getState(fileTwo)
-        otherCompileState.hash == HashCode.fromString("2345")
+        otherCompileState.hash == HashCode.fromInt(0x23456789)
         otherCompileState.includeDirectives.systemIncludes.collect { it.value } == ["system"]
         otherCompileState.includeDirectives.quotedIncludes.collect { it.value } == ["quoted"]
         otherCompileState.includeDirectives.macroIncludes.collect { it.value } == ["MACRO"]

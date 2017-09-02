@@ -18,23 +18,18 @@ package org.gradle.language.cpp.plugins;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.internal.DefaultCppApplication;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
-import org.gradle.nativeplatform.tasks.LinkExecutable;
 
 import javax.inject.Inject;
-import java.util.concurrent.Callable;
 
 /**
  * <p>A plugin that produces a native executable from C++ source.</p>
@@ -49,6 +44,11 @@ import java.util.concurrent.Callable;
 public class CppExecutablePlugin implements Plugin<ProjectInternal> {
     private final FileOperations fileOperations;
 
+    /**
+     * Injects a {@link FileOperations} instance.
+     *
+     * @since 4.2
+     */
     @Inject
     public CppExecutablePlugin(FileOperations fileOperations) {
         this.fileOperations = fileOperations;
@@ -58,7 +58,6 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(CppBasePlugin.class);
 
-        DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
         ConfigurationContainer configurations = project.getConfigurations();
         ProviderFactory providers = project.getProviders();
         TaskContainer tasks = project.getTasks();
@@ -72,31 +71,10 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
         // Configure the component
         application.getBaseName().set(project.getName());
 
-        LinkExecutable link = (LinkExecutable) tasks.getByName("linkDebug");
-
-        // Add an install task
-        // TODO - move this up to the base plugin
-        final InstallExecutable install = tasks.create("installMain", InstallExecutable.class);
-        install.setPlatform(link.getTargetPlatform());
-        install.setToolChain(link.getToolChain());
-        install.setDestinationDir(buildDirectory.dir(providers.provider(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                return "install/" + application.getBaseName().get();
-            }
-        })));
-        install.setExecutable(link.getBinaryFile());
-        // TODO - infer this
-        install.onlyIf(new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return install.getExecutable().exists();
-            }
-        });
-        install.lib(application.getDebugExecutable().getRuntimeLibraries());
-
+        // Install the debug variant by default
+        InstallExecutable install = (InstallExecutable) tasks.getByName("installDebug");
         tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(install);
 
-        // TODO - add lifecycle tasks
+        // TODO - add lifecycle tasks to assemble each variant
     }
 }

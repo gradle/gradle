@@ -1,5 +1,15 @@
 {
     "baseVersion": "4.2-20170827235721+0000",
     "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getStreamHasher()",
+            "acceptation": "Injected service"
+        },
+        {
+            "type": "org.gradle.api.tasks.WorkResults",
+            "member": "Method org.gradle.api.tasks.WorkResults.didWork(boolean)",
+            "acceptation": "Not incubating"
+        }
     ]
 }

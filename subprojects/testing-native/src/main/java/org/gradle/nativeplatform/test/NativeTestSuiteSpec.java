@@ -21,6 +21,8 @@ import org.gradle.testing.base.TestSuiteSpec;
 
 /**
  * A component representing a suite of tests that will be executed together.
+ *
+ * @since 4.2
  */
 @Incubating
 public interface NativeTestSuiteSpec extends TestSuiteSpec, NativeComponentSpec {

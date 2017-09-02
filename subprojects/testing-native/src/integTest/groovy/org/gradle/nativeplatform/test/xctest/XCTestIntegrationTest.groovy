@@ -42,9 +42,8 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        result.assertTasksExecutedInOrder(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
         result.assertTasksSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
-
     }
 
     def "test task fail when test cases fail"() {
@@ -61,7 +60,7 @@ apply plugin: 'xctest'
         fails("test")
 
         then:
-        executedAndNotSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest")
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest")
         testApp.expectedSummaryOutputPattern.matcher(output).find()
     }
 
@@ -79,7 +78,7 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        executedAndNotSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
         testApp.expectedSummaryOutputPattern.matcher(output).find()
     }
 
@@ -108,7 +107,7 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        executedAndNotSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
         oldTestApp.expectedSummaryOutputPattern.matcher(output).find()
 
         when:
@@ -117,7 +116,7 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        executedAndNotSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
         newTestApp.expectedSummaryOutputPattern.matcher(output).find()
     }
 
@@ -145,7 +144,7 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        executedAndNotSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
         oldTestApp.expectedSummaryOutputPattern.matcher(output).find()
 
         when:
@@ -154,7 +153,7 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        executedAndNotSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
         newTestApp.expectedSummaryOutputPattern.matcher(output).find()
     }
 
@@ -173,7 +172,7 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        executed(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
         result.assertTasksSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
     }
 
@@ -187,26 +186,25 @@ apply plugin: 'xctest'
 
         given:
         settingsFile << """
-include 'Greeter'
+include 'greeter'
 """
         buildFile << """
-project(':Greeter') {
+project(':greeter') {
     apply plugin: 'swift-library'
 }
 
 dependencies {
-    testImplementation project(':Greeter')
+    testImplementation project(':greeter')
 }
 """
-        lib.writeToProject(file('Greeter'))
+        lib.writeToProject(file('greeter'))
         testApp.writeToProject(testDirectory)
 
         when:
         succeeds("test")
 
         then:
-        executedAndNotSkipped(":Greeter:compileDebugSwift", ":compileTestSwift", ":Greeter:linkDebug",
-            ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
     }
 
     def "assemble task doesn't build or run any of the tests"() {
@@ -223,7 +221,7 @@ dependencies {
         succeeds("assemble")
 
         then:
-        result.assertTasksExecutedInOrder(":assemble")
+        result.assertTasksExecuted(":assemble")
         result.assertTasksSkipped(":assemble")
     }
 }

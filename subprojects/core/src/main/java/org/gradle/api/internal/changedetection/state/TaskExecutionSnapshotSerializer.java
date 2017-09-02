@@ -20,8 +20,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.hash.HashCode;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
@@ -123,7 +123,7 @@ public class TaskExecutionSnapshotSerializer extends AbstractSerializer<TaskExec
             encoder.writeBoolean(false);
         } else {
             encoder.writeBoolean(true);
-            encoder.writeBinary(implementation.getClassLoaderHash().asBytes());
+            encoder.writeBinary(implementation.getClassLoaderHash().toByteArray());
         }
     }
 

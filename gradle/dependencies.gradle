@@ -23,7 +23,7 @@ versions.commons_io = 'commons-io:commons-io:2.2'
 
 versions.groovy = "2.4.11"
 
-versions.bouncycastle = "1.51"
+versions.bouncycastle = "1.57"
 
 versions.maven = "3.0.4"
 

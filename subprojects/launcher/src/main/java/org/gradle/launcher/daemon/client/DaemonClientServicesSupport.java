@@ -31,7 +31,7 @@ import org.gradle.internal.remote.internal.OutgoingConnector;
 import org.gradle.internal.remote.internal.inet.TcpOutgoingConnector;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.time.ReliableTimeProvider;
+import org.gradle.internal.time.MonotonicTimeProvider;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
 import org.gradle.launcher.daemon.context.DaemonContext;
@@ -97,7 +97,7 @@ public abstract class DaemonClientServicesSupport extends DefaultServiceRegistry
     }
 
     TimeProvider createTimeProvider() {
-        return new ReliableTimeProvider();
+        return MonotonicTimeProvider.global();
     }
 
     ProgressLoggerFactory createProgressLoggerFactory(TimeProvider timeProvider) {

@@ -37,7 +37,8 @@ public class XcodeTarget implements Named {
     private String taskName;
     private String gradleCommand;
 
-    private final RegularFileVar outputFile;
+    private final RegularFileVar debugOutputFile;
+    private final RegularFileVar releaseOutputFile;
     private PBXTarget.ProductType productType;
     private String productName;
     private String outputFileType;
@@ -46,7 +47,8 @@ public class XcodeTarget implements Named {
     public XcodeTarget(String name, String id, FileOperations fileOperations, ProjectLayout projectLayout) {
         this.name = name;
         this.id = id;
-        this.outputFile = projectLayout.newFileVar();
+        this.debugOutputFile = projectLayout.newFileVar();
+        this.releaseOutputFile = projectLayout.newFileVar();
         this.sources = fileOperations.files();
         this.headerSearchPaths = fileOperations.files();
         this.importPaths = fileOperations.files();
@@ -61,8 +63,12 @@ public class XcodeTarget implements Named {
         return name;
     }
 
-    public RegularFileVar getOutputFile() {
-        return outputFile;
+    public RegularFileVar getDebugOutputFile() {
+        return debugOutputFile;
+    }
+
+    public RegularFileVar getReleaseOutputFile() {
+        return releaseOutputFile;
     }
 
     public String getOutputFileType() {

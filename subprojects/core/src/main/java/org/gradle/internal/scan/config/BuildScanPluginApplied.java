@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.hash;
+package org.gradle.internal.scan.config;
 
-import com.google.common.base.Charsets;
-import com.google.common.hash.Hasher;
-import com.google.common.hash.Hashing;
-
-public class DefaultFileContentHasherFactory implements FileContentHasherFactory {
-    private static final byte[] SIGNATURE = Hashing.md5().hashString(DefaultFileContentHasherFactory.class.getName(), Charsets.UTF_8).asBytes();
-
-    @Override
-    public Hasher create() {
-        Hasher hasher = Hashing.md5().newHasher();
-        hasher.putBytes(SIGNATURE);
-        return hasher;
-    }
+/**
+ * Can be used to determine if the build scan plugin has been applied.
+ *
+ * This is available as a build scoped service.
+ * We use a dedicated service for detecting the plugin application since
+ *  - we want to have a deep integration
+ *  - we want to have only one way how to ask if the plugin has been applied
+ */
+public interface BuildScanPluginApplied {
+    boolean isBuildScanPluginApplied();
 }

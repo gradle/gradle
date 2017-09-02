@@ -16,14 +16,13 @@
 
 package org.gradle.cache.internal;
 
-import com.google.common.base.Charsets;
-import com.google.common.hash.HashCode;
-import com.google.common.hash.HashFunction;
-import com.google.common.hash.Hasher;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.HashFunction;
+import org.gradle.internal.hash.Hasher;
 
 import java.io.File;
 
@@ -62,7 +61,7 @@ class DefaultCacheKeyBuilder implements CacheKeyBuilder {
 
     private HashCode hashOf(Object component) {
         if (component instanceof String) {
-            return hashFunction.hashString((String) component, Charsets.UTF_8);
+            return hashFunction.hashString((String) component);
         }
         if (component instanceof File) {
             return fileHasher.hash((File) component);
@@ -87,7 +86,7 @@ class DefaultCacheKeyBuilder implements CacheKeyBuilder {
     private HashCode combinedHashOf(Object[] components) {
         Hasher hasher = hashFunction.newHasher();
         for (Object c : components) {
-            hasher.putBytes(hashOf(c).asBytes());
+            hasher.putBytes(hashOf(c).toByteArray());
         }
         return hasher.hash();
     }

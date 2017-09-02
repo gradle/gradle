@@ -196,8 +196,6 @@ The Daemon enables faster builds, which is particularly important when a human i
 
 The Gradle Tooling API (see <<embedding>>), that is used by IDEs and other tools to integrate with Gradle, _always_ use the Gradle Daemon to execute builds. If you are executing Gradle builds from within you're IDE you are using the Gradle Daemon and do not need to enable it for your environment.
 
-However, unless you have explicitly enabled the Gradle Daemon for you environment your builds from the command line will not use the Gradle Daemon.
-
 [[sec:how_does_the_gradle_daemon_make_builds_faster]]
 === How does the Gradle Daemon make builds faster?
 

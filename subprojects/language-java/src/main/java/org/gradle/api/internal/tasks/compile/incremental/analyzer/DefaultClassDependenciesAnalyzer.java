@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
-import com.google.common.hash.HashCode;
 import com.google.common.io.ByteStreams;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.tasks.compile.incremental.asm.ClassDependenciesVisitor;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
+import org.gradle.internal.hash.HashCode;
 import org.objectweb.asm.ClassReader;
 
 import java.io.IOException;

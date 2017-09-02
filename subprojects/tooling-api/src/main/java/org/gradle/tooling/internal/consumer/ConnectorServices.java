@@ -22,7 +22,7 @@ import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.time.ReliableTimeProvider;
+import org.gradle.internal.time.MonotonicTimeProvider;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.tooling.CancellationTokenSource;
 import org.gradle.tooling.internal.consumer.loader.CachingToolingImplementationLoader;
@@ -56,6 +56,7 @@ public class ConnectorServices {
     }
 
     private static void checkJavaVersion() {
+        UnsupportedJavaRuntimeException.javaDeprecationWarning();
         UnsupportedJavaRuntimeException.assertUsingVersion("Gradle Tooling API", JavaVersion.VERSION_1_7);
     }
 
@@ -77,7 +78,7 @@ public class ConnectorServices {
         }
 
         protected TimeProvider createTimeProvider() {
-            return new ReliableTimeProvider();
+            return MonotonicTimeProvider.global();
         }
 
         protected DistributionFactory createDistributionFactory(TimeProvider timeProvider) {

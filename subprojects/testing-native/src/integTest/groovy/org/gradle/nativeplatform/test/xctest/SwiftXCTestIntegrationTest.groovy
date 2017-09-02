@@ -45,6 +45,7 @@ apply plugin: 'swift-library'
         succeeds("test")
 
         then:
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
         result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
     }
 
@@ -61,7 +62,7 @@ apply plugin: 'swift-library'
 
         given:
         settingsFile << """
-rootProject.name = 'Greeter'
+rootProject.name = 'greeter'
 """
         buildFile << """
 apply plugin: 'swift-library'
@@ -73,7 +74,7 @@ apply plugin: 'swift-library'
         succeeds("test")
 
         then:
-        executedAndNotSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
         test.expectedSummaryOutputPattern.matcher(output).find()
     }
 
@@ -87,6 +88,7 @@ apply plugin: 'swift-executable'
         succeeds("test")
 
         then:
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
         result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
     }
 
@@ -115,7 +117,6 @@ linkTest.source = project.files(new HashSet(linkTest.source.from)).filter { !it.
         succeeds("test")
 
         then:
-        executedAndNotSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
-
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
     }
 }

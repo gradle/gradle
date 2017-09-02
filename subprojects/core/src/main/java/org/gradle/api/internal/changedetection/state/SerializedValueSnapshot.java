@@ -17,10 +17,10 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.base.Objects;
-import com.google.common.hash.HashCode;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
 
 import java.io.ByteArrayInputStream;

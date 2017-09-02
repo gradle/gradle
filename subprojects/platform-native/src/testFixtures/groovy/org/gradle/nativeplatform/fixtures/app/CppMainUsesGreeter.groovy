@@ -19,10 +19,10 @@ package org.gradle.nativeplatform.fixtures.app
 import org.gradle.integtests.fixtures.SourceFile
 
 
-class CppAlternateMain extends SourceFileElement implements AppElement {
+class CppMainUsesGreeter extends SourceFileElement implements AppElement {
     final GreeterElement greeter
 
-    CppAlternateMain(GreeterElement greeter) {
+    CppMainUsesGreeter(GreeterElement greeter) {
         this.greeter = greeter
     }
 

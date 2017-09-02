@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.hash.HashCode;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.hash.HashCode;
 
 /**
  * An immutable snapshot of file meta-data and content. The file may not exist.

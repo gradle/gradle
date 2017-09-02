@@ -16,7 +16,7 @@
 
 package org.gradle.caching.internal;
 
-import com.google.common.hash.HashCode;
+import org.gradle.internal.hash.HashCode;
 
 public interface BuildCacheHasher {
     BuildCacheHasher putByte(byte b);

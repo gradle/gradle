@@ -33,6 +33,8 @@ import java.io.File;
 public interface Directory extends FileSystemLocation {
     /**
      * Returns the location of this directory, as an absolute {@link File}.
+     *
+     * @since 4.2
      */
     File getAsFile();
 

@@ -21,6 +21,7 @@ import org.gradle.language.cpp.CppBinary
 import org.gradle.language.cpp.CppExecutable
 import org.gradle.language.cpp.CppSharedLibrary
 import org.gradle.language.cpp.tasks.CppCompile
+import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -55,7 +56,7 @@ class CppBasePluginTest extends Specification {
         "testDebug" | "compileTestDebugCpp" | "test/debug"
     }
 
-    def "adds link task for executable"() {
+    def "adds link and install task for executable"() {
         def baseName = project.providers.property(String)
         baseName.set("test_app")
         def executable = Stub(CppExecutable)
@@ -67,16 +68,20 @@ class CppBasePluginTest extends Specification {
         project.components.add(executable)
 
         then:
-        def link = project.tasks[taskName]
+        def link = project.tasks[linkTask]
         link instanceof LinkExecutable
         link.binaryFile.get().asFile == projectDir.file("build/exe/$exeDir" + OperatingSystem.current().getExecutableName("test_app"))
 
+        def install = project.tasks[installTask]
+        install instanceof InstallExecutable
+        install.installDirectory.get().asFile == projectDir.file("build/install/$exeDir")
+
         where:
-        name        | taskName        | exeDir
-        "main"      | "link"          | "main/"
-        "mainDebug" | "linkDebug"     | "main/debug/"
-        "test"      | "linkTest"      | "test/"
-        "testDebug" | "linkTestDebug" | "test/debug/"
+        name        | linkTask        | installTask        | exeDir
+        "main"      | "link"          | "install"          | "main/"
+        "mainDebug" | "linkDebug"     | "installDebug"     | "main/debug/"
+        "test"      | "linkTest"      | "installTest"      | "test/"
+        "testDebug" | "linkTestDebug" | "installTestDebug" | "test/debug/"
     }
 
     def "adds link task for shared library"() {

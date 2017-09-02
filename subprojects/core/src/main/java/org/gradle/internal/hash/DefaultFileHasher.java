@@ -15,37 +15,21 @@
  */
 package org.gradle.internal.hash;
 
-import com.google.common.hash.HashCode;
-import com.google.common.hash.Hasher;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.internal.file.FileMetadataSnapshot;
-import org.gradle.internal.io.NullOutputStream;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Queue;
-import java.util.concurrent.ArrayBlockingQueue;
 
 public class DefaultFileHasher implements FileHasher {
-    private final Queue<byte[]> buffers = new ArrayBlockingQueue<byte[]>(16);
-    private final FileContentHasherFactory hasherFactory;
+    private final StreamHasher streamHasher;
 
-    public DefaultFileHasher(FileContentHasherFactory hasherFactory) {
-        this.hasherFactory = hasherFactory;
-    }
-
-    @Override
-    public HashCode hash(InputStream inputStream) {
-        try {
-            return doHash(inputStream, NullOutputStream.INSTANCE);
-        } catch (IOException e) {
-            throw new UncheckedIOException("Failed to create MD5 hash for file content.", e);
-        }
+    public DefaultFileHasher(StreamHasher streamHasher) {
+        this.streamHasher = streamHasher;
     }
 
     @Override
@@ -53,49 +37,13 @@ public class DefaultFileHasher implements FileHasher {
         try {
             InputStream inputStream = new FileInputStream(file);
             try {
-                return doHash(inputStream, NullOutputStream.INSTANCE);
+                return streamHasher.hash(inputStream);
             } finally {
                 IOUtils.closeQuietly(inputStream);
             }
         } catch (IOException e) {
             throw new UncheckedIOException(String.format("Failed to create MD5 hash for file '%s'.", file), e);
         }
-    }
-
-    @Override
-    public HashCode hashCopy(InputStream inputStream, OutputStream outputStream) throws IOException {
-        return doHash(inputStream, outputStream);
-    }
-
-    private HashCode doHash(InputStream inputStream, OutputStream outputStream) throws IOException {
-        byte[] buffer = takeBuffer();
-        try {
-            Hasher hasher = hasherFactory.create();
-            while (true) {
-                int nread = inputStream.read(buffer);
-                if (nread < 0) {
-                    break;
-                }
-                outputStream.write(buffer, 0, nread);
-                hasher.putBytes(buffer, 0, nread);
-            }
-            return hasher.hash();
-        } finally {
-            returnBuffer(buffer);
-        }
-    }
-
-    private void returnBuffer(byte[] buffer) {
-        // Retain buffer if there is capacity in the queue, otherwise discard
-        buffers.offer(buffer);
-    }
-
-    private byte[] takeBuffer() {
-        byte[] buffer = buffers.poll();
-        if (buffer == null) {
-            buffer = new byte[8192];
-        }
-        return buffer;
     }
 
     @Override

@@ -25,6 +25,8 @@ import org.gradle.launcher.daemon.registry.DaemonRegistryServices
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.GradleVersion
 
+import static org.gradle.integtests.fixtures.RetryRuleUtil.daemonStoppedWithSocketExceptionOnWindows
+
 class DaemonLogsAnalyzer implements DaemonsFixture {
     private final File daemonLogsDir
     private final File daemonBaseDir
@@ -54,10 +56,15 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
     }
 
     void killAll() {
-        daemons*.kill()
+        allDaemons*.kill()
     }
 
+
     List<DaemonFixture> getDaemons() {
+        getAllDaemons().findAll { !daemonStoppedWithSocketExceptionOnWindows(it) || it.log.contains("Starting build in new daemon") }
+    }
+
+    List<DaemonFixture> getAllDaemons() {
         if (!daemonLogsDir.exists() || !daemonLogsDir.isDirectory()) {
             return []
         }

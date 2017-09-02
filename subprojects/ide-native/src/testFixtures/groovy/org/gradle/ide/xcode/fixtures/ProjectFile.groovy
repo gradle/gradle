@@ -46,8 +46,20 @@ class ProjectFile {
         return file
     }
 
+    PBXObject getBuildConfigurationList() {
+        return rootObject.getProperty("buildConfigurationList")
+    }
+
     List<PBXTarget> getTargets() {
         return rootObject.getProperty("targets")
+    }
+
+    PBXNativeTarget getIndexTarget() {
+        return targets.find { it instanceof PBXNativeTarget }
+    }
+
+    PBXLegacyTarget getGradleTarget() {
+        return targets.find { it instanceof PBXLegacyTarget }
     }
 
     PBXGroup getMainGroup() {
@@ -79,8 +91,10 @@ class ProjectFile {
 
         if (object.isa.toJavaObject() == "PBXGroup") {
             return new PBXGroup(id, object)
-        } else if (object.isa.toJavaObject() == "PBXTarget") {
-            return new PBXTarget(id, object)
+        } else if (object.isa.toJavaObject() == "PBXLegacyTarget") {
+            return new PBXLegacyTarget(id, object)
+        } else if (object.isa.toJavaObject() == "PBXNativeTarget") {
+            return new PBXNativeTarget(id, object)
         } else {
             return new PBXObject(id, object)
         }
@@ -151,6 +165,22 @@ class ProjectFile {
 
         PBXObject getProductReference() {
             return getProperty("productReference")
+        }
+    }
+
+    class PBXNativeTarget extends PBXTarget {
+        PBXNativeTarget(String id, NSDictionary object) {
+            super(id, object)
+        }
+
+        Map<String, ?> getBuildSettings() {
+            return buildConfigurationList.buildConfigurations[0].buildSettings
+        }
+    }
+
+    class PBXLegacyTarget extends PBXTarget {
+        PBXLegacyTarget(String id, NSDictionary object) {
+            super(id, object)
         }
     }
 }
