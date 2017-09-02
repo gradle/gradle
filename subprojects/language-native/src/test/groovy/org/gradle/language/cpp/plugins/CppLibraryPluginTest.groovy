@@ -77,6 +77,7 @@ class CppLibraryPluginTest extends Specification {
         def linkDebug = project.tasks.linkDebug
         linkDebug instanceof LinkSharedLibrary
         linkDebug.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("testLib"))
+        linkDebug.debuggable
 
         def compileReleaseCpp = project.tasks.compileReleaseCpp
         compileReleaseCpp instanceof CppCompile
@@ -89,6 +90,7 @@ class CppLibraryPluginTest extends Specification {
         def linkRelease = project.tasks.linkRelease
         linkRelease instanceof LinkSharedLibrary
         linkRelease.binaryFile.get().asFile == projectDir.file("build/lib/main/release/" + OperatingSystem.current().getSharedLibraryName("testLib"))
+        !linkRelease.debuggable
     }
 
     def "output locations are calculated using base name defined on extension"() {

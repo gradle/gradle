@@ -27,6 +27,7 @@ public class DefaultLinkerSpec extends AbstractBinaryToolSpec implements LinkerS
     private final List<File> libraries = new ArrayList<File>();
     private final List<File> libraryPath = new ArrayList<File>();
     private File outputFile;
+    private boolean debuggable;
 
     @Override
     public List<File> getObjectFiles() {
@@ -72,5 +73,15 @@ public class DefaultLinkerSpec extends AbstractBinaryToolSpec implements LinkerS
         for (File file : iterable) {
             list.add(file);
         }
+    }
+
+    @Override
+    public boolean isDebuggable() {
+        return debuggable;
+    }
+
+    @Override
+    public void setDebuggable(boolean debuggable) {
+        this.debuggable = debuggable;
     }
 }

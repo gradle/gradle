@@ -73,6 +73,7 @@ class SwiftExecutablePluginTest extends Specification {
         def linkDebug = project.tasks.linkDebug
         linkDebug instanceof LinkExecutable
         linkDebug.binaryFile.get().asFile == projectDir.file("build/exe/main/debug/" + OperatingSystem.current().getExecutableName("TestApp"))
+        linkDebug.debuggable
 
         def installDebug = project.tasks.installDebug
         installDebug instanceof InstallExecutable
@@ -89,6 +90,7 @@ class SwiftExecutablePluginTest extends Specification {
         def linkRelease = project.tasks.linkRelease
         linkRelease instanceof LinkExecutable
         linkRelease.binaryFile.get().asFile == projectDir.file("build/exe/main/release/" + OperatingSystem.current().getExecutableName("TestApp"))
+        !linkRelease.debuggable
 
         def installRelease = project.tasks.installRelease
         installRelease instanceof InstallExecutable

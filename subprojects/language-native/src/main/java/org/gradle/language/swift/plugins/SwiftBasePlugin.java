@@ -103,6 +103,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     link.setOutputFile(exeLocation);
                     link.setTargetPlatform(currentPlatform);
                     link.setToolChain(toolChain);
+                    link.setDebuggable(binary.isDebuggable());
 
                     // Add an install task
                     // TODO - maybe not for all executables
@@ -135,6 +136,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     link.setOutputFile(runtimeFile);
                     link.setTargetPlatform(currentPlatform);
                     link.setToolChain(toolChain);
+                    link.setDebuggable(binary.isDebuggable());
                 }
             }
         });

@@ -55,6 +55,7 @@ import java.util.concurrent.Callable;
 public abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBinary {
     private NativeToolChainInternal toolChain;
     private NativePlatformInternal targetPlatform;
+    private boolean debuggable;
     private final RegularFileVar outputFile;
     private final List<String> linkerArgs = new ArrayList<String>();
     private final ConfigurableFileCollection source;
@@ -148,6 +149,18 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     }
 
     /**
+     * Create a debuggable binary?
+     */
+    @Input
+    public boolean isDebuggable() {
+        return debuggable;
+    }
+
+    public void setDebuggable(boolean debuggable) {
+        this.debuggable = debuggable;
+    }
+
+    /**
      * The source object files to be passed to the linker.
      */
     @InputFiles
@@ -209,6 +222,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
         spec.objectFiles(getSource());
         spec.libraries(getLibs());
         spec.args(getLinkerArgs());
+        spec.setDebuggable(isDebuggable());
 
         BuildOperationLogger operationLogger = getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir());
         spec.setOperationLogger(operationLogger);

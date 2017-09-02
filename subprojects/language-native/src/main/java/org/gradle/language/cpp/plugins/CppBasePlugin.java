@@ -100,6 +100,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     })));
                     link.setTargetPlatform(currentPlatform);
                     link.setToolChain(toolChain);
+                    link.setDebuggable(binary.isDebuggable());
 
                     // Add an install task
                     // TODO - should probably not add this for all executables?
@@ -135,6 +136,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     link.setOutputFile(runtimeFile);
                     link.setTargetPlatform(currentPlatform);
                     link.setToolChain(toolChain);
+                    link.setDebuggable(binary.isDebuggable());
                 }
             }
         });
