@@ -1013,7 +1013,7 @@ Dependency resolve rules provide a very powerful way to control the dependency r
 
 
 [[sec:releasable_unit]]
-===== Modelling releaseable units
+===== Modelling releasable units
 
 Often an organisation publishes a set of libraries with a single version; where the libraries are built, tested and published together. These libraries form a 'releasable unit', designed and intended to be used as a whole. It does not make sense to use libraries from different releasable units together.
 
@@ -1082,7 +1082,7 @@ _NOTE: Adding a dependency substitution rule to a configuration changes the timi
 To explain:
 
 * A `Configuration` can be declared as an input to any Task, and that configuration can include project dependencies when it is resolved.
-* If a project dependency is an input to a Task (via a configuration), then tasks to built the project artifacts must be added to the task dependencies.
+* If a project dependency is an input to a Task (via a configuration), then tasks to build the project artifacts must be added to the task dependencies.
 * In order to determine the project dependencies that are inputs to a task, Gradle needs to resolve the `Configuration` inputs.
 * Because the Gradle task graph is fixed once task execution has commenced, Gradle needs to perform this resolution prior to executing any tasks.
 
@@ -1275,7 +1275,7 @@ This method:
 [[sec:module_replacement]]
 ==== Module replacement rules
 
-Module replacement rules allow a build to declare that a legacy library has been replaced by a new one. A good example when a new library replaced a legacy one is the "google-collections" -&gt; "guava" migration. The team that created google-collections decided to change the module name from "com.google.collections:google-collections" into "com.google.guava:guava". This a legal scenario in the industry: teams need to be able to change the names of products they maintain, including the module coordinates. Renaming of the module coordinates has impact on conflict resolution.
+Module replacement rules allow a build to declare that a legacy library has been replaced by a new one. A good example when a new library replaced a legacy one is the "google-collections" -&gt; "guava" migration. The team that created google-collections decided to change the module name from "com.google.collections:google-collections" into "com.google.guava:guava". This is a legal scenario in the industry: teams need to be able to change the names of products they maintain, including the module coordinates. Renaming of the module coordinates has impact on conflict resolution.
 
 To explain the impact on conflict resolution, let's consider the "google-collections" -&gt; "guava" scenario. It may happen that both libraries are pulled into the same dependency graph. For example, "our" project depends on guava but some of our dependencies pull in a legacy version of google-collections. This can cause runtime errors, for example during test or application execution. Gradle does not automatically resolve the google-collections VS guava conflict because it is not considered as a "version conflict". It's because the module coordinates for both libraries are completely different and conflict resolution is activated when "group" and "name" coordinates are the same but there are different versions available in the dependency graph (for more info, please refer to the section on conflict resolution). Traditional remedies to this problem are:
 

@@ -104,7 +104,7 @@ Is this cool or is this cool? And how does this work? The Project API provides a
 
 Other build systems use inheritance as the primary means for defining common behavior. We also offer inheritance for projects as you will see later. But Gradle uses configuration injection as the usual way of defining common behavior. We think it provides a very powerful and flexible way of configuring multiproject builds.
 
-Another possibilty for sharing configuration is to use a common external script. See <<sec:configuring_using_external_script>> for more information.
+Another possibility for sharing configuration is to use a common external script. See <<sec:configuring_using_external_script>> for more information.
 
 [[sec:subproject_configuration]]
 === Subproject configuration
@@ -396,7 +396,7 @@ Configuration dependencies are very different from execution dependencies. Confi
 
 To change the default configuration order to “bottom up”, use the “`evaluationDependsOnChildren()`” method instead.
 
-On the same nesting level the configuration order depends on the alphanumeric position. The most common use case is to have multi-project builds that share a common lifecycle (e.g. all projects use the Java plugin). If you declare with `dependsOn` a _execution dependency_ between different projects, the default behavior of this method is to also create a _configuration_ dependency between the two projects. Therefore it is likely that you don't have to define configuration dependencies explicitly.
+On the same nesting level the configuration order depends on the alphanumeric position. The most common use case is to have multi-project builds that share a common lifecycle (e.g. all projects use the Java plugin). If you declare with `dependsOn` an _execution dependency_ between different projects, the default behavior of this method is to also create a _configuration_ dependency between the two projects. Therefore it is likely that you don't have to define configuration dependencies explicitly.
 
 [[sub:real_life_examples]]
 ==== Real life examples
@@ -511,7 +511,7 @@ This means that using any form of shared build script logic or configuration inj
 
 In order to make good use of cross project configuration without running into issues for parallel and 'configuration on demand' options, follow these recommendations:
 
-* Avoid a subproject's `build.gradle` referencing other subprojects; prefering cross configuration from the root project.
+* Avoid a subproject's `build.gradle` referencing other subprojects; preferring cross configuration from the root project.
 * Avoid changing the configuration of other projects at execution time.
 
 
