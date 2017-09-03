@@ -28,6 +28,7 @@ import org.gradle.util.CollectionUtils;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 
 public class FindBugsSpecBuilder {
@@ -49,11 +50,12 @@ public class FindBugsSpecBuilder {
     private File includeFilter;
     private File excludeBugsFilter;
     private Collection<String> extraArgs;
+    private Collection<String> jvmArgs;
     private boolean debugEnabled;
     private boolean showProgress;
 
     public FindBugsSpecBuilder(FileCollection classesDirs) {
-        if(classesDirs == null || classesDirs.isEmpty()){
+        if (classesDirs == null || classesDirs.isEmpty()) {
             throw new InvalidUserDataException("No class directories configured for FindBugs analysis.");
         }
         this.classesDirs = classesDirs;
@@ -147,15 +149,20 @@ public class FindBugsSpecBuilder {
         return this;
     }
 
-    public FindBugsSpecBuilder withDebugging(boolean debugEnabled){
+    public FindBugsSpecBuilder withDebugging(boolean debugEnabled) {
         this.debugEnabled = debugEnabled;
+        return this;
+    }
+
+    public FindBugsSpecBuilder withJvmArgs(Collection<String> jvmArgs) {
+        this.jvmArgs = jvmArgs;
         return this;
     }
 
     public FindBugsSpec build() {
         ArrayList<String> args = new ArrayList<String>();
         args.add("-pluginList");
-        args.add(pluginsList==null ? "" : pluginsList.getAsPath());
+        args.add(pluginsList == null ? "" : pluginsList.getAsPath());
         args.add("-sortByClass");
         args.add("-timestampNow");
         if (showProgress) {
@@ -245,7 +252,7 @@ public class FindBugsSpecBuilder {
             }
         }
 
-        return new FindBugsSpec(args, maxHeapSize, debugEnabled);
+        return new FindBugsSpec(args, maxHeapSize, debugEnabled, jvmArgs == null ? Collections.<String>emptyList() : jvmArgs);
     }
 
     private boolean has(String str) {

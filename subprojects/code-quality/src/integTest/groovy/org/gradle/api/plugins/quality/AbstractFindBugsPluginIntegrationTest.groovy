@@ -463,6 +463,47 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         failure.assertHasDescription "Execution failed for task ':findbugsMain'."
     }
 
+    def "valid jvm args"() {
+        given:
+        badCode()
+        buildFile << extensionProgressConfiguration(true)
+        // We don't have many jvm args to use for FindBugs, see:
+        // http://findbugs.sourceforge.net/manual/running.html
+        // https://github.com/findbugsproject/findbugs/blob/master/findbugs/build.xml#L771
+        buildFile << '''
+            findbugs {
+                jvmArgs = ['-Duser.language=fr']
+            }
+            findbugsMain.reports {
+                html.enabled true
+                xml.enabled false
+            }
+        '''
+
+        fails('findbugsMain')
+
+        expect:
+        file('build/reports/findbugs/main.html').text.contains('DM_EXIT: La méthode invoque System.exit(...)') // <- this is french
+    }
+
+    def "fails when given invalid jvmArgs"() {
+        given:
+        goodCode()
+
+        and:
+        buildFile << """
+            findbugsMain {
+                jvmArgs '-XInvalid'
+            }
+        """
+
+        expect:
+        fails("check")
+        failure.assertHasDescription("Execution failed for task ':findbugsMain'.")
+        failure.assertHasCause("Failed to run Gradle FindBugs Worker")
+        failure.assertThatCause(Matchers.matchesRegexp("Process 'Gradle FindBugs Worker [0-9]+' finished with non-zero exit value 1"))
+    }
+
     @IgnoreIf({GradleContextualExecuter.parallel})
     def "out-of-date with mixed Java and Groovy sources"() {
         given:
