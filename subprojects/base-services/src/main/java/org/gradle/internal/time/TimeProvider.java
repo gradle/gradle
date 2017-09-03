@@ -15,9 +15,7 @@
  */
 package org.gradle.internal.time;
 
-import java.io.Serializable;
-
-public interface TimeProvider extends Serializable {
+public interface TimeProvider {
 
     long getCurrentTime();
 }
