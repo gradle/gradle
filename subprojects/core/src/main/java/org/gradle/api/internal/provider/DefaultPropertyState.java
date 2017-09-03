@@ -38,7 +38,7 @@ public class DefaultPropertyState<T> implements PropertyState<T>, ProviderIntern
     }
 
     @Override
-    public void set(final T value) {
+    public void set(T value) {
         if (value == null) {
             this.provider = Providers.notDefined();
             return;
@@ -54,7 +54,7 @@ public class DefaultPropertyState<T> implements PropertyState<T>, ProviderIntern
     }
 
     @Override
-    public void set(final Provider<? extends T> provider) {
+    public void set(Provider<? extends T> provider) {
         if (provider == null) {
             throw new IllegalArgumentException("Cannot set the value of a property using a null provider.");
         }

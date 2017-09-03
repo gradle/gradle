@@ -18,11 +18,28 @@ package org.gradle.api.internal.provider
 
 import org.gradle.api.Transformer
 import org.gradle.api.provider.PropertyState
-import org.gradle.api.provider.Provider
-import spock.lang.Specification
 import spock.lang.Unroll
 
-class DefaultPropertyStateTest extends Specification {
+class DefaultPropertyStateTest extends PropertySpec<String> {
+    @Override
+    PropertyState<String> property() {
+        return new DefaultPropertyState<String>(String)
+    }
+
+    @Override
+    Class<String> type() {
+        return String
+    }
+
+    @Override
+    String someValue() {
+        return "value1"
+    }
+
+    @Override
+    String someOtherValue() {
+        return "value2"
+    }
 
     @Unroll
     def "can compare string representation with other instance returning value #value"() {
@@ -43,7 +60,16 @@ class DefaultPropertyStateTest extends Specification {
         null  | false
     }
 
-    def "fails when get method is called when the property has no value"() {
+    def "has no initial value"() {
+        def property = new DefaultPropertyState<String>(String)
+
+        expect:
+        !property.present
+        property.getOrNull() == null
+        property.getOrElse("123") == "123"
+    }
+
+    def "fails when get method is called when the property has no initial value"() {
         def property = new DefaultPropertyState<String>(String)
 
         when:
@@ -52,38 +78,6 @@ class DefaultPropertyStateTest extends Specification {
         then:
         def t = thrown(IllegalStateException)
         t.message == "No value has been specified for this provider."
-
-        when:
-        property.set("123")
-
-        then:
-        property.get()
-
-        when:
-        property.set(null)
-        property.get()
-
-        then:
-        t = thrown(IllegalStateException)
-        t.message == "No value has been specified for this provider."
-    }
-
-    def "returns value or null for get or null method"() {
-        when:
-        def property = new DefaultPropertyState<String>(String)
-
-        then:
-        !property.isPresent()
-        property.getOrNull() == null
-        property.getOrElse("123") == "123"
-
-        when:
-        property.set("abc")
-
-        then:
-        property.isPresent()
-        property.getOrNull() == "abc"
-        property.getOrElse("123") == "abc"
     }
 
     def "fails when value is set using incompatible type"() {
@@ -178,66 +172,6 @@ class DefaultPropertyStateTest extends Specification {
         e2.message == 'Cannot get the value of a property of type java.lang.Boolean as the provider associated with this property returned a value of type java.lang.Integer.'
     }
 
-    def "does not allow a null provider"() {
-        given:
-        def propertyState = new DefaultPropertyState<Boolean>(Boolean)
-
-        when:
-        propertyState.set((Provider)null)
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == 'Cannot set the value of a property using a null provider.'
-    }
-
-    def "get only calls provider once"() {
-        given:
-        def provider = Mock(ProviderInternal)
-        provider.type >> Boolean
-
-        def property = new DefaultPropertyState<Boolean>(Boolean)
-        property.set(provider)
-
-        when:
-        property.get()
-
-        then:
-        1 * provider.get() >> true
-        0 * _
-    }
-
-    def "getOrNull only calls provider once"() {
-        given:
-        def provider = Mock(ProviderInternal)
-        provider.type >> Boolean
-
-        def property = new DefaultPropertyState<Boolean>(Boolean)
-        property.set(provider)
-
-        when:
-        property.getOrNull()
-
-        then:
-        1 * provider.getOrNull() >> true
-        0 * _
-    }
-
-    def "getOrElse only calls provider once"() {
-        given:
-        def provider = Mock(ProviderInternal)
-        provider.type >> Boolean
-
-        def property = new DefaultPropertyState<Boolean>(Boolean)
-        property.set(provider)
-
-        when:
-        property.getOrElse(false)
-
-        then:
-        1 * provider.getOrNull() >> true
-        0 * _
-    }
-
     def "mapped provider is live"() {
         def transformer = Mock(Transformer)
         def provider = Mock(ProviderInternal)
@@ -281,22 +215,6 @@ class DefaultPropertyStateTest extends Specification {
         1 * provider.get() >> "abc"
         1 * transformer.transform("abc") >> "cba"
         0 * _
-    }
-
-    def "mapped provider fails when transformer returns null"() {
-        def transformer = Mock(Transformer)
-        transformer.transform(_) >> null
-
-        def property = new DefaultPropertyState<String>(String)
-        property.set("123")
-        def p = property.map(transformer)
-
-        when:
-        p.get()
-
-        then:
-        def e = thrown(IllegalStateException)
-        e.message == 'Transformer for this provider returned a null value.'
     }
 
     private PropertyState<Boolean> createBooleanPropertyState(Boolean value) {
