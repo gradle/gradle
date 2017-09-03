@@ -155,7 +155,7 @@ gradle.taskGraph.whenReady { taskGraph ->
         <section id="sec:conditional_signing">
             <title>Conditional Signing</title>
             <para>
-                A common usage pattern is to only sign build artifacts under certain conditions. For example, you may not wish to sign artifacts for non release versions.
+                A common usage pattern is to only sign build artifacts under certain conditions. For example, you may not wish to sign artifacts for non-release versions.
                 To achieve this, you can specify that signing is only required under certain conditions.
             </para>
             <sample id="conditionalSigning" dir="signing/conditional" title="Conditional signing">

@@ -120,7 +120,7 @@ Or Bintray's JCenter:
         </sample>
 ++++
 
-Or a any other remote Maven repository:
+Or any other remote Maven repository:
 
 ++++
 <sample id="defineRemoteMavenRepo" dir="userguide/artifacts/defineRepository" title="Usage of a remote Maven repository">

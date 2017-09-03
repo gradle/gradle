@@ -79,7 +79,7 @@ As this plugin is currently <<feature_lifecycle,incubating>>, only a few build i
 [[sec:pom_maven_conversion_]]
 ==== “`pom`” (Maven conversion)
 
-The “`pom`” type can be used to convert an Apache Maven build to a Gradle build. This works by converting the POM to one or more Gradle files. It is only able to be used if there is a valid “`pom.xml`” file in the directory that the `init` task is invoked in or, if invoked via the "`-p`" <<gradle_command_line,commandline option>>, in the specified project directory. This “`pom`” type will be automatically inferred if such a file exists.
+The “`pom`” type can be used to convert an Apache Maven build to a Gradle build. This works by converting the POM to one or more Gradle files. It is only able to be used if there is a valid “`pom.xml`” file in the directory that the `init` task is invoked in or, if invoked via the "`-p`" <<gradle_command_line,command line option>>, in the specified project directory. This “`pom`” type will be automatically inferred if such a file exists.
 
 The Maven conversion implementation was inspired by the https://github.com/jbaruch/maven2gradle[maven2gradle tool] that was originally developed by Gradle community members.
 
