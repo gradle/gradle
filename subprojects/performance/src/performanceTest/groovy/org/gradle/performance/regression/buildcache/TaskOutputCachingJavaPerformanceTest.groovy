@@ -85,6 +85,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
         protocol = "http"
         pushToRemote = true
         runner.addBuildExperimentListener(cleanLocalCache())
+        runner.addBuildExperimentListener(touchCacheArtifacts())
 
         when:
         def result = runner.run()
@@ -102,6 +103,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
         protocol = "https"
         pushToRemote = true
         runner.addBuildExperimentListener(cleanLocalCache())
+        runner.addBuildExperimentListener(touchCacheArtifacts())
 
         def keyStore = TestKeyStore.init(temporaryFolder.file('ssl-keystore'))
         keyStore.enableSslWithServerCert(buildCacheServer)
@@ -261,7 +263,9 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
             @Override
             void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
                 touchCacheArtifacts(cacheDir)
-                touchCacheArtifacts(buildCacheServer.cacheDir)
+                if (buildCacheServer.running) {
+                    touchCacheArtifacts(buildCacheServer.cacheDir)
+                }
             }
         }
     }
