@@ -56,8 +56,10 @@
                 </td>
             </tr>
             <tr>
-                <td>cache</td>
-		<td><literal><replaceable>${project.buildDir}</replaceable>/pmd-cache/<replaceable>taskName</replaceable>.cache</literal></td>
+                <td>incrementalAnalysis</td>
+                <td>
+                    <literal>false</literal>
+                </td>
             </tr>
         </table>
     </section>

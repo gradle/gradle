@@ -32,7 +32,6 @@ import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
@@ -46,7 +45,6 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.util.List;
 
 /**
@@ -68,7 +66,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     private int rulePriority;
     private boolean consoleOutput;
     private FileCollection classpath;
-    private File cache;
+    private boolean incrementalAnalysis;
 
     public Pmd() {
         reports = getInstantiator().newInstance(PmdReportsImpl.class, this);
@@ -335,32 +333,29 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     }
 
     /**
-     * Location for analysis cache.
-     *
-     * The cache allows PMD to perform incremental analysis, and therefore be much faster.
+     * Retrieves wether to use incremental analysis or not.
      *
      * This is only supported for PMD 5.6.0 or better.
      *
-     * @since 4.1
+     * @since 4.3
      */
-    @Internal
-    @Optional
+    @Input
     @Incubating
-    public File getCache() {
-        return cache;
+    public boolean isIncrementalAnalysis() {
+        return incrementalAnalysis;
     }
 
     /**
-     * Location for analysis cache.
-     *
-     * The cache allows PMD to perform incremental analysis, and therefore be much faster.
+     * Configures wether to use incremental analysis or not.
      *
      * This is only supported for PMD 5.6.0 or better.
      *
-     * @since 4.1
+     * @param incrementalAnalysis True to enable incremental analysis.
+     *
+     * @since 4.3
      */
     @Incubating
-    public void setCache(File cache) {
-        this.cache = cache;
+    public void setIncrementalAnalysis(boolean incrementalAnalysis) {
+        this.incrementalAnalysis = incrementalAnalysis;
     }
 }

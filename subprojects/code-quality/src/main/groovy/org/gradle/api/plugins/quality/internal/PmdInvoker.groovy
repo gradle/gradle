@@ -39,7 +39,9 @@ abstract class PmdInvoker {
         def stdOutIsAttachedToTerminal = pmdTask.stdOutIsAttachedToTerminal()
         def ignoreFailures = pmdTask.ignoreFailures
         def logger = pmdTask.logger
-        def cache = pmdTask.cache
+        def incrementalAnalysis = pmdTask.incrementalAnalysis
+        def taskName = pmdTask.name
+        def buildDir = pmdTask.project.buildDir
 
         def pmdVersion = VersionNumber.parse((pmdClasspath.filter {
             it.name ==~ /pmd-[^0-9]*([0-9\.]+)\.jar/
@@ -63,8 +65,8 @@ abstract class PmdInvoker {
         } else if (postPmd56) {
             // PMD 5.6.0 added an incremental analysis cache
             // https://pmd.github.io/pmd-5.7.0/overview/changelog-old.html#Incremental_Analysis
-            if (cache != null) {
-                antPmdArgs["cacheLocation"] = cache
+            if (incrementalAnalysis) {
+                antPmdArgs["cacheLocation"] = new File(buildDir.path + "/pmd-cache", taskName + ".cache")
             }
         }
 

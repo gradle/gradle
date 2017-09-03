@@ -150,10 +150,10 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
                 return extension.getTargetJdk();
             }
         });
-        taskMapping.map("cache", new Callable<File>() {
+        taskMapping.map("incrementalAnalysis", new Callable<Boolean>() {
             @Override
-            public File call() throws Exception {
-                return new File(task.getProject().getBuildDir() + "/pmd-cache", task.getName() + ".cache");
+            public Boolean call() {
+                return extension.isIncrementalAnalysis();
             }
         });
     }
