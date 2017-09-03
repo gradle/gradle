@@ -496,6 +496,8 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
                 jvmArgs '-XInvalid'
             }
         """
+        // java.io.IOException: The pipe is being closed on windows
+        executer.withStackTraceChecksDisabled()
 
         expect:
         fails("check")
