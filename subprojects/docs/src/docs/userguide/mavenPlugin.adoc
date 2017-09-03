@@ -95,7 +95,7 @@ These properties are provided by a api:org.gradle.api.plugins.MavenPluginConvent
 The maven plugin provides a factory method for creating a POM. This is useful if you need a POM without the context of uploading to a Maven repo.
 
 ++++
-<sample id="newPom" dir="maven/pomGeneration" title="Creating a stand alone pom.">
+<sample id="newPom" dir="maven/pomGeneration" title="Creating a standalone pom.">
             <sourcefile file="build.gradle" snippet="new-pom"/>
         </sample>
 ++++

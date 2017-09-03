@@ -31,7 +31,7 @@ class JUnitTestSuiteComponentReportIntegrationTest extends AbstractComponentRepo
         """
     }
 
-    def "shows details of stand alone Junit test suite"() {
+    def "shows details of standalone Junit test suite"() {
         given:
         buildFile << '''
         model {
@@ -69,7 +69,7 @@ Binaries
 """
     }
 
-    def "shows details of multiple stand alone Junit test suites"() {
+    def "shows details of multiple standalone Junit test suites"() {
         given:
         buildFile << """
 model {

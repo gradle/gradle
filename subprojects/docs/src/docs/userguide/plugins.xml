@@ -346,7 +346,7 @@
                     <sourcefile file="build.gradle" snippet="apply-by-type"/>
                 </sample>
                 <para>
-                    The <literal>JavaPlugin</literal> symbol in the above sample refers to the the <apilink class="org.gradle.api.plugins.JavaPlugin"/>.
+                    The <literal>JavaPlugin</literal> symbol in the above sample refers to the <apilink class="org.gradle.api.plugins.JavaPlugin"/>.
                     This class does not strictly need to be imported as the <literal>org.gradle.api.plugins</literal> package is automatically imported in all build scripts
                     (see <xref linkend='script-default-imports'/>). Furthermore, it is not necessary to append <literal>.class</literal> to identify a class literal in Groovy as it is in Java.
                 </para>

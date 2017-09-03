@@ -151,7 +151,7 @@ The incremental task action may supply an api:org.gradle.api.tasks.incremental.I
             </sample>
 ++++
 
-If for some reason the task is not run incremental, e.g. by running with `--rerun-tasks`, only the outOfDate action is executed, even if there where deleted input files. You should consider handling this case at the beginning, as is done in the example above.
+If for some reason the task is not run incremental, e.g. by running with `--rerun-tasks`, only the outOfDate action is executed, even if there were deleted input files. You should consider handling this case at the beginning, as is done in the example above.
 
 For a simple transformer task like this, the task action simply needs to generate output files for any out-of-date inputs, and delete output files for any removed inputs.
 
@@ -311,7 +311,7 @@ This states that the work should be run in a thread with a minimum of isolation.
 IsolationMode.CLASSLOADER::
 This states that the work should be run in a thread with an isolated classloader. The classloader will have the classpath from the classloader that the unit of work implementation class was loaded from as well as any additional classpath entries added through api:org.gradle.workers.WorkerConfiguration#classpath[].
 IsolationMode.PROCESS::
-This states the the work should be run with a maximum level of isolation by executing the work in a separate process. The classloader of the process will use the classpath from the classloader that the unit of work was loaded from as well as any additional classpath entries added through api:org.gradle.workers.WorkerConfiguration#classpath[]. Furthermore, the process will be a _Worker Daemon_ which will stay alive and can be reused for future work items that may have the same requirements. This process can be configured with different settings than the Gradle JVM using api:org.gradle.workers.WorkerConfiguration#forkOptions[].
+This states that the work should be run with a maximum level of isolation by executing the work in a separate process. The classloader of the process will use the classpath from the classloader that the unit of work was loaded from as well as any additional classpath entries added through api:org.gradle.workers.WorkerConfiguration#classpath[]. Furthermore, the process will be a _Worker Daemon_ which will stay alive and can be reused for future work items that may have the same requirements. This process can be configured with different settings than the Gradle JVM using api:org.gradle.workers.WorkerConfiguration#forkOptions[].
 
 
 
