@@ -62,6 +62,7 @@ public interface Provider<T> {
      * Returns the value of this provider if it has a value present. Returns the given default value if a value is not available.
      *
      * @return the value or the default value.
+     * @since 4.3
      */
     @Nullable
     T getOrElse(@Nullable T defaultValue);
@@ -74,6 +75,7 @@ public interface Provider<T> {
      * <p>Note that the new provider may cache the result of the transformations and so there is no guarantee that the transformer is called on every query of the new provider. The new provider will apply the transformation lazily, and calculate the value for the new provider when queried.
      *
      * @param transformer The transformer to apply to values. Should not return {@code null}.
+     * @since 4.3
      */
     <S> Provider<S> map(Transformer<? extends S, ? super T> transformer);
 
