@@ -46,6 +46,6 @@ public class DefaultBuildRequestMetaData implements BuildRequestMetaData {
 
     @Override
     public long getStartTime() {
-        return 0;
+        return startTime;
     }
 }
