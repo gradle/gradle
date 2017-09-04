@@ -223,6 +223,10 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
         }
     }
 
+    private RegularFileSnapshot createRegularFileSnapshot(FileVisitDetails fileDetails) {
+        return new RegularFileSnapshot(internPath(fileDetails.getFile()), fileDetails.getRelativePath(), false, fileSnapshot(fileDetails));
+    }
+
     private class FileVisitorImpl implements FileVisitor {
         private final static int BATCH_SIZE = 32;
         private final ArrayList<FileSnapshot> fileTreeElements;
@@ -242,11 +246,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
 
         @Override
         public void visitFile(final FileVisitDetails fileDetails) {
-            if (buffer != null) {
-                visitFileBuffered(fileDetails);
-            } else {
-                visitFileDirect(fileDetails);
-            }
+            visitFileBuffered(fileDetails);
         }
 
         private void visitFileBuffered(final FileVisitDetails fileDetails) {
@@ -256,10 +256,6 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
             if (bufferSize == BATCH_SIZE) {
                 flush();
             }
-        }
-
-        private void visitFileDirect(final FileVisitDetails fileDetails) {
-            fileTreeElements.add(new RegularFileSnapshot(internPath(fileDetails.getFile()), fileDetails.getRelativePath(), false, fileSnapshot(fileDetails)));
         }
 
         public List<FileSnapshot> getElements() {
@@ -403,7 +399,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
         public void run() {
             synchronized (lock) {
                 try {
-                    delegate = new RegularFileSnapshot(internPath(details.getFile()), details.getRelativePath(), false, fileSnapshot(details));
+                    delegate = createRegularFileSnapshot(details);
                 } finally {
                     lock.notifyAll();
                 }
