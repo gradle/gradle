@@ -47,13 +47,12 @@ Sample output:
 ----
 
 
-
 Currently, a given Gradle version can only connect to daemons of the same version. This means the status output will only show Daemons for the version of Gradle being invoked and not for any other versions. Future versions of Gradle will lift this constraint and will show the running Daemons for all versions of Gradle.
 
 [[sec:disabling_the_daemon]]
 === Disabling the Daemon
 
-The Gradle Daemon is enabled by default, and we recommend always enabling it for developers’ machines. There are several ways to disable the Daemon, but the most common one is to add the line
+The Gradle Daemon is enabled by default, and we recommend always enabling it. There are several ways to disable the Daemon, but the most common one is to add the line
 [source]
 ----
         org.gradle.daemon=false
@@ -73,7 +72,7 @@ Note that having the Daemon enabled, all your builds will take advantage of the 
 .Continuous integration
 ====
 
-At the moment, we recommend that you disable the Daemon for Continuous Integration servers as correctness is usually a priority over speed in CI environments. Using a fresh runtime for each build is more reliable since the runtime is _completely_ isolated from any previous builds. Additionally, since the Daemon primarily acts to reduce build startup times, this isn't as critical in CI as it is on a developer's machine.
+Since Gradle 3.0, we enable Daemon by default and recommend using it for both developers' machines and Continuous Integration servers. However, if you suspect that Daemon makes your CI builds unstable, you can disable it to use a fresh runtime for each build since the runtime is _completely_ isolated from any previous builds.
 
 ====
 
@@ -187,9 +186,7 @@ If it is suspected that the Daemon process has become unstable, it can simply be
 [[when_should_i_not_use_the_gradle_daemon]]
 === When should I not use the Gradle Daemon?
 
-It is recommended that the Daemon is used in all developer environments. It is recommend to _disable_ the Daemon for Continuous Integration and build server environments.
-
-The Daemon enables faster builds, which is particularly important when a human is sitting in front of the build. For CI builds, stability and predictability is of utmost importance. Using a fresh runtime (i.e. process) for each build is more reliable as the runtime is _completely_ isolated from previous builds.
+Since Gradle 3.0, the daemon is stable and the recommended mode for running Gradle. We do not recommend disabling it. If you think stability and predictability is of utmost importance for some builds, e.g. CI or build servers, you can disable it as mentioned above. Note: if you run CI builds in complete isolation, for example containers that kill all running processes at the end of the build, the daemon process will be killed and running with or without daemon effectively makes no difference.
 
 [[sec:tools_and_ides]]
 === Tools & IDEs
