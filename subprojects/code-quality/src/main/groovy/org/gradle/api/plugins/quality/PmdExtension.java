@@ -38,6 +38,7 @@ public class PmdExtension extends CodeQualityExtension {
     private TextResource ruleSetConfig;
     private FileCollection ruleSetFiles;
     private boolean consoleOutput;
+    private boolean incrementalAnalysis;
 
     public PmdExtension(Project project) {
         this.project = project;
@@ -192,5 +193,31 @@ public class PmdExtension extends CodeQualityExtension {
     @Incubating
     public void setConsoleOutput(boolean consoleOutput) {
         this.consoleOutput = consoleOutput;
+    }
+
+    /**
+     * Retrieves wether to use incremental analysis or not.
+     *
+     * This is only supported for PMD 5.6.0 or better.
+     *
+     * @since 4.3
+     */
+    @Incubating
+    public boolean isIncrementalAnalysis() {
+        return incrementalAnalysis;
+    }
+
+    /**
+     * Configures wether to use incremental analysis or not.
+     *
+     * This is only supported for PMD 5.6.0 or better.
+     *
+     * @param incrementalAnalysis True to enable incremental analysis.
+     *
+     * @since 4.3
+     */
+    @Incubating
+    public void setIncrementalAnalysis(boolean incrementalAnalysis) {
+        this.incrementalAnalysis = incrementalAnalysis;
     }
 }
