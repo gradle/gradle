@@ -37,30 +37,4 @@ public interface TimeSource {
         }
     }
 
-    /**
-     * A time source with fixed values.
-     */
-    class Fixed implements TimeSource {
-        private final long millis;
-        private long nanos;
-
-        public Fixed(long millis, long nanos) {
-            this.millis = millis;
-            this.nanos = nanos;
-        }
-
-        public void setNanoTime(long nanos) {
-            this.nanos = nanos;
-        }
-
-        @Override
-        public long currentTimeMillis() {
-            return millis;
-        }
-
-        @Override
-        public long nanoTime() {
-            return nanos;
-        }
-    }
 }
