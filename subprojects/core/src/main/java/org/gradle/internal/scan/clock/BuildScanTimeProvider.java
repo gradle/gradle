@@ -17,14 +17,11 @@
 package org.gradle.internal.scan.clock;
 
 import org.gradle.internal.scan.UsedByScanPlugin;
-import org.gradle.internal.time.MonotonicClock;
 
 /**
  * A view of the Gradle runtime's clock used by build scans.
  *
  * The provider is _required_ to provide monotonic timestamps.
- *
- * @see MonotonicClock
  */
 @UsedByScanPlugin
 public interface BuildScanTimeProvider {

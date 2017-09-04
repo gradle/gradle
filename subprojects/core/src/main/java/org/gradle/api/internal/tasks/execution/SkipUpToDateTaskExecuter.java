@@ -24,8 +24,8 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
-import org.gradle.internal.time.Timers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +46,7 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
 
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         LOGGER.debug("Determining if {} is up-to-date", task);
-        Timer clock = Timers.startTimer();
+        Timer clock = Time.startTimer();
         TaskArtifactState taskArtifactState = context.getTaskArtifactState();
 
         List<String> messages = new ArrayList<String>(TaskUpToDateState.MAX_OUT_OF_DATE_MESSAGES);

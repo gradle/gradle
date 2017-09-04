@@ -19,14 +19,13 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.StartParameter;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.SessionLifecycleListener;
+import org.gradle.internal.buildevents.BuildExecutionTimer;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
-import org.gradle.internal.buildevents.BuildExecutionTimer;
-import org.gradle.internal.time.DefaultEventTimer;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildExecuter;
@@ -45,12 +44,13 @@ public class ServicesSetupBuildActionExecuter implements BuildExecuter {
         StartParameter startParameter = action.getStartParameter();
         ServiceRegistry userHomeServices = userHomeServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
 
-        BuildExecutionTimer buildExecutionTimer = new BuildExecutionTimer(
-            new DefaultEventTimer(requestContext.getStartTime())
-        );
-
         try {
-            ServiceRegistry buildSessionScopeServices = new BuildSessionScopeServices(userHomeServices, startParameter, buildExecutionTimer, actionParameters.getInjectedPluginClasspath());
+            ServiceRegistry buildSessionScopeServices = new BuildSessionScopeServices(
+                userHomeServices,
+                startParameter,
+                BuildExecutionTimer.startingAt(requestContext.getStartTime()),
+                actionParameters.getInjectedPluginClasspath()
+            );
             try {
                 SessionLifecycleListener sessionLifecycleListener = buildSessionScopeServices.get(ListenerManager.class).getBroadcaster(SessionLifecycleListener.class);
                 try {

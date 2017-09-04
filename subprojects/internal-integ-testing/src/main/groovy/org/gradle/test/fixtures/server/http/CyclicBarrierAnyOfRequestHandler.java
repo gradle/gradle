@@ -18,7 +18,7 @@ package org.gradle.test.fixtures.server.http;
 
 import com.sun.net.httpserver.HttpExchange;
 import org.gradle.internal.time.Clock;
-import org.gradle.internal.time.MonotonicClock;
+import org.gradle.internal.time.Time;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,7 +38,7 @@ class CyclicBarrierAnyOfRequestHandler implements TrackingHttpHandler, WaitPreco
     private final Map<String, ResourceHandlerWrapper> expected = new TreeMap<String, ResourceHandlerWrapper>();
     private final int testId;
     private final int timeoutMs;
-    private final Clock clock = MonotonicClock.global();
+    private final Clock clock = Time.clock();
     private int waitingFor;
     private final WaitPrecondition previous;
     private long mostRecentEvent;

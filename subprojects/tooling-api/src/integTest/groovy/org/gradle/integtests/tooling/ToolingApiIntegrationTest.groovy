@@ -23,7 +23,7 @@ import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.internal.time.Clock
 import org.gradle.internal.time.CountdownTimer
-import org.gradle.internal.time.Timers
+import org.gradle.internal.time.Time
 import org.gradle.internal.time.TrueClock
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
@@ -266,7 +266,7 @@ allprojects {
         def startMarkerFile = projectDir.file("start.marker")
         def foundStartMarker = startMarkerFile.exists()
 
-        CountdownTimer startTimer = Timers.startTimer(startTimeoutMs)
+        CountdownTimer startTimer = Time.startCountdownTimer(startTimeoutMs)
         while (handle.running && !foundStartMarker) {
             if (startTimer.hasExpired()) {
                 throw new Exception("timeout waiting for start marker")
@@ -282,7 +282,7 @@ allprojects {
 
         // Signal the build to finish
         def stopMarkerFile = projectDir.file("stop.marker")
-        def stopTimer = Timers.startTimer(stopTimeoutMs)
+        def stopTimer = Time.startCountdownTimer(stopTimeoutMs)
         stopMarkerFile << new Date().toString()
 
         // Does the tooling API hold the JVM open (which will also hold the build open)?

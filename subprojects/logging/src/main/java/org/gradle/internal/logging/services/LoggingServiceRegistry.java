@@ -35,7 +35,7 @@ import org.gradle.internal.logging.source.NoOpLoggingSystem;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.time.Clock;
-import org.gradle.internal.time.MonotonicClock;
+import org.gradle.internal.time.Time;
 
 /**
  * A {@link org.gradle.internal.service.ServiceRegistry} implementation that provides the logging services. To use this:
@@ -110,7 +110,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     }
 
     protected Clock createTimeProvider() {
-        return MonotonicClock.global();
+        return Time.clock();
     }
 
     protected StyledTextOutputFactory createStyledTextOutputFactory() {

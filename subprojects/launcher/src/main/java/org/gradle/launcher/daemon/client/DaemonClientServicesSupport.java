@@ -32,7 +32,7 @@ import org.gradle.internal.remote.internal.inet.TcpOutgoingConnector;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
-import org.gradle.internal.time.MonotonicClock;
+import org.gradle.internal.time.Time;
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
@@ -97,7 +97,7 @@ public abstract class DaemonClientServicesSupport extends DefaultServiceRegistry
     }
 
     Clock createTimeProvider() {
-        return MonotonicClock.global();
+        return Time.clock();
     }
 
     ProgressLoggerFactory createProgressLoggerFactory(Clock clock) {

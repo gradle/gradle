@@ -18,43 +18,64 @@ package org.gradle.internal.time
 
 import spock.lang.Specification
 
+import java.util.concurrent.TimeUnit
+
 class MonotonicClockTest extends Specification {
 
-    static class Time implements Clock {
-        long currentTime
+    private static final long START_MILLIS = 641353121231L
+    private static final long START_NANOS = 222222222222222222L
+
+    private MonotonicClock.TimeSource timeSource = Mock(MonotonicClock.TimeSource) {
+        1 * currentTimeMillis() >> START_MILLIS
+        1 * nanoTime() >> START_NANOS
     }
+
+    private Clock clock = new MonotonicClock(timeSource)
 
     def "prevents time from going backwards"() {
         when:
-        def delegate = new Time()
-        def provider = new MonotonicClock(delegate)
+        setDtMs 0
 
         then:
-        provider.currentTime == 0
+        clock.currentTime == START_MILLIS + 0
 
         when:
-        delegate.currentTime = 10
+        setDtMs 10
 
         then:
-        provider.currentTime == 10
+        clock.currentTime == START_MILLIS + 10
 
         when:
-        delegate.currentTime = 8
+        setDtMs 8
 
         then:
-        provider.currentTime == 10
+        clock.currentTime == START_MILLIS + 10
 
         when:
-        delegate.currentTime = 10
+        setDtMs 10
 
         then:
-        provider.currentTime == 10
+        clock.currentTime == START_MILLIS + 10
 
         when:
-        delegate.currentTime = 15
+        setDtMs 15
 
         then:
-        provider.currentTime == 15
+        clock.currentTime == START_MILLIS + 15
     }
 
+    def "provides current time based on nanoTime delta"() {
+        when:
+        setDtMs(delta)
+
+        then:
+        clock.currentTime == START_MILLIS + delta
+
+        where:
+        delta << [0, 100, -100]
+    }
+
+    private void setDtMs(final long deltaT) {
+        1 * timeSource.nanoTime() >> START_NANOS + TimeUnit.MILLISECONDS.toNanos(deltaT)
+    }
 }

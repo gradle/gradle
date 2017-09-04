@@ -17,6 +17,12 @@
 package org.gradle.internal.time;
 
 public interface Timer {
+
+    /**
+     * The instant that the timer was started, in ms since Epoch.
+     */
+    long getStartTime();
+
     /**
      * @return A human-consumable description of the elapsed time.
      */

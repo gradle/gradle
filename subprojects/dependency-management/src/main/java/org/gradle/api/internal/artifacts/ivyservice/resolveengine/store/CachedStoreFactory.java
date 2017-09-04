@@ -22,14 +22,12 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.Store;
 import org.gradle.internal.Factory;
+import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
-import org.gradle.internal.time.Timers;
 
 import java.io.Closeable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-
-import static org.gradle.internal.time.DefaultEventTimer.prettyTime;
 
 public class CachedStoreFactory<T> implements Closeable {
 
@@ -52,7 +50,7 @@ public class CachedStoreFactory<T> implements Closeable {
     public void close() {
         LOG.debug(displayName + " cache closed. Cache reads: "
                 + stats.readsFromCache + ", disk reads: "
-                + stats.readsFromDisk + " (avg: " + prettyTime(stats.getDiskReadsAvgMs()) + ", total: " + prettyTime(stats.diskReadsTotalMs.get()) + ")");
+                + stats.readsFromDisk + " (avg: " + Time.prettyTime(stats.getDiskReadsAvgMs()) + ", total: " + Time.prettyTime(stats.diskReadsTotalMs.get()) + ")");
     }
 
     private static class Stats {
@@ -94,7 +92,7 @@ public class CachedStoreFactory<T> implements Closeable {
                 stats.readFromCache();
                 return out;
             }
-            Timer timer = Timers.startTimer();
+            Timer timer = Time.startTimer();
             T value = createIfNotPresent.create();
             stats.readFromDisk(timer.getElapsedMillis());
             cache.put(id, value);

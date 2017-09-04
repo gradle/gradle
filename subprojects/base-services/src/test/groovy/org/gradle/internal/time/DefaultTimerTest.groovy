@@ -19,66 +19,74 @@ package org.gradle.internal.time
 
 import spock.lang.Specification
 
-import java.util.concurrent.TimeUnit
-
 class DefaultTimerTest extends Specification {
 
-    private static final long START_NANOS = 641353121231L
-
-    private TimeSource timeProvider = Mock(TimeSource)
-    private DefaultTimer clock;
-
-    void setup() {
-        1 * timeProvider.nanoTime() >> START_NANOS
-        clock = new DefaultTimer(timeProvider)
-    }
+    def clock = Mock(Clock)
+    def timer = new DefaultTimer(clock)
 
     def testOnlySecondsTwoDigits() throws Exception {
         when:
-        setDtMs(51243);
+        setTime(51243)
 
         then:
-        clock.getElapsed() == "51.243 secs"
+        timer.getElapsed() == "51.243 secs"
     }
 
     def testOnlySecondsEvenMs() {
         when:
-        setDtMs(4000);
+        setTime(4000)
 
         then:
-        clock.getElapsed() == "4.0 secs"
+        timer.getElapsed() == "4.0 secs"
     }
 
     def testMinutesAndSeconds() {
         when:
-        setDtHrsMinsSecsMillis(0, 32, 40, 322);
+        setTime(0, 32, 40, 322);
 
         then:
-        clock.getElapsed() == "32 mins 40.322 secs"
+        timer.getElapsed() == "32 mins 40.322 secs"
     }
 
     def testHoursMinutesAndSeconds() {
         when:
-        setDtHrsMinsSecsMillis(3, 2, 5, 111);
+        setTime(3, 2, 5, 111);
 
         then:
-        clock.getElapsed() == "3 hrs 2 mins 5.111 secs"
+        timer.getElapsed() == "3 hrs 2 mins 5.111 secs"
     }
 
     def testHoursZeroMinutes() {
         when:
-        setDtHrsMinsSecsMillis(1, 0, 32, 0);
+        setTime(1, 0, 32, 0);
 
         then:
-        clock.getElapsed() == "1 hrs 0 mins 32.0 secs"
+        timer.getElapsed() == "1 hrs 0 mins 32.0 secs"
     }
 
-    private void setDtMs(final long deltaT) {
-        1 * timeProvider.nanoTime() >> START_NANOS + TimeUnit.MILLISECONDS.toNanos(deltaT)
+    def testReset() throws Exception {
+        when:
+        setTime(100)
+        clock.reset()
+
+        then:
+        clock.startTime == 100
     }
 
-    private void setDtHrsMinsSecsMillis(int hours, int minutes, int seconds, int millis) {
+    def testElapsed() throws Exception {
+        when:
+        setTime(100)
+
+        then:
+        clock.elapsedMillis == 100
+    }
+
+    private void setTime(long timestamp) {
+        1 * clock.currentTime() >> timestamp
+    }
+
+    private void setTime(int hours, int minutes, int seconds, int millis) {
         long dt = (hours * 3600 * 1000) + (minutes * 60 * 1000) + (seconds * 1000) + millis
-        setDtMs(dt)
+        setTime(dt)
     }
 }

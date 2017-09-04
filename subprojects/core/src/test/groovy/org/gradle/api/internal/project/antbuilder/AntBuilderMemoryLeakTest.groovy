@@ -25,7 +25,7 @@ import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.time.Clock
 import org.gradle.internal.time.CountdownTimer
-import org.gradle.internal.time.Timers
+import org.gradle.internal.time.Time
 import org.gradle.internal.time.TrueClock
 import spock.lang.Ignore
 import spock.lang.Shared
@@ -79,7 +79,7 @@ class AntBuilderMemoryLeakTest extends Specification {
         when:
         int i = 0
         // time out after 10 minutes
-        CountdownTimer timer = Timers.startTimer(10, TimeUnit.MINUTES)
+        CountdownTimer timer = Time.startCountdownTimer(10, TimeUnit.MINUTES)
         try {
             while (!timer.hasExpired()) {
                 builder.withClasspath([new File("foo$i")]).execute {

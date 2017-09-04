@@ -23,7 +23,7 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.time.Clock;
-import org.gradle.internal.time.MonotonicClock;
+import org.gradle.internal.time.Time;
 import org.gradle.tooling.CancellationTokenSource;
 import org.gradle.tooling.internal.consumer.loader.CachingToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.DefaultToolingImplementationLoader;
@@ -78,7 +78,7 @@ public class ConnectorServices {
         }
 
         protected Clock createTimeProvider() {
-            return MonotonicClock.global();
+            return Time.clock();
         }
 
         protected DistributionFactory createDistributionFactory(Clock clock) {

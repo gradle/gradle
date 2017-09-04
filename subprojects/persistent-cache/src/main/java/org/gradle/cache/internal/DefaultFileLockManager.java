@@ -36,7 +36,7 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.RandomLongIdGenerator;
 import org.gradle.internal.time.CountdownTimer;
-import org.gradle.internal.time.Timers;
+import org.gradle.internal.time.Time;
 import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -392,7 +392,7 @@ public class DefaultFileLockManager implements FileLockManager {
         }
 
         private void restartTimer() {
-            timer = Timers.startTimer(timeoutMs);
+            timer = Time.startCountdownTimer(timeoutMs);
         }
 
         <T> T retryUntil(IOQuery<T> query) throws IOException, InterruptedException {

@@ -29,7 +29,7 @@ import org.gradle.internal.remote.internal.OutgoingConnector;
 import org.gradle.internal.remote.internal.RemoteConnection;
 import org.gradle.internal.serialize.Serializers;
 import org.gradle.internal.time.CountdownTimer;
-import org.gradle.internal.time.Timers;
+import org.gradle.internal.time.Time;
 import org.gradle.launcher.daemon.context.DaemonConnectDetails;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
@@ -153,7 +153,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
         final Collection<DaemonInfo> compatibleCanceledDaemons = getCompatibleDaemons(canceledBusy.getLeft(), constraint);
         if (!compatibleCanceledDaemons.isEmpty()) {
             LOGGER.info(DaemonMessages.WAITING_ON_CANCELED);
-            CountdownTimer timer = Timers.startTimer(CANCELED_WAIT_TIMEOUT);
+            CountdownTimer timer = Time.startCountdownTimer(CANCELED_WAIT_TIMEOUT);
             while (connection == null && !timer.hasExpired()) {
                 try {
                     sleep(200);
@@ -204,7 +204,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
             .start("Starting Gradle Daemon", "Starting Daemon");
         final DaemonStartupInfo startupInfo = daemonStarter.startDaemon();
         LOGGER.debug("Started Gradle daemon {}", startupInfo);
-        CountdownTimer timer = Timers.startTimer(connectTimeout);
+        CountdownTimer timer = Time.startCountdownTimer(connectTimeout);
         try {
             do {
                 DaemonClientConnection daemonConnection = connectToDaemonWithId(startupInfo, constraint);

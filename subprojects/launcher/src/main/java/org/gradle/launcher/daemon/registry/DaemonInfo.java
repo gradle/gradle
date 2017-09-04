@@ -22,7 +22,7 @@ import org.gradle.internal.remote.Address;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.time.Clock;
-import org.gradle.internal.time.MonotonicClock;
+import org.gradle.internal.time.Time;
 import org.gradle.launcher.daemon.context.DaemonConnectDetails;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DefaultDaemonContext;
@@ -50,7 +50,7 @@ public class DaemonInfo implements Serializable, DaemonConnectDetails {
     private long lastBusy;
 
     public DaemonInfo(Address address, DaemonContext context, byte[] token, State state) {
-        this(address, context, token, state, MonotonicClock.global());
+        this(address, context, token, state, Time.clock());
     }
 
     @VisibleForTesting
@@ -69,7 +69,7 @@ public class DaemonInfo implements Serializable, DaemonConnectDetails {
         this.token = token;
         this.state = state;
         this.lastBusy = lastBusy;
-        this.clock = MonotonicClock.global();
+        this.clock = Time.clock();
     }
 
     public DaemonInfo setState(State state) {

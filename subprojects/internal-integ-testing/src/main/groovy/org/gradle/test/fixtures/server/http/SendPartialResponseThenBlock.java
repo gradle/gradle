@@ -19,7 +19,7 @@ package org.gradle.test.fixtures.server.http;
 import com.sun.net.httpserver.HttpExchange;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.time.Clock;
-import org.gradle.internal.time.MonotonicClock;
+import org.gradle.internal.time.Time;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -34,7 +34,7 @@ class SendPartialResponseThenBlock implements BlockingHttpServer.BlockingRequest
     private final Condition condition;
     private boolean requestStarted;
     private boolean released;
-    private final Clock clock = MonotonicClock.global();
+    private final Clock clock = Time.clock();
     private WaitPrecondition precondition;
     private long mostRecentEvent;
     private AssertionError failure;

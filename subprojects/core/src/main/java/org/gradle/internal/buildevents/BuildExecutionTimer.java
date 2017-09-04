@@ -16,9 +16,8 @@
 
 package org.gradle.internal.buildevents;
 
-import org.gradle.internal.time.DefaultEventTimer;
-import org.gradle.internal.time.EventTimer;
-import org.gradle.internal.time.MonotonicClock;
+import org.gradle.internal.time.Time;
+import org.gradle.internal.time.Timer;
 
 /**
  * A timer for the current build execution.
@@ -32,36 +31,40 @@ import org.gradle.internal.time.MonotonicClock;
  * The timer is considered to have started as soon as the user, or some tool, initiated the build.
  * During continuous build, subsequent builds are timed from when changes are noticed.
  */
-public class BuildExecutionTimer implements EventTimer {
+public class BuildExecutionTimer implements Timer {
 
-    private final EventTimer eventTimer;
+    private final Timer timer;
 
     public static BuildExecutionTimer startingNow() {
-        return new BuildExecutionTimer(new DefaultEventTimer(MonotonicClock.global().getCurrentTime()));
+        return new BuildExecutionTimer(Time.startTimer());
     }
 
-    public BuildExecutionTimer(EventTimer eventTimer) {
-        this.eventTimer = eventTimer;
+    public static BuildExecutionTimer startingAt(long startTime) {
+        return new BuildExecutionTimer(Time.startTimerAt(startTime));
+    }
+
+    private BuildExecutionTimer(Timer timer) {
+        this.timer = timer;
     }
 
     @Override
     public long getStartTime() {
-        return eventTimer.getStartTime();
+        return timer.getStartTime();
     }
 
     @Override
     public String getElapsed() {
-        return eventTimer.getElapsed();
+        return timer.getElapsed();
     }
 
     @Override
     public long getElapsedMillis() {
-        return eventTimer.getElapsedMillis();
+        return timer.getElapsedMillis();
     }
 
     @Override
     public void reset() {
-        eventTimer.reset();
+        timer.reset();
     }
 
 }

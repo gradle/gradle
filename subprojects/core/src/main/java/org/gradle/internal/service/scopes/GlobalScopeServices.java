@@ -100,7 +100,7 @@ import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
-import org.gradle.internal.time.MonotonicClock;
+import org.gradle.internal.time.Time;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractors;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
@@ -300,7 +300,7 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
     }
 
     Clock createTimeProvider() {
-        return MonotonicClock.global();
+        return Time.clock();
     }
 
     OsMemoryInfo createOsMemoryInfo() {
