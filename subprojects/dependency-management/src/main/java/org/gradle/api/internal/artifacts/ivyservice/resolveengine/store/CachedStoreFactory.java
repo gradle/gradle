@@ -23,6 +23,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.Store;
 import org.gradle.internal.Factory;
 import org.gradle.internal.time.Time;
+import org.gradle.internal.time.TimeFormatting;
 import org.gradle.internal.time.Timer;
 
 import java.io.Closeable;
@@ -50,7 +51,7 @@ public class CachedStoreFactory<T> implements Closeable {
     public void close() {
         LOG.debug(displayName + " cache closed. Cache reads: "
                 + stats.readsFromCache + ", disk reads: "
-                + stats.readsFromDisk + " (avg: " + Time.prettyTime(stats.getDiskReadsAvgMs()) + ", total: " + Time.prettyTime(stats.diskReadsTotalMs.get()) + ")");
+                + stats.readsFromDisk + " (avg: " + TimeFormatting.formatDurationVerbose(stats.getDiskReadsAvgMs()) + ", total: " + TimeFormatting.formatDurationVerbose(stats.diskReadsTotalMs.get()) + ")");
     }
 
     private static class Stats {

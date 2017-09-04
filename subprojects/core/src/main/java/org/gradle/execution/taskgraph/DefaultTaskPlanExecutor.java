@@ -24,6 +24,7 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.time.Time;
+import org.gradle.internal.time.TimeFormatting;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -104,7 +105,7 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
                         long taskDuration = taskTimer.getElapsedMillis();
                         busy.addAndGet(taskDuration);
                         if (LOGGER.isInfoEnabled()) {
-                            LOGGER.info("{} ({}) completed. Took {}.", taskPath, Thread.currentThread(), Time.prettyTime(taskDuration));
+                            LOGGER.info("{} ({}) completed. Took {}.", taskPath, Thread.currentThread(), TimeFormatting.formatDurationVerbose(taskDuration));
                         }
                     }
                 });
@@ -113,7 +114,7 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
             long total = totalTimer.getElapsedMillis();
 
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Task worker [{}] finished, busy: {}, idle: {}", Thread.currentThread(), Time.prettyTime(busy.get()), Time.prettyTime(total - busy.get()));
+                LOGGER.debug("Task worker [{}] finished, busy: {}, idle: {}", Thread.currentThread(), TimeFormatting.formatDurationVerbose(busy.get()), TimeFormatting.formatDurationVerbose(total - busy.get()));
             }
         }
 

@@ -21,7 +21,9 @@ import spock.lang.Specification
 
 class DefaultTimerTest extends Specification {
 
-    def clock = Mock(Clock)
+    def clock = Mock(Clock) {
+        1 * getCurrentTime() >> 0
+    }
     def timer = new DefaultTimer(clock)
 
     def testOnlySecondsTwoDigits() throws Exception {
@@ -42,7 +44,7 @@ class DefaultTimerTest extends Specification {
 
     def testMinutesAndSeconds() {
         when:
-        setTime(0, 32, 40, 322);
+        setTime(0, 32, 40, 322)
 
         then:
         timer.getElapsed() == "32 mins 40.322 secs"
@@ -50,7 +52,7 @@ class DefaultTimerTest extends Specification {
 
     def testHoursMinutesAndSeconds() {
         when:
-        setTime(3, 2, 5, 111);
+        setTime(3, 2, 5, 111)
 
         then:
         timer.getElapsed() == "3 hrs 2 mins 5.111 secs"
@@ -58,7 +60,7 @@ class DefaultTimerTest extends Specification {
 
     def testHoursZeroMinutes() {
         when:
-        setTime(1, 0, 32, 0);
+        setTime(1, 0, 32, 0)
 
         then:
         timer.getElapsed() == "1 hrs 0 mins 32.0 secs"
@@ -67,10 +69,10 @@ class DefaultTimerTest extends Specification {
     def testReset() throws Exception {
         when:
         setTime(100)
-        clock.reset()
+        timer.reset()
 
         then:
-        clock.startTime == 100
+        timer.startTime == 100
     }
 
     def testElapsed() throws Exception {
@@ -78,11 +80,11 @@ class DefaultTimerTest extends Specification {
         setTime(100)
 
         then:
-        clock.elapsedMillis == 100
+        timer.elapsedMillis == 100
     }
 
     private void setTime(long timestamp) {
-        1 * clock.currentTime() >> timestamp
+        1 * clock.getCurrentTime() >> timestamp
     }
 
     private void setTime(int hours, int minutes, int seconds, int millis) {

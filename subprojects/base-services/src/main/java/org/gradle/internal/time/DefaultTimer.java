@@ -33,7 +33,7 @@ class DefaultTimer implements Timer {
     @Override
     public String getElapsed() {
         long elapsedMillis = getElapsedMillis();
-        return Time.prettyTime(elapsedMillis);
+        return TimeFormatting.formatDurationVerbose(elapsedMillis);
     }
 
     @Override
