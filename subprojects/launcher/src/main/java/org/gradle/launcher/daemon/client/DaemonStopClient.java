@@ -22,7 +22,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.CountdownTimer;
-import org.gradle.internal.time.Timers;
+import org.gradle.internal.time.Time;
 import org.gradle.launcher.daemon.context.DaemonConnectDetails;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
@@ -83,7 +83,7 @@ public class DaemonStopClient {
      * Stops all daemons, blocking until all have completed.
      */
     public void stop() {
-        CountdownTimer timer = Timers.startTimer(STOP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        CountdownTimer timer = Time.startCountdownTimer(STOP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         final Set<String> seen = new HashSet<String>();
 
         ExplainingSpec<DaemonContext> spec = new ExplainingSpec<DaemonContext>() {

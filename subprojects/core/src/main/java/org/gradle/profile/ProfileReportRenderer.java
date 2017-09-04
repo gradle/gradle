@@ -16,7 +16,7 @@
 package org.gradle.profile;
 
 import org.gradle.internal.html.SimpleHtmlWriter;
-import org.gradle.reporting.DurationFormatter;
+import org.gradle.internal.time.TimeFormatting;
 import org.gradle.reporting.HtmlReportRenderer;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.reporting.TabbedPageRenderer;
@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.net.URL;
 
 public class ProfileReportRenderer {
-    private static final DurationFormatter DURATION_FORMAT = new DurationFormatter();
 
     public void writeTo(BuildProfile buildProfile, File file) {
         HtmlReportRenderer renderer = new HtmlReportRenderer();
@@ -84,27 +83,27 @@ public class ProfileReportRenderer {
                                 htmlWriter.endElement();
                                 htmlWriter.startElement("tr");
                                     htmlWriter.startElement("td").characters("Total Build Time").endElement();
-                                    htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(model.getElapsedTotal())).endElement();
+                                    htmlWriter.startElement("td").attribute("class", "numeric").characters(TimeFormatting.formatDurationVeryTerse(model.getElapsedTotal())).endElement();
                                 htmlWriter.endElement();
                                 htmlWriter.startElement("tr");
                                     htmlWriter.startElement("td").characters("Startup").endElement();
-                                    htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(model.getElapsedStartup())).endElement();
+                                    htmlWriter.startElement("td").attribute("class", "numeric").characters(TimeFormatting.formatDurationVeryTerse(model.getElapsedStartup())).endElement();
                                 htmlWriter.endElement();
                                 htmlWriter.startElement("tr");
                                     htmlWriter.startElement("td").characters("Settings and BuildSrc").endElement();
-                                    htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(model.getElapsedSettings())).endElement();
+                                    htmlWriter.startElement("td").attribute("class", "numeric").characters(TimeFormatting.formatDurationVeryTerse(model.getElapsedSettings())).endElement();
                                 htmlWriter.endElement();
                                 htmlWriter.startElement("tr");
                                     htmlWriter.startElement("td").characters("Loading Projects").endElement();
-                                    htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(model.getElapsedProjectsLoading())).endElement();
+                                    htmlWriter.startElement("td").attribute("class", "numeric").characters(TimeFormatting.formatDurationVeryTerse(model.getElapsedProjectsLoading())).endElement();
                                 htmlWriter.endElement();
                                 htmlWriter.startElement("tr");
                                     htmlWriter.startElement("td").characters("Configuring Projects").endElement();
-                                    htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(profiledProjectConfiguration.getElapsedTime())).endElement();
+                                    htmlWriter.startElement("td").attribute("class", "numeric").characters(TimeFormatting.formatDurationVeryTerse(profiledProjectConfiguration.getElapsedTime())).endElement();
                                 htmlWriter.endElement();
                                 htmlWriter.startElement("tr");
                                     htmlWriter.startElement("td").characters("Task Execution").endElement();
-                                    htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(model.getElapsedTotalExecutionTime())).endElement();
+                                    htmlWriter.startElement("td").attribute("class", "numeric").characters(TimeFormatting.formatDurationVeryTerse(model.getElapsedTotalExecutionTime())).endElement();
                                 htmlWriter.endElement();
                             htmlWriter.endElement();
                         htmlWriter.endElement();
@@ -119,12 +118,12 @@ public class ProfileReportRenderer {
                                 htmlWriter.endElement();
                                 htmlWriter.startElement("tr");
                                     htmlWriter.startElement("td").characters("All projects").endElement();
-                                    htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(profiledProjectConfiguration.getElapsedTime())).endElement();
+                                    htmlWriter.startElement("td").attribute("class", "numeric").characters(TimeFormatting.formatDurationVeryTerse(profiledProjectConfiguration.getElapsedTime())).endElement();
                                 htmlWriter.endElement();
                                 for (Operation operation : profiledProjectConfiguration) {
                                     htmlWriter.startElement("tr");
                                         htmlWriter.startElement("td").characters(operation.getDescription()).endElement();
-                                        htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(operation.getElapsedTime())).endElement();
+                                        htmlWriter.startElement("td").attribute("class", "numeric").characters(TimeFormatting.formatDurationVeryTerse(operation.getElapsedTime())).endElement();
                                     htmlWriter.endElement();
                                 }
                             htmlWriter.endElement()
@@ -140,13 +139,13 @@ public class ProfileReportRenderer {
                                 htmlWriter.endElement();
                                 htmlWriter.startElement("tr");
                                     htmlWriter.startElement("td").characters("All dependencies").endElement();
-                                    htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(model.getDependencySets().getElapsedTime())).endElement();
+                                    htmlWriter.startElement("td").attribute("class", "numeric").characters(TimeFormatting.formatDurationVeryTerse(model.getDependencySets().getElapsedTime())).endElement();
                                 htmlWriter.endElement();
 
                                 for (Operation operation : model.getDependencySets()) {
                                     htmlWriter.startElement("tr");
                                         htmlWriter.startElement("td").characters(operation.getDescription()).endElement();
-                                        htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(operation.getElapsedTime())).endElement();
+                                        htmlWriter.startElement("td").attribute("class", "numeric").characters(TimeFormatting.formatDurationVeryTerse(operation.getElapsedTime())).endElement();
                                     htmlWriter.endElement();
                                 }
                             htmlWriter.endElement()
@@ -164,13 +163,13 @@ public class ProfileReportRenderer {
                                 for (ProjectProfile project : model.getProjects()) {
                                    htmlWriter.startElement("tr")
                                         .startElement("td").characters(project.getPath()).endElement()
-                                        .startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(project.getElapsedTime())).endElement()
+                                        .startElement("td").attribute("class", "numeric").characters(TimeFormatting.formatDurationVeryTerse(project.getElapsedTime())).endElement()
                                         .startElement("td").characters("(total)").endElement()
                                     .endElement();
                                     for (TaskExecution taskExecution : project.getTasks()) {
                                         htmlWriter.startElement("tr")
                                             .startElement("td").attribute("class", "indentPath").characters(taskExecution.getPath()).endElement()
-                                            .startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(taskExecution.getElapsedTime())).endElement()
+                                            .startElement("td").attribute("class", "numeric").characters(TimeFormatting.formatDurationVeryTerse(taskExecution.getElapsedTime())).endElement()
                                             .startElement("td").characters(taskExecution.getStatus()).endElement()
                                         .endElement();
                                     }

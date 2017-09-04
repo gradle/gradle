@@ -16,14 +16,16 @@
 
 package org.gradle.api.internal.tasks.testing.worker;
 
-import org.gradle.api.internal.tasks.testing.*;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
+import org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor;
+import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.internal.time.Clock;
 
 public class WorkerTestClassProcessor extends SuiteTestClassProcessor {
 
     public WorkerTestClassProcessor(TestClassProcessor processor, Object workerSuiteId, String workerDisplayName,
-                                    TimeProvider timeProvider) {
-        super(new WorkerTestSuiteDescriptor(workerSuiteId, workerDisplayName), processor, timeProvider);
+                                    Clock clock) {
+        super(new WorkerTestSuiteDescriptor(workerSuiteId, workerDisplayName), processor, clock);
     }
 
     public static class WorkerTestSuiteDescriptor extends DefaultTestSuiteDescriptor {

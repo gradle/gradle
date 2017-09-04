@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.reporting;
+
+package org.gradle.internal.time;
 
 import java.math.BigDecimal;
 
-public class DurationFormatter {
-    public static final int MILLIS_PER_SECOND = 1000;
-    public static final int MILLIS_PER_MINUTE = 60 * MILLIS_PER_SECOND;
-    public static final int MILLIS_PER_HOUR = 60 * MILLIS_PER_MINUTE;
-    public static final int MILLIS_PER_DAY = 24 * MILLIS_PER_HOUR;
-    
-    public String format(long duration) {
+public class TimeFormatting {
+
+    private static final int MILLIS_PER_SECOND = 1000;
+    private static final int MILLIS_PER_MINUTE = 60 * MILLIS_PER_SECOND;
+    private static final int MILLIS_PER_HOUR = 60 * MILLIS_PER_MINUTE;
+    private static final int MILLIS_PER_DAY = 24 * MILLIS_PER_HOUR;
+
+    private TimeFormatting() {
+    }
+
+    public static String formatDurationVerbose(long durationMillis) {
+        StringBuilder result = new StringBuilder();
+        if (durationMillis > MILLIS_PER_HOUR) {
+            result.append(durationMillis / MILLIS_PER_HOUR).append(" hrs ");
+        }
+        if (durationMillis > (long) MILLIS_PER_MINUTE) {
+            result.append((durationMillis % MILLIS_PER_HOUR) / MILLIS_PER_MINUTE).append(" mins ");
+        }
+        result.append((durationMillis % MILLIS_PER_MINUTE) / 1000.0).append(" secs");
+        return result.toString();
+    }
+
+    public static String formatDurationTerse(long elapsedTimeInMs) {
+        StringBuilder result = new StringBuilder();
+        if (elapsedTimeInMs > MILLIS_PER_HOUR) {
+            result.append(elapsedTimeInMs / MILLIS_PER_HOUR).append("h ");
+        }
+        if (elapsedTimeInMs > MILLIS_PER_MINUTE) {
+            result.append((elapsedTimeInMs % MILLIS_PER_HOUR) / MILLIS_PER_MINUTE).append("m ");
+        }
+        result.append((elapsedTimeInMs % MILLIS_PER_MINUTE) / 1000).append("s");
+        return result.toString();
+    }
+
+    public static String formatDurationVeryTerse(long duration) {
         if (duration == 0) {
             return "0s";
         }
@@ -53,4 +82,5 @@ public class DurationFormatter {
         result.append("s");
         return result.toString();
     }
+
 }

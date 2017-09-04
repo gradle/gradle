@@ -29,8 +29,8 @@ import org.gradle.integtests.tooling.fixture.ToolingApiDistributionResolver
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.internal.time.TimeProvider
-import org.gradle.internal.time.TrueTimeProvider
+import org.gradle.internal.time.Clock
+import org.gradle.internal.time.TrueClock
 import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
@@ -151,7 +151,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     }
 
     private class Measurement implements ToolingApiClasspathProvider {
-        private final TimeProvider timeProvider = new TrueTimeProvider();
+        private final Clock timeProvider = new TrueClock();
 
         private CrossVersionPerformanceResults run() {
             def testId = experimentSpec.displayName

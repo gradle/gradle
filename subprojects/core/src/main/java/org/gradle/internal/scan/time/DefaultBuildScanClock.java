@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.time;
+package org.gradle.internal.scan.time;
 
-public class TrueTimeProvider implements TimeProvider {
+import org.gradle.internal.time.Clock;
+
+public class DefaultBuildScanClock implements BuildScanClock {
+
+    private final Clock clock;
+
+    public DefaultBuildScanClock(Clock clock) {
+        this.clock = clock;
+    }
+
     @Override
     public long getCurrentTime() {
-        return System.currentTimeMillis();
+        return clock.getCurrentTime();
     }
+
 }

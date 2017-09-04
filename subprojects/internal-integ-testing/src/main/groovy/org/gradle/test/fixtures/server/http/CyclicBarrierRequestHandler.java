@@ -17,8 +17,8 @@
 package org.gradle.test.fixtures.server.http;
 
 import com.sun.net.httpserver.HttpExchange;
-import org.gradle.internal.time.MonotonicTimeProvider;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Clock;
+import org.gradle.internal.time.Time;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,7 +30,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
 class CyclicBarrierRequestHandler implements TrackingHttpHandler, WaitPrecondition {
-    private final TimeProvider timeProvider = MonotonicTimeProvider.global();
+    private final Clock clock = Time.clock();
     private final Lock lock;
     private final Condition condition;
     private final List<String> received = new ArrayList<String>();
@@ -87,7 +87,7 @@ class CyclicBarrierRequestHandler implements TrackingHttpHandler, WaitPreconditi
                 throw failure;
             }
 
-            long now = timeProvider.getCurrentTime();
+            long now = clock.getCurrentTime();
             if (mostRecentEvent < now) {
                 mostRecentEvent = now;
             }
@@ -107,7 +107,7 @@ class CyclicBarrierRequestHandler implements TrackingHttpHandler, WaitPreconditi
             }
 
             while (!pending.isEmpty() && failure == null) {
-                long waitMs = mostRecentEvent + timeoutMs - timeProvider.getCurrentTime();
+                long waitMs = mostRecentEvent + timeoutMs - clock.getCurrentTime();
                 if (waitMs < 0) {
                     System.out.println(String.format("[%d] timeout waiting for other requests", id));
                     failure = new AssertionError(String.format("Timeout waiting for expected requests to be received. Still waiting for %s, received %s.", pending.keySet(), received));

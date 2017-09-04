@@ -33,7 +33,7 @@ import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Clock;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,7 +83,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         IdGenerator<Object> idGenerator = testServices.get(IdGenerator.class);
 
         targetProcessor = new WorkerTestClassProcessor(targetProcessor, idGenerator.generateId(),
-                workerProcessContext.getDisplayName(), testServices.get(TimeProvider.class));
+                workerProcessContext.getDisplayName(), testServices.get(Clock.class));
         ContextClassLoaderProxy<TestClassProcessor> proxy = new ContextClassLoaderProxy<TestClassProcessor>(
                 TestClassProcessor.class, targetProcessor, workerProcessContext.getApplicationClassLoader());
         processor = proxy.getSource();
@@ -129,8 +129,8 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
             this.workerProcessContext = workerProcessContext;
         }
 
-        protected TimeProvider createTimeProvider() {
-            return workerProcessContext.getServiceRegistry().get(TimeProvider.class);
+        protected Clock createTimeProvider() {
+            return workerProcessContext.getServiceRegistry().get(Clock.class);
         }
 
         protected IdGenerator<Object> createIdGenerator() {

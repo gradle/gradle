@@ -25,6 +25,7 @@ import org.gradle.initialization.DefaultExceptionAnalyser;
 import org.gradle.initialization.MultipleBuildFailuresExceptionAnalyser;
 import org.gradle.initialization.ReportedException;
 import org.gradle.initialization.StackTraceSanitizingExceptionAnalyser;
+import org.gradle.internal.buildevents.BuildExecutionTimer;
 import org.gradle.internal.buildevents.BuildLogger;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.invocation.BuildAction;
@@ -69,7 +70,9 @@ public class SessionFailureReportingActionExecuter implements BuildExecuter {
             } catch (Throwable innerFailure) {
                 LOGGER.error("Failed to analyze exception", innerFailure);
             }
-            new BuildLogger(Logging.getLogger(ServicesSetupBuildActionExecuter.class), styledTextOutputFactory, action.getStartParameter(), requestContext).buildFinished(new BuildResult(null, failure));
+            BuildExecutionTimer buildExecutionTimer = BuildExecutionTimer.startingAt(requestContext.getStartTime());
+            BuildLogger buildLogger = new BuildLogger(Logging.getLogger(ServicesSetupBuildActionExecuter.class), styledTextOutputFactory, action.getStartParameter(), requestContext, buildExecutionTimer);
+            buildLogger.buildFinished(new BuildResult(null, failure));
             throw new ReportedException(failure);
         }
     }

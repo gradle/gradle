@@ -21,10 +21,11 @@ import com.google.common.base.Preconditions;
 import java.util.concurrent.TimeUnit;
 
 class DefaultCountdownTimer extends DefaultTimer implements CountdownTimer {
+
     private final long timeoutMillis;
 
-    DefaultCountdownTimer(TimeSource timeSource, long timeout, TimeUnit unit) {
-        super(timeSource);
+    DefaultCountdownTimer(Clock clock, long timeout, TimeUnit unit) {
+        super(clock);
         Preconditions.checkArgument(timeout > 0);
         this.timeoutMillis = unit.toMillis(timeout);
     }

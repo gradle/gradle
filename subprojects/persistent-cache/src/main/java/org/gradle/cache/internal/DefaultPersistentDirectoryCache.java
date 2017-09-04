@@ -23,8 +23,8 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
-import org.gradle.internal.time.Timers;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
@@ -130,7 +130,7 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
         @Override
         public void cleanup() {
             if (cleanupAction!=null) {
-                Timer timer = Timers.startTimer();
+                Timer timer = Time.startTimer();
                 cleanupAction.execute(DefaultPersistentDirectoryCache.this);
                 LOGGER.info("{} cleaned up in {}.", DefaultPersistentDirectoryCache.this, timer.getElapsed());
             }

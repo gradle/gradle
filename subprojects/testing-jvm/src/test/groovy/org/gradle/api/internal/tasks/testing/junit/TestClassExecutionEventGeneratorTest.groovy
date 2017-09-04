@@ -16,17 +16,16 @@
 
 package org.gradle.api.internal.tasks.testing.junit
 
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.internal.id.IdGenerator
-import org.gradle.internal.time.TimeProvider
+import org.gradle.internal.time.Clock
 import spock.lang.Specification
-
-import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 
 class TestClassExecutionEventGeneratorTest extends Specification {
     final TestResultProcessor target = Mock()
     final IdGenerator<Object> idGenerator = Mock()
-    final TimeProvider timeProvider = Mock()
+    final Clock timeProvider = Mock()
     final TestClassExecutionEventGenerator processor = new TestClassExecutionEventGenerator(target, idGenerator, timeProvider)
 
     def "fires event on test class start"() {

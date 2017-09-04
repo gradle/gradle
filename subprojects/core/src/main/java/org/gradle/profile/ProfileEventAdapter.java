@@ -28,42 +28,42 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.initialization.BuildCompletionListener;
-import org.gradle.initialization.BuildRequestMetaData;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.buildevents.BuildExecutionTimer;
+import org.gradle.internal.time.Clock;
 
 /**
  * Adapts various events to build a {@link BuildProfile} model, and then notifies a {@link ReportGeneratingProfileListener} when the model is ready.
  */
 public class ProfileEventAdapter implements BuildListener, ProjectEvaluationListener, TaskExecutionListener, DependencyResolutionListener, BuildCompletionListener {
-    private final BuildRequestMetaData buildMetaData;
-    private final TimeProvider timeProvider;
+    private final BuildExecutionTimer buildExecutionTimer;
+    private final Clock clock;
     private final ProfileListener listener;
     private BuildProfile buildProfile;
 
-    public ProfileEventAdapter(BuildRequestMetaData buildMetaData, TimeProvider timeProvider, ProfileListener listener) {
-        this.buildMetaData = buildMetaData;
-        this.timeProvider = timeProvider;
+    public ProfileEventAdapter(BuildExecutionTimer buildExecutionTimer, Clock clock, ProfileListener listener) {
+        this.buildExecutionTimer = buildExecutionTimer;
+        this.clock = clock;
         this.listener = listener;
     }
 
     // BuildListener
     public void buildStarted(Gradle gradle) {
-        long now = timeProvider.getCurrentTime();
+        long now = clock.getCurrentTime();
         buildProfile = new BuildProfile(gradle.getStartParameter());
         buildProfile.setBuildStarted(now);
-        buildProfile.setProfilingStarted(buildMetaData.getBuildTimeClock().getStartTime());
+        buildProfile.setProfilingStarted(buildExecutionTimer.getStartTime());
     }
 
     public void settingsEvaluated(Settings settings) {
-        buildProfile.setSettingsEvaluated(timeProvider.getCurrentTime());
+        buildProfile.setSettingsEvaluated(clock.getCurrentTime());
     }
 
     public void projectsLoaded(Gradle gradle) {
-        buildProfile.setProjectsLoaded(timeProvider.getCurrentTime());
+        buildProfile.setProjectsLoaded(clock.getCurrentTime());
     }
 
     public void projectsEvaluated(Gradle gradle) {
-        buildProfile.setProjectsEvaluated(timeProvider.getCurrentTime());
+        buildProfile.setProjectsEvaluated(clock.getCurrentTime());
     }
 
     public void buildFinished(BuildResult result) {
@@ -71,8 +71,8 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
     }
 
     public void completed() {
-        if(buildProfile != null) {
-            buildProfile.setBuildFinished(timeProvider.getCurrentTime());
+        if (buildProfile != null) {
+            buildProfile.setBuildFinished(clock.getCurrentTime());
             try {
                 listener.buildFinished(buildProfile);
             } finally {
@@ -83,26 +83,26 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
 
     // ProjectEvaluationListener
     public void beforeEvaluate(Project project) {
-        long now = timeProvider.getCurrentTime();
+        long now = clock.getCurrentTime();
         buildProfile.getProjectProfile(project.getPath()).getConfigurationOperation().setStart(now);
     }
 
     public void afterEvaluate(Project project, ProjectState state) {
-        long now = timeProvider.getCurrentTime();
+        long now = clock.getCurrentTime();
         ProjectProfile projectProfile = buildProfile.getProjectProfile(project.getPath());
         projectProfile.getConfigurationOperation().setFinish(now);
     }
 
     // TaskExecutionListener
     public void beforeExecute(Task task) {
-        long now = timeProvider.getCurrentTime();
+        long now = clock.getCurrentTime();
         Project project = task.getProject();
         ProjectProfile projectProfile = buildProfile.getProjectProfile(project.getPath());
         projectProfile.getTaskProfile(task.getPath()).setStart(now);
     }
 
     public void afterExecute(Task task, TaskState state) {
-        long now = timeProvider.getCurrentTime();
+        long now = clock.getCurrentTime();
         Project project = task.getProject();
         ProjectProfile projectProfile = buildProfile.getProjectProfile(project.getPath());
         TaskExecution taskExecution = projectProfile.getTaskProfile(task.getPath());
@@ -112,12 +112,12 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
 
     // DependencyResolutionListener
     public void beforeResolve(ResolvableDependencies dependencies) {
-        long now = timeProvider.getCurrentTime();
+        long now = clock.getCurrentTime();
         buildProfile.getDependencySetProfile(dependencies.getPath()).setStart(now);
     }
 
     public void afterResolve(ResolvableDependencies dependencies) {
-        long now = timeProvider.getCurrentTime();
+        long now = clock.getCurrentTime();
         buildProfile.getDependencySetProfile(dependencies.getPath()).setFinish(now);
     }
 }

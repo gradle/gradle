@@ -25,8 +25,8 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.time.CountdownTimer;
+import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
-import org.gradle.internal.time.Timers;
 import org.gradle.launcher.daemon.server.api.DaemonStateControl;
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException;
 import org.gradle.launcher.daemon.server.api.DaemonUnavailableException;
@@ -74,7 +74,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         this.onFinishCommand = onFinishCommand;
         this.onCancelCommand = onCancelCommand;
         this.cancelTimeoutMs = cancelTimeoutMs;
-        idleTimer = Timers.startTimer();
+        idleTimer = Time.startTimer();
         updateCancellationToken();
     }
 
@@ -245,7 +245,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     }
 
     private void cancelNow() {
-        CountdownTimer timer = Timers.startTimer(cancelTimeoutMs);
+        CountdownTimer timer = Time.startCountdownTimer(cancelTimeoutMs);
 
         LOGGER.debug("Cancel requested: will wait for daemon to become idle.");
         try {

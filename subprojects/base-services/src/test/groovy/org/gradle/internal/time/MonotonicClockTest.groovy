@@ -14,25 +14,54 @@
  * limitations under the License.
  */
 
-
 package org.gradle.internal.time
 
 import spock.lang.Specification
 
 import java.util.concurrent.TimeUnit
 
-class OffsetTimeProviderTest extends Specification {
+class MonotonicClockTest extends Specification {
 
     private static final long START_MILLIS = 641353121231L
     private static final long START_NANOS = 222222222222222222L
 
-    private TimeSource timeSource = Mock(TimeSource)
-    private OffsetTimeProvider timeProvider
+    private MonotonicClock.TimeSource timeSource = Mock(MonotonicClock.TimeSource) {
+        1 * currentTimeMillis() >> START_MILLIS
+        1 * nanoTime() >> START_NANOS
+    }
 
-    void setup() {
-        1 * timeSource.currentTimeMillis() >> START_MILLIS
-        1 * timeSource.nanoTime() >> START_NANOS
-        timeProvider = new OffsetTimeProvider(timeSource)
+    private Clock clock = new MonotonicClock(timeSource)
+
+    def "prevents time from going backwards"() {
+        when:
+        setDtMs 0
+
+        then:
+        clock.currentTime == START_MILLIS + 0
+
+        when:
+        setDtMs 10
+
+        then:
+        clock.currentTime == START_MILLIS + 10
+
+        when:
+        setDtMs 8
+
+        then:
+        clock.currentTime == START_MILLIS + 10
+
+        when:
+        setDtMs 10
+
+        then:
+        clock.currentTime == START_MILLIS + 10
+
+        when:
+        setDtMs 15
+
+        then:
+        clock.currentTime == START_MILLIS + 15
     }
 
     def "provides current time based on nanoTime delta"() {
@@ -40,7 +69,7 @@ class OffsetTimeProviderTest extends Specification {
         setDtMs(delta)
 
         then:
-        timeProvider.currentTime == START_MILLIS + delta
+        clock.currentTime == START_MILLIS + delta
 
         where:
         delta << [0, 100, -100]
