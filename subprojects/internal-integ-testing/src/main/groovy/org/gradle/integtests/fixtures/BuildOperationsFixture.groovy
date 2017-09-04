@@ -134,4 +134,107 @@ class BuildOperationsFixture {
         def endTimeOrdered = expectedOrderList.sort(false) { it.endTime }
         assert endTimeOrdered == startTimeOrdered
     }
+
+    static class TimePoint implements Comparable<TimePoint> {
+        private final boolean end
+        private final long time
+        private final BuildOperationRecord operation
+
+        TimePoint(BuildOperationRecord operation, long time) {
+            this(operation, time, false)
+        }
+
+        TimePoint(BuildOperationRecord operation, long time, boolean end) {
+            this.operation = operation
+            this.time = time
+            this.end = end
+        }
+
+        @Override
+        int compareTo(TimePoint o) {
+            if (o.time > time) {
+                return -1
+            }
+            else if (o.time < time) {
+                return 1
+            }
+            else {
+                if (end && o.end) {
+                    return 0
+                } else if (end) {
+                    return -1
+                } else {
+                    return 1
+                }
+            }
+        }
+
+        @Override
+        String toString() {
+            if (end) {
+                time + "E"
+            } else {
+                time + "S"
+            }
+        }
+    }
+
+    /**
+     * Asserts that no more than maximumConcurrentOperations of the given type of build operation are executing at the same time.
+     *
+     * @param type type of build operation
+     * @param maximumConcurrentOperations maximum concurrent operations allowed
+     * @param concurrencyExpected whether or not to expect _any_ concurrency
+     */
+    void assertConcurrentOperationsDoNotExceed(Class<BuildOperationType> type, int maximumConcurrentOperations, boolean concurrencyExpected=false) {
+        int maxConcurrency = getMaximumConcurrentOperations(type)
+        assert maxConcurrency <= maximumConcurrentOperations
+        if (concurrencyExpected) {
+            assert maxConcurrency > 1 : "No operations were executed concurrently"
+        }
+    }
+
+    void assertConcurrentOperationsExecuted(Class<BuildOperationType> type) {
+        assert getMaximumConcurrentOperations(type) > 1 : "No operations were executed concurrently"
+    }
+
+    int getMaximumConcurrentOperations(Class<BuildOperationType> type) {
+        def highWaterPoint = 0
+        def allOperations = all(type)
+
+        List<TimePoint> points = []
+
+        allOperations.each {
+            points.add(new TimePoint(it, it.startTime))
+            points.add(new TimePoint(it, it.endTime, true))
+        }
+
+        def concurrentOperations = []
+        points.sort().each {
+            if (it.end) {
+                concurrentOperations.remove(it.operation)
+            } else {
+                if ((it.operation.endTime - it.operation.startTime) > 0) {
+                    concurrentOperations.add(it.operation)
+                }
+            }
+            if (concurrentOperations.size() > highWaterPoint) {
+                highWaterPoint = concurrentOperations.size()
+            }
+        }
+        return highWaterPoint
+    }
+
+    /**
+     * Return a list of operations (possibly empty) that executed concurrently with the given operation.
+     */
+    List<BuildOperationRecord> getOperationsConcurrentWith(Class<BuildOperationType> type, BuildOperationRecord operation) {
+        def concurrentOperations = []
+        all(type).each { candidate ->
+            if (candidate != operation && candidate.startTime < operation.endTime && candidate.endTime > operation.startTime) {
+                concurrentOperations << candidate
+            }
+        }
+        return concurrentOperations
+    }
 }

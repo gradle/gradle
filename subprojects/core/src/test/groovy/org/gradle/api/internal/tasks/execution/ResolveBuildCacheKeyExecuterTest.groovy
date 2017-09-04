@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.execution
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.ImmutableSortedSet
-import com.google.common.hash.HashCode
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
@@ -28,8 +27,8 @@ import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.caching.internal.tasks.BuildCacheKeyInputs
-import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBuilder
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.testing.internal.util.Specification
 import org.gradle.util.Path
@@ -94,20 +93,21 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
     }
 
     def "does not calculate cache key when task has no outputs"() {
+        def noCacheKey = Mock(TaskOutputCachingBuildCacheKey)
         when:
         executer.execute(task, taskState, taskContext)
 
         then:
         1 * task.getIdentityPath() >> Path.path(":foo")
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.calculateCacheKey() >> DefaultTaskOutputCachingBuildCacheKeyBuilder.NO_CACHE_KEY
+        1 * taskArtifactState.calculateCacheKey() >> noCacheKey
 
         then:
         1 * task.getOutputs() >> taskOutputs
         1 * taskOutputs.getHasOutput() >> false
 
         then:
-        1 * taskContext.setBuildCacheKey(DefaultTaskOutputCachingBuildCacheKeyBuilder.NO_CACHE_KEY)
+        1 * taskContext.setBuildCacheKey(noCacheKey)
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
@@ -115,7 +115,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
 
         and:
         with(buildOpResult(), ResolveBuildCacheKeyExecuter.OperationResultImpl) {
-            key == DefaultTaskOutputCachingBuildCacheKeyBuilder.NO_CACHE_KEY
+            key == noCacheKey
         }
     }
 
@@ -128,22 +128,22 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         def adapter = new ResolveBuildCacheKeyExecuter.OperationResultImpl(key)
 
         when:
-        inputs.inputHashes >> ImmutableSortedMap.copyOf(b: HashCode.fromString("bb"), a: HashCode.fromString("aa"))
+        inputs.inputHashes >> ImmutableSortedMap.copyOf(b: HashCode.fromInt(0x000000bb), a: HashCode.fromInt(0x000000aa))
 
         then:
-        adapter.inputHashes == [a: "aa", b: "bb"]
+        adapter.inputHashes == [a: "000000aa", b: "000000bb"]
 
         when:
-        inputs.classLoaderHash >> HashCode.fromString("cc")
+        inputs.classLoaderHash >> HashCode.fromInt(0x000000cc)
 
         then:
-        adapter.classLoaderHash == "cc"
+        adapter.classLoaderHash == "000000cc"
 
         when:
-        inputs.actionClassLoaderHashes >> ImmutableList.copyOf([HashCode.fromString("ee"), HashCode.fromString("dd")])
+        inputs.actionClassLoaderHashes >> ImmutableList.copyOf([HashCode.fromInt(0x000000ee), HashCode.fromInt(0x000000dd)])
 
         then:
-        adapter.actionClassLoaderHashes == ["ee", "dd"]
+        adapter.actionClassLoaderHashes == ["000000ee", "000000dd"]
 
         when:
         inputs.actionClassNames >> ImmutableList.copyOf(["foo", "bar"])
@@ -158,11 +158,11 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         adapter.outputPropertyNames == ["1", "2"]
 
         when:
-        key.hashCode >> HashCode.fromString("ff")
+        key.hashCode >> HashCode.fromInt(0x000000ff)
         key.valid >> true
 
         then:
-        adapter.buildCacheKey == "ff"
+        adapter.buildCacheKey == "000000ff"
     }
 
     private SnapshotTaskInputsBuildOperationType.Result buildOpResult() {

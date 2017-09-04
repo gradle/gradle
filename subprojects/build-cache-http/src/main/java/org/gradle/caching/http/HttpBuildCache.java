@@ -18,9 +18,9 @@ package org.gradle.caching.http;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 import org.gradle.caching.configuration.AbstractBuildCache;
 
+import javax.annotation.Nullable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -41,6 +41,7 @@ import java.net.URL;
 public class HttpBuildCache extends AbstractBuildCache {
     private final HttpBuildCacheCredentials credentials;
     private URI url;
+    private boolean allowUntrustedServer;
 
     public HttpBuildCache() {
         this.credentials = new HttpBuildCacheCredentials();
@@ -68,6 +69,9 @@ public class HttpBuildCache extends AbstractBuildCache {
         setUrl(url.toURI());
     }
 
+    /**
+     * Sets the URL of the cache. The URL must end in a '/'.
+     */
     public void setUrl(URI url) {
         this.url = url;
     }
@@ -84,5 +88,43 @@ public class HttpBuildCache extends AbstractBuildCache {
      */
     public void credentials(Action<? super HttpBuildCacheCredentials> configuration) {
         configuration.execute(credentials);
+    }
+
+    /**
+     * Specifies whether it is acceptable to communicate with an HTTP build cache backend with an untrusted SSL certificate.
+     * <p>
+     * The SSL certificate for the HTTP build cache backend may be untrusted since it is internally provisioned or a self-signed certificate.
+     * <p>
+     * In such a scenario, you can either configure the build JVM environment to trust the certificate,
+     * or set this property to {@code true} to disable verification of the server's identity.
+     * <p>
+     * Allowing communication with untrusted servers keeps data encrypted during transmission,
+     * but makes it easier for a man-in-the-middle to impersonate the intended server and capture data.
+     * <p>
+     * This value has no effect if a server is specified using the HTTP protocol (i.e. has SSL disabled).
+     *
+     * @since 4.2
+     */
+    public boolean isAllowUntrustedServer() {
+        return allowUntrustedServer;
+    }
+
+    /**
+     * Specifies whether it is acceptable to communicate with an HTTP build cache backend with an untrusted SSL certificate.
+     * <p>
+     * The SSL certificate for the HTTP build cache backend may be untrusted since it is internally provisioned or a self-signed certificate.
+     * <p>
+     * In such a scenario, you can either configure the build JVM environment to trust the certificate,
+     * or set this property to {@code true} to disable verification of the server's identity.
+     * <p>
+     * Allowing communication with untrusted servers keeps data encrypted during transmission,
+     * but makes it easier for a man-in-the-middle to impersonate the intended server and capture data.
+     * <p>
+     * This value has no effect if a server is specified using the HTTP protocol (i.e. has SSL disabled).
+     *
+     * @since 4.2
+     */
+    public void setAllowUntrustedServer(boolean allowUntrustedServer) {
+        this.allowUntrustedServer = allowUntrustedServer;
     }
 }

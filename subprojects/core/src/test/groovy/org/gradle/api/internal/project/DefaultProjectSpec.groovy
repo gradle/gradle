@@ -33,6 +33,8 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.hash.FileHasher
+import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
@@ -160,9 +162,11 @@ class DefaultProjectSpec extends Specification {
         def tempFileProvider = Mock(TemporaryFileProvider)
         def fileLookup = Mock(FileLookup)
         def directoryFileTreeFactory = Mock(DefaultDirectoryFileTreeFactory)
-        def fileOperations = instantiator.newInstance(DefaultFileOperations, fileResolver, taskResolver, tempFileProvider, instantiator, fileLookup, directoryFileTreeFactory)
+        def streamHasher = Mock(StreamHasher)
+        def fileHasher = Mock(FileHasher)
+        def fileOperations = instantiator.newInstance(DefaultFileOperations, fileResolver, taskResolver, tempFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher)
 
-        return Spy(DefaultProject, constructorArgs: [name, parent, new File("project"), Stub(ScriptSource), build, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope)]) {
+        return Spy(DefaultProject, constructorArgs: [name, parent, new File("project"), new File("build file"), Stub(ScriptSource), build, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope)]) {
             getFileOperations() >> fileOperations
         }
     }

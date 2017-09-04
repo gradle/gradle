@@ -24,16 +24,17 @@ import com.typesafe.zinc.Setup;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheRepositoryServices;
-import org.gradle.cache.internal.FileLockManager;
 import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
-import org.gradle.internal.time.Clock;
+import org.gradle.internal.time.Timer;
+import org.gradle.internal.time.Timers;
 import org.gradle.util.GFileUtils;
 import sbt.ScalaInstance;
 import sbt.compiler.AnalyzingCompiler;
@@ -114,7 +115,7 @@ public class ZincScalaCompilerFactory {
             final File tmpDir = new File(zincCache.getBaseDir(), "tmp");
             tmpDir.mkdirs();
             final File tempFile = File.createTempFile("zinc", ".jar", tmpDir);
-            final Clock timer = new Clock();
+            final Timer timer = Timers.startTimer();
             sbt.compiler.IC.compileInterfaceJar(
                     sbtInterfaceFileName,
                     setup.compilerInterfaceSrc(),

@@ -16,9 +16,9 @@
 
 package org.gradle.internal.component.external.model;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.component.model.ModuleSource;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collection;
 

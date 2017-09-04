@@ -19,6 +19,7 @@ package org.gradle.caching.http.internal
 import org.apache.http.HttpHeaders
 import org.apache.http.HttpStatus
 import org.gradle.api.UncheckedIOException
+import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheException
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.BuildCacheService
@@ -66,6 +67,11 @@ class HttpBuildCacheServiceTest extends Specification {
         String toString() {
             return getHashCode()
         }
+
+        @Override
+        String getDisplayName() {
+            return getHashCode()
+        }
     }
 
     def setup() {
@@ -78,27 +84,39 @@ class HttpBuildCacheServiceTest extends Specification {
 
     def "can cache artifact"() {
         def destFile = tempDir.file("cached.zip")
-        server.expectPut("/cache/${key.hashCode}", destFile)
+        def content = "Data".bytes
+        server.expectPut("/cache/${key.hashCode}", destFile, HttpStatus.SC_OK, null, content.length)
 
         when:
-        cache.store(key) { output ->
-            output << "Data"
-        }
+        cache.store(key, writer(content))
         then:
-        destFile.text == "Data"
+        destFile.bytes == content
     }
 
     def "can cache artifact with redirect"() {
         def destFile = tempDir.file("cached.zip")
+        def content = "Data".bytes
         server.expectPutRedirected("/cache/${key.hashCode}", "/redirect/cache/${key.hashCode}")
-        server.expectPut("/redirect/cache/${key.hashCode}", destFile)
+        server.expectPut("/redirect/cache/${key.hashCode}", destFile, HttpStatus.SC_OK, null, content.length)
 
         when:
-        cache.store(key) { output ->
-            output << "Data"
-        }
+        cache.store(key, writer(content))
         then:
-        destFile.text == "Data"
+        destFile.bytes == content
+    }
+
+    private static BuildCacheEntryWriter writer(byte[] content) {
+        return new BuildCacheEntryWriter() {
+            @Override
+            void writeTo(OutputStream output) throws IOException {
+                output << content
+            }
+
+            @Override
+            long getSize() {
+                return content.length
+            }
+        }
     }
 
     def "can load artifact from cache"() {
@@ -182,7 +200,7 @@ class HttpBuildCacheServiceTest extends Specification {
         expectError(httpCode, 'PUT')
 
         when:
-        cache.store(key) { output -> }
+        cache.store(key, writer("".bytes))
 
         then:
         UncheckedIOException exception = thrown()
@@ -197,7 +215,7 @@ class HttpBuildCacheServiceTest extends Specification {
         expectError(httpCode, 'PUT')
 
         when:
-        cache.store(key) { output -> }
+        cache.store(key, writer("".bytes))
 
         then:
         BuildCacheException exception = thrown()
@@ -240,7 +258,7 @@ class HttpBuildCacheServiceTest extends Specification {
         })
 
         expect:
-        cache.store(key) { output -> }
+        cache.store(key, writer("".bytes))
     }
 
     def "does preemptive authentication"() {
@@ -267,11 +285,10 @@ class HttpBuildCacheServiceTest extends Specification {
         server.expectPut("/cache/${key.hashCode}", configuration.credentials.username, configuration.credentials.password, destFile)
 
         when:
-        cache.store(key) { output ->
-            output << "Data"
-        }
+        def content = "Data".bytes
+        cache.store(key, writer(content))
         then:
-        destFile.text == "Data"
+        destFile.bytes == content
         server.authenticationAttempts == ['Basic'] as Set
     }
 

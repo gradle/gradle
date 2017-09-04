@@ -36,6 +36,7 @@ class TestEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         result.testClass('org.gradle.JUnitTest').assertTestPassed('mySystemClassLoaderIsUsed')
     }
 
+    @Requires(TestPrecondition.JDK8_OR_EARLIER) //hangs on Java9
     def canRunTestsWithCustomSystemClassLoaderAndJavaAgent() {
         when:
         run 'test'

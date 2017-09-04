@@ -17,7 +17,6 @@ package org.gradle.api.internal;
 
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.plugins.ExtraPropertiesDynamicObjectAdapter;
 import org.gradle.api.plugins.Convention;
@@ -30,6 +29,7 @@ import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.MixInClosurePropertiesAsMethodsDynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

@@ -15,9 +15,13 @@
  */
 package org.gradle.language.base;
 
-import org.gradle.api.*;
+import org.gradle.api.BuildableComponentSpec;
+import org.gradle.api.Incubating;
+import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.internal.HasInternalProtocol;
+
+import javax.annotation.Nullable;
 
 /**
  * A set of sources for a programming language.

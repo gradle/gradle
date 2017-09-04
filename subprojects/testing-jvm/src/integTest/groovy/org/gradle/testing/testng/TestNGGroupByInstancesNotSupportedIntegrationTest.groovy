@@ -24,7 +24,7 @@ public class TestNGGroupByInstancesNotSupportedIntegrationTest extends AbstractI
         given:
         buildFile << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies { testCompile 'org.testng:testng:6.0.1' }
             test { useTestNG { groupByInstances true } }
         """

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.gradle.testing.performance.generator.tasks.JavaExecProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.KtsProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.MonolithicNativeProjectGeneratorTask
@@ -22,10 +23,15 @@ import org.gradle.testing.performance.generator.tasks.RemoteProject
 
 // === Java ===
 ['largeMonolithicJavaProject', 'largeJavaMultiProject',
- 'mediumMonolithicJavaProject', 'mediumJavaMultiProject', 'mediumJavaMultiProjectWithTestNG',
+ 'mediumMonolithicJavaProject', 'mediumJavaMultiProject', 'mediumJavaMultiProjectWithTestNG', 'mediumJavaCompositeBuild', 'mediumJavaPredefinedCompositeBuild',
  'smallJavaMultiProject'].each { template ->
-    tasks.create(template, JavaExec) {
+    tasks.create(template, JavaExecProjectGeneratorTask) {
         outputs.dir new File(buildDir, template)
+        outputs.cacheIf { true }
+        inputs.property('template', template)
+        inputs.property('args') { // Arguments are covered by the testProjectName and the outputs. We don't want them to contain the absolute path
+            return []
+        }
         classpath = sourceSets.performanceTest.runtimeClasspath
         main = 'org.gradle.performance.generator.TestProjectGenerator'
         args name, buildDir.absolutePath
@@ -65,7 +71,7 @@ task createLotsOfTasks(type: JvmProjectGeneratorTask) {
     numberOfExternalDependencies = 0
 }
 
-// === Gradle Script Kotlin ===
+// === Gradle Kotlin DSL ===
 task ktsManyProjects(type: KtsProjectGeneratorTask) {
     projects = 100
     sourceFiles = 0
@@ -244,6 +250,11 @@ task largeNativeBuildPrebuilt(type: GradleBuild) {
     tasks = ['build']
 }
 
+task archivePerformanceProject(type: Copy) {
+    into "build/$name"
+    from "src/templates/$name"
+}
+
 tasks.withType(JvmProjectGeneratorTask) {
     if (project.hasProperty("springDmPluginVersion")) {
         templateArgs['springDmPluginVersion'] = springDmPluginVersion
@@ -255,7 +266,7 @@ tasks.withType(JvmProjectGeneratorTask) {
 // a dedicated project in order for the classpath to be setup properly
 def androidRemoteProjects = tasks.withType(RemoteProject).matching { it.name =~ /Android/ }
 androidRemoteProjects.all {
-    dependsOn project(':internalAndroidPerformanceTesting').buildClassPath
+    dependsOn tasks.findByPath(':internalAndroidPerformanceTesting:buildClassPath')
     doLast {
         file("$outputDirectory/tapi-classpath.txt") << project(':internalAndroidPerformanceTesting').buildClassPath.outputFile.text
     }

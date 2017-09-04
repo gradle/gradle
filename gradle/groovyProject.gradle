@@ -86,11 +86,19 @@ ext.useTestFixtures = { params = [:] ->
     }
 }
 
+apply from: "$rootDir/gradle/distributionTesting.gradle"
+
 if (file("src/testFixtures").exists()) {
     apply from: "$rootDir/gradle/testFixtures.gradle"
 }
 
-apply from: "$rootDir/gradle/integTest.gradle"
+if (file("src/integTest").exists()) {
+    apply from: "$rootDir/gradle/integTest.gradle"
+}
+
+if (file("src/crossVersionTest").exists()) {
+    apply from: "$rootDir/gradle/crossVersionTest.gradle"
+}
 
 if (file("src/performanceTest").exists()) {
     apply from: "$rootDir/gradle/performanceTest.gradle"
@@ -98,20 +106,6 @@ if (file("src/performanceTest").exists()) {
 
 if (file("src/jmh").exists()) {
     apply from: "$rootDir/gradle/jmh.gradle"
-}
-
-// This is here mostly for the TravisCI build.
-// It advertises as an ANSI capable terminal but isn't, so we run with -q there to make
-// the output legible, but we still want test result info
-if (buildTypes.pullRequestValidation.active) {
-    tasks.withType(Test) {
-        testLogging {
-            quiet {
-                events "failed"
-                exceptionFormat "full"
-            }
-        }
-    }
 }
 
 task compileAll {

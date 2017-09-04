@@ -16,8 +16,9 @@
 
 package org.gradle.internal.operations.notify;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.scan.UsedByScanPlugin;
+
+import javax.annotation.Nullable;
 
 /**
  * A notification that a build operation has finished.
@@ -50,6 +51,13 @@ public interface BuildOperationFinishedNotification {
      */
     @Nullable
     Object getNotificationOperationParentId();
+
+    /**
+     * The time that the operation finished.
+     *
+     * @since 4.2
+     */
+    long getNotificationOperationFinishedTimestamp();
 
     /**
      * A structured object providing details about the operation that was performed.

@@ -17,8 +17,6 @@
 package org.gradle.internal.logging.sink;
 
 import com.google.common.base.Objects;
-import org.gradle.api.Nullable;
-import org.gradle.internal.logging.events.BatchOutputEventListener;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.OperationIdentifier;
@@ -35,6 +33,7 @@ import org.gradle.internal.progress.BuildOperationCategory;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -46,7 +45,7 @@ import java.util.concurrent.TimeUnit;
  * An {@code org.gradle.logging.internal.OutputEventListener} implementation which generates output events to log the
  * progress of operations.
  */
-public class GroupingProgressLogEventGenerator extends BatchOutputEventListener {
+public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
     private static final long LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(5);
     private final OutputEventListener listener;
@@ -122,7 +121,7 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
         buildOpIdHierarchy.remove(buildOpId);
         OperationGroup group = operationsInProgress.remove(buildOpId);
         if (group != null) {
-            group.setStatus(completeEvent.getStatus());
+            group.setStatus(completeEvent.getStatus(), completeEvent.isFailed());
             group.flushOutput();
         }
     }
@@ -177,6 +176,7 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
         private final BuildOperationCategory buildOperationCategory;
 
         private String status = "";
+        private boolean failed;
 
         private List<RenderableOutputEvent> bufferedLogs = new ArrayList<RenderableOutputEvent>();
 
@@ -192,7 +192,7 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
         }
 
         private StyledTextOutputEvent header() {
-            return new StyledTextOutputEvent(lastUpdateTime, category, null, buildOpIdentifier, headerFormatter.format(loggingHeader, description, shortDescription, status));
+            return new StyledTextOutputEvent(lastUpdateTime, category, null, buildOpIdentifier, headerFormatter.format(loggingHeader, description, shortDescription, status, failed));
         }
 
         private void bufferOutput(RenderableOutputEvent output) {
@@ -227,8 +227,9 @@ public class GroupingProgressLogEventGenerator extends BatchOutputEventListener 
             }
         }
 
-        private void setStatus(String status) {
+        private void setStatus(String status, boolean failed) {
             this.status = status;
+            this.failed = failed;
         }
 
         private boolean shouldForward() {

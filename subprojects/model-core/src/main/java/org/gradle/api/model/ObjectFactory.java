@@ -18,6 +18,7 @@ package org.gradle.api.model;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.reflect.ObjectInstantiationException;
 
 /**
  * A factory for creating various kinds of model objects.
@@ -42,6 +43,29 @@ public interface ObjectFactory {
      * <p>An interface, if provided, must not define or inherit any other methods.</p>
      *
      * <p>Objects created using this method are not decorated or extensible.</p>
+     *
+     * @throws ObjectInstantiationException On failure to create the new instance.
+     * @since 4.0
      */
-    <T extends Named> T named(Class<T> type, String name);
+    <T extends Named> T named(Class<T> type, String name) throws ObjectInstantiationException;
+
+    /**
+     * Create a new instance of T, using {@code parameters} as the construction parameters.
+     *
+     * <p>The type must be a non-abstract class.</p>
+     *
+     * <p>Objects created using this method are decorated and extensible, meaning that they have DSL support mixed in and can be extended using the `extensions` property, similar to the {@link org.gradle.api.Project} object.</p>
+     *
+     * <p>An @Inject annotation is required on any constructor that accepts parameters because JSR-330 semantics for dependency injection are used. In addition to those parameters provided as an argument to this method, the following services are also available for injection:</p>
+     *
+     * <ul>
+     *     <li>{@link ObjectFactory}.</li>
+     *     <li>{@link org.gradle.api.file.ProjectLayout}.</li>
+     *     <li>{@link org.gradle.api.provider.ProviderFactory}.</li>
+     * </ul>
+     *
+     * @throws ObjectInstantiationException On failure to create the new instance.
+     * @since 4.2
+     */
+    <T> T newInstance(Class<? extends T> type, Object... parameters) throws ObjectInstantiationException;
 }

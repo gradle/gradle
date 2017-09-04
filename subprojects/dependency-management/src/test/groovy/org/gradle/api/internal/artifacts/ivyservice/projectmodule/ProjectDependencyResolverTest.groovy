@@ -31,9 +31,8 @@ import static org.gradle.internal.component.local.model.TestComponentIdentifiers
 
 class ProjectDependencyResolverTest extends Specification {
     final LocalComponentRegistry registry = Mock()
-    final ProjectArtifactBuilder artifactBuilder = Mock()
     final ComponentIdentifierFactory componentIdentifierFactory = Mock()
-    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, artifactBuilder, componentIdentifierFactory)
+    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, componentIdentifierFactory)
 
     def "resolves project dependency"() {
         setup:

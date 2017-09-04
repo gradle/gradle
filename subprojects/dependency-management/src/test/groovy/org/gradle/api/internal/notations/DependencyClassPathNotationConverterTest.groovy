@@ -19,10 +19,10 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
-import org.gradle.api.internal.cache.GeneratedGradleJarCache
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarType
+import org.gradle.cache.internal.GeneratedGradleJarCache
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.installation.GradleInstallation

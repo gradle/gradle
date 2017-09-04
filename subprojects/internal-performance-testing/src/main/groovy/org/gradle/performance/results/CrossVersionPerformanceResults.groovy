@@ -18,16 +18,13 @@ package org.gradle.performance.results
 
 import groovy.transform.CompileStatic
 import org.gradle.api.Transformer
-import org.gradle.api.logging.Logger
-import org.gradle.api.logging.Logging
 
 @CompileStatic
-public class CrossVersionPerformanceResults extends PerformanceTestResult {
-    private final static Logger LOGGER = Logging.getLogger(CrossVersionPerformanceResults.class)
-
+class CrossVersionPerformanceResults extends PerformanceTestResult {
     String testProject
     List<String> args
     List<String> tasks
+    List<String> cleanTasks
     List<String> gradleOpts
     Boolean daemon
 
@@ -41,7 +38,11 @@ public class CrossVersionPerformanceResults extends PerformanceTestResult {
     }
 
     String getDisplayName() {
-        return "Results for test project '$testProject' with tasks ${tasks.join(', ')}"
+        def displayName = "Results for test project '$testProject' with tasks ${tasks.join(', ')}"
+        if (cleanTasks) {
+            displayName += ", cleaned with ${cleanTasks.join(', ')}"
+        }
+        return displayName
     }
 
     Collection<BaselineVersion> getBaselineVersions() {

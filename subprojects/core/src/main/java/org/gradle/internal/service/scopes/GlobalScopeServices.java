@@ -28,7 +28,6 @@ import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DefaultInstantiatorFactory;
 import org.gradle.api.internal.DynamicModulesClassPathProvider;
 import org.gradle.api.internal.InstantiatorFactory;
-import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
@@ -42,15 +41,17 @@ import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.model.DefaultObjectFactory;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.CachingPatternSpecFactory;
 import org.gradle.api.tasks.util.internal.PatternSpecFactory;
+import org.gradle.cache.FileLockManager;
 import org.gradle.cache.internal.CacheFactory;
+import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.DefaultCacheFactory;
-import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.configuration.DefaultImportsReader;
 import org.gradle.configuration.ImportsReader;
@@ -60,7 +61,7 @@ import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.initialization.DefaultJdkToolsInitializer;
 import org.gradle.initialization.DefaultLegacyTypesSupport;
-import org.gradle.initialization.DefaultParallelExecutionManager;
+import org.gradle.initialization.DefaultParallelismConfigurationManager;
 import org.gradle.initialization.FlatClassLoaderRegistry;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.JdkToolsInitializer;
@@ -69,16 +70,22 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.ParallelExecutionManager;
+import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.DefaultFileWatcherFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
+import org.gradle.internal.hash.ContentHasherFactory;
+import org.gradle.internal.hash.DefaultContentHasherFactory;
+import org.gradle.internal.hash.DefaultStreamHasher;
+import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.operations.BuildOperationIdFactory;
+import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
 import org.gradle.internal.progress.BuildOperationListenerManager;
 import org.gradle.internal.progress.DefaultBuildOperationListenerManager;
 import org.gradle.internal.reflect.Instantiator;
@@ -92,8 +99,8 @@ import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.time.MonotonicTimeProvider;
 import org.gradle.internal.time.TimeProvider;
-import org.gradle.internal.time.TrueTimeProvider;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractors;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
@@ -284,8 +291,8 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return new StringInterner();
     }
 
-    InstantiatorFactory createInstantiatorFactory(ClassGenerator classGenerator) {
-        return new DefaultInstantiatorFactory(classGenerator);
+    InstantiatorFactory createInstantiatorFactory(ClassGenerator classGenerator, CrossBuildInMemoryCacheFactory cacheFactory) {
+        return new DefaultInstantiatorFactory(classGenerator, cacheFactory);
     }
 
     GradleUserHomeScopeServiceRegistry createGradleUserHomeScopeServiceRegistry(ServiceRegistry globalServices) {
@@ -293,7 +300,7 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
     }
 
     TimeProvider createTimeProvider() {
-        return new TrueTimeProvider();
+        return MonotonicTimeProvider.global();
     }
 
     OsMemoryInfo createOsMemoryInfo() {
@@ -308,8 +315,8 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return new DefaultMemoryManager(osMemoryInfo, jvmMemoryInfo, listenerManager, executorFactory);
     }
 
-    ObjectFactory createObjectFactory() {
-        return DefaultObjectFactory.INSTANCE;
+    ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services) {
+        return new DefaultObjectFactory(instantiatorFactory.injectAndDecorate(services), NamedObjectInstantiator.INSTANCE);
     }
 
     ProviderFactory createProviderFactory() {
@@ -328,8 +335,8 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return new DefaultTaskInputsListener();
     }
 
-    ParallelExecutionManager createMaxWorkersManager(ListenerManager listenerManager) {
-        return new DefaultParallelExecutionManager(listenerManager);
+    ParallelismConfigurationManager createMaxWorkersManager(ListenerManager listenerManager) {
+        return new DefaultParallelismConfigurationManager(listenerManager);
     }
 
     PatternSpecFactory createPatternSpecFactory() {
@@ -338,5 +345,17 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
 
     LoggingManagerInternal createLoggingManager(Factory<LoggingManagerInternal> loggingManagerFactory) {
         return loggingManagerFactory.create();
+    }
+
+    BuildOperationIdFactory createBuildOperationIdProvider() {
+        return new DefaultBuildOperationIdFactory();
+    }
+
+    ContentHasherFactory createHasherFactory() {
+        return new DefaultContentHasherFactory();
+    }
+
+    StreamHasher createStreamHasher(ContentHasherFactory hasherFactory) {
+        return new DefaultStreamHasher(hasherFactory);
     }
 }

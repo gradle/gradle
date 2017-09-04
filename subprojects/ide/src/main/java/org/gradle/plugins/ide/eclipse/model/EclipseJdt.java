@@ -26,7 +26,7 @@ import org.gradle.util.ConfigureUtil;
 /**
  * Enables fine-tuning jdt details of the Eclipse plugin
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * apply plugin: 'java'
  * apply plugin: 'eclipse'
  *
@@ -50,7 +50,7 @@ import org.gradle.util.ConfigureUtil;
  *
  *       //withProperties allows addition of properties not currently
  *       //modeled by Gradle
- *       withProperties { properties ->
+ *       withProperties { properties -&gt;
  *           //you can tinker with the {@link java.util.Properties} here
  *       }
  *     }

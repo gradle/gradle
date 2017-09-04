@@ -24,53 +24,35 @@ archivesBaseName = 'gradle'
 
 buildTypes {
     sanityCheck {
-        tasks "classes", "doc:checkstyleApi", "codeQuality", "docs:check"
-    }
-
-    // The minimum to be run before check-in
-    preCommitBuild {
-        tasks "doc:checkstyleApi", "docs:check", "codeQuality", "test"
-    }
-    quickCheck {
-        tasks "doc:checkstyleApi", "docs:check", "codeQuality", "test"
-    }
-
-    // For testing pull requests
-    pullRequestValidation {
-        tasks "doc:checkstyleApi", "docs:check", "codeQuality", "core:test", "dependencyManagement:test"
-    }
-
-    // A full (in-process) test
-    developerBuild {
-        tasks "check"
+        tasks "classes", "doc:checkstyleApi", "codeQuality", "docs:check", "distribution:checkBinaryCompatibility", "javadocAll"
     }
 
     // Used by the first phase of the build pipeline, running only last version on multiversion - tests
     quickTest {
-        tasks "runtimeTests", "runtimeIntegTests"
+        tasks "test", "integTest", "crossVersionTest"
     }
 
     // Used for builds to run all tests, but not necessarily on all platforms
     fullTest {
-        tasks "runtimeTests", "runtimeForkingIntegTests"
+        tasks "test", "forkingIntegTest", "forkingCrossVersionTest"
         projectProperties useIncomingDistributions: true, testAllVersions: true
     }
 
     // Used for builds to test the code on certain platforms
     platformTest {
-        tasks "runtimeTests", "runtimeForkingIntegTests"
+        tasks "test", "forkingIntegTest", "forkingCrossVersionTest"
         projectProperties useIncomingDistributions: true, testAllVersions: true, testAllPlatforms: true
     }
 
     // Tests not using the daemon mode
     noDaemonTest {
-        tasks "runtimeNoDaemonIntegTests"
+        tasks "noDaemonIntegTest"
         projectProperties useIncomingDistributions: true
     }
 
     // Run the integration tests using the parallel executer
     parallelTest {
-        tasks "runtimeParallelIntegTests"
+        tasks "parallelIntegTest"
         projectProperties useIncomingDistributions: true
     }
 
@@ -106,11 +88,12 @@ buildTypes {
 
     // Used for cross version tests on CI
     crossVersionTest {
-        tasks "crossVersionIntegTest"
+        tasks "crossVersionTests"
         projectProperties useIncomingDistributions: true
     }
+
     quickFeedbackCrossVersionTest {
-        tasks "quickFeedbackCrossVersionIntegTest"
+        tasks "quickFeedbackCrossVersionTests"
         projectProperties useIncomingDistributions: true
     }
 
@@ -134,6 +117,7 @@ buildTypes {
         tasks "java9Test", "java9IntegTest"
         projectProperties useIncomingDistributions: true
     }
+
     java9SmokeTest {
         tasks "java9IntegTest"
         projectProperties useIncomingDistributions: true
@@ -145,8 +129,6 @@ buildTypes {
     }
 }
 
-apply from: "gradle/testGroupings.gradle"
-apply from: 'gradle/buildSplits.gradle'
 ext {
     jvm = org.gradle.internal.jvm.Jvm.current()
     javaVersion = JavaVersion.current()
@@ -183,7 +165,7 @@ ext {
         'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy', 'languageScala',
         'platformNative', 'platformPlay', 'idePlay', 'languageNative', 'ideNative', 'testingBase',
         'testingNative', 'testingJvm', 'pluginDevelopment', 'pluginUse', 'resourcesHttp',
-        'resourcesSftp', 'resourcesS3', 'compositeBuilds', 'buildCacheHttp'
+        'resourcesSftp', 'resourcesS3', 'resourcesGcs', 'compositeBuilds', 'buildCacheHttp'
     ].collect {
         project(it)
     }
@@ -223,6 +205,7 @@ apply from: "gradle/noDependencyResolutionDuringConfiguration.gradle"
 apply from: "gradle/testSetup.gradle"
 apply from: "gradle/fix-GRADLE-2492.gradle"
 apply from: 'gradle/customM2Check.gradle'
+apply from: "gradle/publicApi.gradle"
 
 allprojects {
     group = 'org.gradle'
@@ -257,10 +240,6 @@ subprojects {
     }
 
     apply from: "$rootDir/gradle/codeQuality.gradle"
-
-    if (isCiServer) {
-        reporting.baseDir "$rootProject.reporting.baseDir/${path.replaceFirst(':', '').replaceAll(':', '.')}"
-    }
 }
 
 configurations {
@@ -295,8 +274,8 @@ def patchedExternalModules = files({ -> fileTree(patchedExternalModulesDir).file
 patchedExternalModules.builtBy 'patchExternalModules'
 
 dependencies {
-    externalModules 'org.gradle:gradle-script-kotlin:0.9.1'
-    externalModules 'org.gradle:gradle-script-kotlin-tooling-builders:0.9.1'
+    externalModules 'org.gradle:gradle-kotlin-dsl:0.11.0'
+    externalModules 'org.gradle:gradle-kotlin-dsl-tooling-builders:0.11.0'
     coreRuntime project(':launcher')
     coreRuntime project(':runtimeApiInfo')
     runtime project(':wrapper')
@@ -356,7 +335,6 @@ task installAll(type: Install) {
 }
 
 apply from: "gradle/intTestImage.gradle"
-apply from: 'gradle/pullRequestBuild.gradle'
 
 // Generate a report showing which tests in a subproject are leaving
 // files around.
@@ -386,29 +364,4 @@ gradle.buildFinished { result ->
     }
 }
 
-/*
- * When run from a Continuous Integration environment HTML test reports will usually only be inspected
- * if the build failed e.g. due to failed or flaky tests.
- *
- * Deletes HTML test reports so they are not archived on TeamCity and use up unnecessary disk space.
- */
-if (isCiServer) {
-    gradle.buildFinished { buildResult ->
-        if (!buildResult.failure) {
-            logger.quiet "Deleting HTML test reports..."
-
-            subprojects {
-                def htmlTestReportDirs = tasks.withType(Test).collect { it.reports.html.destination }.unique()
-
-                htmlTestReportDirs.each { htmlReportDir ->
-                    logger.info "Deleting test reports directory '$htmlReportDir'."
-                    def success = htmlReportDir.deleteDir()
-
-                    if (!success) {
-                        logger.warn "Unable to delete test report directory '$htmlReportDir'."
-                    }
-                }
-            }
-        }
-    }
-}
+apply from: "gradle/ciReporting.gradle"

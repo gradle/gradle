@@ -169,9 +169,7 @@ class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegr
         def sourceFile = file("src/main/java/Thing.java") << "class Thing {}"
 
         buildFile << """
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
             dependencies {
                 compile "log4j:log4j:1.2.17"
             }

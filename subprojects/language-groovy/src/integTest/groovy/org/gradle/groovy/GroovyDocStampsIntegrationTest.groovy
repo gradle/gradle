@@ -28,9 +28,7 @@ class GroovyDocStampsIntegrationTest extends MultiVersionIntegrationSpec {
         buildFile << """
             apply plugin: "groovy"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 compile "org.codehaus.groovy:groovy:${version}"

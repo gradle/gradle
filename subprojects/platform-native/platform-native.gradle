@@ -34,6 +34,7 @@ useTestFixtures(sourceSet: 'testFixtures')
 useTestFixtures(project: ':platformBase')
 useTestFixtures(project: ':modelCore')
 useTestFixtures(project: ':diagnostics')
+useTestFixtures(project: ':baseServices')
 
 strictCompile()
 useClassycle(exclude: ['org/gradle/nativeplatform/plugins/**',

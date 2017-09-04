@@ -16,10 +16,10 @@
 
 package org.gradle.model.internal.typeregistration;
 
-import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.type.ModelType;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 public interface InstanceFactory<T> {

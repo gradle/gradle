@@ -21,8 +21,10 @@ import org.apache.commons.collections.CollectionUtils;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
+import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.launcher.daemon.client.DaemonStartupMessage;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
+import org.gradle.launcher.daemon.server.health.LowTenuredSpaceDaemonExpirationStrategy;
 import org.gradle.util.TextUtil;
 import org.hamcrest.core.StringContains;
 
@@ -41,7 +43,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 public class OutputScrapingExecutionResult implements ExecutionResult {
-    static final Pattern STACK_TRACE_ELEMENT = Pattern.compile("\\s+(at\\s+)?[\\w.$_]+\\.[\\w$_ =\\+\'-]+\\(.+?\\)");
+    static final Pattern STACK_TRACE_ELEMENT = Pattern.compile("\\s+(at\\s+)?([\\w.$_]+/)?[\\w.$_]+\\.[\\w$_ =\\+\'-<>]+\\(.+?\\)(\\x1B\\[0K)?");
     private final String output;
     private final String error;
 
@@ -96,6 +98,15 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
             } else if (line.contains(DaemonStateCoordinator.DAEMON_WILL_STOP_MESSAGE)) {
                 // Remove the "Daemon will be shut down" message
                 i++;
+            } else if (line.contains(LowTenuredSpaceDaemonExpirationStrategy.EXPIRE_DAEMON_MESSAGE)) {
+                // Remove the "Expiring Daemon" message
+                i++;
+            } else if (line.contains(UnsupportedJavaRuntimeException.JAVA7_DEPRECATION_WARNING)) {
+                // Remove the Java 7 deprecation warning. This should be removed after 5.0
+                i++;
+                while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
+                    i++;
+                }
             } else if (i == lines.size() - 1 && BUILD_RESULT_PATTERN.matcher(line).matches()) {
                 result.append(BUILD_RESULT_PATTERN.matcher(line).replaceFirst("BUILD $1 in 0s"));
                 result.append('\n');

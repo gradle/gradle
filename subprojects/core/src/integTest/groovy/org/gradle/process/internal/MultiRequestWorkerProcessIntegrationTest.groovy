@@ -16,7 +16,7 @@
 
 package org.gradle.process.internal
 
-import org.gradle.internal.reflect.ObjectInstantiationException
+import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.process.internal.worker.WorkerControl
 import org.gradle.process.internal.worker.WorkerProcessException
 import org.gradle.test.fixtures.ConcurrentTestUtil

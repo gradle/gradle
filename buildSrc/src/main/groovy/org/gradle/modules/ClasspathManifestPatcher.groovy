@@ -18,10 +18,10 @@ package org.gradle.modules
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 
+import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.file.CopySpec
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.util.CollectionUtils
 import org.gradle.util.GUtil
 
@@ -40,7 +40,7 @@ class ClasspathManifestPatcher {
     /**
      * The project.
      */
-    ProjectInternal project
+    Project project
 
     /**
      * The Gradle runtime configuration.
@@ -54,7 +54,7 @@ class ClasspathManifestPatcher {
 
     File temporaryDir
 
-    ClasspathManifestPatcher(ProjectInternal project, File temporaryDir, Configuration runtime, Set<String> moduleNames) {
+    ClasspathManifestPatcher(Project project, File temporaryDir, Configuration runtime, Set<String> moduleNames) {
         this.project = project
         this.runtime = runtime
         this.temporaryDir = temporaryDir

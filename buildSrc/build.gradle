@@ -24,6 +24,7 @@ targetCompatibility = '1.7'
 repositories {
     maven { url 'https://repo.gradle.org/gradle/libs-releases' }
     maven { url "https://repo.gradle.org/gradle/libs-snapshots" }
+    maven { url "https://plugins.gradle.org/m2/" }
 }
 
 dependencies {
@@ -42,6 +43,7 @@ dependencies {
 
     compile "org.pegdown:pegdown:1.6.0"
     compile "org.jsoup:jsoup:1.6.3"
+    compile 'me.champeau.gradle:japicmp-gradle-plugin:0.2.4'
 }
 
 ext.isCiServer = System.getenv().containsKey("CI")
@@ -50,9 +52,8 @@ apply from: '../gradle/compile.gradle'
 apply from: '../gradle/dependencies.gradle'
 apply from: '../gradle/classycle.gradle'
 
-apply from: '../gradle/buildScanUserData.gradle'
-apply from: '../gradle/taskCacheBuildScanUserData.gradle'
-
 if (!isCiServer || (isCiServer && Boolean.getBoolean('enableCodeQuality'))) {
     apply from: '../gradle/codeQuality.gradle'
 }
+
+apply from: "../gradle/ciReporting.gradle"

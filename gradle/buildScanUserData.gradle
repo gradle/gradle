@@ -14,6 +14,25 @@
  * limitations under the License.
  */
 
+
+def execAsync = { Runnable f ->
+    def latch = new java.util.concurrent.CountDownLatch(1)
+    Thread.start {
+        try {
+            f.run()
+        } catch (ex) {
+            rootProject.logger.warn("Build scan user data async exec failed", ex)
+        } finally {
+            latch.countDown()
+        }
+    }
+}
+
+def setCommitId = { String commitId ->
+    buildScan.value "Git Commit ID", commitId
+    buildScan.link "Source", "https://github.com/gradle/gradle/commit/" + commitId
+}
+
 pluginManager.withPlugin("com.gradle.build-scan") {
     if (gradle.startParameter.taskNames == ["verifyTestFilesCleanup"]) {
         buildScan.publishOnFailure()
@@ -21,46 +40,32 @@ pluginManager.withPlugin("com.gradle.build-scan") {
         buildScan.publishAlways()
     }
 
-    String commitId
     if (isCiServer) {
         buildScan.tag "CI"
         buildScan.tag System.getenv("TEAMCITY_BUILDCONF_NAME")
         buildScan.link "TeamCity Build", System.getenv("BUILD_URL")
         buildScan.value "Build ID", System.getenv("BUILD_ID")
-        commitId = System.getenv("BUILD_VCS_NUMBER")
+        setCommitId(System.getenv("BUILD_VCS_NUMBER"))
     } else {
         buildScan.tag "LOCAL"
 
-        try {
-            commitId = 'git rev-parse --verify HEAD'.execute().text.trim()
-        } catch (ignore) {
-            // ignore
-        }
+        execAsync {
+            setCommitId 'git rev-parse --verify HEAD'.execute().text.trim()
 
-        try {
             def status = 'git status --porcelain'.execute().text
             if (status) {
                 buildScan.tag "dirty"
                 buildScan.value "Git Status", status
             }
-        } catch (ignore) {
-            // ignore
         }
     }
 
-    if (commitId) {
-        buildScan.value "Git Commit ID", commitId
-        buildScan.link "Source", "https://github.com/gradle/gradle/commit/" + commitId
-    }
-
-    try {
+    execAsync {
         def branchName = 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
         if (branchName && branchName != 'HEAD') {
             buildScan.tag branchName
             buildScan.value "Git Branch Name", branchName
         }
-    } catch (ignore) {
-        // ignore
     }
 
     // Capture reports from Reporting tasks
@@ -73,11 +78,18 @@ pluginManager.withPlugin("com.gradle.build-scan") {
                 (task.reports as ReportContainer<Report>)
                     .findAll { it.name in capturedReportingTypes && it.enabled && it.destination.exists() }
                     .each {
-                        def linkName = "${task.class.simpleName.split('_')[0]} Report (${task.path})" // Strip off '_Decorated' addition to class names
-                        def reportPath = task.project.rootProject.relativePath(it.destination).replaceAll('\\\\', '/') // Fix windows paths
-                        def reportLink = "$basePath/reports/$reportPath"
-                        task.project.buildScan.link linkName, reportLink
+                    def linkName = "${task.class.simpleName.split('_')[0]} Report (${task.path})" // Strip off '_Decorated' addition to class names
+                    def reportPath
+                    // see: ciReporting.gradle
+                    if (it.destination.directory) {
+                        reportPath = "report-${task.project.name}-${it.destination.name}.zip"
                     }
+                    else {
+                        reportPath = "report-${task.project.name}-${it.destination.parentFile.name}-${it.destination.name}"
+                    }
+                    def reportLink = "$basePath/$reportPath"
+                    task.project.buildScan.link linkName, reportLink
+                }
             }
         }
     }

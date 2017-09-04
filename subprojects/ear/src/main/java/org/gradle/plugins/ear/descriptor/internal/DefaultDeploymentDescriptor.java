@@ -24,10 +24,10 @@ import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.internal.DomNode;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.EarModule;
@@ -55,7 +55,8 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
 
     private final XmlTransformer transformer = new XmlTransformer();
     private final PathToFileResolver fileResolver;
-    private final Instantiator instantiator;
+
+    private ObjectFactory objectFactory;
 
     private String fileName = "application.xml";
     private String version = "6";
@@ -69,9 +70,9 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
     private Map<String, String> moduleTypeMappings = new LinkedHashMap<String, String>();
 
     @Inject
-    public DefaultDeploymentDescriptor(PathToFileResolver fileResolver, Instantiator instantiator) {
+    public DefaultDeploymentDescriptor(PathToFileResolver fileResolver, ObjectFactory objectFactory) {
         this.fileResolver = fileResolver;
-        this.instantiator = instantiator;
+        this.objectFactory = objectFactory;
     }
 
     @Override
@@ -208,7 +209,7 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
 
     @Override
     public DeploymentDescriptor securityRole(Action<? super EarSecurityRole> action) {
-        EarSecurityRole role = instantiator.newInstance(DefaultEarSecurityRole.class);
+        EarSecurityRole role = objectFactory.newInstance(DefaultEarSecurityRole.class);
         action.execute(role);
         securityRoles.add(role);
         return this;

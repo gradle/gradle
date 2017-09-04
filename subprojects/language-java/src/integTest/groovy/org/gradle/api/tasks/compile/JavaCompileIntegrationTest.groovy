@@ -70,7 +70,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         // This makes sure the test above is correct AND you can get back javac's default behavior if needed
         when:
         buildFile << "project(':b').compileJava { options.sourcepath = classpath }"
-        executer.noDeprecationChecks().withTasks("compileJava").run()
+        run("compileJava")
         then:
         file("b/build/classes/java/main/Bar.class").exists()
         file("b/build/classes/java/main/Foo.class").exists()
@@ -144,9 +144,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: "java"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 testCompile "junit:junit:4.12"
@@ -250,18 +248,16 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     def "test runtime classpath includes implementation dependencies"() {
         given:
-        buildFile << '''
+        buildFile << """
             apply plugin: 'java'
 
-            repositories {
-                jcenter()
-            }
+             ${jcenterRepository()}
 
             dependencies {
                 implementation 'org.apache.commons:commons-lang3:3.4'
                 testCompile 'junit:junit:4.12' // not using testImplementation intentionally, that's not what we want to test
             }
-        '''
+        """
         file('src/main/java/Text.java') << '''import org.apache.commons.lang3.StringUtils;
             public class Text {
                 public static String sayHello(String name) { return "Hello, " + StringUtils.capitalize(name); }
@@ -288,18 +284,16 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     def "test runtime classpath includes test implementation dependencies"() {
         given:
-        buildFile << '''
+        buildFile << """
             apply plugin: 'java'
 
-            repositories {
-                jcenter()
-            }
+            ${jcenterRepository()}
 
             dependencies {
                 implementation 'org.apache.commons:commons-lang3:3.4'
                 testImplementation 'junit:junit:4.12'
             }
-        '''
+        """
         file('src/main/java/Text.java') << '''import org.apache.commons.lang3.StringUtils;
             public class Text {
                 public static String sayHello(String name) { return "Hello, " + StringUtils.capitalize(name); }
@@ -326,18 +320,16 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     def "test compile classpath includes implementation dependencies"() {
         given:
-        buildFile << '''
+        buildFile << """
             apply plugin: 'java'
 
-            repositories {
-                jcenter()
-            }
+            ${jcenterRepository()}
 
             dependencies {
                 implementation 'org.apache.commons:commons-lang3:3.4'
                 testImplementation 'junit:junit:4.12'
             }
-        '''
+        """
         file('src/main/java/Text.java') << '''import org.apache.commons.lang3.StringUtils;
             public class Text {
                 public static String sayHello(String name) { return "Hello, " + StringUtils.capitalize(name); }
@@ -445,9 +437,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
             buildFile.text = """
                 apply plugin: 'java'
                                   
-                repositories {
-                    mavenCentral()
-                }
+                ${mavenCentralRepository()}
 
                 dependencies {
                     ${dependencies.collect { "compile ${it}"}.join('\n') }
@@ -531,7 +521,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.withFullDeprecationStackTraceDisabled()
-        executer.expectDeprecationWarning()
         run 'compileJava'
 
         then:
@@ -557,7 +546,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.withFullDeprecationStackTraceDisabled()
-        executer.expectDeprecationWarning()
         run 'compileJava'
 
         then:
@@ -589,7 +577,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.withFullDeprecationStackTraceDisabled()
-        executer.expectDeprecationWarning()
         run 'compileJava'
 
         then:
@@ -612,7 +599,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.withFullDeprecationStackTraceDisabled()
-        executer.expectDeprecationWarning()
         run 'compileJava'
 
         then:
@@ -645,4 +631,170 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ':compileJava'
     }
 
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "compile a module"() {
+        given:
+        buildFile << '''
+            plugins {
+                id 'org.gradle.java.experimental-jigsaw' version '0.1.1'
+            }
+        '''
+        file("src/main/java/module-info.java") << 'module example { exports io.example; }'
+        file("src/main/java/io/example/Example.java") << '''
+            package io.example;
+            
+            public class Example {}
+        '''
+
+        when:
+        run "compileJava"
+
+        then:
+        noExceptionThrown()
+        file("build/classes/java/main/module-info.class").exists()
+        file("build/classes/java/main/io/example/Example.class").exists()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/2537")
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "compile a module with --module-source-path"() {
+        given:
+        buildFile << '''
+            plugins {
+                id 'java'
+            }
+            
+            compileJava {
+                options.compilerArgs = ['--module-source-path', files('src/main/java', 'src/main/moreJava').asPath]
+            }
+        '''
+        file("src/main/java/example/module-info.java") << '''
+        module example {
+            exports io.example;
+            requires another;
+        }
+        '''
+        file("src/main/java/example/io/example/Example.java") << '''
+            package io.example;
+            
+            import io.another.BaseExample;
+            
+            public class Example extends BaseExample {}
+        '''
+        file("src/main/moreJava/another/module-info.java") << 'module another { exports io.another; }'
+        file("src/main/moreJava/another/io/another/BaseExample.java") << '''
+            package io.another;
+            
+            public class BaseExample {}
+        '''
+
+        when:
+        run "compileJava"
+
+        then:
+        noExceptionThrown()
+        file("build/classes/java/main/example/module-info.class").exists()
+        file("build/classes/java/main/example/io/example/Example.class").exists()
+        file("build/classes/java/main/another/module-info.class").exists()
+        file("build/classes/java/main/another/io/another/BaseExample.class").exists()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/2537")
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "compile a module with --module-source-path and sourcepath warns and removes sourcepath"() {
+        given:
+        buildFile << '''
+            plugins {
+                id 'java'
+            }
+            
+            compileJava {
+                options.compilerArgs = ['--module-source-path', files('src/main/java', 'src/main/moreJava').asPath]
+                options.sourcepath = files('src/main/ignoredJava')
+            }
+        '''
+        file("src/main/java/example/module-info.java") << '''
+        module example {
+            exports io.example;
+            requires another;
+        }
+        '''
+        file("src/main/java/example/io/example/Example.java") << '''
+            package io.example;
+            
+            import io.another.BaseExample;
+            
+            public class Example extends BaseExample {}
+        '''
+        file("src/main/moreJava/another/module-info.java") << 'module another { exports io.another; }'
+        file("src/main/moreJava/another/io/another/BaseExample.java") << '''
+            package io.another;
+            
+            public class BaseExample {}
+        '''
+        file("src/main/ignoredJava/ignored/module-info.java") << 'module ignored { exports io.ignored; }'
+        file("src/main/ignoredJava/ignored/io/ignored/IgnoredExample.java") << '''
+            package io.ignored;
+            
+            public class IgnoredExample {}
+        '''
+
+        when:
+        run "compileJava"
+
+        then:
+        noExceptionThrown()
+        result.output.contains("You specified both --module-source-path and a sourcepath. These options are mutually exclusive. Removing sourcepath.")
+        file("build/classes/java/main/example/module-info.class").exists()
+        file("build/classes/java/main/example/io/example/Example.class").exists()
+        file("build/classes/java/main/another/module-info.class").exists()
+        file("build/classes/java/main/another/io/another/BaseExample.class").exists()
+        !file("build/classes/java/main/ignored/module-info.class").exists()
+        !file("build/classes/java/main/ignored/io/ignored/IgnoredExample.class").exists()
+    }
+
+    def "sourcepath is merged from compilerArgs, but deprecation warning is emitted"() {
+        buildFile << '''
+            apply plugin: 'java'
+            
+            compileJava {
+                options.compilerArgs = ['-sourcepath', files('sources1').asPath]
+                options.sourcepath = files('sources2')
+            }            
+        '''
+        file('src/main/java/Square.java') << 'public class Square extends Rectangle {}'
+        file('sources2/Rectangle.java') << 'public class Rectangle extends Shape {}'
+        file('sources1/Shape.java') << 'public class Shape {}'
+
+        when:
+        result = executer.expectDeprecationWarning().withTasks('compileJava').run()
+
+        then:
+        file('build/classes/java/main/Square.class').exists()
+        file('build/classes/java/main/Rectangle.class').exists()
+        file('build/classes/java/main/Shape.class').exists()
+        result.output.contains("Specifying the source path in the CompilerOptions compilerArgs property has been deprecated")
+    }
+
+    def "sourcepath is respected even when exclusively specified from compilerArgs, but deprecation warning is emitted"() {
+        buildFile << '''
+            apply plugin: 'java'
+            
+            compileJava {
+                options.compilerArgs = ['-sourcepath', files('sources1').asPath]
+            }            
+        '''
+        file('src/main/java/Square.java') << 'public class Square extends Rectangle {}'
+        file('sources1/Rectangle.java') << 'public class Rectangle extends Shape {}'
+        file('sources1/Shape.java') << 'public class Shape {}'
+
+        when:
+        result = executer.expectDeprecationWarning().withTasks('compileJava').run()
+
+        then:
+        file('build/classes/java/main/Square.class').exists()
+        file('build/classes/java/main/Rectangle.class').exists()
+        file('build/classes/java/main/Shape.class').exists()
+        result.output.contains("Specifying the source path in the CompilerOptions compilerArgs property has been deprecated")
+    }
 }

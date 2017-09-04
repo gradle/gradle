@@ -109,4 +109,40 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
         noExceptionThrown()
     }
 
+    def "tasks resolving in parallel do not access Projects in parallel"() {
+        given:
+        ['project1', 'project2'].each {
+            settingsFile << "include '$it'\n"
+            file("$it/build.gradle") << """
+                apply plugin: 'java-library'
+                
+                task resolveDependencies {
+                    doLast {
+                        configurations.compileClasspath.resolve()
+                    }
+                }
+            """
+        }
+
+        ('a'..'z').each {
+            settingsFile << "include '$it'\n"
+            file("${it}/build.gradle") << """
+                apply plugin: 'java-library'
+            """
+            ['project1', 'project2'].each { downstream ->
+                file("$downstream/build.gradle") << """
+                    dependencies {
+                        implementation project(":$it")
+                    }
+                """
+            }
+        }
+
+        when:
+        run 'project1:resolveDependencies', 'project2:resolveDependencies'
+
+        then:
+        noExceptionThrown()
+    }
+
 }

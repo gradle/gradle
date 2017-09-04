@@ -311,7 +311,7 @@
                 of the "operators" component, you would run the <userinput>assembleDependentsOperatorsPassingStaticLibrary</userinput> task:
             </para>
             <sample id="nativeAssembleDependentComponents" dir="native-binaries/cunit" title="Assemble components that depends on the passing/static binary of the operators component">
-                <output args="assembleDependentsOperatorsPassingStaticLibrary"/>
+                <output args="assembleDependentsOperatorsPassingStaticLibrary --max-workers=1"/>
             </sample>
             <para>
                 In the output above, the targeted binary gets assembled as well as the test suite binary that depends on it.
@@ -339,7 +339,7 @@
                 of the "operators" component, you would run the <userinput>buildDependentsOperatorsPassingStaticLibrary</userinput> task:
             </para>
             <sample id="nativeBuildDependentComponents" dir="native-binaries/cunit" title="Build components that depends on the passing/static binary of the operators component">
-                <output args="buildDependentsOperatorsPassingStaticLibrary"/>
+                <output args="buildDependentsOperatorsPassingStaticLibrary --max-workers=1"/>
             </sample>
             <para>
                 In the output above, the targeted binary as well as the test suite binary that depends on it are built and the test suite has run.

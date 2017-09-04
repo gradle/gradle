@@ -63,6 +63,10 @@ class NoOpProgressLoggerFactory implements ProgressLoggerFactory {
         }
 
         ProgressLogger start(String description, String shortDescription) {
+            start(description, shortDescription, 0)
+        }
+
+        ProgressLogger start(String description, String shortDescription, int totalProgress) {
             setDescription(description)
             setShortDescription(shortDescription)
             started()
@@ -71,8 +75,10 @@ class NoOpProgressLoggerFactory implements ProgressLoggerFactory {
 
         void started() {}
         void started(String status) {}
+        void started(String status, int totalProgress) {}
         void progress(String status) {}
+        void progress(String status, boolean failing) {}
         void completed() {}
-        void completed(String status) {}
+        void completed(String status, boolean failed) {}
     }
 }

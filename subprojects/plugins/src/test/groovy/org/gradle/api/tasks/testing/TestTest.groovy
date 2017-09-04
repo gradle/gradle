@@ -214,20 +214,46 @@ class TestTest extends AbstractConventionTaskTest {
         test.getExcludes() == toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3)
     }
 
-    def "disable includes and excludes when --tests specified"() {
+    def "--tests is combined with includes and excludes"() {
         given:
         test.include(TEST_PATTERN_1)
         test.exclude(TEST_PATTERN_1)
 
         when:
         test.setTestNameIncludePatterns([TEST_PATTERN_2])
-        test.include(TEST_PATTERN_3)
-        test.exclude(TEST_PATTERN_3)
+
+        then:
+        test.includes == [ TEST_PATTERN_1 ] as Set
+        test.excludes == [ TEST_PATTERN_1 ] as Set
+        test.filter.commandLineIncludePatterns == [ TEST_PATTERN_2] as Set
+    }
+
+    def "--tests is combined with filter.includeTestsMatching"() {
+        given:
+        test.filter.includeTestsMatching(TEST_PATTERN_1)
+
+        when:
+        test.setTestNameIncludePatterns([TEST_PATTERN_2])
 
         then:
         test.includes.empty
         test.excludes.empty
-        test.filter.includePatterns == [TEST_PATTERN_2] as Set
+        test.filter.includePatterns == [TEST_PATTERN_1] as Set
+        test.filter.commandLineIncludePatterns == [ TEST_PATTERN_2] as Set
+    }
+
+    def "--tests is combined with filter.includePatterns"() {
+        given:
+        test.filter.includePatterns = [ TEST_PATTERN_1 ]
+
+        when:
+        test.setTestNameIncludePatterns([TEST_PATTERN_2])
+
+        then:
+        test.includes.empty
+        test.excludes.empty
+        test.filter.includePatterns == [TEST_PATTERN_1] as Set
+        test.filter.commandLineIncludePatterns == [ TEST_PATTERN_2] as Set
     }
 
     private void assertIsDirectoryTree(FileTree classFiles, Set<String> includes, Set<String> excludes) {

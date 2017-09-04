@@ -52,17 +52,17 @@ class DefaultProviderFactoryTest extends Specification {
         provider.get() == value
 
         where:
-        type           | value
-        Boolean        | true
-        Byte           | Byte.valueOf((byte) 0)
-        Short          | Short.valueOf((short) 0)
-        Integer        | Integer.valueOf(0)
-        Long           | 4L
-        Float          | 5.5f
-        Double         | 6.6d
-        Character      | '\u1234'
-        String         | 'hello'
-        File           | TEST_FILE
+        type      | value
+        Boolean   | true
+        Byte      | Byte.valueOf((byte) 0)
+        Short     | Short.valueOf((short) 0)
+        Integer   | Integer.valueOf(0)
+        Long      | 4L
+        Float     | 5.5f
+        Double    | 6.6d
+        Character | '\u1234'
+        String    | 'hello'
+        File      | TEST_FILE
     }
 
     def "cannot create property state for null value"() {
@@ -105,17 +105,17 @@ class DefaultProviderFactoryTest extends Specification {
         propertyState.get() == value
 
         where:
-        type           | value
-        Boolean        | true
-        Byte           | 1
-        Short          | 2
-        Integer        | 3
-        Long           | 4L
-        Float          | 5.5f
-        Double         | 6.6d
-        Character      | '\u1234'
-        String         | 'hello'
-        File           | TEST_FILE
+        type      | value
+        Boolean   | true
+        Byte      | (byte) 1
+        Short     | (short) 2
+        Integer   | 3
+        Long      | 4L
+        Float     | 5.5f
+        Double    | 6.6d
+        Character | (char) '\u1234'
+        String    | 'hello'
+        File      | TEST_FILE
     }
 
     def "creating property type for Gradle file type #type throws exception upon retrieval of value"() {

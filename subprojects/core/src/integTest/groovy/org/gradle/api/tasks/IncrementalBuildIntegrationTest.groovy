@@ -17,7 +17,6 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Ignore
 import spock.lang.Issue
 
 class IncrementalBuildIntegrationTest extends AbstractIntegrationSpec {
@@ -131,7 +130,7 @@ apply from: 'changes.gradle'
         succeeds "b"
 
         then:
-        nonSkippedTasks.sort() ==  [":a", ":b"]
+        nonSkippedTasks.sort() == [":a", ":b"]
 
         when:
         TestFile.Snapshot aSnapshot = outputFileA.snapshot()
@@ -146,7 +145,7 @@ apply from: 'changes.gradle'
         succeeds "b"
 
         then:
-        skippedTasks.sort() ==  [":a", ":b"]
+        skippedTasks.sort() == [":a", ":b"]
 
         outputFileA.assertHasNotChangedSince(aSnapshot)
         outputFileB.assertHasNotChangedSince(bSnapshot)
@@ -157,7 +156,7 @@ apply from: 'changes.gradle'
         succeeds "b"
 
         then:
-        skippedTasks.sort() ==  [":a", ":b"]
+        skippedTasks.sort() == [":a", ":b"]
 
         outputFileA.assertHasNotChangedSince(aSnapshot)
         outputFileB.assertHasNotChangedSince(bSnapshot)
@@ -168,7 +167,7 @@ apply from: 'changes.gradle'
         succeeds "b"
 
         then:
-        nonSkippedTasks.sort() ==  [":a", ":b"]
+        nonSkippedTasks.sort() == [":a", ":b"]
 
         outputFileA.assertHasChangedSince(aSnapshot)
         outputFileB.assertHasChangedSince(bSnapshot)
@@ -187,7 +186,7 @@ apply from: 'changes.gradle'
         succeeds "b"
 
         then:
-        nonSkippedTasks.sort() ==  [":a", ":b"]
+        nonSkippedTasks.sort() == [":a", ":b"]
 
         outputFileA.assertHasChangedSince(aSnapshot)
         outputFileB.assertHasChangedSince(bSnapshot)
@@ -206,8 +205,8 @@ apply from: 'changes.gradle'
         succeeds "b"
 
         then:
-        nonSkippedTasks.sort() ==  [":a"]
-        skippedTasks.sort() ==  [":b"]
+        nonSkippedTasks.sort() == [":a"]
+        skippedTasks.sort() == [":b"]
 
         outputFileA.text == '[new content]'
         outputFileB.text == '[[new content]]'
@@ -218,8 +217,8 @@ apply from: 'changes.gradle'
         succeeds "b"
 
         then:
-        nonSkippedTasks.sort() ==  [":b"]
-        skippedTasks.sort() ==  [":a"]
+        nonSkippedTasks.sort() == [":b"]
+        skippedTasks.sort() == [":a"]
 
         outputFileA.text == '[new content]'
         outputFileB.text == '[[new content]]'
@@ -236,8 +235,8 @@ apply from: 'changes.gradle'
         succeeds "b"
 
         then:
-        nonSkippedTasks.sort() ==  [":a"]
-        skippedTasks.sort() ==  [":b"]
+        nonSkippedTasks.sort() == [":a"]
+        skippedTasks.sort() == [":b"]
 
         outputFileA.text == '[new content]'
         outputFileB.text == '[[new content]]'
@@ -254,7 +253,7 @@ apply from: 'changes.gradle'
         succeeds "b"
 
         then:
-        skippedTasks.sort() ==  [":a", ":b"]
+        skippedTasks.sort() == [":a", ":b"]
 
         // Change input file location
         when:
@@ -265,8 +264,8 @@ a.inputFile = file('new-a-input.txt')
         succeeds "b"
 
         then:
-        nonSkippedTasks.sort() ==  [":a"]
-        skippedTasks.sort() ==  [":b"]
+        nonSkippedTasks.sort() == [":a"]
+        skippedTasks.sort() == [":b"]
         outputFileA.text == '[new content]'
 
         when:
@@ -277,15 +276,15 @@ a.inputFile = file('new-a-input.txt')
 
         // Change final output file destination
         when:
-        changesFile <<'''
+        changesFile << '''
 b.outputFile = file('new-output.txt')
 '''
         succeeds "b"
         outputFileB = file('new-output.txt')
 
         then:
-        skippedTasks.sort() ==  [":a"]
-        nonSkippedTasks.sort() ==  [":b"]
+        skippedTasks.sort() == [":a"]
+        nonSkippedTasks.sort() == [":b"]
 
         outputFileB.text == '[[new content]]'
 
@@ -305,7 +304,7 @@ b.inputFile = a.outputFile
         outputFileA = file('new-a-output.txt')
 
         then:
-        nonSkippedTasks.sort() ==  [":a", ":b"]
+        nonSkippedTasks.sort() == [":a", ":b"]
         outputFileA.text == '[new content]'
 
         when:
@@ -322,7 +321,7 @@ a.format = '- %s -'
         succeeds "b"
 
         then:
-        nonSkippedTasks.sort() ==  [":a", ":b"]
+        nonSkippedTasks.sort() == [":a", ":b"]
 
         outputFileA.text == '- new content -'
         outputFileB.text == '[- new content -]'
@@ -338,7 +337,7 @@ a.format = '- %s -'
         succeeds "b", "--rerun-tasks"
 
         then:
-        nonSkippedTasks.sort() ==  [":a", ":b"]
+        nonSkippedTasks.sort() == [":a", ":b"]
 
         // Output files already exist before using this version of Gradle
         // delete .gradle dir to simulate this
@@ -349,21 +348,21 @@ a.format = '- %s -'
         succeeds "b"
 
         then:
-        nonSkippedTasks.sort() ==  [":a", ":b"]
+        nonSkippedTasks.sort() == [":a", ":b"]
 
         when:
         outputFileB.delete()
         succeeds "b"
 
         then:
-        nonSkippedTasks.sort() ==  [":b"]
-        skippedTasks.sort() ==  [":a"]
+        nonSkippedTasks.sort() == [":b"]
+        skippedTasks.sort() == [":a"]
 
         when:
         succeeds "b"
 
         then:
-        skippedTasks.sort() ==  [":a", ":b"]
+        skippedTasks.sort() == [":a", ":b"]
     }
 
     def "skips task when output dir contents are up-to-date"() {
@@ -386,7 +385,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         succeeds "b"
 
         then:
-        nonSkippedTasks.sort() ==  [":a", ":b"]
+        nonSkippedTasks.sort() == [":a", ":b"]
 
         when:
         TestFile outputAFile = file('build/a/file1.txt')
@@ -403,7 +402,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         succeeds "b"
 
         then:
-        skippedTasks.sort() ==  [":a", ":b"]
+        skippedTasks.sort() == [":a", ":b"]
         outputAFile.assertHasNotChangedSince(aSnapshot)
         outputBFile.assertHasNotChangedSince(bSnapshot)
 
@@ -413,7 +412,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         succeeds "b"
 
         then:
-        nonSkippedTasks.sort() ==  [":a", ":b"]
+        nonSkippedTasks.sort() == [":a", ":b"]
 
         outputAFile.assertHasChangedSince(aSnapshot)
         outputBFile.assertHasChangedSince(bSnapshot)
@@ -424,7 +423,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         succeeds "b"
 
         then:
-        skippedTasks.sort() ==  [":a", ":b"]
+        skippedTasks.sort() == [":a", ":b"]
 
         // Change input content, different length
         when:
@@ -432,7 +431,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         succeeds "b"
 
         then:
-        nonSkippedTasks.sort() ==  [":a", ":b"]
+        nonSkippedTasks.sort() == [":a", ":b"]
 
         outputAFile.assertHasChangedSince(aSnapshot)
         outputBFile.assertHasChangedSince(bSnapshot)
@@ -443,7 +442,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         succeeds "b"
 
         then:
-        skippedTasks.sort() ==  [":a", ":b"]
+        skippedTasks.sort() == [":a", ":b"]
 
         // Add input file
         when:
@@ -451,7 +450,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         succeeds "b"
 
         then:
-        nonSkippedTasks.sort() ==  [":a", ":b"]
+        nonSkippedTasks.sort() == [":a", ":b"]
 
         file('build/a/file2.txt').text == '[content2]'
         file('build/b/file2.txt').text == '[[content2]]'
@@ -460,7 +459,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         succeeds "b"
 
         then:
-        skippedTasks.sort() ==  [":a", ":b"]
+        skippedTasks.sort() == [":a", ":b"]
 
         // Remove input file
         when:
@@ -468,14 +467,14 @@ task b(type: DirTransformerTask, dependsOn: a) {
         succeeds "b"
 
         then:
-        nonSkippedTasks.sort() ==  [":a"]
-        skippedTasks.sort() ==  [":b"]
+        nonSkippedTasks.sort() == [":a"]
+        skippedTasks.sort() == [":b"]
 
         when:
         succeeds "b"
 
         then:
-        skippedTasks.sort() ==  [":a", ":b"]
+        skippedTasks.sort() == [":a", ":b"]
 
         // Change intermediate output file, different length
         when:
@@ -483,15 +482,15 @@ task b(type: DirTransformerTask, dependsOn: a) {
         succeeds "b"
 
         then:
-        nonSkippedTasks.sort() ==  [":a"]
-        skippedTasks.sort() ==  [":b"]
+        nonSkippedTasks.sort() == [":a"]
+        skippedTasks.sort() == [":b"]
         outputAFile.text == '[new content]'
 
         when:
         succeeds "b"
 
         then:
-        skippedTasks.sort() ==  [":a", ":b"]
+        skippedTasks.sort() == [":a", ":b"]
 
         // Remove intermediate output file
         when:
@@ -499,15 +498,15 @@ task b(type: DirTransformerTask, dependsOn: a) {
         succeeds "b"
 
         then:
-        nonSkippedTasks.sort() ==  [":a"]
-        skippedTasks.sort() ==  [":b"]
+        nonSkippedTasks.sort() == [":a"]
+        skippedTasks.sort() == [":b"]
         outputAFile.text == '[new content]'
 
         when:
         succeeds "b"
 
         then:
-        skippedTasks.sort() ==  [":a", ":b"]
+        skippedTasks.sort() == [":a", ":b"]
 
         // Output files already exist before using this version of Gradle
         // delete .gradle dir to simulate this
@@ -518,21 +517,21 @@ task b(type: DirTransformerTask, dependsOn: a) {
         succeeds "b"
 
         then:
-        nonSkippedTasks.sort() ==  [":a", ":b"]
+        nonSkippedTasks.sort() == [":a", ":b"]
 
         when:
         file('build/b').deleteDir()
         succeeds "b"
 
         then:
-        nonSkippedTasks.sort() ==  [":b"]
-        skippedTasks.sort() ==  [":a"]
+        nonSkippedTasks.sort() == [":b"]
+        skippedTasks.sort() == [":a"]
 
         when:
         succeeds "b"
 
         then:
-        skippedTasks.sort() ==  [":a", ":b"]
+        skippedTasks.sort() == [":a", ":b"]
     }
 
     def "notices changes to input files where the file length does not change"() {
@@ -605,19 +604,19 @@ task a(type: GeneratorTask) {
         succeeds "a", "-Ptext=text"
 
         then:
-        nonSkippedTasks.sort() ==  [":a"]
+        nonSkippedTasks.sort() == [":a"]
 
         when:
         succeeds "a", "-Ptext=text"
 
         then:
-        skippedTasks.sort() ==  [":a"]
+        skippedTasks.sort() == [":a"]
 
         when:
         succeeds "a", "-Ptext=newtext"
 
         then:
-        nonSkippedTasks.sort() ==  [":a"]
+        nonSkippedTasks.sort() == [":a"]
     }
 
     def "multiple tasks can generate into overlapping output directories"() {
@@ -641,14 +640,14 @@ task b(type: DirTransformerTask) {
         succeeds "a", "b"
 
         then:
-        nonSkippedTasks.sort() ==  [":a", ":b"]
+        nonSkippedTasks.sort() == [":a", ":b"]
 
         // No changes
         when:
         succeeds "a", "b"
 
         then:
-        skippedTasks.sort() ==  [":a", ":b"]
+        skippedTasks.sort() == [":a", ":b"]
 
         // Delete an output file
         when:
@@ -656,8 +655,8 @@ task b(type: DirTransformerTask) {
         succeeds "a", "b"
 
         then:
-        nonSkippedTasks.sort() ==  [":a"]
-        skippedTasks.sort() ==  [":b"]
+        nonSkippedTasks.sort() == [":a"]
+        skippedTasks.sort() == [":b"]
 
         // Change an output file
         when:
@@ -665,8 +664,8 @@ task b(type: DirTransformerTask) {
         succeeds "a", "b"
 
         then:
-        nonSkippedTasks.sort() ==  [":b"]
-        skippedTasks.sort() ==  [":a"]
+        nonSkippedTasks.sort() == [":b"]
+        skippedTasks.sort() == [":a"]
 
         // Output files already exist before using this version of Gradle
         // Simulate this by removing the .gradle dir
@@ -677,20 +676,20 @@ task b(type: DirTransformerTask) {
         succeeds "a", "b"
 
         then:
-        nonSkippedTasks.sort() ==  [":a", ":b"]
+        nonSkippedTasks.sort() == [":a", ":b"]
 
         when:
         file('build').deleteDir()
         succeeds "a"
 
         then:
-        nonSkippedTasks.sort() ==  [":a"]
+        nonSkippedTasks.sort() == [":a"]
 
         when:
         succeeds "b"
 
         then:
-        nonSkippedTasks.sort() ==  [":b"]
+        nonSkippedTasks.sort() == [":b"]
     }
 
     def "can use up-to-date predicate to force task to execute"() {
@@ -720,7 +719,7 @@ task nothing {
         succeeds "inputsAndOutputs"
 
         then:
-        nonSkippedTasks.sort() ==  [":inputsAndOutputs"]
+        nonSkippedTasks.sort() == [":inputsAndOutputs"]
 
         // Is up to date
 
@@ -728,7 +727,7 @@ task nothing {
         succeeds "inputsAndOutputs", '-Puptodate'
 
         then:
-        skippedTasks.sort() ==  [":inputsAndOutputs"]
+        skippedTasks.sort() == [":inputsAndOutputs"]
 
         // Changed input file
         when:
@@ -736,28 +735,28 @@ task nothing {
         succeeds "inputsAndOutputs", '-Puptodate'
 
         then:
-        nonSkippedTasks.sort() ==  [":inputsAndOutputs"]
+        nonSkippedTasks.sort() == [":inputsAndOutputs"]
 
         // Predicate is false
         when:
         succeeds "inputsAndOutputs"
 
         then:
-        nonSkippedTasks.sort() ==  [":inputsAndOutputs"]
+        nonSkippedTasks.sort() == [":inputsAndOutputs"]
 
         // Task with input files and a predicate
         when:
         succeeds "noOutputs"
 
         then:
-        nonSkippedTasks.sort() ==  [":noOutputs"]
+        nonSkippedTasks.sort() == [":noOutputs"]
 
         // Is up to date
         when:
         succeeds "noOutputs", "-Puptodate"
 
         then:
-        skippedTasks.sort() ==  [":noOutputs"]
+        skippedTasks.sort() == [":noOutputs"]
 
         // Changed input file
         when:
@@ -765,35 +764,35 @@ task nothing {
         succeeds "noOutputs", "-Puptodate"
 
         then:
-        nonSkippedTasks.sort() ==  [":noOutputs"]
+        nonSkippedTasks.sort() == [":noOutputs"]
 
         // Predicate is false
         when:
         succeeds "noOutputs"
 
         then:
-        nonSkippedTasks.sort() ==  [":noOutputs"]
+        nonSkippedTasks.sort() == [":noOutputs"]
 
         // Task a predicate only
         when:
         succeeds "nothing"
 
         then:
-        nonSkippedTasks.sort() ==  [":nothing"]
+        nonSkippedTasks.sort() == [":nothing"]
 
         // Is up to date
         when:
         succeeds "nothing", "-Puptodate"
 
         then:
-        skippedTasks.sort() ==  [":nothing"]
+        skippedTasks.sort() == [":nothing"]
 
         // Predicate is false
         when:
         succeeds "nothing"
 
         then:
-        nonSkippedTasks.sort() ==  [":nothing"]
+        nonSkippedTasks.sort() == [":nothing"]
     }
 
     def "lifecycle task is up-to-date when all dependencies are skipped"() {
@@ -812,12 +811,12 @@ task b(dependsOn: a)
         when:
         succeeds "b"
         then:
-        nonSkippedTasks.sort() ==  [":a", ":b"]
+        nonSkippedTasks.sort() == [":a", ":b"]
 
         when:
         succeeds "b"
         then:
-        skippedTasks.sort() ==  [":a", ":b"]
+        skippedTasks.sort() == [":a", ":b"]
     }
 
     def "can share artifacts between builds"() {
@@ -845,13 +844,13 @@ task generate(type: TransformerTask) {
         when:
         succeeds "transform"
         then:
-        nonSkippedTasks.sort() ==  [":build:generate", ":otherBuild", ':transform']
+        nonSkippedTasks.sort() == [":build:generate", ":otherBuild", ':transform']
 
         when:
         succeeds "transform"
         then:
-        nonSkippedTasks.sort() ==  [":otherBuild"]
-        skippedTasks.sort() ==  [":build:generate", ":transform"]
+        nonSkippedTasks.sort() == [":otherBuild"]
+        skippedTasks.sort() == [":build:generate", ":transform"]
     }
 
     def "task can have outputs and no inputs"() {
@@ -1144,10 +1143,11 @@ task generate(type: TransformerTask) {
         output.contains "Task ':customTask' has an additional action that was loaded with an unknown classloader"
     }
 
-    @Ignore("This reproduces the issue and fails right now")
     @Issue("gradle/gradle#1168")
     def "task is not up-to-date when it has overlapping outputs"() {
         buildFile << """
+            apply plugin: 'base'
+            
             class CustomTask extends DefaultTask {
                 @OutputDirectory File outputDir = new File(project.buildDir, "output")
                 
@@ -1159,9 +1159,6 @@ task generate(type: TransformerTask) {
                 }
             }
 
-            task clean(type: Delete) {
-                delete buildDir
-            }
             task customTask(type: CustomTask)
         """
         when:
@@ -1192,9 +1189,7 @@ task generate(type: TransformerTask) {
 
     def "produces a sensible error when a task output causes dependency resolution"() {
         buildFile << """
-            repositories {
-                jcenter()
-            }
+            ${jcenterRepository()}
             
             configurations {
                 foo

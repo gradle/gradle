@@ -123,4 +123,8 @@ artifacts {
 
 integTestTasks.all {
     requiresDists = true
+    systemProperty 'org.gradle.public.api.includes', publicApiIncludes.join(':')
+    systemProperty 'org.gradle.public.api.excludes', publicApiExcludes.join(':')
 }
+
+apply from: 'binary-compatibility.gradle'

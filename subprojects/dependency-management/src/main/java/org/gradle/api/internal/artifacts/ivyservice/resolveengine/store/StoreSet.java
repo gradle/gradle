@@ -17,8 +17,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store;
 
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
-import org.gradle.api.internal.cache.BinaryStore;
-import org.gradle.api.internal.cache.Store;
+import org.gradle.cache.internal.BinaryStore;
+import org.gradle.cache.internal.Store;
 
 public interface StoreSet {
     BinaryStore nextBinaryStore();

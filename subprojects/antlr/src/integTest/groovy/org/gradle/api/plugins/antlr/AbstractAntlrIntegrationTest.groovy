@@ -26,9 +26,7 @@ abstract class AbstractAntlrIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             allprojects {
                 apply plugin: 'java'
-                repositories() {
-                    jcenter()
-                }
+                ${jcenterRepository()}
             }
             project(":grammar-builder") {
                 apply plugin: "antlr"

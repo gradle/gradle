@@ -16,10 +16,12 @@
 
 package org.gradle.integtests.composite
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.plugins.ide.fixtures.IdeaFixtures
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.ToBeImplemented
+import spock.lang.Issue
+
 /**
  * Tests for generating IDEA metadata for projects within a composite build.
  */
@@ -417,7 +419,8 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
         imlHasDependencies "buildC-buildA", "buildA-b1", "buildB-b1"
     }
 
-    @NotYetImplemented // Should be fixed with gradle/composite-builds#99
+    @ToBeImplemented
+    @Issue("https://github.com/gradle/gradle/issues/2526")
     def "de-duplicates module names when not all projects have IDEA plugin applied"() {
         given:
         dependency "org.test:b1:1.0"
@@ -449,15 +452,23 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
         idea()
 
         then:
-        iprHasModules "buildA.iml",
+        // TODO Each of these should have modules
+        iprHasModules([
+            "buildA.iml",
             "../buildB/buildB.iml",
             "../buildB/b1/buildB-b1.iml",
             "../buildB/b2/b2.iml",
             "../buildC/buildC.iml",
-            "../buildC/b1/buildC-b1.iml",
-            "../b1/b1.iml"
+            // "../buildC/b1/buildC-b1.iml",
+            // "../b1/b1.iml"
+        ] as String[])
 
-        imlHasDependencies "buildB-b1", "buildC-b1", "b1"
+        // TODO Each of these should have dependencies
+        imlHasDependencies(
+            "buildB-b1",
+            // "buildC-b1",
+            "b1"
+        )
     }
 
     def idea(BuildTestFile projectDir = buildA) {

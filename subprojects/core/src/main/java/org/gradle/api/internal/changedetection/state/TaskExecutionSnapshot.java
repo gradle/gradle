@@ -27,6 +27,7 @@ import org.gradle.internal.id.UniqueId;
  */
 public class TaskExecutionSnapshot {
     private final UniqueId buildInvocationId;
+    private final boolean successful;
     private final ImplementationSnapshot taskImplementation;
     private final ImmutableList<ImplementationSnapshot> taskActionsImplementations;
     private final ImmutableSortedMap<String, ValueSnapshot> inputProperties;
@@ -36,7 +37,8 @@ public class TaskExecutionSnapshot {
     private final ImmutableSortedMap<String, Long> outputFilesSnapshotIds;
     private final Long discoveredFilesSnapshotId;
 
-    public TaskExecutionSnapshot(UniqueId buildInvocationId, ImplementationSnapshot taskImplementation, ImmutableList<ImplementationSnapshot> taskActionsImplementations, ImmutableSortedSet<String> cacheableOutputProperties, ImmutableSet<String> declaredOutputFilePaths, ImmutableSortedMap<String, ValueSnapshot> inputProperties, ImmutableSortedMap<String, Long> inputFilesSnapshotIds, Long discoveredFilesSnapshotId, ImmutableSortedMap<String, Long> outputFilesSnapshotIds) {
+    public TaskExecutionSnapshot(boolean successful, UniqueId buildInvocationId, ImplementationSnapshot taskImplementation, ImmutableList<ImplementationSnapshot> taskActionsImplementations, ImmutableSortedSet<String> cacheableOutputProperties, ImmutableSet<String> declaredOutputFilePaths, ImmutableSortedMap<String, ValueSnapshot> inputProperties, ImmutableSortedMap<String, Long> inputFilesSnapshotIds, Long discoveredFilesSnapshotId, ImmutableSortedMap<String, Long> outputFilesSnapshotIds) {
+        this.successful = successful;
         this.buildInvocationId = buildInvocationId;
         this.taskImplementation = taskImplementation;
         this.taskActionsImplementations = taskActionsImplementations;
@@ -46,6 +48,10 @@ public class TaskExecutionSnapshot {
         this.inputFilesSnapshotIds = inputFilesSnapshotIds;
         this.discoveredFilesSnapshotId = discoveredFilesSnapshotId;
         this.outputFilesSnapshotIds = outputFilesSnapshotIds;
+    }
+
+    public boolean isSuccessful() {
+        return successful;
     }
 
     public UniqueId getBuildInvocationId() {

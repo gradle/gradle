@@ -1,2 +1,2 @@
 org.gradle.nativeplatform.test.internal.services.NativeTestingServices
-
+org.gradle.nativeplatform.test.xctest.internal.services.XCTestTestingServices

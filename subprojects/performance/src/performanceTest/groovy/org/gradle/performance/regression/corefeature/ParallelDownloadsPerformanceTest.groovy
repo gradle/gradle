@@ -55,7 +55,7 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTe
             }
 
             private void cleanupCache(File userHomeDir) {
-                ['modules-2/metadata-2.23/descriptors', 'modules-2/files-2.1', 'external-resources'].each {
+                ['modules-2/metadata-2.24/descriptors', 'modules-2/files-2.1', 'external-resources'].each {
                     new File("$userHomeDir/caches/$it").deleteDir()
                 }
             }
@@ -69,7 +69,7 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTe
         given:
         runner.tasksToRun = ['resolveDependencies']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
-        runner.targetVersions = ["4.1-20170607235835+0000"]
+        runner.targetVersions = ["4.2-20170817235727+0000"]
         runner.args = ['-I', 'init.gradle', "-PmirrorPath=${repoDir.absolutePath}", "-PmavenRepoURL=http://localhost:${serverPort}/"]
 
         when:
@@ -89,7 +89,7 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTe
         given:
         runner.tasksToRun = ['resolveDependencies']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
-        runner.targetVersions = ["4.1-20170607235835+0000"]
+        runner.targetVersions = ["4.2-20170817235727+0000"]
         runner.args = ['-I', 'init.gradle', "-PmirrorPath=${repoDir.absolutePath}", "-PmavenRepoURL=http://localhost:${serverPort}/", '--parallel']
 
         when:

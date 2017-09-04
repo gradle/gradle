@@ -20,17 +20,15 @@ import org.gradle.api.reporting.components.AbstractComponentReportIntegrationTes
 
 class JUnitTestSuiteComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
     def setup() {
-        buildFile << '''
+        buildFile << """
             plugins {
                 id 'jvm-component'
                 id 'junit-test-suite'
                 id 'java-lang'
             }
 
-            repositories {
-                jcenter()
-            }
-        '''
+            ${jcenterRepository()}
+        """
     }
 
     def "shows details of stand alone Junit test suite"() {

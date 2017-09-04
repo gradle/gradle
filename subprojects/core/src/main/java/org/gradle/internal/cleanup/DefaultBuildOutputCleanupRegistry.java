@@ -19,26 +19,58 @@ package org.gradle.internal.cleanup;
 import com.google.common.collect.Sets;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.UnionFileCollection;
 
+import java.io.File;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegistry {
 
     private final FileResolver fileResolver;
     private final Set<FileCollection> outputs = Sets.newHashSet();
+    private Set<String> resolvedPaths;
 
     public DefaultBuildOutputCleanupRegistry(FileResolver fileResolver) {
         this.fileResolver = fileResolver;
     }
 
     @Override
-    public void registerOutputs(Object files) {
+    public synchronized void registerOutputs(Object files) {
+        if (resolvedPaths != null) {
+            resolvedPaths = null;
+        }
         this.outputs.add(fileResolver.resolveFiles(files));
     }
 
     @Override
-    public FileCollection getOutputs() {
-        return new UnionFileCollection(outputs);
+    public boolean isOutputOwnedByBuild(File file) {
+        Set<String> safeToDelete = getResolvedPaths();
+        File absoluteFile = file.getAbsoluteFile();
+        while (absoluteFile != null) {
+            if (safeToDelete.contains(absoluteFile.getPath())) {
+                return true;
+            }
+            absoluteFile = absoluteFile.getParentFile();
+        }
+        return false;
+    }
+
+    private Set<String> getResolvedPaths() {
+        if (resolvedPaths == null) {
+            doResolvePaths();
+        }
+        return resolvedPaths;
+    }
+
+    private synchronized void doResolvePaths() {
+        if (resolvedPaths == null) {
+            Set<String> result = new LinkedHashSet<String>();
+            for (FileCollection output : outputs) {
+                for (File file : output.getFiles()) {
+                    result.add(file.getAbsolutePath());
+                }
+            }
+            resolvedPaths = result;
+        }
     }
 }

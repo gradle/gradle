@@ -27,7 +27,6 @@ import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.health.memory.TotalPhysicalMemoryProvider;
-import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
 import org.gradle.workers.IsolationMode;
 
 /**
@@ -40,56 +39,54 @@ public class WorkerDaemonFactory implements WorkerFactory, Stoppable {
     private final WorkerDaemonExpiration workerDaemonExpiration;
     private final WorkerLeaseRegistry workerLeaseRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
-    private final WorkerDirectoryProvider workerDirectoryProvider;
 
-    public WorkerDaemonFactory(WorkerDaemonClientsManager clientsManager, MemoryManager memoryManager, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, WorkerDirectoryProvider workerDirectoryProvider) {
+    public WorkerDaemonFactory(WorkerDaemonClientsManager clientsManager, MemoryManager memoryManager, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor) {
         this.clientsManager = clientsManager;
         this.memoryManager = memoryManager;
         this.workerDaemonExpiration = new WorkerDaemonExpiration(clientsManager, getTotalPhysicalMemory());
         memoryManager.addMemoryHolder(workerDaemonExpiration);
         this.workerLeaseRegistry = workerLeaseRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
-        this.workerDirectoryProvider = workerDirectoryProvider;
     }
 
     @Override
-    public <T extends WorkSpec> Worker<T> getWorker(final Class<? extends WorkerProtocol<T>> workerImplementationClass, final DaemonForkOptions forkOptions) {
-        return new Worker<T>() {
-            public DefaultWorkResult execute(final T spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation) {
-                WorkerDaemonClient<T> client = clientsManager.reserveIdleClient(forkOptions);
-                if (client == null) {
-                    client = clientsManager.reserveNewClient(workerImplementationClass, workerDirectoryProvider.getIdleWorkingDirectory(), forkOptions);
-                }
-
+    public Worker getWorker(final DaemonForkOptions forkOptions) {
+        return new Worker() {
+            public DefaultWorkResult execute(final ActionExecutionSpec spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation) {
+                WorkerLeaseRegistry.WorkerLeaseCompletion workerLease = parentWorkerWorkerLease.startChild();
                 try {
-                    return executeInClient(client, spec, parentWorkerWorkerLease, parentBuildOperation);
+                    WorkerDaemonClient client = clientsManager.reserveIdleClient(forkOptions);
+                    if (client == null) {
+                        client = clientsManager.reserveNewClient(WorkerDaemonServer.class, forkOptions);
+                    }
+
+                    try {
+                        return executeInClient(client, spec, parentBuildOperation);
+                    } finally {
+                        clientsManager.release(client);
+                    }
                 } finally {
-                    clientsManager.release(client);
+                    workerLease.leaseFinish();
                 }
             }
 
             @Override
-            public DefaultWorkResult execute(T spec) {
+            public DefaultWorkResult execute(ActionExecutionSpec spec) {
                 return execute(spec, workerLeaseRegistry.getCurrentWorkerLease(), buildOperationExecutor.getCurrentOperation());
             }
 
-            private DefaultWorkResult executeInClient(final WorkerDaemonClient<T> client, final T spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation) {
-                WorkerLeaseRegistry.WorkerLeaseCompletion workerLease = parentWorkerWorkerLease.startChild();
-                try {
-                    return buildOperationExecutor.call(new CallableBuildOperation<DefaultWorkResult>() {
-                        @Override
-                        public DefaultWorkResult call(BuildOperationContext context) {
-                            return client.execute(spec);
-                        }
+            private DefaultWorkResult executeInClient(final WorkerDaemonClient client, final ActionExecutionSpec spec, final BuildOperationState parentBuildOperation) {
+                return buildOperationExecutor.call(new CallableBuildOperation<DefaultWorkResult>() {
+                    @Override
+                    public DefaultWorkResult call(BuildOperationContext context) {
+                        return client.execute(spec);
+                    }
 
-                        @Override
-                        public BuildOperationDescriptor.Builder description() {
-                            return BuildOperationDescriptor.displayName(spec.getDisplayName()).parent(parentBuildOperation);
-                        }
-                    });
-                } finally {
-                    workerLease.leaseFinish();
-                }
+                    @Override
+                    public BuildOperationDescriptor.Builder description() {
+                        return BuildOperationDescriptor.displayName(spec.getDisplayName()).parent(parentBuildOperation);
+                    }
+                });
             }
         };
     }

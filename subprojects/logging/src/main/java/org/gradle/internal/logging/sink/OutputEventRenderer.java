@@ -36,7 +36,6 @@ import org.gradle.internal.logging.console.ThrottlingOutputEventListener;
 import org.gradle.internal.logging.console.WorkInProgressRenderer;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
-import org.gradle.internal.logging.events.MaxWorkerCountChangeEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
@@ -48,11 +47,9 @@ import org.gradle.internal.logging.text.StreamingStyledTextOutput;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
 import org.gradle.internal.time.TimeProvider;
-import org.gradle.internal.time.TrueTimeProvider;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -63,7 +60,6 @@ import java.util.concurrent.atomic.AtomicReference;
 public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private final Object lock = new Object();
     private final AtomicReference<LogLevel> logLevel = new AtomicReference<LogLevel>(LogLevel.LIFECYCLE);
-    private final AtomicInteger maxWorkerCount = new AtomicInteger();
     private final TimeProvider timeProvider;
     private final ListenerBroadcast<OutputEventListener> formatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
     private final ListenerBroadcast<StandardOutputListener> stdoutListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
@@ -76,11 +72,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private StreamBackedStandardOutputListener stdErrListener;
     private OutputEventListener console;
 
-    public OutputEventRenderer() {
-        this(new TrueTimeProvider());
-    }
-
-    OutputEventRenderer(TimeProvider timeProvider) {
+    public OutputEventRenderer(TimeProvider timeProvider) {
         this.timeProvider = timeProvider;
         OutputEventListener stdOutChain = new LazyListener(new Factory<OutputEventListener>() {
             @Override
@@ -102,7 +94,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     public Snapshot snapshot() {
         synchronized (lock) {
             // Currently only snapshot the console output listener. Should snapshot all output listeners, and cleanup in restore()
-            return new SnapshotImpl(logLevel.get(), console, maxWorkerCount.get());
+            return new SnapshotImpl(logLevel.get(), console);
         }
     }
 
@@ -114,11 +106,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                 configure(snapshot.logLevel);
             }
 
-            if (snapshot.maxWorkerCount != maxWorkerCount.get()) {
-                configureMaxWorkerCount(snapshot.maxWorkerCount);
-            }
             // TODO - also close console when it is replaced
-            // TODO - remove console from formatters
             if (snapshot.console != console) {
                 if (snapshot.console == null) {
                     formatters.remove(console);
@@ -242,7 +230,6 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                 removeStandardErrorListener();
             }
             consoleChain.onOutput(new LogLevelChangeEvent(logLevel.get()));
-            consoleChain.onOutput(new MaxWorkerCountChangeEvent(maxWorkerCount.get()));
             formatters.add(this.console);
         }
         return this;
@@ -306,11 +293,6 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     @Override
-    public void configureMaxWorkerCount(int maxWorkerCount) {
-        onOutput(new MaxWorkerCountChangeEvent(maxWorkerCount));
-    }
-
-    @Override
     public void onOutput(OutputEvent event) {
         if (event.getLogLevel() != null && event.getLogLevel().compareTo(logLevel.get()) < 0 && !isProgressEvent(event)) {
             return;
@@ -322,13 +304,6 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                 return;
             }
             this.logLevel.set(newLogLevel);
-        } else if (event instanceof MaxWorkerCountChangeEvent) {
-            MaxWorkerCountChangeEvent changeEvent = (MaxWorkerCountChangeEvent) event;
-            int newMaxWorkerCount = changeEvent.getNewMaxWorkerCount();
-            if (newMaxWorkerCount == this.maxWorkerCount.get()) {
-                return;
-            }
-            this.maxWorkerCount.set(newMaxWorkerCount);
         }
         synchronized (lock) {
             formatters.getSource().onOutput(event);
@@ -342,12 +317,10 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private static class SnapshotImpl implements Snapshot {
         private final LogLevel logLevel;
         private final OutputEventListener console;
-        private final int maxWorkerCount;
 
-        SnapshotImpl(LogLevel logLevel, OutputEventListener console, int maxWorkerCount) {
+        SnapshotImpl(LogLevel logLevel, OutputEventListener console) {
             this.logLevel = logLevel;
             this.console = console;
-            this.maxWorkerCount = maxWorkerCount;
         }
     }
 

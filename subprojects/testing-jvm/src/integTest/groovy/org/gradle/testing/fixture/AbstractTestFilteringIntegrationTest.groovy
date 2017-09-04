@@ -34,7 +34,7 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         configureFramework()
         buildFile << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies { testCompile '$dependency:$org.gradle.integtests.fixtures.MultiVersionIntegrationSpec.version' }
             test { use${framework}() }
         """
@@ -153,22 +153,48 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
 
         //by command line
         when: fails("test", "--tests", 'FooTest.missingMethod')
-        then: failure.assertHasCause("No tests found for given includes: [FooTest.missingMethod]")
+        then: failure.assertHasCause("No tests found for given includes: [FooTest.missingMethod](--tests filter)")
 
         //by build script
         when:
         buildFile << "test.filter.includeTestsMatching 'FooTest.missingMethod'"
         fails("test")
-        then: failure.assertHasCause("No tests found for given includes: [FooTest.missingMethod]")
+        then: failure.assertHasCause("No tests found for given includes: [FooTest.missingMethod](filter.includeTestsMatching)")
+    }
+
+    def "adds import/export rules to report about no matching methods found"() {
+        file("src/test/java/FooTest.java") << """import $imports;
+            public class FooTest {
+                @Test public void pass() {}
+            }
+        """
+
+        when:
+        buildFile << """
+            test {
+                include 'FooTest*'
+                exclude 'NotImportant*'
+            }
+        """
+        fails("test", "--tests", 'FooTest.missingMethod')
+        then: failure.assertHasCause("No tests found for given includes: [FooTest*](include rules) [NotImportant*](exclude rules) [FooTest.missingMethod](--tests filter)")
+    }
+
+    def "does not report when matching method has been filtered before via include/exclude"() { //current behavior, not necessarily desired
+        file("src/test/java/FooTest.java") << """import $imports;
+            public class FooTest {
+                @Test public void pass() {}
+            }
+        """
+
+        when:
+        buildFile << "test.include 'FooTest.missingMethod'"
+        then:
+        succeeds("test", "--tests", 'FooTest.missingMethod')
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
-    def "task is out of date when included methods change"() {
-        buildFile << """
-            test {
-              filter.includeTestsMatching 'FooTest.pass'
-            }
-        """
+    def "task is out of date when --tests argument changes"() {
         file("src/test/java/FooTest.java") << """import $imports;
             public class FooTest {
                 @Test public void pass() {}
@@ -176,10 +202,10 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
             }
         """
 
-        when: run("test")
+        when: run("test", "--tests", "FooTest.pass")
         then: new DefaultTestExecutionResult(testDirectory).testClass("FooTest").assertTestsExecuted("pass")
 
-        when: run("test")
+        when: run("test", "--tests", "FooTest.pass")
         then: result.skippedTasks.contains(":test") //up-to-date
 
         when:
@@ -240,13 +266,13 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         where:
         scenario         | command                                                  | classesExecuted                                  | foo1TestsExecuted | foo2TestsExecuted | barTestsExecuted | otherTestsExecuted
         "no options"     | ["test"]                                                 | ["Foo1Test", "Foo2Test", "BarTest", "OtherTest"] | ["bar", "pass1"]  | ["bar", "pass2"]  | ["bar"]          | ["bar", "pass3"]
-        "pass and Ohter" | ["test", "--tests", "*.pass1", "--tests", "*OtherTest*"] | ["Foo1Test", "OtherTest"]                        | ["pass1"]         | []                | []               | ["bar", "pass3"]
+        "pass and Other" | ["test", "--tests", "*.pass1", "--tests", "*OtherTest*"] | ["Foo1Test", "OtherTest"]                        | ["pass1"]         | []                | []               | ["bar", "pass3"]
         "pass and *ar"   | ["test", "--tests", "*.pass1", "--tests", "*arTest"]     | ["BarTest", "Foo1Test"]                          | ["pass1"]         | []                | ["bar"]          | []
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1571")
     @Unroll
-    def "option --tests overrides #includeType"() {
+    def "option --tests filter in combined with #includeType"() {
         given:
         buildFile << """
         test {
@@ -258,25 +284,25 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         createTestABC()
 
         then:
-        succeeds('test', '--tests', '*BTest*', '--tests', '*CTest*', '--info')
+        succeeds('test', '--tests', '*ATest*', '--tests', '*BTest*', '--info')
 
-        !output.contains('ATest!')
-        output.contains('BTest!')
-        output.contains('CTest!')
+        output.contains('ATest!')
+        !output.contains('BTest!')
+        !output.contains('CTest!')
 
         where:
         includeType                   | includeConfig
-        "include and exclude"         | "include '*ATest*'; exclude '*BTest*'"
-        "filter.includeTestsMatching" | "filter { includeTestsMatching '*ATest*' }"
+        "include and exclude"         | "include '*Test*'; exclude '*BTest*'"
+        "filter.includeTestsMatching" | "filter { includeTestsMatching '*ATest*'; includeTestsMatching '*CTest*' }"
+        "filter.includePatterns"      | "filter { includePatterns = ['*ATest*', '*CTest*'] }"
     }
 
-    @Unroll
-    def "invoking testNameIncludePatterns disables include/exclude filter"() {
+    def "invoking testNameIncludePatterns does not influence include/exclude filter"() {
         given:
         buildFile << """
         test {
             include '*ATest*', '*BTest*'
-            testNameIncludePatterns = [ '*BTest*', '*CTest*' ] //used by --tests command line argument
+            testNameIncludePatterns = [ '*BTest*', '*CTest*' ]
         }
         """
 
@@ -288,10 +314,9 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
 
         !output.contains('ATest!')
         output.contains('BTest!')
-        output.contains('CTest!')
+        !output.contains('CTest!')
     }
 
-    @Unroll
     def "invoking filter.includePatterns not disable include/exclude filter"() {
         given:
         buildFile << """

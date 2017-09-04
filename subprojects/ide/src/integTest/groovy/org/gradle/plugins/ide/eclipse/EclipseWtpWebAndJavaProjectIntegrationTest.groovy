@@ -28,9 +28,7 @@ class EclipseWtpWebAndJavaProjectIntegrationTest extends AbstractEclipseIntegrat
         """subprojects {
                apply plugin: 'eclipse-wtp'
 
-               repositories {
-                   jcenter()
-               }
+              ${jcenterRepository()}
            }
            project(':web') {
                apply plugin: 'war'

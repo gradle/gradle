@@ -26,6 +26,7 @@ import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.caching.internal.tasks.BuildCacheKeyInputs
 import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBuilder
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
+import org.gradle.util.Path
 import spock.lang.Specification
 
 class VerifyNoInputChangesTaskExecuterTest extends Specification {
@@ -82,7 +83,7 @@ class VerifyNoInputChangesTaskExecuterTest extends Specification {
 
         TaskExecutionException e = thrown(TaskExecutionException)
         e.task == task
-        e.cause.message == "The inputs for the task changed during the execution! Check if you have a `doFirst` changing the inputs."
+        e.cause.message == "The inputs for the task changed during the execution! Check if you have a task action changing the inputs."
     }
 
     def 'exception if cache key became invalid'() {
@@ -107,6 +108,11 @@ class VerifyNoInputChangesTaskExecuterTest extends Specification {
     private static TaskOutputCachingBuildCacheKey cacheKey(String hash) {
         new TaskOutputCachingBuildCacheKey() {
             @Override
+            Path getTaskPath() {
+                return Path.path(":test")
+            }
+
+            @Override
             String getHashCode() {
                 return hash
             }
@@ -120,10 +126,20 @@ class VerifyNoInputChangesTaskExecuterTest extends Specification {
             boolean isValid() {
                 return true
             }
+
+            @Override
+            String getDisplayName() {
+                return "test: $hash"
+            }
+
+            @Override
+            String toString() {
+                return getDisplayName()
+            }
         }
     }
 
     private static TaskOutputCachingBuildCacheKey invalidCacheKey() {
-        return new DefaultTaskOutputCachingBuildCacheKeyBuilder().build()
+        return new DefaultTaskOutputCachingBuildCacheKeyBuilder(Path.path(":invalid")).build()
     }
 }

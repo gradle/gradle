@@ -29,16 +29,12 @@ class AbstractTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPer
     int firstWarmupWithCache = 1
 
     def setup() {
-        /*
-         * Since every second build is a 'clean', we need more iterations
-         * than usual to get reliable results.
-         */
-        runner.warmUpRuns = 10
-        runner.runs = 26
-        runner.setupCleanupOnOddRounds()
+        runner.warmUpRuns = 5
+        runner.runs = 13
+        runner.cleanTasks = ["clean"]
         runner.args = ["-D${GradleProperties.BUILD_CACHE_PROPERTY}=true"]
         runner.minimumVersion = "3.5"
-        runner.targetVersions = ["4.1-20170607235835+0000"]
+        runner.targetVersions = ["4.2-20170823235728+0000"]
     }
 
     /**
@@ -62,9 +58,5 @@ class AbstractTaskOutputCacheJavaPerformanceTest extends AbstractCrossVersionPer
 
     boolean isFirstRunWithCache(BuildExperimentInvocationInfo invocationInfo) {
         invocationInfo.iterationNumber == firstWarmupWithCache && invocationInfo.phase == WARMUP
-    }
-
-    static boolean isCleanupRun(BuildExperimentInvocationInfo invocationInfo) {
-        invocationInfo.iterationNumber % 2 == 1
     }
 }

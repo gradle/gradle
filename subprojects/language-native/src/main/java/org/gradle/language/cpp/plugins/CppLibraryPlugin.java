@@ -23,121 +23,156 @@ import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.language.cpp.tasks.CppCompile;
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
+import org.gradle.language.cpp.CppLibrary;
+import org.gradle.language.cpp.internal.DefaultCppLibrary;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
-import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
-import java.util.Collections;
+import javax.inject.Inject;
+import java.io.File;
+import java.util.Set;
 import java.util.concurrent.Callable;
+
+import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
 
 /**
  * <p>A plugin that produces a native library from C++ source.</p>
  *
  * <p>Assumes the source files are located in `src/main/cpp`, public headers are located in `src/main/public` and implementation header files are located in `src/main/headers`.</p>
  *
+ * <p>Adds a {@link CppLibrary} extension to the project to allow configuration of the library.</p>
+ *
  * @since 4.1
  */
 @Incubating
 public class CppLibraryPlugin implements Plugin<ProjectInternal> {
+    private final FileOperations fileOperations;
+
+    /**
+     * Injects a {@link FileOperations} instance.
+     *
+     * @since 4.2
+     */
+    @Inject
+    public CppLibraryPlugin(FileOperations fileOperations) {
+        this.fileOperations = fileOperations;
+    }
+
     @Override
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(CppBasePlugin.class);
 
-        TaskContainerInternal tasks = project.getTasks();
+        TaskContainer tasks = project.getTasks();
         ConfigurationContainer configurations = project.getConfigurations();
         DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
         ObjectFactory objectFactory = project.getObjects();
+        ProviderFactory providers = project.getProviders();
 
-        // TODO - extract some common code to setup the compile task and conventions
-        // Add a compile task
-        CppCompile compile = tasks.create("compileCpp", CppCompile.class);
+        // Add the library extension
+        final CppLibrary library = project.getExtensions().create(CppLibrary.class, "library", DefaultCppLibrary.class, "main", project.getObjects(), fileOperations, providers, project.getConfigurations());
+        project.getComponents().add(library);
+        project.getComponents().add(library.getDebugSharedLibrary());
+        project.getComponents().add(library.getReleaseSharedLibrary());
 
-        compile.includes("src/main/public");
-        compile.includes("src/main/headers");
-        compile.includes(configurations.getByName(CppBasePlugin.CPP_INCLUDE_PATH));
+        // Configure the component
+        library.getBaseName().set(project.getName());
 
-        ConfigurableFileTree sourceTree = project.fileTree("src/main/cpp");
-        sourceTree.include("**/*.cpp");
-        sourceTree.include("**/*.c++");
-        compile.source(sourceTree);
+        // Define the outgoing artifacts
+        // TODO - move this to the base plugin
 
-        compile.setCompilerArgs(Collections.<String>emptyList());
-        compile.setPositionIndependentCode(true);
-        compile.setMacros(Collections.<String, String>emptyMap());
-
-        compile.setObjectFileDir(buildDirectory.dir("main/objs"));
-
-        DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
-        compile.setTargetPlatform(currentPlatform);
-
-        // TODO - make this lazy
-        NativeToolChain toolChain = project.getModelRegistry().realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
-        final PlatformToolProvider platformToolChain = ((NativeToolChainInternal) toolChain).select(currentPlatform);
-        compile.setToolChain(toolChain);
-
-        // Add a link task
-        final LinkSharedLibrary link = tasks.create("linkMain", LinkSharedLibrary.class);
-        // TODO - include only object files
-        link.source(compile.getObjectFileDirectory().getAsFileTree());
-        link.lib(configurations.getByName(CppBasePlugin.NATIVE_LINK));
-        link.setLinkerArgs(Collections.<String>emptyList());
-        // TODO - need to set basename and soname
-        String linkFileName = platformToolChain.getSharedLibraryLinkFileName("build/lib/" + project.getName());
-        Provider<RegularFile> runtimeFile = buildDirectory.file(project.getProviders().provider(new Callable<String>() {
+        final LinkSharedLibrary linkDebug = (LinkSharedLibrary) tasks.getByName("linkDebug");
+        // TODO - make this lazy, make a query method on the link task
+        final PlatformToolProvider platformToolChain = ((NativeToolChainInternal) linkDebug.getToolChain()).select((NativePlatformInternal) linkDebug.getTargetPlatform());
+        // TODO - should reflect changes to the task configuration
+        Provider<RegularFile> debugLinkFile = buildDirectory.file(providers.provider(new Callable<String>() {
             @Override
             public String call() throws Exception {
-                return platformToolChain.getSharedLibraryName("lib/" + project.getName());
+                return platformToolChain.getSharedLibraryLinkFileName("lib/main/debug/" + library.getBaseName().get());
             }
         }));
-        link.setOutputFile(runtimeFile);
-        link.setTargetPlatform(currentPlatform);
-        link.setToolChain(toolChain);
 
-        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(link);
+        final LinkSharedLibrary linkRelease = (LinkSharedLibrary) tasks.getByName("linkRelease");
+        // TODO - should reflect changes to the task configuration
+        Provider<RegularFile> releaseLinkFile = buildDirectory.file(providers.provider(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                return platformToolChain.getSharedLibraryLinkFileName("lib/main/release/" + library.getBaseName().get());
+            }
+        }));
+
+        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(linkDebug);
 
         // TODO - add lifecycle tasks
+        // TODO - extract some common code to setup the configurations
 
         Configuration apiElements = configurations.create("cppApiElements");
+        apiElements.extendsFrom(library.getApiDependencies());
         apiElements.setCanBeResolved(false);
         apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.C_PLUS_PLUS_API));
-        apiElements.getOutgoing().artifact(project.file("src/main/public"));
+        // TODO - deal with more than one header dir, e.g. generated public headers
+        Provider<File> publicHeaders = providers.provider(new Callable<File>() {
+            @Override
+            public File call() throws Exception {
+                Set<File> files = library.getPublicHeaderDirs().getFiles();
+                if (files.size() != 1) {
+                    throw new UnsupportedOperationException(String.format("The C++ library plugin currently requires exactly one public header directory, however there are %d directories configured: %s", files.size(), files));
+                }
+                return files.iterator().next();
+            }
+        });
+        apiElements.getOutgoing().artifact(publicHeaders);
 
-        Configuration implementation = configurations.getByName(CppBasePlugin.IMPLEMENTATION);
+        Configuration implementation = library.getImplementationDependencies();
 
-        Configuration linkElements = configurations.create("linkElements");
-        linkElements.extendsFrom(implementation);
-        linkElements.setCanBeResolved(false);
-        linkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
-        // TODO - should be lazy and reflect changes to task output file
-        linkElements.getOutgoing().artifact(project.file(linkFileName), new Action<ConfigurablePublishArtifact>() {
+        Configuration debugLinkElements = configurations.create("debugLinkElements");
+        debugLinkElements.extendsFrom(implementation);
+        debugLinkElements.setCanBeResolved(false);
+        debugLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
+        debugLinkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, true);
+        // TODO - should reflect changes to task output file
+        debugLinkElements.getOutgoing().artifact(debugLinkFile, new Action<ConfigurablePublishArtifact>() {
             @Override
             public void execute(ConfigurablePublishArtifact artifact) {
-                artifact.builtBy(link);
+                artifact.builtBy(linkDebug);
             }
         });
 
-        Configuration runtimeElements = configurations.create("runtimeElements");
-        runtimeElements.extendsFrom(implementation);
-        runtimeElements.setCanBeResolved(false);
-        runtimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
-        // TODO - should be lazy and reflect changes to task output file
-        runtimeElements.getOutgoing().artifact(link.getOutputFile(), new Action<ConfigurablePublishArtifact>() {
+        Configuration debugRuntimeElements = configurations.create("debugRuntimeElements");
+        debugRuntimeElements.extendsFrom(implementation);
+        debugRuntimeElements.setCanBeResolved(false);
+        debugRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
+        debugRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, true);
+        debugRuntimeElements.getOutgoing().artifact(linkDebug.getBinaryFile());
+
+        Configuration releaseLinkElements = configurations.create("releaseLinkElements");
+        releaseLinkElements.extendsFrom(implementation);
+        releaseLinkElements.setCanBeResolved(false);
+        releaseLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
+        releaseLinkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, false);
+        // TODO - should reflect changes to task output file
+        releaseLinkElements.getOutgoing().artifact(releaseLinkFile, new Action<ConfigurablePublishArtifact>() {
             @Override
             public void execute(ConfigurablePublishArtifact artifact) {
-                artifact.builtBy(link);
+                artifact.builtBy(linkRelease);
             }
         });
+
+        Configuration releaseRuntimeElements = configurations.create("releaseRuntimeElements");
+        releaseRuntimeElements.extendsFrom(implementation);
+        releaseRuntimeElements.setCanBeResolved(false);
+        releaseRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
+        releaseRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, false);
+        releaseRuntimeElements.getOutgoing().artifact(linkRelease.getBinaryFile());
     }
 }

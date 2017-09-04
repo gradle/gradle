@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.state
 
 import com.google.common.cache.CacheBuilder
 import org.gradle.api.Transformer
-import org.gradle.cache.internal.FileLock
+import org.gradle.cache.FileLock
 import org.gradle.cache.internal.MultiProcessSafeAsyncPersistentIndexedCache
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 

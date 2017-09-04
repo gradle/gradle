@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
-import com.google.common.hash.HashCode;
 import com.google.common.io.ByteStreams;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.tasks.compile.incremental.asm.ClassDependenciesVisitor;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
-import org.gradle.util.internal.Java9ClassReader;
+import org.gradle.internal.hash.HashCode;
 import org.objectweb.asm.ClassReader;
 
 import java.io.IOException;
@@ -30,7 +29,7 @@ import java.io.InputStream;
 public class DefaultClassDependenciesAnalyzer implements ClassDependenciesAnalyzer {
 
     public ClassAnalysis getClassAnalysis(InputStream input) throws IOException {
-        ClassReader reader = new Java9ClassReader(ByteStreams.toByteArray(input));
+        ClassReader reader = new ClassReader(ByteStreams.toByteArray(input));
         String className = reader.getClassName().replace("/", ".");
         return ClassDependenciesVisitor.analyze(className, reader);
     }

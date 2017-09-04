@@ -34,7 +34,19 @@ public interface BuildOperationNotificationListenerRegistrar {
      * This method is inaccurately named.
      * The term “build” here is actually what we name “build tree”.
      * The listener expects to be automatically de-registered.
+     *
+     * The registered listener will receive notification for all build operations for the
+     * current build execution, _NOT_ including those those operations that started before the
+     * listener was registered.
      */
     void registerBuildScopeListener(BuildOperationNotificationListener listener);
+
+
+    /**
+     * The registered listener will receive notification for all build operations for the
+     * current build execution, including those those operations that started before the
+     * listener was registered.
+     */
+    void registerBuildScopeListenerAndReceiveStoredOperations(BuildOperationNotificationListener listener);
 
 }

@@ -17,8 +17,9 @@
 package org.gradle.internal.reflect
 
 import org.gradle.api.Incubating
-import org.gradle.api.Nullable
 import spock.lang.Specification
+
+import javax.annotation.Nullable
 
 class TypesTest extends Specification {
     def "base object types are not visited"() {

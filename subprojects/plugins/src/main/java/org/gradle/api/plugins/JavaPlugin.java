@@ -19,7 +19,6 @@ package org.gradle.api.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
-import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -48,6 +47,7 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.language.jvm.tasks.ProcessResources;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
@@ -227,13 +227,6 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     @Incubating
     public static final String TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME = "testRuntimeClasspath";
 
-    /**
-     * Represents the "jar" format of a variant of a Java component.
-     * @since 3.5
-     */
-    @Incubating
-    public static final String JAR_TYPE = ArtifactTypeDefinition.JAR_TYPE;
-
     private final ObjectFactory objectFactory;
 
     @Inject
@@ -307,7 +300,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         addJar(runtimeConfiguration, jarArtifact);
         addRuntimeVariants(runtimeElementsConfiguration, jarArtifact, javaCompile, processResources);
 
-        project.getComponents().add(new JavaLibrary(project.getConfigurations(), jarArtifact));
+        project.getComponents().add(new JavaLibrary(objectFactory, project.getConfigurations(), jarArtifact));
     }
 
     private void addJar(Configuration configuration, ArchivePublishArtifact jarArtifact) {
@@ -315,7 +308,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
         // Configure an implicit variant
         publications.getArtifacts().add(jarArtifact);
-        publications.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, JavaPlugin.JAR_TYPE);
+        publications.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, ArtifactTypeDefinition.JAR_TYPE);
     }
 
     private void addRuntimeVariants(Configuration configuration, ArchivePublishArtifact jarArtifact, final JavaCompile javaCompile, final ProcessResources processResources) {
@@ -323,7 +316,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
         // Configure an implicit variant
         publications.getArtifacts().add(jarArtifact);
-        publications.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, JavaPlugin.JAR_TYPE);
+        publications.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, ArtifactTypeDefinition.JAR_TYPE);
 
         // Define some additional variants
         NamedDomainObjectContainer<ConfigurationVariant> runtimeVariants = publications.getVariants();
@@ -355,7 +348,11 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     private void configureTest(final Project project, final JavaPluginConvention pluginConvention) {
         project.getTasks().withType(Test.class, new Action<Test>() {
             public void execute(final Test test) {
-                test.setTestClassesDirs(pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs());
+                test.getConventionMapping().map("testClassesDirs", new Callable<Object>() {
+                    public Object call() throws Exception {
+                        return pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs();
+                    }
+                });
                 test.getConventionMapping().map("classpath", new Callable<Object>() {
                     public Object call() throws Exception {
                         return pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath();

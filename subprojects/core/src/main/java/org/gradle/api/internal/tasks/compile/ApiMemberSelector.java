@@ -48,7 +48,7 @@ public class ApiMemberSelector extends ClassVisitor {
     private boolean thisClassIsPrivateInnerClass;
 
     public ApiMemberSelector(String className, ClassVisitor apiMemberAdapter, boolean apiIncludesPackagePrivateMembers) {
-        super(ASM5);
+        super(ASM6);
         this.className = className;
         this.apiMemberAdapter = apiMemberAdapter;
         this.apiIncludesPackagePrivateMembers = apiIncludesPackagePrivateMembers;
@@ -166,7 +166,7 @@ public class ApiMemberSelector extends ClassVisitor {
         if (isCandidateApiMember(access, apiIncludesPackagePrivateMembers) || ("<init>".equals(name) && isInnerClass)) {
             final MethodMember methodMember = new MethodMember(access, name, desc, signature, exceptions);
             methods.add(methodMember);
-            return new MethodVisitor(ASM5) {
+            return new MethodVisitor(ASM6) {
                 @Override
                 public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
                     AnnotationMember ann = new AnnotationMember(desc, visible);
@@ -191,7 +191,7 @@ public class ApiMemberSelector extends ClassVisitor {
             Object keepValue = (access & ACC_STATIC) == ACC_STATIC && ((access & ACC_FINAL) == ACC_FINAL) ? value : null;
             final FieldMember fieldMember = new FieldMember(access, name, signature, desc, keepValue);
             fields.add(fieldMember);
-            return new FieldVisitor(ASM5) {
+            return new FieldVisitor(ASM6) {
                 @Override
                 public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
                     AnnotationMember ann = new AnnotationMember(desc, visible);

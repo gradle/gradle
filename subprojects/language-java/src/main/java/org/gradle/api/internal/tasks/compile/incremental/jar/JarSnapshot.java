@@ -17,12 +17,12 @@
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import com.google.common.collect.Sets;
-import com.google.common.hash.HashCode;
 import org.gradle.api.internal.tasks.compile.incremental.deps.AffectedClasses;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsSet;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependencyToAll;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
+import org.gradle.internal.hash.HashCode;
 
 import java.util.Collections;
 import java.util.HashSet;

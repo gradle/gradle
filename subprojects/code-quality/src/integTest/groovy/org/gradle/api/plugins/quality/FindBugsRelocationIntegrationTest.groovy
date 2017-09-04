@@ -37,9 +37,7 @@ class FindBugsRelocationIntegrationTest extends AbstractTaskRelocationIntegratio
         """
             apply plugin: "findbugs"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             task compile(type: JavaCompile) {
                 sourceCompatibility = JavaVersion.current()

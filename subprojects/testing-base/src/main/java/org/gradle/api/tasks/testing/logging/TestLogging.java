@@ -88,16 +88,16 @@ public interface TestLogging {
     void setMaxGranularity(int granularity);
 
     /**
-     * Returns the display granularity of the events to be logged. For example, if set to 0, a method-level event will be displayed as "Test Run > Test Worker x > org.SomeClass > org.someMethod". If
-     * set to 2, the same event will be displayed as "org.someClass > org.someMethod". <p>-1 denotes the highest granularity and corresponds to an atomic test.
+     * Returns the display granularity of the events to be logged. For example, if set to 0, a method-level event will be displayed as "Test Run &gt; Test Worker x &gt; org.SomeClass &gt; org.someMethod". If
+     * set to 2, the same event will be displayed as "org.someClass &gt; org.someMethod". <p>-1 denotes the highest granularity and corresponds to an atomic test.
      *
      * @return the display granularity of the events to be logged
      */
     int getDisplayGranularity();
 
     /**
-     * Sets the display granularity of the events to be logged. For example, if set to 0, a method-level event will be displayed as "Test Run > Test Worker x > org.SomeClass > org.someMethod". If set
-     * to 2, the same event will be displayed as "org.someClass > org.someMethod". <p>-1 denotes the highest granularity and corresponds to an atomic test.
+     * Sets the display granularity of the events to be logged. For example, if set to 0, a method-level event will be displayed as "Test Run &gt; Test Worker x &gt; org.SomeClass &gt; org.someMethod". If set
+     * to 2, the same event will be displayed as "org.someClass &gt; org.someMethod". <p>-1 denotes the highest granularity and corresponds to an atomic test.
      *
      * @param granularity the display granularity of the events to be logged
      */

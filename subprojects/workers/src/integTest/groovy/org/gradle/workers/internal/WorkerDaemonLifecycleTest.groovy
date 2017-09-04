@@ -53,8 +53,10 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
             }
         """
 
-        given:
+        when:
         succeeds "runInWorker1"
+
+        then:
         stopDaemonsNow()
 
         when:
@@ -72,16 +74,18 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
             }
         """
 
-        given:
+        when:
         args("--info")
         succeeds "runInWorker"
 
-        when:
+        then:
         newSnapshot()
+
+        when:
         stopDaemonsNow()
-        daemons.daemon.stops()
 
         then:
+        daemons.daemon.stops()
         sinceSnapshot().contains("Stopped 1 worker daemon(s).")
     }
 
@@ -178,9 +182,9 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
 
         when:
         stopDaemonsNow()
-        daemons.daemon.stops()
 
         then:
+        daemons.daemon.stops()
         sinceSnapshot().contains("Stopped 1 worker daemon(s).")
     }
 

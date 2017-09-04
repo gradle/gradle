@@ -42,6 +42,15 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
 
     private final List<ClassLoader> parents;
 
+    static {
+        try {
+            //noinspection Since15
+            ClassLoader.registerAsParallelCapable();
+        } catch (NoSuchMethodError ignore) {
+            // Not supported on Java 6
+        }
+    }
+
     public MultiParentClassLoader(ClassLoader... parents) {
         this(Arrays.asList(parents));
     }

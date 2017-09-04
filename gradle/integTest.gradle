@@ -1,7 +1,6 @@
 import org.gradle.testing.IntegrationTest
 
 apply plugin: 'java'
-apply from: "${rootDir}/gradle/distributionTesting.gradle"
 
 sourceSets {
     integTest {
@@ -57,30 +56,6 @@ check.dependsOn(integTest)
     tasks.create(taskName, IntegrationTest).configure {
         description "Runs integTests with '${mode}' executer"
         systemProperties['org.gradle.integtest.executer'] = mode
-    }
-}
-
-task crossVersionIntegTest {
-    description "Runs the cross version tests against all Gradle versions"
-}
-
-task quickFeedbackCrossVersionIntegTest {
-    description "Runs the cross version tests against a subset of selected Gradle versions for quick feedback"
-}
-
-releasedVersions.testedVersions.each { targetVersion ->
-    tasks.create("gradle${targetVersion}IntegTest", IntegrationTest).configure {
-        crossVersionIntegTest.dependsOn it
-        description "Runs the cross version tests against Gradle ${targetVersion}"
-        systemProperties['org.gradle.integtest.versions'] = targetVersion
-        systemProperties['org.gradle.integtest.executer'] = 'forking'
-        include '**/*CrossVersion*'
-    }
-}
-
-releasedVersions.getTestedVersions(true).each { targetVersion ->
-    tasks.getByName("gradle${targetVersion}IntegTest").configure {
-        quickFeedbackCrossVersionIntegTest.dependsOn it
     }
 }
 

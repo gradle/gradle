@@ -18,6 +18,7 @@ package org.gradle.plugins.javascript.coffeescript.compile.internal.rhino;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.WorkResults;
 import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompileSpec;
 import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompiler;
 import org.gradle.plugins.javascript.coffeescript.compile.internal.SerializableCoffeeScriptCompileSpec;
@@ -44,10 +45,6 @@ public class RhinoCoffeeScriptCompiler implements CoffeeScriptCompiler {
 
         compiler.process(new SerializableCoffeeScriptCompileSpec(spec));
 
-        return new WorkResult() {
-            public boolean getDidWork() {
-                return true;
-            }
-        };
+        return WorkResults.didWork(true);
     }
 }

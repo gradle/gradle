@@ -18,9 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import org.gradle.api.internal.cache.Store;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.cache.internal.Store;
 import org.gradle.internal.Factory;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
@@ -29,7 +29,7 @@ import java.io.Closeable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.gradle.internal.time.Clock.prettyTime;
+import static org.gradle.internal.time.DefaultEventTimer.prettyTime;
 
 public class CachedStoreFactory<T> implements Closeable {
 

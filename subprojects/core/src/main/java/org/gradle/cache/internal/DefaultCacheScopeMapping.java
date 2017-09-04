@@ -16,12 +16,12 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.util.GradleVersion;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 public class DefaultCacheScopeMapping implements CacheScopeMapping {

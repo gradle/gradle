@@ -17,8 +17,8 @@
 package org.gradle.model.internal.type;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 
 class WildcardTypeWrapper implements WildcardWrapper {

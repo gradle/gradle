@@ -383,11 +383,11 @@ public class SigningExtension {
      * Signs the POM artifact for the given Maven deployment.
      *
      * <p>You can use this method to sign the generated POM when publishing to a Maven repository with the Maven plugin. </p>
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * uploadArchives {
      *   repositories {
      *     mavenDeployer {
-     *       beforeDeployment { MavenDeployment deployment ->
+     *       beforeDeployment { MavenDeployment deployment -&gt;
      *         signing.signPom(deployment)
      *       }
      *     }
@@ -431,11 +431,11 @@ public class SigningExtension {
      * Signs the POM artifact for the given Maven deployment.
      *
      * <p>You can use this method to sign the generated POM when publishing to a Maven repository with the Maven plugin. </p>
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * uploadArchives {
      *   repositories {
      *     mavenDeployer {
-     *       beforeDeployment { MavenDeployment deployment ->
+     *       beforeDeployment { MavenDeployment deployment -&gt;
      *         signing.signPom(deployment)
      *       }
      *     }

@@ -305,8 +305,8 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
             project(':a') {
                 dependencies.attributesSchema {
-                    attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
-                    attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
+                    attribute(buildType)
+                    attribute(flavor)
                 }
                 configurations {
                     compile
@@ -483,8 +483,8 @@ Configuration 'bar':
                 }
                 dependencies {
                     attributesSchema {
-                        attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
-                        attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
+                        attribute(buildType)
+                        attribute(flavor)
                     }
                     
                     _compileFreeDebug project(':b')
@@ -529,8 +529,8 @@ Configuration 'bar':
                     _compileFreeDebug.attributes { $freeDebug }
                 }
                 dependencies.attributesSchema {
-                    attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
-                    attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
+                    attribute(buildType)
+                    attribute(flavor)
                 }
                 dependencies {
                     _compileFreeDebug project(':b')
@@ -790,9 +790,7 @@ All of them match the consumer attributes:
                 }
                 dependencies {
                     attributesSchema {
-                        attribute(flavor) {
-                            compatibilityRules.assumeCompatibleWhenMissing()
-                        }
+                        attribute(flavor)
                     }
                     _compileFreeDebug project(':b')
                 }
@@ -849,12 +847,8 @@ All of them match the consumer attributes:
                 }
                 dependencies {
                     attributesSchema {
-                        attribute(flavor) {
-                            compatibilityRules.assumeCompatibleWhenMissing()
-                        }
-                        attribute(buildType) {
-                            compatibilityRules.assumeCompatibleWhenMissing()
-                        }
+                        attribute(flavor)
+                        attribute(buildType)
                     }
                     _compileFreeDebug project(':b')
                 }
@@ -930,9 +924,7 @@ All of them match the consumer attributes:
             project(':b') {
                 dependencies {
                     attributesSchema {
-                        attribute(extra) {
-                            compatibilityRules.assumeCompatibleWhenMissing()
-                        }
+                        attribute(extra)
                     }
                 }
                 configurations {
@@ -1040,9 +1032,7 @@ All of them match the consumer attributes:
             project(':b') {
                 dependencies {
                     attributesSchema {
-                        attribute(extra) {
-                            compatibilityRules.assumeCompatibleWhenMissing()
-                        }
+                        attribute(extra)
                     }
                 }
                 configurations {
@@ -1113,12 +1103,8 @@ All of them match the consumer attributes:
             project(':a') {
                 dependencies { 
                     attributesSchema {
-                        attribute(flavor) {
-                            compatibilityRules.assumeCompatibleWhenMissing()
-                        }
-                        attribute(buildType) {
-                            compatibilityRules.assumeCompatibleWhenMissing()
-                        }
+                        attribute(flavor)
+                        attribute(buildType)
                     }
                 }
                 configurations {
@@ -1174,8 +1160,8 @@ All of them match the consumer attributes:
             allprojects {
                dependencies {
                    attributesSchema {
-                      attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
-                      attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
+                      attribute(flavor)
+                      attribute(buildType)
                    }
                }
             }
@@ -1260,8 +1246,8 @@ All of them match the consumer attributes:
             allprojects {
                dependencies {
                    attributesSchema {
-                      attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
-                      attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
+                      attribute(flavor)
+                      attribute(buildType)
                    }
                }
             }
@@ -1338,8 +1324,8 @@ All of them match the consumer attributes:
             allprojects {
                dependencies {
                    attributesSchema {
-                      attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
-                      attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
+                      attribute(flavor)
+                      attribute(buildType)
                    }
                }
             }
@@ -1420,9 +1406,7 @@ All of them match the consumer attributes:
             allprojects {
                 dependencies { 
                     attributesSchema {
-                        attribute(extra) {
-                            compatibilityRules.assumeCompatibleWhenMissing()
-                        }
+                        attribute(extra)
                     }
                 }
             }
@@ -1538,14 +1522,14 @@ All of them match the consumer attributes:
             allprojects {
                dependencies {
                    attributesSchema {
-                      attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
-                      attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
+                      attribute(flavor)
+                      attribute(buildType)
                    }
                }
             }
 
             project(':a') {
-                repositories { jcenter() }
+                ${jcenterRepository()}
 
                 configurations {
                     _compileFreeDebug.attributes { $freeDebug }
@@ -1579,7 +1563,7 @@ All of them match the consumer attributes:
                 }
             }
             project(':c') {
-                repositories { jcenter() }
+                ${jcenterRepository()}
                 configurations {
                     foo.attributes { $freeDebug }
                     bar.attributes { $freeRelease }
@@ -1696,9 +1680,7 @@ All of them match the consumer attributes:
                 }
                 dependencies {
                     attributesSchema {
-                        attribute(flavor) {
-                            compatibilityRules.assumeCompatibleWhenMissing()
-                        }
+                        attribute(flavor)
                     }
                     _compileFreeDebug project(':b')
                 }
@@ -1758,9 +1740,7 @@ All of them match the consumer attributes:
             project(':b') {
                 dependencies {
                     attributesSchema {
-                        attribute(flavor) {
-                            compatibilityRules.assumeCompatibleWhenMissing()
-                        }
+                        attribute(flavor)
                     }
                 }
                 configurations {
@@ -1800,12 +1780,8 @@ All of them match the consumer attributes:
             allprojects {
                 dependencies {
                     attributesSchema {
-                        attribute(flavor) {
-                            compatibilityRules.assumeCompatibleWhenMissing()
-                        }
-                        attribute(buildType) {
-                            compatibilityRules.assumeCompatibleWhenMissing()
-                        }
+                        attribute(flavor)
+                        attribute(buildType)
                     }
                 }
             }
@@ -1888,9 +1864,9 @@ All of them match the consumer attributes:
                 }
                 dependencies {
                     attributesSchema {
-                        attribute(extra).compatibilityRules.assumeCompatibleWhenMissing()
-                        attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
-                        attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
+                        attribute(extra)
+                        attribute(buildType)
+                        attribute(flavor)
                     }
                     _compileFreeDebug project(':b')
                 }

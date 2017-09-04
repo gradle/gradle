@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.util.ConfigureUtil
 import spock.lang.Specification
 
@@ -35,7 +36,8 @@ class DefaultScriptHandlerTest extends Specification {
     def classLoaderScope = Stub(ClassLoaderScope) {
         getLocalClassLoader() >> baseClassLoader
     }
-    def handler = new DefaultScriptHandler(scriptSource, depMgmtServices, classLoaderScope)
+    def classpathResolver = Mock(ScriptClassPathResolver)
+    def handler = new DefaultScriptHandler(scriptSource, depMgmtServices, classLoaderScope, classpathResolver)
 
     def "adds classpath configuration when configuration container is queried"() {
         when:
@@ -68,26 +70,26 @@ class DefaultScriptHandlerTest extends Specification {
 
         then:
         0 * configuration._
+        1 * classpathResolver.resolveClassPath(null) >> ClassPath.EMPTY
 
         and:
-        classpath.empty
+        classpath == ClassPath.EMPTY
     }
 
     def "resolves classpath configuration when configuration container has been queried"() {
-        def file = new File("thing.jar")
-        def uri = file.toURI()
+        def classpath = Mock(ClassPath)
 
         when:
         handler.configurations
-        def classpath = handler.scriptClassPath
+        def result = handler.scriptClassPath
 
         then:
-        1 * depMgmtServices.configurationContainer >> configurationContainer
-        1 * configurationContainer.create('classpath') >> configuration
-        1 * configuration.files >> [file]
+        result == classpath
 
         and:
-        classpath.asURIs == [uri]
+        1 * depMgmtServices.configurationContainer >> configurationContainer
+        1 * configurationContainer.create('classpath') >> configuration
+        1 * classpathResolver.resolveClassPath(configuration) >> classpath
     }
 
     def "can configure repositories"() {

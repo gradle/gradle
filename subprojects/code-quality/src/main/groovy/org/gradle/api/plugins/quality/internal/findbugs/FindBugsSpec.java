@@ -19,17 +19,20 @@ package org.gradle.api.plugins.quality.internal.findbugs;
 import com.google.common.base.Objects;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 
 public class FindBugsSpec implements Serializable {
     private List<String> arguments;
     private String maxHeapSize;
     private boolean debugEnabled;
+    private Collection<String> jvmArgs;
 
-    public FindBugsSpec(List<String> arguments, String maxHeapSize, boolean debugEnabled) {
+    public FindBugsSpec(List<String> arguments, String maxHeapSize, boolean debugEnabled, Collection<String> jvmArgs) {
         this.debugEnabled = debugEnabled;
         this.maxHeapSize = maxHeapSize;
         this.arguments = arguments;
+        this.jvmArgs = jvmArgs;
     }
 
     public List<String> getArguments() {
@@ -39,12 +42,16 @@ public class FindBugsSpec implements Serializable {
     public String getMaxHeapSize() {
         return maxHeapSize;
     }
-    
+
     public boolean isDebugEnabled() {
         return debugEnabled;
     }
-    
+
+    public Collection<String> getJvmArgs() {
+        return jvmArgs;
+    }
+
     public String toString() {
-        return Objects.toStringHelper(this).add("arguments", arguments).add("debugEnabled", debugEnabled).toString();
+        return Objects.toStringHelper(this).add("arguments", arguments).add("debugEnabled", debugEnabled).add("jvmArgs", jvmArgs).toString();
     }
 }

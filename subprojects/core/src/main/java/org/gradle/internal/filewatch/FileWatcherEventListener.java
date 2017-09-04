@@ -16,6 +16,9 @@
 
 package org.gradle.internal.filewatch;
 
+import org.gradle.internal.logging.text.StyledTextOutput;
+
 public interface FileWatcherEventListener {
     void onChange(FileWatcherEvent event);
+    void reportChanges(StyledTextOutput logger);
 }

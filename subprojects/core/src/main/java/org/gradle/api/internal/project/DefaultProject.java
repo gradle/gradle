@@ -86,6 +86,7 @@ import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.typeconversion.TypeConverter;
@@ -113,6 +114,7 @@ import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.net.URI;
@@ -151,6 +153,8 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     private ScriptSource buildScriptSource;
 
     private final File projectDir;
+
+    private final File buildFile;
 
     private final ProjectInternal parent;
 
@@ -194,8 +198,9 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     private Path identityPath;
 
     public DefaultProject(String name,
-                          ProjectInternal parent,
+                          @Nullable ProjectInternal parent,
                           File projectDir,
+                          File buildFile,
                           ScriptSource buildScriptSource,
                           GradleInternal gradle,
                           ServiceRegistryFactory serviceRegistryFactory,
@@ -203,9 +208,9 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
                           ClassLoaderScope baseClassLoaderScope) {
         this.classLoaderScope = selfClassLoaderScope;
         this.baseClassLoaderScope = baseClassLoaderScope;
-        assert name != null;
         this.rootProject = parent != null ? parent.getRootProject() : this;
         this.projectDir = projectDir;
+        this.buildFile = buildFile;
         this.parent = parent;
         this.name = name;
         this.state = new ProjectStateInternal();
@@ -349,7 +354,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public File getBuildFile() {
-        return getBuildscript().getSourceFile();
+        return buildFile;
     }
 
     @Override
@@ -1219,7 +1224,12 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getBaseClassLoaderScope(), this);
+        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getBaseClassLoaderScope(), getResourceLoader(), this);
+    }
+
+    @Inject
+    protected TextResourceLoader getResourceLoader() {
+        throw new UnsupportedOperationException();
     }
 
     @Inject

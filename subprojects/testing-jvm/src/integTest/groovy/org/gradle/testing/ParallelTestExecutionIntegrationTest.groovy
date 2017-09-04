@@ -16,15 +16,13 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
-import spock.lang.IgnoreIf
 import spock.lang.Timeout
 import spock.lang.Unroll
 
 @Timeout(240)
-@IgnoreIf({ GradleContextualExecuter.isParallel() })
 class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
@@ -34,7 +32,7 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << 'rootProject.name = "root"'
         buildFile << """
             plugins { id "java" }
-            repositories { jcenter() }
+            ${jcenterRepository()}
             dependencies {
                 testCompile localGroovy()
                 testCompile "junit:junit:4.12"
@@ -52,7 +50,7 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
         println "Test-count: $testCount"
 
         and:
-        withJUnitTests(testCount)
+        withBlockingJUnitTests(testCount)
         buildFile << """
             test {
                 maxParallelForks = $maxParallelForks
@@ -103,7 +101,32 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
         2              | 3          | 2                | 1
     }
 
-    private void withJUnitTests(int testCount) {
+    def "can handle parallel tests together with parallel project execution"() {
+        given:
+        settingsFile << """
+            include 'a'
+            include 'b'
+        """
+        ["a", "b"].collect { file(it) }.each { TestFile build ->
+            build.file("build.gradle") << """
+                plugins { id "java" }
+                ${jcenterRepository()}
+                dependencies {
+                    testCompile localGroovy()
+                    testCompile "junit:junit:4.12"
+                }
+                test.maxParallelForks = 2
+            """
+            withNonBlockingJUnitTests(build, 200)
+        }
+        when:
+        def gradle = executer.withArguments("--parallel", "--max-workers=2").withTasks('test').start()
+
+        then:
+        gradle.waitForFinish()
+    }
+
+    private void withBlockingJUnitTests(int testCount) {
         testIndices(testCount).each { idx ->
             file("src/test/java/pkg/SomeTest_${idx}.java") << """
                 package pkg;
@@ -112,6 +135,20 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
                     @Test
                     public void test_$idx() {
                         ${blockingServer.callFromBuild("test_$idx")}
+                    }
+                }
+            """.stripIndent()
+        }
+    }
+
+    private void withNonBlockingJUnitTests(TestFile projectDir, int testCount) {
+        testIndices(testCount).each { idx ->
+            projectDir.file("src/test/java/pkg/SomeTest_${idx}.java") << """
+                package pkg;
+                import org.junit.Test;
+                public class SomeTest_$idx {
+                    @Test
+                    public void test_$idx() {
                     }
                 }
             """.stripIndent()

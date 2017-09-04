@@ -17,11 +17,11 @@
 package org.gradle.internal.classloader;
 
 import com.google.common.base.Charsets;
-import com.google.common.hash.HashCode;
-import com.google.common.hash.Hasher;
-import com.google.common.hash.Hashing;
-import org.gradle.api.Nullable;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -72,7 +72,7 @@ public class ConfigurableClassLoaderHierarchyHasher implements ClassLoaderHierar
             }
             HashCode hash = classLoaderHasher.getHash(cl);
             if (hash != null) {
-                hasher.putBytes(hash.asBytes());
+                hasher.putBytes(hash.toByteArray());
                 return true;
             }
             foundUnknown = true;

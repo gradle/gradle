@@ -16,10 +16,10 @@
 
 package org.gradle.internal.resource.transfer;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
+import javax.annotation.Nullable;
 import java.net.URI;
 
 public interface ExternalResourceAccessor {

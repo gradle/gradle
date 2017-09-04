@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
-import org.gradle.api.internal.cache.Loader;
-import org.gradle.api.internal.cache.Stash;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.internal.Loader;
+import org.gradle.cache.internal.Stash;
 
 //Keeps the class set analysis of the given JavaCompile task
 public class LocalClassSetAnalysisStore implements Loader<ClassSetAnalysisData>, Stash<ClassSetAnalysisData> {

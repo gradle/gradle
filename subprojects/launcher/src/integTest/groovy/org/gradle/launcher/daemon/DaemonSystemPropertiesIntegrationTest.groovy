@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon
 
-import org.gradle.api.internal.cache.HeapProportionalCacheSizer
+import org.gradle.cache.internal.HeapProportionalCacheSizer
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import spock.lang.Issue
 

@@ -16,8 +16,7 @@
 
 package org.gradle.performance.results;
 
-import org.gradle.api.Nullable;
-
+import javax.annotation.Nullable;
 import java.util.List;
 
 public interface ScenarioDefinition {
@@ -35,6 +34,11 @@ public interface ScenarioDefinition {
      * The tasks executed.
      */
     List<String> getTasks();
+
+    /**
+     * The clean tasks executed.
+     */
+    List<String> getCleanTasks();
 
     /**
      * The Gradle arguments.

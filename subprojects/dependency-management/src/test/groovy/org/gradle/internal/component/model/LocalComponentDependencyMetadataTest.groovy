@@ -116,16 +116,8 @@ class LocalComponentDependencyMetadataTest extends Specification {
             getConsumableConfigurationsHavingAttributes() >> [toFooConfig, toBarConfig]
             getAttributesSchema() >> EmptySchema.INSTANCE
         }
-        attributesSchema.attribute(Attribute.of('key', String), {
-            if (allowMissing) {
-                it.compatibilityRules.assumeCompatibleWhenMissing()
-            }
-        })
-        attributesSchema.attribute(Attribute.of('extra', String), {
-            if (allowMissing) {
-                it.compatibilityRules.assumeCompatibleWhenMissing()
-            }
-        })
+        attributesSchema.attribute(Attribute.of('key', String))
+        attributesSchema.attribute(Attribute.of('extra', String))
 
         given:
         toComponent.getConfiguration("default") >> defaultConfig
@@ -136,10 +128,10 @@ class LocalComponentDependencyMetadataTest extends Specification {
         dep.selectConfigurations(fromComponent, fromConfig, toComponent, attributesSchema)*.name as Set == [expected] as Set
 
         where:
-        scenario                                         | queryAttributes                 | allowMissing | expected
-        'exact match'                                    | [key: 'something']              | false        | 'foo'
-        'exact match'                                    | [key: 'something else']         | false        | 'bar'
-        'partial match on key but attribute is optional' | [key: 'something', extra: 'no'] | true         | 'foo'
+        scenario                                         | queryAttributes                 | expected
+        'exact match'                                    | [key: 'something']              | 'foo'
+        'exact match'                                    | [key: 'something else']         | 'bar'
+        'partial match on key but attribute is optional' | [key: 'something', extra: 'no'] | 'foo'
     }
 
     def "revalidates default configuration if it has attributes"() {
@@ -250,12 +242,8 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
             it.ordered { a, b -> a <=> b }
             it.ordered(true, { a, b -> a <=> b })
         })
-        attributesSchema.attribute(Attribute.of('flavor', String), {
-            it.compatibilityRules.assumeCompatibleWhenMissing()
-        })
-        attributesSchema.attribute(Attribute.of('extra', String), {
-            it.compatibilityRules.assumeCompatibleWhenMissing()
-        })
+        attributesSchema.attribute(Attribute.of('flavor', String))
+        attributesSchema.attribute(Attribute.of('extra', String))
 
         given:
         toComponent.getConfiguration("default") >> defaultConfig
@@ -329,12 +317,8 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
             it.ordered { a, b -> a <=> b }
             it.ordered(true, { a, b -> a <=> b })
         })
-        attributesSchema.attribute(Attribute.of('flavor', String), {
-            it.compatibilityRules.assumeCompatibleWhenMissing()
-        })
-        attributesSchema.attribute(Attribute.of('extra', String), {
-            it.compatibilityRules.assumeCompatibleWhenMissing()
-        })
+        attributesSchema.attribute(Attribute.of('flavor', String))
+        attributesSchema.attribute(Attribute.of('extra', String))
 
         given:
         toComponent.getConfiguration("default") >> defaultConfig

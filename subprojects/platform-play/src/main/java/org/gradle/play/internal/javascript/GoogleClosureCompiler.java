@@ -19,9 +19,8 @@ package org.gradle.play.internal.javascript;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.file.RelativeFile;
-import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.Factory;
+import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.JavaMethod;
@@ -64,7 +63,7 @@ public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, S
         }
 
         if (allErrors.isEmpty()) {
-            return new SimpleWorkResult(true);
+            return WorkResults.didWork(true);
         } else {
             throw new SourceTransformationException(String.format("Minification failed with the following errors:\n\t%s", StringUtils.join(allErrors, "\n\t")), null);
         }
@@ -84,8 +83,7 @@ public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, S
         Object sourceFile = fromFileJavaMethod.invokeStatic(javascriptFile.getFile());
 
         // Construct a new CompilerOptions class
-        Factory<?> compilerOptionsFactory = JavaReflectionUtil.factory(DirectInstantiator.INSTANCE, compilerOptionsClass);
-        Object compilerOptions = compilerOptionsFactory.create();
+        Object compilerOptions = DirectInstantiator.INSTANCE.newInstance(compilerOptionsClass);
 
         // Get the CompilationLevel.SIMPLE_OPTIMIZATIONS class and set it on the CompilerOptions class
         @SuppressWarnings({ "rawtypes", "unchecked" }) Enum simpleLevel = Enum.valueOf(compilationLevelClass, "SIMPLE_OPTIMIZATIONS");
@@ -93,8 +91,7 @@ public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, S
         setOptionsForCompilationLevelMethod.invoke(simpleLevel, compilerOptions);
 
         // Construct a new Compiler class
-        Factory<?> compilerFactory = JavaReflectionUtil.factory(DirectInstantiator.INSTANCE, compilerClass, getDummyPrintStream());
-        Object compiler = compilerFactory.create();
+        Object compiler = DirectInstantiator.INSTANCE.newInstance(compilerClass, getDummyPrintStream());
 
         // Compile the javascript file with the options we've created
         JavaMethod<Object, Object> compileMethod = JavaReflectionUtil.method(compilerClass, Object.class, "compile", sourceFileClass, sourceFileClass, compilerOptionsClass);

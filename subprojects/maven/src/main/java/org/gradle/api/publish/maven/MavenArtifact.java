@@ -17,8 +17,8 @@ package org.gradle.api.publish.maven;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**

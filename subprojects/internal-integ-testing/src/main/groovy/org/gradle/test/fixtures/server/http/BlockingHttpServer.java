@@ -15,6 +15,8 @@
  */
 package org.gradle.test.fixtures.server.http;
 
+import com.sun.net.httpserver.BasicAuthenticator;
+import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.rules.ExternalResource;
 
@@ -42,13 +44,14 @@ public class BlockingHttpServer extends ExternalResource {
     private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
     private final Lock lock = new ReentrantLock();
     private final HttpServer server;
+    private HttpContext context;
     private final ChainingHttpHandler handler;
     private final int timeoutMs;
     private final int serverId;
     private boolean running;
 
     public BlockingHttpServer() throws IOException {
-        this(30000);
+        this(120000);
     }
 
     public BlockingHttpServer(int timeoutMs) throws IOException {
@@ -57,7 +60,7 @@ public class BlockingHttpServer extends ExternalResource {
         server.setExecutor(EXECUTOR_SERVICE);
         serverId = COUNTER.incrementAndGet();
         handler = new ChainingHttpHandler(lock, COUNTER, new MustBeRunning());
-        server.createContext("/", handler);
+        context = server.createContext("/", handler);
         this.timeoutMs = timeoutMs;
     }
 
@@ -88,7 +91,7 @@ public class BlockingHttpServer extends ExternalResource {
      */
     public String callFromBuild(String resource) {
         URI uri = uri(resource);
-        return "System.out.println(\"calling " + uri + "\"); try { new java.net.URL(\"" + uri + "\").openConnection().getContentLength(); } catch(Exception e) { throw new RuntimeException(e); }; System.out.println(\"response received\");";
+        return "System.out.println(\"calling " + uri + "\"); try { new java.net.URL(\"" + uri + "\").openConnection().getContentLength(); } catch(Exception e) { throw new RuntimeException(e); }; System.out.println(\"[G] response received\");";
     }
 
     /**
@@ -96,7 +99,16 @@ public class BlockingHttpServer extends ExternalResource {
      */
     public String callFromBuildUsingExpression(String expression) {
         String uriExpression = "\"" + getUri() + "/\" + " + expression;
-        return "System.out.println(\"calling \" + " + uriExpression + "); try { new java.net.URL(" + uriExpression + ").openConnection().getContentLength(); } catch(Exception e) { throw new RuntimeException(e); }; System.out.println(\"response received\");";
+        return "System.out.println(\"calling \" + " + uriExpression + "); try { new java.net.URL(" + uriExpression + ").openConnection().getContentLength(); } catch(Exception e) { throw new RuntimeException(e); }; System.out.println(\"[G] response received\");";
+    }
+
+    public void withBasicAuthentication(final String username, final String password) {
+        context.setAuthenticator(new BasicAuthenticator("get") {
+            @Override
+            public boolean checkCredentials(String u, String pwd) {
+                return u.equals(username) && password.equals(pwd);
+            }
+        });
     }
 
     /**
@@ -160,6 +172,13 @@ public class BlockingHttpServer extends ExternalResource {
      */
     public ExpectedRequest missing(String path) {
         return new ExpectGetMissing(path);
+    }
+
+    /**
+     * Expect a HEAD request to the given path.
+     */
+    public ExpectedRequest head(String path) {
+        return new ExpectHead(path);
     }
 
     /**
@@ -290,7 +309,7 @@ public class BlockingHttpServer extends ExternalResource {
         stop();
     }
 
-    private int getPort() {
+    public int getPort() {
         if (!running) {
             throw new IllegalStateException("Cannot get HTTP port as server is not running.");
         }

@@ -143,7 +143,7 @@ def flavor = Attribute.of('flavor', String)
 
 allprojects {
     dependencies {
-        attributesSchema.attribute(flavor).compatibilityRules.assumeCompatibleWhenMissing()
+        attributesSchema.attribute(flavor)
     }
 }
 
@@ -243,7 +243,6 @@ dependencies {
 project(':a') {
     dependencies {
         attributesSchema.attribute(flavor) {
-            compatibilityRules.assumeCompatibleWhenMissing()
             disambiguationRules.add(SelectFreeRule)
         }
         compile project(':b')
@@ -264,7 +263,6 @@ project(':a') {
 project(':b') {
     dependencies {
             attributesSchema.attribute(flavor) {
-            compatibilityRules.assumeCompatibleWhenMissing()
             disambiguationRules.add(SelectPaidRule)
         }
     }    
@@ -318,9 +316,7 @@ dependencies {
 
 project(':a') {
     dependencies {
-        attributesSchema.attribute(flavor) {
-            compatibilityRules.assumeCompatibleWhenMissing()
-        }
+        attributesSchema.attribute(flavor)
         compile project(':b')
     }
     task freeJar(type: Jar) { archiveName = 'a-free.jar' }
@@ -338,9 +334,7 @@ project(':a') {
 }
 project(':b') {
     dependencies {
-            attributesSchema.attribute(flavor) {
-            compatibilityRules.assumeCompatibleWhenMissing()
-        }
+        attributesSchema.attribute(flavor)
     }    
     task freeJar(type: Jar) { archiveName = 'b-free.jar' }
     task paidJar(type: Jar) { archiveName = 'b-paid.jar' }

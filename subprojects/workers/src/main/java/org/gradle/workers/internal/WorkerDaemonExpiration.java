@@ -91,7 +91,7 @@ public class WorkerDaemonExpiration implements MemoryHolder {
             return toExpire;
         }
 
-        private long getMemoryUsage(WorkerDaemonClient<?> idleClient) {
+        private long getMemoryUsage(WorkerDaemonClient idleClient) {
             // prefer to use the actual memory usage reported by the worker
             try {
                 return idleClient.getJvmMemoryStatus().getCommittedMemory();
@@ -103,7 +103,7 @@ public class WorkerDaemonExpiration implements MemoryHolder {
 
             // if the worker has not reported memory usage yet for some reason, or does not support it,
             // use the max heap as an approximation
-            String forkOptionsMaxHeapSize = idleClient.getForkOptions().getMaxHeapSize();
+            String forkOptionsMaxHeapSize = idleClient.getForkOptions().getJavaForkOptions().getMaxHeapSize();
             long parsed = MemoryAmount.parseNotation(forkOptionsMaxHeapSize);
             if (parsed != -1) {
                 // From fork options

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,32 +17,65 @@
 package org.gradle.deployment.internal;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Nullable;
-import org.gradle.api.invocation.Gradle;
-import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.api.Incubating;
+
+import javax.annotation.Nullable;
 
 /**
  * A registry of deployment handles.
+ *
+ * @since 4.2
  */
+@Incubating
 @ThreadSafe
-public interface DeploymentRegistry extends Stoppable {
+public interface DeploymentRegistry {
     /**
-     * Registers a given deployment handle in the registry.
+     * Creates and starts a given deployment handle in the registry.
+     *
+     * @param name name of deployment
+     * @param changeBehavior how the deployment responds to potential changes
+     * @param handleType type of deployment handle
+     * @param params constructor arguments
+     *
+     * @throws IllegalStateException if deployment handle with the given name already exists
      */
-    void register(String id, DeploymentHandle handle);
+    <T extends DeploymentHandle> T start(String name, ChangeBehavior changeBehavior, Class<T> handleType, Object... params);
 
     /**
-     * Retrieves a deployment handle from the registry with the given id and type.
+     * Retrieves a deployment handle from the registry with the given name and type.
      *
-     * @return the registered deployment handle; null if no deployment is registered with the given id
+     * @return the registered deployment handle; null if no deployment is registered with the given name
      */
     @Nullable
-    <T extends DeploymentHandle> T get(Class<T> handleType, String id);
+    <T extends DeploymentHandle> T get(String name, Class<T> handleType);
 
     /**
-     * Passes the new Gradle build to all registered handles.
-     *
-     * @param gradle new Gradle build
+     * Behavior when a deployment is out-of-date.
      */
-    void onNewBuild(Gradle gradle);
+    @Incubating
+    enum ChangeBehavior {
+        /**
+         * When changes are detected, wait for a deployment request before rebuilding.
+         *
+         * The deployment needs to call {@link Deployment#status()} to trigger a rebuild wait for changes.
+         */
+        BLOCK_AND_REBUILD,
+
+        /**
+         * When changes are detected, block the deployment until all changes are incorporated.
+         *
+         * The deployment needs to call {@link Deployment#status()} to wait for changes.
+         */
+        BLOCK,
+
+        /**
+         * When changes are incorporated, automatically stop and start the deployment.
+         */
+        RESTART,
+
+        /**
+         * Do nothing.
+         */
+        NONE
+    }
 }

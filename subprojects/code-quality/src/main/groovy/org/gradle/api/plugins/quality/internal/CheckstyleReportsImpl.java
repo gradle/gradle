@@ -23,7 +23,10 @@ import org.gradle.api.reporting.internal.CustomizableHtmlReportImpl;
 import org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport;
 import org.gradle.api.reporting.internal.TaskReportContainer;
 
+import javax.inject.Inject;
+
 public class CheckstyleReportsImpl extends TaskReportContainer<SingleFileReport> implements CheckstyleReports {
+    @Inject
     public CheckstyleReportsImpl(Task task) {
         super(SingleFileReport.class, task);
 

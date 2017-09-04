@@ -33,9 +33,9 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classloader.FilteringClassLoader;
@@ -148,9 +148,10 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
                             // When annotation processing isn't required, it's better to add the Groovy stubs as part of the source path.
                             // This allows compilations to complete faster, because only the Groovy stubs that are needed by the java source are compiled.
                             FileCollection sourcepath = new SimpleFileCollection(stubDir);
-                            List<String> args = spec.getCompileOptions().getCompilerArgs();
-                            args.add("-sourcepath");
-                            args.add(sourcepath.getAsPath());
+                            if (spec.getCompileOptions().getSourcepath() != null) {
+                                sourcepath = spec.getCompileOptions().getSourcepath().plus(sourcepath);
+                            }
+                            spec.getCompileOptions().setSourcepath(sourcepath);
                         }
 
                         spec.setSource(spec.getSource().filter(new Spec<File>() {
@@ -184,7 +185,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             compileClasspathLoader.shutdown();
         }
 
-        return new SimpleWorkResult(true);
+        return WorkResults.didWork(true);
     }
 
     private boolean shouldProcessAnnotations(GroovyJavaJointCompileSpec spec) {

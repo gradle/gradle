@@ -21,7 +21,6 @@ import org.gradle.api.internal.artifacts.ComponentMetadataProcessor
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryCachedRepositoryFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator
@@ -40,27 +39,27 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
 import org.gradle.util.BuildCommencedTimeProvider
 import spock.lang.Specification
+import spock.lang.Subject
 
 class ResolveIvyFactoryTest extends Specification {
-    ResolveIvyFactory resolveIvyFactory
+    @Subject ResolveIvyFactory resolveIvyFactory
     ModuleVersionsCache moduleVersionsCache
     ModuleMetaDataCache moduleMetaDataCache
     ModuleArtifactsCache moduleArtifactsCache
     CachedArtifactIndex cachedArtifactIndex
-    CacheLockingManager cacheLockingManager
     StartParameterResolutionOverride startParameterResolutionOverride
     BuildCommencedTimeProvider buildCommencedTimeProvider
     InMemoryCachedRepositoryFactory inMemoryCachedRepositoryFactory
     VersionSelectorScheme versionSelectorScheme
     VersionComparator versionComparator
     ImmutableModuleIdentifierFactory moduleIdentifierFactory
+    RepositoryBlacklister repositoryBlacklister
 
     def setup() {
         moduleVersionsCache = Mock(ModuleVersionsCache)
         moduleMetaDataCache = Mock(ModuleMetaDataCache)
         moduleArtifactsCache = Mock(ModuleArtifactsCache)
         cachedArtifactIndex = Mock(CachedArtifactIndex)
-        cacheLockingManager = Mock(CacheLockingManager)
         startParameterResolutionOverride = Mock(StartParameterResolutionOverride) {
             _ * overrideModuleVersionRepository(_) >> { ModuleComponentRepository repository -> repository }
         }
@@ -71,10 +70,11 @@ class ResolveIvyFactoryTest extends Specification {
         moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
         versionSelectorScheme = Mock(VersionSelectorScheme)
         versionComparator = Mock(VersionComparator)
+        repositoryBlacklister = Mock(RepositoryBlacklister)
 
         resolveIvyFactory = new ResolveIvyFactory(moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache,
-            cachedArtifactIndex, cacheLockingManager, startParameterResolutionOverride, buildCommencedTimeProvider,
-            inMemoryCachedRepositoryFactory, versionSelectorScheme, versionComparator, moduleIdentifierFactory)
+            cachedArtifactIndex, startParameterResolutionOverride, buildCommencedTimeProvider,
+            inMemoryCachedRepositoryFactory, versionSelectorScheme, versionComparator, moduleIdentifierFactory, repositoryBlacklister)
     }
 
     def "returns an empty resolver when no repositories are configured" () {

@@ -116,8 +116,8 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
             }
         }
 
-        if (!options.getIncludedTests().isEmpty()) {
-            testNg.addListener(new SelectedTestsFilter(options.getIncludedTests()));
+        if (!options.getIncludedTests().isEmpty() || !options.getIncludedTestsCommandLine().isEmpty()) {
+            testNg.addListener(new SelectedTestsFilter(options.getIncludedTests(), options.getIncludedTestsCommandLine()));
         }
 
         if (!suiteFiles.isEmpty()) {
@@ -149,8 +149,8 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
 
         private final TestSelectionMatcher matcher;
 
-        public SelectedTestsFilter(Set<String> includedTests) {
-            matcher = new TestSelectionMatcher(includedTests);
+        public SelectedTestsFilter(Set<String> includedTests, Set<String> includedTestsCommandLine) {
+            matcher = new TestSelectionMatcher(includedTests, includedTestsCommandLine);
         }
 
         @Override

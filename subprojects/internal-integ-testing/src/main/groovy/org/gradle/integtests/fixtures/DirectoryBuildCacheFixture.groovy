@@ -17,13 +17,16 @@
 package org.gradle.integtests.fixtures
 
 import groovy.transform.SelfType
+import org.apache.commons.io.FileUtils
+import org.gradle.caching.local.internal.BuildCacheTempFileStore
+import org.gradle.caching.local.internal.DirectoryBuildCacheServiceFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Before
 
 import java.util.concurrent.TimeUnit
 
 @SelfType(AbstractIntegrationSpec)
-trait DirectoryBuildCacheFixture extends BuildCacheFixture{
+trait DirectoryBuildCacheFixture extends BuildCacheFixture {
     private TestFile cacheDir
 
     @Before
@@ -47,6 +50,13 @@ trait DirectoryBuildCacheFixture extends BuildCacheFixture{
         cacheDir
     }
 
+    void cleanLocalBuildCache() {
+        listCacheFiles().each { file ->
+            println "Deleting cache entry: $file"
+            FileUtils.forceDelete(file)
+        }
+    }
+
     TestFile gcFile() {
         cacheDir.file("gc.properties")
     }
@@ -56,12 +66,20 @@ trait DirectoryBuildCacheFixture extends BuildCacheFixture{
         gcFile().lastModified = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(60)
     }
 
+    List<TestFile> listCacheTempFiles() {
+        cacheDir.listFiles().findAll { it.name.endsWith(BuildCacheTempFileStore.PARTIAL_FILE_SUFFIX) }.sort()
+    }
+
     List<TestFile> listCacheFiles() {
         listCacheFiles(cacheDir)
     }
 
+    List<TestFile> listCacheFailedFiles() {
+        cacheDir.listFiles().findAll { it.name.endsWith(DirectoryBuildCacheServiceFactory.FAILED_READ_SUFFIX) }.sort()
+    }
+
     static List<TestFile> listCacheFiles(TestFile cacheDir) {
-        cacheDir.listFiles().findAll { it.name ==~ /\p{XDigit}{32}/}.sort()
+        cacheDir.listFiles().findAll { it.name ==~ /\p{XDigit}{32}/ }.sort()
     }
 
     TestFile localCacheArtifact(String cacheKey) {

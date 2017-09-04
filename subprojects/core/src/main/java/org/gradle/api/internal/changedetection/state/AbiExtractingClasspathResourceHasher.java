@@ -15,15 +15,14 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.hash.HashCode;
-import com.google.common.hash.Hasher;
-import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
 import org.gradle.api.internal.tasks.compile.ApiClassExtractor;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.util.DeprecationLogger;
-import org.gradle.util.internal.Java9ClassReader;
+import org.objectweb.asm.ClassReader;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,13 +36,11 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
         // Use the ABI as the hash
         byte[] classBytes = ByteStreams.toByteArray(inputStream);
         ApiClassExtractor extractor = new ApiClassExtractor(Collections.<String>emptySet());
-        Java9ClassReader reader = new Java9ClassReader(classBytes);
+        ClassReader reader = new ClassReader(classBytes);
         if (extractor.shouldExtractApiClassFrom(reader)) {
             byte[] signature = extractor.extractApiClassFrom(reader);
             if (signature != null) {
-                Hasher hasher = Hashing.md5().newHasher();
-                hasher.putBytes(signature);
-                return hasher.hash();
+                return Hashing.md5().hashBytes(signature);
             }
         }
         return null;

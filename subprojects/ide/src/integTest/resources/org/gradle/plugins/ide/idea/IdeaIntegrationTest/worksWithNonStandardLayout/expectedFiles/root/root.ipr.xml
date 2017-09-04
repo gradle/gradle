@@ -49,7 +49,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/../top-level.iml" filepath="$PROJECT_DIR$/../top-level.iml"/>
       <module fileurl="file://$PROJECT_DIR$/root.iml" filepath="$PROJECT_DIR$/root.iml"/>
-      <module fileurl="file://$PROJECT_DIR$/../a child project/a child.iml" filepath="$PROJECT_DIR$/../a child project/a child.iml"/>
+      <module fileurl="file://$PROJECT_DIR$/../a child project/a_child.iml" filepath="$PROJECT_DIR$/../a child project/a_child.iml"/>
     </modules>
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_5" assert-keyword="true" jdk-15="true" project-jdk-type="JavaSDK" assert-jdk-15="true" project-jdk-name="1.7">

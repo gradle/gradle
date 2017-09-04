@@ -18,6 +18,8 @@ package org.gradle.api;
 
 import org.gradle.platform.base.ComponentSpec;
 
+import javax.annotation.Nullable;
+
 /**
  * A {@link ComponentSpec} that is directly {@link Buildable} via a specified task.
  */

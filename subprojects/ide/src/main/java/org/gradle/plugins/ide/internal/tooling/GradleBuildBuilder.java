@@ -17,7 +17,7 @@
 package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.Project;
-import org.gradle.includedbuild.IncludedBuild;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.composite.internal.IncludedBuildInternal;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;

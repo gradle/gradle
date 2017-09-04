@@ -73,7 +73,8 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         runner.previousTestIds = ['prev 1']
         runner.testProject = 'test1'
         runner.targetVersions = ['1.0', '1.1']
-        runner.tasksToRun = ['clean', 'build']
+        runner.tasksToRun = ['build']
+        runner.cleanTasks = ['clean']
         runner.args = ['--arg1', '--arg2']
         runner.gradleOpts = ['-Xmx24']
         runner.useDaemon = true
@@ -87,7 +88,8 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         results.testId == 'some-test'
         results.previousTestIds == ['prev 1']
         results.testProject == 'test1'
-        results.tasks == ['clean', 'build']
+        results.tasks == ['build']
+        results.cleanTasks == ['clean']
         results.args == ['--arg1', '--arg2']
         runner.gradleOpts.find { it == '-Xmx24' }
         runner.gradleOpts.sort(false) == (runner.gradleOpts as Set).sort(false)

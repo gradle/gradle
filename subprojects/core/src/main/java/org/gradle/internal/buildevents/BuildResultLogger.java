@@ -21,7 +21,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.format.DurationFormatter;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.time.Clock;
+import org.gradle.internal.time.Timer;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.FailureHeader;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.SuccessHeader;
@@ -31,12 +31,12 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.SuccessHea
  */
 public class BuildResultLogger extends BuildAdapter {
     private final StyledTextOutputFactory textOutputFactory;
-    private final Clock buildTimeClock;
+    private final Timer buildTimer;
     private final DurationFormatter durationFormatter;
 
-    public BuildResultLogger(StyledTextOutputFactory textOutputFactory, Clock buildTimeClock, DurationFormatter durationFormatter) {
+    public BuildResultLogger(StyledTextOutputFactory textOutputFactory, Timer buildTimer, DurationFormatter durationFormatter) {
         this.textOutputFactory = textOutputFactory;
-        this.buildTimeClock = buildTimeClock;
+        this.buildTimer = buildTimer;
         this.durationFormatter = durationFormatter;
     }
 
@@ -52,6 +52,6 @@ public class BuildResultLogger extends BuildAdapter {
             textOutput.withStyle(FailureHeader).text(action + " FAILED");
         }
 
-        textOutput.formatln(" in %s", durationFormatter.format(buildTimeClock.getElapsedMillis()));
+        textOutput.formatln(" in %s", durationFormatter.format(buildTimer.getElapsedMillis()));
     }
 }

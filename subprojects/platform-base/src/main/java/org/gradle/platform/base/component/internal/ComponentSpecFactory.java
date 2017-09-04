@@ -16,7 +16,6 @@
 
 package org.gradle.platform.base.component.internal;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
@@ -33,6 +32,8 @@ import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
+
+import javax.annotation.Nullable;
 
 public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
     private final ProjectIdentifier projectIdentifier;

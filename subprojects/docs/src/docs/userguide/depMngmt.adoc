@@ -716,6 +716,9 @@ Maven and Ivy repositories support the use of various transport protocols. At th
 
 | `s3`
 | access key/secret key/session token or Environment variables
+
+| `gcs`
+| https://developers.google.com/identity/protocols/application-default-credentials[default application credentials] sourced from well known files, Environment variables etc.
 |===
 
 To define a repository use the `repositories` configuration block. Within the `repositories` closure, a Maven repository is declared with `maven`. An Ivy repository is declared with `ivy`. The transport protocol is part of the URL definition for a repository. The following build script demonstrates how to create a HTTP-based Maven and Ivy repository:
@@ -742,11 +745,19 @@ When using an AWS S3 backed repository you need to authenticate using api:org.gr
             </sample>
 ++++
 
-You can also delegate all credentials to the AWS sdk by using the AwsImAuthentication. The following example shows how :
+You can also delegate all credentials to the AWS sdk by using the AwsImAuthentication. The following example shows how:
 
 ++++
 <sample id="mavenIvyS3RepositoriesAuthWithIam" dir="userguide/artifacts/defineRepository" title="Declaring a S3 backed Maven and Ivy repository using IAM">
                 <sourcefile file="build.gradle" snippet="maven-ivy-s3-repository-with-iam"/>
+            </sample>
+++++
+
+When using a Google Cloud Storage backed repository default application credentials will be used with no further configuration required:
+
+++++
+<sample id="mavenIvyGCSRepositoriesAuthDefault" dir="userguide/artifacts/defineRepository" title="Declaring a Google Cloud Storage backed Maven and Ivy repository using default application credentials">
+                <sourcefile file="build.gradle" snippet="maven-ivy-gcs-repository"/>
             </sample>
 ++++
 
@@ -821,6 +832,36 @@ Failing to specify the region-specific endpoint for buckets requiring V4 signatu
 * `Increased likelihood of transmission failures.`
 
 ====
+
+[[sub:gcs_configuration_properties]]
+===== Google Cloud Storage configuration properties
+
+The following system properties can be used to configure the interactions with Google Cloud Storage repositories:
+
+.Google Cloud Storage Configuration Properties
+[cols="a,a", options="header"]
+|===
+| Property
+| Description
+
+| org.gradle.gcs.endpoint
+| Used to override the Google Cloud Storage endpoint when using a non-Google Cloud Platform, Google Cloud Storage API compatible, storage service.
+
+| org.gradle.gcs.servicePath
+| Used to override the Google Cloud Storage root service path which the Google Cloud Storage client builds requests from, defaults to `/`.
+
+|===
+
+
+[[sub:gcs_url_formats]]
+===== Google Cloud Storage URL formats
+
+Google Cloud Storage URL's are 'virtual-hosted-style' and must be in the following format `gcs://&lt;bucketName&gt;/&lt;objectKey&gt;`
+
+e.g. `gcs://myBucket/maven/release`
+
+* `myBucket` is the Google Cloud Storage bucket name.
+* `/maven/release` is the Google Cloud Storage key (unique identifier for an object within a bucket)
 
 
 [[sub:authentication_schemes]]

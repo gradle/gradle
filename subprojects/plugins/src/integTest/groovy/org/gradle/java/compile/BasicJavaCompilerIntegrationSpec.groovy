@@ -147,7 +147,7 @@ public class FxApp extends Application {
         given:
         goodCode()
         buildFile << """
-compileJava.options.compilerArgs.addAll(['-release', '7'])
+compileJava.options.compilerArgs.addAll(['--release', '7'])
 """
 
         expect:
@@ -170,7 +170,7 @@ public class FailsOnJava7 {
 '''
 
         buildFile << """
-compileJava.options.compilerArgs.addAll(['-release', '7'])
+compileJava.options.compilerArgs.addAll(['--release', '7'])
 """
 
         expect:
@@ -186,16 +186,14 @@ compileJava.options.compilerArgs.addAll(['-release', '7'])
     }
 
     def buildScript() {
-        '''
+        """
 apply plugin: "java"
-repositories {
-    mavenCentral()
-}
+${mavenCentralRepository()}
 
 dependencies {
     compile "org.codehaus.groovy:groovy:2.4.10"
 }
-'''
+"""
     }
 
     abstract compilerConfiguration()

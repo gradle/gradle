@@ -33,6 +33,8 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     private Map<String, String> macros = new LinkedHashMap<String, String>();
     private File objectFileDir;
     private boolean positionIndependentCode;
+    private boolean debuggable;
+    private boolean optimized;
     private BuildOperationLogger oplogger;
     private File prefixHeaderFile;
     private File preCompiledHeaderObjectFile;
@@ -135,6 +137,26 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     @Override
     public void setPositionIndependentCode(boolean positionIndependentCode) {
         this.positionIndependentCode = positionIndependentCode;
+    }
+
+    @Override
+    public boolean isDebuggable() {
+        return debuggable;
+    }
+
+    @Override
+    public void setDebuggable(boolean debuggable) {
+        this.debuggable = debuggable;
+    }
+
+    @Override
+    public boolean isOptimized() {
+        return optimized;
+    }
+
+    @Override
+    public void setOptimized(boolean optimized) {
+        this.optimized = optimized;
     }
 
     @Override

@@ -34,7 +34,8 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
     def "persists results"() {
         def result1 = crossVersionResults(testId: "test1",
                 testProject: "test-project",
-                tasks: ["clean", "build"],
+                tasks: ["build"],
+                cleanTasks: ["clean"],
                 args: ["--arg1"],
                 gradleOpts: ["--opt-1", "--opt-2"],
                 daemon: true,
@@ -90,7 +91,8 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         history.scenarios[1].displayName == "1.5"
         history.scenarios[2].displayName == "master"
         history.scenarios.every { it.testProject == "test-project" }
-        history.scenarios.every { it.tasks == ["clean", "build"] }
+        history.scenarios.every { it.tasks == ["build"] }
+        history.scenarios.every { it.cleanTasks == ["clean"] }
         history.scenarios.every { it.args == ["--arg1"] }
         history.scenarios.every { it.gradleOpts == ["--opt-1", "--opt-2"] }
         history.scenarios.every { it.daemon }
@@ -99,9 +101,10 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         def results = history.results
         results.size() == 1
         results[0].testId == "test1"
-        results[0].displayName == "Results for test project 'test-project' with tasks clean, build"
+        results[0].displayName == "Results for test project 'test-project' with tasks build, cleaned with clean"
         results[0].testProject == "test-project"
-        results[0].tasks == ["clean", "build"]
+        results[0].tasks == ["build"]
+        results[0].cleanTasks == ["clean"]
         results[0].args == ["--arg1"]
         results[0].gradleOpts == ["--opt-1", "--opt-2"]
         results[0].daemon
@@ -267,7 +270,8 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         results.scenarios[5].displayName == "master"
         results.scenarios[6].displayName == "release"
         results.scenarios.every { it.testProject == "test-project" }
-        results.scenarios.every { it.tasks == ["clean", "build"] }
+        results.scenarios.every { it.tasks == ["build"] }
+        results.scenarios.every { it.cleanTasks == ["clean"] }
         results.scenarios.every { it.args == [] }
         results.scenarios.every { it.gradleOpts == [] }
         results.scenarios.every { !it.daemon }

@@ -29,12 +29,12 @@ class GroovyStackTraceSpecTest extends Specification {
 
         then:
         filtered.size() == 7
-        filtered[0] == new StackTraceElement("org.gradle.api.internal.tasks.testing.logging.GroovyStackTraceSpecTest\$Baz", "getBoom", "GroovyStackTraceSpecTest.groovy", 74)
-        filtered[1] == new StackTraceElement("org.gradle.api.internal.tasks.testing.logging.GroovyStackTraceSpecTest\$SuperBaz", "setBaz", "GroovyStackTraceSpecTest.groovy", 62)
-        filtered[2] == new StackTraceElement("org.gradle.api.internal.tasks.testing.logging.GroovyStackTraceSpecTest\$Baz", "setBaz", "GroovyStackTraceSpecTest.groovy", 70)
-        filtered[3] == new StackTraceElement("org.gradle.api.internal.tasks.testing.logging.GroovyStackTraceSpecTest\$Bar", "bar", "GroovyStackTraceSpecTest.groovy", 56)
-        filtered[4] == new StackTraceElement("org.gradle.api.internal.tasks.testing.logging.GroovyStackTraceSpecTest", "foo", "GroovyStackTraceSpecTest.groovy", 51)
-        filtered[5] == new StackTraceElement("org.gradle.api.internal.tasks.testing.logging.GroovyStackTraceSpecTest", "createTrace", "GroovyStackTraceSpecTest.groovy", 42)
+        stackTraceMatches(filtered[0], "org.gradle.api.internal.tasks.testing.logging.GroovyStackTraceSpecTest\$Baz", "getBoom", "GroovyStackTraceSpecTest.groovy", 74)
+        stackTraceMatches(filtered[1], "org.gradle.api.internal.tasks.testing.logging.GroovyStackTraceSpecTest\$SuperBaz", "setBaz", "GroovyStackTraceSpecTest.groovy", 62)
+        stackTraceMatches(filtered[2], "org.gradle.api.internal.tasks.testing.logging.GroovyStackTraceSpecTest\$Baz", "setBaz", "GroovyStackTraceSpecTest.groovy", 70)
+        stackTraceMatches(filtered[3], "org.gradle.api.internal.tasks.testing.logging.GroovyStackTraceSpecTest\$Bar", "bar", "GroovyStackTraceSpecTest.groovy", 56)
+        stackTraceMatches(filtered[4], "org.gradle.api.internal.tasks.testing.logging.GroovyStackTraceSpecTest", "foo", "GroovyStackTraceSpecTest.groovy", 51)
+        stackTraceMatches(filtered[5], "org.gradle.api.internal.tasks.testing.logging.GroovyStackTraceSpecTest", "createTrace", "GroovyStackTraceSpecTest.groovy", 42)
     }
 
     private List<StackTraceElement> createTrace() {
@@ -74,4 +74,12 @@ class GroovyStackTraceSpecTest extends Specification {
             throw new Exception("boom")
         }
     }
+
+    private static void stackTraceMatches(StackTraceElement element, String className, String methodName, String fileName, int lineNumber) {
+        assert element.className == className
+        assert element.methodName == methodName
+        assert element.fileName == fileName
+        assert element.lineNumber == lineNumber
+    }
+
 }

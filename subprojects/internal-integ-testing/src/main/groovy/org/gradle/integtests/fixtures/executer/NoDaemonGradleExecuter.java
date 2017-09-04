@@ -115,7 +115,6 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
     protected List<String> getAllArgs() {
         List<String> args = new ArrayList<String>();
         args.addAll(super.getAllArgs());
-        args.add("--stacktrace");
         addPropagatedSystemProperties(args);
         return args;
     }
@@ -230,7 +229,6 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
             path = String.format("%s\\bin;%s", gradleHome, path);
             builder.environment("PATH", path);
             builder.environment("Path", path);
-            builder.environment("GRADLE_EXIT_CONSOLE", "true");
         }
     }
 

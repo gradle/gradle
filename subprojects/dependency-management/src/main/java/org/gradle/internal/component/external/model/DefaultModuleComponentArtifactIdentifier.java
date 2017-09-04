@@ -16,12 +16,13 @@
 
 package org.gradle.internal.component.external.model;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.util.GUtil;
+
+import javax.annotation.Nullable;
 
 public class DefaultModuleComponentArtifactIdentifier implements ModuleComponentArtifactIdentifier, DisplayName {
     private final ModuleComponentIdentifier componentIdentifier;

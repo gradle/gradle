@@ -16,9 +16,11 @@
 
 package org.gradle.jvm.application.tasks;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+
 import org.gradle.api.Incubating;
-import org.gradle.api.Transformer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.plugins.StartScriptGenerator;
@@ -30,7 +32,6 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.jvm.application.scripts.ScriptGenerator;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -39,7 +40,7 @@ import java.io.File;
  * Creates start scripts for launching JVM applications.
  * <p>
  * Example:
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * task createStartScripts(type: CreateStartScripts) {
  *   outputDir = file('build/sample')
  *   mainClassName = 'org.gradle.test.Main'
@@ -48,13 +49,13 @@ import java.io.File;
  * }
  * </pre>
  * <p>
- * Note: the Gradle {@code "application"} plugin adds a pre-configured task of this type named {@code "createStartScripts"}.
+ * Note: the Gradle {@code "application"} plugin adds a pre-configured task of this type named {@code "startScripts"}.
  * <p>
  * The task generates separate scripts targeted at Microsoft Windows environments and UNIX-like environments (e.g. Linux, Mac OS X).
  * The actual generation is implemented by the {@link #getWindowsStartScriptGenerator()} and {@link #getUnixStartScriptGenerator()} properties, of type {@link ScriptGenerator}.
  * <p>
  * Example:
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * task createStartScripts(type: CreateStartScripts) {
  *   unixStartScriptGenerator = new CustomUnixStartScriptGenerator()
  *   windowsStartScriptGenerator = new CustomWindowsStartScriptGenerator()
@@ -78,7 +79,7 @@ import java.io.File;
  * <p>
  * The default implementations used by this task use <a href="http://docs.groovy-lang.org/latest/html/documentation/template-engines.html#_simpletemplateengine">Groovy's SimpleTemplateEngine</a>
  * to parse the template, with the following variables available:
- * <p>
+ *
  * <ul>
  * <li>{@code applicationName}</li>
  * <li>{@code optsEnvironmentVar}</li>
@@ -91,7 +92,6 @@ import java.io.File;
  * </ul>
  * <p>
  * Example:
- * <p>
  * <pre>
  * task createStartScripts(type: CreateStartScripts) {
  *   unixStartScriptGenerator.template = resources.text.fromFile('customUnixStartScript.txt')
@@ -276,12 +276,14 @@ public class CreateStartScripts extends ConventionTask {
 
     @Input
     private Iterable<String> getRelativeClasspath() {
-        return CollectionUtils.collect(getClasspath().getFiles(), new Transformer<String, File>() {
+        //a list instance is needed here, as org.gradle.api.internal.changedetection.state.ValueSnapshotter.processValue() does not support
+        //serializing Iterators directly
+        return Lists.newArrayList(Iterables.transform(getClasspath().getFiles(), new Function<File, String>() {
             @Override
-            public String transform(File input) {
+            public String apply(File input) {
                 return "lib/" + input.getName();
             }
-        });
+        }));
     }
 
 }

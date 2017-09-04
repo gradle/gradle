@@ -28,9 +28,12 @@ dependencies {
     implementation libraries.commons_io
     implementation libraries.xerces
     implementation libraries.nekohtml
+
+    testImplementation libraries.jetty
 }
 
 useTestFixtures()
+useTestFixtures(project: ':logging')
 useClassycle()
 // Cannot use strict compile because JDK 7 doesn't recognize
 // @SuppressWarnings("deprecation"), used in org.gradle.internal.resource.transport.http.HttpClientHelper.AutoClosedHttpResponse

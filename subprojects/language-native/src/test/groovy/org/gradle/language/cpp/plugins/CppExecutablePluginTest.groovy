@@ -16,55 +16,120 @@
 
 package org.gradle.language.cpp.plugins
 
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.language.cpp.CppApplication
 import org.gradle.language.cpp.tasks.CppCompile
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
+import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
 import spock.lang.Specification
-
 
 class CppExecutablePluginTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def project = TestUtil.createRootProject(tmpDir.createDir("project"))
+    def projectDir = tmpDir.createDir("project")
+    def project = ProjectBuilder.builder().withProjectDir(projectDir).withName("testApp").build()
+
+    def "adds extension with convention for source layout and base name"() {
+        given:
+        def src = projectDir.file("src/main/cpp/main.cpp").createFile()
+
+        when:
+        project.pluginManager.apply(CppExecutablePlugin)
+
+        then:
+        project.executable instanceof CppApplication
+        project.executable.baseName.get() == "testApp"
+        project.executable.cppSource.files == [src] as Set
+    }
+
+    def "registers a component for the executable"() {
+        when:
+        project.pluginManager.apply(CppExecutablePlugin)
+
+        then:
+        project.components.main == project.executable
+        project.components.mainDebug == project.executable.debugExecutable
+        project.components.mainRelease == project.executable.releaseExecutable
+    }
 
     def "adds compile, link and install tasks"() {
         given:
+        def src = projectDir.file("src/main/cpp/main.cpp").createFile()
+
+        when:
         project.pluginManager.apply(CppExecutablePlugin)
 
-        expect:
-        def compileCpp = project.tasks.compileCpp
-        compileCpp instanceof CppCompile
-        compileCpp.includes.files as List == [project.file("src/main/headers")]
+        then:
+        def compileDebugCpp = project.tasks.compileDebugCpp
+        compileDebugCpp instanceof CppCompile
+        compileDebugCpp.includes.files == [project.file("src/main/headers")] as Set
+        compileDebugCpp.source.files == [src] as Set
+        compileDebugCpp.objectFileDirectory.get().asFile == projectDir.file("build/obj/main/debug")
+        compileDebugCpp.debuggable
+        !compileDebugCpp.optimized
 
-        def link = project.tasks.linkMain
-        link instanceof LinkExecutable
+        def linkDebug = project.tasks.linkDebug
+        linkDebug instanceof LinkExecutable
+        linkDebug.binaryFile.get().asFile == projectDir.file("build/exe/main/debug/" + OperatingSystem.current().getExecutableName("testApp"))
+        linkDebug.debuggable
 
-        def install = project.tasks.installMain
-        install instanceof InstallExecutable
+        def installDebug = project.tasks.installDebug
+        installDebug instanceof InstallExecutable
+        installDebug.installDirectory.get().asFile == projectDir.file("build/install/main/debug")
+        installDebug.runScript.name == OperatingSystem.current().getScriptName("testApp")
+
+        def compileReleaseCpp = project.tasks.compileReleaseCpp
+        compileReleaseCpp instanceof CppCompile
+        compileReleaseCpp.includes.files == [project.file("src/main/headers")] as Set
+        compileReleaseCpp.source.files == [src] as Set
+        compileReleaseCpp.objectFileDirectory.get().asFile == projectDir.file("build/obj/main/release")
+        !compileReleaseCpp.debuggable
+        compileReleaseCpp.optimized
+
+        def linkRelease = project.tasks.linkRelease
+        linkRelease instanceof LinkExecutable
+        linkRelease.binaryFile.get().asFile == projectDir.file("build/exe/main/release/" + OperatingSystem.current().getExecutableName("testApp"))
+        !linkRelease.debuggable
+
+        def installRelease = project.tasks.installRelease
+        installRelease instanceof InstallExecutable
+        installRelease.installDirectory.get().asFile == projectDir.file("build/install/main/release")
+        installRelease.runScript.name == OperatingSystem.current().getScriptName("testApp")
+    }
+
+    def "output locations are calculated using base name defined on extension"() {
+        when:
+        project.pluginManager.apply(CppExecutablePlugin)
+        project.executable.baseName = "test_app"
+
+        then:
+        def link = project.tasks.linkDebug
+        link.binaryFile.get().asFile == projectDir.file("build/exe/main/debug/" + OperatingSystem.current().getExecutableName("test_app"))
+
+        def install = project.tasks.installDebug
+        install.installDirectory.get().asFile == projectDir.file("build/install/main/debug")
+        install.runScript.name == OperatingSystem.current().getScriptName("test_app")
     }
 
     def "output locations reflects changes to buildDir"() {
         given:
         project.pluginManager.apply(CppExecutablePlugin)
 
-        expect:
-        def compileCpp = project.tasks.compileCpp
-        compileCpp.objectFileDir == project.file("build/main/objs")
+        when:
+        project.buildDir = "output"
 
-        def link = project.tasks.linkMain
-        link.outputFile.parentFile == project.file("build/exe")
+        then:
+        def compileCpp = project.tasks.compileDebugCpp
+        compileCpp.objectFileDir == project.file("output/obj/main/debug")
 
-        def install = project.tasks.installMain
-        install.destinationDir == project.file("build/install/test")
+        def link = project.tasks.linkDebug
+        link.outputFile == projectDir.file("output/exe/main/debug/" + OperatingSystem.current().getExecutableName("testApp"))
 
-        project.setBuildDir("output")
-
-        compileCpp.objectFileDir == project.file("output/main/objs")
-        link.outputFile.parentFile == project.file("output/exe")
-        install.destinationDir == project.file("output/install/test")
+        def install = project.tasks.installDebug
+        install.destinationDir == project.file("output/install/main/debug")
         install.executable == link.outputFile
 
         link.setOutputFile(project.file("exe"))

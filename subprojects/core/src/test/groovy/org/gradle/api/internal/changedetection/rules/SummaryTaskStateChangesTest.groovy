@@ -39,16 +39,6 @@ class SummaryTaskStateChangesTest extends Specification {
         !hasNext
     }
 
-    def delegatesSnapshotToAllDelegateChangeSets() {
-        when:
-        state.snapshotAfterTask()
-
-        then:
-        1 * state1.snapshotAfterTask()
-        1 * state2.snapshotAfterTask()
-        0 * _
-    }
-
     def onlyReturnsChangesFromASingleDelegate() {
         def change1 = Mock(TaskStateChange)
 

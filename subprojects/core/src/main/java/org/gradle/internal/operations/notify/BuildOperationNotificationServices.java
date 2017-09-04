@@ -25,7 +25,7 @@ import org.gradle.internal.progress.BuildOperationListenerManager;
  */
 public class BuildOperationNotificationServices {
 
-    BuildOperationNotificationListenerRegistrar createBuildOperationNotificationListenerRegistrar(
+    BuildOperationNotificationBridge createBuildOperationNotificationListenerRegistrar(
         BuildOperationListenerManager buildOperationListenerManager
     ) {
         // The listener manager must be build session scoped, not global.

@@ -18,10 +18,10 @@ package org.gradle.api.reflect;
 
 import com.google.common.base.Function;
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.type.ModelType;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;

@@ -27,7 +27,7 @@ class ProgressEventSerializerTest extends LogSerializerSpec {
 
     def "can serialize ProgressEvent messages"() {
         given:
-        def event = new ProgressEvent(OPERATION_ID, "status")
+        def event = new ProgressEvent(OPERATION_ID, "status", true)
 
         when:
         def result = serialize(event, serializer)
@@ -36,11 +36,12 @@ class ProgressEventSerializerTest extends LogSerializerSpec {
         result instanceof ProgressEvent
         result.progressOperationId == OPERATION_ID
         result.status == "status"
+        result.failing
     }
 
     def "can serialize ProgressEvent messages with empty fields"() {
         given:
-        def event = new ProgressEvent(OPERATION_ID, "")
+        def event = new ProgressEvent(OPERATION_ID, "", false)
 
         when:
         def result = serialize(event, serializer)
@@ -49,5 +50,6 @@ class ProgressEventSerializerTest extends LogSerializerSpec {
         result instanceof ProgressEvent
         result.progressOperationId == OPERATION_ID
         result.status == ""
+        !result.failing
     }
 }

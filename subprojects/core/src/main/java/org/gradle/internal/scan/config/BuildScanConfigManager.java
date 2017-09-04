@@ -31,7 +31,7 @@ import java.util.Map;
  * This is the meeting point between Gradle and the build scan plugin during initialization.
  * This is effectively build scoped.
  */
-class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProvider {
+class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProvider, BuildScanPluginApplied {
 
     private static final Logger LOGGER = Logging.getLogger(BuildScanConfigManager.class);
 
@@ -79,7 +79,7 @@ class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProv
         listenerManager.addListener(new BuildAdapter() {
             @Override
             public void projectsEvaluated(Gradle gradle) {
-                if (!collected) {
+                if (gradle.getParent() == null && !collected) {
                     LOGGER.warn(
                         "Build scan cannot be created because the build scan plugin was not applied.\n"
                             + "For more information on how to apply the build scan plugin, please visit " + HELP_LINK + "."
@@ -98,6 +98,11 @@ class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProv
         collected = true;
         compatibilityEnforcer.assertSupported(pluginMetadata.getVersion());
         return state.configuration;
+    }
+
+    @Override
+    public boolean isBuildScanPluginApplied() {
+        return collected;
     }
 
     private enum State {

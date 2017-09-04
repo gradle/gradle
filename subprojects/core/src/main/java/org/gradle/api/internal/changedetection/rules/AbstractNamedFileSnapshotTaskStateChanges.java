@@ -18,87 +18,45 @@ package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.api.internal.tasks.TaskFilePropertySpec;
-import org.gradle.normalization.internal.InputNormalizationStrategy;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.DiffUtil;
 
+import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedSet;
 
-abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateChanges {
-    private final ImmutableSortedMap<String, FileCollectionSnapshot> fileSnapshotsBeforeExecution;
-    private final String taskName;
-    private final String title;
-    private final ImmutableSortedSet<? extends TaskFilePropertySpec> fileProperties;
-    private final FileCollectionSnapshotterRegistry snapshotterRegistry;
+abstract public class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateChanges {
     protected final TaskExecution previous;
     protected final TaskExecution current;
-    private final InputNormalizationStrategy normalizationStrategy;
+    private final TaskInternal task;
+    private final String title;
 
-    protected AbstractNamedFileSnapshotTaskStateChanges(String taskName, TaskExecution previous, TaskExecution current, FileCollectionSnapshotterRegistry snapshotterRegistry, String title, ImmutableSortedSet<? extends TaskFilePropertySpec> fileProperties, InputNormalizationStrategy normalizationStrategy) {
-        this.taskName = taskName;
+    protected AbstractNamedFileSnapshotTaskStateChanges(TaskExecution previous, TaskExecution current, TaskInternal task, String title) {
         this.previous = previous;
         this.current = current;
-        this.snapshotterRegistry = snapshotterRegistry;
+        this.task = task;
         this.title = title;
-        this.fileProperties = fileProperties;
-        this.normalizationStrategy = normalizationStrategy;
-        this.fileSnapshotsBeforeExecution = buildSnapshots(taskName, snapshotterRegistry, title, fileProperties);
     }
 
-    protected String getTaskName() {
-        return taskName;
+    @Nullable
+    private ImmutableSortedMap<String, FileCollectionSnapshot> getPrevious() {
+        return previous == null ? null : getSnapshot(previous);
     }
 
-    protected String getTitle() {
-        return title;
+    private ImmutableSortedMap<String, FileCollectionSnapshot> getCurrent() {
+        return getSnapshot(current);
     }
 
-    protected ImmutableSortedSet<? extends TaskFilePropertySpec> getFileProperties() {
-        return fileProperties;
-    }
+    protected abstract ImmutableSortedMap<String, FileCollectionSnapshot> getSnapshot(TaskExecution execution);
 
-    protected abstract ImmutableSortedMap<String, FileCollectionSnapshot> getPrevious();
-
-    protected abstract void saveCurrent();
-
-    protected FileCollectionSnapshotterRegistry getSnapshotterRegistry() {
-        return snapshotterRegistry;
-    }
-
-    protected ImmutableSortedMap<String, FileCollectionSnapshot> getCurrent() {
-        return fileSnapshotsBeforeExecution;
-    }
-
-    protected ImmutableSortedMap<String, FileCollectionSnapshot> buildSnapshots(String taskName, FileCollectionSnapshotterRegistry snapshotterRegistry, String title, SortedSet<? extends TaskFilePropertySpec> fileProperties) {
-        ImmutableSortedMap.Builder<String, FileCollectionSnapshot> builder = ImmutableSortedMap.naturalOrder();
-        for (TaskFilePropertySpec propertySpec : fileProperties) {
-            FileCollectionSnapshot result;
-            try {
-                FileCollectionSnapshotter snapshotter = snapshotterRegistry.getSnapshotter(propertySpec.getSnapshotter());
-                result = snapshotter.snapshot(propertySpec.getPropertyFiles(), propertySpec.getCompareStrategy(), propertySpec.getSnapshotNormalizationStrategy(), normalizationStrategy);
-            } catch (UncheckedIOException e) {
-                throw new UncheckedIOException(String.format("Failed to capture snapshot of %s files for task '%s' property '%s' during up-to-date check.", title.toLowerCase(), taskName, propertySpec.getPropertyName()), e);
-            }
-            builder.put(propertySpec.getPropertyName(), result);
-        }
-        return builder.build();
-    }
-
-    @Override
-    public Iterator<TaskStateChange> iterator() {
+    protected Iterator<TaskStateChange> getFileChanges(final boolean includeAdded) {
         if (getPrevious() == null) {
             return Iterators.<TaskStateChange>singletonIterator(new DescriptiveChange(title + " file history is not available."));
         }
@@ -106,12 +64,12 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
         DiffUtil.diff(getCurrent().keySet(), getPrevious().keySet(), new ChangeListener<String>() {
             @Override
             public void added(String element) {
-                propertyChanges.add(new DescriptiveChange("%s property '%s' has been added for task '%s'", title, element, taskName));
+                propertyChanges.add(new DescriptiveChange("%s property '%s' has been added for %s", title, element, task));
             }
 
             @Override
             public void removed(String element) {
-                propertyChanges.add(new DescriptiveChange("%s property '%s' has been removed for task '%s'", title, element, taskName));
+                propertyChanges.add(new DescriptiveChange("%s property '%s' has been removed for %s", title, element, task));
             }
 
             @Override
@@ -130,13 +88,8 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
                 FileCollectionSnapshot currentSnapshot = entry.getValue();
                 FileCollectionSnapshot previousSnapshot = getPrevious().get(propertyName);
                 String propertyTitle = title + " property '" + propertyName + "'";
-                return currentSnapshot.iterateContentChangesSince(previousSnapshot, propertyTitle);
+                return currentSnapshot.iterateContentChangesSince(previousSnapshot, propertyTitle, includeAdded);
             }
         }).iterator());
-    }
-
-    @Override
-    public void snapshotAfterTask() {
-        saveCurrent();
     }
 }

@@ -16,21 +16,22 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.hash.HashCode;
 import org.gradle.api.GradleException;
-import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.util.DeprecationLogger;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.List;
+import java.util.Collection;
 import java.util.zip.ZipException;
 
-public abstract class AbstractClasspathSnapshotBuilder extends FileCollectionSnapshotBuilder {
+public abstract class AbstractClasspathSnapshotBuilder implements VisitingFileCollectionSnapshotBuilder {
+    protected final CollectingFileCollectionSnapshotBuilder builder;
     private final ResourceHasher classpathResourceHasher;
     private final StringInterner stringInterner;
     private final ResourceSnapshotterCacheService cacheService;
@@ -38,14 +39,14 @@ public abstract class AbstractClasspathSnapshotBuilder extends FileCollectionSna
     private final byte[] jarHasherConfigurationHash;
 
     public AbstractClasspathSnapshotBuilder(ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
-        super(TaskFilePropertyCompareStrategy.ORDERED, TaskFilePropertySnapshotNormalizationStrategy.NONE, stringInterner);
+        this.builder = new CollectingFileCollectionSnapshotBuilder(TaskFilePropertyCompareStrategy.ORDERED, InputPathNormalizationStrategy.NONE, stringInterner);
         this.cacheService = cacheService;
         this.stringInterner = stringInterner;
         this.classpathResourceHasher = classpathResourceHasher;
         this.jarHasher = new JarHasher();
         DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
         jarHasher.appendConfigurationToHasher(hasher);
-        this.jarHasherConfigurationHash = hasher.hash().asBytes();
+        this.jarHasherConfigurationHash = hasher.hash().toByteArray();
     }
 
     protected abstract void visitNonJar(RegularFileSnapshot file);
@@ -59,19 +60,19 @@ public abstract class AbstractClasspathSnapshotBuilder extends FileCollectionSna
     }
 
     @Override
-    public void visitFileTreeSnapshot(List<FileSnapshot> descendants) {
+    public void visitFileTreeSnapshot(Collection<FileSnapshot> descendants) {
         ClasspathEntrySnapshotBuilder entryResourceCollectionBuilder = newClasspathEntrySnapshotBuilder();
         try {
             new FileTree(descendants).visit(entryResourceCollectionBuilder);
         } catch (IOException e) {
             throw new GradleException("Error while snapshotting directory in classpath", e);
         }
-        entryResourceCollectionBuilder.collectNormalizedSnapshots(this);
+        entryResourceCollectionBuilder.collectNormalizedSnapshots(builder);
     }
 
     @Override
     public void visitFileSnapshot(RegularFileSnapshot file) {
-        if (FileUtils.isJar(file.getName())) {
+        if (FileUtils.hasExtensionIgnoresCase(file.getName(), ".jar")) {
             visitJar(file);
         } else {
             visitNonJar(file);
@@ -81,7 +82,7 @@ public abstract class AbstractClasspathSnapshotBuilder extends FileCollectionSna
     private void visitJar(RegularFileSnapshot jarFile) {
         HashCode hash = cacheService.hashFile(jarFile, jarHasher, jarHasherConfigurationHash);
         if (hash != null) {
-            collectFileSnapshot(jarFile.withContentHash(hash));
+            builder.collectFileSnapshot(jarFile.withContentHash(hash));
         }
     }
 
@@ -123,5 +124,10 @@ public abstract class AbstractClasspathSnapshotBuilder extends FileCollectionSna
 
     private ClasspathEntrySnapshotBuilder newClasspathEntrySnapshotBuilder() {
         return new ClasspathEntrySnapshotBuilder(classpathResourceHasher, stringInterner);
+    }
+
+    @Override
+    public FileCollectionSnapshot build() {
+        return builder.build();
     }
 }

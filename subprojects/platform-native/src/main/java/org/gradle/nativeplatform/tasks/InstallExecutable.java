@@ -35,6 +35,7 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.Gcc;
 import org.gradle.platform.base.ToolChain;
@@ -53,8 +54,16 @@ public class InstallExecutable extends DefaultTask {
     private final DirectoryVar destinationDir;
     private final RegularFileVar executable;
     private final ConfigurableFileCollection libs;
+    private final WorkerLeaseService workerLeaseService;
 
-    public InstallExecutable() {
+    /**
+     * Injects a {@link WorkerLeaseService} instance.
+     *
+     * @since 4.2
+     */
+    @Inject
+    public InstallExecutable(WorkerLeaseService workerLeaseService) {
+        this.workerLeaseService = workerLeaseService;
         this.libs = getProject().files();
         destinationDir = newOutputDirectory();
         executable = newInputFile();
@@ -86,6 +95,8 @@ public class InstallExecutable extends DefaultTask {
 
     /**
      * The directory to install files into.
+     *
+     * @since 4.1
      */
     @OutputDirectory
     public DirectoryVar getInstallDirectory() {
@@ -101,12 +112,21 @@ public class InstallExecutable extends DefaultTask {
         this.destinationDir.set(destinationDir);
     }
 
+    /**
+     * Sets the destination directory to install the executable via a {@link Provider}
+     *
+     * @param destinationDir the destination directory provider to use
+     * @see #setDestinationDir(File)
+     * @since 4.1
+     */
     public void setDestinationDir(Provider<? extends Directory> destinationDir) {
         this.destinationDir.set(destinationDir);
     }
 
     /**
      * The executable file to install.
+     *
+     * @since 4.1
      */
     @InputFile
     public RegularFileVar getSourceFile() {
@@ -122,6 +142,13 @@ public class InstallExecutable extends DefaultTask {
         this.executable.set(executable);
     }
 
+    /**
+     * Sets the executable to install via a {@link Provider}
+     *
+     * @param executable the executable provider to use
+     * @see #setExecutable(File)
+     * @since 4.1
+     */
     public void setExecutable(Provider<? extends RegularFile> executable) {
         this.executable.set(executable);
     }
@@ -166,11 +193,17 @@ public class InstallExecutable extends DefaultTask {
 
     @TaskAction
     public void install() {
-        if (platform.getOperatingSystem().isWindows()) {
-            installWindows();
-        } else {
-            installUnix();
-        }
+        // TODO: Migrate this to the worker API once the FileSystem and FileOperations services can be injected
+        workerLeaseService.withoutProjectLock(new Runnable() {
+            @Override
+            public void run() {
+                if (platform.getOperatingSystem().isWindows()) {
+                    installWindows();
+                } else {
+                    installUnix();
+                }
+            }
+        });
     }
 
     private void installWindows() {

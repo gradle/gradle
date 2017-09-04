@@ -16,11 +16,12 @@
 
 package org.gradle.caching.internal.tasks;
 
-import com.google.common.hash.HashCode;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.ValueSnapshot;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.internal.hash.HashCode;
 
 import java.util.Map;
 import java.util.SortedMap;
@@ -28,8 +29,8 @@ import java.util.SortedSet;
 
 public class TaskCacheKeyCalculator {
 
-    public TaskOutputCachingBuildCacheKey calculate(TaskExecution execution) {
-        TaskOutputCachingBuildCacheKeyBuilder builder = new DefaultTaskOutputCachingBuildCacheKeyBuilder();
+    public static TaskOutputCachingBuildCacheKey calculate(TaskInternal task, TaskExecution execution) {
+        TaskOutputCachingBuildCacheKeyBuilder builder = new DefaultTaskOutputCachingBuildCacheKeyBuilder(task.getIdentityPath());
         builder.appendTaskImplementation(execution.getTaskImplementation());
         builder.appendTaskActionImplementations(execution.getTaskActionImplementations());
 
@@ -44,10 +45,7 @@ public class TaskCacheKeyCalculator {
         SortedMap<String, FileCollectionSnapshot> inputFilesSnapshots = execution.getInputFilesSnapshot();
         for (Map.Entry<String, FileCollectionSnapshot> entry : inputFilesSnapshots.entrySet()) {
             FileCollectionSnapshot snapshot = entry.getValue();
-            DefaultBuildCacheHasher newHasher = new DefaultBuildCacheHasher();
-            snapshot.appendToHasher(newHasher);
-            HashCode hash = newHasher.hash();
-            builder.appendInputPropertyHash(entry.getKey(), hash);
+            builder.appendInputPropertyHash(entry.getKey(), snapshot.getHash());
         }
 
         SortedSet<String> outputPropertyNamesForCacheKey = execution.getOutputPropertyNamesForCacheKey();

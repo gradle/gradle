@@ -16,19 +16,20 @@
 package org.gradle.internal.logging.format;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.Nullable;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class PrettyPrefixedLogHeaderFormatter implements LogHeaderFormatter {
     @Override
-    public List<StyledTextOutputEvent.Span> format(@Nullable String header, String description, @Nullable String shortDescription, @Nullable String status) {
+    public List<StyledTextOutputEvent.Span> format(@Nullable String header, String description, @Nullable String shortDescription, @Nullable String status, boolean failed) {
         final String message = header != null ? header : description;
         if (message != null) {
+            StyledTextOutput.Style messageStyle = failed ? StyledTextOutput.Style.FailureHeader : StyledTextOutput.Style.Header;
             // Visually indicate group by adding surrounding lines
-            return Lists.newArrayList(new StyledTextOutputEvent.Span(EOL), new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, "> " + message), new StyledTextOutputEvent.Span(EOL));
+            return Lists.newArrayList(new StyledTextOutputEvent.Span(EOL), new StyledTextOutputEvent.Span(messageStyle, "> " + message), new StyledTextOutputEvent.Span(EOL));
         } else {
             return Lists.newArrayList();
         }

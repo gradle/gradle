@@ -31,7 +31,7 @@ import java.util.Set;
 
 /**
  * <p>Deletes files or directories. Example:</p>
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * task makePretty(type: Delete) {
  *   delete 'uglyFolder', 'uglyFile'
  *   followSymlinks = true

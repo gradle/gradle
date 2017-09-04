@@ -26,8 +26,6 @@ import org.gradle.process.internal.worker.MultiRequestWorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
-import java.io.File;
-
 public class WorkerDaemonStarter {
     private final static Logger LOG = Logging.getLogger(WorkerDaemonStarter.class);
     private final WorkerProcessFactory workerDaemonProcessFactory;
@@ -38,7 +36,7 @@ public class WorkerDaemonStarter {
         this.loggingManager = loggingManager;
     }
 
-    public <T extends WorkSpec> WorkerDaemonClient<T> startDaemon(Class<? extends WorkerProtocol<T>> workerProtocolImplementationClass, File workingDir, DaemonForkOptions forkOptions) {
+    public <T extends WorkSpec> WorkerDaemonClient startDaemon(Class<? extends WorkerProtocol<ActionExecutionSpec>> workerProtocolImplementationClass, DaemonForkOptions forkOptions) {
         LOG.debug("Starting Gradle worker daemon with fork options {}.", forkOptions);
         Timer clock = Timers.startTimer();
         MultiRequestWorkerProcessBuilder<WorkerDaemonProcess> builder = workerDaemonProcessFactory.multiRequestWorker(WorkerDaemonProcess.class, WorkerProtocol.class, workerProtocolImplementationClass);
@@ -47,14 +45,11 @@ public class WorkerDaemonStarter {
         builder.applicationClasspath(forkOptions.getClasspath());
         builder.sharedPackages(forkOptions.getSharedPackages());
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
-        javaCommand.setMinHeapSize(forkOptions.getMinHeapSize());
-        javaCommand.setMaxHeapSize(forkOptions.getMaxHeapSize());
-        javaCommand.setJvmArgs(forkOptions.getJvmArgs());
-        javaCommand.setWorkingDir(workingDir);
+        forkOptions.getJavaForkOptions().copyTo(javaCommand);
         WorkerDaemonProcess workerDaemonProcess = builder.build();
         WorkerProcess workerProcess = workerDaemonProcess.start();
 
-        WorkerDaemonClient<T> client = new WorkerDaemonClient<T>(forkOptions, workerDaemonProcess, workerProcess, loggingManager.getLevel());
+        WorkerDaemonClient client = new WorkerDaemonClient(forkOptions, workerDaemonProcess, workerProcess, loggingManager.getLevel());
 
         LOG.info("Started Gradle worker daemon ({}) with fork options {}.", clock.getElapsed(), forkOptions);
 

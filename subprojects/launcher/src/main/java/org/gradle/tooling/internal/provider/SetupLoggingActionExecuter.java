@@ -18,9 +18,6 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
 import org.gradle.initialization.BuildRequestContext;
-import org.gradle.internal.concurrent.ParallelExecutionManager;
-import org.gradle.internal.concurrent.ParallelismConfiguration;
-import org.gradle.internal.concurrent.ParallelismConfigurationListener;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.service.ServiceRegistry;
@@ -33,40 +30,21 @@ import org.gradle.launcher.exec.BuildExecuter;
 public class SetupLoggingActionExecuter implements BuildExecuter {
     private final BuildExecuter delegate;
     private final LoggingManagerInternal loggingManager;
-    private final ParallelExecutionManager parallelExecutionManager;
 
-    public SetupLoggingActionExecuter(BuildExecuter delegate, LoggingManagerInternal loggingManager, ParallelExecutionManager parallelExecutionManager) {
+    public SetupLoggingActionExecuter(BuildExecuter delegate, LoggingManagerInternal loggingManager) {
         this.delegate = delegate;
         this.loggingManager = loggingManager;
-        this.parallelExecutionManager = parallelExecutionManager;
     }
 
     @Override
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         StartParameter startParameter = action.getStartParameter();
         loggingManager.setLevelInternal(startParameter.getLogLevel());
-        setupLogging(startParameter);
-        ParallelismConfigurationListener listener = new ParallelismConfigurationListener() {
-            @Override
-            public void onConfigurationChange(ParallelismConfiguration parallelismConfiguration) {
-                setupLogging(parallelismConfiguration);
-            }
-        };
-        parallelExecutionManager.addListener(listener);
         loggingManager.start();
         try {
             return delegate.execute(action, requestContext, actionParameters, contextServices);
         } finally {
             loggingManager.stop();
-            parallelExecutionManager.removeListener(listener);
-        }
-    }
-
-    private void setupLogging(ParallelismConfiguration parallelismConfiguration) {
-        if (parallelismConfiguration.isParallelProjectExecutionEnabled()) {
-            loggingManager.setMaxWorkerCount(parallelismConfiguration.getMaxWorkerCount());
-        } else {
-            loggingManager.setMaxWorkerCount(1);
         }
     }
 }

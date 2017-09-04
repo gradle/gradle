@@ -18,10 +18,10 @@ package org.gradle.initialization;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Project;
-import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
+import org.gradle.internal.Pair;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.PropertyMutator;
 import org.gradle.util.GUtil;
@@ -44,8 +44,9 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
         this.propertiesLoader = propertiesLoader;
     }
 
-    public void load(ProjectDescriptor rootProjectDescriptor, ProjectDescriptor defaultProject, GradleInternal gradle, ClassLoaderScope buildRootClassLoaderScope) {
-        buildLoader.load(rootProjectDescriptor, defaultProject, gradle, buildRootClassLoaderScope);
+    @Override
+    public void load(SettingsInternal settings, GradleInternal gradle) {
+        buildLoader.load(settings, gradle);
         setProjectProperties(gradle.getRootProject(), new CachingPropertyApplicator());
     }
 
@@ -82,7 +83,7 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
      * to avoid too many searches.
      */
     private static class CachingPropertyApplicator {
-        private final Map<String, PropertyMutator> mutators = Maps.newHashMap();
+        private final Map<Pair<String, ? extends Class<?>>, PropertyMutator> mutators = Maps.newHashMap();
         private Class<? extends Project> projectClazz;
 
         void configureProperty(Project project, String name, Object value) {
@@ -91,13 +92,15 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
                 mutators.clear();
                 projectClazz = clazz;
             }
-            PropertyMutator propertyMutator = mutators.get(name);
+            Class<?> valueType = value == null ? null : value.getClass();
+            Pair<String, ? extends Class<?>> key = Pair.of(name, valueType);
+            PropertyMutator propertyMutator = mutators.get(key);
             if (propertyMutator != null) {
                 propertyMutator.setValue(project, value);
             } else {
-                if (!mutators.containsKey(name)) {
-                    propertyMutator = JavaReflectionUtil.writeablePropertyIfExists(clazz, name);
-                    mutators.put(name, propertyMutator);
+                if (!mutators.containsKey(key)) {
+                    propertyMutator = JavaReflectionUtil.writeablePropertyIfExists(clazz, name, valueType);
+                    mutators.put(key, propertyMutator);
                     if (propertyMutator != null) {
                         propertyMutator.setValue(project, value);
                         return;

@@ -20,9 +20,9 @@ import com.google.common.base.Function;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.Ordering;
-import com.google.common.hash.HashCode;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.internal.hash.HashCode;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,10 +33,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 
+import static org.gradle.api.internal.changedetection.state.InputPathNormalizationStrategy.RELATIVE;
+
 /**
  * Builds the snapshot of a classpath entry.
  * It can be either used on {@link RegularFileSnapshot}s or {@link ZipEntry}.
- * The {@link NormalizedFileSnapshot}s can be collected by a {@link FileCollectionSnapshotBuilder}.
+ * The {@link NormalizedFileSnapshot}s can be collected by a {@link CollectingFileCollectionSnapshotBuilder}.
  */
 public class ClasspathEntrySnapshotBuilder implements ResourceWithContentsVisitor {
     private static final Ordering<Map.Entry<String, NormalizedFileSnapshot>> SNAPSHOT_ENTRY_ORDERING = Ordering.natural().onResultOf(new Function<Map.Entry<String, NormalizedFileSnapshot>, Comparable<NormalizedFileSnapshot>>() {
@@ -45,16 +47,12 @@ public class ClasspathEntrySnapshotBuilder implements ResourceWithContentsVisito
             return input.getValue();
         }
     });
-    private final SnapshotNormalizationStrategy normalizationStrategy;
     private final StringInterner stringInterner;
-    private final TaskFilePropertyCompareStrategy compareStrategy;
     private final Multimap<String, NormalizedFileSnapshot> normalizedSnapshots;
     private final ResourceHasher classpathResourceHasher;
 
     public ClasspathEntrySnapshotBuilder(ResourceHasher classpathResourceHasher, StringInterner stringInterner) {
         this.classpathResourceHasher = classpathResourceHasher;
-        this.normalizationStrategy = TaskFilePropertySnapshotNormalizationStrategy.RELATIVE;
-        this.compareStrategy = TaskFilePropertyCompareStrategy.UNORDERED;
         this.stringInterner = stringInterner;
         this.normalizedSnapshots = MultimapBuilder.hashKeys().arrayListValues().build();
     }
@@ -63,7 +61,7 @@ public class ClasspathEntrySnapshotBuilder implements ResourceWithContentsVisito
     public void visitFileSnapshot(RegularFileSnapshot file) {
         HashCode hash = classpathResourceHasher.hash(file);
         if (hash != null) {
-            normalizedSnapshots.put(file.getPath(), normalizationStrategy.getNormalizedSnapshot(file.withContentHash(hash), stringInterner));
+            normalizedSnapshots.put(file.getPath(), RELATIVE.getNormalizedSnapshot(file.withContentHash(hash), stringInterner));
         }
     }
 
@@ -84,11 +82,11 @@ public class ClasspathEntrySnapshotBuilder implements ResourceWithContentsVisito
         }
         DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
         Collection<NormalizedFileSnapshot> values = normalizedSnapshots.values();
-        compareStrategy.appendToHasher(hasher, values);
+        TaskFilePropertyCompareStrategy.UNORDERED.appendToHasher(hasher, values);
         return hasher.hash();
     }
 
-    public void collectNormalizedSnapshots(FileCollectionSnapshotBuilder builder) {
+    public void collectNormalizedSnapshots(CollectingFileCollectionSnapshotBuilder builder) {
         if (normalizedSnapshots.isEmpty()) {
             return;
         }

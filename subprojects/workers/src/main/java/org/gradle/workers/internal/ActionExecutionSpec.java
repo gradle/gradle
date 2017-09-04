@@ -16,15 +16,11 @@
 
 package org.gradle.workers.internal;
 
-import java.io.File;
-
 public interface ActionExecutionSpec extends WorkSpec {
     Class<? extends Runnable> getImplementationClass();
 
     @Override
     String getDisplayName();
-
-    File getExecutionWorkingDir();
 
     Object[] getParams(ClassLoader classLoader);
 }

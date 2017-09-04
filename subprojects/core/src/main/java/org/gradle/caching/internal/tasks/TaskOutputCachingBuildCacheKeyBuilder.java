@@ -16,8 +16,8 @@
 
 package org.gradle.caching.internal.tasks;
 
-import com.google.common.hash.HashCode;
 import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
+import org.gradle.internal.hash.HashCode;
 
 import java.util.Collection;
 

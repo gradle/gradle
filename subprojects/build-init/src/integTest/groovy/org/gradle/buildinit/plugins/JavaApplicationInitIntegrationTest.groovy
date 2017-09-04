@@ -20,6 +20,11 @@ import org.gradle.buildinit.plugins.fixtures.WrapperTestFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
+import org.gradle.testing.internal.util.RetryRule
+import org.junit.Rule
+
+import static org.gradle.integtests.fixtures.RetryRuleUtil.getRootCauseMessage
+import static org.gradle.testing.internal.util.RetryRule.retryIf
 
 class JavaApplicationInitIntegrationTest extends AbstractIntegrationSpec {
 
@@ -28,6 +33,12 @@ class JavaApplicationInitIntegrationTest extends AbstractIntegrationSpec {
     public static final String SAMPLE_APP_SPOCK_TEST_CLASS = "src/test/groovy/AppTest.groovy"
 
     final wrapper = new WrapperTestFixture(testDirectory)
+
+    @Rule
+    RetryRule retryRule = retryIf{ Throwable t ->
+        //retry on Jcenter connectivity issue
+        getRootCauseMessage(t).startsWith("Could not GET")
+    }
 
     def "creates sample source if no source present"() {
         when:

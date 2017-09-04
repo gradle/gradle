@@ -32,13 +32,17 @@ public class BuildScriptProcessor implements ProjectConfigureAction {
     }
 
     public void execute(ProjectInternal project) {
-        LOGGER.info("Evaluating {} using {}.", project, project.getBuildScriptSource().getDisplayName());
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Evaluating {} using {}.", project, project.getBuildScriptSource().getDisplayName());
+        }
         final Timer clock = Timers.startTimer();
         try {
             ScriptPlugin configurer = configurerFactory.create(project.getBuildScriptSource(), project.getBuildscript(), project.getClassLoaderScope(), project.getBaseClassLoaderScope(), true);
             configurer.apply(project);
         } finally {
-            LOGGER.debug("Timing: Running the build script took {}", clock.getElapsed());
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Timing: Running the build script took {}", clock.getElapsed());
+            }
         }
     }
 }

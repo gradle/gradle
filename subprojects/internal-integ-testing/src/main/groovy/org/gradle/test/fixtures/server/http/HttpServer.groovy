@@ -37,6 +37,8 @@ import org.slf4j.LoggerFactory
 
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import java.util.zip.GZIPOutputStream
 
 class HttpServer extends ServerWithExpectations implements HttpServerFixture {
@@ -223,6 +225,13 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     }
 
     /**
+     * Expects one GET request, which will block for maximum 60 seconds
+     */
+    void expectGetBlocking(String path) {
+        expect(path, false, ['GET'], blocking())
+    }
+
+    /**
      * Expects one GET request for the given URL, which return 404 status code
      */
     void expectGetMissing(String path, PasswordCredentials passwordCredentials = null) {
@@ -259,6 +268,19 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
         new ActionSupport("return 500 broken") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 response.sendError(500, "broken")
+            }
+        }
+    }
+
+    private Action blocking() {
+        new ActionSupport("throw socket timeout exception") {
+            CountDownLatch latch = new CountDownLatch(1)
+            void handle(HttpServletRequest request, HttpServletResponse response) {
+                try {
+                    latch.await(60, TimeUnit.SECONDS)
+                } catch (InterruptedException e) {
+                    // ignore
+                }
             }
         }
     }
@@ -447,13 +469,19 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     /**
      * Expects one PUT request for the given URL. Writes the request content to the given file.
      */
-    void expectPut(String path, File destFile, int statusCode = HttpStatus.ORDINAL_200_OK, PasswordCredentials credentials = null) {
-        def action = new ActionSupport("write request to $destFile.name and return status $statusCode") {
+    void expectPut(String path, File destFile, int statusCode = HttpStatus.ORDINAL_200_OK, PasswordCredentials credentials = null, long expectedContentLength = -1) {
+        def action = new ActionSupport("write request to $destFile.name (content length: $expectedContentLength) and return status $statusCode") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 if (HttpServer.this.expectedUserAgent != null) {
                     String receivedUserAgent = request.getHeader("User-Agent")
                     if (!expectedUserAgent.matches(receivedUserAgent)) {
                         response.sendError(412, String.format("Precondition Failed: Expected User-Agent: '%s' but was '%s'", expectedUserAgent, receivedUserAgent))
+                        return
+                    }
+                }
+                if (expectedContentLength > -1) {
+                    if (request.contentLength != expectedContentLength) {
+                        response.sendError(412, String.format("Precondition Failed: Expected Content-Length: '%d' but was '%d'", expectedContentLength, request.contentLength))
                         return
                     }
                 }

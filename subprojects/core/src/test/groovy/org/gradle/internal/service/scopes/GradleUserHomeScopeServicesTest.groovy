@@ -18,7 +18,6 @@ package org.gradle.internal.service.scopes
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.ClassPathRegistry
-import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache
 import org.gradle.api.internal.changedetection.state.FileSystemMirror
@@ -29,11 +28,12 @@ import org.gradle.api.internal.changedetection.state.ValueSnapshotter
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
-import org.gradle.api.internal.hash.FileHasher
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
+import org.gradle.cache.CacheDecorator
 import org.gradle.cache.PersistentCache
-import org.gradle.cache.internal.CacheDecorator
 import org.gradle.cache.internal.CacheFactory
+import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
+import org.gradle.concurrent.ParallelismConfiguration
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache
 import org.gradle.initialization.ClassLoaderRegistry
 import org.gradle.initialization.GradleUserHomeDirProvider
@@ -41,9 +41,11 @@ import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.classloader.HashingClassLoaderFactory
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.concurrent.ExecutorFactory
-import org.gradle.internal.concurrent.ParallelExecutionManager
-import org.gradle.internal.concurrent.ParallelismConfiguration
+import org.gradle.internal.concurrent.ParallelismConfigurationManager
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.hash.ContentHasherFactory
+import org.gradle.internal.hash.FileHasher
+import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.jvm.inspection.JvmVersionDetector
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.events.OutputEventListener
@@ -59,7 +61,6 @@ import org.gradle.process.internal.worker.WorkerProcessFactory
 import org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider
 import spock.lang.Specification
 import spock.lang.Unroll
-
 
 class GradleUserHomeScopeServicesTest extends Specification {
     ServiceRegistry parent = Stub(ServiceRegistry)
@@ -90,7 +91,7 @@ class GradleUserHomeScopeServicesTest extends Specification {
         expectParentServiceLocated(ListenerManager) {
             _ * it.createChild() >> Mock(ListenerManager)
         }
-        expectParentServiceLocated(ParallelExecutionManager) {
+        expectParentServiceLocated(ParallelismConfigurationManager) {
             _ * it.getParallelismConfiguration() >> Mock(ParallelismConfiguration)
         }
         expectParentServiceLocated(InMemoryCacheDecoratorFactory) {
@@ -116,6 +117,8 @@ class GradleUserHomeScopeServicesTest extends Specification {
         expectParentServiceLocated(CrossBuildInMemoryCacheFactory)
         expectParentServiceLocated(ClassLoaderRegistry)
         expectParentServiceLocated(DirectoryFileTreeFactory)
+        expectParentServiceLocated(ContentHasherFactory)
+        expectParentServiceLocated(StreamHasher)
 
         expect:
         findsAndCachesService(serviceType)

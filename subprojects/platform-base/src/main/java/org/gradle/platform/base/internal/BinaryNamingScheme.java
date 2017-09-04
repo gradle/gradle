@@ -17,8 +17,8 @@
 package org.gradle.platform.base.internal;
 
 import org.gradle.api.Named;
-import org.gradle.api.Nullable;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;

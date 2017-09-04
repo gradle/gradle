@@ -42,8 +42,8 @@ allprojects {
     }
     dependencies {
         attributesSchema {
-           attribute(usage).compatibilityRules.assumeCompatibleWhenMissing()
-           attribute(buildType).compatibilityRules.assumeCompatibleWhenMissing()
+           attribute(usage)
+           attribute(buildType)
            attribute(flavor)
         }
     }
@@ -124,9 +124,7 @@ allprojects {
                     compile project(':lib'), project(':ui')
                     
                     attributesSchema {
-                        attribute(otherAttributeOptional) {
-                            compatibilityRules.assumeCompatibleWhenMissing()
-                        }
+                        attribute(otherAttributeOptional)
                     }
                 }
 
@@ -266,7 +264,6 @@ dependencies.attributesSchema {
         compatibilityRules.add(BuildTypeCompatibilityRule)
     }
     attribute(flavor) {
-        compatibilityRules.assumeCompatibleWhenMissing()
         disambiguationRules.add(FlavorSelectionRule)
     }
 }
@@ -410,7 +407,6 @@ dependencies {
 project(':lib') {
     dependencies.attributesSchema {
         attribute(extra) {
-            compatibilityRules.assumeCompatibleWhenMissing()
             disambiguationRules.add(ExtraSelectionRule)
         }
     }

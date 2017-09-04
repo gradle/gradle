@@ -15,14 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store;
 
-import org.gradle.api.internal.cache.BinaryStore;
+import org.gradle.cache.internal.BinaryStore;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.io.RandomAccessFileInputStream;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 
-import java.io.*;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.RandomAccessFile;
 
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 

@@ -18,105 +18,63 @@ package org.gradle.language.cpp.plugins;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.file.DirectoryVar;
-import org.gradle.api.file.RegularFile;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.language.cpp.tasks.CppCompile;
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
+import org.gradle.language.cpp.CppApplication;
+import org.gradle.language.cpp.CppComponent;
+import org.gradle.language.cpp.internal.DefaultCppApplication;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
-import org.gradle.nativeplatform.tasks.LinkExecutable;
-import org.gradle.nativeplatform.toolchain.NativeToolChain;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
-import java.util.Collections;
-import java.util.concurrent.Callable;
+import javax.inject.Inject;
 
 /**
  * <p>A plugin that produces a native executable from C++ source.</p>
  *
  * <p>Assumes the source files are located in `src/main/cpp` and header files are located in `src/main/headers`.</p>
  *
+ * <p>Adds a {@link CppComponent} extension to the project to allow configuration of the executable.</p>
+ *
  * @since 4.1
  */
 @Incubating
 public class CppExecutablePlugin implements Plugin<ProjectInternal> {
+    private final FileOperations fileOperations;
+
+    /**
+     * Injects a {@link FileOperations} instance.
+     *
+     * @since 4.2
+     */
+    @Inject
+    public CppExecutablePlugin(FileOperations fileOperations) {
+        this.fileOperations = fileOperations;
+    }
+
     @Override
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(CppBasePlugin.class);
 
-        DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
         ConfigurationContainer configurations = project.getConfigurations();
-        TaskContainerInternal tasks = project.getTasks();
         ProviderFactory providers = project.getProviders();
+        TaskContainer tasks = project.getTasks();
 
-        // Add a compile task
-        CppCompile compile = tasks.create("compileCpp", CppCompile.class);
+        // Add the application extension
+        final CppApplication application = project.getExtensions().create(CppApplication.class, "executable", DefaultCppApplication.class,  "main", project.getObjects(), fileOperations, providers, configurations);
+        project.getComponents().add(application);
+        project.getComponents().add(application.getDebugExecutable());
+        project.getComponents().add(application.getReleaseExecutable());
 
-        compile.includes("src/main/headers");
-        compile.includes(configurations.getByName(CppBasePlugin.CPP_INCLUDE_PATH));
+        // Configure the component
+        application.getBaseName().set(project.getName());
 
-        ConfigurableFileTree sourceTree = project.fileTree("src/main/cpp");
-        sourceTree.include("**/*.cpp");
-        sourceTree.include("**/*.c++");
-        compile.source(sourceTree);
-
-        compile.setCompilerArgs(Collections.<String>emptyList());
-        compile.setMacros(Collections.<String, String>emptyMap());
-        compile.setObjectFileDir(buildDirectory.dir("main/objs"));
-
-        DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
-        compile.setTargetPlatform(currentPlatform);
-
-        // TODO - make this lazy
-        NativeToolChain toolChain = project.getModelRegistry().realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
-        compile.setToolChain(toolChain);
-
-        // Add a link task
-        LinkExecutable link = tasks.create("linkMain", LinkExecutable.class);
-        // TODO - need to set basename
-        // TODO - include only object files from this dir
-        link.source(compile.getObjectFileDirectory().getAsFileTree());
-        link.lib(configurations.getByName(CppBasePlugin.NATIVE_LINK));
-        link.setLinkerArgs(Collections.<String>emptyList());
-        final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
-        Provider<RegularFile> exeLocation = buildDirectory.file(providers.provider(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                return toolProvider.getExecutableName("exe/" + project.getName());
-            }
-        }));
-        link.setOutputFile(exeLocation);
-        link.setTargetPlatform(currentPlatform);
-        link.setToolChain(toolChain);
-
-        // Add an install task
-        final InstallExecutable install = tasks.create("installMain", InstallExecutable.class);
-        // TODO - need to set basename
-        install.setPlatform(currentPlatform);
-        install.setToolChain(toolChain);
-        install.setDestinationDir(buildDirectory.dir("install/" + project.getName()));
-        install.setExecutable(link.getBinaryFile());
-        // TODO - infer this
-        install.onlyIf(new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return install.getExecutable().exists();
-            }
-        });
-        install.lib(configurations.getByName(CppBasePlugin.NATIVE_RUNTIME));
-
+        // Install the debug variant by default
+        InstallExecutable install = (InstallExecutable) tasks.getByName("installDebug");
         tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(install);
 
-        // TODO - add lifecycle tasks
+        // TODO - add lifecycle tasks to assemble each variant
     }
 }

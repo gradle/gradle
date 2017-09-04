@@ -27,6 +27,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.FindBugsReportsImpl;
 import org.gradle.api.plugins.quality.internal.FindBugsReportsInternal;
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsClasspathValidator;
@@ -51,7 +52,6 @@ import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
 import org.gradle.internal.logging.ConsoleRenderer;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import javax.inject.Inject;
@@ -96,15 +96,25 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
 
     private Collection<String> extraArgs = new ArrayList<String>();
 
+    private Collection<String> jvmArgs = new ArrayList<String>();
+
+    private boolean showProgress;
+
     @Nested
     private final FindBugsReportsInternal reports;
 
     public FindBugs() {
-        reports = getInstantiator().newInstance(FindBugsReportsImpl.class, this);
+        reports = getObjectFactory().newInstance(FindBugsReportsImpl.class, this);
     }
 
+    /**
+     * Injects and returns an instance of {@link org.gradle.api.model.ObjectFactory}.
+     *
+     * @since 4.2
+     */
+    @Incubating
     @Inject
-    public Instantiator getInstantiator() {
+    public ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -251,6 +261,8 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
             .withIncludeFilter(getIncludeFilter())
             .withExcludeBugsFilter(getExcludeBugsFilter())
             .withExtraArgs(getExtraArgs())
+            .withJvmArgs(getJvmArgs())
+            .withShowProgress(getShowProgress())
             .configureReports(getReports());
 
         return specBuilder.build();
@@ -287,7 +299,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     /**
      * Any additional arguments (not covered here more explicitly like {@code effort}) to be passed along to FindBugs. <p> Extra arguments are passed to FindBugs after the arguments Gradle understands
      * (like {@code effort} but before the list of classes to analyze. This should only be used for arguments that cannot be provided by Gradle directly. Gradle does not try to interpret or validate
-     * the arguments before passing them to FindBugs. <p> See the <a href="https://code.google.com/p/findbugs/source/browse/findbugs/src/java/edu/umd/cs/findbugs/TextUICommandLine.java">FindBugs
+     * the arguments before passing them to FindBugs. <p> See the <a href="https://github.com/findbugsproject/findbugs/blob/master/findbugs/src/java/edu/umd/cs/findbugs/TextUICommandLine.java">FindBugs
      * TextUICommandLine source</a> for available options.
      *
      * @since 2.6
@@ -303,13 +315,42 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     /**
      * Any additional arguments (not covered here more explicitly like {@code effort}) to be passed along to FindBugs. <p> Extra arguments are passed to FindBugs after the arguments Gradle understands
      * (like {@code effort} but before the list of classes to analyze. This should only be used for arguments that cannot be provided by Gradle directly. Gradle does not try to interpret or validate
-     * the arguments before passing them to FindBugs. <p> See the <a href="https://code.google.com/p/findbugs/source/browse/findbugs/src/java/edu/umd/cs/findbugs/TextUICommandLine.java">FindBugs
+     * the arguments before passing them to FindBugs. <p> See the <a href="https://github.com/findbugsproject/findbugs/blob/master/findbugs/src/java/edu/umd/cs/findbugs/TextUICommandLine.java">FindBugs
      * TextUICommandLine source</a> for available options.
      *
      * @since 2.6
      */
     public FindBugs extraArgs(String... arguments) {
         extraArgs.addAll(Arrays.asList(arguments));
+        return this;
+    }
+
+    /**
+     * Any additional arguments to be passed along to FindBugs JVM process.
+     * <p>
+     * Arguments can contain general JVM flags like {@code -Xdebug} and also FindBugs system properties like {@code -Dfindbugs.loadPropertiesFrom=...}
+     *
+     * @since 4.3
+     */
+    @Incubating
+    public FindBugs jvmArgs(Iterable<String> arguments) {
+        for (String argument : arguments) {
+            jvmArgs.add(argument);
+        }
+
+        return this;
+    }
+
+    /**
+     * Any additional arguments to be passed along to FindBugs JVM process.
+     * <p>
+     * Arguments can contain general JVM flags like {@code -Xdebug} and also FindBugs system properties like {@code -Dfindbugs.loadPropertiesFrom=...}
+     *
+     * @since 4.3
+     */
+    @Incubating
+    public FindBugs jvmArgs(String... arguments) {
+        jvmArgs.addAll(Arrays.asList(arguments));
         return this;
     }
 
@@ -330,7 +371,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     @InputFiles
     protected FileCollection getCandidateClassFiles() {
         // We need to resolve the classes into a set of files so @SkipWhenEmpty will work
-        // Otherwise, a collection of empty directories is not seen as "empty" 
+        // Otherwise, a collection of empty directories is not seen as "empty"
         return getClasses().getAsFileTree();
     }
 
@@ -566,7 +607,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     /**
      * Any additional arguments (not covered here more explicitly like {@code effort}) to be passed along to FindBugs. <p> Extra arguments are passed to FindBugs after the arguments Gradle understands
      * (like {@code effort} but before the list of classes to analyze. This should only be used for arguments that cannot be provided by Gradle directly. Gradle does not try to interpret or validate
-     * the arguments before passing them to FindBugs. <p> See the <a href="https://code.google.com/p/findbugs/source/browse/findbugs/src/java/edu/umd/cs/findbugs/TextUICommandLine.java">FindBugs
+     * the arguments before passing them to FindBugs. <p> See the <a href="https://github.com/findbugsproject/findbugs/blob/master/findbugs/src/java/edu/umd/cs/findbugs/TextUICommandLine.java">FindBugs
      * TextUICommandLine source</a> for available options.
      *
      * @since 2.6
@@ -580,7 +621,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     /**
      * Any additional arguments (not covered here more explicitly like {@code effort}) to be passed along to FindBugs. <p> Extra arguments are passed to FindBugs after the arguments Gradle understands
      * (like {@code effort} but before the list of classes to analyze. This should only be used for arguments that cannot be provided by Gradle directly. Gradle does not try to interpret or validate
-     * the arguments before passing them to FindBugs. <p> See the <a href="https://code.google.com/p/findbugs/source/browse/findbugs/src/java/edu/umd/cs/findbugs/TextUICommandLine.java">FindBugs
+     * the arguments before passing them to FindBugs. <p> See the <a href="https://github.com/findbugsproject/findbugs/blob/master/findbugs/src/java/edu/umd/cs/findbugs/TextUICommandLine.java">FindBugs
      * TextUICommandLine source</a> for available options.
      *
      * @since 2.6
@@ -589,4 +630,49 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
         this.extraArgs = extraArgs;
     }
 
+    /**
+     * Indicates whether analysis progress should be rendered on standard output. Defaults to false.
+     *
+     * @since 4.2
+     */
+    @Input
+    @Optional
+    public boolean getShowProgress() {
+        return showProgress;
+    }
+
+    /**
+     * Indicates whether analysis progress should be rendered on standard output.
+     *
+     * @since 4.2
+     */
+    public void setShowProgress(boolean showProgress) {
+        this.showProgress = showProgress;
+    }
+
+    /**
+     * Any additional arguments to be passed along to FindBugs JVM process.
+     * <p>
+     * Arguments can contain general JVM flags like {@code -Xdebug} and also FindBugs system properties like {@code -Dfindbugs.loadPropertiesFrom=...}
+     *
+     * @since 4.3
+     */
+    @Input
+    @Optional
+    @Incubating
+    public Collection<String> getJvmArgs() {
+        return jvmArgs;
+    }
+
+    /**
+     * Any additional arguments to be passed along to FindBugs JVM process.
+     * <p>
+     * Arguments can contain general JVM flags like {@code -Xdebug} and also FindBugs system properties like {@code -Dfindbugs.loadPropertiesFrom=...}
+     *
+     * @since 4.3
+     */
+    @Incubating
+    public void setJvmArgs(Collection<String> jvmArgs) {
+        this.jvmArgs = jvmArgs;
+    }
 }

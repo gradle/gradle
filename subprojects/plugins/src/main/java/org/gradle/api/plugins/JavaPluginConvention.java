@@ -70,7 +70,7 @@ public class JavaPluginConvention {
      * See the example below how {@link org.gradle.api.tasks.SourceSet} 'main' is accessed and how the {@link org.gradle.api.file.SourceDirectorySet} 'java'
      * is configured to exclude some package from compilation.
      *
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * apply plugin: 'java'
      *
      * sourceSets {
@@ -83,7 +83,7 @@ public class JavaPluginConvention {
      * </pre>
      *
      * @param closure The closure to execute.
-     * @return NamedDomainObjectContainer<org.gradle.api.tasks.SourceSet>
+     * @return NamedDomainObjectContainer&lt;org.gradle.api.tasks.SourceSet&gt;
      */
     public Object sourceSets(Closure closure) {
         return sourceSets.configure(closure);
@@ -124,7 +124,7 @@ public class JavaPluginConvention {
     /**
      * Sets the source compatibility used for compiling Java sources.
      *
-     * @value The value for the source compatibility as defined by {@link JavaVersion#toVersion(Object)}
+     * @param value The value for the source compatibility as defined by {@link JavaVersion#toVersion(Object)}
      */
     public void setSourceCompatibility(Object value) {
         setSourceCompatibility(JavaVersion.toVersion(value));
@@ -133,7 +133,7 @@ public class JavaPluginConvention {
     /**
      * Sets the source compatibility used for compiling Java sources.
      *
-     * @value The value for the source compatibility
+     * @param value The value for the source compatibility
      */
     public void setSourceCompatibility(JavaVersion value) {
         srcCompat = value;
@@ -149,7 +149,7 @@ public class JavaPluginConvention {
     /**
      * Sets the target compatibility used for compiling Java sources.
      *
-     * @value The value for the target compatibility as defined by {@link JavaVersion#toVersion(Object)}
+     * @param value The value for the target compatibility as defined by {@link JavaVersion#toVersion(Object)}
      */
     public void setTargetCompatibility(Object value) {
         setTargetCompatibility(JavaVersion.toVersion(value));
@@ -158,7 +158,7 @@ public class JavaPluginConvention {
     /**
      * Sets the target compatibility used for compiling Java sources.
      *
-     * @value The value for the target compatibility
+     * @param value The value for the target compatibility
      */
     public void setTargetCompatibility(JavaVersion value) {
         targetCompat = value;

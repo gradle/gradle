@@ -15,22 +15,21 @@
  */
 package org.gradle.groovy.scripts.internal;
 
-import com.google.common.hash.HashCode;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
-import org.gradle.api.internal.cache.CrossBuildInMemoryCache;
-import org.gradle.api.internal.cache.CrossBuildInMemoryCacheFactory;
-import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
+import org.gradle.cache.internal.CrossBuildInMemoryCache;
+import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Cast;
+import org.gradle.internal.hash.HashCode;
 
 public class CrossBuildInMemoryCachingScriptClassCache {
     private final CrossBuildInMemoryCache<ScriptCacheKey, CachedCompiledScript> cachedCompiledScripts;
-    private final FileHasher hasher;
+    private final ScriptSourceHasher hasher;
 
-    public CrossBuildInMemoryCachingScriptClassCache(FileHasher hasher, CrossBuildInMemoryCacheFactory cacheFactory) {
+    public CrossBuildInMemoryCachingScriptClassCache(ScriptSourceHasher hasher, CrossBuildInMemoryCacheFactory cacheFactory) {
         this.hasher = hasher;
         cachedCompiledScripts = cacheFactory.newCache();
     }
@@ -43,7 +42,7 @@ public class CrossBuildInMemoryCachingScriptClassCache {
                                                                    ScriptClassCompiler delegate) {
         ScriptCacheKey key = new ScriptCacheKey(source.getClassName(), classLoader, operation.getId());
         CachedCompiledScript cached = cachedCompiledScripts.get(key);
-        HashCode hash = hasher.hash(source.getResource());
+        HashCode hash = hasher.hash(source);
         if (cached != null) {
             if (hash.equals(cached.hash)) {
                 return Cast.uncheckedCast(cached.compiledScript);

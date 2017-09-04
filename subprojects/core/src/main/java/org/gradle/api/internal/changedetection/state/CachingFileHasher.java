@@ -17,21 +17,19 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
-import com.google.common.hash.HashCode;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.hash.FileHasher;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
+import org.gradle.internal.file.FileMetadataSnapshot;
+import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
 
 import java.io.File;
-import java.io.InputStream;
 
 public class CachingFileHasher implements FileHasher {
     private final PersistentIndexedCache<String, FileInfo> cache;
@@ -51,20 +49,6 @@ public class CachingFileHasher implements FileHasher {
     @Override
     public String toString() {
         return "{hasher cache: " + cache + "}";
-    }
-
-    @Override
-    public HashCode hash(TextResource resource) {
-        File file = resource.getFile();
-        if (file != null) {
-            return hash(file);
-        }
-        return delegate.hash(resource);
-    }
-
-    @Override
-    public HashCode hash(InputStream inputStream) {
-        return delegate.hash(inputStream);
     }
 
     @Override

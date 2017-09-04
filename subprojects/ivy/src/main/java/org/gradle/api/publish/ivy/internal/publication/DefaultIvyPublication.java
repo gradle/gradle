@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
@@ -34,7 +35,6 @@ import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.UnionFileCollection;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfigurationContainer;
@@ -57,10 +57,10 @@ import java.util.Set;
 public class DefaultIvyPublication implements IvyPublicationInternal {
 
     private static final Comparator<? super UsageContext> COMPILE_BEFORE_RUNTIME = new Comparator<UsageContext>() {
-        private final Comparator<? super Usage> compileBeforeRuntime = Ordering.explicit(Usage.FOR_COMPILE, Usage.FOR_RUNTIME);
+        private final Comparator<String> compileBeforeRuntime = Ordering.explicit(Usage.JAVA_API, Usage.JAVA_RUNTIME);
         @Override
         public int compare(UsageContext left, UsageContext right) {
-            return compileBeforeRuntime.compare(left.getUsage(), right.getUsage());
+            return compileBeforeRuntime.compare(left.getUsage().getName(), right.getUsage().getName());
         }
     };
 
@@ -147,10 +147,10 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     private String mapUsage(Usage usage) {
-        if (Usage.FOR_COMPILE.equals(usage)) {
+        if (Usage.JAVA_API.equals(usage.getName())) {
             return "compile";
         }
-        if (Usage.FOR_RUNTIME.equals(usage)) {
+        if (Usage.JAVA_RUNTIME.equals(usage.getName())) {
             return "runtime";
         }
         return usage.getName();

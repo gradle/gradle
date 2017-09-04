@@ -17,8 +17,8 @@
 package org.gradle.internal.logging.console
 
 import org.fusesource.jansi.Ansi
-import org.gradle.internal.logging.text.Span
-import org.gradle.internal.logging.text.Style
+import org.gradle.internal.logging.events.StyledTextOutputEvent
+import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -56,7 +56,7 @@ class DefaultRedrawableLabelTest extends Specification{
 
     def "setting styled text (emphasis only) to the label will change the style and write the text to ansi"() {
         given:
-        label.text = new Span(Style.of(Style.Emphasis.BOLD), "text")
+        label.text = new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, "text")
 
         when:
         redraw()
@@ -70,7 +70,7 @@ class DefaultRedrawableLabelTest extends Specification{
 
     def "setting styled text (color only) to the label will change the style and write the text to ansi"() {
         given:
-        label.text = new Span(Style.of(Style.Color.GREEN), "text")
+        label.text = new StyledTextOutputEvent.Span(StyledTextOutput.Style.Success, "text")
 
         when:
         redraw()
@@ -84,7 +84,7 @@ class DefaultRedrawableLabelTest extends Specification{
 
     def "setting styled text (emphasis and color) to the label will change the style and write the text to ansi"() {
         given:
-        label.text = new Span(Style.of(Style.Emphasis.BOLD, Style.Color.GREEN), "text")
+        label.text = new StyledTextOutputEvent.Span(StyledTextOutput.Style.SuccessHeader, "text")
 
         when:
         redraw()

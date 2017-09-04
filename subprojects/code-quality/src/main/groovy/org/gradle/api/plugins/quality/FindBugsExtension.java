@@ -30,7 +30,7 @@ import java.util.Collection;
  * <p>Below is a full configuration example. Since all properties have sensible defaults,
  * typically only selected properties will be configured.
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  *     apply plugin: "java"
  *     apply plugin: "findbugs"
  *
@@ -40,6 +40,7 @@ import java.util.Collection;
  *         ignoreFailures = true
  *         reportsDir = file("$project.buildDir/findbugsReports")
  *         effort = "max"
+ *         showProgress = true
  *         reportLevel = "high"
  *         visitors = ["FindSqlInjection", "SwitchFallthrough"]
  *         omitVisitors = ["FindNonShortCircuit"]
@@ -63,6 +64,8 @@ public class FindBugsExtension extends CodeQualityExtension {
     private TextResource excludeFilterConfig;
     private TextResource excludeBugsFilterConfig;
     private Collection<String> extraArgs;
+    private Collection<String> jvmArgs;
+    private boolean showProgress;
 
     public FindBugsExtension(Project project) {
         this.project = project;
@@ -261,7 +264,7 @@ public class FindBugsExtension extends CodeQualityExtension {
      * This should only be used for arguments that cannot be provided by Gradle directly.
      * Gradle does not try to interpret or validate the arguments before passing them to FindBugs.
      * <p>
-     * See the <a href="https://code.google.com/p/findbugs/source/browse/findbugs/src/java/edu/umd/cs/findbugs/TextUICommandLine.java">FindBugs
+     * See the <a href="https://github.com/findbugsproject/findbugs/blob/master/findbugs/src/java/edu/umd/cs/findbugs/TextUICommandLine.java">FindBugs
      * TextUICommandLine source</a> for available options.
      *
      * @since 2.6
@@ -277,12 +280,56 @@ public class FindBugsExtension extends CodeQualityExtension {
      * This should only be used for arguments that cannot be provided by Gradle directly.
      * Gradle does not try to interpret or validate the arguments before passing them to FindBugs.
      * <p>
-     * See the <a href="https://code.google.com/p/findbugs/source/browse/findbugs/src/java/edu/umd/cs/findbugs/TextUICommandLine.java">FindBugs
+     * See the <a href="https://github.com/findbugsproject/findbugs/blob/master/findbugs/src/java/edu/umd/cs/findbugs/TextUICommandLine.java">FindBugs
      * TextUICommandLine source</a> for available options.
      *
      * @since 2.6
      */
     public void setExtraArgs(Collection<String> extraArgs) {
         this.extraArgs = extraArgs;
+    }
+
+    /**
+     * Any additional arguments to be passed along to FindBugs JVM process.
+     * <p>
+     * Arguments can contain general JVM flags like {@code -Xdebug} and also FindBugs system properties like {@code -Dfindbugs.loadPropertiesFrom=...}
+     *
+     * @since 4.3
+     */
+    @Incubating
+    public Collection<String> getJvmArgs() {
+        return jvmArgs;
+    }
+
+    /**
+     * Any additional arguments to be passed along to FindBugs JVM process.
+     * <p>
+     * Arguments can contain general JVM flags like {@code -Xdebug} and also FindBugs system properties like {@code -Dfindbugs.loadPropertiesFrom=...}
+     *
+     * @since 4.3
+     */
+    @Incubating
+    public void setJvmArgs(Collection<String> jvmArgs) {
+        this.jvmArgs = jvmArgs;
+    }
+
+    /**
+     * Indicates whether analysis progress should be rendered on standard output. Defaults to false.
+     *
+     * @since 4.2
+     */
+    @Incubating
+    public boolean isShowProgress() {
+        return showProgress;
+    }
+
+    /**
+     * Indicates whether analysis progress should be rendered on standard output.
+     *
+     * @since 4.2
+     */
+    @Incubating
+    public void setShowProgress(boolean showProgress) {
+        this.showProgress = showProgress;
     }
 }

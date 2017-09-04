@@ -15,17 +15,17 @@
  */
 package org.gradle.execution;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.includedbuild.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.taskpath.ResolvedTaskPath;
 import org.gradle.execution.taskpath.TaskPathResolver;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.util.NameMatcher;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.HashSet;
 import java.util.LinkedHashSet;

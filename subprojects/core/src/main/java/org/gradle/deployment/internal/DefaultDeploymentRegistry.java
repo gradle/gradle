@@ -16,33 +16,81 @@
 
 package org.gradle.deployment.internal;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.gradle.api.invocation.Gradle;
+import org.gradle.BuildResult;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.initialization.ContinuousExecutionGate;
+import org.gradle.initialization.DefaultContinuousExecutionGate;
 import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.filewatch.PendingChangesListener;
+import org.gradle.internal.filewatch.PendingChangesManager;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class DefaultDeploymentRegistry implements DeploymentRegistry {
+public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, PendingChangesListener, Stoppable {
     private static final Logger LOGGER = Logging.getLogger(DefaultDeploymentRegistry.class);
 
     private final Lock lock = new ReentrantLock();
-    private final Map<String, DeploymentHandle> handles = Maps.newHashMap();
+    private final Map<String, RegisteredDeployment> deployments = Maps.newHashMap();
+    private final PendingChangesManager pendingChangesManager;
+    private final PendingChanges pendingChanges;
+    private final BuildOperationExecutor buildOperationExecutor;
+    private final ObjectFactory objectFactory;
+    private final ContinuousExecutionGate continuousExecutionGate = new DefaultContinuousExecutionGate();
     private boolean stopped;
 
+    public DefaultDeploymentRegistry(PendingChangesManager pendingChangesManager, BuildOperationExecutor buildOperationExecutor, ObjectFactory objectFactory) {
+        this.pendingChangesManager = pendingChangesManager;
+        this.buildOperationExecutor = buildOperationExecutor;
+        this.objectFactory = objectFactory;
+        this.pendingChanges = new PendingChanges();
+        pendingChangesManager.addListener(this);
+    }
+
     @Override
-    public void register(String id, DeploymentHandle handle) {
+    public ContinuousExecutionGate getExecutionGate() {
+        return continuousExecutionGate;
+    }
+
+    @Override
+    public <T extends DeploymentHandle> T start(final String name, final ChangeBehavior changeBehavior, final Class<T> handleType, final Object... params) {
         lock.lock();
         try {
             failIfStopped();
-            if (!handles.containsKey(id)) {
-                handles.put(id, handle);
+            if (!deployments.containsKey(name)) {
+                return buildOperationExecutor.call(new CallableBuildOperation<T>() {
+                    @Override
+                    public BuildOperationDescriptor.Builder description() {
+                        return BuildOperationDescriptor.displayName("Start deployment '" + name + "'");
+                    }
+
+                    @Override
+                    public T call(BuildOperationContext context) {
+                        T handle = objectFactory.newInstance(handleType, params);
+                        RegisteredDeployment deployment = RegisteredDeployment.create(name, changeBehavior, continuousExecutionGate, handle);
+                        handle.start(deployment.getDeployment());
+                        if (pendingChanges.hasRemainingChanges()) {
+                            deployment.outOfDate();
+                        }
+                        deployments.put(name, deployment);
+                        return handle;
+                    }
+                });
             } else {
-                throw new IllegalStateException("A deployment with id '" + id + "' is already registered.");
+                throw new IllegalStateException("A deployment with id '" + name + "' is already registered.");
             }
         } finally {
             lock.unlock();
@@ -50,45 +98,99 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry {
     }
 
     @Override
-    public <T extends DeploymentHandle> T get(Class<T> handleType, String id) {
+    public <T extends DeploymentHandle> T get(String name, Class<T> handleType) {
         lock.lock();
         try {
             failIfStopped();
-            return Cast.cast(handleType, handles.get(id));
+            if (deployments.containsKey(name)) {
+                return Cast.cast(handleType, deployments.get(name).getHandle());
+            } else {
+                return null;
+            }
         } finally {
             lock.unlock();
         }
     }
 
     @Override
-    public void onNewBuild(Gradle gradle) {
+    public Collection<Deployment> getRunningDeployments() {
         lock.lock();
         try {
-            for (DeploymentHandle handle : handles.values()) {
-                handle.onNewBuild(gradle);
+            List<Deployment> runningDeployments = Lists.newArrayList();
+            for (RegisteredDeployment deployment : deployments.values()) {
+                if (deployment.getHandle().isRunning()) {
+                    runningDeployments.add(deployment.getDeployment());
+                }
+            }
+            return runningDeployments;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public void onPendingChanges() {
+        lock.lock();
+        try {
+            pendingChanges.changesMade();
+            for (RegisteredDeployment deployment : deployments.values()) {
+                deployment.outOfDate();
             }
         } finally {
             lock.unlock();
         }
     }
+
+    public void buildFinished(BuildResult buildResult) {
+        lock.lock();
+        try {
+            pendingChanges.changesIncorporated();
+            if (!pendingChanges.hasRemainingChanges()) {
+                Throwable failure = buildResult.getFailure();
+                for (RegisteredDeployment deployment : deployments.values()) {
+                    deployment.upToDate(failure);
+                }
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
 
     @Override
     public void stop() {
         lock.lock();
         try {
-            LOGGER.debug("Stopping {} deployment handles", handles.size());
-            CompositeStoppable.stoppable(handles.values()).stop();
+            LOGGER.debug("Stopping {} deployment handles", deployments.size());
+            CompositeStoppable.stoppable(deployments.values()).stop();
         } finally {
             LOGGER.debug("Stopped deployment handles");
             stopped = true;
-            handles.clear();
+            deployments.clear();
             lock.unlock();
         }
+        pendingChangesManager.removeListener(this);
     }
 
     private void failIfStopped() {
         if (stopped) {
             throw new IllegalStateException("Cannot modify deployment handles once the registry has been stopped.");
+        }
+    }
+
+    private static class PendingChanges {
+        private int pendingChanges = 1;
+
+        void changesMade() {
+            pendingChanges++;
+        }
+
+        void changesIncorporated() {
+            pendingChanges = Math.max(0, pendingChanges-1);
+        }
+
+        boolean hasRemainingChanges() {
+            return pendingChanges != 0;
         }
     }
 }

@@ -19,8 +19,8 @@ import com.google.common.collect.Maps;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.UnknownProjectException;
-import org.gradle.includedbuild.ConfigurableIncludedBuild;
-import org.gradle.includedbuild.IncludedBuild;
+import org.gradle.api.initialization.ConfigurableIncludedBuild;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.GradleInternal;
@@ -33,11 +33,12 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
+import org.gradle.composite.internal.IncludedBuildFactory;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.includedbuild.internal.IncludedBuildFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
+import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
@@ -46,6 +47,8 @@ import org.gradle.plugin.management.PluginManagementSpec;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Map;
+
+import static org.gradle.util.NameValidator.asValidName;
 
 public class DefaultSettings extends AbstractPluginAware implements SettingsInternal {
     public static final String DEFAULT_BUILD_SRC_DIR = "buildSrc";
@@ -76,7 +79,7 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
         this.startParameter = startParameter;
         this.settingsClassLoaderScope = settingsClassLoaderScope;
         services = serviceRegistryFactory.createFor(this);
-        rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
+        rootProjectDescriptor = createProjectDescriptor(null, asValidName(settingsDir.getName()), settingsDir);
     }
 
     @Override
@@ -206,7 +209,7 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getRootClassLoaderScope(), this);
+        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getRootClassLoaderScope(), getResourceLoader(), this);
     }
 
     public ClassLoaderScope getRootClassLoaderScope() {
@@ -223,6 +226,11 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     @Inject
     protected ScriptFileResolver getScriptFileResolver() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected TextResourceLoader getResourceLoader() {
         throw new UnsupportedOperationException();
     }
 

@@ -24,7 +24,7 @@ public class TestNGPreserveOrderNotSupportedIntegrationTest extends AbstractInte
         given:
         buildFile << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies { testCompile 'org.testng:testng:5.14.4' }
             test { useTestNG { preserveOrder true } }
         """

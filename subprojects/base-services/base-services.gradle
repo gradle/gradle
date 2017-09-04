@@ -10,10 +10,18 @@ sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies {
     api libraries.guava
+    api libraries.jsr305
 
     implementation libraries.slf4j_api
     implementation libraries.commons_lang
+    implementation libraries.commons_io
     implementation libraries.jcip
+
+    jmh libraries.bouncycastle_provider
+}
+
+jmh {
+    include = ["HashingAlgorithmsBenchmark"]
 }
 
 task buildReceiptResource(type: Copy) {

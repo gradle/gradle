@@ -16,8 +16,9 @@
 
 package org.gradle.internal.operations.notify;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.scan.UsedByScanPlugin;
+
+import javax.annotation.Nullable;
 
 /**
  * A notification that a build operation has started.
@@ -47,6 +48,13 @@ public interface BuildOperationStartedNotification {
      */
     @Nullable
     Object getNotificationOperationParentId();
+
+    /**
+     * The time that the operation started.
+     *
+     * @since 4.2
+     */
+    long getNotificationOperationStartedTimestamp();
 
     /**
      * A structured object providing details about the operation to be performed.

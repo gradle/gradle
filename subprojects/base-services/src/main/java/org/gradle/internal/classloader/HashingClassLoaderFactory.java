@@ -15,9 +15,10 @@
  */
 package org.gradle.internal.classloader;
 
-import com.google.common.hash.HashCode;
-import org.gradle.api.Nullable;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.hash.HashCode;
+
+import javax.annotation.Nullable;
 
 /**
  * A {@link ClassLoaderFactory} that also stores the hash of each created classloader which is later retrievable via {@link #getHash(ClassLoader)}.

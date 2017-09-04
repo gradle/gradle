@@ -20,11 +20,11 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
-import org.gradle.includedbuild.IncludedBuild;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.logging.Logging;
-import org.gradle.includedbuild.internal.IncludedBuildFactory;
+import org.gradle.composite.internal.IncludedBuildFactory;
 import org.gradle.initialization.SettingsLoader;
 
 import java.io.File;
@@ -51,9 +51,6 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
 
         Collection<IncludedBuild> includedBuilds = getIncludedBuilds(gradle.getStartParameter(), settings);
         if (!includedBuilds.isEmpty()) {
-            if (gradle.getStartParameter().getMaxWorkerCount() <= includedBuilds.size()) {
-                throw new GradleException("Use --max-workers to provide at least one worker per build in a composite");
-            }
             gradle.setIncludedBuilds(includedBuilds);
             compositeContextBuilder.addIncludedBuilds(includedBuilds);
         }

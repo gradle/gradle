@@ -17,11 +17,13 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonGroovyCompiler;
 import org.gradle.api.tasks.compile.GroovyCompileOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerFactory;
+import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
 import org.gradle.workers.internal.IsolatedClassloaderWorkerFactory;
 import org.gradle.workers.internal.WorkerFactory;
 import org.gradle.workers.internal.WorkerDaemonFactory;
@@ -31,13 +33,15 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
     private final JavaCompilerFactory javaCompilerFactory;
     private final WorkerDaemonFactory workerDaemonFactory;
     private final IsolatedClassloaderWorkerFactory inProcessWorkerFactory;
+    private final FileResolver fileResolver;
 
     public GroovyCompilerFactory(ProjectInternal project, JavaCompilerFactory javaCompilerFactory, WorkerDaemonFactory workerDaemonFactory,
-                                 IsolatedClassloaderWorkerFactory inProcessWorkerFactory) {
+                                 IsolatedClassloaderWorkerFactory inProcessWorkerFactory, FileResolver fileResolver) {
         this.project = project;
         this.javaCompilerFactory = javaCompilerFactory;
         this.workerDaemonFactory = workerDaemonFactory;
         this.inProcessWorkerFactory = inProcessWorkerFactory;
+        this.fileResolver = fileResolver;
     }
 
     @Override
@@ -51,7 +55,7 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
         } else {
             workerFactory = inProcessWorkerFactory;
         }
-        groovyCompiler = new DaemonGroovyCompiler(project.getRootProject().getProjectDir(), groovyCompiler, project.getServices().get(ClassPathRegistry.class), workerFactory);
+        groovyCompiler = new DaemonGroovyCompiler(project.getServices().get(WorkerDirectoryProvider.class).getIdleWorkingDirectory(), groovyCompiler, project.getServices().get(ClassPathRegistry.class), workerFactory, fileResolver);
         return new NormalizingGroovyCompiler(groovyCompiler);
     }
 }

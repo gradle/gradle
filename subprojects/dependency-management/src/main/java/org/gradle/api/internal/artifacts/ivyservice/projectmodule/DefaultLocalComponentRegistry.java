@@ -59,4 +59,18 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
         }
         return Collections.emptyList();
     }
+
+    /**
+     * Finds an IDE metadata artifact with the specified type. Does not execute tasks to build the artifact.
+     *
+     * IDE metadata artifacts are registered by IDE plugins via {@link org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectLocalComponentProvider#registerAdditionalArtifact(org.gradle.api.artifacts.component.ProjectComponentIdentifier, org.gradle.internal.component.local.model.LocalComponentArtifactMetadata)}
+     */
+    public LocalComponentArtifactMetadata findAdditionalArtifact(ProjectComponentIdentifier project, String type) {
+        for (LocalComponentArtifactMetadata artifactMetaData : getAdditionalArtifacts(project)) {
+            if (artifactMetaData.getName().getType().equals(type)) {
+                return artifactMetaData;
+            }
+        }
+        return null;
+    }
 }

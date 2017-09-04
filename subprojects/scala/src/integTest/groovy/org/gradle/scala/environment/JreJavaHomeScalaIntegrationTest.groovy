@@ -44,17 +44,13 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
                     println "Used JRE: ${jreJavaHome.absolutePath.replace(File.separator, '/')}"
                     apply plugin:'scala'
 
-                    repositories {
-                        mavenCentral()
-                    }
+                    ${mavenCentralRepository()}
 
                     dependencies {
                         compile 'org.scala-lang:scala-library:2.11.1'
                     }
                     """
         when:
-        executer.expectDeprecationWarning()
-        executer.expectDeprecationWarning()
         executer.withEnvironmentVars("JAVA_HOME": jreJavaHome.absolutePath).withTasks("compileScala").run()
 
         then:
@@ -69,9 +65,7 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
         file('build.gradle') << """
                     apply plugin:'scala'
 
-                    repositories {
-                        mavenCentral()
-                    }
+                    ${mavenCentralRepository()}
 
                     dependencies {
                         compile 'org.scala-lang:scala-library:2.11.1'

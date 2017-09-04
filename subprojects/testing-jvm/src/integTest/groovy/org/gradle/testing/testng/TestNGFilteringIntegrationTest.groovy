@@ -35,7 +35,7 @@ public class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegra
     void theUsualFiles() {
         buildFile << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies {
                 testCompile 'org.testng:testng:$version'
             }

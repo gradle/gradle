@@ -23,7 +23,7 @@ versions.commons_io = 'commons-io:commons-io:2.2'
 
 versions.groovy = "2.4.11"
 
-versions.bouncycastle = "1.51"
+versions.bouncycastle = "1.57"
 
 versions.maven = "3.0.4"
 
@@ -31,12 +31,14 @@ libraries.ant = dependencies.module('org.apache.ant:ant:1.9.6') {
     dependency 'org.apache.ant:ant-launcher:1.9.6@jar'
 }
 
-libraries.asm =  'org.ow2.asm:asm-all:5.1'
-libraries.bndlib = dependencies.module('biz.aQute.bnd:biz.aQute.bndlib:3.2.0')
+libraries.asm =  'org.ow2.asm:asm-debug-all:6.0_ALPHA'
+libraries.cglib = 'cglib:cglib:3.2.5'
+libraries.bndlib = dependencies.module('biz.aQute.bnd:biz.aQute.bndlib:3.4.0')
 libraries.commons_cli = 'commons-cli:commons-cli:1.2@jar'
 libraries.commons_io = dependencies.module(versions.commons_io)
 libraries.commons_lang = 'commons-lang:commons-lang:2.6@jar'
 libraries.commons_collections = 'commons-collections:commons-collections:3.2.2@jar'
+libraries.commons_compress = 'org.apache.commons:commons-compress:1.14'
 libraries.jsch = "com.jcraft:jsch:0.1.54"
 libraries.ivy = dependencies.module('org.apache.ivy:ivy:2.2.0'){
     dependency libraries.jsch
@@ -147,7 +149,7 @@ libraries.spock = [
     'org.spockframework:spock-core:1.0-groovy-2.4@jar',
     libraries.groovy,
     libraries.objenesis,
-    'cglib:cglib-nodep:3.2.5'
+    libraries.cglib
 ]
 libraries.jmock = [
     'org.jmock:jmock:2.5.1',
@@ -156,7 +158,7 @@ libraries.jmock = [
     dependencies.create('org.jmock:jmock-junit4:2.5.1') { exclude group: 'junit', module: 'junit-dep' }, //junit-dep pulls old definitions of core junit types.
     'org.jmock:jmock-legacy:2.5.1',
     libraries.objenesis,
-    'cglib:cglib-nodep:3.2.5'
+    libraries.cglib
 ]
 
 versions.findbugs = "2.0.1"
@@ -193,7 +195,19 @@ libraries.awsS3 = [
 ] + libraries.commons_httpclient + libraries.joda
 
 // keep in sync with ScalaLanguagePlugin code
-libraries.zinc = 'com.typesafe.zinc:zinc:0.3.13'
+libraries.zinc = 'com.typesafe.zinc:zinc:0.3.15'
+
+libraries.gcs = [
+        dependencies.create('com.google.apis:google-api-services-storage:v1-rev78-1.22.0') {
+            exclude group: 'commons-logging', module: 'commons-logging'
+        },
+        "com.fasterxml.jackson.core:jackson-core:${versions.jackson}@jar",
+        "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}@jar",
+        "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}@jar"
+] + libraries.commons_httpclient + libraries.joda
+
+// for XCode IDE integration support
+libraries.plist = 'com.googlecode.plist:dd-plist:1.20'
 
 allprojects {
     configurations.all {
@@ -202,6 +216,8 @@ allprojects {
                 details.useTarget(libraries.asm)
             } else if (details.requested.group == 'org.codehaus.groovy') {
                 details.useTarget(libraries.groovy)
+            } else if (details.requested.group == 'cglib') {
+                details.useTarget(libraries.cglib)
             }
         }
     }

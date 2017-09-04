@@ -17,10 +17,10 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.base.Objects;
-import com.google.common.hash.HashCode;
-import org.gradle.internal.nativeintegration.filesystem.FileType;
+import org.gradle.internal.file.FileType;
+import org.gradle.internal.hash.HashCode;
 
-class FileHashSnapshot implements FileContentSnapshot {
+public class FileHashSnapshot implements FileContentSnapshot {
     private final HashCode hash;
     private final transient long lastModified; // Currently not persisted
 

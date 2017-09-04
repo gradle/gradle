@@ -16,9 +16,9 @@
 
 package org.gradle.internal.resource.metadata;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.hash.HashValue;
 
+import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.Date;

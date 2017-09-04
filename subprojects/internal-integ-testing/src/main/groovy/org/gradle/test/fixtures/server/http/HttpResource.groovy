@@ -45,6 +45,10 @@ abstract class HttpResource extends AbstractHttpResource {
         server.expectGetBroken(getPath())
     }
 
+    void expectGetBlocking() {
+        server.expectGetBlocking(getPath())
+    }
+
     void expectGetMissing(PasswordCredentials credentials = null) {
         server.expectGetMissing(getPath(), credentials)
     }

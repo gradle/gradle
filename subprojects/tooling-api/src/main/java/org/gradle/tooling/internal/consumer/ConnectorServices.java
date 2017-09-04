@@ -22,6 +22,8 @@ import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.time.MonotonicTimeProvider;
+import org.gradle.internal.time.TimeProvider;
 import org.gradle.tooling.CancellationTokenSource;
 import org.gradle.tooling.internal.consumer.loader.CachingToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.DefaultToolingImplementationLoader;
@@ -54,6 +56,7 @@ public class ConnectorServices {
     }
 
     private static void checkJavaVersion() {
+        UnsupportedJavaRuntimeException.javaDeprecationWarning();
         UnsupportedJavaRuntimeException.assertUsingVersion("Gradle Tooling API", JavaVersion.VERSION_1_7);
     }
 
@@ -74,16 +77,20 @@ public class ConnectorServices {
             return new DefaultExecutorServiceFactory();
         }
 
-        protected DistributionFactory createDistributionFactory() {
-            return new DistributionFactory();
+        protected TimeProvider createTimeProvider() {
+            return MonotonicTimeProvider.global();
+        }
+
+        protected DistributionFactory createDistributionFactory(TimeProvider timeProvider) {
+            return new DistributionFactory(timeProvider);
         }
 
         protected ToolingImplementationLoader createToolingImplementationLoader() {
             return new SynchronizedToolingImplementationLoader(new CachingToolingImplementationLoader(new DefaultToolingImplementationLoader()));
         }
 
-        protected LoggingProvider createLoggingProvider() {
-            return new SynchronizedLogging();
+        protected LoggingProvider createLoggingProvider(TimeProvider timeProvider) {
+            return new SynchronizedLogging(timeProvider);
         }
 
         protected ConnectionFactory createConnectionFactory(ToolingImplementationLoader toolingImplementationLoader, ExecutorFactory executorFactory, LoggingProvider loggingProvider) {

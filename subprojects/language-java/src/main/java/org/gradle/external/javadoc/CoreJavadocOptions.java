@@ -98,21 +98,22 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
 
     /**
      * -overview  path\filename
+     * <p>
      * Specifies that javadoc should retrieve the text for the overview documentation from
      * the "source" file specified by path/filename and place it on the Overview page (overview-summary.html).
      * The path/filename is relative to the -sourcepath.
-     *
+     * <p>
      * While you can use any name you want for filename and place it anywhere you want for path,
      * a typical thing to do is to name it overview.html and place it in the source tree at the directory that contains the topmost package directories.
      * In this location, no path is needed when documenting packages, since -sourcepath will point to this file.
      * For example, if the source tree for the java.lang package is C:\src\classes\java\lang\,
      * then you could place the overview file at C:\src\classes\overview.html. See Real World Example.
-     *
+     * <p>
      * For information about the file specified by path/filename, see overview comment file.
-     *
+     * <p>
      * Note that the overview page is created only if you pass into javadoc two or more package names.
      * For further explanation, see HTML Frames.)
-     *
+     * <p>
      * The title on the overview page is set by -doctitle.
      */
     @Override
@@ -180,16 +181,17 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
 
     /**
      * -doclet  class
+     * <p>
      * Specifies the class file that starts the doclet used in generating the documentation. Use the fully-qualified name.
      * This doclet defines the content and formats the output. If the -doclet option is not used,
      * javadoc uses the standard doclet for generating the default HTML format.
      * This class must contain the start(Root) method.
      * The path to this starting class is defined by the -docletpath option.
-     *
+     * <p>
      * For example, to call the MIF doclet, use:
-     *
+     * <p>
      *     -doclet com.sun.tools.doclets.mif.MIFDoclet
-     *
+     * <p>
      * For full, working examples of running a particular doclet, see Running the MIF Doclet.
      */
     @Override
@@ -210,20 +212,21 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
 
     /**
      * -docletpath  classpathlist
+     * <p>
      * Specifies the path to the doclet starting class file (specified with the -doclet option) and any jar files it depends on.
      * If the starting class file is in a jar file, then this specifies the path to that jar file, as shown in the example below.
      * You can specify an absolute path or a path relative to the current directory. If classpathlist contains multiple paths or jar files,
      * they should be separated with a colon (:) on Solaris and a semi-colon (;) on Windows.
      * This option is not necessary if the doclet starting class is already in the search path.
-     *
+     * <p>
      * Example of path to jar file that contains the starting doclet class file. Notice the jar filename is included.
-     *
+     * <p>
      *    -docletpath C:/user/mifdoclet/lib/mifdoclet.jar
-     *
+     * <p>
      * Example of path to starting doclet class file. Notice the class filename is omitted.
-     *
+     * <p>
      *    -docletpath C:/user/mifdoclet/classes/com/sun/tools/doclets/mif/
-     *
+     * <p>
      * For full, working examples of running a particular doclet, see Running the MIF Doclet.
      */
     @Override
@@ -244,12 +247,14 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
 
     /**
      * -source release
+     * <p>
      * Specifies the version of source code accepted. The following values for release are allowed:
-     * 1.5  javadoc accepts code containing generics and other language features introduced in JDK 1.5.
-     * The compiler defaults to the 1.5 behavior if the -source flag is not used.
-     * 1.4  javadoc accepts code containing assertions, which were introduced in JDK 1.4.
+     * <p>
+     * 1.5  javadoc accepts code containing generics and other language features introduced in JDK 1.5.<br>
+     * The compiler defaults to the 1.5 behavior if the -source flag is not used.<br>
+     * 1.4  javadoc accepts code containing assertions, which were introduced in JDK 1.4.<br>
      * 1.3  javadoc does not support assertions, generics, or other language features introduced after JDK 1.3.
-     *
+     * <p>
      * Use the value of release corresponding to that used when compiling the code with javac.
      */
     @Override
@@ -270,24 +275,25 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
 
     /**
      * -classpath  classpathlist
+     * <p>
      * Specifies the paths where javadoc will look for referenced classes (.class files)
      * -- these are the documented classes plus any classes referenced by those classes.
      * The classpathlist can contain multiple paths by separating them with a semicolon (;).
      * The Javadoc tool will search in all subdirectories of the specified paths.
      * Follow the instructions in class path documentation for specifying classpathlist.
-     *
+     * <p>
      * If -sourcepath is omitted, the Javadoc tool uses -classpath to find the source files as well as
      * class files (for backward compatibility). Therefore, if you want to search for source and class files in separate paths,
      * use both -sourcepath and -classpath.
-     *
+     * <p>
      * For example, if you want to document com.mypackage, whose source files reside in the directory C:/user/src/com/mypackage,
      * and if this package relies on a library in C:/user/lib, you would specify:
-     *
-     *   C:> javadoc -classpath /user/lib -sourcepath /user/src com.mypackage
-     *
+     * <p>
+     *   javadoc -classpath /user/lib -sourcepath /user/src com.mypackage
+     * <p>
      * As with other tools, if you do not specify -classpath, the Javadoc tool uses the CLASSPATH environment variable,
      * if it is set. If both are not set, the Javadoc tool searches for classes from the current directory.
-     *
+     * <p>
      * For an in-depth description of how the Javadoc tool uses -classpath to find user classes as it relates to extension classes and
      * bootstrap classes, see How Classes Are Found.
      */
@@ -337,6 +343,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
 
     /**
      * -extdirs  dirlist
+     * <p>
      * Specifies the directories where extension classes reside.
      * These are any classes that use the Java Extension mechanism.
      * The extdirs is part of the search path the Javadoc tool will use to look up source and class files.
@@ -390,21 +397,23 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
 
     /**
      * -breakiterator
+     * <p>
      * Uses the internationalized sentence boundary of java.text.BreakIterator to determine the end of the first sentence
      * for English (all other locales already use BreakIterator), rather than an English language, locale-specific algorithm.
      * By first sentence, we mean the first sentence in the main description of a package, class or member.
      * This sentence is copied to the package, class or member summary, and to the alphabetic index.
-     *
+     * <p>
      * From JDK 1.2 forward, the BreakIterator class is already used to determine the end of sentence for all languages but English.
      * Therefore, the -breakiterator option has no effect except for English from 1.2 forward. English has its own default algorithm:
-     *
-     *     * English default sentence-break algorithm - Stops at a period followed by a space or a HTML block tag, such as <P>.
+     * <p>
+     *     * English default sentence-break algorithm - Stops at a period followed by a space or a HTML block tag, such as  &lt;P&gt;.
+     * <p>
      *     * Breakiterator sentence-break algorithm - In general, stops at a period,
      *       question mark or exclamation mark followed by a space if the next word starts with a capital letter.
      *       This is meant to handle most abbreviations (such as "The serial no. is valid", but won't handle "Mr. Smith").
      *       Doesn't stop at HTML tags or sentences that begin with numbers or symbols.
      *       Stops at the last period in "../filename", even if embedded in an HTML tag.
-     *
+     * <p>
      *     NOTE: We have removed from 1.5.0 the breakiterator warning messages that were in 1.4.x and
      *           have left the default sentence-break algorithm unchanged. That is, the -breakiterator option is not the default in 1.5.0,
      *           nor do we expect it to become the default. This is a reversal from our former intention that
@@ -439,14 +448,15 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
 
     /**
      * -locale  language_country_variant
+     * <p>
      *     Important - The -locale option must be placed ahead (to the left) of any options provided by the standard doclet or
      *                 any other doclet. Otherwise, the navigation bars will appear in English.
      *                 This is the only command-line option that is order-dependent.
-     *
+     * <p>
      * Specifies the locale that javadoc uses when generating documentation.
      * The argument is the name of the locale, as described in java.util.Locale documentation, such as
      * en_US (English, United States) or en_US_WIN (Windows variant).
-     *
+     * <p>
      * Specifying a locale causes javadoc to choose the resource files of that locale for messages
      * (strings in the navigation bar, headings for lists and tables, help file contents,
      * comments in stylesheet.css, and so forth).
@@ -472,8 +482,9 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
 
     /**
      * -encoding  name
+     * <p>
      * Specifies the encoding name of the source files, such as EUCJIS/SJIS. If this option is not specified, the platform default converter is used.
-     *
+     * <p>
      * Also see -docencoding and -charset.
      */
     @Override
@@ -510,20 +521,21 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
 
     /**
      * -Jflag
+     * <p>
      * Passes flag directly to the runtime system java that runs javadoc.
      * Notice there must be no space between the J and the flag. For example,
      * if you need to ensure that the system sets aside 32 megabytes of memory in which to process the generated documentation,
      * then you would call the -Xmx option of java as follows (-Xms is optional, as it only sets the size of initial memory,
      * which is useful if you know the minimum amount of memory required):
-     *
-     *    C:> javadoc -J-Xmx32m -J-Xms32m com.mypackage
-     *
+     * <p>
+     *    javadoc -J-Xmx32m -J-Xms32m com.mypackage
+     * <p>
      * To tell what version of javadoc you are using, call the "-version" option of java:
-     *
-     *    C:> javadoc -J-version
+     * <p>
+     *    javadoc -J-version
      *    java version "1.2"
      *    Classic VM (build JDK-1.2-V, green threads, sunwjit)
-     *
+     * <p>
      * (The version number of the standard doclet appears in its output stream.)
      */
     @Override
@@ -609,10 +621,10 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * Adds an option that will have multiple values joined by the provided separator.
      * <p>
      * {@code addStringsOption("foo", ",").setValue(["a", "b", "c"])} will produce the command-line
+     * </p>
      * <pre>
      *     -foo 'a,b,c'
      * </pre>
-     * </p>
      * @param option command-line option
      * @param joinBy separator
      */
@@ -624,12 +636,12 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * Adds an option that will appear multiple times to the javadoc tool. Each line can have one value.
      * <p>
      * {@code addMultilineStringsOption("foo").setValue(["a", "b", "c"])} will produce the command-line
+     * </p>
      * <pre>
      *     -foo 'a'
      *     -foo 'b'
      *     -foo 'c'
      * </pre>
-     * </p>
      * @param option command-line option
      */
     public JavadocOptionFileOption<List<String>> addMultilineStringsOption(String option) {
@@ -642,11 +654,11 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      *
      * <p>
      * {@code addMultilineMultiValueOption("foo").setValue([ ["a"], ["b", "c"] ])} will produce the command-line
+     * </p>
      * <pre>
      *     -foo 'a'
      *     -foo 'b' 'c'
      * </pre>
-     * </p>
      * @param option command-line option
      *
      * @since 3.5

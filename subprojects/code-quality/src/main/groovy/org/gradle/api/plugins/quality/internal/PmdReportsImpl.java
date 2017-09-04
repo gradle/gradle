@@ -22,11 +22,13 @@ import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport;
 import org.gradle.api.reporting.internal.TaskReportContainer;
 
-public class PmdReportsImpl extends TaskReportContainer<SingleFileReport> implements PmdReports {
+import javax.inject.Inject;
 
+public class PmdReportsImpl extends TaskReportContainer<SingleFileReport> implements PmdReports {
+    @Inject
     public PmdReportsImpl(Task task) {
         super(SingleFileReport.class, task);
-        
+
         add(TaskGeneratedSingleFileReport.class, "html", task);
         add(TaskGeneratedSingleFileReport.class, "xml", task);
     }

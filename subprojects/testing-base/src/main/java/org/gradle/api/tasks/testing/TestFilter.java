@@ -23,7 +23,7 @@ import java.util.Set;
 /**
  * Allows filtering tests for execution. Some examples:
  *
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  *   apply plugin: 'java'
  *
  *   test {

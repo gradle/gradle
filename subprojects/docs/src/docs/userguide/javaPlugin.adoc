@@ -487,10 +487,10 @@ The following table lists some of the important properties of a source set. You 
 | Not null
 | The output files of the source set, containing its compiled classes and resources.
 
-| `output.classesDir`
-| `File`
-| `__buildDir__/classes/__name__`
-| The directory to generate the classes of this source set into.
+| `output.classesDirs`
+| api:org.gradle.api.file.FileCollection[]
+| Not null
+| The directories to generate the classes of this source set into.
 
 | `output.resourcesDir`
 | `File`
@@ -516,6 +516,11 @@ The following table lists some of the important properties of a source set. You 
 | `Set&lt;File&gt;`. Can set using anything described in <<sec:specifying_multiple_files>>.
 | `[__projectDir__/src/__name__/java]`
 | The source directories containing the Java source files of this source set.
+
+| `java.outputDir`
+| `File`. Can set using anything described in <<sec:locating_files>>.
+| `__buildDir__/classes/java/__sourceSetName__`
+| The directory to generate compiled Java sources into.
 
 | `resources`
 | api:org.gradle.api.file.SourceDirectorySet[] (read-only)
@@ -687,7 +692,7 @@ The Java plugin adds a api:org.gradle.api.tasks.compile.JavaCompile[] instance f
 
 | `destinationDir`
 | `File`.
-| `__sourceSet__.output.classesDir`
+| `__sourceSet__.java.outputDir`
 |===
 
 By default, the Java compiler runs in the Gradle process. Setting `options.fork` to `true` causes compilation to occur in a separate process. In the case of the Ant javac task, this means that a new process will be forked for each compile task, which can slow down compilation. Conversely, Gradle's direct compiler integration (see above) will reuse the same compiler process as much as possible. In both cases, all fork options specified with `options.forkOptions` will be honored.
@@ -784,7 +789,7 @@ Test filtering feature has following characteristic:
 
 * Fully qualified class name or fully qualified method name is supported, e.g. “org.gradle.SomeTest”, “org.gradle.SomeTest.someMethod”
 * Wildcard '*' is supported for matching any characters
-* Command line option “--tests” is provided to conveniently set the test filter. Especially useful for the classic 'single test method execution' use case. When the command line option is used, the inclusion filters declared in the build script are ignored. It is possible to supply multiple “--tests” options and tests matching any of those patterns will be included.
+* Command line option “--tests” is provided to conveniently extend the test filter for an individual Gradle execution. This is especially useful for the classic 'single test method execution' use case. When the command line option is used, the inclusions declared in the build script are still honored. That is, the command line filters are always applied on top of the filter definition in the build script. It is possible to supply multiple “--tests” options and tests matching any of those patterns will be included.
 * Gradle tries to filter the tests given the limitations of the test framework API. Some advanced, synthetic tests may not be fully compatible with filtering. However, the vast majority of tests and use cases should be handled neatly.
 * Test filtering supersedes the file-based test selection. The latter may be completely replaced in future. We will grow the test filtering API and add more kinds of filters.
 
@@ -828,8 +833,8 @@ Setting a system property of __taskName.single__ = __testNamePattern__ will only
 * `gradle -Dtest.single=ThisUniquelyNamedTest test`
 * `gradle -Dtest.single=a/b/ test`
 * `gradle -DintegTest.single=\*IntegrationTest integTest`
-* `gradle -Dtest.single=:proj1:test:Customer build`
-* `gradle -DintegTest.single=c/d/ :proj1:integTest`
+* `gradle -D:proj1:test.single=Customer build`
+* `gradle -D:proj1:integTest.single=c/d/`
 
 
 [[sec:test_detection]]
@@ -932,9 +937,9 @@ Given a parameterized test method named `aTestMethod` that takes two parameters,
 | Type
 | Default Value
 
-| `testClassesDir`
+| `testClassesDirs`
 | `File`
-| `sourceSets.test.output.classesDir`
+| `sourceSets.test.output.classesDirs`
 
 | `classpath`
 | api:org.gradle.api.file.FileCollection[]
@@ -1000,17 +1005,22 @@ You can easily write a manifest to disk.
 How to upload your archives is described in <<artifact_management>>.
 
 [[sec:java_cross_compilation]]
-=== Compiling and testing for Java 6
+=== Compiling and testing for Java 6 or Java7
 
-Gradle can only run on Java version 7 or higher. Gradle 3.x still supports compiling, testing, generating Javadoc and executing applications for Java 6. Java 5 is not supported.
+Gradle can only run on Java version 7 or higher. However, support for running Gradle on Java 7 has been deprecated and is scheduled to be removed in Gradle 5.0. There are two reasons for deprecating support for Java 7:
 
-To use Java 6 the following tasks need to be configured:
+* Java 7 reached link:http://www.oracle.com/technetwork/java/javase/eol-135779.html[end of life]. Therefore, Oracle ceased public availability of security fixes and upgrades for Java 7 as of April 2015.
+* Once support for Java 7 has ceased (likely with Gradle 5.0), Gradle's implementation can start to use Java 8 APIs optimized for performance and usability.
+
+Gradle still supports compiling, testing, generating Javadoc and executing applications for Java 6 and Java 7. Java 5 is not supported.
+
+To use Java 6 or Java 7, the following tasks need to be configured:
 
 * `JavaCompile` task to fork and use the correct Java home
 * `Javadoc` task to use the correct `javadoc` executable
 * `Test` and the `JavaExec` task to use the correct `java` executable.
 
-The following sample shows how the `build.gradle` needs to be adjusted. In order to be able to make the build machine-independent, the location of the Java 6 home should be configured in `GRADLE_USER_HOME/gradle.properties` footnote:[For more details on `gradle.properties` see <<sec:gradle_configuration_properties>> ] in the users home directory on each developer machine, as shown in the example.
+The following sample shows how the `build.gradle` needs to be adjusted. In order to be able to make the build machine-independent, the location of the old Java home and target version should be configured in `GRADLE_USER_HOME/gradle.properties` footnote:[For more details on `gradle.properties` see <<sec:gradle_configuration_properties>> ] in the user's home directory on each developer machine, as shown in the example.
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="javaCrossCompilation" dir="java/crossCompilation" title="Configure Java 6 build">

@@ -21,6 +21,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.archive.ZipCopyAction;
 import org.gradle.api.internal.plugins.StartScriptGenerator;
 import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.internal.tasks.options.OptionValues;
@@ -161,6 +162,7 @@ public class Wrapper extends DefaultTask {
 
     private void addBuildReceipt(ZipOutputStream zipOutputStream) throws IOException {
         ZipEntry buildReceipt = new ZipEntry("build-receipt.properties");
+        buildReceipt.setTime(ZipCopyAction.CONSTANT_TIME_FOR_ZIP_ENTRIES);
         zipOutputStream.putNextEntry(buildReceipt);
         String contents = "versionNumber=" + GradleVersion.current().getVersion();
         zipOutputStream.write(contents.getBytes(StandardCharsets.ISO_8859_1));
@@ -174,7 +176,7 @@ public class Wrapper extends DefaultTask {
         wrapperProperties.put(WrapperExecutor.DISTRIBUTION_PATH_PROPERTY, distributionPath);
         wrapperProperties.put(WrapperExecutor.ZIP_STORE_BASE_PROPERTY, archiveBase.toString());
         wrapperProperties.put(WrapperExecutor.ZIP_STORE_PATH_PROPERTY, archivePath);
-        GUtil.saveProperties(wrapperProperties, propertiesFileDestination);
+        GUtil.savePropertiesNoDateComment(wrapperProperties, propertiesFileDestination);
     }
 
     /**

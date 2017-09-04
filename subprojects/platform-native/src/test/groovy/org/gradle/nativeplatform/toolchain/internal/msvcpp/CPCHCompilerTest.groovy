@@ -24,7 +24,7 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.CPCHCompileSpec
 class CPCHCompilerTest extends VisualCppNativeCompilerTest {
     @Override
     protected NativeCompiler getCompiler(CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile) {
-        return new CPCHCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, invocationContext, Transformers.noOpTransformer(), objectFileExtension, useCommandFile)
+        return new CPCHCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, invocationContext, Transformers.noOpTransformer(), objectFileExtension, useCommandFile, workerLeaseService)
     }
 
     @Override

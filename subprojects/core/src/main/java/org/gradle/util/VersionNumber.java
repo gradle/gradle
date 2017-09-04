@@ -18,7 +18,8 @@ package org.gradle.util;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Ordering;
-import org.gradle.api.Nullable;
+
+import javax.annotation.Nullable;
 
 /**
  * Represents, parses, and compares version numbers. Supports a couple of different schemes: <ul> <li>MAJOR.MINOR.MICRO-QUALIFIER (the default).</li> <li>MAJOR.MINOR.MICRO.PATCH-QUALIFIER.</li> </ul>

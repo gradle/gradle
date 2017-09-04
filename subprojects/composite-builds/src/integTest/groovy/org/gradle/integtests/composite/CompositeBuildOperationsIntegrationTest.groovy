@@ -65,19 +65,14 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         executed ":buildB:jar"
         and:
         def root = CollectionUtils.single(operations.roots())
-        assertHasChild(root, "Configure build (:buildB)")
+        assertHasChild(root, "Load build (buildB)")
+        assertHasChild(root, "Configure build (buildB)")
         assertHasChild(root, "Calculate task graph (:buildB)")
         assertHasChild(root, "Run tasks (:buildB)")
     }
 
     void assertHasChild(BuildOperationRecord root, String displayName) {
-        assert root.children.any {
-            named(it, displayName)
-        }
-    }
-
-    boolean named(BuildOperationRecord operation, String displayName) {
-        operation.displayName == displayName
+        assert root.children.collect { it.displayName }.contains(displayName)
     }
 
     def assertChildrenNotIn(BuildOperationRecord origin, BuildOperationRecord op, List<BuildOperationRecord> allOps) {

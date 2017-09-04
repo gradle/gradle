@@ -17,7 +17,7 @@ package org.gradle.api.tasks;
 
 /**
  * Executes a command line process. Example:
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * task stopTomcat(type:Exec) {
  *   workingDir '../tomcat/bin'
  *

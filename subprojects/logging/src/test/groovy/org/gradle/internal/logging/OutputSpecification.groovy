@@ -21,6 +21,7 @@ import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
+import org.gradle.internal.logging.events.UpdateNowEvent
 import org.gradle.internal.progress.BuildOperationCategory
 import org.gradle.util.TextUtil
 import spock.lang.Specification
@@ -96,20 +97,24 @@ abstract class OutputSpecification extends Specification {
         BuildOperationCategory buildOperationCategory = args.containsKey("buildOperationCategory") ? args.buildOperationCategory : BuildOperationCategory.UNCATEGORIZED
         Long id = args.containsKey("id") ? args.id : ++counter
         String category = args.containsKey("category") ? args.category : CATEGORY
-        return new ProgressStartEvent(new OperationIdentifier(id), parent, tenAm, category, args.description, args.shortDescription, args.loggingHeader, args.status, buildOperationId, parentBuildOperationId, buildOperationCategory)
+        return new ProgressStartEvent(new OperationIdentifier(id), parent, tenAm, category, args.description, args.shortDescription, args.loggingHeader, args.status, 0, buildOperationId, parentBuildOperationId, buildOperationCategory)
     }
 
     ProgressEvent progress(String status) {
         long id = counter
-        return new ProgressEvent(new OperationIdentifier(id), status)
+        return new ProgressEvent(new OperationIdentifier(id), status, false)
     }
 
     ProgressCompleteEvent complete(String status) {
         long id = counter--
-        return new ProgressCompleteEvent(new OperationIdentifier(id), tenAm, status)
+        return new ProgressCompleteEvent(new OperationIdentifier(id), tenAm, status, false)
     }
 
     ProgressCompleteEvent complete(Long id, status='STATUS') {
-        new ProgressCompleteEvent(new OperationIdentifier(id), tenAm, status)
+        new ProgressCompleteEvent(new OperationIdentifier(id), tenAm, status, false)
+    }
+
+    UpdateNowEvent updateNow() {
+        new UpdateNowEvent(tenAm)
     }
 }

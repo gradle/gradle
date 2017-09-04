@@ -27,9 +27,9 @@ import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildLayoutParameters;
-import org.gradle.initialization.DefaultParallelismConfiguration;
+import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.initialization.LayoutCommandLineConverter;
-import org.gradle.internal.concurrent.ParallelismConfiguration;
+import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.ParallelismConfigurationCommandLineConverter;
 import org.gradle.internal.Actions;
 import org.gradle.internal.buildevents.BuildExceptionReporter;
@@ -78,12 +78,12 @@ public class CommandLineActionFactory {
         LoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration();
 
         return new WithLogging(loggingServices,
-                args,
-                loggingConfiguration,
-                new ExceptionReportingAction(
-                        new JavaRuntimeValidationAction(
-                                new ParseAndBuildAction(loggingServices, args)),
-                        new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData())));
+            args,
+            loggingConfiguration,
+            new ExceptionReportingAction(
+                new JavaRuntimeValidationAction(
+                    new ParseAndBuildAction(loggingServices, args)),
+                new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData())));
     }
 
     protected void createActionFactories(ServiceRegistry loggingServices, Collection<CommandLineAction> actions) {
@@ -239,13 +239,6 @@ public class CommandLineActionFactory {
 
             LoggingManagerInternal loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
             loggingManager.setLevelInternal(loggingConfiguration.getLogLevel());
-
-            if (parallelismConfiguration.isParallelProjectExecutionEnabled()) {
-                loggingManager.setMaxWorkerCount(parallelismConfiguration.getMaxWorkerCount());
-            } else {
-                loggingManager.setMaxWorkerCount(1);
-            }
-
             loggingManager.start();
             try {
                 NativeServices.initialize(buildLayout.getGradleUserHomeDir());

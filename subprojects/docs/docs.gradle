@@ -22,6 +22,8 @@ import javax.xml.transform.TransformerFactory
 import javax.xml.transform.stream.StreamResult
 import javax.xml.transform.stream.StreamSource
 
+import org.asciidoctor.gradle.AsciidoctorPlugin
+import org.asciidoctor.gradle.AsciidoctorProxyImpl
 import org.asciidoctor.gradle.AsciidoctorTask
 import org.gradle.build.docs.UserGuideSectionVerifier
 import org.gradle.build.docs.UserGuideTransformTask
@@ -102,6 +104,7 @@ ext {
     srcDocsDir = file('src/docs')
     userguideSrcDir = new File(srcDocsDir, 'userguide')
     asciidocSanitizeStylesheet = file("$srcDocsDir/stylesheets/asciidocSanitize.xsl")
+    asciidocOutputDir = new File(buildDir, 'asciidoc/userguide')
     dslSrcDir = new File(srcDocsDir, 'dsl')
     docsDir = file("$buildDir/docs")
     userguideDir = new File(docsDir, 'userguide')
@@ -122,7 +125,37 @@ outputs.docs = files(docsDir) {
     builtBy 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes'
 }
 
-tasks.withType(AsciidoctorTask) {
+class StreamClosingAsciidoctorProxyImpl extends AsciidoctorProxyImpl {
+    @Override
+    String renderFile(File filename, Map<String, Object> options) {
+        def content = filename.text
+        options['to_file'] = filename.name.replace(".adoc", ".xml")
+        delegate.render(content, options)
+    }
+}
+
+class StreamClosingAsciidoctorTask extends AsciidoctorTask {
+
+    void processAsciidocSources() {
+        def originalCL =  Thread.currentThread().contextClassLoader
+        // This is a copy of the initialization code of the super implementation that injects our custom AsciidoctorProxy implementation
+        def classpath = project.configurations.getByName(AsciidoctorPlugin.ASCIIDOCTOR)
+        def urls = classpath.files.collect { it.toURI().toURL() }
+        def cl = new URLClassLoader(urls as URL[], Thread.currentThread().contextClassLoader)
+        Thread.currentThread().contextClassLoader = cl
+        if (!asciidoctorExtensions?.empty) {
+            Class asciidoctorExtensionsDslRegistry = cl.loadClass('org.asciidoctor.groovydsl.AsciidoctorExtensions')
+            asciidoctorExtensions.each { asciidoctorExtensionsDslRegistry.extensions(it) }
+        }
+        this.asciidoctor = new StreamClosingAsciidoctorProxyImpl(delegate: cl.loadClass(ASCIIDOCTOR_FACTORY_CLASSNAME).create(null as String))
+        super.processAsciidocSources()
+        Thread.currentThread().contextClassLoader = originalCL
+    }
+
+
+}
+
+tasks.withType(StreamClosingAsciidoctorTask) {
     backends = ['docbook']
     separateOutputDirs = false
     options doctype: 'book'
@@ -142,6 +175,8 @@ tasks.withType(AsciidoctorTask) {
             return content
         }
     }
+
+    attributes website: 'http://www.gradle.org'
 
     doLast {
         outputDir.eachFile { File file ->
@@ -169,7 +204,7 @@ tasks.withType(UserGuideTransformTask) {
     websiteUrl = 'http://www.gradle.org'
     outputs.doNotCacheIf('Has an ever changing version as an input') { true }
 
-    if (name in ["pdfUserguideDocbook", "userguideFragmentSrc"]) {
+    if (name in ["pdfUserguideDocbook"]) {
         // These will only be valid for releases, but that's ok
         javadocUrl = "http://www.gradle.org/docs/${->version}/javadoc"
         dsldocUrl = "http://www.gradle.org/docs/${->version}/dsl"
@@ -251,10 +286,10 @@ task userguideStyleSheets(type: Copy) {
 
 tasks.remove(asciidoctor)
 
-task userguideAsciidoc(type: AsciidoctorTask) {
+task userguideAsciidoc(type: StreamClosingAsciidoctorTask) {
     sourceDir = userguideSrcDir
     sources { include '*.adoc' }
-    outputDir = file("$buildDir/asciidoc/userguide")
+    outputDir = asciidocOutputDir
 }
 
 task samplesDocbook(type: AssembleSamplesDocTask) {
@@ -423,42 +458,19 @@ task javadocAll(type: Javadoc) {
     options.encoding = 'utf-8'
     options.docEncoding = 'utf-8'
     options.charSet = 'utf-8'
-    if (!java7Home && javaVersion.isJava8Compatible()) {
-        options.addStringOption 'Xdoclint:none', '-quiet'
+    if (javaVersion.isJava8Compatible()) {
+        options.addStringOption 'Xdoclint:syntax,html,reference', '-quiet'
     }
     options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
     source publicGroovyProjects.collect {project -> project.sourceSets.main.allJava }
     destinationDir = new File(docsDir, 'javadoc')
     classpath = files(publicGroovyProjects.collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.output] })
-    include 'org/gradle/*'
-    include 'org/gradle/api/**'
-    include 'org/gradle/authentication/**'
-    include 'org/gradle/buildinit/**'
-    include 'org/gradle/caching/**'
-    include 'org/gradle/external/javadoc/**'
-    include 'org/gradle/ide/**'
-    include 'org/gradle/includedbuild/**'
-    include 'org/gradle/ivy/**'
-    include 'org/gradle/jvm/**'
-    include 'org/gradle/language/**'
-    include 'org/gradle/maven/**'
-    include 'org/gradle/nativeplatform/**'
-    include 'org/gradle/normalization/**'
-    include 'org/gradle/platform/**'
-    include 'org/gradle/play/**'
-    include 'org/gradle/plugin/devel/**'
-    include 'org/gradle/plugin/repository/*'
-    include 'org/gradle/plugin/use/*'
-    include 'org/gradle/plugin/management/*'
-    include 'org/gradle/plugins/**'
-    include 'org/gradle/process/**'
-    include 'org/gradle/testfixtures/**'
-    include 'org/gradle/testing/jacoco/**'
-    include 'org/gradle/tooling/**'
-    include 'org/gradle/model/**'
-    include 'org/gradle/testkit/**'
-    include 'org/gradle/testing/**'
-    exclude '**/internal/**'
+    publicApiIncludes.each {
+        include it
+    }
+    publicApiExcludes.each {
+        exclude it
+    }
     options.links(javaApiUrl, groovyApiUrl, mavenApiUrl)
     title = "Gradle API $version"
     ext.entryPoint = "$destinationDir/index.html"
@@ -471,17 +483,11 @@ task checkstyleApi(type: Checkstyle) {
     reports.xml.destination = file("$checkstyle.reportsDir/checkstyle-api.xml")
 }
 
-task userguideFragmentSrc(type: UserGuideTransformTask, dependsOn: [userguideStyleSheets]) {
-    tags << 'standalone'
-    sourceFile = new File(userguideSrcDir, 'installation.xml')
-    destFile = new File(docbookSrc, 'installation.xml')
-}
-
 task distDocs(type: Docbook2Xhtml) {
-    source userguideFragmentSrc
+    dependsOn userguideAsciidoc
+    source new File(asciidocOutputDir, 'gettingStarted.xml')
     destFile = new File(distDocsDir, 'getting-started.html')
     stylesheetName = 'standaloneHtml.xsl'
-    outputs.doNotCacheIf('Depends on the output of userguideFragmentSrc, which contains an ever changing version') { true }
 }
 
 task userguide {

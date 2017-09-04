@@ -28,7 +28,7 @@ class SuiteTimestampIntegrationTest extends AbstractIntegrationSpec {
     void "test logging is included in XML results"() {
         file("build.gradle") << """
             apply plugin: 'java'
-                repositories { mavenCentral() }
+                ${mavenCentralRepository()}
                 dependencies { testCompile 'junit:junit:4.12' }
         """
 

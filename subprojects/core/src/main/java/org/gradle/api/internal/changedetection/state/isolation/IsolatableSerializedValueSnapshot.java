@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state.isolation;
 
-import com.google.common.hash.HashCode;
 import org.gradle.api.internal.changedetection.state.SerializedValueSnapshot;
+import org.gradle.internal.hash.HashCode;
 
 /**
  * Isolates a Serialized value and is a snapshot for that value.

@@ -15,30 +15,30 @@
  */
 package org.gradle.api.internal.tasks.compile.daemon;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.workers.internal.ActionExecutionSpec;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DefaultWorkResult;
 import org.gradle.workers.internal.SimpleActionExecutionSpec;
 import org.gradle.workers.internal.Worker;
-import org.gradle.workers.internal.WorkerDaemonServer;
 import org.gradle.workers.internal.WorkerFactory;
-import org.gradle.workers.internal.WorkerProtocol;
-import org.gradle.workers.internal.WorkerServer;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Set;
+
+import static org.gradle.process.internal.util.MergeOptionsUtil.mergeHeapSize;
+import static org.gradle.process.internal.util.MergeOptionsUtil.normalized;
 
 public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements Compiler<T> {
     private final Compiler<T> delegate;
     private final WorkerFactory workerFactory;
-    private final File executionWorkingDir;
 
-    public AbstractDaemonCompiler(File executionWorkingDir, Compiler<T> delegate, WorkerFactory workerFactory) {
-        this.executionWorkingDir = executionWorkingDir;
+    public AbstractDaemonCompiler(Compiler<T> delegate, WorkerFactory workerFactory) {
         this.delegate = delegate;
         this.workerFactory = workerFactory;
     }
@@ -49,9 +49,10 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
 
     @Override
     public WorkResult execute(T spec) {
-        DaemonForkOptions daemonForkOptions = toDaemonOptions(spec);
-        Worker<ActionExecutionSpec> worker = workerFactory.getWorker(getServerImplementation(), daemonForkOptions);
-        DefaultWorkResult result = worker.execute(new SimpleActionExecutionSpec(CompilerRunnable.class, "compiler daemon", executionWorkingDir, new Object[] {delegate, spec}));
+        InvocationContext invocationContext = toInvocationContext(spec);
+        DaemonForkOptions daemonForkOptions = invocationContext.getDaemonForkOptions();
+        Worker worker = workerFactory.getWorker(daemonForkOptions);
+        DefaultWorkResult result = worker.execute(new SimpleActionExecutionSpec(CompilerRunnable.class, "compiler daemon", invocationContext.getInvocationWorkingDir(), new Object[] {delegate, spec}));
         if (result.isSuccess()) {
             return result;
         } else {
@@ -59,18 +60,16 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
         }
     }
 
-    protected abstract DaemonForkOptions toDaemonOptions(T spec);
+    protected abstract InvocationContext toInvocationContext(T spec);
 
-    private Class<? extends WorkerProtocol<ActionExecutionSpec>> getServerImplementation() {
-        switch(workerFactory.getIsolationMode()) {
-            case NONE:
-            case CLASSLOADER:
-                return WorkerServer.class;
-            case PROCESS:
-                return WorkerDaemonServer.class;
-            default:
-                throw new IllegalArgumentException("Unknown isolation mode: " + workerFactory.getIsolationMode());
-        }
+    protected BaseForkOptions mergeForkOptions(BaseForkOptions left, BaseForkOptions right) {
+        BaseForkOptions merged = new BaseForkOptions();
+        merged.setMemoryInitialSize(mergeHeapSize(left.getMemoryInitialSize(), right.getMemoryInitialSize()));
+        merged.setMemoryMaximumSize(mergeHeapSize(left.getMemoryMaximumSize(), right.getMemoryMaximumSize()));
+        Set<String> mergedJvmArgs = normalized(left.getJvmArgs());
+        mergedJvmArgs.addAll(normalized(right.getJvmArgs()));
+        merged.setJvmArgs(Lists.newArrayList(mergedJvmArgs));
+        return merged;
     }
 
     private static class CompilerRunnable<T extends CompileSpec> implements Runnable {
@@ -86,6 +85,33 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
         @Override
         public void run() {
             compiler.execute(compileSpec);
+        }
+    }
+
+    protected static class InvocationContext {
+        private File invocationWorkingDir;
+        private DaemonForkOptions daemonForkOptions;
+
+        public InvocationContext(File invocationWorkingDir, DaemonForkOptions daemonForkOptions) {
+            this.invocationWorkingDir = invocationWorkingDir;
+            this.daemonForkOptions = daemonForkOptions;
+        }
+
+        File getInvocationWorkingDir() {
+            return invocationWorkingDir;
+        }
+
+        DaemonForkOptions getDaemonForkOptions() {
+            return daemonForkOptions;
+        }
+
+        public InvocationContext mergeWith(InvocationContext invocationContext) {
+            if (!getInvocationWorkingDir().equals(invocationContext.getInvocationWorkingDir())) {
+                throw new IllegalArgumentException("Cannot merge an InvocationContext with a different invocation working directory (this: " + getInvocationWorkingDir() + ", other: " + invocationContext.getInvocationWorkingDir() + ").");
+            }
+
+            DaemonForkOptions mergedForkOptions = getDaemonForkOptions().mergeWith(invocationContext.getDaemonForkOptions());
+            return new InvocationContext(getInvocationWorkingDir(), mergedForkOptions);
         }
     }
 }

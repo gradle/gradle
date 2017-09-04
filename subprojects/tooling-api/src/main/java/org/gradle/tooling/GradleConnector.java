@@ -36,7 +36,7 @@ import java.net.URI;
  * </ol>
  *
  * <p>Example:</p>
- * <pre autoTested=''>
+ * <pre class='autoTested'>
  * ProjectConnection connection = GradleConnector.newConnector()
  *    .forProjectDirectory(new File("someProjectFolder"))
  *    .connect();
@@ -69,7 +69,7 @@ import java.net.URI;
  *
  * <h2>Java version compatibility</h2>
  *
- * <p>The Tooling API requires Java 7 or later. The Gradle version used by builds may have additional Java version requirements.</p>
+ * <p>The Tooling API requires Java 8 or later. Java 7 is currently still supported but will be removed in Gradle 5.0. The Gradle version used by builds may have additional Java version requirements.</p>
  *
  * @since 1.0-milestone-3
  */

@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state
 
-import com.google.common.base.Charsets
-import com.google.common.hash.Hashing
 import org.gradle.api.internal.cache.StringInterner
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.Hashing
 import org.gradle.internal.serialize.SerializerSpec
 
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.ORDERED
@@ -30,15 +30,17 @@ class DefaultFileCollectionSnapshotSerializerTest extends SerializerSpec {
 
     def "reads and writes the snapshot"() {
         when:
-        def hash = Hashing.md5().hashString("foo", Charsets.UTF_8)
+        def hash = Hashing.md5().hashString("foo")
+        def combinedHash = HashCode.fromInt(11235)
         DefaultFileCollectionSnapshot out = serialize(new DefaultFileCollectionSnapshot([
             "/1": new DefaultNormalizedFileSnapshot("1", DirContentSnapshot.getInstance()),
             "/2": new DefaultNormalizedFileSnapshot("2", MissingFileContentSnapshot.getInstance()),
             "/3": new DefaultNormalizedFileSnapshot("3", new FileHashSnapshot(hash))
-        ], UNORDERED, true), serializer)
+        ], combinedHash, UNORDERED, true), serializer)
 
         then:
         out.snapshots.size() == 3
+        out.hash == combinedHash
         out.snapshots['/1'].normalizedPath == "1"
         out.snapshots['/1'].snapshot instanceof DirContentSnapshot
         out.snapshots['/2'].normalizedPath == "2"
@@ -46,13 +48,12 @@ class DefaultFileCollectionSnapshotSerializerTest extends SerializerSpec {
         out.snapshots['/3'].normalizedPath == "3"
         out.snapshots['/3'].snapshot instanceof FileHashSnapshot
         out.snapshots['/3'].snapshot.hash == hash
-        out.compareStrategy == UNORDERED
         out.pathIsAbsolute
     }
 
     def "should retain order in serialization"() {
         when:
-        def hash = Hashing.md5().hashString("foo", Charsets.UTF_8)
+        def hash = Hashing.md5().hashString("foo")
         DefaultFileCollectionSnapshot out = serialize(new DefaultFileCollectionSnapshot([
             "/3": new DefaultNormalizedFileSnapshot("3", new FileHashSnapshot(hash)),
             "/2": new DefaultNormalizedFileSnapshot("2", MissingFileContentSnapshot.getInstance()),

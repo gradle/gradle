@@ -28,15 +28,18 @@ import org.gradle.groovy.scripts.ScriptSource;
 public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
     private final DependencyManagementServices dependencyManagementServices;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
+    private final ScriptClassPathResolver scriptClassPathResolver;
     private final FileResolver fileResolver;
     private final ProjectFinder projectFinder = new UnknownProjectFinder("Cannot use project dependencies in a script classpath definition.");
 
     public DefaultScriptHandlerFactory(DependencyManagementServices dependencyManagementServices,
                                        FileResolver fileResolver,
-                                       DependencyMetaDataProvider dependencyMetaDataProvider) {
+                                       DependencyMetaDataProvider dependencyMetaDataProvider,
+                                       ScriptClassPathResolver scriptClassPathResolver) {
         this.dependencyManagementServices = dependencyManagementServices;
         this.fileResolver = fileResolver;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
+        this.scriptClassPathResolver = scriptClassPathResolver;
     }
 
     public ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoaderScope classLoaderScope) {
@@ -45,7 +48,7 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
 
     public ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoaderScope classLoaderScope, DomainObjectContext context) {
         DependencyResolutionServices services = dependencyManagementServices.create(fileResolver, dependencyMetaDataProvider, projectFinder, context);
-        return new DefaultScriptHandler(scriptSource, services, classLoaderScope);
+        return new DefaultScriptHandler(scriptSource, services, classLoaderScope, scriptClassPathResolver);
     }
 
 }

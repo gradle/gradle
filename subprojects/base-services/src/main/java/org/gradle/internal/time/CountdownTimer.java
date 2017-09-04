@@ -16,10 +16,8 @@
 
 package org.gradle.internal.time;
 
-import java.util.Date;
-
 public interface CountdownTimer extends Timer {
     boolean hasExpired();
 
-    Date getExpiryTime();
+    long getRemainingMillis();
 }

@@ -87,7 +87,7 @@ public class TestNGXmlResultAndHtmlReportIntegrationTest extends
         def buildFile = file('build.gradle')
         buildFile.text = """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies { testCompile 'org.testng:testng:6.3.1' }
 
             test {

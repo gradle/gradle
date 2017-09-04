@@ -1,18 +1,16 @@
 dependencies {
     integTestCompile libraries.groovy
-
-    integTestCompile project(':toolingApi')
-    integTestCompile project(':launcher')
-    integTestCompile project(':dependencyManagement')
-    integTestCompile project(':scala')
-    integTestCompile project(':ear')
-    integTestCompile project(':codeQuality')
-    integTestCompile project(':signing')
-    integTestCompile project(':ide')
     integTestCompile libraries.ant
     integTestCompile libraries.jsoup
 
     integTestRuntime rootProject.configurations.testRuntime.allDependencies
+
+    crossVersionTestCompile project(':scala')
+    crossVersionTestCompile project(':ide')
+    crossVersionTestCompile project(':codeQuality')
+    crossVersionTestCompile project(':signing')
+
+    crossVersionTestRuntime rootProject.configurations.testRuntime.allDependencies
 }
 useTestFixtures(sourceSet: 'integTest', project: ':diagnostics')
 useTestFixtures(sourceSet: 'integTest', project: ':platformNative')

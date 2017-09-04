@@ -23,7 +23,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import org.gradle.api.CircularReferenceException;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
@@ -44,6 +43,7 @@ import org.gradle.platform.base.internal.dependents.AbstractDependentBinariesRes
 import org.gradle.platform.base.internal.dependents.DefaultDependentBinariesResolvedResult;
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolvedResult;
 
+import javax.annotation.Nullable;
 import java.io.StringWriter;
 import java.util.ArrayDeque;
 import java.util.Collection;

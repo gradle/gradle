@@ -37,7 +37,7 @@ class PCHUtilsTest extends Specification {
         def prefixHeaderFile = new File(tempDir, "prefix-headers.h")
 
         when:
-        PCHUtils.generatePCHFile(headers, prefixHeaderFile)
+        PCHUtils.generatePrefixHeaderFile(headers, prefixHeaderFile)
 
         then:
         prefixHeaderFile.text == TextUtil.toPlatformLineSeparators(

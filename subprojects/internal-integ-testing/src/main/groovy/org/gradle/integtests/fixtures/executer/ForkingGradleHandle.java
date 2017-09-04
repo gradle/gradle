@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.PipedOutputStream;
 import java.io.PrintStream;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static java.lang.String.format;
 import static org.gradle.util.TextUtil.getPlatformLineSeparator;
@@ -44,7 +45,7 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
     private final boolean isDaemon;
 
     private final DurationMeasurement durationMeasurement;
-    private ExecHandle execHandle;
+    private AtomicReference<ExecHandle> execHandleRef = new AtomicReference<ExecHandle>();
 
     public ForkingGradleHandle(PipedOutputStream stdinPipe, boolean isDaemon, Action<ExecutionResult> resultAssertion, String outputEncoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory, DurationMeasurement durationMeasurement) {
         this.resultAssertion = resultAssertion;
@@ -74,11 +75,10 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
     }
 
     public GradleHandle start() {
-        if (execHandle != null) {
+        ExecHandle execHandle = buildExecHandle();
+        if (this.execHandleRef.getAndSet(execHandle) != null) {
             throw new IllegalStateException("you have already called start() on this handle");
         }
-
-        execHandle = buildExecHandle();
 
         printExecHandleSettings();
 
@@ -98,6 +98,7 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
     }
 
     private void printExecHandleSettings() {
+        ExecHandle execHandle = getExecHandle();
         Map<String, String> environment = execHandle.getEnvironment();
         println("Starting build with: " + execHandle.getCommand() + " " + Joiner.on(" ").join(execHandle.getArguments()));
         println("Working directory: " + execHandle.getDirectory());
@@ -156,14 +157,16 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
     }
 
     public boolean isRunning() {
+        ExecHandle execHandle = this.execHandleRef.get();
         return execHandle != null && execHandle.getState() == ExecHandleState.STARTED;
     }
 
     private ExecHandle getExecHandle() {
-        if (execHandle == null) {
+        ExecHandle handle = execHandleRef.get();
+        if (handle == null) {
             throw new IllegalStateException("you must call start() before calling this method");
         }
-        return execHandle;
+        return handle;
     }
 
     public ExecutionResult waitForFinish() {
@@ -188,22 +191,31 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
 
         String output = getStandardOutput();
         String error = getErrorOutput();
-        boolean didFail = execResult.getExitValue() != 0;
-        ExecutionResult executionResult = didFail ? toExecutionFailure(output, error) : toExecutionResult(output, error);
+        boolean processSucceeded = execResult.getExitValue() == 0;
+        ExecutionResult executionResult = processSucceeded ? toExecutionResult(output, error) : toExecutionFailure(output, error);
 
-        if (didFail != expectFailure) {
-            throw unexpectedBuildFailure(executionResult, execResult, expectFailure, output, error);
+        if (expectFailure && processSucceeded) {
+            throw unexpectedBuildStatus(execResult, output, error, "did not fail", executionResult);
+        }
+        if (!expectFailure && !processSucceeded) {
+            throw unexpectedBuildStatus(execResult, output, error, "failed", executionResult);
         }
 
         resultAssertion.execute(executionResult);
         return executionResult;
     }
 
-    private UnexpectedBuildFailure unexpectedBuildFailure(ExecutionResult executionResult, ExecResult execResult, boolean expectFailure, String output, String error) {
+    private UnexpectedBuildFailure unexpectedBuildStatus(ExecResult execResult, String output, String error, String status, ExecutionResult executionResult) {
         ExecHandle execHandle = getExecHandle();
         String message =
-            format("Gradle execution %s in %s with: %s %s%nOutput:%n%s%n-----%nError:%n%s%n-----%nExecution result:%n%s%n-----%n",
-                expectFailure ? "did not fail" : "failed", execHandle.getDirectory(), execHandle.getCommand(), execHandle.getArguments(), output, error, execResult.toString());
+            format("Gradle execution %s in %s with: %s %s%n"
+                    + "Process ExecResult:%n%s%n"
+                    + "-----%n"
+                    + "Output:%n%s%n"
+                    + "-----%n"
+                    + "Error:%n%s%n"
+                    + "-----%n",
+                status, execHandle.getDirectory(), execHandle.getCommand(), execHandle.getArguments(), execResult.toString(), output, error);
         Exception exception = executionResult instanceof OutputScrapingExecutionFailure ? ((OutputScrapingExecutionFailure) executionResult).getException() : null;
         return exception != null
             ? new UnexpectedBuildFailure(message, exception)

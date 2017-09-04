@@ -18,12 +18,8 @@ package org.gradle.smoketests
 
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
-@Requires(TestPrecondition.ONLINE)
 class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
     private static final List<String> GRACEFULLY_UNSUPPORTED = [
@@ -33,20 +29,17 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     ]
 
     private static final List<String> SUPPORTED = [
-        // "latest.integration", - needs to be updated
+        "1.8",
+        "1.9"
     ]
 
     @Unroll
-    @IgnoreIf({ BuildScanPluginSmokeTest.SUPPORTED.empty })
     "can run build with build scan plugin #version"() {
         when:
         usePluginVersion version
 
         then:
-        with(build()) {
-            output.contains("Publishing build information")
-            output.contains("https://gradle.com/s/")
-        }
+        build().output.contains("Build scan written to")
 
         where:
         version << SUPPORTED
@@ -58,13 +51,11 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         usePluginVersion version
 
         then:
-        with(buildAndFail("--scan")) {
-            output.contains("""
+        buildAndFail("--scan").output.contains("""
 > Failed to apply plugin [id 'com.gradle.build-scan']
    > This version of Gradle requires version 1.8.0 of the build scan plugin or later.
      Please see https://gradle.com/scans/help/gradle-incompatible-plugin-version for more information.
 """)
-        }
 
         where:
         version << GRACEFULLY_UNSUPPORTED
@@ -87,7 +78,6 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
             buildscript {
                 repositories {
                     maven { url "https://plugins.gradle.org/m2" }
-                    maven { url "https://repo.gradle.org/gradle/gradlecom-libs-snapshots-local" }
                 }
                 dependencies {
                     classpath "com.gradle:build-scan-plugin:${version}"
@@ -101,7 +91,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
             }
 
             apply plugin: 'java'
-            repositories { jcenter() }
+            ${jcenterRepository()}
 
             dependencies { 
                 testCompile 'junit:junit:4.12' 

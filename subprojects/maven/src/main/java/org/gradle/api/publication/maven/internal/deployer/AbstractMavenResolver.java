@@ -191,6 +191,16 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
         return pomFilterContainer.pom(name, configureClosure);
     }
 
+    @Override
+    public MavenPom pom(Action<? super MavenPom> configureAction) {
+        return pomFilterContainer.pom(configureAction);
+    }
+
+    @Override
+    public MavenPom pom(String name, Action<? super MavenPom> configureAction) {
+        return pomFilterContainer.pom(name, configureAction);
+    }
+
     public Iterable<PomFilter> getActivePomFilters() {
         return pomFilterContainer.getActivePomFilters();
     }

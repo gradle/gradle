@@ -16,16 +16,18 @@
 package org.gradle.internal.nativeintegration.filesystem.jdk7;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.file.FileMetadataSnapshot;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
-import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
-import org.gradle.internal.nativeintegration.filesystem.FileType;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 
+@SuppressWarnings("Since15")
 public class Jdk7FileMetadataAccessor implements FileMetadataAccessor {
     @Override
     public FileMetadataSnapshot stat(File f) {
@@ -44,5 +46,17 @@ public class Jdk7FileMetadataAccessor implements FileMetadataAccessor {
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+    }
+
+    @Override
+    public FileMetadataSnapshot stat(Path path) throws IOException {
+        if (!Files.exists(path)) {
+            return DefaultFileMetadata.missing();
+        }
+        BasicFileAttributes bfa = Files.readAttributes(path, BasicFileAttributes.class);
+        if (bfa.isDirectory()) {
+            return DefaultFileMetadata.directory();
+        }
+        return new DefaultFileMetadata(FileType.RegularFile, bfa.lastModifiedTime().toMillis(), bfa.size());
     }
 }

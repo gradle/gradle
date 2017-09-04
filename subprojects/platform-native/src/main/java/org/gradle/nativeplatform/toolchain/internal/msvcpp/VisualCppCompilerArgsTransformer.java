@@ -46,6 +46,12 @@ abstract class VisualCppCompilerArgsTransformer<T extends NativeCompileSpec> imp
         args.add(getLanguageOption());
         args.add("/nologo");
         args.add("/c");
+        if (spec.isDebuggable()) {
+            args.add("/Zi");
+        }
+        if (spec.isOptimized()) {
+            args.add("/O2");
+        }
     }
 
     protected void addIncludeArgs(T spec, List<String> args) {

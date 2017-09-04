@@ -17,17 +17,13 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
-import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.tasks.TaskFilePropertyBuilder;
 
 public interface TaskFilePropertyBuilderInternal extends TaskFilePropertyBuilder {
-    TaskFilePropertyBuilderInternal withSnapshotNormalizationStrategy(SnapshotNormalizationStrategy snapshotNormalizationStrategy);
+    TaskFilePropertyBuilderInternal withPathNormalizationStrategy(PathNormalizationStrategy pathNormalizationStrategy);
 
     TaskFilePropertyBuilderInternal withSnapshotter(Class<? extends FileCollectionSnapshotter> snapshotter);
-
-    @Override
-    TaskFilePropertyBuilderInternal withPathSensitivity(PathSensitivity sensitivity);
 
     @Override
     TaskFilePropertyBuilderInternal withPropertyName(String propertyName);

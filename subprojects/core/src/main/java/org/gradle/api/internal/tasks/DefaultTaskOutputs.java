@@ -25,6 +25,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Describable;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputCachingState;
@@ -38,9 +39,11 @@ import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 
+import java.io.File;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.*;
@@ -102,7 +105,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             return NO_OUTPUTS_DECLARED;
         }
 
-        TaskExecutionHistory.OverlappingOutputs overlappingOutputs = getOverlapOutputs();
+        OverlappingOutputs overlappingOutputs = getOverlappingOutputs();
         if (overlappingOutputs!=null) {
             String relativePath = task.getProject().relativePath(overlappingOutputs.getOverlappedFilePath());
             return DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS,
@@ -141,8 +144,8 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return ENABLED;
     }
 
-    private TaskExecutionHistory.OverlappingOutputs getOverlapOutputs() {
-        return history!=null ? history.getOverlappingOutputDetection() : null;
+    private OverlappingOutputs getOverlappingOutputs() {
+        return history != null ? history.getOverlappingOutputs() : null;
     }
 
     @Override
@@ -248,7 +251,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     @Override
-    public FileCollection getPreviousOutputFiles() {
+    public Set<File> getPreviousOutputFiles() {
         if (history == null) {
             throw new IllegalStateException("Task history is currently not available for this task.");
         }

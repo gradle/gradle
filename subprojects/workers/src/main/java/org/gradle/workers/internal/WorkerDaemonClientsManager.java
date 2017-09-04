@@ -31,7 +31,6 @@ import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.util.CollectionUtils;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -64,7 +63,7 @@ public class WorkerDaemonClientsManager implements Stoppable {
     }
 
     // TODO - should supply and check for the same parameters as passed to reserveNewClient()
-    public <T extends WorkSpec> WorkerDaemonClient<T> reserveIdleClient(DaemonForkOptions forkOptions) {
+    public WorkerDaemonClient reserveIdleClient(DaemonForkOptions forkOptions) {
         return reserveIdleClient(forkOptions, idleClients);
     }
 
@@ -88,9 +87,9 @@ public class WorkerDaemonClientsManager implements Stoppable {
         }
     }
 
-    public <T extends WorkSpec> WorkerDaemonClient<T> reserveNewClient(Class<? extends WorkerProtocol<T>> workerProtocolImplementationClass, File workingDir, DaemonForkOptions forkOptions) {
+    public WorkerDaemonClient reserveNewClient(Class<? extends WorkerProtocol<ActionExecutionSpec>> workerProtocolImplementationClass, DaemonForkOptions forkOptions) {
         //allow the daemon to be started concurrently
-        WorkerDaemonClient client = workerDaemonStarter.startDaemon(workerProtocolImplementationClass, workingDir, forkOptions);
+        WorkerDaemonClient client = workerDaemonStarter.startDaemon(workerProtocolImplementationClass, forkOptions);
         synchronized (lock) {
             allClients.add(client);
         }

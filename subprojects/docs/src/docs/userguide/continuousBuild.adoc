@@ -1,0 +1,125 @@
+// Copyright 2017 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[continuous_build]]
+== Continuous build
+
+
+[NOTE]
+====
+ 
+Continuous build is an <<feature_lifecycle,incubating>> feature. This means that it is incomplete and not yet at regular Gradle production quality. This also means that this Gradle User Guide chapter is a work in progress.
+ 
+====
+
+Typically, you ask Gradle to perform a single build by way of specifying tasks that Gradle should execute. Gradle will determine the actual set of tasks that need to be executed to satisfy the request, execute them all, and then stop doing work until the next request. A continuous build differs in that Gradle will keep satisfying the initial build request (until instructed to stop) by executing the build when it is detected that the result of the previous build is now out of date. For example, if your build compiles Java source files to Java class files, a continuous build would automatically initiate a compile when the source files change. Continuous build is useful for many scenarios.
+
+
+[[continuous_build_start_stop]]
+=== How do I start and stop a continuous build?
+
+A continuous build can be started by supplying either the `--continuous` or `-t` switches to Gradle, along with the list of tasks, switches and arguments that define the work to do. For example, `gradle build --continuous`. This will have the same effect as running `gradle build`, but instead of Gradle exiting when done, it will wait for changes to the build inputs. When a change occurs, `gradle build` will be automatically executed again and the process repeats.
+
+If Gradle is attached to an interactive input source, such as a terminal, the continuous build can be exited by pressing `CTRL-D` (On Microsoft Windows, it is required to also press `ENTER` or `RETURN` after `CTRL-D`). If Gradle is not attached to an interactive input source (e.g. is running as part of a script), the build process must be terminated (e.g. using the `kill` command or similar). If the build is being executed via the Tooling API, the build can be cancelled using the Tooling API's cancellation mechanism.
+
+[[continuous_build_causes]]
+=== What will cause a subsequent build?
+
+
+[TIP]
+.Task file inputs
+====
+   
+Task implementations declare their file system inputs by annotating their properties with api:org.gradle.api.tasks.InputFiles[] and other similar annotations. Please see <<sec:up_to_date_checks>> for more information.
+ 
+====
+
+At this time, only changes to task inputs are noticed. Gradle will start watching for changes just before the task starts to execute. No other changes will initiate a build. For example, changes to build scripts and build logic will not initiate build. Likewise, changes to files that are read during the configuration of the build, not the execution, will not initiate a build. In order to incorporate such changes, the continuous build must be restarted manually.
+
+Consider a typical build using the <<java_plugin,Java plugin>>, using the conventional filesystem layout. The following diagram visualizes the task graph for `gradle build`:
+
+++++
+<figure>
+            <title>Java plugin task graph</title>
+            <imageobject>
+                <imagedata fileref="img/javaPluginTasks.png"/>
+            </imageobject>
+        </figure>
+++++
+
+The following key tasks of the graph use files in the corresponding directories as inputs:
+
+compileJava::
+`src/main/java`
+processResources::
+`src/main/resources`
+compileTestJava::
+`src/test/java`
+processTestResources::
+`src/test/resources`
+
+
+Assuming that the initial build is successful (i.e. the `build` task and its dependencies complete without error), changes to files in, or the addition/remove of files from, the locations listed above will initiate a new build. If a change is made to a Java source file in `src/main/java`, the build will fire and all tasks will be scheduled. Gradle's incremental build support ensures that only the tasks that are actually affected by the change are executed.
+
+If the change to the main Java source causes compilation to fail, subsequent changes to the test source in `src/test/java` will not initiate a new build. As the test source depends on the main source, there is no point building until the main source has changed, potentially fixing the compilation error. After each build, only the inputs of the tasks that actually executed will be monitored for changes.
+
+Continuous build is in no way coupled to compilation. It works for all types of tasks. For example, the `processResources` task copies and processes the files from `src/main/resources` for inclusion in the built JAR. As such, a change to any file in this directory will also initiate a build.
+
+[[continuous_build_limitations]]
+=== Limitations and quirks
+
+There are several issues to be aware with the current implementation of continuous build. These are likely to be addressed in future Gradle releases.
+
+
+[[sec:build_cycles]]
+==== Build cycles
+
+Gradle starts watching for changes just before a task executes. If a task modifies its own inputs while executing, Gradle will detect the change and trigger a new build. If every time the task executes, the inputs are modified again, the build will be triggered again. This isn't unique to continuous build. A task that modifies its own inputs will never be considered up-to-date when run "normally" without continuous build.
+
+If your build enters a build cycle like this, you can track down the task by looking at the list of files reported changed by Gradle. After identifying the file(s) that are changed during each build, you should look for a task that has that file as an input. In some cases, it may be obvious (e.g., a Java file is compiled with `compileJava`). In other cases, you can use `--info` logging to find the task that is out-of-date due to the identified files.
+
+[[sec:continuous_build_limitations_jdk9]]
+==== Restrictions with Java 9
+
+Due to class access restrictions related to Java 9, Gradle cannot set some operating system specific options, which means that: 
+
+* On Mac OS X, Gradle will poll for file changes every 10 seconds instead of every 2 seconds.
+* On Windows, Gradle must use individual file watches (like on Linux/Mac OS), which may cause continuous build to no longer work on very large projects.
+ 
+
+[[sec:performance_and_stability]]
+==== Performance and stability
+
+The JDK file watching facility relies on inefficient file system polling on Mac OS X (see: https://bugs.openjdk.java.net/browse/JDK-7133447[JDK-7133447]). This can significantly delay notification of changes on large projects with many source files.
+
+Additionally, the watching mechanism may deadlock under _heavy_ load on Mac OS X (see: https://bugs.openjdk.java.net/browse/JDK-8079620[JDK-8079620]). This will manifest as Gradle appearing not to notice file changes. If you suspect this is occurring, exit continuous build and start again.
+
+On Linux, OpenJDK's implementation of the file watch service can sometimes miss file system events (see: https://bugs.openjdk.java.net/browse/JDK-8145981[JDK-8145981]).
+
+[[sec:changes_to_symbolic_links]]
+==== Changes to symbolic links
+
+ 
+
+* Creating or removing symbolic link to files will initiate a build.
+* Modifying the target of a symbolic link will not cause a rebuild.
+* Creating or removing symbolic links to directories will not cause rebuilds.
+* Creating new files in the target directory of a symbolic link will not cause a rebuild.
+* Deleting the target directory will not cause a rebuild.
+ 
+
+[[sec:changes_to_build_logic_are_not_considered]]
+==== Changes to build logic are not considered
+
+The current implementation does not recalculate the build model on subsequent builds. This means that changes to task configuration, or any other change to the build model, are effectively ignored.

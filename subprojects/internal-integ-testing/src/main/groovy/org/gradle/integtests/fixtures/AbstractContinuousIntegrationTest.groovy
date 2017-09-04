@@ -53,6 +53,7 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
     int shutdownTimeout = WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS
     boolean killToStop
     boolean ignoreShutdownTimeoutException
+    boolean withoutContinuousArg
     List<ExecutionResult> results = []
 
     public void turnOnDebug() {
@@ -92,6 +93,10 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
         2000
     }
 
+    protected void withoutContinuousBuild() {
+        withoutContinuousArg = true
+    }
+
     def waitAtEndOfBuildForQuietPeriod(def quietPeriodMillis) {
         // Make sure the build lasts long enough for events to propagate
         // Needs to be longer than the quiet period configured
@@ -105,14 +110,7 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
 
     @Override
     protected ExecutionResult succeeds(String... tasks) {
-        if (tasks) {
-            runBuild(tasks)
-        } else if (!gradle.isRunning()) {
-            throw new UnexpectedBuildFailure("Gradle has exited")
-        }
-        if (gradle == null) {
-            throw new UnexpectedBuildFailure("Gradle never started")
-        }
+        start(tasks)
         waitForBuild()
         if (result instanceof ExecutionFailure) {
             throw new UnexpectedBuildFailure("""build was expected to succeed but failed:
@@ -125,6 +123,17 @@ ${result.error}
 """)
         }
         result
+    }
+
+    protected void start(String... tasks) {
+        if (tasks) {
+            runBuild(tasks)
+        } else if (!gradle.isRunning()) {
+            throw new UnexpectedBuildFailure("Gradle has exited")
+        }
+        if (gradle == null) {
+            throw new UnexpectedBuildFailure("Gradle never started")
+        }
     }
 
     ExecutionFailure fails(String... tasks) {
@@ -145,12 +154,14 @@ ${result.error}
         stopGradle()
         standardOutputBuildMarker = 0
         errorOutputBuildMarker = 0
-        gradle = executer.withStdinPipe()
+        executer.withStdinPipe()
             .withTasks(tasks)
             .withForceInteractive(true)
             .withArgument("--full-stacktrace")
-            .withArgument("--continuous")
-            .start()
+        if (!withoutContinuousArg) {
+            executer.withArgument("--continuous")
+        }
+        gradle = executer.start()
     }
 
     protected OutputStream getStdinPipe() {

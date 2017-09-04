@@ -201,7 +201,7 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
         if (pidFile.exists()) {
             def pid = pidFile.text
             def jdkBinDir = new File(System.getProperty("java.home"), "../bin").canonicalFile
-            if (jdkBinDir.isDirectory()) {
+            if (jdkBinDir.isDirectory() && new File(jdkBinDir, "jstack").exists()) {
                 println "--------------------------------------------------"
                 def jstackOutput = ["${jdkBinDir}/jstack", pid].execute().text
                 println jstackOutput

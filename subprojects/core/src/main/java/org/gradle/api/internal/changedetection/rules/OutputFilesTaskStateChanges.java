@@ -17,70 +17,30 @@
 package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Maps;
-import org.gradle.api.Nullable;
-import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
-import org.gradle.api.internal.changedetection.state.OutputFilesSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.normalization.internal.InputNormalizationStrategy;
 
-import java.util.Map;
+import javax.annotation.Nullable;
+import java.util.Iterator;
 
 public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
-    private final OutputFilesSnapshotter outputSnapshotter;
 
-    public OutputFilesTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current, TaskInternal task, FileCollectionSnapshotterRegistry snapshotterRegistry, OutputFilesSnapshotter outputSnapshotter, InputNormalizationStrategy normalizationStrategy) {
-        super(task.getName(), previous, current, snapshotterRegistry, "Output", task.getOutputs().getFileProperties(), normalizationStrategy);
-        this.outputSnapshotter = outputSnapshotter;
-        detectOverlappingOutputs();
+    public OutputFilesTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current, TaskInternal task) {
+        super(previous, current, task, "Output");
     }
 
     @Override
-    public ImmutableSortedMap<String, FileCollectionSnapshot> getPrevious() {
-        return previous.getOutputFilesSnapshot();
+    protected ImmutableSortedMap<String, FileCollectionSnapshot> getSnapshot(TaskExecution execution) {
+        return execution.getOutputFilesSnapshot();
     }
 
     @Override
-    public void saveCurrent() {
-        final ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesAfter = buildSnapshots(getTaskName(), getSnapshotterRegistry(), getTitle(), getFileProperties());
-
-        ImmutableSortedMap<String, FileCollectionSnapshot> results = ImmutableSortedMap.copyOfSorted(Maps.transformEntries(getCurrent(), new Maps.EntryTransformer<String, FileCollectionSnapshot, FileCollectionSnapshot>() {
-            @Override
-            public FileCollectionSnapshot transformEntry(String propertyName, FileCollectionSnapshot beforeExecution) {
-                FileCollectionSnapshot afterExecution = outputFilesAfter.get(propertyName);
-                FileCollectionSnapshot afterPreviousExecution = getSnapshotAfterPreviousExecution(propertyName);
-                return outputSnapshotter.createOutputSnapshot(afterPreviousExecution, beforeExecution, afterExecution);
-            }
-        }));
-        current.setOutputFilesSnapshot(results);
+    public Iterator<TaskStateChange> iterator() {
+        return getFileChanges(false);
     }
 
-    private FileCollectionSnapshot getSnapshotAfterPreviousExecution(String propertyName) {
-        if (previous != null) {
-            Map<String, FileCollectionSnapshot> previousSnapshots = previous.getOutputFilesSnapshot();
-            if (previousSnapshots != null) {
-                FileCollectionSnapshot afterPreviousExecution = previousSnapshots.get(propertyName);
-                if (afterPreviousExecution != null) {
-                    return afterPreviousExecution;
-                }
-            }
-        }
-        return FileCollectionSnapshot.EMPTY;
-    }
-
-    private void detectOverlappingOutputs() {
-        for (Map.Entry<String, FileCollectionSnapshot> entry : getCurrent().entrySet()) {
-            String propertyName = entry.getKey();
-            FileCollectionSnapshot beforeExecution = entry.getValue();
-            FileCollectionSnapshot afterPreviousExecution = getSnapshotAfterPreviousExecution(propertyName);
-            TaskExecutionHistory.OverlappingOutputs overlappingOutputs = outputSnapshotter.detectOverlappingOutputs(propertyName, afterPreviousExecution, beforeExecution);
-            if (overlappingOutputs !=null) {
-                current.setDetectedOverlappingOutputs(overlappingOutputs);
-                return;
-            }
-        }
+    public boolean hasAnyChanges() {
+        return getFileChanges(true).hasNext();
     }
 }

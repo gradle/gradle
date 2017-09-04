@@ -26,7 +26,7 @@ import org.gradle.language.base.LanguageSourceSet;
  *
  * <p>An Objective-C++ source set contains a set of source files, together with an optional set of exported header files.</p>
  *
- * <pre autoTested="true">
+ * <pre class='autoTested'>
  * apply plugin: "objective-cpp"
  *
  * model {

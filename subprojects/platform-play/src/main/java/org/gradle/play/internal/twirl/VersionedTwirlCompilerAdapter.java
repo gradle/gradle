@@ -17,18 +17,38 @@
 package org.gradle.play.internal.twirl;
 
 import org.gradle.language.twirl.TwirlImports;
+import org.gradle.language.twirl.TwirlTemplateFormat;
 import org.gradle.scala.internal.reflect.ScalaMethod;
 
 import java.io.File;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
+import java.util.List;
 
-public interface VersionedTwirlCompilerAdapter extends Serializable {
-    String getDependencyNotation();
+public abstract class VersionedTwirlCompilerAdapter implements Serializable {
+    public abstract String getDependencyNotation();
 
-    ScalaMethod getCompileMethod(ClassLoader cl) throws ClassNotFoundException;
+    public abstract ScalaMethod getCompileMethod(ClassLoader cl) throws ClassNotFoundException;
 
-    Object[] createCompileParameters(ClassLoader cl, File file, File sourceDirectory, File destinationDirectory, TwirlImports defaultImports) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException;
+    public abstract Object[] createCompileParameters(ClassLoader cl, File file, File sourceDirectory, File destinationDirectory, TwirlImports defaultImports, TwirlTemplateFormat templateFormat, List<String> additionalImports) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException;
 
-    Iterable<String> getClassLoaderPackages();
+    public abstract Iterable<String> getClassLoaderPackages();
+
+    public abstract Collection<TwirlTemplateFormat> getDefaultTemplateFormats();
+
+    protected String getImportsFor(TwirlTemplateFormat templateFormat, Collection<String> defaultImports, Collection<String> additionalImports) {
+        StringBuilder sb = new StringBuilder();
+        addImports(sb, defaultImports);
+        addImports(sb, templateFormat.getTemplateImports());
+        addImports(sb, additionalImports);
+
+        return sb.toString();
+    }
+
+    private void addImports(StringBuilder sb, Collection<String> imports) {
+        for(String importPackage : imports) {
+            sb.append("import ").append(importPackage).append(";\n");
+        }
+    }
 }

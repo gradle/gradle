@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon
 
-import org.gradle.api.internal.cache.HeapProportionalCacheSizer
+import org.gradle.cache.internal.HeapProportionalCacheSizer
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.soak.categories.SoakTest
 import org.gradle.util.Requires
@@ -46,7 +46,7 @@ class AndroidDexingSoakTest extends DaemonIntegrationSpec {
 
             import com.google.common.cache.CacheBuilder
             import com.google.common.cache.Cache
-            import org.gradle.api.internal.cache.HeapProportionalCacheSizer
+            import org.gradle.cache.internal.HeapProportionalCacheSizer
 
             // create a heap-proportional cache that we can fill up over multiple builds
             class State {
@@ -82,7 +82,7 @@ class AndroidDexingSoakTest extends DaemonIntegrationSpec {
             file("inputs").deleteDir()
 
             executer.withStackTraceChecksDisabled()
-            3.times { executer.expectDeprecationWarning() }
+            executer.expectDeprecationWarnings(3)
             executer.withBuildJvmOpts("-Xmx2560m", "-D${HeapProportionalCacheSizer.CACHE_RESERVED_SYSTEM_PROPERTY}=1536")
             args('-x', 'lint')
             succeeds('clean', 'transformClassesWithDexForRelease')
@@ -190,9 +190,7 @@ class AndroidDexingSoakTest extends DaemonIntegrationSpec {
 
         buildFile << """
             buildscript {
-                repositories {
-                    jcenter()
-                }
+                ${jcenterRepository()}
 
 
                 dependencies {
@@ -228,9 +226,7 @@ class AndroidDexingSoakTest extends DaemonIntegrationSpec {
                 dexOptions.preDexLibraries=false
             }
 
-            repositories {
-                jcenter()
-            }
+            ${jcenterRepository()}
         """
     }
 

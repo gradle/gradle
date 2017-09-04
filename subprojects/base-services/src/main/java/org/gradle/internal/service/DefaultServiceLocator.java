@@ -17,7 +17,7 @@ package org.gradle.internal.service;
 
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.internal.reflect.ObjectInstantiationException;
+import org.gradle.api.reflect.ObjectInstantiationException;
 
 import java.io.BufferedReader;
 import java.io.IOException;

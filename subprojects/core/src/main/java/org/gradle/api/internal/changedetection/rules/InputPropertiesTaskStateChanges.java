@@ -17,13 +17,11 @@
 package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.GradleException;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.ValueSnapshot;
-import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
 
+import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -35,36 +33,25 @@ class InputPropertiesTaskStateChanges extends SimpleTaskStateChanges {
     private final Set<String> changed;
     private final Set<String> added;
 
-    public InputPropertiesTaskStateChanges(@Nullable TaskExecution previousExecution, TaskExecution currentExecution, TaskInternal task, ValueSnapshotter valueSnapshotter) {
+    public InputPropertiesTaskStateChanges(@Nullable TaskExecution previousExecution, TaskExecution currentExecution, TaskInternal task) {
         ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = previousExecution == null ? ImmutableSortedMap.<String, ValueSnapshot>of() : previousExecution.getInputProperties();
-        ImmutableSortedMap.Builder<String, ValueSnapshot> builder = ImmutableSortedMap.naturalOrder();
         removed = new HashSet<String>(previousInputProperties.keySet());
         changed = new HashSet<String>();
         added = new HashSet<String>();
-        for (Map.Entry<String, Object> entry : task.getInputs().getProperties().entrySet()) {
+        ImmutableSortedMap<String, ValueSnapshot> currentInputProperties = currentExecution.getInputProperties();
+        for (Map.Entry<String, ValueSnapshot> entry : currentInputProperties.entrySet()) {
             String propertyName = entry.getKey();
-            Object value = entry.getValue();
-            try {
-                removed.remove(propertyName);
-                ValueSnapshot previousSnapshot = previousInputProperties.get(propertyName);
-                if (previousSnapshot == null) {
-                    added.add(propertyName);
-                    builder.put(propertyName, valueSnapshotter.snapshot(value));
-                } else {
-                    ValueSnapshot newSnapshot = valueSnapshotter.snapshot(value, previousSnapshot);
-                    if (newSnapshot == previousSnapshot) {
-                        builder.put(propertyName, previousSnapshot);
-                    } else {
-                        changed.add(propertyName);
-                        builder.put(propertyName, valueSnapshotter.snapshot(value));
-                    }
+            ValueSnapshot currentSnapshot = entry.getValue();
+            removed.remove(propertyName);
+            ValueSnapshot previousSnapshot = previousInputProperties.get(propertyName);
+            if (previousSnapshot == null) {
+                added.add(propertyName);
+            } else {
+                if (!currentSnapshot.equals(previousSnapshot)) {
+                    changed.add(propertyName);
                 }
-            } catch (Exception e) {
-                throw new GradleException(String.format("Unable to store input properties for %s. Property '%s' with value '%s' cannot be serialized.", task, propertyName, value), e);
             }
         }
-
-        currentExecution.setInputProperties(builder.build());
         this.task = task;
     }
 

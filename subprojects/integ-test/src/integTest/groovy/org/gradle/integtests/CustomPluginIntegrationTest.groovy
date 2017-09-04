@@ -158,7 +158,7 @@ class CustomPluginTest {
 
         buildFile << """
 apply plugin: 'groovy'
-repositories { mavenCentral() }
+${mavenCentralRepository()}
 dependencies {
     compile gradleApi()
     compile localGroovy()
@@ -199,7 +199,7 @@ class CustomPluginTest {
 
         buildFile << """
 apply plugin: 'groovy'
-repositories { mavenCentral() }
+${mavenCentralRepository()}
 dependencies {
     compile gradleApi()
     compile localGroovy()

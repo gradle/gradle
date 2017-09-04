@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.model.RuleSource;
@@ -25,6 +24,8 @@ import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistryScope;
+
+import javax.annotation.Nullable;
 
 public class RuleBasedPluginTarget<T extends ModelRegistryScope & PluginAwareInternal> implements PluginTarget {
 

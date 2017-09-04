@@ -29,7 +29,6 @@ import org.gradle.api.internal.classpath.PluginModuleRegistry
 import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
-import org.gradle.api.internal.hash.FileHasher
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.api.internal.project.DefaultProjectRegistry
 import org.gradle.api.internal.project.IProjectFactory
@@ -49,13 +48,14 @@ import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.initialization.ClassLoaderRegistry
 import org.gradle.initialization.DefaultGradlePropertiesLoader
 import org.gradle.initialization.IGradlePropertiesLoader
-import org.gradle.initialization.ProjectPropertySettingBuildLoader
+import org.gradle.initialization.NotifyingBuildLoader
 import org.gradle.internal.Factory
 import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
@@ -64,6 +64,7 @@ import org.gradle.internal.operations.logging.BuildOperationLoggerFactory
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.time.TimeProvider
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.plugin.repository.internal.PluginRepositoryFactory
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry
@@ -87,6 +88,7 @@ class BuildScopeServicesTest extends Specification {
     BuildScopeServices registry
 
     def setup() {
+        sessionServices.get(TimeProvider) >> Mock(TimeProvider)
         sessionServices.getFactory(CacheFactory) >> cacheFactoryFactory
         cacheFactoryFactory.create() >> cacheFactory
         sessionServices.get(ClassLoaderRegistry) >> classLoaderRegistry
@@ -232,7 +234,7 @@ class BuildScopeServicesTest extends Specification {
         setup:
         expectParentServiceLocated(Instantiator)
         expect:
-        assertThat(registry.get(BuildLoader), instanceOf(ProjectPropertySettingBuildLoader))
+        assertThat(registry.get(BuildLoader), instanceOf(NotifyingBuildLoader))
         assertThat(registry.get(BuildLoader), sameInstance(registry.get(BuildLoader)))
     }
 

@@ -21,7 +21,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.ParallelismConfiguration;
+import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.time.Timers;
@@ -31,7 +31,7 @@ import org.gradle.internal.work.WorkerLeaseService;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.gradle.internal.time.Clock.prettyTime;
+import static org.gradle.internal.time.DefaultEventTimer.prettyTime;
 
 class DefaultTaskPlanExecutor implements TaskPlanExecutor {
     private static final Logger LOGGER = Logging.getLogger(DefaultTaskPlanExecutor.class);

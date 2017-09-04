@@ -16,67 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.collect.Maps;
-import org.gradle.api.internal.cache.StringInterner;
-
-import java.util.List;
-import java.util.Map;
-
-/**
- * Used to build a {@link FileCollectionSnapshot} by collecting normalized file snapshots.
- */
-public class FileCollectionSnapshotBuilder implements FileSnapshotVisitor {
-    private final Map<String, NormalizedFileSnapshot> snapshots = Maps.newLinkedHashMap();
-    private final SnapshotNormalizationStrategy snapshotNormalizationStrategy;
-    private final StringInterner stringInterner;
-    private final TaskFilePropertyCompareStrategy compareStrategy;
-
-    public FileCollectionSnapshotBuilder(TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy, StringInterner stringInterner) {
-        this.snapshotNormalizationStrategy = snapshotNormalizationStrategy;
-        this.stringInterner = stringInterner;
-        this.compareStrategy = compareStrategy;
-    }
-
-    @Override
-    public void visitFileTreeSnapshot(List<FileSnapshot> descendants) {
-        for (FileSnapshot fileSnapshot : descendants) {
-            collectFileSnapshot(fileSnapshot);
-        }
-    }
-
-    @Override
-    public void visitDirectorySnapshot(DirectoryFileSnapshot directory) {
-        collectFileSnapshot(directory);
-    }
-
-    @Override
-    public void visitFileSnapshot(RegularFileSnapshot file) {
-        collectFileSnapshot(file);
-    }
-
-    @Override
-    public void visitMissingFileSnapshot(MissingFileSnapshot missingFile) {
-        collectFileSnapshot(missingFile);
-    }
-
-    protected void collectFileSnapshot(FileSnapshot fileSnapshot) {
-        String absolutePath = fileSnapshot.getPath();
-        if (!snapshots.containsKey(absolutePath)) {
-            NormalizedFileSnapshot normalizedSnapshot = snapshotNormalizationStrategy.getNormalizedSnapshot(fileSnapshot, stringInterner);
-            collectNormalizedFileSnapshot(absolutePath, normalizedSnapshot);
-        }
-    }
-
-    public void collectNormalizedFileSnapshot(String absolutePath, NormalizedFileSnapshot normalizedSnapshot) {
-        if (normalizedSnapshot != null && !snapshots.containsKey(absolutePath)) {
-            snapshots.put(absolutePath, normalizedSnapshot);
-        }
-    }
-
-    public FileCollectionSnapshot build() {
-        if (snapshots.isEmpty()) {
-            return FileCollectionSnapshot.EMPTY;
-        }
-        return new DefaultFileCollectionSnapshot(snapshots, compareStrategy, snapshotNormalizationStrategy.isPathAbsolute());
-    }
+public interface FileCollectionSnapshotBuilder {
+    FileCollectionSnapshot build();
 }

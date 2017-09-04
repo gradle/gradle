@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.reflect
 
+import org.gradle.api.reflect.ObjectInstantiationException
 import spock.lang.Specification
 
 class DirectInstantiatorTest extends Specification {

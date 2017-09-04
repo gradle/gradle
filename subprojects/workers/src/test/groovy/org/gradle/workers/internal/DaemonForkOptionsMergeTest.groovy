@@ -16,29 +16,30 @@
 
 package org.gradle.workers.internal
 
+import org.gradle.api.internal.file.TestFiles
+import org.gradle.process.JavaForkOptions
+import org.gradle.process.internal.DefaultJavaForkOptions
 import spock.lang.Specification
 
+import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
+
 class DaemonForkOptionsMergeTest extends Specification {
-    DaemonForkOptions options1 = new DaemonForkOptions("200m", "1g", [" -Dfork=true ", "-Xdebug=false"],
-        [new File("lib/lib1.jar"), new File("lib/lib2.jar")], ["foo.bar", "baz.bar"], KeepAliveMode.SESSION)
-    DaemonForkOptions options2 = new DaemonForkOptions("1g", "2000m", ["-XX:MaxHeapSize=300m", "-Dfork=true"],
-        [new File("lib/lib2.jar"), new File("lib/lib3.jar")], ["baz.bar", "other"], KeepAliveMode.SESSION)
+    JavaForkOptions forkOptions = javaForkOptions {
+        workingDir = systemSpecificAbsolutePath("foo")
+    }
+    DaemonForkOptions options1 = new DaemonForkOptionsBuilder(TestFiles.resolver())
+        .javaForkOptions(forkOptions)
+        .classpath([new File("lib/lib1.jar"), new File("lib/lib2.jar")])
+        .sharedPackages(["foo.bar", "baz.bar"])
+        .keepAliveMode(KeepAliveMode.SESSION)
+        .build()
+    DaemonForkOptions options2 = new DaemonForkOptionsBuilder(TestFiles.resolver())
+        .javaForkOptions(forkOptions)
+        .classpath([new File("lib/lib2.jar"), new File("lib/lib3.jar")])
+        .sharedPackages(["baz.bar", "other"])
+        .keepAliveMode(KeepAliveMode.SESSION)
+        .build()
     DaemonForkOptions merged = options1.mergeWith(options2)
-
-    def "takes highest minHeapSize"() {
-        expect:
-        merged.minHeapSize == "1024m"
-    }
-
-    def "takes highest maxHeapSize"() {
-        expect:
-        merged.maxHeapSize == "2000m"
-    }
-
-    def "concatenates jvmArgs (retaining order, eliminating duplicates)"() {
-        expect:
-        merged.jvmArgs as List == ["-Dfork=true", "-Xdebug=false", "-XX:MaxHeapSize=300m"]
-    }
 
     def "concatenates classpath (retaining order, eliminating duplicates)"() {
         expect:
@@ -50,14 +51,57 @@ class DaemonForkOptionsMergeTest extends Specification {
         merged.sharedPackages as List == ["foo.bar", "baz.bar", "other"]
     }
 
+    def "can merge with different java fork options"() {
+        forkOptions = javaForkOptions {
+            workingDir = systemSpecificAbsolutePath("foo")
+            minHeapSize = "256m"
+            maxHeapSize = "1024m"
+            jvmArgs = ["-server", "-verbose:gc"]
+        }
+        def forkOptions2 = javaForkOptions {
+            workingDir = systemSpecificAbsolutePath("foo")
+            minHeapSize = "128m"
+            maxHeapSize = "2g"
+            debug = true
+            jvmArgs = ["-Xverify:none", "-server"]
+        }
+        options1 = new DaemonForkOptionsBuilder(TestFiles.resolver())
+            .javaForkOptions(forkOptions)
+            .classpath([new File("lib/lib1.jar"), new File("lib/lib2.jar")])
+            .sharedPackages(["foo.bar", "baz.bar"])
+            .build()
+        options2 = new DaemonForkOptionsBuilder(TestFiles.resolver())
+            .javaForkOptions(forkOptions2)
+            .classpath([new File("lib/lib2.jar"), new File("lib/lib3.jar")])
+            .sharedPackages(["baz.bar", "other"])
+            .build()
+        merged = options1.mergeWith(options2)
+
+        expect:
+        merged.javaForkOptions.minHeapSize == "256m"
+        merged.javaForkOptions.maxHeapSize == "2048m"
+        merged.javaForkOptions.jvmArgs == ["-server", "-verbose:gc", "-Xverify:none"]
+        merged.javaForkOptions.debug
+    }
+
     def "throws an exception when merging options with different keepAlive modes"() {
-        options2 = new DaemonForkOptions("1g", "2000m", ["-XX:MaxHeapSize=300m", "-Dfork=true"],
-            [new File("lib/lib2.jar"), new File("lib/lib3.jar")], ["baz.bar", "other"], KeepAliveMode.DAEMON)
+        options2 = new DaemonForkOptionsBuilder(TestFiles.resolver())
+            .javaForkOptions(forkOptions)
+            .classpath([new File("lib/lib2.jar"), new File("lib/lib3.jar")])
+            .sharedPackages(["baz.bar", "other"])
+            .keepAliveMode(KeepAliveMode.DAEMON)
+            .build()
 
         when:
         options1.mergeWith(options2)
 
         then:
         thrown(IllegalArgumentException)
+    }
+
+    JavaForkOptions javaForkOptions(Closure closure) {
+        JavaForkOptions options = new DefaultJavaForkOptions(TestFiles.resolver())
+        options.with(closure)
+        return options
     }
 }

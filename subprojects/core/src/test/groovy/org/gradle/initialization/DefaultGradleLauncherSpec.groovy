@@ -32,8 +32,8 @@ import org.gradle.configuration.BuildConfigurer
 import org.gradle.execution.BuildConfigurationActionExecuter
 import org.gradle.execution.BuildExecuter
 import org.gradle.execution.TaskGraphExecuter
-import org.gradle.includedbuild.internal.IncludedBuildControllers
-import org.gradle.internal.concurrent.ParallelExecutionManager
+import org.gradle.composite.internal.IncludedBuildControllers
+import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
@@ -49,12 +49,13 @@ import spock.lang.Specification
 import static org.gradle.util.Path.path
 
 class DefaultGradleLauncherSpec extends Specification {
-    def initScriptHandlerMock = Mock(InitScriptHandler.class)
-    def settingsLoaderMock = Mock(SettingsLoader.class)
-    def taskExecuterMock = Mock(TaskGraphExecuter.class)
-    def buildConfigurerMock = Mock(BuildConfigurer.class)
-    def buildBroadcaster = Mock(BuildListener.class)
-    def buildExecuter = Mock(BuildExecuter.class)
+    def initScriptHandlerMock = Mock(InitScriptHandler)
+    def settingsLoaderMock = Mock(SettingsLoader)
+    def buildLoaderMock = Mock(BuildLoader)
+    def taskExecuterMock = Mock(TaskGraphExecuter)
+    def buildConfigurerMock = Mock(BuildConfigurer)
+    def buildBroadcaster = Mock(BuildListener)
+    def buildExecuter = Mock(BuildExecuter)
     def buildConfigurationActionExecuter = Mock(BuildConfigurationActionExecuter.class)
     def buildScopeServices = Mock(ServiceRegistry)
     def taskArtifactStateCacheAccess = Mock(TaskHistoryStore)
@@ -73,7 +74,7 @@ class DefaultGradleLauncherSpec extends Specification {
     private BuildCompletionListener buildCompletionListener = Mock(BuildCompletionListener.class)
     private TestBuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
     private ResourceLockCoordinationService coordinationService = new DefaultResourceLockCoordinationService()
-    private WorkerLeaseService workerLeaseService = new DefaultWorkerLeaseService(coordinationService, parallelExecutionManager())
+    private WorkerLeaseService workerLeaseService = new DefaultWorkerLeaseService(coordinationService, new ParallelismConfigurationManagerFixture(true, 1))
     private BuildScopeServices buildServices = Mock(BuildScopeServices.class)
     private Stoppable otherService = Mock(Stoppable)
     private IncludedBuildControllers includedBuildControllers = Mock()
@@ -127,7 +128,7 @@ class DefaultGradleLauncherSpec extends Specification {
     }
 
     DefaultGradleLauncher launcher() {
-        return new DefaultGradleLauncher(gradleMock, initScriptHandlerMock, settingsLoaderMock,
+        return new DefaultGradleLauncher(gradleMock, initScriptHandlerMock, settingsLoaderMock, buildLoaderMock,
             buildConfigurerMock, exceptionAnalyserMock, buildBroadcaster,
             modelListenerMock, buildCompletionListener, buildOperationExecutor, buildConfigurationActionExecuter, buildExecuter,
             buildServices, [otherService])
@@ -142,11 +143,10 @@ class DefaultGradleLauncherSpec extends Specification {
         expectTasksRun()
         expectBuildListenerCallbacks()
         DefaultGradleLauncher gradleLauncher = launcher()
-        BuildResult buildResult = gradleLauncher.run()
+        GradleInternal result = gradleLauncher.executeTasks()
 
         then:
-        buildResult.getGradle() is gradleMock
-        buildResult.failure == null
+        result == gradleMock
         expectedBuildOperationsFired()
 
     }
@@ -161,17 +161,17 @@ class DefaultGradleLauncherSpec extends Specification {
         expectTasksRun()
         expectBuildListenerCallbacks()
         DefaultGradleLauncher gradleLauncher = launcher()
-        BuildResult buildResult = gradleLauncher.run()
+        GradleInternal result = gradleLauncher.executeTasks()
 
         then:
-        buildResult.getGradle() is gradleMock
-        buildResult.failure == null
+        result == gradleMock
 
         and:
-        assert buildOperationExecutor.operations.size() == 3
-        assert buildOperationExecutor.operations[0].displayName == "Configure build (:nested)"
-        assert buildOperationExecutor.operations[1].displayName == "Calculate task graph (:nested)"
-        assert buildOperationExecutor.operations[2].displayName == "Run tasks (:nested)"
+        assert buildOperationExecutor.operations.size() == 4
+        assert buildOperationExecutor.operations[0].displayName == "Load build (:nested)"
+        assert buildOperationExecutor.operations[1].displayName == "Configure build (:nested)"
+        assert buildOperationExecutor.operations[2].displayName == "Calculate task graph (:nested)"
+        assert buildOperationExecutor.operations[3].displayName == "Run tasks (:nested)"
     }
 
     void testGetBuildAnalysis() {
@@ -181,14 +181,15 @@ class DefaultGradleLauncherSpec extends Specification {
         expectSettingsBuilt()
         expectBuildListenerCallbacks()
 
+        1 * buildLoaderMock.load(settingsMock, gradleMock)
         1 * buildConfigurerMock.configure(gradleMock)
 
         DefaultGradleLauncher gradleLauncher = launcher()
-        BuildResult buildResult = gradleLauncher.getBuildAnalysis()
+        def result = gradleLauncher.getConfiguredBuild()
+        gradleLauncher.finishBuild()
 
         then:
-        buildResult.getGradle() is gradleMock
-        buildResult.failure == null
+        result == gradleMock
     }
 
     void testNotifiesListenerOfBuildAnalysisStages() {
@@ -201,7 +202,8 @@ class DefaultGradleLauncherSpec extends Specification {
 
         then:
         DefaultGradleLauncher gradleLauncher = launcher()
-        gradleLauncher.getBuildAnalysis()
+        gradleLauncher.getConfiguredBuild()
+        gradleLauncher.finishBuild()
     }
 
     void testNotifiesListenerOfBuildStages() {
@@ -215,7 +217,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
         then:
         DefaultGradleLauncher gradleLauncher = launcher()
-        gradleLauncher.run()
+        gradleLauncher.executeTasks()
     }
 
     void testNotifiesListenerOnBuildListenerFailure() {
@@ -226,7 +228,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
         when:
         DefaultGradleLauncher gradleLauncher = launcher()
-        gradleLauncher.run()
+        gradleLauncher.executeTasks()
 
         then:
         def t = thrown ReportedException
@@ -245,7 +247,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
         when:
         DefaultGradleLauncher gradleLauncher = launcher()
-        gradleLauncher.run()
+        gradleLauncher.executeTasks()
 
         then:
         def t = thrown ReportedException
@@ -268,7 +270,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
         when:
         DefaultGradleLauncher gradleLauncher = launcher()
-        gradleLauncher.run()
+        gradleLauncher.executeTasks()
 
         then:
         def t = thrown ReportedException
@@ -287,15 +289,16 @@ class DefaultGradleLauncherSpec extends Specification {
     }
 
     private void expectedBuildOperationsFired() {
-        assert buildOperationExecutor.operations.size() == 3
-        assert buildOperationExecutor.operations[0].displayName == "Configure build"
-        assert buildOperationExecutor.operations[1].displayName == "Calculate task graph"
-        assert buildOperationExecutor.operations[2].displayName == "Run tasks"
+        assert buildOperationExecutor.operations.size() == 4
+        assert buildOperationExecutor.operations[0].displayName == "Load build"
+        assert buildOperationExecutor.operations[1].displayName == "Configure build"
+        assert buildOperationExecutor.operations[2].displayName == "Calculate task graph"
+        assert buildOperationExecutor.operations[3].displayName == "Run tasks"
     }
 
     private void isNestedBuild() {
         _ * gradleMock.parent >> Mock(GradleInternal)
-        _ * gradleMock.identityPath >> path(":nested")
+        _ * gradleMock.findIdentityPath() >> path(":nested")
     }
 
     private void isRootBuild() {
@@ -328,11 +331,5 @@ class DefaultGradleLauncherSpec extends Specification {
 
     private void expectTasksRunWithFailure(final Throwable failure) {
         1 * buildExecuter.execute(gradleMock) >> { throw failure }
-    }
-
-    ParallelExecutionManager parallelExecutionManager() {
-        return Stub(ParallelExecutionManager) {
-            getParallelismConfiguration() >> new DefaultParallelismConfiguration(true, 1)
-        }
     }
 }

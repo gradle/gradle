@@ -694,9 +694,15 @@ abstract class AbstractWaitAction extends AbstractAsyncAction {
 class WaitForAsyncCallback extends AbstractWaitAction {
     private boolean callbackCompleted
     private Runnable callback
+    private int waitTimeMillis = 500
 
     WaitForAsyncCallback(ConcurrentTestUtil owner) {
         super(owner)
+    }
+
+    WaitForAsyncCallback withWaitTime(int waitTimeMillis) {
+        this.waitTimeMillis = waitTimeMillis
+        return this
     }
 
     /**
@@ -708,7 +714,7 @@ class WaitForAsyncCallback extends AbstractWaitAction {
         startBlockingAction(action)
         waitForCallbackToBeRegistered()
 
-        Thread.sleep(500)
+        Thread.sleep(waitTimeMillis)
 
         assertBlocked()
         runCallbackAction()

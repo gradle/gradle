@@ -1,17 +1,17 @@
 task originalInputs() {
     doLast {
         file('inputs').mkdir()
-        file('inputs/1.txt').text = "Content for file 1."
-        file('inputs/2.txt').text = "Content for file 2."
-        file('inputs/3.txt').text = "Content for file 3."
+        file('inputs/1.txt').text = 'Content for file 1.'
+        file('inputs/2.txt').text = 'Content for file 2.'
+        file('inputs/3.txt').text = 'Content for file 3.'
     }
 }
 
 // START SNIPPET updated-inputs
 task updateInputs() {
     doLast {
-        file('inputs/1.txt').text = "Changed content for existing file 1."
-        file('inputs/4.txt').text = "Content for new file 4."
+        file('inputs/1.txt').text = 'Changed content for existing file 1.'
+        file('inputs/4.txt').text = 'Content for new file 4.'
     }
 }
 // END SNIPPET updated-inputs
@@ -36,7 +36,7 @@ task removeOutput() {
 task incrementalReverse(type: IncrementalReverseTask) {
     inputDir = file('inputs')
     outputDir = file("$buildDir/outputs")
-    inputProperty = project.properties['taskInputProperty'] ?: "original"
+    inputProperty = project.properties['taskInputProperty'] ?: 'original'
 }
 // END SNIPPET reverse
 
@@ -53,8 +53,8 @@ class IncrementalReverseTask extends DefaultTask {
 
     @TaskAction
     void execute(IncrementalTaskInputs inputs) {
-        println inputs.incremental ? "CHANGED inputs considered out of date"
-                                   : "ALL inputs considered out of date"
+        println inputs.incremental ? 'CHANGED inputs considered out of date'
+                                   : 'ALL inputs considered out of date'
         // START SNIPPET handle-non-incremental-inputs
         if (!inputs.incremental)
             project.delete(outputDir.listFiles())

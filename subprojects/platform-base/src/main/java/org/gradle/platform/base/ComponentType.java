@@ -30,7 +30,7 @@ import java.lang.annotation.Target;
  * {@link ComponentType} annotation.
  * Furthermore the plugin creates an instance of SampleComponent named 'sampleComponent'.
  *
- * <pre autoTested='true'>
+ * <pre class='autoTested'>
  * interface SampleComponent extends ComponentSpec {}
  * class DefaultSampleComponent extends BaseComponentSpec implements SampleComponent {}
  *

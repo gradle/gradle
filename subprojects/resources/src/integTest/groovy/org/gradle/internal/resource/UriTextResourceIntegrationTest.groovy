@@ -17,14 +17,14 @@
 package org.gradle.internal.resource
 
 import org.gradle.api.resources.MissingResourceException
-import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.Specification
 
 class UriTextResourceIntegrationTest extends Specification {
 
     @Rule
-    final HttpServer server = new HttpServer()
+    final BlockingHttpServer server = new BlockingHttpServer()
 
     def "has no content when using HTTP URI and file does not exist"() {
         given:
@@ -34,14 +34,14 @@ class UriTextResourceIntegrationTest extends Specification {
         UriTextResource resource = new UriTextResource('<display-name>', new URI(fullURI))
 
         when:
-        server.expectGetMissing(unknownPath)
+        server.expect(server.missing(unknownPath))
         boolean exists = resource.exists
 
         then:
         !exists
 
         when:
-        server.expectGetMissing(unknownPath)
+        server.expect(server.missing(unknownPath))
         resource.text
 
         then:

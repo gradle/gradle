@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.maven;
 
 import groovy.lang.Closure;
+import groovy.lang.GroovyObject;
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -53,10 +54,32 @@ public interface MavenPom {
      * }
      * </pre>
      *
-     * @param pom
      * @return this
      */
     MavenPom project(Closure pom);
+
+    /**
+     * Provides a builder for the Maven POM for adding or modifying properties of the Maven {@link #getModel()}.
+     * The syntax is exactly the same as used by polyglot Maven. For example:
+     *
+     * <pre>
+     * pom.project {
+     *    inceptionYear '2008'
+     *    licenses {
+     *       license {
+     *          name 'The Apache Software License, Version 2.0'
+     *          url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+     *          distribution 'repo'
+     *       }
+     *    }
+     * }
+     * </pre>
+     *
+     * @return this
+     *
+     * @since 4.2
+     */
+    MavenPom project(Action<? super GroovyObject> pom);
 
     /**
      * Returns the group id for this POM.
@@ -75,7 +98,7 @@ public interface MavenPom {
 
     /**
      * Returns the artifact id for this POM.
-     * 
+     *
      * @see org.apache.maven.model.Model#getArtifactId()
      */
     String getArtifactId();
@@ -128,7 +151,7 @@ public interface MavenPom {
 
     /**
      * Returns the dependencies for this POM.
-     * 
+     *
      * @see org.apache.maven.model.Model#getDependencies()
      */
     List<?> getDependencies();
@@ -146,9 +169,8 @@ public interface MavenPom {
     /**
      * Sets the underlying native Maven {@link org.apache.maven.model.Model} object.
      *
-     * @param model
      * @return this
-     * @see #getModel() 
+     * @see #getModel()
      */
     MavenPom setModel(Object model);
 

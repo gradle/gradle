@@ -17,9 +17,9 @@
 package org.gradle.composite.internal;
 
 import com.google.common.collect.Maps;
-import org.gradle.includedbuild.IncludedBuild;
-import org.gradle.includedbuild.internal.IncludedBuilds;
+import org.gradle.api.initialization.IncludedBuild;
 
+import java.util.Collection;
 import java.util.Map;
 
 public class DefaultIncludedBuilds implements IncludedBuilds {
@@ -30,7 +30,7 @@ public class DefaultIncludedBuilds implements IncludedBuilds {
     }
 
     @Override
-    public Iterable<IncludedBuild> getBuilds() {
+    public Collection<IncludedBuild> getBuilds() {
         return builds.values();
     }
 

@@ -16,12 +16,10 @@
 
 package org.gradle.launcher.daemon.configuration;
 
-import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.process.internal.CurrentProcess;
 import org.gradle.process.internal.JvmOptions;
 
-import java.util.List;
 import java.util.Properties;
 
 public class BuildProcess extends CurrentProcess {
@@ -41,14 +39,11 @@ public class BuildProcess extends CurrentProcess {
     public boolean configureForBuild(DaemonParameters requiredBuildParameters) {
         boolean javaHomeMatch = getJvm().equals(requiredBuildParameters.getEffectiveJvm());
 
-        final JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
-        jvmOptions.systemProperties(getJvmOptions().getImmutableSystemProperties());
-        List<String> currentImmutables = jvmOptions.getAllImmutableJvmArgs();
-        List<String> requiredImmutables = requiredBuildParameters.getEffectiveSingleUseJvmArgs();
-        requiredImmutables.removeAll(DaemonParameters.DEFAULT_JVM_ARGS);
-
-        boolean noImmutableJvmArgsRequired = requiredImmutables.equals(currentImmutables);
-        if (javaHomeMatch && noImmutableJvmArgsRequired) {
+        boolean immutableJvmArgsMatch = true;
+        if (requiredBuildParameters.hasUserDefinedImmutableJvmArgs()) {
+            immutableJvmArgsMatch = getJvmOptions().getAllImmutableJvmArgs().equals(requiredBuildParameters.getEffectiveSingleUseJvmArgs());
+        }
+        if (javaHomeMatch && immutableJvmArgsMatch) {
             // Set the system properties and use this process
             Properties properties = new Properties();
             properties.putAll(requiredBuildParameters.getEffectiveSystemProperties());

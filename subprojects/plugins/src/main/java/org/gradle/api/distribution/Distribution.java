@@ -56,7 +56,7 @@ public interface Distribution extends Named {
      * Configures the contents of the distribution.
      * <p>
      * Can be used to configure the contents of the distribution:
-     * <pre autoTested=''>
+     * <pre class='autoTested'>
      * apply plugin: "distribution"
      *
      * distributions {

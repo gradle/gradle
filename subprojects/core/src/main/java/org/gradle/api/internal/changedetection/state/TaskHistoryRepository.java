@@ -15,8 +15,11 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.Nullable;
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
+
+import javax.annotation.Nullable;
 
 public interface TaskHistoryRepository {
     History getHistory(TaskInternal task);
@@ -27,6 +30,10 @@ public interface TaskHistoryRepository {
 
         TaskExecution getCurrentExecution();
 
-        void update();
+        void updateCurrentExecution(IncrementalTaskInputsInternal taskInputs);
+
+        void updateCurrentExecutionWithOutputs(IncrementalTaskInputsInternal taskInputs, ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot);
+
+        void persist();
     }
 }

@@ -16,11 +16,13 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services;
 
+import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
-import org.gradle.internal.nativeintegration.filesystem.FileMetadataSnapshot;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 
 public class FallbackFileMetadataAccessor implements FileMetadataAccessor {
     @Override
@@ -32,5 +34,11 @@ public class FallbackFileMetadataAccessor implements FileMetadataAccessor {
             return DefaultFileMetadata.directory();
         }
         return DefaultFileMetadata.file(f.lastModified(), f.length());
+    }
+
+    @Override
+    @SuppressWarnings("Since15")
+    public FileMetadataSnapshot stat(Path path) throws IOException {
+        return stat(path.toFile());
     }
 }

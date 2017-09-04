@@ -16,6 +16,10 @@
 
 package org.gradle.cache.internal
 
+import org.gradle.cache.FileAccess
+import org.gradle.cache.FileIntegrityViolationException
+import org.gradle.cache.FileLock
+import org.gradle.cache.FileLockManager
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 
@@ -56,7 +60,19 @@ abstract class DefaultFileLockManagerTestHelper {
             }
         }, new NoOpFileLockContentionHandler())
     }
-    
+
+    static DefaultFileLockManager createDefaultFileLockManager(int timeout) {
+        new DefaultFileLockManager(new ProcessMetaDataProvider() {
+            String getProcessIdentifier() {
+                return "pid"
+            }
+
+            String getProcessDisplayName() {
+                return "process"
+            }
+        }, timeout, new NoOpFileLockContentionHandler())
+    }
+
     static FileLock createDefaultFileLock(File file, FileLockManager.LockMode mode = FileLockManager.LockMode.Exclusive, DefaultFileLockManager manager = createDefaultFileLockManager()) {
         manager.lock(file, LockOptionsBuilder.mode(mode), "test lock")
     }

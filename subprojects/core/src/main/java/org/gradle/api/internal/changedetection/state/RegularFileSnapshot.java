@@ -16,20 +16,20 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.hash.HashCode;
 import org.gradle.api.file.RelativePath;
-import org.gradle.internal.nativeintegration.filesystem.FileType;
+import org.gradle.internal.file.FileType;
+import org.gradle.internal.hash.HashCode;
 
 /**
  * Snapshot for a regular file.
  */
-class RegularFileSnapshot implements FileSnapshot {
+public class RegularFileSnapshot implements FileSnapshot {
     private final String path;
     private final RelativePath relativePath;
     private final boolean root;
     private final FileContentSnapshot content;
 
-    RegularFileSnapshot(String path, RelativePath relativePath, boolean root, FileContentSnapshot content) {
+    public RegularFileSnapshot(String path, RelativePath relativePath, boolean root, FileContentSnapshot content) {
         this.path = path;
         this.relativePath = relativePath;
         this.root = root;
