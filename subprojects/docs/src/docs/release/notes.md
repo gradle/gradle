@@ -159,15 +159,15 @@ In this release of Gradle, API methods have been added to allow a plugin author 
 
 #### Declaring the output of a task as a publish artifact
 
-Plugins use the [publish artifacts DSL](userguide/artifact_management.html#sec:declaring_artifacts) to declare that a particular file or directory is an output of a project. Gradle then makes these outputs available to other projects, through project dependencies, composite builds or when publishing the project to a Maven or Ivy repository. Usually these outputs are the result of running a particular task. However, in previous versions of Gradle, it was not possible to declare the output of a task as an artifact in a way that handles changes to the build directory and other configuration that is made _after_ the plugin is applied.
+Plugins use the [publish artifacts DSL](userguide/artifact_management.html#sec:declaring_artifacts) to declare that a particular file or directory is an output of a project. Gradle then makes these outputs available to other projects, through project dependencies, composite builds or by publishing the project to a Maven or Ivy repository. Usually these outputs are the result of running a particular task. However, in previous versions of Gradle, it was not possible to declare the output of a task as an artifact in a way that handles changes to the build directory and other configuration that is made _after_ the plugin is applied.
 
-In this release, the publish artifact DSL now accepts [`Provider`](javadoc/org/gradle/api/provider/Provider.html) instances with `File`, [`RegularFile`](javadoc/org/gradle/api/file/RegularFile.html) or [`Directory`](javadoc/org/gradle/api/file/Directory.html) values. This allows a plugin author to easily wire up a particular task output as an artifact in a way that respects configuration changes. See the [ArtifactHandler](dsl/org.gradle.api.artifacts.dsl.ArtifactHandler.html) DSL reference for more details.
+In this release, the publish artifact DSL now accepts [`Provider`](javadoc/org/gradle/api/provider/Provider.html) instances with `File`, [`RegularFile`](javadoc/org/gradle/api/file/RegularFile.html) or [`Directory`](javadoc/org/gradle/api/file/Directory.html) values. This allows a plugin author to easily wire up a particular task output as an artifact in a way that respects later configuration changes. See the [ArtifactHandler](dsl/org.gradle.api.artifacts.dsl.ArtifactHandler.html) DSL reference for more details.
 
 #### Groovy DSL support for properties of type `PropertyState`
 
 The last several releases of Gradle have added new features for plugin authors that based on the [`Provider<T>`](javadoc/org/gradle/api/provider/Provider.html) and [`PropertyState<T>`](javadoc/org/gradle/api/provider/PropertyState.html) types. This version of Gradle adds some DSL conveniences for working with these types.
 
-The Groovy DSL now adds convenience methods to set the value of a property whose type is `PropertyState<T>` using any value of `T` or a `Provider<T>`. This makes the DSL clearer when configuring such a property, including wiring the output of one task in as the input of some other task or setting output locations relative to some configurable value, such as the build directory.  
+The Groovy DSL now adds convenience methods to set the value of a property whose type is `PropertyState<T>` using any value of `T` or a `Provider<T>`. This makes the DSL clearer when configuring such a property, including wiring the output of one task in as the input of some other task or setting output locations relative to some configurable value, such as the build directory. See the [example in the user guide](userguide/custom_plugins.html#sec:mapping_extension_properties_to_task_properties).
 
 ### UX improvements
 
