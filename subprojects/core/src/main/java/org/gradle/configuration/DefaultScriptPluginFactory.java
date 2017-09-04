@@ -24,6 +24,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -46,6 +47,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -63,6 +65,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ScriptCompilerFactory scriptCompilerFactory;
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
     private final Instantiator instantiator;
+    private final ScriptHandlerFactory scriptHandlerFactory;
     private final PluginRequestApplicator pluginRequestApplicator;
     private final FileLookup fileLookup;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
@@ -76,11 +79,13 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final TextResourceLoader textResourceLoader;
     private final StreamHasher streamHasher;
     private final FileHasher fileHasher;
-    private final ScriptApplicator scriptApplicator;
+    private ScriptPluginFactory scriptPluginFactory;
+    private final BuildOperationExecutor buildOperationExecutor;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
                                       Factory<LoggingManagerInternal> loggingManagerFactory,
                                       Instantiator instantiator,
+                                      ScriptHandlerFactory scriptHandlerFactory,
                                       PluginRequestApplicator pluginRequestApplicator,
                                       FileLookup fileLookup,
                                       DirectoryFileTreeFactory directoryFileTreeFactory,
@@ -92,10 +97,11 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       TextResourceLoader textResourceLoader,
                                       StreamHasher streamHasher,
                                       FileHasher fileHasher,
-                                      ScriptApplicator scriptApplicator) {
+                                      BuildOperationExecutor buildOperationExecutor) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.loggingManagerFactory = loggingManagerFactory;
         this.instantiator = instantiator;
+        this.scriptHandlerFactory = scriptHandlerFactory;
         this.pluginRequestApplicator = pluginRequestApplicator;
         this.fileLookup = fileLookup;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
@@ -105,9 +111,14 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.pluginRepositoryFactory = pluginRepositoryFactory;
         this.providerFactory = providerFactory;
         this.textResourceLoader = textResourceLoader;
-        this.scriptApplicator = scriptApplicator;
+        this.buildOperationExecutor = buildOperationExecutor;
+        this.scriptPluginFactory = this;
         this.streamHasher = streamHasher;
         this.fileHasher = fileHasher;
+    }
+
+    public void setScriptPluginFactory(ScriptPluginFactory scriptPluginFactory) {
+        this.scriptPluginFactory = scriptPluginFactory;
     }
 
     public ScriptPlugin create(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope targetScope, ClassLoaderScope baseScope, boolean topLevelScript) {
@@ -139,7 +150,10 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                     return fileLookup.getFileResolver().getPatternSetFactory();
                 }
             };
-            services.add(ScriptApplicator.class, scriptApplicator);
+            //TODO:rbo remove ScriptPluginFactory and ScriptHandlerFactory dependencies from here
+            services.add(ScriptPluginFactory.class, scriptPluginFactory);
+            services.add(ScriptHandlerFactory.class, scriptHandlerFactory);
+            services.add(ScriptApplicator.class, new DefaultScriptApplicator(scriptPluginFactory, scriptHandlerFactory, buildOperationExecutor));
             services.add(ClassLoaderScope.class, baseScope);
             services.add(LoggingManagerInternal.class, loggingManagerFactory.create());
             services.add(Instantiator.class, instantiator);

@@ -16,7 +16,6 @@
 
 package org.gradle.configuration;
 
-import com.google.common.base.Supplier;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
@@ -27,11 +26,11 @@ import javax.annotation.Nullable;
 
 public class DefaultScriptApplicator implements ScriptApplicator {
 
-    private final Supplier<ScriptPluginFactory> scriptFactory;
+    private final ScriptPluginFactory scriptFactory;
     private final ScriptHandlerFactory scriptHandlerFactory;
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public DefaultScriptApplicator(Supplier<ScriptPluginFactory> scriptFactory, ScriptHandlerFactory scriptHandlerFactory, BuildOperationExecutor buildOperationExecutor) {
+    public DefaultScriptApplicator(ScriptPluginFactory scriptFactory, ScriptHandlerFactory scriptHandlerFactory, BuildOperationExecutor buildOperationExecutor) {
         this.scriptFactory = scriptFactory;
         this.scriptHandlerFactory = scriptHandlerFactory;
         this.buildOperationExecutor = buildOperationExecutor;
@@ -53,7 +52,7 @@ public class DefaultScriptApplicator implements ScriptApplicator {
 
     private ScriptPlugin scriptPluginFor(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope targetScope, ClassLoaderScope baseScope, boolean topLevelScript) {
         ScriptHandler effectiveScriptHandler = scriptHandler != null ? scriptHandler : scriptHandlerFor(scriptSource, targetScope);
-        ScriptPlugin scriptPlugin = scriptFactory.get().create(scriptSource, effectiveScriptHandler, targetScope, baseScope, topLevelScript);
+        ScriptPlugin scriptPlugin = scriptFactory.create(scriptSource, effectiveScriptHandler, targetScope, baseScope, topLevelScript);
         return new BuildOperationScriptPlugin(scriptPlugin, buildOperationExecutor);
     }
 

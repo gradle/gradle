@@ -16,7 +16,6 @@
 
 package org.gradle.internal.service.scopes;
 
-import com.google.common.base.Supplier;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
@@ -282,10 +281,11 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected ScriptPluginFactorySelector createScriptPluginFactory(ScriptingLanguages scriptingLanguages, InstantiatorFactory instantiatorFactory) {
-        return new ScriptPluginFactorySelector(
-            defaultScriptPluginFactory(),
-            scriptingLanguages,
-            ScriptPluginFactorySelector.defaultProviderInstantiatorFor(instantiatorFactory.inject(this)));
+        DefaultScriptPluginFactory defaultScriptPluginFactory = defaultScriptPluginFactory();
+        ScriptPluginFactorySelector.ProviderInstantiator instantiator = ScriptPluginFactorySelector.defaultProviderInstantiatorFor(instantiatorFactory.inject(this));
+        ScriptPluginFactorySelector scriptPluginFactorySelector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, scriptingLanguages, instantiator);
+        defaultScriptPluginFactory.setScriptPluginFactory(scriptPluginFactorySelector);
+        return scriptPluginFactorySelector;
     }
 
     private DefaultScriptPluginFactory defaultScriptPluginFactory() {
@@ -293,6 +293,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(ScriptCompilerFactory.class),
             getFactory(LoggingManagerInternal.class),
             get(Instantiator.class),
+            get(ScriptHandlerFactory.class),
             get(PluginRequestApplicator.class),
             get(FileLookup.class),
             get(DirectoryFileTreeFactory.class),
@@ -304,7 +305,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(TextResourceLoader.class),
             get(StreamHasher.class),
             get(FileHasher.class),
-            get(ScriptApplicator.class));
+            get(BuildOperationExecutor.class));
     }
 
     protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, NestedBuildFactory nestedBuildFactory,
@@ -338,8 +339,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    protected ScriptApplicator createScriptApplicator(ServiceRegistry serviceRegistry, ScriptHandlerFactory scriptHandlerFactory, BuildOperationExecutor buildOperationExecutor) {
-        return new DefaultScriptApplicator(supplierOf(ScriptPluginFactory.class, serviceRegistry), scriptHandlerFactory, buildOperationExecutor);
+    protected ScriptApplicator createScriptApplicator(ScriptPluginFactory scriptFactory, ScriptHandlerFactory scriptHandlerFactory, BuildOperationExecutor buildOperationExecutor) {
+        return new DefaultScriptApplicator(scriptFactory, scriptHandlerFactory, buildOperationExecutor);
     }
 
     protected SettingsProcessor createSettingsProcessor(Instantiator instantiator,
@@ -442,14 +443,5 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             registryAction.execute(registry);
         }
         return registry;
-    }
-
-    private <T> Supplier<T> supplierOf(final Class<T> serviceType, final ServiceRegistry serviceRegistry) {
-        return new Supplier<T>() {
-            @Override
-            public T get() {
-                return serviceRegistry.get(serviceType);
-            }
-        };
     }
 }
