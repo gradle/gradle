@@ -31,10 +31,10 @@ import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.execution.MultipleBuildFailures;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileMetadataSnapshot;
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -229,7 +229,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
 
     private class FileVisitorImpl implements FileVisitor {
         private final static int BATCH_SIZE = 32;
-        private final ArrayList<FileSnapshot> fileTreeElements;
+        private final ArrayList<Object> fileTreeElements;
         private final Runnable[] buffer;
         private int bufferSize;
         private boolean completed;
@@ -246,10 +246,6 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
 
         @Override
         public void visitFile(final FileVisitDetails fileDetails) {
-            visitFileBuffered(fileDetails);
-        }
-
-        private void visitFileBuffered(final FileVisitDetails fileDetails) {
             final DeferredFileSnapshot deferred = new DeferredFileSnapshot(fileDetails);
             buffer[bufferSize++] = deferred;
             fileTreeElements.add(deferred);
@@ -260,18 +256,18 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
 
         public List<FileSnapshot> getElements() {
             if (completed) {
-                return fileTreeElements;
+                return Cast.uncheckedCast(fileTreeElements);
             }
             flush();
             int i = 0;
-            for (FileSnapshot element : fileTreeElements) {
+            for (Object element : fileTreeElements) {
                 if (element instanceof DeferredFileSnapshot) {
                     fileTreeElements.set(i, ((DeferredFileSnapshot) element).getResult());
                 }
                 i++;
             }
             completed = true;
-            return fileTreeElements;
+            return Cast.uncheckedCast(fileTreeElements);
 
         }
 
@@ -334,7 +330,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
         executorService.shutdown();
     }
 
-    private class DeferredFileSnapshot implements FileSnapshot, Runnable {
+    private class DeferredFileSnapshot implements Runnable {
         private final Object lock = new Object();
         private final FileVisitDetails details;
         private FileSnapshot delegate;
@@ -354,45 +350,6 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter, Clos
                 }
             }
             return delegate;
-        }
-
-        private IllegalStateException shouldNotBeCalled() {
-            return new IllegalStateException("Method called before the snapshot has been computed.");
-        }
-
-        @Override
-        public String getPath() {
-            throw shouldNotBeCalled();
-        }
-
-        @Override
-        public String getName() {
-            throw shouldNotBeCalled();
-        }
-
-        @Override
-        public FileType getType() {
-            throw shouldNotBeCalled();
-        }
-
-        @Override
-        public boolean isRoot() {
-            throw shouldNotBeCalled();
-        }
-
-        @Override
-        public RelativePath getRelativePath() {
-            throw shouldNotBeCalled();
-        }
-
-        @Override
-        public FileContentSnapshot getContent() {
-            throw shouldNotBeCalled();
-        }
-
-        @Override
-        public FileSnapshot withContentHash(HashCode contentHash) {
-            throw shouldNotBeCalled();
         }
 
         @Override
