@@ -17,15 +17,14 @@ package org.gradle.initialization;
 
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.internal.time.MonotonicTimeProvider;
-import org.gradle.util.Clock;
 
 public class DefaultBuildRequestMetaData implements BuildRequestMetaData {
     private final BuildClientMetaData clientMetaData;
-    private final Clock clock;
+    private final long startTime;
 
     public DefaultBuildRequestMetaData(BuildClientMetaData clientMetaData, long startTime) {
         this.clientMetaData = clientMetaData;
-        this.clock = new Clock(startTime);
+        this.startTime = startTime;
     }
 
     public DefaultBuildRequestMetaData(long startTime) {
@@ -33,15 +32,20 @@ public class DefaultBuildRequestMetaData implements BuildRequestMetaData {
     }
 
     public DefaultBuildRequestMetaData(BuildClientMetaData buildClientMetaData) {
-        this.clientMetaData = buildClientMetaData;
-        this.clock = new Clock(MonotonicTimeProvider.global().getCurrentTime());
+        this(buildClientMetaData, MonotonicTimeProvider.global().getCurrentTime());
     }
 
     public BuildClientMetaData getClient() {
         return clientMetaData;
     }
 
-    public Clock getBuildTimeClock() {
-        return clock;
+    @SuppressWarnings("deprecation")
+    public org.gradle.util.Clock getBuildTimeClock() {
+        return new org.gradle.util.Clock(startTime);
+    }
+
+    @Override
+    public long getStartTime() {
+        return 0;
     }
 }

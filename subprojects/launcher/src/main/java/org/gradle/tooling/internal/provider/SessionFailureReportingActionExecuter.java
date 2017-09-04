@@ -71,7 +71,7 @@ public class SessionFailureReportingActionExecuter implements BuildExecuter {
             } catch (Throwable innerFailure) {
                 LOGGER.error("Failed to analyze exception", innerFailure);
             }
-            BuildExecutionTimer buildExecutionTimer = new BuildExecutionTimer(new DefaultEventTimer(requestContext.getBuildTimeClock().getStartTime()));
+            BuildExecutionTimer buildExecutionTimer = new BuildExecutionTimer(new DefaultEventTimer(requestContext.getStartTime()));
             BuildLogger buildLogger = new BuildLogger(Logging.getLogger(ServicesSetupBuildActionExecuter.class), styledTextOutputFactory, action.getStartParameter(), requestContext, buildExecutionTimer);
             buildLogger.buildFinished(new BuildResult(null, failure));
             throw new ReportedException(failure);

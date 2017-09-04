@@ -46,7 +46,7 @@ public class ServicesSetupBuildActionExecuter implements BuildExecuter {
         ServiceRegistry userHomeServices = userHomeServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
 
         BuildExecutionTimer buildExecutionTimer = new BuildExecutionTimer(
-            new DefaultEventTimer(requestContext.getBuildTimeClock().getStartTime())
+            new DefaultEventTimer(requestContext.getStartTime())
         );
 
         try {

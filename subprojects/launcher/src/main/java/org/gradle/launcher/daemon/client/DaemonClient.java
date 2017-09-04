@@ -137,7 +137,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         for (int i = 1; i < saneNumberOfAttempts; i++) {
             final DaemonClientConnection connection = connector.connect(compatibilitySpec);
             try {
-                Build build = new Build(buildId, connection.getDaemon().getToken(), action, requestContext.getClient(), requestContext.getBuildTimeClock().getStartTime(), parameters);
+                Build build = new Build(buildId, connection.getDaemon().getToken(), action, requestContext.getClient(), requestContext.getStartTime(), parameters);
                 return executeBuild(build, connection, requestContext.getCancellationToken(), requestContext.getEventConsumer());
             } catch (DaemonInitialConnectException e) {
                 // this exception means that we want to try again.
@@ -149,8 +149,8 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         }
 
         throw new NoUsableDaemonFoundException("Unable to find a usable idle daemon. I have connected to "
-                + saneNumberOfAttempts + " different daemons but I could not use any of them to run the build. BuildActionParameters were "
-                + parameters + ".", accumulatedExceptions);
+            + saneNumberOfAttempts + " different daemons but I could not use any of them to run the build. BuildActionParameters were "
+            + parameters + ".", accumulatedExceptions);
     }
 
     protected Object executeBuild(Build build, DaemonClientConnection connection, BuildCancellationToken cancellationToken, BuildEventConsumer buildEventConsumer) throws DaemonInitialConnectException {
@@ -215,7 +215,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
                 } else if (object instanceof OutputMessage) {
                     outputEventListener.onOutput(((OutputMessage) object).getEvent());
                 } else if (object instanceof BuildEvent) {
-                    buildEventConsumer.dispatch(((BuildEvent)object).getPayload());
+                    buildEventConsumer.dispatch(((BuildEvent) object).getPayload());
                 } else {
                     return object;
                 }
@@ -231,17 +231,17 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         //if he's really dead we should deregister it if it is not already deregistered.
         //if the daemon is not dead we might continue receiving from him (and try to find the bug in messaging infrastructure)
         LOGGER.error("The message received from the daemon indicates that the daemon has disappeared."
-                     + "\nBuild request sent: {}"
-                     + "\nAttempting to read last messages from the daemon log...",  build);
+            + "\nBuild request sent: {}"
+            + "\nAttempting to read last messages from the daemon log...", build);
 
         LOGGER.error(diagnostics.describe());
         throw new DaemonDisappearedException();
     }
 
     private IllegalStateException invalidResponse(Object response, Build command, DaemonDiagnostics diagnostics) {
-        String diagnosticsMessage = diagnostics==null ? "No diagnostics available." : diagnostics.describe();
+        String diagnosticsMessage = diagnostics == null ? "No diagnostics available." : diagnostics.describe();
         return new IllegalStateException(String.format(
-                "Received invalid response from the daemon: '%s' is a result of a type we don't have a strategy to handle. "
+            "Received invalid response from the daemon: '%s' is a result of a type we don't have a strategy to handle. "
                 + "Earlier, '%s' request was sent to the daemon. Diagnostics:\n%s", response, command, diagnosticsMessage));
     }
 }
