@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
+import java.nio.charset.Charset;
 
 /**
  * A {@link TextResource} implementation backed by a {@link UriTextResource}. This helps hide the internal details about file caching.
@@ -43,5 +44,16 @@ public class DownloadedUriTextResource extends UriTextResource {
         String charset = extractCharacterEncoding(contentType, DEFAULT_ENCODING);
         InputStream inputStream = new FileInputStream(downloadedResource);
         return new InputStreamReader(inputStream, charset);
+    }
+
+    @Override
+    public File getFile() {
+        return downloadedResource;
+    }
+
+    @Override
+    public Charset getCharset() {
+        String charset = extractCharacterEncoding(contentType, DEFAULT_ENCODING);
+        return Charset.isSupported(charset) ? Charset.forName(charset) : Charset.forName(DEFAULT_ENCODING);
     }
 }

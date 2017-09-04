@@ -29,19 +29,25 @@ import org.gradle.internal.resource.TextResource;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
-import java.net.URI;
 import java.nio.charset.Charset;
 
 /**
- * A text resource that is backed by an URI and an internal {@link TextResource}.
+ * A {@link org.gradle.api.resources.TextResource} that has a wrapped {@link TextResource} internaly
  */
-public class UriBackedTextResource implements TextResourceInternal {
-    private final URI uri;
+public class WrappedInternalTextResource implements TextResourceInternal {
+    private final Object inputProperties;
     private final TextResource textResource;
     private final TemporaryFileProvider tempFileProvider;
 
-    public UriBackedTextResource(URI uri, TextResource textResource, TemporaryFileProvider tempFileProvider) {
-        this.uri = uri;
+    /**
+     * Create a {@link org.gradle.api.resources.TextResource} backed by an internal {@link TextResource}.
+     *
+     * @param textResource the internal resource
+     * @param tempFileProvider the temporary file provider
+     * @param inputProperties the input properties for the resource
+     */
+    public WrappedInternalTextResource(TextResource textResource, TemporaryFileProvider tempFileProvider, Object inputProperties) {
+        this.inputProperties = inputProperties;
         this.textResource = textResource;
         this.tempFileProvider = tempFileProvider;
     }
@@ -62,7 +68,12 @@ public class UriBackedTextResource implements TextResourceInternal {
             Charset targetCharsetObj = Charset.forName(targetCharset);
 
             File file = textResource.getFile();
-            if (file == null || targetCharsetObj.equals(textResource.getCharset())) {
+            if (file == null) {
+                file = tempFileProvider.createTemporaryFile("wrappedInternalText", ".txt", "resource");
+                Files.write(textResource.getText(), file, Charset.forName(targetCharset));
+                return file;
+            }
+            if (targetCharsetObj.equals(textResource.getCharset())) {
                 return file;
             }
 
@@ -85,7 +96,7 @@ public class UriBackedTextResource implements TextResourceInternal {
 
     @Override
     public Object getInputProperties() {
-        return uri;
+        return inputProperties;
     }
 
     @Override

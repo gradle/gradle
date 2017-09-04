@@ -25,7 +25,7 @@ import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 
 @Issue("gradle/gradle#2663")
-class UriBackedTextResourceTest extends AbstractTextResourceTest {
+class WrappedInternalTextResourceTest extends AbstractTextResourceTest {
 
     TextResource textResource = Mock(TextResource)
 
@@ -35,11 +35,11 @@ class UriBackedTextResourceTest extends AbstractTextResourceTest {
 
         textResource.getFile() >>> [file, null]
         textResource.getDisplayName() >> "Text resource display name"
-        textResource.getText() >> "contents"
+        textResource.getText() >>> ["contents", "more contents"]
         textResource.getCharset() >> StandardCharsets.UTF_8
         textResource.getAsReader() >> new InputStreamReader(new FileInputStream(file), Charset.defaultCharset())
 
-        resource = new UriBackedTextResource(new URI("http://www.gradle.org/unknown.txt"), textResource, project.services.get(TemporaryFileProvider))
+        resource = new WrappedInternalTextResource(textResource, project.services.get(TemporaryFileProvider), new URI("http://www.gradle.org/unknown.txt"),)
     }
 
     def "get display name"() {
@@ -69,7 +69,8 @@ class UriBackedTextResourceTest extends AbstractTextResourceTest {
 
     def "read as file when file in depending resource is null"() {
         expect:
+        resource.asString() == "contents"
         resource.asFile().text == "contents"
-        resource.asFile() == null
+        resource.asFile().text == "more contents"
     }
 }

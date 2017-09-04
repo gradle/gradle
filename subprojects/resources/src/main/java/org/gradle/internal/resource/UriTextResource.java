@@ -266,7 +266,7 @@ public class UriTextResource implements TextResource {
         @Nullable
         @Override
         public File getFile() {
-            return sourceFile;
+            return UriTextResource.this.getFile();
         }
 
         @Override
