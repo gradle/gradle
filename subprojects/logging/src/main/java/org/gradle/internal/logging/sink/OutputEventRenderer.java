@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.sink;
 
+import com.google.common.collect.Lists;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
@@ -35,12 +36,15 @@ import org.gradle.internal.logging.console.StyledTextOutputBackedRenderer;
 import org.gradle.internal.logging.console.ThrottlingOutputEventListener;
 import org.gradle.internal.logging.console.WorkInProgressRenderer;
 import org.gradle.internal.logging.events.EndOutputEvent;
+import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
+import org.gradle.internal.logging.events.UserInputRequestEvent;
+import org.gradle.internal.logging.events.UserInputResumeEvent;
 import org.gradle.internal.logging.format.PrettyPrefixedLogHeaderFormatter;
 import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
 import org.gradle.internal.logging.text.StreamingStyledTextOutput;
@@ -50,6 +54,8 @@ import org.gradle.internal.time.TimeProvider;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.PrintStream;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -77,7 +83,9 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         OutputEventListener stdOutChain = new LazyListener(new Factory<OutputEventListener>() {
             @Override
             public OutputEventListener create() {
-                return onNonError(new BuildLogLevelFilterRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false)));
+                return onNonError(new UserInputStandardOutputRenderer(
+                    new BuildLogLevelFilterRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false)))
+                );
             }
         });
         formatters.add(stdOutChain);
@@ -210,12 +218,14 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
 
     public OutputEventRenderer addConsole(Console console, boolean stdout, boolean stderr, ConsoleMetaData consoleMetaData) {
         final OutputEventListener consoleChain = new ThrottlingOutputEventListener(
-            new BuildStatusRenderer(
-                new WorkInProgressRenderer(
-                    new BuildLogLevelFilterRenderer(
-                        new GroupingProgressLogEventGenerator(new StyledTextOutputBackedRenderer(console.getBuildOutputArea()), timeProvider, new PrettyPrefixedLogHeaderFormatter(), false)),
-                    console.getBuildProgressArea(), new DefaultWorkInProgressFormatter(consoleMetaData), new ConsoleLayoutCalculator(consoleMetaData)),
-                console.getStatusBar(), console, consoleMetaData, timeProvider),
+            new UserInputConsoleRenderer(
+                new BuildStatusRenderer(
+                    new WorkInProgressRenderer(
+                        new BuildLogLevelFilterRenderer(
+                            new GroupingProgressLogEventGenerator(new StyledTextOutputBackedRenderer(console.getBuildOutputArea()), timeProvider, new PrettyPrefixedLogHeaderFormatter(), false)),
+                        console.getBuildProgressArea(), new DefaultWorkInProgressFormatter(consoleMetaData), new ConsoleLayoutCalculator(consoleMetaData)),
+                    console.getStatusBar(), console, consoleMetaData, timeProvider),
+                console),
             timeProvider);
         synchronized (lock) {
             if (stdout && stderr) {
@@ -340,5 +350,106 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
             }
             delegate.onOutput(event);
         }
+    }
+
+    private class UserInputConsoleRenderer implements OutputEventListener {
+        private final OutputEventListener delegate;
+        private final Console console;
+        private final List<OutputEvent> eventQueue = Lists.newArrayList();
+        private boolean paused;
+
+        public UserInputConsoleRenderer(OutputEventListener delegate, Console console) {
+            this.delegate = delegate;
+            this.console = console;
+        }
+
+        @Override
+        public void onOutput(OutputEvent event) {
+            if (event instanceof UserInputRequestEvent) {
+                String prompt = ((UserInputRequestEvent) event).getPrompt();
+                console.getBuildProgressArea().setVisible(false);
+                console.flush();
+                console.getBuildOutputArea().println(prompt);
+                console.flush();
+                paused = true;
+                return;
+            }
+            if (event instanceof UserInputResumeEvent) {
+                if (!paused) {
+                    throw new RuntimeException("UnPause when not paused");
+                }
+                paused = false;
+                console.getBuildProgressArea().setVisible(true);
+                console.flush();
+
+                replayEvents();
+
+                return;
+            }
+
+            if (paused) {
+                eventQueue.add(event);
+                return;
+            }
+
+            delegate.onOutput(event);
+        }
+
+        private void replayEvents() {
+            for (OutputEvent outputEvent : eventQueue) {
+                delegate.onOutput(outputEvent);
+            }
+            eventQueue.clear();
+        }
+    }
+
+    private class UserInputStandardOutputRenderer implements OutputEventListener {
+        private final OutputEventListener delegate;
+        private final List<OutputEvent> eventQueue = Lists.newArrayList();
+        private boolean paused;
+
+        public UserInputStandardOutputRenderer(OutputEventListener delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void onOutput(OutputEvent event) {
+            if (event instanceof UserInputRequestEvent) {
+                String prompt = ((UserInputRequestEvent) event).getPrompt();
+                delegate.onOutput(new LogEvent(0, "prompt", LogLevel.QUIET, prompt, null));
+                paused = true;
+                return;
+            }
+            if (event instanceof UserInputResumeEvent) {
+                if (!paused) {
+                    throw new RuntimeException("UnPause when not paused");
+                }
+                paused = false;
+                replayEvents();
+
+                return;
+            }
+
+            if (paused) {
+                eventQueue.add(event);
+                return;
+            }
+
+            delegate.onOutput(event);
+        }
+
+        private void replayEvents() {
+            for (OutputEvent outputEvent : eventQueue) {
+                delegate.onOutput(outputEvent);
+            }
+            eventQueue.clear();
+        }
+    }
+
+    private PrintStream getSystemOut() {
+        if (originalStdOut != null) {
+            return (PrintStream) originalStdOut;
+        }
+        return System.out;
     }
 }
