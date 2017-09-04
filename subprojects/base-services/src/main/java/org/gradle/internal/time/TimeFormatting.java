@@ -30,13 +30,13 @@ public class TimeFormatting {
 
     public static String formatDurationVerbose(long durationMillis) {
         StringBuilder result = new StringBuilder();
-        if (durationMillis > (long) (MILLIS_PER_HOUR)) {
-            result.append(durationMillis / ((long) (MILLIS_PER_HOUR))).append(" hrs ");
+        if (durationMillis > MILLIS_PER_HOUR) {
+            result.append(durationMillis / MILLIS_PER_HOUR).append(" hrs ");
         }
         if (durationMillis > (long) MILLIS_PER_MINUTE) {
-            result.append((durationMillis % ((long) (MILLIS_PER_HOUR))) / (long) MILLIS_PER_MINUTE).append(" mins ");
+            result.append((durationMillis % MILLIS_PER_HOUR) / MILLIS_PER_MINUTE).append(" mins ");
         }
-        result.append((durationMillis % (long) MILLIS_PER_MINUTE) / 1000.0).append(" secs");
+        result.append((durationMillis % MILLIS_PER_MINUTE) / 1000.0).append(" secs");
         return result.toString();
     }
 
