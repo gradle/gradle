@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scan.clock;
+package org.gradle.internal.scan.time;
 
-import org.gradle.internal.time.Clock;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
-public class DefaultBuildScanTimeProvider implements BuildScanTimeProvider {
+/**
+ * Used to determine when the build was started.
+ *
+ * This is effectively a build scan specific view of {@link org.gradle.internal.buildevents.BuildExecutionTimer}.
+ */
+@UsedByScanPlugin
+public interface BuildScanBuildStartedTime {
 
-    private final Clock clock;
-
-    public DefaultBuildScanTimeProvider(Clock clock) {
-        this.clock = clock;
-    }
-
-    @Override
-    public long getCurrentTime() {
-        return clock.getCurrentTime();
-    }
+    long getBuildStartedTime();
 
 }

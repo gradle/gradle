@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scan.clock;
+package org.gradle.internal.scan.time;
 
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -24,7 +24,7 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  * The provider is _required_ to provide monotonic timestamps.
  */
 @UsedByScanPlugin
-public interface BuildScanTimeProvider {
+public interface BuildScanClock {
 
     /**
      * The current wall clock time.

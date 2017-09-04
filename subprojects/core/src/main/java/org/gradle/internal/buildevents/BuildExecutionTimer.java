@@ -30,6 +30,9 @@ import org.gradle.internal.time.Timer;
  *
  * The timer is considered to have started as soon as the user, or some tool, initiated the build.
  * During continuous build, subsequent builds are timed from when changes are noticed.
+ *
+ * The start time is guaranteed to not be later than any clock read that happened after the build runtime
+ * received the build request.
  */
 public class BuildExecutionTimer implements Timer {
 

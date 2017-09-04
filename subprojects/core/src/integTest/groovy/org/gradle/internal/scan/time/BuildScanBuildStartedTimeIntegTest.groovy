@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scan.clock
+package org.gradle.internal.scan.time
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.buildevents.BuildExecutionTimer
 
-class BuildScanClockIntegTest extends AbstractIntegrationSpec {
+class BuildScanBuildStartedTimeIntegTest extends AbstractIntegrationSpec {
 
-    def "can access build scan time provider"() {
+    def "can access build scan build started time"() {
         when:
         buildFile << """
-            def time = project.services.get($BuildScanTimeProvider.name).currentTime
+            def time = project.services.get($BuildScanBuildStartedTime.name).buildStartedTime
+            def timer = project.services.get($BuildExecutionTimer.name)
+            assert timer.startTime == time
+            
             println "timestamp: \$time"
         """
 
