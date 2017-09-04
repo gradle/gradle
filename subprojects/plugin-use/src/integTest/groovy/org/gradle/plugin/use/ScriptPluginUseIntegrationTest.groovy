@@ -321,11 +321,11 @@ class ScriptPluginUseIntegrationTest extends AbstractIntegrationSpec {
             pluginManagement {
                 resolutionStrategy {
                     eachPlugin {
-                        println("Requested \${it.requested}")
-                        assert it.requested.id == null
-                        assert it.requested.version == null
-                        assert it.requested.script == 'other.gradle'
-                        assert it.requested.module == null
+                        println("Requested \${requested}")
+                        assert requested.id == null
+                        assert requested.version == null
+                        assert requested.script == 'other.gradle'
+                        assert requested.module == null
                     }
                 }
             }
@@ -359,7 +359,7 @@ class ScriptPluginUseIntegrationTest extends AbstractIntegrationSpec {
             pluginManagement {
                 resolutionStrategy {
                     eachPlugin {
-                        it.useVersion("1.0")
+                        useVersion("1.0")
                     }
                 }
             }
@@ -394,7 +394,7 @@ class ScriptPluginUseIntegrationTest extends AbstractIntegrationSpec {
             pluginManagement {
                 resolutionStrategy {
                     eachPlugin {
-                        it.useModule("foo:bar:1.0")
+                        useModule("foo:bar:1.0")
                     }
                 }
             }
