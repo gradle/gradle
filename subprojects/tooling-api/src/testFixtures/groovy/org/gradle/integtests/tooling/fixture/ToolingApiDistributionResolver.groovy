@@ -36,7 +36,7 @@ import org.gradle.internal.service.scopes.BuildTreeScopeServices
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry
 import org.gradle.internal.service.scopes.ProjectScopeServices
-import org.gradle.internal.time.BuildExecutionTimer
+import org.gradle.internal.buildevents.BuildExecutionTimer
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture

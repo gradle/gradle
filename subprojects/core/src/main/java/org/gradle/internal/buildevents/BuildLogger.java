@@ -28,7 +28,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.internal.logging.format.TersePrettyDurationFormatter;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.time.BuildExecutionTimer;
 
 import java.util.ArrayList;
 import java.util.List;

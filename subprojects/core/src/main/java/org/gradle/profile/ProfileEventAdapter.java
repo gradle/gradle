@@ -28,7 +28,7 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.initialization.BuildCompletionListener;
-import org.gradle.internal.time.BuildExecutionTimer;
+import org.gradle.internal.buildevents.BuildExecutionTimer;
 import org.gradle.internal.time.Clock;
 
 /**

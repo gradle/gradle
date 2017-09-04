@@ -64,7 +64,7 @@ import org.gradle.internal.operations.logging.BuildOperationLoggerFactory
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.time.BuildExecutionTimer
+import org.gradle.internal.buildevents.BuildExecutionTimer
 import org.gradle.internal.time.Clock
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.plugin.repository.internal.PluginRepositoryFactory

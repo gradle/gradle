@@ -30,7 +30,7 @@ import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.time.BuildExecutionTimer;
+import org.gradle.internal.buildevents.BuildExecutionTimer;
 import org.gradle.internal.time.DefaultEventTimer;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildExecuter;

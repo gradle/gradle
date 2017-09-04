@@ -57,7 +57,7 @@ import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 import org.gradle.internal.service.scopes.BuildTreeScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
-import org.gradle.internal.time.BuildExecutionTimer;
+import org.gradle.internal.buildevents.BuildExecutionTimer;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ReportGeneratingProfileListener;

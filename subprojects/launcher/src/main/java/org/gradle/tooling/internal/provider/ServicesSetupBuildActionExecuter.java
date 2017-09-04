@@ -25,7 +25,7 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
-import org.gradle.internal.time.BuildExecutionTimer;
+import org.gradle.internal.buildevents.BuildExecutionTimer;
 import org.gradle.internal.time.DefaultEventTimer;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;

@@ -146,7 +146,7 @@ import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.time.BuildExecutionTimer;
+import org.gradle.internal.buildevents.BuildExecutionTimer;
 import org.gradle.internal.time.Clock;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.repository.internal.PluginRepositoryFactory;

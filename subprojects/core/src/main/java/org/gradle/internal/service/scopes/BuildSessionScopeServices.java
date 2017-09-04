@@ -85,7 +85,7 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.time.BuildExecutionTimer;
+import org.gradle.internal.buildevents.BuildExecutionTimer;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
