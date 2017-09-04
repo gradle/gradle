@@ -44,6 +44,9 @@ import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 import org.gradle.internal.service.scopes.BuildTreeScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
+import org.gradle.internal.time.BuildExecutionTimer;
+import org.gradle.internal.time.DefaultEventTimer;
+import org.gradle.internal.time.MonotonicTimeProvider;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.invocation.DefaultGradle;
 
@@ -56,16 +59,16 @@ public class ProjectBuilderImpl {
     public Project createChildProject(String name, Project parent, File projectDir) {
         ProjectInternal parentProject = (ProjectInternal) parent;
         DefaultProject project = CLASS_GENERATOR.newInstance(
-                DefaultProject.class,
-                name,
-                parentProject,
-                (projectDir != null) ? projectDir.getAbsoluteFile() : new File(parentProject.getProjectDir(), name),
-                null,
-                new StringScriptSource("test build file", null),
-                parentProject.getGradle(),
-                parentProject.getGradle().getServiceRegistryFactory(),
-                parentProject.getClassLoaderScope().createChild("project-" + name),
-                parentProject.getBaseClassLoaderScope()
+            DefaultProject.class,
+            name,
+            parentProject,
+            (projectDir != null) ? projectDir.getAbsoluteFile() : new File(parentProject.getProjectDir(), name),
+            null,
+            new StringScriptSource("test build file", null),
+            parentProject.getGradle(),
+            parentProject.getGradle().getServiceRegistryFactory(),
+            parentProject.getClassLoaderScope().createChild("project-" + name),
+            parentProject.getBaseClassLoaderScope()
         );
         parentProject.addChildProject(project);
         parentProject.getProjectRegistry().addProject(project);
@@ -83,13 +86,14 @@ public class ProjectBuilderImpl {
         startParameter.setGradleUserHomeDir(userHomeDir);
         NativeServices.initialize(userHomeDir);
 
-        BuildSessionScopeServices buildSessionScopeServices = new BuildSessionScopeServices(getUserHomeServices(userHomeDir), startParameter, ClassPath.EMPTY);
+        BuildExecutionTimer buildExecutionTimer = new BuildExecutionTimer(new DefaultEventTimer(MonotonicTimeProvider.global().getCurrentTime()));
+        BuildSessionScopeServices buildSessionScopeServices = new BuildSessionScopeServices(getUserHomeServices(userHomeDir), startParameter, buildExecutionTimer, ClassPath.EMPTY);
         BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices(buildSessionScopeServices);
         ServiceRegistry topLevelRegistry = new TestBuildScopeServices(buildTreeScopeServices, homeDir);
         GradleInternal gradle = CLASS_GENERATOR.newInstance(DefaultGradle.class, null, startParameter, topLevelRegistry.get(ServiceRegistryFactory.class));
 
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, new DefaultProjectDescriptorRegistry(),
-                topLevelRegistry.get(FileResolver.class));
+            topLevelRegistry.get(FileResolver.class));
         ClassLoaderScope baseScope = gradle.getClassLoaderScope();
         ClassLoaderScope rootProjectScope = baseScope.createChild("root-project");
         ProjectInternal project = topLevelRegistry.get(IProjectFactory.class).createProject(projectDescriptor, null, gradle, rootProjectScope, baseScope);
@@ -114,12 +118,12 @@ public class ProjectBuilderImpl {
     private ServiceRegistry getGlobalServices() {
         if (globalServices == null) {
             globalServices = ServiceRegistryBuilder
-                    .builder()
-                    .displayName("global services")
-                    .parent(LoggingServiceRegistry.newNestedLogging())
-                    .parent(NativeServices.getInstance())
-                    .provider(new TestGlobalScopeServices())
-                    .build();
+                .builder()
+                .displayName("global services")
+                .parent(LoggingServiceRegistry.newNestedLogging())
+                .parent(NativeServices.getInstance())
+                .provider(new TestGlobalScopeServices())
+                .build();
             // Registers a logger that will otherwise be registered when resolving dependencies with the ProjectBuilder
             // Without this, ProjectBuilder will fail to resolve dependencies with a strange "Logging operation was not started" error
             globalServices.get(GradleLauncherFactory.class);

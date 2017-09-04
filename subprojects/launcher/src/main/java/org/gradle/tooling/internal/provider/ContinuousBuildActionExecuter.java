@@ -43,6 +43,7 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.time.BuildExecutionTimer;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.util.DisconnectableInputStream;
@@ -67,7 +68,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
     }
 
     @Override
-    public Object execute(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters, ServiceRegistry contextServices) {
+    public Object execute(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters, ServiceRegistry buildSessionScopeServices) {
         BuildCancellationToken cancellationToken = requestContext.getCancellationToken();
 
         final CancellableOperationManager cancellableOperationManager;
@@ -84,43 +85,36 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
         if (actionParameters.isContinuous()) {
             SingleMessageLogger.incubatingFeatureUsed("Continuous build");
             DefaultContinuousExecutionGate alwaysOpenExecutionGate = new DefaultContinuousExecutionGate();
-            return executeMultipleBuilds(action, requestContext, actionParameters, contextServices, cancellableOperationManager, alwaysOpenExecutionGate);
+            return executeMultipleBuilds(action, requestContext, actionParameters, buildSessionScopeServices, cancellableOperationManager, alwaysOpenExecutionGate);
         } else {
             try {
-                return delegate.execute(action, requestContext, actionParameters, contextServices);
+                return delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices);
             } finally {
-                waitForDeployments(action, requestContext, actionParameters, contextServices, cancellableOperationManager);
+                waitForDeployments(action, requestContext, actionParameters, buildSessionScopeServices, cancellableOperationManager);
             }
         }
     }
 
-    private void waitForDeployments(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters, ServiceRegistry contextServices, CancellableOperationManager cancellableOperationManager) {
-        final DeploymentRegistryInternal deploymentRegistry = contextServices.get(DeploymentRegistryInternal.class);
+    private void waitForDeployments(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters, ServiceRegistry buildSessionScopeServices, CancellableOperationManager cancellableOperationManager) {
+        final DeploymentRegistryInternal deploymentRegistry = buildSessionScopeServices.get(DeploymentRegistryInternal.class);
         if (!deploymentRegistry.getRunningDeployments().isEmpty()) {
             // Deployments are considered outOfDate until initial execution with file watching
             for (Deployment deployment : deploymentRegistry.getRunningDeployments()) {
                 ((DeploymentInternal) deployment).outOfDate();
             }
-            requestContext.getBuildTimeClock().reset();
             logger.println().println("Reloadable deployment detected. Entering continuous build.");
             ContinuousExecutionGate deploymentRequestExecutionGate = deploymentRegistry.getExecutionGate();
-            executeMultipleBuilds(action, requestContext, actionParameters, contextServices, cancellableOperationManager, deploymentRequestExecutionGate);
+            executeMultipleBuilds(action, requestContext, actionParameters, buildSessionScopeServices, cancellableOperationManager, deploymentRequestExecutionGate);
         }
     }
 
     private Object executeMultipleBuilds(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters, final ServiceRegistry buildSessionScopeServices,
                                          CancellableOperationManager cancellableOperationManager, ContinuousExecutionGate continuousExecutionGate) {
         BuildCancellationToken cancellationToken = requestContext.getCancellationToken();
+        BuildExecutionTimer buildExecutionTimer = buildSessionScopeServices.get(BuildExecutionTimer.class);
 
-        Object lastResult = null;
-        int counter = 0;
-        while (!cancellationToken.isCancellationRequested()) {
-            if (++counter != 1) {
-                // reset the time the build started so the total time makes sense
-                requestContext.getBuildTimeClock().reset();
-                logger.println("Change detected, executing build...").println();
-            }
-
+        Object lastResult;
+        while (true) {
             PendingChangesListener pendingChangesListener = buildSessionScopeServices.get(ListenerManager.class).getBroadcaster(PendingChangesListener.class);
             final FileSystemChangeWaiter waiter = changeWaiterFactory.createChangeWaiter(new SingleFirePendingChangesListener(pendingChangesListener), cancellationToken, continuousExecutionGate);
             try {
@@ -156,6 +150,13 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
             } finally {
                 waiter.stop();
             }
+
+            if (cancellationToken.isCancellationRequested()) {
+                break;
+            } else {
+                logger.println("Change detected, executing build...").println();
+                buildExecutionTimer.reset();
+            }
         }
 
         logger.println("Build cancelled.");
@@ -165,7 +166,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
         return lastResult;
     }
 
-    public String determineExitHint(BuildActionParameters actionParameters) {
+    private String determineExitHint(BuildActionParameters actionParameters) {
         if (actionParameters.isInteractive()) {
             if (operatingSystem.isWindows()) {
                 return " (ctrl-d then enter to exit)";

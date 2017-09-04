@@ -57,6 +57,9 @@ import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 import org.gradle.internal.service.scopes.BuildTreeScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
+import org.gradle.internal.time.BuildExecutionTimer;
+import org.gradle.internal.time.DefaultEventTimer;
+import org.gradle.internal.time.MonotonicTimeProvider;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ReportGeneratingProfileListener;
@@ -104,11 +107,11 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             requestContext.getCancellationToken(),
             requestContext, requestContext.getEventConsumer(), buildTreeScopeServices,
             ImmutableList.of(new Stoppable() {
-            @Override
-            public void stop() {
-                rootBuild = null;
-            }
-        }));
+                @Override
+                public void stop() {
+                    rootBuild = null;
+                }
+            }));
         rootBuild = launcher;
 
         final DefaultDeploymentRegistry deploymentRegistry = parentRegistry.get(DefaultDeploymentRegistry.class);
@@ -142,7 +145,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         LoggerProvider loggerProvider = (parent == null) ? buildProgressLogger : LoggerProvider.NO_OP;
         listenerManager.useLogger(new TaskExecutionLogger(serviceRegistry.get(ProgressLoggerFactory.class), loggerProvider));
         if (parent == null) {
-            listenerManager.useLogger(new BuildLogger(Logging.getLogger(BuildLogger.class), serviceRegistry.get(StyledTextOutputFactory.class), startParameter, requestMetaData));
+            BuildExecutionTimer buildExecutionTimer = serviceRegistry.get(BuildExecutionTimer.class);
+            listenerManager.useLogger(new BuildLogger(Logging.getLogger(BuildLogger.class), serviceRegistry.get(StyledTextOutputFactory.class), startParameter, requestMetaData, buildExecutionTimer));
         }
 
         listenerManager.addListener(serviceRegistry.get(TaskExecutionStatisticsEventAdapter.class));
@@ -207,7 +211,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         @Override
         public BuildController nestedBuildController(StartParameter startParameter) {
             final ServiceRegistry userHomeServices = userHomeDirServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
-            BuildSessionScopeServices sessionScopeServices = new BuildSessionScopeServices(userHomeServices, startParameter, ClassPath.EMPTY);
+            BuildExecutionTimer buildExecutionTimer = new BuildExecutionTimer(new DefaultEventTimer(MonotonicTimeProvider.global().getCurrentTime()));
+            BuildSessionScopeServices sessionScopeServices = new BuildSessionScopeServices(userHomeServices, startParameter, buildExecutionTimer, ClassPath.EMPTY);
             BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices(sessionScopeServices);
             GradleLauncher childInstance = createChildInstance(startParameter, parent, buildTreeScopeServices, ImmutableList.of(buildTreeScopeServices, sessionScopeServices, new Stoppable() {
                 @Override

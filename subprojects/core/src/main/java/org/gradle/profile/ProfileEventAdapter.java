@@ -28,20 +28,20 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.initialization.BuildCompletionListener;
-import org.gradle.initialization.BuildRequestMetaData;
+import org.gradle.internal.time.BuildExecutionTimer;
 import org.gradle.internal.time.TimeProvider;
 
 /**
  * Adapts various events to build a {@link BuildProfile} model, and then notifies a {@link ReportGeneratingProfileListener} when the model is ready.
  */
 public class ProfileEventAdapter implements BuildListener, ProjectEvaluationListener, TaskExecutionListener, DependencyResolutionListener, BuildCompletionListener {
-    private final BuildRequestMetaData buildMetaData;
+    private final BuildExecutionTimer buildExecutionTimer;
     private final TimeProvider timeProvider;
     private final ProfileListener listener;
     private BuildProfile buildProfile;
 
-    public ProfileEventAdapter(BuildRequestMetaData buildMetaData, TimeProvider timeProvider, ProfileListener listener) {
-        this.buildMetaData = buildMetaData;
+    public ProfileEventAdapter(BuildExecutionTimer buildExecutionTimer, TimeProvider timeProvider, ProfileListener listener) {
+        this.buildExecutionTimer = buildExecutionTimer;
         this.timeProvider = timeProvider;
         this.listener = listener;
     }
@@ -51,7 +51,7 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
         long now = timeProvider.getCurrentTime();
         buildProfile = new BuildProfile(gradle.getStartParameter());
         buildProfile.setBuildStarted(now);
-        buildProfile.setProfilingStarted(buildMetaData.getBuildTimeClock().getStartTime());
+        buildProfile.setProfilingStarted(buildExecutionTimer.getStartTime());
     }
 
     public void settingsEvaluated(Settings settings) {
@@ -71,7 +71,7 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
     }
 
     public void completed() {
-        if(buildProfile != null) {
+        if (buildProfile != null) {
             buildProfile.setBuildFinished(timeProvider.getCurrentTime());
             try {
                 listener.buildFinished(buildProfile);

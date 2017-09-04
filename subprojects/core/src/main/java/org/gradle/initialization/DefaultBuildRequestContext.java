@@ -19,6 +19,7 @@ package org.gradle.initialization;
 import org.gradle.util.Clock;
 
 public class DefaultBuildRequestContext implements BuildRequestContext {
+
     private final BuildCancellationToken token;
     private final BuildEventConsumer buildEventConsumer;
     private final BuildRequestMetaData metaData;

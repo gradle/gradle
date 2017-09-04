@@ -25,6 +25,8 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
+import org.gradle.internal.time.BuildExecutionTimer;
+import org.gradle.internal.time.DefaultEventTimer;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildExecuter;
@@ -42,8 +44,13 @@ public class ServicesSetupBuildActionExecuter implements BuildExecuter {
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         StartParameter startParameter = action.getStartParameter();
         ServiceRegistry userHomeServices = userHomeServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
+
+        BuildExecutionTimer buildExecutionTimer = new BuildExecutionTimer(
+            new DefaultEventTimer(requestContext.getBuildTimeClock().getStartTime())
+        );
+
         try {
-            ServiceRegistry buildSessionScopeServices = new BuildSessionScopeServices(userHomeServices, startParameter, actionParameters.getInjectedPluginClasspath());
+            ServiceRegistry buildSessionScopeServices = new BuildSessionScopeServices(userHomeServices, startParameter, buildExecutionTimer, actionParameters.getInjectedPluginClasspath());
             try {
                 SessionLifecycleListener sessionLifecycleListener = buildSessionScopeServices.get(ListenerManager.class).getBroadcaster(SessionLifecycleListener.class);
                 try {
