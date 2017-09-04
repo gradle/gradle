@@ -28,8 +28,8 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
-import org.gradle.internal.time.Timers;
 import org.gradle.reporting.HtmlReportBuilder;
 import org.gradle.reporting.HtmlReportRenderer;
 import org.gradle.reporting.ReportRenderer;
@@ -52,7 +52,7 @@ public class DefaultTestReport implements TestReporter {
     public void generateReport(TestResultsProvider resultsProvider, File reportDir) {
         LOG.info("Generating HTML test report...");
 
-        Timer clock = Timers.startTimer();
+        Timer clock = Time.startTimer();
         AllTestResults model = loadModelFromProvider(resultsProvider);
         generateFiles(model, resultsProvider, reportDir);
         LOG.info("Finished generating test html results ({}) into: {}", clock.getElapsed(), reportDir);

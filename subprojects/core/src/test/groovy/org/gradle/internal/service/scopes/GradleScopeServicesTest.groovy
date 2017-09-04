@@ -32,20 +32,20 @@ import org.gradle.execution.TaskSelector
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
+import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ParallelismConfigurationManager
 import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
-import org.gradle.internal.logging.text.StyledTextOutputFactory
-import org.gradle.internal.logging.text.TestStyledTextOutputFactory
-import org.gradle.internal.work.WorkerLeaseRegistry
-import org.gradle.internal.time.TimeProvider
-import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.environment.GradleBuildEnvironment
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.logging.text.StyledTextOutputFactory
+import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.resources.ResourceLockCoordinationService
+import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.time.Clock
+import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import spock.lang.Specification
@@ -73,7 +73,7 @@ public class GradleScopeServicesTest extends Specification {
         parent.get(BuildCancellationToken) >> Stub(BuildCancellationToken)
         parent.get(ProjectConfigurer) >> Stub(ProjectConfigurer)
         parent.get(ModelRuleSourceDetector) >> Stub(ModelRuleSourceDetector)
-        parent.get(TimeProvider) >> Stub(TimeProvider)
+        parent.get(Clock) >> Stub(Clock)
         parent.get(BuildOperationExecutor) >> Stub(BuildOperationExecutor)
         parent.get(WorkerLeaseService) >> Stub(WorkerLeaseService)
         parent.get(ResourceLockCoordinationService) >> Stub(ResourceLockCoordinationService)

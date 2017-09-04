@@ -16,11 +16,21 @@
 
 package org.gradle.api.internal.tasks.testing.testng;
 
-import org.gradle.api.internal.tasks.testing.*;
+import org.gradle.api.internal.tasks.testing.DefaultTestMethodDescriptor;
+import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
+import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
+import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.id.IdGenerator;
-import org.testng.*;
+import org.gradle.internal.time.Clock;
+import org.testng.ISuite;
+import org.testng.ISuiteListener;
+import org.testng.ITestContext;
+import org.testng.ITestListener;
+import org.testng.ITestNGMethod;
+import org.testng.ITestResult;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,7 +40,7 @@ import java.util.Set;
 public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestListener, TestNGConfigurationListener {
     private final TestResultProcessor resultProcessor;
     private final IdGenerator<?> idGenerator;
-    private final TimeProvider timeProvider;
+    private final Clock clock;
     private final Object lock = new Object();
     private final Map<ITestContext, Object> testId = new HashMap<ITestContext, Object>();
     private final Map<ISuite, Object> suiteId = new HashMap<ISuite, Object>();
@@ -38,10 +48,10 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
     private final Map<ITestNGMethod, Object> testMethodParentId = new HashMap<ITestNGMethod, Object>();
     private final Set<ITestResult> failedConfigurations = new HashSet<ITestResult>();
 
-    public TestNGTestResultProcessorAdapter(TestResultProcessor resultProcessor, IdGenerator<?> idGenerator, TimeProvider timeProvider) {
+    public TestNGTestResultProcessorAdapter(TestResultProcessor resultProcessor, IdGenerator<?> idGenerator, Clock clock) {
         this.resultProcessor = resultProcessor;
         this.idGenerator = idGenerator;
-        this.timeProvider = timeProvider;
+        this.clock = clock;
     }
 
     @Override
@@ -55,7 +65,7 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
             testInternal = new DefaultTestSuiteDescriptor(idGenerator.generateId(), suite.getName());
             suiteId.put(suite, testInternal.getId());
         }
-        resultProcessor.started(testInternal, new TestStartEvent(timeProvider.getCurrentTime()));
+        resultProcessor.started(testInternal, new TestStartEvent(clock.getCurrentTime()));
     }
 
     @Override
@@ -69,7 +79,7 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
             }
         }
 
-        resultProcessor.completed(id, new TestCompleteEvent(timeProvider.getCurrentTime()));
+        resultProcessor.completed(id, new TestCompleteEvent(clock.getCurrentTime()));
     }
 
     @Override

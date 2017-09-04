@@ -25,8 +25,8 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
+import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
-import org.gradle.internal.time.Timers;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.GFileUtils;
 import scala.Option;
@@ -60,7 +60,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
 
             final xsbti.Logger logger = new SbtLoggerAdapter();
 
-            Timer timer = Timers.startTimer();
+            Timer timer = Time.startTimer();
             com.typesafe.zinc.Compiler compiler = ZincScalaCompilerFactory.createParallelSafeCompiler(scalaClasspath, zincClasspath, logger, gradleUserHome);
             LOGGER.info("Initialized Zinc Scala compiler: {}", timer.getElapsed());
 

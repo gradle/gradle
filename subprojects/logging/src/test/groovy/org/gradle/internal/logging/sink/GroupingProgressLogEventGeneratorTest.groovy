@@ -28,13 +28,13 @@ import org.gradle.internal.logging.events.UpdateNowEvent
 import org.gradle.internal.logging.format.LogHeaderFormatter
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.progress.BuildOperationCategory
-import org.gradle.util.MockTimeProvider
+import org.gradle.util.MockClock
 import spock.lang.Subject
 
 class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
     private final OutputEventListener downstreamListener = Mock(OutputEventListener)
     def logHeaderFormatter = Mock(LogHeaderFormatter)
-    def timeProvider = new MockTimeProvider()
+    def timeProvider = new MockClock()
     @Subject listener = new GroupingProgressLogEventGenerator(downstreamListener, timeProvider, logHeaderFormatter, false)
 
     def setup() {

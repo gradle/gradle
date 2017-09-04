@@ -33,9 +33,9 @@ import org.gradle.internal.filewatch.PendingChangesListener
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.buildevents.BuildExecutionTimer
 import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.launcher.exec.BuildActionParameters
-import org.gradle.util.Clock
 import org.gradle.util.RedirectStdIn
 import org.junit.Rule
 import spock.lang.AutoCleanup
@@ -49,7 +49,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def delegate = Mock(BuildActionExecuter)
     def action = Mock(BuildAction)
     def cancellationToken = new DefaultBuildCancellationToken()
-    def clock = Mock(Clock)
+    def buildExecutionTimer = Mock(BuildExecutionTimer)
     def requestMetadata = Stub(BuildRequestMetaData)
     def requestContext = new DefaultBuildRequestContext(requestMetadata, cancellationToken, new NoOpBuildEventConsumer())
     def actionParameters = Stub(BuildActionParameters)
@@ -58,7 +58,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def inputsListener = new DefaultTaskInputsListener()
     @AutoCleanup("stop")
     def executorFactory = new DefaultExecutorFactory()
-    def globalServices = Stub(ServiceRegistry)
+    def buildSessionScopeServices = Stub(ServiceRegistry)
     def listenerManager = Stub(ListenerManager)
     def pendingChangesListener = Mock(PendingChangesListener)
     def deploymentRegistry = Mock(DeploymentRegistryInternal)
@@ -67,11 +67,11 @@ class ContinuousBuildActionExecuterTest extends Specification {
     private File file = new File('file')
 
     def setup() {
-        globalServices.get(ListenerManager) >> listenerManager
+        buildSessionScopeServices.get(ListenerManager) >> listenerManager
+        buildSessionScopeServices.get(BuildExecutionTimer) >> buildExecutionTimer
         listenerManager.getBroadcaster(PendingChangesListener) >> pendingChangesListener
-        requestMetadata.getBuildTimeClock() >> clock
         waiterFactory.createChangeWaiter(_, _, _) >> waiter
-        globalServices.get(DeploymentRegistryInternal) >> deploymentRegistry
+        buildSessionScopeServices.get(DeploymentRegistryInternal) >> deploymentRegistry
         waiter.isWatching() >> true
     }
 
@@ -181,7 +181,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     }
 
     private void executeBuild() {
-        executer.execute(action, requestContext, actionParameters, globalServices)
+        executer.execute(action, requestContext, actionParameters, buildSessionScopeServices)
     }
 
     private void declareInput(File file) {

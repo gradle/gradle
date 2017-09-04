@@ -28,8 +28,8 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.Stash;
 import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
-import org.gradle.internal.time.Timers;
 
 import java.io.File;
 import java.util.Set;
@@ -57,7 +57,7 @@ public class ClassSetAnalysisUpdater {
     }
 
     public void updateAnalysis(JavaCompileSpec spec) {
-        Timer clock = Timers.startTimer();
+        Timer clock = Time.startTimer();
         Set<File> baseDirs = Sets.newLinkedHashSet();
         baseDirs.add(spec.getDestinationDir());
         Iterables.addAll(baseDirs, Iterables.filter(spec.getCompileClasspath(), IS_CLASS_DIRECTORY));

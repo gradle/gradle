@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.time;
 
-import java.io.Serializable;
+package org.gradle.internal.scan.time;
 
-public interface TimeProvider extends Serializable {
+import org.gradle.internal.scan.UsedByScanPlugin;
 
-    long getCurrentTime();
+/**
+ * Used to determine when the build was started.
+ *
+ * This is effectively a build scan specific view of {@link org.gradle.internal.buildevents.BuildExecutionTimer}.
+ */
+@UsedByScanPlugin
+public interface BuildScanBuildStartedTime {
+
+    long getBuildStartedTime();
+
 }

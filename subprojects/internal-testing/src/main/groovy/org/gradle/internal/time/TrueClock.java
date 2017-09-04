@@ -14,31 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.util;
+package org.gradle.internal.time;
 
-import org.gradle.internal.time.TimeProvider;
-
-public class MockTimeProvider implements TimeProvider {
-
-    long current;
-
-    public MockTimeProvider() {
-        this(System.currentTimeMillis());
-    }
-
-    public MockTimeProvider(long startTime) {
-        current = startTime;
-    }
-
-    public void increment(long diff) {
-        current += diff;
-    }
-
-    /** Increments the time by 10ms and returns it. */
+public class TrueClock implements Clock {
     @Override
     public long getCurrentTime() {
-        current += 10L;
-        return current;
+        return System.currentTimeMillis();
     }
-
 }

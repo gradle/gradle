@@ -21,17 +21,17 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
 import org.gradle.internal.logging.progress.ProgressListener;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Clock;
 
 /**
  * Provides logging services per thread.
  */
 public class SynchronizedLogging implements LoggingProvider {
     private final ThreadLocal<ThreadLoggingServices> services = new ThreadLocal<ThreadLoggingServices>();
-    private final TimeProvider timeProvider;
+    private final Clock clock;
 
-    public SynchronizedLogging(TimeProvider timeProvider) {
-        this.timeProvider = timeProvider;
+    public SynchronizedLogging(Clock clock) {
+        this.clock = clock;
     }
 
     public ListenerManager getListenerManager() {
@@ -46,7 +46,7 @@ public class SynchronizedLogging implements LoggingProvider {
         ThreadLoggingServices threadServices = services.get();
         if (threadServices == null) {
             DefaultListenerManager manager = new DefaultListenerManager();
-            DefaultProgressLoggerFactory progressLoggerFactory = new DefaultProgressLoggerFactory(manager.getBroadcaster(ProgressListener.class), timeProvider);
+            DefaultProgressLoggerFactory progressLoggerFactory = new DefaultProgressLoggerFactory(manager.getBroadcaster(ProgressListener.class), clock);
             threadServices = new ThreadLoggingServices(manager, progressLoggerFactory);
             services.set(threadServices);
         }

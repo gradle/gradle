@@ -14,18 +14,49 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.format
+package org.gradle.internal.time
 
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class TersePrettyDurationFormatterTest extends Specification {
-    def formatter = new TersePrettyDurationFormatter()
+class TimeFormattingTest extends Specification {
+
+    def formatsShortDurations() {
+        expect:
+        TimeFormatting.formatDurationVeryTerse(0) == '0s'
+        TimeFormatting.formatDurationVeryTerse(7) == '0.007s'
+        TimeFormatting.formatDurationVeryTerse(1200) == '1.200s'
+        TimeFormatting.formatDurationVeryTerse(59202) == '59.202s'
+    }
+
+    def formatsLongDuration() {
+        expect:
+        TimeFormatting.formatDurationVeryTerse(60 * 1000) == '1m0.00s'
+        TimeFormatting.formatDurationVeryTerse(60 * 1000 + 12 * 1000 + 310) == '1m12.31s'
+        TimeFormatting.formatDurationVeryTerse(23 * 60 * 1000 + 12 * 1000 + 310) == '23m12.31s'
+        TimeFormatting.formatDurationVeryTerse(23 * 60 * 1000 + 310) == '23m0.31s'
+
+        and:
+        TimeFormatting.formatDurationVeryTerse(60 * 60 * 1000) == '1h0m0.00s'
+        TimeFormatting.formatDurationVeryTerse(60 * 60 * 1000 + 20) == '1h0m0.02s'
+
+        and:
+        TimeFormatting.formatDurationVeryTerse(24 * 60 * 60 * 1000) == '1d0h0m0.00s'
+        TimeFormatting.formatDurationVeryTerse(24 * 60 * 60 * 1000 + 23 * 1000) == '1d0h0m23.00s'
+    }
+
+    def roundsMillisWhenDurationIsGreaterThanOneMinute() {
+        expect:
+        TimeFormatting.formatDurationVeryTerse(60 * 1000 + 12 * 1000 + 300) == '1m12.30s'
+        TimeFormatting.formatDurationVeryTerse(60 * 1000 + 12 * 1000 + 301) == '1m12.30s'
+        TimeFormatting.formatDurationVeryTerse(60 * 1000 + 12 * 1000 + 305) == '1m12.31s'
+        TimeFormatting.formatDurationVeryTerse(60 * 1000 + 12 * 1000 + 309) == '1m12.31s'
+    }
 
     @Unroll
     def "shows #output when elapsed time is greater or equals than #lowerBoundInclusive but lower than #upperBoundExlusive"() {
         when:
-        def result = formatter.format(input);
+        def result = TimeFormatting.formatDurationTerse(input)
 
         then:
         result == output
@@ -50,6 +81,7 @@ class TersePrettyDurationFormatterTest extends Specification {
     }
 
     private static long seconds(double value) {
-        return value * 1000.0;
+        return value * 1000.0
     }
+
 }

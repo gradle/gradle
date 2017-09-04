@@ -16,9 +16,8 @@
 
 package org.gradle.initialization;
 
-import org.gradle.util.Clock;
-
 public class DefaultBuildRequestContext implements BuildRequestContext {
+
     private final BuildCancellationToken token;
     private final BuildEventConsumer buildEventConsumer;
     private final BuildRequestMetaData metaData;
@@ -46,8 +45,14 @@ public class DefaultBuildRequestContext implements BuildRequestContext {
         return metaData.getClient();
     }
 
+    @SuppressWarnings("deprecation")
     @Override
-    public Clock getBuildTimeClock() {
+    public org.gradle.util.Clock getBuildTimeClock() {
         return metaData.getBuildTimeClock();
+    }
+
+    @Override
+    public long getStartTime() {
+        return metaData.getStartTime();
     }
 }

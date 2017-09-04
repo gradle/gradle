@@ -22,7 +22,7 @@ import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.progress.BuildOperationCategory;
 import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Clock;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
@@ -30,13 +30,13 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
     private final ProgressListener progressListener;
-    private final TimeProvider timeProvider;
+    private final Clock clock;
     private final AtomicLong nextId = new AtomicLong(ROOT_PROGRESS_OPERATION_ID);
     private final ThreadLocal<ProgressLoggerImpl> current = new ThreadLocal<ProgressLoggerImpl>();
 
-    public DefaultProgressLoggerFactory(ProgressListener progressListener, TimeProvider timeProvider) {
+    public DefaultProgressLoggerFactory(ProgressListener progressListener, Clock clock) {
         this.progressListener = progressListener;
-        this.timeProvider = timeProvider;
+        this.clock = clock;
     }
 
     public ProgressLogger newOperation(Class loggerCategory) {
@@ -59,7 +59,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         if (parentOperation != null && !(parentOperation instanceof ProgressLoggerImpl)) {
             throw new IllegalArgumentException("Unexpected parent logger.");
         }
-        return new ProgressLoggerImpl((ProgressLoggerImpl) parentOperation, new OperationIdentifier(nextId.getAndIncrement()), loggerCategory, progressListener, timeProvider, buildOperationDescriptor);
+        return new ProgressLoggerImpl((ProgressLoggerImpl) parentOperation, new OperationIdentifier(nextId.getAndIncrement()), loggerCategory, progressListener, clock, buildOperationDescriptor);
     }
 
     private enum State { idle, started, completed }
@@ -69,19 +69,19 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         private final BuildOperationDescriptor buildOperationDescriptor;
         private final String category;
         private final ProgressListener listener;
-        private final TimeProvider timeProvider;
+        private final Clock clock;
         private ProgressLoggerImpl parent;
         private String description;
         private String shortDescription;
         private String loggingHeader;
         private State state = State.idle;
 
-        public ProgressLoggerImpl(ProgressLoggerImpl parent, OperationIdentifier progressOperationId, String category, ProgressListener listener, TimeProvider timeProvider, @Nullable BuildOperationDescriptor buildOperationDescriptor) {
+        public ProgressLoggerImpl(ProgressLoggerImpl parent, OperationIdentifier progressOperationId, String category, ProgressListener listener, Clock clock, @Nullable BuildOperationDescriptor buildOperationDescriptor) {
             this.parent = parent;
             this.progressOperationId = progressOperationId;
             this.category = category;
             this.listener = listener;
-            this.timeProvider = timeProvider;
+            this.clock = clock;
             this.buildOperationDescriptor = buildOperationDescriptor;
         }
 
@@ -153,7 +153,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
                 parent.assertRunning();
             }
             current.set(this);
-            listener.started(new ProgressStartEvent(progressOperationId, parent == null ? null : parent.progressOperationId, timeProvider.getCurrentTime(), category, description, shortDescription, loggingHeader, ensureNotNull(status), totalProgress, getBuildOperationId(), getParentBuildOperationId(), getBuildOperationCategory()));
+            listener.started(new ProgressStartEvent(progressOperationId, parent == null ? null : parent.progressOperationId, clock.getCurrentTime(), category, description, shortDescription, loggingHeader, ensureNotNull(status), totalProgress, getBuildOperationId(), getParentBuildOperationId(), getBuildOperationCategory()));
         }
 
         public void progress(String status) {
@@ -173,7 +173,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             assertRunning();
             state = State.completed;
             current.set(parent);
-            listener.completed(new ProgressCompleteEvent(progressOperationId, timeProvider.getCurrentTime(), ensureNotNull(status), failed));
+            listener.completed(new ProgressCompleteEvent(progressOperationId, clock.getCurrentTime(), ensureNotNull(status), failed));
         }
 
         private String ensureNotNull(String status) {

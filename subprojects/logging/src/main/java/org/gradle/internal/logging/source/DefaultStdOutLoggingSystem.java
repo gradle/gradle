@@ -16,15 +16,15 @@
 
 package org.gradle.internal.logging.source;
 
-import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.time.Clock;
 
 import java.io.PrintStream;
 
 public class DefaultStdOutLoggingSystem extends PrintStreamLoggingSystem implements StdOutLoggingSystem {
 
-    public DefaultStdOutLoggingSystem(OutputEventListener listener, TimeProvider timeProvider) {
-        super(listener, "system.out", timeProvider);
+    public DefaultStdOutLoggingSystem(OutputEventListener listener, Clock clock) {
+        super(listener, "system.out", clock);
     }
 
     @Override

@@ -16,22 +16,12 @@
 
 package org.gradle.internal.logging.format;
 
-import java.util.concurrent.TimeUnit;
+import org.gradle.internal.time.TimeFormatting;
 
 public class TersePrettyDurationFormatter implements DurationFormatter {
-    private static final long MS_PER_MINUTE = TimeUnit.MINUTES.toMillis(1);
-    private static final long MS_PER_HOUR = TimeUnit.HOURS.toMillis(1);
 
     @Override
     public String format(long elapsedTimeInMs) {
-        StringBuilder result = new StringBuilder();
-        if (elapsedTimeInMs > MS_PER_HOUR) {
-            result.append(elapsedTimeInMs / MS_PER_HOUR).append("h ");
-        }
-        if (elapsedTimeInMs > MS_PER_MINUTE) {
-            result.append((elapsedTimeInMs % MS_PER_HOUR) / MS_PER_MINUTE).append("m ");
-        }
-        result.append((elapsedTimeInMs % MS_PER_MINUTE) / 1000).append("s");
-        return result.toString();
+        return TimeFormatting.formatDurationTerse(elapsedTimeInMs);
     }
 }

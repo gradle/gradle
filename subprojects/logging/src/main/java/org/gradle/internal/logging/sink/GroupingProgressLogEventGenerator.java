@@ -30,7 +30,7 @@ import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.events.UpdateNowEvent;
 import org.gradle.internal.logging.format.LogHeaderFormatter;
 import org.gradle.internal.progress.BuildOperationCategory;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Clock;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
@@ -49,7 +49,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
     private static final long LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(5);
     private final OutputEventListener listener;
-    private final TimeProvider timeProvider;
+    private final Clock clock;
     private final LogHeaderFormatter headerFormatter;
     private final boolean alwaysRenderTasks;
 
@@ -60,9 +60,9 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
     private Object lastRenderedBuildOpId;
 
-    public GroupingProgressLogEventGenerator(OutputEventListener listener, TimeProvider timeProvider, LogHeaderFormatter headerFormatter, boolean alwaysRenderTasks) {
+    public GroupingProgressLogEventGenerator(OutputEventListener listener, Clock clock, LogHeaderFormatter headerFormatter, boolean alwaysRenderTasks) {
         this.listener = listener;
-        this.timeProvider = timeProvider;
+        this.clock = clock;
         this.headerFormatter = headerFormatter;
         this.alwaysRenderTasks = alwaysRenderTasks;
     }
@@ -199,7 +199,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
             // Forward output immediately when the focus is on this operation group
             if (Objects.equal(buildOpIdentifier, lastRenderedBuildOpId)) {
                 listener.onOutput(output);
-                lastUpdateTime = timeProvider.getCurrentTime();
+                lastUpdateTime = clock.getCurrentTime();
             } else {
                 bufferedLogs.add(output);
             }
@@ -216,7 +216,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
                 }
 
                 bufferedLogs.clear();
-                lastUpdateTime = timeProvider.getCurrentTime();
+                lastUpdateTime = clock.getCurrentTime();
                 lastRenderedBuildOpId = buildOpIdentifier;
             }
         }

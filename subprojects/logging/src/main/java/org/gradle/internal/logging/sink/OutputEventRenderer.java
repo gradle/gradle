@@ -46,7 +46,7 @@ import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
 import org.gradle.internal.logging.text.StreamingStyledTextOutput;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Clock;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -60,7 +60,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private final Object lock = new Object();
     private final AtomicReference<LogLevel> logLevel = new AtomicReference<LogLevel>(LogLevel.LIFECYCLE);
-    private final TimeProvider timeProvider;
+    private final Clock clock;
     private final ListenerBroadcast<OutputEventListener> formatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
     private final ListenerBroadcast<StandardOutputListener> stdoutListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
     private final ListenerBroadcast<StandardOutputListener> stderrListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
@@ -72,8 +72,8 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private StreamBackedStandardOutputListener stdErrListener;
     private OutputEventListener console;
 
-    public OutputEventRenderer(TimeProvider timeProvider) {
-        this.timeProvider = timeProvider;
+    public OutputEventRenderer(Clock clock) {
+        this.clock = clock;
         OutputEventListener stdOutChain = new LazyListener(new Factory<OutputEventListener>() {
             @Override
             public OutputEventListener create() {
@@ -213,10 +213,10 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
             new BuildStatusRenderer(
                 new WorkInProgressRenderer(
                     new BuildLogLevelFilterRenderer(
-                        new GroupingProgressLogEventGenerator(new StyledTextOutputBackedRenderer(console.getBuildOutputArea()), timeProvider, new PrettyPrefixedLogHeaderFormatter(), false)),
+                        new GroupingProgressLogEventGenerator(new StyledTextOutputBackedRenderer(console.getBuildOutputArea()), clock, new PrettyPrefixedLogHeaderFormatter(), false)),
                     console.getBuildProgressArea(), new DefaultWorkInProgressFormatter(consoleMetaData), new ConsoleLayoutCalculator(consoleMetaData)),
-                console.getStatusBar(), console, consoleMetaData, timeProvider),
-            timeProvider);
+                console.getStatusBar(), console, consoleMetaData, clock),
+            clock);
         synchronized (lock) {
             if (stdout && stderr) {
                 this.console = consoleChain;

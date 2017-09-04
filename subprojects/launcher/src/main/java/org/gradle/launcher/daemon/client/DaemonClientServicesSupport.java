@@ -31,8 +31,8 @@ import org.gradle.internal.remote.internal.OutgoingConnector;
 import org.gradle.internal.remote.internal.inet.TcpOutgoingConnector;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.time.MonotonicTimeProvider;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Clock;
+import org.gradle.internal.time.Time;
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
@@ -96,12 +96,12 @@ public abstract class DaemonClientServicesSupport extends DefaultServiceRegistry
         return new TcpOutgoingConnector();
     }
 
-    TimeProvider createTimeProvider() {
-        return MonotonicTimeProvider.global();
+    Clock createTimeProvider() {
+        return Time.clock();
     }
 
-    ProgressLoggerFactory createProgressLoggerFactory(TimeProvider timeProvider) {
-        return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(get(OutputEventListener.class)), timeProvider);
+    ProgressLoggerFactory createProgressLoggerFactory(Clock clock) {
+        return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(get(OutputEventListener.class)), clock);
     }
 
     DaemonConnector createDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector outgoingConnector, DaemonStarter daemonStarter, ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory) {
