@@ -46,7 +46,7 @@ import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.time.BuildExecutionTimer;
 import org.gradle.internal.time.DefaultEventTimer;
-import org.gradle.internal.time.MonotonicTimeProvider;
+import org.gradle.internal.time.MonotonicClock;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.invocation.DefaultGradle;
 
@@ -86,7 +86,7 @@ public class ProjectBuilderImpl {
         startParameter.setGradleUserHomeDir(userHomeDir);
         NativeServices.initialize(userHomeDir);
 
-        BuildExecutionTimer buildExecutionTimer = new BuildExecutionTimer(new DefaultEventTimer(MonotonicTimeProvider.global().getCurrentTime()));
+        BuildExecutionTimer buildExecutionTimer = new BuildExecutionTimer(new DefaultEventTimer(MonotonicClock.global().getCurrentTime()));
         BuildSessionScopeServices buildSessionScopeServices = new BuildSessionScopeServices(getUserHomeServices(userHomeDir), startParameter, buildExecutionTimer, ClassPath.EMPTY);
         BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices(buildSessionScopeServices);
         ServiceRegistry topLevelRegistry = new TestBuildScopeServices(buildTreeScopeServices, homeDir);

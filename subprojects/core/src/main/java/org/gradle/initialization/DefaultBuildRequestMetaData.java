@@ -16,7 +16,7 @@
 package org.gradle.initialization;
 
 import org.gradle.configuration.GradleLauncherMetaData;
-import org.gradle.internal.time.MonotonicTimeProvider;
+import org.gradle.internal.time.MonotonicClock;
 
 public class DefaultBuildRequestMetaData implements BuildRequestMetaData {
     private final BuildClientMetaData clientMetaData;
@@ -32,7 +32,7 @@ public class DefaultBuildRequestMetaData implements BuildRequestMetaData {
     }
 
     public DefaultBuildRequestMetaData(BuildClientMetaData buildClientMetaData) {
-        this(buildClientMetaData, MonotonicTimeProvider.global().getCurrentTime());
+        this(buildClientMetaData, MonotonicClock.global().getCurrentTime());
     }
 
     public BuildClientMetaData getClient() {

@@ -34,8 +34,8 @@ import org.gradle.internal.logging.source.JavaUtilLoggingSystem;
 import org.gradle.internal.logging.source.NoOpLoggingSystem;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.time.MonotonicTimeProvider;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Clock;
+import org.gradle.internal.time.MonotonicClock;
 
 /**
  * A {@link org.gradle.internal.service.ServiceRegistry} implementation that provides the logging services. To use this:
@@ -109,12 +109,12 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
         return new LoggingCommandLineConverter();
     }
 
-    protected TimeProvider createTimeProvider() {
-        return MonotonicTimeProvider.global();
+    protected Clock createTimeProvider() {
+        return MonotonicClock.global();
     }
 
     protected StyledTextOutputFactory createStyledTextOutputFactory() {
-        return new DefaultStyledTextOutputFactory(getStdoutListener(), get(TimeProvider.class));
+        return new DefaultStyledTextOutputFactory(getStdoutListener(), get(Clock.class));
     }
 
     protected TextStreamOutputEventListener getStdoutListener() {
@@ -125,14 +125,14 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     }
 
     protected ProgressLoggerFactory createProgressLoggerFactory() {
-        return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(get(OutputEventListener.class)), get(TimeProvider.class));
+        return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(get(OutputEventListener.class)), get(Clock.class));
     }
 
     protected DefaultLoggingManagerFactory createLoggingManagerFactory() {
         OutputEventRenderer renderer = get(OutputEventRenderer.class);
-        LoggingSourceSystem stdout = new DefaultStdOutLoggingSystem(getStdoutListener(), get(TimeProvider.class));
+        LoggingSourceSystem stdout = new DefaultStdOutLoggingSystem(getStdoutListener(), get(Clock.class));
         stdout.setLevel(LogLevel.QUIET);
-        LoggingSourceSystem stderr = new DefaultStdErrLoggingSystem(new TextStreamOutputEventListener(get(OutputEventListener.class)), get(TimeProvider.class));
+        LoggingSourceSystem stderr = new DefaultStdErrLoggingSystem(new TextStreamOutputEventListener(get(OutputEventListener.class)), get(Clock.class));
         stderr.setLevel(LogLevel.ERROR);
         return new DefaultLoggingManagerFactory(
             renderer,
@@ -142,8 +142,8 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
             stderr);
     }
 
-    protected OutputEventRenderer createOutputEventRenderer(TimeProvider timeProvider) {
-        return new OutputEventRenderer(timeProvider);
+    protected OutputEventRenderer createOutputEventRenderer(Clock clock) {
+        return new OutputEventRenderer(clock);
     }
 
     private static class CommandLineLogging extends LoggingServiceRegistry {

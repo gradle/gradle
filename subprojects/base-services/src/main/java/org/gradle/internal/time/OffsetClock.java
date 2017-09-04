@@ -27,20 +27,20 @@ import java.util.concurrent.TimeUnit;
  * This provider provides the time based on the system wall clock time
  * at construction and the elapsed time since.
  *
- * @see MonotonicTimeProvider
+ * @see MonotonicClock
  */
-class OffsetTimeProvider implements TimeProvider {
+class OffsetClock implements Clock {
 
     private final TimeSource timeSource;
     private final long startMillis;
     private final long startNanos;
 
-    OffsetTimeProvider() {
+    OffsetClock() {
         this(new TimeSource.True());
     }
 
     @VisibleForTesting
-    OffsetTimeProvider(TimeSource timeSource) {
+    OffsetClock(TimeSource timeSource) {
         this.timeSource = timeSource;
         startMillis = timeSource.currentTimeMillis();
         startNanos = timeSource.nanoTime();

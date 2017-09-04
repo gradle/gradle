@@ -21,7 +21,7 @@ import com.google.common.annotations.VisibleForTesting;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * A time provider with the semantics of {@link OffsetTimeProvider} and additional monotonicity guarantees.
+ * A time provider with the semantics of {@link OffsetClock} and additional monotonicity guarantees.
  * <p>
  * This provider guarantees that non concurrent reads always yield a value that is greater or equal than the previous read.
  * This monotonicity guarantee is important to build scans.
@@ -30,25 +30,25 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * - http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6458294
  */
-public class MonotonicTimeProvider implements TimeProvider {
+public class MonotonicClock implements Clock {
 
-    private static final TimeProvider INSTANCE = new MonotonicTimeProvider(new OffsetTimeProvider());
+    private static final Clock INSTANCE = new MonotonicClock(new OffsetClock());
 
-    private final TimeProvider timeProvider;
+    private final Clock clock;
     private final AtomicLong max = new AtomicLong();
 
-    public static TimeProvider global() {
+    public static Clock global() {
         return INSTANCE;
     }
 
     @VisibleForTesting
-    MonotonicTimeProvider(TimeProvider timeProvider) {
-        this.timeProvider = timeProvider;
+    MonotonicClock(Clock clock) {
+        this.clock = clock;
     }
 
     @Override
     public long getCurrentTime() {
-        long currentTime = timeProvider.getCurrentTime();
+        long currentTime = clock.getCurrentTime();
         long currentMax;
         do {
             currentMax = max.get();

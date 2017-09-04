@@ -59,7 +59,7 @@ import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.time.BuildExecutionTimer;
 import org.gradle.internal.time.DefaultEventTimer;
-import org.gradle.internal.time.MonotonicTimeProvider;
+import org.gradle.internal.time.MonotonicClock;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ReportGeneratingProfileListener;
@@ -211,7 +211,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         @Override
         public BuildController nestedBuildController(StartParameter startParameter) {
             final ServiceRegistry userHomeServices = userHomeDirServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
-            BuildExecutionTimer buildExecutionTimer = new BuildExecutionTimer(new DefaultEventTimer(MonotonicTimeProvider.global().getCurrentTime()));
+            BuildExecutionTimer buildExecutionTimer = new BuildExecutionTimer(new DefaultEventTimer(MonotonicClock.global().getCurrentTime()));
             BuildSessionScopeServices sessionScopeServices = new BuildSessionScopeServices(userHomeServices, startParameter, buildExecutionTimer, ClassPath.EMPTY);
             BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices(sessionScopeServices);
             GradleLauncher childInstance = createChildInstance(startParameter, parent, buildTreeScopeServices, ImmutableList.of(buildTreeScopeServices, sessionScopeServices, new Stoppable() {

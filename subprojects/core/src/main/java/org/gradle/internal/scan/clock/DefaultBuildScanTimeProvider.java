@@ -16,19 +16,19 @@
 
 package org.gradle.internal.scan.clock;
 
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Clock;
 
 public class DefaultBuildScanTimeProvider implements BuildScanTimeProvider {
 
-    private final TimeProvider timeProvider;
+    private final Clock clock;
 
-    public DefaultBuildScanTimeProvider(TimeProvider timeProvider) {
-        this.timeProvider = timeProvider;
+    public DefaultBuildScanTimeProvider(Clock clock) {
+        this.clock = clock;
     }
 
     @Override
     public long getCurrentTime() {
-        return timeProvider.getCurrentTime();
+        return clock.getCurrentTime();
     }
 
 }

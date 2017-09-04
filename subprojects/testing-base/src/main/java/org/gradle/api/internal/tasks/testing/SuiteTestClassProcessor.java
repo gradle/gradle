@@ -18,26 +18,26 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.internal.tasks.testing.processors.CaptureTestOutputTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Clock;
 
 public class SuiteTestClassProcessor implements TestClassProcessor {
     private final TestClassProcessor processor;
-    private final TimeProvider timeProvider;
+    private final Clock clock;
     private final TestDescriptorInternal suiteDescriptor;
     private TestResultProcessor resultProcessor;
 
     public SuiteTestClassProcessor(TestDescriptorInternal suiteDescriptor, TestClassProcessor processor,
-                                   TimeProvider timeProvider) {
+                                   Clock clock) {
         this.suiteDescriptor = suiteDescriptor;
         this.processor = processor;
-        this.timeProvider = timeProvider;
+        this.clock = clock;
     }
 
     @Override
     public void startProcessing(TestResultProcessor testResultProcessor) {
         try {
             resultProcessor = new AttachParentTestResultProcessor(new CaptureTestOutputTestResultProcessor(testResultProcessor, new JULRedirector()));
-            resultProcessor.started(suiteDescriptor, new TestStartEvent(timeProvider.getCurrentTime()));
+            resultProcessor.started(suiteDescriptor, new TestStartEvent(clock.getCurrentTime()));
             processor.startProcessing(resultProcessor);
         } catch (Throwable t) {
             resultProcessor.failure(suiteDescriptor.getId(), new TestSuiteExecutionException(String.format(
@@ -63,7 +63,7 @@ public class SuiteTestClassProcessor implements TestClassProcessor {
             resultProcessor.failure(suiteDescriptor.getId(), new TestSuiteExecutionException(String.format(
                     "Could not complete execution for %s.", suiteDescriptor), t));
         } finally {
-            resultProcessor.completed(suiteDescriptor.getId(), new TestCompleteEvent(timeProvider.getCurrentTime()));
+            resultProcessor.completed(suiteDescriptor.getId(), new TestCompleteEvent(clock.getCurrentTime()));
         }
     }
 }

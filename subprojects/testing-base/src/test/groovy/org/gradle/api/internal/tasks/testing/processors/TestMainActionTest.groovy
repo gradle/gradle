@@ -17,14 +17,14 @@ package org.gradle.api.internal.tasks.testing.processors
 
 import org.gradle.api.internal.tasks.testing.TestClassProcessor
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
-import org.gradle.internal.time.TimeProvider
+import org.gradle.internal.time.Clock
 import spock.lang.Specification
 
 class TestMainActionTest extends Specification {
     private final TestClassProcessor processor = Mock()
     private final TestResultProcessor resultProcessor = Mock()
     private final Runnable detector = Mock()
-    private final TimeProvider timeProvider = Mock()
+    private final Clock timeProvider = Mock()
     private final TestMainAction action = new TestMainAction(detector, processor, resultProcessor, timeProvider, "taskOperationId123", "rootTestSuiteId456", "Test Run")
 
     def 'fires start and end events around detector execution'() {

@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Clock;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.OperationResult;
 import org.gradle.tooling.events.StatusEvent;
@@ -50,7 +50,7 @@ public class DistributionInstaller {
     private static final InternalBuildProgressListener NO_OP = new NoOpListener();
     private final ProgressLoggerFactory progressLoggerFactory;
     private final InternalBuildProgressListener buildProgressListener;
-    private final TimeProvider timeProvider;
+    private final Clock clock;
     private final AtomicReference<InternalBuildProgressListener> currentListener = new AtomicReference<InternalBuildProgressListener>(NO_OP);
     // Protects the following state
     private final Object lock = new Object();
@@ -58,10 +58,10 @@ public class DistributionInstaller {
     private boolean cancelled;
     private Throwable failure;
 
-    public DistributionInstaller(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener buildProgressListener, TimeProvider timeProvider) {
+    public DistributionInstaller(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener buildProgressListener, Clock clock) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.buildProgressListener = buildProgressListener;
-        this.timeProvider = timeProvider;
+        this.clock = clock;
     }
 
     /**
@@ -85,7 +85,7 @@ public class DistributionInstaller {
     private void doDownload(URI address, File destination) throws Exception {
         String displayName = "Download " + address;
         OperationDescriptor descriptor = new ConsumerOperationDescriptor(displayName);
-        long startTime = timeProvider.getCurrentTime();
+        long startTime = clock.getCurrentTime();
         buildProgressListener.onEvent(new DefaultStartEvent(startTime, displayName + " started", descriptor));
 
         Throwable failure = null;
@@ -95,7 +95,7 @@ public class DistributionInstaller {
             failure = t;
         }
 
-        long endTime = timeProvider.getCurrentTime();
+        long endTime = clock.getCurrentTime();
         OperationResult result = failure == null ? new DefaultOperationSuccessResult(startTime, endTime) : new DefaultOperationFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)));
         buildProgressListener.onEvent(new DefaultFinishEvent(endTime, displayName + " finished", descriptor, result));
         if (failure != null) {
@@ -185,7 +185,7 @@ public class DistributionInstaller {
         @Override
         public void downloadStatusChanged(URI address, long contentLength, long downloaded) {
             String eventDisplayName = descriptor.getDisplayName() + " " + downloaded + "/" + contentLength + " bytes downloaded";
-            StatusEvent statusEvent = new DefaultStatusEvent(timeProvider.getCurrentTime(), eventDisplayName, descriptor, contentLength, downloaded, "bytes");
+            StatusEvent statusEvent = new DefaultStatusEvent(clock.getCurrentTime(), eventDisplayName, descriptor, contentLength, downloaded, "bytes");
             // This is called from the download thread. Only forward the events when not cancelled
             currentListener.get().onEvent(statusEvent);
         }

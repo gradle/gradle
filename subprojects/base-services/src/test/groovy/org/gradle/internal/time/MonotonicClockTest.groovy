@@ -18,16 +18,16 @@ package org.gradle.internal.time
 
 import spock.lang.Specification
 
-class MonotonicTimeProviderTest extends Specification {
+class MonotonicClockTest extends Specification {
 
-    static class Time implements TimeProvider {
+    static class Time implements Clock {
         long currentTime
     }
 
     def "prevents time from going backwards"() {
         when:
         def delegate = new Time()
-        def provider = new MonotonicTimeProvider(delegate)
+        def provider = new MonotonicClock(delegate)
 
         then:
         provider.currentTime == 0

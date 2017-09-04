@@ -20,7 +20,7 @@ import org.gradle.api.internal.file.BaseDirFileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.internal.time.TrueTimeProvider
+import org.gradle.internal.time.TrueClock
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.runner.RunWith
@@ -87,7 +87,7 @@ allprojects { p ->
 
     protected void maybeWait() {
         if (toolChain.visualCpp) {
-            def now = new TrueTimeProvider().getCurrentTime()
+            def now = new TrueClock().getCurrentTime()
             def nextSecond = now % 1000
             Thread.sleep(1200 - nextSecond)
         }

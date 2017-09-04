@@ -21,12 +21,12 @@ import org.gradle.api.internal.DefaultClassPathProvider
 import org.gradle.api.internal.DefaultClassPathRegistry
 import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
-import org.gradle.internal.time.CountdownTimer
-import org.gradle.internal.time.TimeProvider
-import org.gradle.internal.time.Timers
-import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.installation.CurrentGradleInstallation
+import org.gradle.internal.time.Clock
+import org.gradle.internal.time.CountdownTimer
+import org.gradle.internal.time.Timers
+import org.gradle.internal.time.TrueClock
 import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
@@ -46,7 +46,7 @@ class AntBuilderMemoryLeakTest extends Specification {
     private DefaultClassLoaderFactory classLoaderFactory = new DefaultClassLoaderFactory()
 
     @Shared
-    private TimeProvider timeProvider = new TrueTimeProvider()
+    private Clock timeProvider = new TrueClock()
 
     def "should release cache when cleanup is called"() {
         classLoaderFactory = new DefaultClassLoaderFactory()

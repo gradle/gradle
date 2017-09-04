@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scan.clock
+package org.gradle.util;
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.time.Clock;
 
-class BuildScanTimeProviderIntegTest extends AbstractIntegrationSpec {
+public class MockClock implements Clock {
 
-    def "can access build scan time provider"() {
-        when:
-        buildFile << """
-            def time = project.services.get($BuildScanTimeProvider.name).currentTime
-            println "timestamp: \$time"
-        """
+    long current;
 
-        succeeds("help")
-
-        then:
-        output.contains("timestamp: ")
+    public MockClock() {
+        this(System.currentTimeMillis());
     }
+
+    public MockClock(long startTime) {
+        current = startTime;
+    }
+
+    public void increment(long diff) {
+        current += diff;
+    }
+
+    /** Increments the time by 10ms and returns it. */
+    @Override
+    public long getCurrentTime() {
+        current += 10L;
+        return current;
+    }
+
 }

@@ -25,7 +25,7 @@ import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.operations.BuildOperationIdentifierRegistry;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Clock;
 
 import javax.annotation.Nullable;
 import java.io.PrintStream;
@@ -52,9 +52,9 @@ abstract class PrintStreamLoggingSystem implements LoggingSourceSystem {
     private final StandardOutputListener listener;
     private final OutputEventListener outputEventListener;
 
-    protected PrintStreamLoggingSystem(OutputEventListener listener, String category, TimeProvider timeProvider) {
+    protected PrintStreamLoggingSystem(OutputEventListener listener, String category, Clock clock) {
         outputEventListener = listener;
-        this.listener = new OutputEventDestination(listener, category, timeProvider);
+        this.listener = new OutputEventDestination(listener, category, clock);
     }
 
     /**
@@ -151,17 +151,17 @@ abstract class PrintStreamLoggingSystem implements LoggingSourceSystem {
     private static class OutputEventDestination implements StandardOutputListener {
         private final OutputEventListener listener;
         private final String category;
-        private final TimeProvider timeProvider;
+        private final Clock clock;
 
-        public OutputEventDestination(OutputEventListener listener, String category, TimeProvider timeProvider) {
+        public OutputEventDestination(OutputEventListener listener, String category, Clock clock) {
             this.listener = listener;
             this.category = category;
-            this.timeProvider = timeProvider;
+            this.clock = clock;
         }
 
         public void onOutput(CharSequence output) {
             Object buildOperationId = BuildOperationIdentifierRegistry.getCurrentOperationIdentifier();
-            StyledTextOutputEvent event = new StyledTextOutputEvent(timeProvider.getCurrentTime(), category, null, buildOperationId, output.toString());
+            StyledTextOutputEvent event = new StyledTextOutputEvent(clock.getCurrentTime(), category, null, buildOperationId, output.toString());
             listener.onOutput(event);
         }
     }

@@ -21,15 +21,15 @@ import org.gradle.internal.scan.clock.DefaultBuildScanTimeProvider;
 import org.gradle.internal.scan.config.BuildScanConfigServices;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Clock;
 
 public class BuildScanServices extends AbstractPluginServiceRegistry {
 
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new Object() {
-            BuildScanTimeProvider createTimeProvider(TimeProvider timeProvider) {
-                return new DefaultBuildScanTimeProvider(timeProvider);
+            BuildScanTimeProvider createTimeProvider(Clock clock) {
+                return new DefaultBuildScanTimeProvider(clock);
             }
         });
     }

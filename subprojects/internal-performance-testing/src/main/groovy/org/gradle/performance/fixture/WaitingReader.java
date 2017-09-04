@@ -16,10 +16,10 @@
 
 package org.gradle.performance.fixture;
 
+import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.CountdownTimer;
-import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.time.Timers;
-import org.gradle.internal.time.TrueTimeProvider;
+import org.gradle.internal.time.TrueClock;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -40,7 +40,7 @@ public class WaitingReader {
     private final BufferedReader reader;
     private final int timeoutMs;
     private final int clockTick;
-    private final TimeProvider timeProvider = new TrueTimeProvider();
+    private final Clock clock = new TrueClock();
 
     //for testing
     int retriedCount;

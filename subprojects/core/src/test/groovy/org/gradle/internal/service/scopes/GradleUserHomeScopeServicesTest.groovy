@@ -54,7 +54,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.remote.MessagingServer
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
-import org.gradle.internal.time.TimeProvider
+import org.gradle.internal.time.Clock
 import org.gradle.process.internal.JavaExecHandleFactory
 import org.gradle.process.internal.health.memory.MemoryManager
 import org.gradle.process.internal.worker.WorkerProcessFactory
@@ -101,7 +101,7 @@ class GradleUserHomeScopeServicesTest extends Specification {
             _ * it.open(_, _, _, _, _, _, _, _) >> Mock(PersistentCache) { _ * getBaseDir() >> Mock(File) }
         }
         expectParentServiceLocated(LoggingManagerInternal)
-        expectParentServiceLocated(TimeProvider)
+        expectParentServiceLocated(Clock)
         expectParentServiceLocated(ProgressLoggerFactory)
         expectParentServiceLocated(StartParameter)
         expectParentServiceLocated(ExecutorFactory)

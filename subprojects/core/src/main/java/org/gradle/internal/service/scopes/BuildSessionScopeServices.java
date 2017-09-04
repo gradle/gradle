@@ -86,7 +86,7 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.BuildExecutionTimer;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
 import org.gradle.internal.work.DefaultWorkerLeaseService;
@@ -142,7 +142,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
     BuildOperationExecutor createBuildOperationExecutor(
         ListenerManager listenerManager,
-        TimeProvider timeProvider,
+        Clock clock,
         ProgressLoggerFactory progressLoggerFactory,
         WorkerLeaseService workerLeaseService,
         ExecutorFactory executorFactory,
@@ -154,7 +154,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
     ) {
         return new DefaultBuildOperationExecutor(
             listenerManager.getBroadcaster(BuildOperationListener.class),
-            timeProvider, progressLoggerFactory,
+            clock, progressLoggerFactory,
             new DefaultBuildOperationQueueFactory(workerLeaseService),
             executorFactory,
             resourceLockCoordinationService,

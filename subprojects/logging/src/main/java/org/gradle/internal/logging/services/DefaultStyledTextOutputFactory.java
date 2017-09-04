@@ -17,22 +17,22 @@
 package org.gradle.internal.logging.services;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.text.AbstractStyledTextOutputFactory;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.time.Clock;
 
 public class DefaultStyledTextOutputFactory extends AbstractStyledTextOutputFactory implements StyledTextOutputFactory {
     private final OutputEventListener outputEventListener;
-    private final TimeProvider timeProvider;
+    private final Clock clock;
 
-    public DefaultStyledTextOutputFactory(OutputEventListener outputEventListener, TimeProvider timeProvider) {
+    public DefaultStyledTextOutputFactory(OutputEventListener outputEventListener, Clock clock) {
         this.outputEventListener = outputEventListener;
-        this.timeProvider = timeProvider;
+        this.clock = clock;
     }
 
     public StyledTextOutput create(String logCategory, LogLevel logLevel) {
-        return new LoggingBackedStyledTextOutput(outputEventListener, logCategory, logLevel, timeProvider);
+        return new LoggingBackedStyledTextOutput(outputEventListener, logCategory, logLevel, clock);
     }
 }

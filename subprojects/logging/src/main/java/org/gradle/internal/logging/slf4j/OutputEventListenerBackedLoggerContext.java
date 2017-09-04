@@ -17,9 +17,9 @@
 package org.gradle.internal.logging.slf4j;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.sink.OutputEventRenderer;
+import org.gradle.internal.time.Clock;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
@@ -41,12 +41,12 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
     private final OutputStream defaultErrorStream;
     private final AtomicReference<LogLevel> level = new AtomicReference<LogLevel>();
     private final AtomicReference<OutputEventListener> outputEventListener = new AtomicReference<OutputEventListener>();
-    private final TimeProvider timeProvider;
+    private final Clock clock;
 
-    public OutputEventListenerBackedLoggerContext(OutputStream defaultOutputStream, OutputStream defaultErrorStream, TimeProvider timeProvider) {
+    public OutputEventListenerBackedLoggerContext(OutputStream defaultOutputStream, OutputStream defaultErrorStream, Clock clock) {
         this.defaultOutputStream = defaultOutputStream;
         this.defaultErrorStream = defaultErrorStream;
-        this.timeProvider = timeProvider;
+        this.clock = clock;
         applyDefaultLoggersConfig();
         reset();
     }
@@ -76,13 +76,13 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
             return logger;
         }
 
-        logger = loggers.putIfAbsent(name, new OutputEventListenerBackedLogger(name, this, timeProvider));
+        logger = loggers.putIfAbsent(name, new OutputEventListenerBackedLogger(name, this, clock));
         return logger != null ? logger : loggers.get(name);
     }
 
     public void reset() {
         setLevel(DEFAULT_LOG_LEVEL);
-        OutputEventRenderer renderer = new OutputEventRenderer(timeProvider);
+        OutputEventRenderer renderer = new OutputEventRenderer(clock);
         renderer.addStandardOutputListener(defaultOutputStream);
         renderer.addStandardErrorListener(defaultErrorStream);
         setOutputEventListener(renderer);

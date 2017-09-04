@@ -19,11 +19,11 @@ package org.gradle.internal.logging.slf4j
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
-import org.gradle.internal.operations.BuildOperationIdentifierRegistry
-import org.gradle.internal.logging.events.OperationIdentifier
-import org.gradle.internal.time.TimeProvider
 import org.gradle.internal.logging.events.LogEvent
+import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.logging.events.OutputEventListener
+import org.gradle.internal.operations.BuildOperationIdentifierRegistry
+import org.gradle.internal.time.Clock
 import org.slf4j.Marker
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -38,7 +38,7 @@ class OutputEventListenerBackedLoggerTest extends Specification {
 
     final List<LogEvent> events = []
     final long now = TimeUnit.MILLISECONDS.convert(System.nanoTime(), TimeUnit.NANOSECONDS)
-    final TimeProvider timeProvider = new TimeProvider() {
+    final Clock timeProvider = new Clock() {
         @Override
         long getCurrentTime() {
             return now

@@ -21,18 +21,18 @@ import spock.lang.Specification
 
 import java.util.concurrent.TimeUnit
 
-class OffsetTimeProviderTest extends Specification {
+class OffsetClockTest extends Specification {
 
     private static final long START_MILLIS = 641353121231L
     private static final long START_NANOS = 222222222222222222L
 
     private TimeSource timeSource = Mock(TimeSource)
-    private OffsetTimeProvider timeProvider
+    private OffsetClock timeProvider
 
     void setup() {
         1 * timeSource.currentTimeMillis() >> START_MILLIS
         1 * timeSource.nanoTime() >> START_NANOS
-        timeProvider = new OffsetTimeProvider(timeSource)
+        timeProvider = new OffsetClock(timeSource)
     }
 
     def "provides current time based on nanoTime delta"() {
