@@ -153,21 +153,21 @@ Arbitrary additional imports for packages and classes can also be specified on a
 
 #### Nested DSL elements
 
-While it is easy for a plugin author to extend the Gradle DSL to add top level blocks to the DSL using project extensions, in previous versions of Gradle it was awkward to create a deeply nested DSL inside these top level blocks, often requiring the use of internal Gradle APIs.
+While it is easy for a plugin author to extend the Gradle DSL to add top level blocks to the DSL using [project extensions](userguide/custom_plugins.html#sec:getting_input_from_the_build), in previous versions of Gradle it was awkward to create a deeply nested DSL inside these top level blocks, often requiring the use of internal Gradle APIs.
 
 In this release of Gradle, API methods have been added to allow a plugin author to create nested DSL elements. See the [example in the user guide](userguide/custom_plugins.html#sec:nested_dsl_elements) section on custom plugins.
 
 #### Declaring the output of a task as a publish artifact
 
-In previous versions of Gradle, it was not possible to declare the output of a task as a publish artifact in a way that deals with changes to the build directory and other configuration. A publish artifact makes a file or directory available to be referenced by a project dependency or published to a binary repository.
+Plugins use the [publish artifacts DSL](userguide/artifact_management.html#sec:declaring_artifacts) to declare that a particular file or directory is an output of a project. Gradle then makes these outputs available to other projects, through project dependencies, composite builds or when publishing the project to a Maven or Ivy repository. Usually these outputs are the result of running a particular task. However, in previous versions of Gradle, it was not possible to declare the output of a task as an artifact in a way that handles changes to the build directory and other configuration that is made _after_ the plugin is applied.
 
-TBD: The publish artifact DSL now accepts `Provider<File>`, `Provider<RegularFile>` and `Provider<Directory>` instances, which allows a plugin author to easily wire up a particular task output as a publish artifact in a way that respects configuration changes.
+In this release, the publish artifact DSL now accepts [`Provider`](javadoc/org/gradle/api/provider/Provider.html) instances with `File`, [`RegularFile`](javadoc/org/gradle/api/file/RegularFile.html) or [`Directory`](javadoc/org/gradle/api/file/Directory.html) values. This allows a plugin author to easily wire up a particular task output as an artifact in a way that respects configuration changes. See the [ArtifactHandler](dsl/org.gradle.api.artifacts.dsl.ArtifactHandler.html) DSL reference for more details.
 
 #### Groovy DSL support for properties of type `PropertyState`
 
-The last several version of Gradle have been steadily adding new features for plugin authors that build on the `Provider<T>` and `PropertyState<T>` types. This version of Gradle adds some DSL conveniences for working with these types.
+The last several releases of Gradle have added new features for plugin authors that based on the [`Provider<T>`](javadoc/org/gradle/api/provider/Provider.html) and [`PropertyState<T>`](javadoc/org/gradle/api/provider/PropertyState.html) types. This version of Gradle adds some DSL conveniences for working with these types.
 
-TBD: The Groovy DSL adds convenience methods to set the value of a property whose type is `PropertyState<T>` using any value of `T` or a `Provider<T>`. This makes the DSL clearer when configuring such a property, including wiring the output of one task in as the input of some other task or setting output locations relative to some configurable value, such as the build directory.  
+The Groovy DSL now adds convenience methods to set the value of a property whose type is `PropertyState<T>` using any value of `T` or a `Provider<T>`. This makes the DSL clearer when configuring such a property, including wiring the output of one task in as the input of some other task or setting output locations relative to some configurable value, such as the build directory.  
 
 ### UX improvements
 
