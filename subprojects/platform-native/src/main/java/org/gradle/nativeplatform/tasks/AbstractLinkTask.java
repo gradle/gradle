@@ -57,7 +57,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     private NativePlatformInternal targetPlatform;
     private boolean debuggable;
     private final RegularFileVar outputFile;
-    private final List<String> linkerArgs = new ArrayList<String>();
+    private List<String> linkerArgs = new ArrayList<String>();
     private final ConfigurableFileCollection source;
     private final ConfigurableFileCollection libs;
 
@@ -144,8 +144,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     }
 
     public void setLinkerArgs(List<String> linkerArgs) {
-        this.linkerArgs.clear();
-        this.linkerArgs.addAll(linkerArgs);
+        this.linkerArgs = linkerArgs;
     }
 
     /**
