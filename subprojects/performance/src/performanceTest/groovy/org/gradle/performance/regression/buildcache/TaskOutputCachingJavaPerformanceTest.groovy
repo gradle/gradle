@@ -16,6 +16,8 @@
 
 package org.gradle.performance.regression.buildcache
 
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
@@ -31,6 +33,9 @@ import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpBuildCacheServer
 import org.junit.Rule
 import spock.lang.Unroll
+
+import java.util.zip.GZIPInputStream
+import java.util.zip.GZIPOutputStream
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 
@@ -80,6 +85,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
         protocol = "http"
         pushToRemote = true
         runner.addBuildExperimentListener(cleanLocalCache())
+        runner.addBuildExperimentListener(touchCacheArtifacts())
 
         when:
         def result = runner.run()
@@ -97,6 +103,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
         protocol = "https"
         pushToRemote = true
         runner.addBuildExperimentListener(cleanLocalCache())
+        runner.addBuildExperimentListener(touchCacheArtifacts())
 
         def keyStore = TestKeyStore.init(temporaryFolder.file('ssl-keystore'))
         keyStore.enableSslWithServerCert(buildCacheServer)
@@ -177,6 +184,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
             runner.args += "--parallel"
         }
         pushToRemote = false
+        runner.addBuildExperimentListener(touchCacheArtifacts())
 
         when:
         def result = runner.run()
@@ -198,6 +206,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
         runner.addBuildExperimentListener(new ApplyAbiChangeToJavaSourceFileMutator(testProject.config.fileToChangeByScenario['assemble']))
         runner.args += "--parallel"
         pushToRemote = false
+        runner.addBuildExperimentListener(touchCacheArtifacts())
 
         when:
         def result = runner.run()
@@ -217,6 +226,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
         runner.addBuildExperimentListener(new ApplyNonAbiChangeToJavaSourceFileMutator(testProject.config.fileToChangeByScenario['assemble']))
         runner.args += "--parallel"
         pushToRemote = false
+        runner.addBuildExperimentListener(touchCacheArtifacts())
 
         when:
         def result = runner.run()
@@ -246,6 +256,58 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCacheJavaPe
                 buildCacheServer.cacheDir.deleteDir().mkdirs()
             }
         }
+    }
+
+    private BuildExperimentListenerAdapter touchCacheArtifacts() {
+        new BuildExperimentListenerAdapter() {
+            @Override
+            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
+                touchCacheArtifacts(cacheDir)
+                if (buildCacheServer.running) {
+                    touchCacheArtifacts(buildCacheServer.cacheDir)
+                }
+            }
+        }
+    }
+
+    // We change the file dates inside the archives to work around unfairness caused by
+    // reusing FileCollectionSnapshots based on the file dates in versions before Gradle 4.2
+    private void touchCacheArtifacts(File dir) {
+        def startTime = System.currentTimeMillis()
+        int count = 0
+        dir.eachFile { File cacheArchiveFile ->
+            if (cacheArchiveFile.name ==~ /[a-z0-9]{32}/) {
+                def tempFile = temporaryFolder.file("re-tar-temp")
+                tempFile.withOutputStream { outputStream ->
+                    def tarOutput = new TarArchiveOutputStream(new GZIPOutputStream(outputStream))
+                    tarOutput.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX)
+                    tarOutput.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_POSIX)
+                    tarOutput.setAddPaxHeadersForNonAsciiNames(true)
+                    cacheArchiveFile.withInputStream { inputStream ->
+                        def tarInput = new TarArchiveInputStream(new GZIPInputStream(inputStream))
+                        while (true) {
+                            def tarEntry = tarInput.nextTarEntry
+                            if (tarEntry == null) {
+                                break
+                            }
+
+                            tarEntry.setModTime(tarEntry.modTime + 3743)
+                            tarOutput.putArchiveEntry(tarEntry)
+                            if (!tarEntry.directory) {
+                                tarOutput << tarInput
+                            }
+                            tarOutput.closeArchiveEntry()
+                        }
+                    }
+                    tarOutput.close()
+                }
+                assert cacheArchiveFile.delete()
+                assert tempFile.renameTo(cacheArchiveFile)
+            }
+            count++
+        }
+        def time = System.currentTimeMillis() - startTime
+        println "Changed file dates in $count cache artifacts in $dir in ${time} ms"
     }
 
     private String getRemoteCacheSettingsScript() {
