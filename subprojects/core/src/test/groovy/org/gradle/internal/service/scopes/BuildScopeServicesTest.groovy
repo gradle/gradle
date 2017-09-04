@@ -64,6 +64,7 @@ import org.gradle.internal.operations.logging.BuildOperationLoggerFactory
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.time.BuildExecutionTimer
 import org.gradle.internal.time.Clock
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.plugin.repository.internal.PluginRepositoryFactory
@@ -116,6 +117,7 @@ class BuildScopeServicesTest extends Specification {
         sessionServices.get(PluginRepositoryRegistry) >> Mock(PluginRepositoryRegistry)
         sessionServices.get(PluginRepositoryFactory) >> Mock(PluginRepositoryFactory)
         sessionServices.get(BuildOperationExecutor) >> Mock(BuildOperationExecutor)
+        sessionServices.get(BuildExecutionTimer) >> BuildExecutionTimer.startingNow()
         def parentListenerManager = Mock(ListenerManager)
         sessionServices.get(ListenerManager) >> parentListenerManager
         parentListenerManager.createChild() >> listenerManager

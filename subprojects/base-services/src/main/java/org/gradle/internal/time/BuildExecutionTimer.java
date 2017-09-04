@@ -32,6 +32,10 @@ public class BuildExecutionTimer implements EventTimer {
 
     private final EventTimer eventTimer;
 
+    public static BuildExecutionTimer startingNow() {
+        return new BuildExecutionTimer(new DefaultEventTimer(MonotonicClock.global().getCurrentTime()));
+    }
+
     public BuildExecutionTimer(EventTimer eventTimer) {
         this.eventTimer = eventTimer;
     }
