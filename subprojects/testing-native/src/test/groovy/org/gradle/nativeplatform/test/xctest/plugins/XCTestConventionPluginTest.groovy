@@ -83,7 +83,7 @@ class XCTestConventionPluginTest extends Specification {
 
         def test = project.tasks.xcTest
         test instanceof XcTest
-        test.workingDir == projectDir.file("build/bundle")
+        test.workingDir == projectDir
         test.binResultsDir == projectDir.file("build/results/test/bin")
         test.reports.html.destination == projectDir.file("build/reports/test")
         test.reports.junitXml.destination == projectDir.file("build/reports/test/xml")
@@ -105,7 +105,7 @@ class XCTestConventionPluginTest extends Specification {
         bundle.outputDir == project.file("output/bundle/testAppTest.xctest")
 
         def test = project.tasks.xcTest
-        test.workingDir == projectDir.file("output/bundle")
+        test.workingDir == projectDir
         test.reports.html.destination == projectDir.file("output/reports/test")
         test.reports.junitXml.destination == projectDir.file("output/reports/test/xml")
     }

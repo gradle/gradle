@@ -97,7 +97,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         // Configure compile task
         SwiftCompile compile = (SwiftCompile) tasks.getByName("compileTestSwift");
         File frameworkDir = new File(sdkPlatformPathLocator.find(), "Developer/Library/Frameworks");
-        compile.setCompilerArgs(Lists.newArrayList("-g", "-F" + frameworkDir.getAbsolutePath()));
+        compile.getCompilerArgs().set(Lists.newArrayList("-g", "-F" + frameworkDir.getAbsolutePath()));
         compile.setModuleName(project.getName() + "Test");
 
         NativeToolChain toolChain = compile.getToolChain();
@@ -109,7 +109,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         // TODO - need to set basename from component
         link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
         link.lib(component.getExecutable().getLinkLibraries());
-        link.setLinkerArgs(Lists.newArrayList("-Xlinker", "-bundle", "-F" + frameworkDir.getAbsolutePath(), "-framework", "XCTest", "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks", "-Xlinker", "-rpath", "-Xlinker", "@loader_path/../Frameworks"));
+        link.getLinkerArgs().set(Lists.newArrayList("-Xlinker", "-bundle", "-F" + frameworkDir.getAbsolutePath(), "-framework", "XCTest", "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks", "-Xlinker", "-rpath", "-Xlinker", "@loader_path/../Frameworks"));
         PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select((NativePlatformInternal) targetPlatform);
         Provider<RegularFile> exeLocation = buildDirectory.file(toolProvider.getExecutableName("exe/" + project.getName() + "Test"));
         link.setOutputFile(exeLocation);
@@ -139,7 +139,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         // TODO - should respect changes to build directory
         xcTest.setBinResultsDir(project.file("build/results/test/bin"));
         xcTest.setTestBundleDir(testBundleDir);
-        xcTest.setWorkingDir(buildDirectory.dir("bundle"));
+        xcTest.setWorkingDir(project.getProjectDir());
         // TODO - should respect changes to reports dir
         xcTest.getReports().getHtml().setDestination(buildDirectory.dir("reports/test").map(new Transformer<File, Directory>() {
             @Override
@@ -163,7 +163,8 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         Task test = tasks.create("test");
         test.dependsOn(xcTest);
 
-        // TODO - check should depend on test
+        Task check = tasks.getByName("check");
+        check.dependsOn(test);
     }
 
     private void configureTestedComponent(final Project project) {
