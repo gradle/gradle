@@ -22,7 +22,7 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  * This only exists for backwards compatibility with the scan plugin.
  */
 @Deprecated
-@UsedByScanPlugin
+@UsedByScanPlugin("version 1.9 and earlier")
 public class Clock {
 
     private final long startTime;

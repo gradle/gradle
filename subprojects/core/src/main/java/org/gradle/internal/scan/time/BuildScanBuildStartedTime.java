@@ -22,6 +22,8 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  * Used to determine when the build was started.
  *
  * This is effectively a build scan specific view of {@link org.gradle.internal.buildevents.BuildExecutionTimer}.
+ *
+ * @since 4.2
  */
 @UsedByScanPlugin
 public interface BuildScanBuildStartedTime {

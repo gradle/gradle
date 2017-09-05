@@ -22,6 +22,8 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  * A view of the Gradle runtime's clock used by build scans.
  *
  * The provider is _required_ to provide monotonic timestamps.
+ *
+ * @since 4.2
  */
 @UsedByScanPlugin
 public interface BuildScanClock {
