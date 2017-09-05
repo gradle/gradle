@@ -24,10 +24,4 @@ public interface ValueSnapshot extends Snapshot {
      * Takes a snapshot of the given value, using this as a candidate snapshot. If the value is the same as the value represented by this snapshot, this snapshot _must_ be returned.
      */
     ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter);
-
-    /**
-     * Creates an {@link org.gradle.api.internal.changedetection.state.isolation.Isolatable} {@link Snapshot} of the value. If the value is the same as the value represented by this
-     * snapshot, this snapshot _must_ be returned.
-     */
-    ValueSnapshot isolatableSnapshot(Object value, ValueSnapshotter snapshotter);
 }

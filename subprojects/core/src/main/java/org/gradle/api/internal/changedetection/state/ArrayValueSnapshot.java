@@ -52,15 +52,6 @@ public class ArrayValueSnapshot implements ValueSnapshot, Isolatable<Object[]> {
         return other;
     }
 
-    @Override
-    public ValueSnapshot isolatableSnapshot(Object value, ValueSnapshotter snapshotter) {
-        ValueSnapshot other = snapshotter.isolatableSnapshot(value);
-        if (isEqualArrayValueSnapshot(other)) {
-            return this;
-        }
-        return other;
-    }
-
     private boolean isEqualArrayValueSnapshot(ValueSnapshot other) {
         if (other instanceof ArrayValueSnapshot) {
             ArrayValueSnapshot otherArray = (ArrayValueSnapshot) other;

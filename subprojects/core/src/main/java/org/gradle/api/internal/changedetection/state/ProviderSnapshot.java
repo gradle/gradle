@@ -16,34 +16,17 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
+import org.gradle.caching.internal.BuildCacheHasher;
 
-/**
- * A snapshot of an immutable scalar value. Should only be used for immutable JVM provided or core Gradle types.
- *
- * @param <T>
- */
-public abstract class AbstractScalarValueSnapshot<T> implements ValueSnapshot, Isolatable<T> {
-    private final T value;
+public class ProviderSnapshot implements ValueSnapshot {
+    private final ValueSnapshot valueSnapshot;
 
-    public AbstractScalarValueSnapshot(T value) {
-        this.value = value;
+    ProviderSnapshot(ValueSnapshot valueSnapshot) {
+        this.valueSnapshot = valueSnapshot;
     }
 
-    public T getValue() {
-        return value;
-    }
-
-    public T isolate() {
-        return getValue();
-    }
-
-    @Override
-    public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
-        if (this.value.equals(value)) {
-            return this;
-        }
-        return snapshotter.snapshot(value);
+    public ValueSnapshot getValue() {
+        return valueSnapshot;
     }
 
     @Override
@@ -54,12 +37,26 @@ public abstract class AbstractScalarValueSnapshot<T> implements ValueSnapshot, I
         if (obj == null || obj.getClass() != getClass()) {
             return false;
         }
-        AbstractScalarValueSnapshot other = (AbstractScalarValueSnapshot) obj;
-        return value.equals(other.value);
+        ProviderSnapshot other = (ProviderSnapshot) obj;
+        return other.valueSnapshot.equals(valueSnapshot);
     }
 
     @Override
     public int hashCode() {
-        return value.hashCode();
+        return valueSnapshot.hashCode();
+    }
+
+    @Override
+    public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
+        ValueSnapshot snapshot = snapshotter.snapshot(value);
+        if (equals(snapshot)) {
+            return this;
+        }
+        return snapshot;
+    }
+
+    @Override
+    public void appendToHasher(BuildCacheHasher hasher) {
+        valueSnapshot.appendToHasher(hasher);
     }
 }

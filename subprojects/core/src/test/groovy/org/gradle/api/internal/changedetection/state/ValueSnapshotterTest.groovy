@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import org.gradle.api.provider.Provider
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.test.fixtures.file.TestFile
@@ -183,6 +184,22 @@ class ValueSnapshotterTest extends Specification {
 
         // Not subclasses of `File`
         snapshotter.snapshot(new TestFile("abc")) != snapshot
+    }
+
+    def "creates snapshot for provider type"() {
+        def value = Stub(Provider)
+        value.get() >> "123"
+        def value2 = Stub(Provider)
+        value2.get() >> "123"
+        def value3 = Stub(Provider)
+        value3.get() >> "12"
+
+        expect:
+        def snapshot = snapshotter.snapshot(value)
+        snapshot instanceof ProviderSnapshot
+        snapshot == snapshotter.snapshot(value)
+        snapshot == snapshotter.snapshot(value2)
+        snapshot != snapshotter.snapshot(value3)
     }
 
     def "creates snapshot for serializable type"() {
@@ -408,6 +425,20 @@ class ValueSnapshotterTest extends Specification {
         snapshotter.snapshot(map2, snapshot4) == snapshotter.snapshot(map2)
         snapshotter.snapshot(map3, snapshot4) != snapshot4
         snapshotter.snapshot(map3, snapshot4) == snapshotter.snapshot(map3)
+    }
+
+    def "creates snapshot for provider type from candidate"() {
+        def value = Stub(Provider)
+        value.get() >> "123"
+        def value2 = Stub(Provider)
+        value2.get() >> "123"
+        def value3 = Stub(Provider)
+        value3.get() >> "12"
+
+        expect:
+        def snapshot = snapshotter.snapshot(value)
+        areTheSame(snapshot, value2)
+        areNotTheSame(snapshot, value3)
     }
 
     def "creates snapshot for serializable type from candidate"() {
