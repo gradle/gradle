@@ -19,14 +19,12 @@ package org.gradle.language.cpp.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
-import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppBinary;
@@ -109,13 +107,6 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     install.setToolChain(link.getToolChain());
                     install.setDestinationDir(buildDirectory.dir("install/" + names.getDirName()));
                     install.setExecutable(link.getBinaryFile());
-                    // TODO - infer this
-                    install.onlyIf(new Spec<Task>() {
-                        @Override
-                        public boolean isSatisfiedBy(Task element) {
-                            return install.getExecutable().exists();
-                        }
-                    });
                     install.lib(binary.getRuntimeLibraries());
                 } else if (binary instanceof CppSharedLibrary) {
                     final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);

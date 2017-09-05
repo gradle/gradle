@@ -17,17 +17,14 @@
 package org.gradle.nativeplatform.fixtures.app
 
 /**
- * A Swift app with a changed source file
+ * A Cpp app that remove all sources.
  */
-class IncrementalSwiftModifyExpectedOutputApp extends IncrementalSwiftElement {
-    private final greeter = new SwiftGreeter()
-    private final sum = new SwiftSum()
-    private final main = new SwiftMain(greeter, sum)
-    private final alternateMain = new SwiftAlternateMain(greeter)
+class IncrementalCppStaleLinkOutputApp extends IncrementalCppElement implements AppElement {
+    private final greeter = new CppGreeter()
+    private final sum = new CppSum()
+    private final main = new CppMain(greeter, sum)
 
     final List<IncrementalElement.Transform> incrementalChanges = [
-        preserve(greeter), preserve(sum), modify(main, alternateMain)]
+        delete(greeter), delete(sum), delete(main)]
     final String expectedOutput = main.expectedOutput
-    final String expectedAlternateOutput = alternateMain.expectedOutput
-    final String moduleName = "App"
 }
