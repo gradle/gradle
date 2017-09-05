@@ -51,6 +51,7 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
         try {
             executer.execute(task, state, context);
         } finally {
+            taskArtifactState.removeExecutionHistoryIfCorrupted();
             outputs.setHistory(null);
             context.setTaskArtifactState(null);
             LOGGER.debug("Removed task artifact state for {} from context.");

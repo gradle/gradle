@@ -115,6 +115,11 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         }
 
         @Override
+        public void removeExecutionHistoryIfCorrupted() {
+            delegate.removeExecutionHistoryIfCorrupted();
+        }
+
+        @Override
         public void ensureSnapshotBeforeTask() {
             delegate.ensureSnapshotBeforeTask();
         }

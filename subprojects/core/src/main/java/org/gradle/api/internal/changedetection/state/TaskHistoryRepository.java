@@ -35,5 +35,7 @@ public interface TaskHistoryRepository {
         void updateCurrentExecutionWithOutputs(IncrementalTaskInputsInternal taskInputs, ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot);
 
         void persist();
+
+        void removePreviousExecutionIfCorrupted();
     }
 }

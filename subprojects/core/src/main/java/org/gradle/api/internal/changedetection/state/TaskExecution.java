@@ -110,4 +110,6 @@ public abstract class TaskExecution {
     public OverlappingOutputs getDetectedOverlappingOutputs() {
         return detectedOverlappingOutputs;
     }
+
+    public abstract boolean isCorrupted();
 }

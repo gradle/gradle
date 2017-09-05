@@ -181,6 +181,11 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             snapshotAfterOutputsWereGenerated(history, null);
         }
 
+        @Override
+        public void removeExecutionHistoryIfCorrupted() {
+            history.removePreviousExecutionIfCorrupted();
+        }
+
         private void snapshotAfterOutputsWereGenerated(TaskHistoryRepository.History history, Throwable failure) {
             // Only persist task history if there was no failure, or some output files have been changed
             if (failure == null || getStates().hasAnyOutputFileChanges()) {
