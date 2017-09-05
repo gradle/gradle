@@ -83,5 +83,5 @@ public interface ProviderFactory {
      * @throws IllegalArgumentException If the element type is a parameterized type.
      * @since 4.3
      */
-    <T> PropertyState<List<T>> listProperty(Class<T> elementType);
+    <T> ListProperty<T> listProperty(Class<T> elementType);
 }

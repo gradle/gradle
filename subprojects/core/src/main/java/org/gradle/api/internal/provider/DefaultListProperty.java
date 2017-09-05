@@ -18,14 +18,14 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Transformer;
-import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
-class DefaultListProperty<T> implements ProviderInternal<List<T>>, PropertyState<List<T>> {
+class DefaultListProperty<T> implements ProviderInternal<List<T>>, ListProperty<T> {
     private static final Provider<ImmutableList<Object>> EMPTY_LIST = Providers.of(ImmutableList.of());
     private Provider<? extends List<T>> provider = Cast.uncheckedCast(EMPTY_LIST);
 

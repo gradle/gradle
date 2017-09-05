@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 
-import java.util.List;
 import java.util.concurrent.Callable;
 
 public class DefaultProviderFactory implements ProviderFactory {
@@ -63,7 +63,7 @@ public class DefaultProviderFactory implements ProviderFactory {
     }
 
     @Override
-    public <T> PropertyState<List<T>> listProperty(Class<T> elementType) {
+    public <T> ListProperty<T> listProperty(Class<T> elementType) {
         return new DefaultListProperty<T>(elementType);
     }
 }
