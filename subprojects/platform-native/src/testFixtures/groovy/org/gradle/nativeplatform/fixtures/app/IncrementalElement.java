@@ -23,7 +23,7 @@ import org.gradle.test.fixtures.file.TestFile;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -79,21 +79,19 @@ public abstract class IncrementalElement {
     /**
      * Returns a transform that keep the before element intact.
      */
-    protected static Transform preserve(final SourceFileElement element) {
-        assert element.getFiles().size() == 1;
-
+    protected static Transform preserve(final SourceElement element) {
         return new Transform() {
             @Override
             public void applyChangesToProject(TestFile projectDir) {}
 
             @Override
             public List<SourceFile> getBeforeFiles() {
-                return Arrays.asList(element.getSourceFile());
+                return element.getFiles();
             }
 
             @Override
             public List<SourceFile> getAfterFiles() {
-                return Arrays.asList(element.getSourceFile());
+                return element.getFiles();
             }
         };
     }
@@ -102,58 +100,71 @@ public abstract class IncrementalElement {
      * Returns a transform that replace the content of the before element with the content of the after element.
      * Both elements must have the same location.
      */
-    protected static Transform modify(final SourceFileElement beforeElement, SourceFileElement afterElement) {
-        assert beforeElement.getFiles().size() == 1;
-        assert afterElement.getFiles().size() == 1;
+    protected static Transform modify(final SourceElement beforeElement, final SourceElement afterElement) {
+        assert hasSameFiles(beforeElement.getFiles(), afterElement.getFiles());
         assert beforeElement.getSourceSetName().equals(afterElement.getSourceSetName());
-        final String sourceSetName = beforeElement.getSourceSetName();
-        final SourceFile beforeFile = beforeElement.getSourceFile();
-        final SourceFile afterFile = afterElement.getSourceFile();
-        assert beforeFile.getPath().equals(afterFile.getPath());
-        assert beforeFile.getName().equals(afterFile.getName());
-        assert !beforeFile.getContent().equals(afterFile.getContent());
 
         return new Transform() {
             @Override
             public void applyChangesToProject(TestFile projectDir) {
-                TestFile file = projectDir.file(beforeFile.withPath("src/" + sourceSetName));
-                file.assertExists();
-
-                file.write(afterFile.getContent());
+                afterElement.writeToProject(projectDir);
             }
 
             @Override
             public List<SourceFile> getBeforeFiles() {
-                return Arrays.asList(beforeFile);
+                return beforeElement.getFiles();
             }
 
             @Override
             public List<SourceFile> getAfterFiles() {
-                return Arrays.asList(afterFile);
+                return afterElement.getFiles();
             }
         };
+    }
+
+    private static boolean hasSameFiles(Collection<SourceFile> beforeFiles, Collection<SourceFile> afterFiles)  {
+        if (beforeFiles.size() != afterFiles.size()) {
+            return false;
+        }
+
+        for (SourceFile beforeFile : beforeFiles) {
+            boolean found = false;
+            for (SourceFile afterFile : afterFiles) {
+                if (beforeFile.getName().equals(afterFile.getName()) && beforeFile.getPath().equals(afterFile.getPath())) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
      * Returns a transform that delete the before element.
      */
-    protected static Transform delete(SourceFileElement beforeElement) {
-        assert beforeElement.getFiles().size() == 1;
+    protected static Transform delete(final SourceElement beforeElement) {
         final String sourceSetName = beforeElement.getSourceSetName();
-        final SourceFile beforeFile = beforeElement.getSourceFile();
+        final List<SourceFile> beforeFiles = beforeElement.getFiles();
 
         return new Transform() {
             @Override
             public void applyChangesToProject(TestFile projectDir) {
-                TestFile file = projectDir.file(beforeFile.withPath("src/" + sourceSetName));
-                file.assertExists();
+                for (SourceFile beforeFile : beforeFiles) {
+                    TestFile file = projectDir.file(beforeFile.withPath("src/" + sourceSetName));
+                    file.assertExists();
 
-                file.delete();
+                    file.delete();
+                }
             }
 
             @Override
             public List<SourceFile> getBeforeFiles() {
-                return Arrays.asList(beforeFile);
+                return beforeElement.getFiles();
             }
 
             @Override
@@ -166,20 +177,11 @@ public abstract class IncrementalElement {
     /**
      * Returns a transform that add the after element.
      */
-    protected static Transform add(SourceFileElement afterElement) {
-        assert afterElement.getFiles().size() == 1;
-        final String sourceSetName = afterElement.getSourceSetName();
-        final SourceFile afterFile = afterElement.getSourceFile();
-
-
+    protected static Transform add(final SourceElement afterElement) {
         return new Transform() {
             @Override
             public void applyChangesToProject(TestFile projectDir) {
-                TestFile file = projectDir.file(afterFile.withPath("src/" + sourceSetName));
-
-                file.assertDoesNotExist();
-
-                afterFile.writeToDir(projectDir);
+                afterElement.writeToProject(projectDir);
             }
 
             @Override
@@ -189,42 +191,7 @@ public abstract class IncrementalElement {
 
             @Override
             public List<SourceFile> getAfterFiles() {
-                return Arrays.asList(afterFile);
-            }
-        };
-    }
-
-    /**
-     * Returns a transform that rename the before element to {@code renamed-} followed by the original name.
-     */
-    protected static Transform rename(SourceFileElement beforeElement) {
-        return rename(beforeElement, "renamed-");
-    }
-
-    protected static Transform rename(SourceFileElement beforeElement, String renamePrefix) {
-        assert beforeElement.getFiles().size() == 1;
-        final String sourceSetName = beforeElement.getSourceSetName();
-        final SourceFile beforeFile = beforeElement.getSourceFile();
-        final SourceFile afterFile = new SourceFile(beforeFile.getPath(), renamePrefix + beforeFile.getName(), beforeFile.getContent());
-
-        return new Transform() {
-            @Override
-            public void applyChangesToProject(TestFile projectDir) {
-                TestFile file = projectDir.file(beforeFile.withPath("src/" + sourceSetName));
-
-                file.assertExists();
-
-                file.renameTo(projectDir.file(afterFile.withPath("src/" + sourceSetName)));
-            }
-
-            @Override
-            public List<SourceFile> getBeforeFiles() {
-                return Arrays.asList(beforeFile);
-            }
-
-            @Override
-            public List<SourceFile> getAfterFiles() {
-                return Arrays.asList(afterFile);
+                return afterElement.getFiles();
             }
         };
     }

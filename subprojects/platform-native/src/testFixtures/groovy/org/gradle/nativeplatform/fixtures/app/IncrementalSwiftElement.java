@@ -17,8 +17,10 @@
 package org.gradle.nativeplatform.fixtures.app;
 
 import org.gradle.integtests.fixtures.SourceFile;
+import org.gradle.test.fixtures.file.TestFile;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public abstract class IncrementalSwiftElement extends IncrementalElement {
@@ -53,4 +55,75 @@ public abstract class IncrementalSwiftElement extends IncrementalElement {
     }
 
     public abstract String getModuleName();
+
+    /**
+     * Returns a transform that replace the content of the before element with the content of the after element.
+     * Both elements must have the same location.
+     */
+    protected static Transform modify(final SourceFileElement beforeElement, SourceFileElement afterElement) {
+        assert beforeElement.getFiles().size() == 1;
+        assert afterElement.getFiles().size() == 1;
+        assert beforeElement.getSourceSetName().equals(afterElement.getSourceSetName());
+        final String sourceSetName = beforeElement.getSourceSetName();
+        final SourceFile beforeFile = beforeElement.getSourceFile();
+        final SourceFile afterFile = afterElement.getSourceFile();
+        assert beforeFile.getPath().equals(afterFile.getPath());
+        assert beforeFile.getName().equals(afterFile.getName());
+        assert !beforeFile.getContent().equals(afterFile.getContent());
+
+        return new Transform() {
+            @Override
+            public void applyChangesToProject(TestFile projectDir) {
+                TestFile file = projectDir.file(beforeFile.withPath("src/" + sourceSetName));
+                file.assertExists();
+
+                file.write(afterFile.getContent());
+            }
+
+            @Override
+            public List<SourceFile> getBeforeFiles() {
+                return Arrays.asList(beforeFile);
+            }
+
+            @Override
+            public List<SourceFile> getAfterFiles() {
+                return Arrays.asList(afterFile);
+            }
+        };
+    }
+
+    /**
+     * Returns a transform that rename the before element to {@code renamed-} followed by the original name.
+     */
+    protected static Transform rename(SourceFileElement beforeElement) {
+        return rename(beforeElement, "renamed-");
+    }
+
+    protected static Transform rename(SourceFileElement beforeElement, String renamePrefix) {
+        assert beforeElement.getFiles().size() == 1;
+        final String sourceSetName = beforeElement.getSourceSetName();
+        final SourceFile beforeFile = beforeElement.getSourceFile();
+        final SourceFile afterFile = new SourceFile(beforeFile.getPath(), renamePrefix + beforeFile.getName(), beforeFile.getContent());
+
+        return new Transform() {
+            @Override
+            public void applyChangesToProject(TestFile projectDir) {
+                TestFile file = projectDir.file(beforeFile.withPath("src/" + sourceSetName));
+
+                file.assertExists();
+
+                file.renameTo(projectDir.file(afterFile.withPath("src/" + sourceSetName)));
+            }
+
+            @Override
+            public List<SourceFile> getBeforeFiles() {
+                return Arrays.asList(beforeFile);
+            }
+
+            @Override
+            public List<SourceFile> getAfterFiles() {
+                return Arrays.asList(afterFile);
+            }
+        };
+    }
 }
