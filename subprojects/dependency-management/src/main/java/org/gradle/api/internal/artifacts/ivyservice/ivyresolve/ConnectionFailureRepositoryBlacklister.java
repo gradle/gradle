@@ -17,12 +17,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.gradle.api.UncheckedIOException;
 
 import java.io.InterruptedIOException;
 import java.util.HashSet;
 import java.util.Set;
 
-public class ConnectionInterruptionRepositoryBlacklister implements RepositoryBlacklister {
+public class ConnectionFailureRepositoryBlacklister implements RepositoryBlacklister {
 
     private final Set<String> blacklistedRepositories = new HashSet<String>();
 
@@ -39,7 +40,7 @@ public class ConnectionInterruptionRepositoryBlacklister implements RepositoryBl
             return true;
         }
 
-        if (isRootCauseInterruptedIOException(throwable)) {
+        if (isRootCauseIOException(throwable)) {
             blacklistedRepositories.add(repositoryId);
             return true;
         }
@@ -52,7 +53,8 @@ public class ConnectionInterruptionRepositoryBlacklister implements RepositoryBl
         return blacklistedRepositories;
     }
 
-    private boolean isRootCauseInterruptedIOException(Throwable throwable) {
-        return ExceptionUtils.getRootCause(throwable) instanceof InterruptedIOException;
+    private boolean isRootCauseIOException(Throwable throwable) {
+        Throwable rootCause = ExceptionUtils.getRootCause(throwable);
+        return rootCause instanceof UncheckedIOException || rootCause instanceof InterruptedIOException;
     }
 }

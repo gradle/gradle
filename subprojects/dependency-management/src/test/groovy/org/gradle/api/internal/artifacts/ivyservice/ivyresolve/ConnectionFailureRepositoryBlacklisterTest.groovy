@@ -16,25 +16,28 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
+import org.gradle.api.UncheckedIOException
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
-class ConnectionTimeoutRepositoryBlacklisterTest extends Specification {
+class ConnectionFailureRepositoryBlacklisterTest extends Specification {
 
-    @Subject RepositoryBlacklister blacklister = new ConnectionInterruptionRepositoryBlacklister()
+    @Subject RepositoryBlacklister blacklister = new ConnectionFailureRepositoryBlacklister()
 
     def "initializes with no blacklisted repositories"() {
         expect:
         blacklister.blacklistedRepositories.empty
     }
 
-    def "blacklists repository for InterruptedIOException"() {
+    @Unroll
+    def "blacklists repository for #type"() {
         given:
         def repositoryId1 = 'abc'
         def repositoryId2 = 'def'
 
         when:
-        boolean blacklisted = blacklister.blacklistRepository(repositoryId1, createNestedSocketTimeoutException('Read time out'))
+        boolean blacklisted = blacklister.blacklistRepository(repositoryId1, exception)
 
         then:
         blacklisted
@@ -42,7 +45,7 @@ class ConnectionTimeoutRepositoryBlacklisterTest extends Specification {
         blacklister.blacklistedRepositories.contains(repositoryId1)
 
         when:
-        blacklisted = blacklister.blacklistRepository(repositoryId1, createNestedSocketTimeoutException('Some other issue later'))
+        blacklisted = blacklister.blacklistRepository(repositoryId1, exception)
 
         then:
         blacklisted
@@ -50,13 +53,18 @@ class ConnectionTimeoutRepositoryBlacklisterTest extends Specification {
         blacklister.blacklistedRepositories.contains(repositoryId1)
 
         when:
-        blacklisted = blacklister.blacklistRepository(repositoryId2, createNestedSocketTimeoutException('More issues'))
+        blacklisted = blacklister.blacklistRepository(repositoryId2, exception)
 
         then:
         blacklisted
         blacklister.blacklistedRepositories.size() == 2
         blacklister.blacklistedRepositories.contains(repositoryId1)
         blacklister.blacklistedRepositories.contains(repositoryId2)
+
+        where:
+        type                     | exception
+        'InterruptedIOException' | createNestedSocketTimeoutException('Read time out')
+        'UncheckedIOException'   | createNestedUncheckedIOException('Received status code 500 from server: broken')
     }
 
     def "does not blacklist repository for other exception"() {
@@ -70,6 +78,10 @@ class ConnectionTimeoutRepositoryBlacklisterTest extends Specification {
 
     static RuntimeException createNestedSocketTimeoutException(String message) {
         createNestedException(new SocketTimeoutException(message))
+    }
+
+    static RuntimeException createNestedUncheckedIOException(String message) {
+        createNestedException(new UncheckedIOException(message))
     }
 
     static RuntimeException createNestedException(Throwable t) {
