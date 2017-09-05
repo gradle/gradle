@@ -60,7 +60,7 @@ public class NativeComponents {
                 linkTask.setToolChain(binary.getToolChain());
                 linkTask.setTargetPlatform(binary.getTargetPlatform());
                 linkTask.setOutputFile(executableFile);
-                linkTask.setLinkerArgs(binary.getLinker().getArgs());
+                linkTask.getLinkerArgs().set(binary.getLinker().getArgs());
 
                 linkTask.lib(new BinaryLibs(binary) {
                     @Override

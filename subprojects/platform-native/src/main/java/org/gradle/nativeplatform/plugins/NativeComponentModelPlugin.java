@@ -323,7 +323,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                     linkTask.setTargetPlatform(binary.getTargetPlatform());
                     linkTask.setOutputFile(binary.getSharedLibraryFile());
                     linkTask.setInstallName(binary.getSharedLibraryFile().getName());
-                    linkTask.setLinkerArgs(binary.getLinker().getArgs());
+                    linkTask.getLinkerArgs().set(binary.getLinker().getArgs());
 
                     linkTask.lib(new NativeComponents.BinaryLibs(binary) {
                         @Override

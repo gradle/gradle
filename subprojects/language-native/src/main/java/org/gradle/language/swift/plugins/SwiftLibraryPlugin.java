@@ -75,7 +75,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
 
         // Configure compile task
         SwiftCompile compileDebug = (SwiftCompile) tasks.getByName("compileDebugSwift");
-        compileDebug.setCompilerArgs(Lists.newArrayList("-enable-testing"));
+        compileDebug.getCompilerArgs().set(Lists.newArrayList("-enable-testing"));
         SwiftCompile compileRelease = (SwiftCompile) tasks.getByName("compileReleaseSwift");
 
         LinkSharedLibrary linkDebug = (LinkSharedLibrary) tasks.getByName("linkDebug");

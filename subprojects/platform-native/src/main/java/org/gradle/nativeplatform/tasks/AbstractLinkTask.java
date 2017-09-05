@@ -21,6 +21,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileVar;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
@@ -44,8 +45,6 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
@@ -57,7 +56,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     private NativePlatformInternal targetPlatform;
     private boolean debuggable;
     private final RegularFileVar outputFile;
-    private List<String> linkerArgs = new ArrayList<String>();
+    private ListProperty<String> linkerArgs;
     private final ConfigurableFileCollection source;
     private final ConfigurableFileCollection libs;
 
@@ -65,6 +64,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
         libs = getProject().files();
         source = getProject().files();
         outputFile = newOutputFile();
+        linkerArgs = getProject().getProviders().listProperty(String.class);
         getInputs().property("outputType", new Callable<String>() {
             @Override
             public String call() throws Exception {
@@ -139,12 +139,8 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
      * Additional arguments passed to the linker.
      */
     @Input
-    public List<String> getLinkerArgs() {
+    public ListProperty<String> getLinkerArgs() {
         return linkerArgs;
-    }
-
-    public void setLinkerArgs(List<String> linkerArgs) {
-        this.linkerArgs = linkerArgs;
     }
 
     /**
@@ -220,7 +216,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
 
         spec.objectFiles(getSource());
         spec.libraries(getLibs());
-        spec.args(getLinkerArgs());
+        spec.args(getLinkerArgs().get());
         spec.setDebuggable(isDebuggable());
 
         BuildOperationLogger operationLogger = getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir());
