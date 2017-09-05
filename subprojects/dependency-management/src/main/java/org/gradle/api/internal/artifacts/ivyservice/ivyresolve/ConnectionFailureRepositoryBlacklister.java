@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.gradle.api.UncheckedIOException;
 
 import java.io.InterruptedIOException;
 import java.util.HashSet;
