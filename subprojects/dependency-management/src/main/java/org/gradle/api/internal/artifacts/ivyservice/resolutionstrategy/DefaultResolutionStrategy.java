@@ -51,7 +51,7 @@ import static org.gradle.util.GUtil.flattenElements;
 
 public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private final Set<ModuleVersionSelector> forcedModules = new LinkedHashSet<ModuleVersionSelector>();
-    private ConflictResolution conflictResolution = new LatestConflictResolution();
+    private ConflictResolution conflictResolution = ConflictResolution.latest;
     private final DefaultComponentSelectionRules componentSelectionRules;
 
     private final DefaultCachePolicy cachePolicy;
@@ -93,14 +93,12 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
     public ResolutionStrategy failOnVersionConflict() {
         mutationValidator.validateMutation(STRATEGY);
-        this.conflictResolution = new StrictConflictResolution();
+        this.conflictResolution = ConflictResolution.strict;
         return this;
     }
 
     public void preferProjectModules() {
-        if (this.conflictResolution instanceof LatestConflictResolution) {
-            this.conflictResolution = new PreferProjectModulesConflictResolution();
-        }
+        conflictResolution = ConflictResolution.preferProjectModules;
     }
 
     @Override
@@ -202,9 +200,9 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     public DefaultResolutionStrategy copy() {
         DefaultResolutionStrategy out = new DefaultResolutionStrategy(cachePolicy.copy(), dependencySubstitutions.copy(), globalDependencySubstitutionRules, moduleIdentifierFactory);
 
-        if (conflictResolution instanceof StrictConflictResolution) {
+        if (conflictResolution == ConflictResolution.strict) {
             out.failOnVersionConflict();
-        } else if (conflictResolution instanceof PreferProjectModulesConflictResolution) {
+        } else if (conflictResolution == ConflictResolution.preferProjectModules) {
             out.preferProjectModules();
         }
         out.setForcedModules(getForcedModules());
