@@ -19,23 +19,15 @@ package org.gradle.nativeplatform.fixtures.app
 /**
  * A Swift app with a changed source file
  */
-class IncrementalSwiftApp {
-    def app = new SwiftApp()
-    def alternateApp = new SwiftAlternateApp()
+class IncrementalSwiftModifyExpectedOutputApp extends IncrementalSwiftElement {
+    private final greeter = new SwiftGreeter()
+    private final sum = new SwiftSum()
+    private final main = new SwiftMain(greeter, sum)
+    private final alternateMain = new SwiftAlternateMain(greeter)
 
-    IncrementalSwiftApp() {
-        // Verify some assumptions that the tests make
-        assert app.files.size() > 1
-        assert alternateApp.files.size() == app.files.size()
-        for (int i = 0; i < app.files.size(); i++) {
-            def newSource = alternateApp.files[i]
-            def oldSource = app.files[i]
-            assert newSource.path == oldSource.path
-            if (i == 0) {
-                assert newSource.content != oldSource.content
-            } else {
-                assert newSource.content == oldSource.content
-            }
-        }
-    }
+    final List<IncrementalElement.Transform> incrementalChanges = [
+        preserve(greeter), preserve(sum), preserve(main), modify(main, alternateMain)]
+    final String expectedOutput = main.expectedOutput
+    final String expectedAlternateOutput = alternateMain.expectedOutput
+    final String moduleName = "App"
 }

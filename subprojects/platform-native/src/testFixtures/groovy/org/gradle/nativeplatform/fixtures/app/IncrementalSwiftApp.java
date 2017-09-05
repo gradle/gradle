@@ -14,24 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.fixtures.app
+package org.gradle.nativeplatform.fixtures.app;
 
-import org.gradle.integtests.fixtures.SourceFile
-
-class SwiftAppWithDep extends SourceElement implements AppElement {
-    final SwiftMain main
-
-    SwiftAppWithDep(GreeterElement greeter, SumElement sum) {
-        main = new SwiftMainWithDep(greeter, sum)
-    }
-
-    @Override
-    final List<SourceFile> getFiles() {
-        [main.sourceFile]
-    }
-
-    @Override
-    String getExpectedOutput() {
-        return main.expectedOutput
-    }
+public abstract class IncrementalSwiftApp extends IncrementalSwiftElement implements AppElement {
+    public abstract String getExpectedAlternateOutput();
 }

@@ -30,7 +30,7 @@ class SwiftMain extends SourceFileElement implements AppElement {
         this.sum = sum
     }
 
-    final SourceFile sourceFile = sourceFile("swift", "main.swift", """
+    SourceFile sourceFile = sourceFile("swift", "main.swift", """
             // Simple hello world app
             func main() -> Int {
               let greeter = Greeter()

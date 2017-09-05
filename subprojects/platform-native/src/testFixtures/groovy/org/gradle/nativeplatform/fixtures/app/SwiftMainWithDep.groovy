@@ -18,20 +18,14 @@ package org.gradle.nativeplatform.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 
-class SwiftAppWithDep extends SourceElement implements AppElement {
-    final SwiftMain main
-
-    SwiftAppWithDep(GreeterElement greeter, SumElement sum) {
-        main = new SwiftMainWithDep(greeter, sum)
+class SwiftMainWithDep extends SwiftMain {
+    SwiftMainWithDep(GreeterElement greeter, SumElement sum) {
+        super(greeter, sum)
     }
 
     @Override
-    final List<SourceFile> getFiles() {
-        [main.sourceFile]
-    }
-
-    @Override
-    String getExpectedOutput() {
-        return main.expectedOutput
+    SourceFile getSourceFile() {
+        def delegate = super.getSourceFile()
+        sourceFile(delegate.path, delegate.name, "import Greeter\n${delegate.content}")
     }
 }
