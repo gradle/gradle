@@ -125,13 +125,20 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
             @Override
             public void persist() {
-                LazyTaskExecution currentExecution = getCurrentExecution();
-                LazyTaskExecution previousExecution = getPreviousExecution();
+                persistCurrentExecution();
+                cleanupPreviousExecution();
+            }
 
-                currentExecution.storeSnapshots();
+            private void cleanupPreviousExecution() {
+                LazyTaskExecution previousExecution = getPreviousExecution();
                 if (previousExecution != null) {
                     previousExecution.removeUnnecessarySnapshots();
                 }
+            }
+
+            private void persistCurrentExecution() {
+                LazyTaskExecution currentExecution = getCurrentExecution();
+                currentExecution.storeSnapshots();
                 taskHistoryCache.put(task.getPath(), currentExecution.snapshot());
             }
         };
