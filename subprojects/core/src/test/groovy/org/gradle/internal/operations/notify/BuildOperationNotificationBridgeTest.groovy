@@ -38,7 +38,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
     def "removes listener when stopped"() {
         given:
         listenerManager = Mock(BuildOperationListenerManager)
-        BuildOperationNotificationBridge bridge = new BuildOperationNotificationBridge(listenerManager)
+        def bridge = new BuildOperationNotificationBridge(listenerManager)
 
         def buildOperationListener
 
