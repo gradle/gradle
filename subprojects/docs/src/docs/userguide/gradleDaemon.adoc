@@ -33,6 +33,8 @@ The reasoning is simple: improve build speed by reusing computations from previo
 
 The Gradle Daemon is enabled by default starting with Gradle 3.0, so you don't have to do anything to benefit from it.
 
+If you run CI builds in ephemeral environments (such as containers) that do not reuse any processes, use of the Daemon will slightly decrease performance (due to caching additional information) for no benefit, and may be disabled.
+
 [[sec:status]]
 === Running Daemon Status
 
@@ -183,11 +185,6 @@ Gradle actively monitors heap usage and attempts to detect when a leak is starti
 
 If it is suspected that the Daemon process has become unstable, it can simply be killed. Recall that the `--no-daemon` switch can be specified for a build to prevent use of the Daemon. This can be useful to diagnose whether or not the Daemon is actually the culprit of a problem.
 
-[[when_should_i_not_use_the_gradle_daemon]]
-=== When should I not use the Gradle Daemon?
-
-Since Gradle 3.0, the daemon is stable and the recommended mode for running Gradle. We do not recommend disabling it. If you think stability and predictability is of utmost importance for some builds, e.g. CI or build servers, you can disable it as mentioned above. Note: if you run CI builds in complete isolation, for example containers that kill all running processes at the end of the build, the daemon process will be killed and running with or without daemon effectively makes no difference.
-
 [[sec:tools_and_ides]]
 === Tools & IDEs
 
@@ -201,11 +198,3 @@ The Gradle Daemon is a _long lived_ build process. In between builds it waits id
 A significant part of the story for modern JVM performance is runtime code optimization. For example, HotSpot (the JVM implementation provided by Oracle and used as the basis of OpenJDK) applies optimization to code while it is running. The optimization is progressive and not instantaneous. That is, the code is progressively optimized during execution which means that subsequent builds can be faster purely due to this optimization process. Experiments with HotSpot have shown that it takes somewhere between 5 and 10 builds for optimization to stabilize. The difference in perceived build time between the first build and the 10th for a Daemon can be quite dramatic.
 
 The Daemon also allows more effective in memory caching across builds. For example, the classes needed by the build (e.g. plugins, build scripts) can be held in memory between builds. Similarly, Gradle can maintain in-memory caches of build data such as the hashes of task inputs and outputs, used for incremental building.
-
-
-[[sec:potential_future_enhancements]]
-==== Potential future enhancements
-
-Currently, the Daemon makes builds faster by effectively supporting in memory caching and by the JVM optimizer making the code faster. In future Gradle versions, the Daemon will become even smarter and perform work _preemptively_. It could, for example, start downloading dependencies immediately after the build script has been edited under the assumption that the build is about to be run and the newly changed or added dependencies will be required.
-
-There are many other ways in that the Gradle Daemon will enable even faster builds in future Gradle versions.
