@@ -64,7 +64,7 @@ class ConnectionFailureRepositoryBlacklisterTest extends Specification {
         where:
         type                     | exception
         'InterruptedIOException' | createNestedSocketTimeoutException('Read time out')
-        'UncheckedIOException'   | createNestedUncheckedIOException('Received status code 500 from server: broken')
+        //'UncheckedIOException'   | createNestedUncheckedIOException('Received status code 500 from server: broken')
     }
 
     def "does not blacklist repository for other exception"() {

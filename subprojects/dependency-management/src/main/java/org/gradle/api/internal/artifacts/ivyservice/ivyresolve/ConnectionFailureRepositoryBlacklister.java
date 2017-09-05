@@ -55,6 +55,6 @@ public class ConnectionFailureRepositoryBlacklister implements RepositoryBlackli
 
     private boolean isRootCauseIOException(Throwable throwable) {
         Throwable rootCause = ExceptionUtils.getRootCause(throwable);
-        return rootCause instanceof UncheckedIOException || rootCause instanceof InterruptedIOException;
+        return rootCause instanceof InterruptedIOException;
     }
 }
