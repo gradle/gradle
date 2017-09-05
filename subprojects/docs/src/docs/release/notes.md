@@ -6,9 +6,9 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
-<!--
-### Example new and noteworthy
--->
+### Improvements for plugin authors
+
+TBD: `Provider<T>` and `PropertyState<T>` can be used with `@Input` properties.
 
 ## Promoted features
 
@@ -37,9 +37,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-<!--
-### Example breaking change
--->
+### Changes to incubating native compile and link tasks
+
+- `AbstractNativeCompileTask.compilerArgs` changed type to `ListProperty<String>` from `List<String>`.
+- `AbstractLinkTask.linkerArgs` changed type to `ListProperty<String>` from `List<String>`.
 
 ## External contributions
 
