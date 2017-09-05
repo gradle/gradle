@@ -20,6 +20,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.tasks.SwiftCompile
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite
+import org.gradle.nativeplatform.test.xctest.tasks.CreateXcTestBundle
 import org.gradle.nativeplatform.test.xctest.tasks.XcTest
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
@@ -76,8 +77,36 @@ class XCTestConventionPluginTest extends Specification {
         link.binaryFile.get().asFile == projectDir.file("build/exe/" + OperatingSystem.current().getExecutableName("testAppTest"))
         link.debuggable
 
+        def bundle = project.tasks.createXcTestBundle
+        bundle instanceof CreateXcTestBundle
+        bundle.outputDir == project.file("build/bundle/testAppTest.xctest")
+
         def test = project.tasks.xcTest
         test instanceof XcTest
+        test.workingDir == projectDir.file("build/bundle")
+        test.binResultsDir == projectDir.file("build/results/test/bin")
+        test.reports.html.destination == projectDir.file("build/reports/test")
+        test.reports.junitXml.destination == projectDir.file("build/reports/test/xml")
     }
 
+    def "output locations reflects changes to buildDir"() {
+        when:
+        project.pluginManager.apply(XCTestConventionPlugin)
+        project.buildDir = project.file("output")
+
+        then:
+        def compileSwift = project.tasks.compileTestSwift
+        compileSwift.objectFileDirectory.get().asFile == projectDir.file("output/obj/test")
+
+        def link = project.tasks.linkTest
+        link.binaryFile.get().asFile == projectDir.file("output/exe/" + OperatingSystem.current().getExecutableName("testAppTest"))
+
+        def bundle = project.tasks.createXcTestBundle
+        bundle.outputDir == project.file("output/bundle/testAppTest.xctest")
+
+        def test = project.tasks.xcTest
+        test.workingDir == projectDir.file("output/bundle")
+        test.reports.html.destination == projectDir.file("output/reports/test")
+        test.reports.junitXml.destination == projectDir.file("output/reports/test/xml")
+    }
 }
