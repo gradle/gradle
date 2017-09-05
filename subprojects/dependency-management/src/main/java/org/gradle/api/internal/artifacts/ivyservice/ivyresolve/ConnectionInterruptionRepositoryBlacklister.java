@@ -32,10 +32,19 @@ public class ConnectionInterruptionRepositoryBlacklister implements RepositoryBl
     }
 
     @Override
-    public void blacklistRepository(String repositoryId, Throwable throwable) {
-        if (!isBlacklisted(repositoryId) && isRootCauseInterruptedIOException(throwable)) {
-            blacklistedRepositories.add(repositoryId);
+    public boolean blacklistRepository(String repositoryId, Throwable throwable) {
+        boolean blacklisted = isBlacklisted(repositoryId);
+
+        if (blacklisted) {
+            return true;
         }
+
+        if (isRootCauseInterruptedIOException(throwable)) {
+            blacklistedRepositories.add(repositoryId);
+            return true;
+        }
+
+        return false;
     }
 
     @Override

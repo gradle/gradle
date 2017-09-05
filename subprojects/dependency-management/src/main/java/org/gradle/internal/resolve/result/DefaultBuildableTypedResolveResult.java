@@ -29,6 +29,12 @@ public class DefaultBuildableTypedResolveResult<T, E extends Throwable> extends 
     }
 
     @Override
+    public void unresolved(E failure) {
+        this.result = null;
+        this.failure = failure;
+    }
+
+    @Override
     public void resolved(T result) {
         this.result = result;
         this.failure = null;

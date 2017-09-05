@@ -34,29 +34,45 @@ class ConnectionTimeoutRepositoryBlacklisterTest extends Specification {
         def repositoryId2 = 'def'
 
         when:
-        blacklister.blacklistRepository(repositoryId1, createNestedSocketTimeoutException('Read time out'))
+        boolean blacklisted = blacklister.blacklistRepository(repositoryId1, createNestedSocketTimeoutException('Read time out'))
 
         then:
+        blacklisted
         blacklister.blacklistedRepositories.size() == 1
         blacklister.blacklistedRepositories.contains(repositoryId1)
 
         when:
-        blacklister.blacklistRepository(repositoryId1, createNestedSocketTimeoutException('Some other issue later'))
+        blacklisted = blacklister.blacklistRepository(repositoryId1, createNestedSocketTimeoutException('Some other issue later'))
 
         then:
+        blacklisted
         blacklister.blacklistedRepositories.size() == 1
         blacklister.blacklistedRepositories.contains(repositoryId1)
 
         when:
-        blacklister.blacklistRepository(repositoryId2, createNestedSocketTimeoutException('More issues'))
+        blacklisted = blacklister.blacklistRepository(repositoryId2, createNestedSocketTimeoutException('More issues'))
 
         then:
+        blacklisted
         blacklister.blacklistedRepositories.size() == 2
         blacklister.blacklistedRepositories.contains(repositoryId1)
         blacklister.blacklistedRepositories.contains(repositoryId2)
     }
 
+    def "does not blacklist repository for other exception"() {
+        when:
+        boolean blacklisted = blacklister.blacklistRepository('abc', createNestedException(new NullPointerException()))
+
+        then:
+        !blacklisted
+        blacklister.blacklistedRepositories.empty
+    }
+
     static RuntimeException createNestedSocketTimeoutException(String message) {
-        new RuntimeException('Could not resolve module', new SocketTimeoutException(message))
+        createNestedException(new SocketTimeoutException(message))
+    }
+
+    static RuntimeException createNestedException(Throwable t) {
+        new RuntimeException('Could not resolve module', t)
     }
 }

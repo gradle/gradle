@@ -23,7 +23,6 @@ import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.test.fixtures.maven.MavenRepository
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
-import spock.lang.Ignore
 
 import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.SOCKET_TIMEOUT_SYSTEM_PROPERTY
 
@@ -152,7 +151,6 @@ class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyReso
         downloadedLibsDir.assertContainsDescendants('a-1.0.jar', 'b-1.0.jar')
     }
 
-    @Ignore
     def "fails build if HTTP connection exceeds timeout when resolving metadata"() {
         given:
         MavenHttpRepository backupMavenHttpRepo = new MavenHttpRepository(server, '/repo-2', new MavenFileRepository(file('maven-repo-2')))

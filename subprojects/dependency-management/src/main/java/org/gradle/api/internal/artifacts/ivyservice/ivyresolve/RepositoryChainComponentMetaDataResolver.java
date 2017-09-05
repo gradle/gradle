@@ -152,6 +152,11 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
                     }
                     best = best != null ? best : moduleResolution;
                     break;
+                case Unresolved:
+                    failures.add(metaDataResolveResult.getFailure());
+                    // do not check other repositories in queue
+                    queue.clear();
+                    break;
                 default:
                     throw new IllegalStateException("Unexpected state for resolution: " + metaDataResolveResult.getState());
             }
