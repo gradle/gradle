@@ -129,10 +129,13 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 LazyTaskExecution previousExecution = getPreviousExecution();
 
                 currentExecution.storeSnapshots();
+                taskHistoryCache.put(task.getPath(), currentExecution.snapshot());
+                // Important: we only remove unnecessary snapshots after the task history has been persisted.
+                // If not and the Gradle build is aborted between these two steps we have problems when loading the snapshots form task history.
+                // See https://github.com/gradle/gradle/issues/2827.
                 if (previousExecution != null) {
                     previousExecution.removeUnnecessarySnapshots();
                 }
-                taskHistoryCache.put(task.getPath(), currentExecution.snapshot());
             }
         };
     }
