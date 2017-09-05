@@ -125,13 +125,8 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
             @Override
             public void persist() {
-                cleanupPreviousExecution();
-                try {
-                    Thread.sleep(20);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
                 persistCurrentExecution();
+                cleanupPreviousExecution();
             }
 
             private void cleanupPreviousExecution() {

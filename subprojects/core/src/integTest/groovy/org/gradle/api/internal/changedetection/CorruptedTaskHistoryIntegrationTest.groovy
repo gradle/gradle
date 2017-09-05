@@ -17,10 +17,16 @@
 package org.gradle.api.internal.changedetection
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 class CorruptedTaskHistoryIntegrationTest extends AbstractIntegrationSpec {
 
+    // If this test starts to be flaky it points to a problem in the code!
+    // See the linked issue.
+    @Issue("https://github.com/gradle/gradle/issues/2827")
     def "broken build doesn't corrupt the artifact history"() {
+        def numberOfFiles = 10
+
         buildFile << """
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.InputDirectory
@@ -41,7 +47,7 @@ class CreateFiles implements Runnable {
 
     @Override
     void run() {
-        (1..100).each {
+        (1..$numberOfFiles).each {
             new File(outputDir, "\${it}.txt").text = "\${it}"
         }
     }
@@ -55,8 +61,12 @@ class CreateFilesTask extends DefaultTask {
         this.workerExecutor=workerExecutor
     }
     
-    @InputDirectory
-    File inputDir
+    ${
+            (1..10).collect {
+                '''@InputDirectory
+            File inputDir''' + it
+            }.join("\n")
+        }
     
     @OutputDirectory
     File outputDir
@@ -69,8 +79,8 @@ class CreateFilesTask extends DefaultTask {
         }
         if (project.findProperty("killMe")) {
             new Thread({
-                Thread.sleep(400)
-                System.exit(0)
+                Thread.sleep(300)
+                System.exit(1)
             }).start()
         }
     }
@@ -82,25 +92,35 @@ task createFiles
 
 (1..100).each { num ->
     createFiles.dependsOn(tasks.create("createFiles\${num}", CreateFilesTask) {
-        inputDir = file("inputs")
-        outputDir = file("build/output\${num}")
+        ${
+            (1..10).collect {
+                '''inputDir''' + it + ''' = file("inputs")
+            '''
+            }.join("\n")
+        }
+            outputDir = file("build/output\${num}")
     })           
 }
 
         """
         file('inputs').create {
-            (1..100).each {
+            (1..numberOfFiles).each {
                 file("input${it}.txt").text = "input${it}"
             }
+        }
+
+        executer.beforeExecute {
+            // We need a separate JVM in order not to kill the test JVM
+            requireGradleDistribution()
         }
 
         when:
         succeeds("createFiles")
         succeeds("clean")
-        fails("createFiles", "-PkillMe=true", "--max-workers=40")
+        fails("createFiles", "-PkillMe=true", "--max-workers=10")
 
         then:
-        file('build/output10').allDescendants().size() == 100
+        file('build/output10').allDescendants().size() == numberOfFiles
 
         expect:
         succeeds "createFiles"
