@@ -43,7 +43,7 @@ class VisualCppToolChainTest extends Specification {
     final BuildOperationExecutor buildOperationExecutor = Stub(BuildOperationExecutor)
     final VisualStudioLocator.SearchResult visualStudioLookup = Stub(VisualStudioLocator.SearchResult)
     final WindowsSdkLocator.SearchResult windowsSdkLookup = Stub(WindowsSdkLocator.SearchResult)
-	final UcrtLocator.SearchResult ucrtLookup = Stub(UcrtLocator.SearchResult)
+	final WindowsKitComponentLocator.SearchResult<Ucrt> ucrtLookup = Stub(WindowsKitComponentLocator.SearchResult)
     final WorkerLeaseService workerLeaseService = Stub(WorkerLeaseService)
     final Instantiator instantiator = DirectInstantiator.INSTANCE
     VisualCppToolChain toolChain
@@ -54,7 +54,7 @@ class VisualCppToolChainTest extends Specification {
     final WindowsSdkLocator windowsSdkLocator = Stub(WindowsSdkLocator) {
         locateWindowsSdks(_) >> windowsSdkLookup
     }
-    final UcrtLocator ucrtLocator = Stub(UcrtLocator) {
+    final WindowsKitComponentLocator ucrtLocator = Stub(UcrtLocator) {
         locateUcrts(_) >> ucrtLookup
     }
 	final OperatingSystem operatingSystem = Stub(OperatingSystem) {

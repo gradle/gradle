@@ -152,10 +152,10 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
 
         // Universal CRT is required only for VS2015
         if (isVisualCpp2015()) {
-            UcrtLocator.SearchResult ucrtSearchResult = ucrtLocator.locateUcrts(ucrtDir);
+            WindowsKitComponentLocator.SearchResult<Ucrt> ucrtSearchResult = ucrtLocator.locateComponents(ucrtDir);
             availability.mustBeAvailable(ucrtSearchResult);
             if (ucrtSearchResult.isAvailable()) {
-                ucrt = ucrtSearchResult.getUcrt();
+                ucrt = ucrtSearchResult.getComponent();
             }
         }
 

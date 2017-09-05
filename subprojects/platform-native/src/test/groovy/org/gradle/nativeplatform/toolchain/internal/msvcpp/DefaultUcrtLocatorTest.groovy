@@ -32,7 +32,7 @@ class DefaultUcrtLocatorTest extends Specification {
         isWindows() >> true
         getExecutableName(_ as String) >> { String exeName -> exeName }
     }
-    final UcrtLocator ucrtLocator = new DefaultUcrtLocator(operatingSystem, windowsRegistry)
+    final WindowsKitComponentLocator ucrtLocator = new DefaultUcrtLocator(operatingSystem, windowsRegistry)
 
     def "uses ucrt found in registry"() {
         def dir1 = ucrtDir("ucrt", "10.0.10150.0")
@@ -42,16 +42,16 @@ class DefaultUcrtLocatorTest extends Specification {
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> dir1.absolutePath
 
         when:
-        def result = ucrtLocator.locateUcrts(null)
+        def result = ucrtLocator.locateComponents(null)
 
         then:
         result.available
-        result.ucrt.name == "UCRT 10"
-        result.ucrt.baseDir == dir1
-        result.ucrt.version == VersionNumber.withPatchNumber().parse("10.0.10150.0")
+        result.component.name == "UCRT 10"
+        result.component.baseDir == dir1
+        result.component.version == VersionNumber.withPatchNumber().parse("10.0.10150.0")
     }
 
-    def "uses newset ucrt found in registry"() {
+    def "uses newest ucrt found in registry"() {
         def dir1 = ucrtDir("ucrt", "10.0.10150.0")
         def dir2 = ucrtDir("ucrt", "10.0.10160.0")
 
@@ -60,13 +60,13 @@ class DefaultUcrtLocatorTest extends Specification {
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> dir1.absolutePath
 
         when:
-        def result = ucrtLocator.locateUcrts(null)
+        def result = ucrtLocator.locateComponents(null)
 
         then:
         result.available
-        result.ucrt.name == "UCRT 10"
-        result.ucrt.baseDir == dir2
-        result.ucrt.version == VersionNumber.withPatchNumber().parse("10.0.10160.0")
+        result.component.name == "UCRT 10"
+        result.component.baseDir == dir2
+        result.component.version == VersionNumber.withPatchNumber().parse("10.0.10160.0")
     }
 
     def "handles missing ucrt"() {
@@ -77,11 +77,11 @@ class DefaultUcrtLocatorTest extends Specification {
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> { throw new MissingRegistryEntryException("missing") }
 
         when:
-        def result = ucrtLocator.locateUcrts(null)
+        def result = ucrtLocator.locateComponents(null)
 
         then:
         !result.available
-        result.ucrt == null
+        result.component == null
 
         when:
         result.explain(visitor)
@@ -98,25 +98,25 @@ class DefaultUcrtLocatorTest extends Specification {
         given:
         operatingSystem.findInPath(_) >> null
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> ignoredDir.absolutePath
-        assert ucrtLocator.locateUcrts(null).available
+        assert ucrtLocator.locateComponents(null).available
 
         when:
-        def result = ucrtLocator.locateUcrts(ucrtDir1)
+        def result = ucrtLocator.locateComponents(ucrtDir1)
 
         then:
         result.available
-        result.ucrt.name == "User-provided UCRT"
-        result.ucrt.baseDir == ucrtDir1
-        result.ucrt.version == VersionNumber.withPatchNumber().parse("10.0.10150.1")
+        result.component.name == "User-provided UCRT"
+        result.component.baseDir == ucrtDir1
+        result.component.version == VersionNumber.withPatchNumber().parse("10.0.10150.1")
 
         when:
-        result = ucrtLocator.locateUcrts(ucrtDir2)
+        result = ucrtLocator.locateComponents(ucrtDir2)
 
         then:
         result.available
-        result.ucrt.name == "User-provided UCRT"
-        result.ucrt.baseDir == ucrtDir2
-        result.ucrt.version == VersionNumber.withPatchNumber().parse("10.0.10150.2")
+        result.component.name == "User-provided UCRT"
+        result.component.baseDir == ucrtDir2
+        result.component.version == VersionNumber.withPatchNumber().parse("10.0.10150.2")
     }
 
     def "uses ucrt using specified install dir, same as in registry"() {
@@ -125,16 +125,16 @@ class DefaultUcrtLocatorTest extends Specification {
         given:
         operatingSystem.findInPath(_) >> null
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> ucrtDir1.absolutePath
-        assert ucrtLocator.locateUcrts(null).available
+        assert ucrtLocator.locateComponents(null).available
 
         when:
-        def result = ucrtLocator.locateUcrts(ucrtDir1)
+        def result = ucrtLocator.locateComponents(ucrtDir1)
 
         then:
         result.available
-        result.ucrt.name == "UCRT 10"
-        result.ucrt.baseDir == ucrtDir1
-        result.ucrt.version == VersionNumber.withPatchNumber().parse("10.0.10150.0")
+        result.component.name == "UCRT 10"
+        result.component.baseDir == ucrtDir1
+        result.component.version == VersionNumber.withPatchNumber().parse("10.0.10150.0")
     }
 
     def "ucrt not available when specified install dir does not look like a ucrt"() {
@@ -145,14 +145,14 @@ class DefaultUcrtLocatorTest extends Specification {
         given:
         operatingSystem.findInPath(_) >> null
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> ignoredDir.absolutePath
-        assert ucrtLocator.locateUcrts(null).available
+        assert ucrtLocator.locateComponents(null).available
 
         when:
-        def result = ucrtLocator.locateUcrts(ucrtDir1)
+        def result = ucrtLocator.locateComponents(ucrtDir1)
 
         then:
         !result.available
-        result.ucrt == null
+        result.component == null
 
         when:
         result.explain(visitor)
@@ -171,13 +171,13 @@ class DefaultUcrtLocatorTest extends Specification {
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot10") >> ucrtDir.absolutePath
 
         when:
-        def result = ucrtLocator.locateUcrts(ucrtDir)
+        def result = ucrtLocator.locateComponents(ucrtDir)
 
         then:
         result.available
-        result.ucrt.name == "UCRT 10"
-        result.ucrt.baseDir == ucrtDir
-        result.ucrt.version == VersionNumber.withPatchNumber().parse("10.0.10150.0")
+        result.component.name == "UCRT 10"
+        result.component.baseDir == ucrtDir
+        result.component.version == VersionNumber.withPatchNumber().parse("10.0.10150.0")
     }
 
     def ucrtDir(String name, String versionDir) {

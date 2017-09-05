@@ -23,27 +23,10 @@ import org.gradle.util.VersionNumber;
 
 import java.io.File;
 
-public class Ucrt implements Named {
-    private final File baseDir;
-    private final String name;
-    private final VersionNumber version;
+public class Ucrt extends WindowsKitComponent implements Named {
 
     public Ucrt(File baseDir, String name, VersionNumber version) {
-        this.baseDir = baseDir;
-        this.name = name;
-        this.version = version;
-    }
-
-    public File getBaseDir() {
-        return baseDir;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public VersionNumber getVersion() {
-        return version;
+        super(baseDir, version, name);
     }
 
     public File[] getIncludeDirs() {
@@ -65,34 +48,5 @@ public class Ucrt implements Named {
 
     private ArchitectureInternal architecture(NativePlatformInternal platform) {
         return platform.getArchitecture();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        Ucrt ucrt = (Ucrt) o;
-
-        if (!baseDir.equals(ucrt.baseDir)) {
-            return false;
-        }
-        if (!name.equals(ucrt.name)) {
-            return false;
-        }
-        return version.equals(ucrt.version);
-
-    }
-
-    @Override
-    public int hashCode() {
-        int result = baseDir.hashCode();
-        result = 31 * result + name.hashCode();
-        result = 31 * result + version.hashCode();
-        return result;
     }
 }
