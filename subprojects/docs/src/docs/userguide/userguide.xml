@@ -30,7 +30,7 @@
     <part>
         <title>About Gradle</title>
         <xi:include href='../../../build/asciidoc/userguide/introduction.xml'/>
-        <xi:include href='overview.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/overview.xml'/>
     </part>
     <part>
         <title>Working with existing builds</title>
@@ -81,7 +81,7 @@
         <xi:include href='../../../build/asciidoc/userguide/customTasks.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/customPlugins.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/javaGradlePlugin.xml' />
-        <xi:include href='organizeBuildLogic.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/organizeBuildLogic.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/initscripts.xml'/>
         <xi:include href='testKit.xml' />
     </part>
@@ -106,7 +106,7 @@
         <xi:include href='../../../build/asciidoc/userguide/jdependPlugin.xml'/>
         <xi:include href='pmdPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/jacocoPlugin.xml'/>
-        <xi:include href='osgi.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/osgi.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/eclipsePlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/ideaPlugin.xml'/>
     </part>
@@ -116,8 +116,8 @@
         <xi:include href='../../../build/asciidoc/userguide/softwareModelConcepts.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/ruleSource.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/buildingJavaLibraries.xml'/>
-        <xi:include href='playPlugin.xml'/>
-        <xi:include href='nativeBinaries.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/playPlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/nativeBinaries.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/softwareModelExtend.xml'/>
     </part>
     <part>
