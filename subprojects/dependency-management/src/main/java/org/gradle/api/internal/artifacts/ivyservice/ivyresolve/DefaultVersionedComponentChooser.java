@@ -26,7 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionC
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.resolve.result.BuildableComponentSelectionResult;
+import org.gradle.internal.resolve.result.ComponentSelectionContext;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.rules.SpecRuleAction;
 import org.gradle.util.CollectionUtils;
@@ -68,7 +68,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         return componentResolveMetadata.isGenerated();
     }
 
-    public void selectNewestMatchingComponent(Collection<? extends ModuleComponentResolveState> versions, BuildableComponentSelectionResult result, ModuleVersionSelector requested) {
+    public void selectNewestMatchingComponent(Collection<? extends ModuleComponentResolveState> versions, ComponentSelectionContext result, ModuleVersionSelector requested) {
         VersionSelector requestedVersion = versionSelectorScheme.parseSelector(requested.getVersion());
         Collection<SpecRuleAction<? super ComponentSelection>> rules = componentSelectionRules.getRules();
 
@@ -112,7 +112,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         return new MetadataProvider(candidate);
     }
 
-    private void applyTo(MetadataProvider provider, BuildableComponentSelectionResult result) {
+    private void applyTo(MetadataProvider provider, ComponentSelectionContext result) {
         BuildableModuleComponentMetaDataResolveResult metaDataResult = provider.getResult();
         switch (metaDataResult.getState()) {
             case Unknown:
