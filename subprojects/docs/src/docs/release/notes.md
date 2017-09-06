@@ -46,34 +46,6 @@ Native compile and link tasks now execute in parallel by default, making native 
 
 The `zipTree` and `tarTree` implementations had a major performance issue, unpacking files every time the tree was traversed. This has now been fixed and should speed up builds using these trees a lot.
 
-### Timeouts for HTTP requests
-
-Previous versions of Gradle did not define a timeout for any HTTP requests. Under certain conditions e.g. network problems, unresponsive or overloaded servers this behavior could lead to hanging connections. Gradle now defines connection and socket timeouts for all HTTP requests. In the event of a timeout, Gradle will skip subsequent connections to the same repository for the duration of the build. The output of a build clearly indicates which request was skipped.
-
-    * What went wrong:
-    Could not resolve all files for configuration ':deps'.
-    > Could not resolve group:a:1.0.
-      Required by:
-          project :
-       > Could not resolve group:a:1.0.
-          > Could not get resource 'http://localhost:54347/repo/group/a/1.0/a-1.0.pom'.
-             > Could not GET 'http://localhost:54347/repo/group/a/1.0/a-1.0.pom'.
-                > Read timed out
-    > Could not resolve group:b:1.0.
-      Required by:
-          project :
-       > Skipped due to earlier error
-       
-The timeouts are also effective for connections to an [HTTP build cache](dsl/org.gradle.caching.http.HttpBuildCache.html#org.gradle.caching.http.HttpBuildCache).
-If connections to the build cache time out then it will be disabled for the rest of the build.
-
-    :compileJava
-    Could not load entry 2b308a0ad9cbd0ad048d4ea84c186f71 for task ':compileJava' from remote build cache: Unable to load entry from 'https://example.com/cache/2b308a0ad9cbd0ad048d4ea84c186f71': Read timed out
-    
-    BUILD SUCCESSFUL in 4s
-    1 actionable task: 1 executed
-    The remote build cache was disabled during the build due to errors.
-
 ### Better support for script plugins loaded via HTTP
 
 Script plugins are applied to Gradle settings or projects via the `apply from: 'URL'` syntax. Support for `http://` and `https://` URLs has been improved in this release:
