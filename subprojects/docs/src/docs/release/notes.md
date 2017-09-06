@@ -9,6 +9,9 @@ Add-->
 ### Improvements for plugin authors
 
 TBD: `Provider<T>` and `PropertyState<T>` can be used with `@Input` properties.
+TBD: `ListProperty<T>`
+TBD: `Provider.map()`
+TBD: `PropertyState<Directory>` and `PropertyState<RegularFile>` can be set using `File` in DSL.
 
 ## Promoted features
 
@@ -40,6 +43,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Changes to incubating native compile and link tasks
 
 - `AbstractNativeCompileTask.compilerArgs` changed type to `ListProperty<String>` from `List<String>`.
+- `AbstractNativeCompileTask.objectFileDir` changed type to `DirectoryVar` from `File`.
 - `AbstractLinkTask.linkerArgs` changed type to `ListProperty<String>` from `List<String>`.
 
 ## External contributions
