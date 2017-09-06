@@ -77,7 +77,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 } else {
                     compile.setOptimized(true);
                 }
-                compile.setObjectFileDir(buildDirectory.dir("obj/" + names.getDirName()));
+                compile.getObjectFileDir().set(buildDirectory.dir("obj/" + names.getDirName()));
 
                 DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
                 compile.setTargetPlatform(currentPlatform);
@@ -89,7 +89,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 if (binary instanceof CppExecutable) {
                     // Add a link task
                     LinkExecutable link = tasks.create(names.getTaskName("link"), LinkExecutable.class);
-                    link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
+                    link.source(compile.getObjectFileDir().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
                     link.lib(binary.getLinkLibraries());
                     final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
                     link.setOutputFile(buildDirectory.file(providers.provider(new Callable<String>() {
@@ -124,7 +124,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
 
                     // Add a link task
                     LinkSharedLibrary link = tasks.create(names.getTaskName("link"), LinkSharedLibrary.class);
-                    link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
+                    link.source(compile.getObjectFileDir().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
                     link.lib(binary.getLinkLibraries());
                     // TODO - need to set soname
                     Provider<RegularFile> runtimeFile = buildDirectory.file(providers.provider(new Callable<String>() {

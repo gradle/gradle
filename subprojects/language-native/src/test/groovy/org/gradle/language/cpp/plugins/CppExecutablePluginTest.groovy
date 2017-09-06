@@ -67,7 +67,7 @@ class CppExecutablePluginTest extends Specification {
         compileDebugCpp instanceof CppCompile
         compileDebugCpp.includes.files == [project.file("src/main/headers")] as Set
         compileDebugCpp.source.files == [src] as Set
-        compileDebugCpp.objectFileDirectory.get().asFile == projectDir.file("build/obj/main/debug")
+        compileDebugCpp.objectFileDir.get().asFile == projectDir.file("build/obj/main/debug")
         compileDebugCpp.debuggable
         !compileDebugCpp.optimized
 
@@ -85,7 +85,7 @@ class CppExecutablePluginTest extends Specification {
         compileReleaseCpp instanceof CppCompile
         compileReleaseCpp.includes.files == [project.file("src/main/headers")] as Set
         compileReleaseCpp.source.files == [src] as Set
-        compileReleaseCpp.objectFileDirectory.get().asFile == projectDir.file("build/obj/main/release")
+        compileReleaseCpp.objectFileDir.get().asFile == projectDir.file("build/obj/main/release")
         !compileReleaseCpp.debuggable
         compileReleaseCpp.optimized
 
@@ -123,7 +123,7 @@ class CppExecutablePluginTest extends Specification {
 
         then:
         def compileCpp = project.tasks.compileDebugCpp
-        compileCpp.objectFileDir == project.file("output/obj/main/debug")
+        compileCpp.objectFileDir.get().asFile == project.file("output/obj/main/debug")
 
         def link = project.tasks.linkDebug
         link.outputFile == projectDir.file("output/exe/main/debug/" + OperatingSystem.current().getExecutableName("testApp"))

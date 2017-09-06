@@ -70,7 +70,7 @@ class CppLibraryPluginTest extends Specification {
         compileDebugCpp instanceof CppCompile
         compileDebugCpp.includes.files as List == [publicHeaders, privateHeaders]
         compileDebugCpp.source.files as List == [src]
-        compileDebugCpp.objectFileDirectory.get().asFile == projectDir.file("build/obj/main/debug")
+        compileDebugCpp.objectFileDir.get().asFile == projectDir.file("build/obj/main/debug")
         compileDebugCpp.debuggable
         !compileDebugCpp.optimized
 
@@ -83,7 +83,7 @@ class CppLibraryPluginTest extends Specification {
         compileReleaseCpp instanceof CppCompile
         compileReleaseCpp.includes.files as List == [publicHeaders, privateHeaders]
         compileReleaseCpp.source.files as List == [src]
-        compileReleaseCpp.objectFileDirectory.get().asFile == projectDir.file("build/obj/main/release")
+        compileReleaseCpp.objectFileDir.get().asFile == projectDir.file("build/obj/main/release")
         !compileReleaseCpp.debuggable
         compileReleaseCpp.optimized
 
@@ -112,7 +112,7 @@ class CppLibraryPluginTest extends Specification {
 
         then:
         def compileCpp = project.tasks.compileDebugCpp
-        compileCpp.objectFileDir == project.file("output/obj/main/debug")
+        compileCpp.objectFileDir.get().asFile == project.file("output/obj/main/debug")
 
         def link = project.tasks.linkDebug
         link.outputFile == projectDir.file("output/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("testLib"))

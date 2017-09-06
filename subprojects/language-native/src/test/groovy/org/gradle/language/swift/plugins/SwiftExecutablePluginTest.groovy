@@ -66,7 +66,7 @@ class SwiftExecutablePluginTest extends Specification {
         def compileDebug = project.tasks.compileDebugSwift
         compileDebug instanceof SwiftCompile
         compileDebug.source.files == [src] as Set
-        compileDebug.objectFileDirectory.get().asFile == projectDir.file("build/obj/main/debug")
+        compileDebug.objectFileDir.get().asFile == projectDir.file("build/obj/main/debug")
         compileDebug.debuggable
         !compileDebug.optimized
 
@@ -83,7 +83,7 @@ class SwiftExecutablePluginTest extends Specification {
         def compileRelease = project.tasks.compileReleaseSwift
         compileRelease instanceof SwiftCompile
         compileRelease.source.files == [src] as Set
-        compileRelease.objectFileDirectory.get().asFile == projectDir.file("build/obj/main/release")
+        compileRelease.objectFileDir.get().asFile == projectDir.file("build/obj/main/release")
         !compileRelease.debuggable
         compileRelease.optimized
 

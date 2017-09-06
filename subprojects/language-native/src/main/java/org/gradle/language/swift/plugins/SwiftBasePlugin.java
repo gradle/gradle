@@ -79,7 +79,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     compile.setOptimized(true);
                 }
                 compile.setModuleName(binary.getModule());
-                compile.setObjectFileDir(buildDirectory.dir("obj/" + names.getDirName()));
+                compile.getObjectFileDir().set(buildDirectory.dir("obj/" + names.getDirName()));
 
                 DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
                 compile.setTargetPlatform(currentPlatform);
@@ -91,7 +91,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                 if (binary instanceof SwiftExecutable) {
                     // Add a link task
                     LinkExecutable link = tasks.create(names.getTaskName("link"), LinkExecutable.class);
-                    link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
+                    link.source(compile.getObjectFileDir().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
                     link.lib(binary.getLinkLibraries());
                     final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
                     Provider<RegularFile> exeLocation = buildDirectory.file(providers.provider(new Callable<String>() {
@@ -123,7 +123,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                 } else if (binary instanceof SwiftSharedLibrary) {
                     // Add a link task
                     final LinkSharedLibrary link = tasks.create(names.getTaskName("link"), LinkSharedLibrary.class);
-                    link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
+                    link.source(compile.getObjectFileDir().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
                     link.lib(binary.getLinkLibraries());
                     // TODO - need to set soname
                     final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);

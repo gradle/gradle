@@ -47,7 +47,7 @@ class SwiftBasePluginTest extends Specification {
         then:
         def compileSwift = project.tasks[taskName]
         compileSwift instanceof SwiftCompile
-        compileSwift.objectFileDirectory.get().asFile == projectDir.file("build/obj/${objDir}")
+        compileSwift.objectFileDir.get().asFile == projectDir.file("build/obj/${objDir}")
 
         where:
         name        | taskName                | objDir

@@ -95,7 +95,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         debugApiElements.setCanBeResolved(false);
         debugApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
         debugApiElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, true);
-        debugApiElements.getOutgoing().artifact(compileDebug.getObjectFileDirectory());
+        debugApiElements.getOutgoing().artifact(compileDebug.getObjectFileDir());
 
         Configuration debugLinkElements = configurations.create("debugLinkElements");
         debugLinkElements.extendsFrom(implementation);
@@ -118,7 +118,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         releaseApiElements.setCanBeResolved(false);
         releaseApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
         releaseApiElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, false);
-        releaseApiElements.getOutgoing().artifact(compileRelease.getObjectFileDirectory());
+        releaseApiElements.getOutgoing().artifact(compileRelease.getObjectFileDir());
 
         Configuration releaseLinkElements = configurations.create("releaseLinkElements");
         releaseLinkElements.extendsFrom(implementation);

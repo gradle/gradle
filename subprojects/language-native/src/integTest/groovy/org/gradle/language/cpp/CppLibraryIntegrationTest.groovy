@@ -195,7 +195,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         and:
         buildFile << """
             apply plugin: 'cpp-library'
-            compileDebugCpp.objectFileDirectory = layout.buildDirectory.dir("object-files")
+            compileDebugCpp.objectFileDir = layout.buildDirectory.dir("object-files")
             linkDebug.binaryFile = layout.buildDirectory.file("some-lib/main.bin")
          """
 

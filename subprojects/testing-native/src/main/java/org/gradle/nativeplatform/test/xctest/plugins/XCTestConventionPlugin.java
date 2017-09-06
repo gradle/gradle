@@ -107,7 +107,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         // Add a link task
         LinkExecutable link = tasks.create("linkTest", LinkExecutable.class);
         // TODO - need to set basename from component
-        link.source(compile.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
+        link.source(compile.getObjectFileDir().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
         link.lib(component.getExecutable().getLinkLibraries());
         link.getLinkerArgs().set(Lists.newArrayList("-Xlinker", "-bundle", "-F" + frameworkDir.getAbsolutePath(), "-framework", "XCTest", "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks", "-Xlinker", "-rpath", "-Xlinker", "@loader_path/../Frameworks"));
         PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select((NativePlatformInternal) targetPlatform);
@@ -188,9 +188,9 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
         SwiftCompile compileMain = tasks.withType(SwiftCompile.class).getByName("compileDebugSwift");
         SwiftCompile compileTest = tasks.withType(SwiftCompile.class).getByName("compileTestSwift");
-        compileTest.includes(compileMain.getObjectFileDirectory());
+        compileTest.includes(compileMain.getObjectFileDir());
 
         AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkTest");
-        linkTest.source(compileMain.getObjectFileDirectory().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
+        linkTest.source(compileMain.getObjectFileDir().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
     }
 }

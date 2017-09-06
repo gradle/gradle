@@ -56,7 +56,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     private NativePlatformInternal targetPlatform;
     private boolean debuggable;
     private final RegularFileVar outputFile;
-    private ListProperty<String> linkerArgs;
+    private final ListProperty<String> linkerArgs;
     private final ConfigurableFileCollection source;
     private final ConfigurableFileCollection libs;
 
@@ -136,7 +136,9 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     }
 
     /**
-     * Additional arguments passed to the linker.
+     * <em>Additional</em> arguments passed to the linker.
+     *
+     * @since 4.3
      */
     @Input
     public ListProperty<String> getLinkerArgs() {
@@ -145,6 +147,8 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
 
     /**
      * Create a debuggable binary?
+     *
+     * @since 4.3
      */
     @Input
     public boolean isDebuggable() {
@@ -159,7 +163,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
      * The source object files to be passed to the linker.
      */
     @InputFiles
-    public FileCollection getSource() {
+    public ConfigurableFileCollection getSource() {
         return source;
     }
 
@@ -171,7 +175,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
      * The library files to be passed to the linker.
      */
     @InputFiles
-    public FileCollection getLibs() {
+    public ConfigurableFileCollection getLibs() {
         return libs;
     }
 

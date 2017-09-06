@@ -19,12 +19,9 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryVar;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder;
 import org.gradle.api.provider.ListProperty;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -101,7 +98,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         NativeCompileSpec spec = createCompileSpec();
         spec.setTargetPlatform(targetPlatform);
         spec.setTempDir(getTemporaryDir());
-        spec.setObjectFileDir(getObjectFileDir());
+        spec.setObjectFileDir(objectFileDir.get().getAsFile());
         spec.include(includes);
         spec.source(getSource());
         spec.setMacros(getMacros());
@@ -170,6 +167,8 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
 
     /**
      * Should the compiler generate debuggable code?
+     *
+     * @since 4.3
      */
     @Input
     public boolean isDebuggable() {
@@ -181,7 +180,9 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     }
 
     /**
-     * Should the compiler generate omptimized code?
+     * Should the compiler generate optimized code?
+     *
+     * @since 4.3
      */
     @Input
     public boolean isOptimized() {
@@ -195,38 +196,18 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     /**
      * The directory where object files will be generated.
      *
-     * @since 4.1
+     * @since 4.3
      */
     @OutputDirectory
-    public DirectoryVar getObjectFileDirectory() {
+    public DirectoryVar getObjectFileDir() {
         return objectFileDir;
-    }
-
-    @Internal
-    public File getObjectFileDir() {
-        return objectFileDir.getAsFile().getOrNull();
-    }
-
-    public void setObjectFileDir(File objectFileDir) {
-        this.objectFileDir.set(objectFileDir);
-    }
-
-    /**
-     * Sets the object file directory to output generated object file by the compilation process via a {@link Provider}.
-     *
-     * @param objectFileDir the object file directory provider to use
-     * @see #setObjectFileDir(File)
-     * @since 4.1
-     */
-    public void setObjectFileDir(Provider<? extends Directory> objectFileDir) {
-        this.objectFileDir.set(objectFileDir);
     }
 
     /**
      * Returns the header directories to be used for compilation.
      */
     @Internal("The paths for include directories are tracked via the includePaths property, the contents are tracked via discovered inputs")
-    public FileCollection getIncludes() {
+    public ConfigurableFileCollection getIncludes() {
         return includes;
     }
 
@@ -254,7 +235,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      * Returns the source files to be compiled.
      */
     @InputFiles
-    public FileCollection getSource() {
+    public ConfigurableFileCollection getSource() {
         return source;
     }
 
@@ -280,6 +261,8 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
 
     /**
      * <em>Additional</em> arguments to provide to the compiler.
+     *
+     * @since 4.3
      */
     @Input
     public ListProperty<String> getCompilerArgs() {

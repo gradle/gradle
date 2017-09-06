@@ -252,7 +252,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         and:
         buildFile << """
             apply plugin: 'cpp-executable'
-            compileDebugCpp.objectFileDirectory = layout.buildDirectory.dir("object-files")
+            compileDebugCpp.objectFileDir = layout.buildDirectory.dir("object-files")
             linkDebug.binaryFile = layout.buildDirectory.file("exe/some-app.exe")
             installDebug.installDirectory = layout.buildDirectory.dir("some-app")
          """

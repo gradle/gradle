@@ -68,7 +68,7 @@ class XCTestConventionPluginTest extends Specification {
         def compileSwift = project.tasks.compileTestSwift
         compileSwift instanceof SwiftCompile
         compileSwift.source.files == [src] as Set
-        compileSwift.objectFileDirectory.get().asFile == projectDir.file("build/obj/test")
+        compileSwift.objectFileDir.get().asFile == projectDir.file("build/obj/test")
         compileSwift.debuggable
         !compileSwift.optimized
 
@@ -96,7 +96,7 @@ class XCTestConventionPluginTest extends Specification {
 
         then:
         def compileSwift = project.tasks.compileTestSwift
-        compileSwift.objectFileDirectory.get().asFile == projectDir.file("output/obj/test")
+        compileSwift.objectFileDir.get().asFile == projectDir.file("output/obj/test")
 
         def link = project.tasks.linkTest
         link.binaryFile.get().asFile == projectDir.file("output/exe/" + OperatingSystem.current().getExecutableName("testAppTest"))
