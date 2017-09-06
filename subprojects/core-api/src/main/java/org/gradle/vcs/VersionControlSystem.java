@@ -26,5 +26,5 @@ public interface VersionControlSystem {
      * Populates the {@code workingDir} with the latest state of the
      * version control repostory from the {@code spec}.
      */
-    public void populate(File workingDir, VersionControlSpec spec);
+    void populate(File workingDir, VersionControlSpec spec);
 }

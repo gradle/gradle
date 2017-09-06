@@ -15,25 +15,10 @@
  */
 package org.gradle.vcs;
 
-import java.net.URI;
+import org.gradle.api.Describable;
 
 /**
  * Captures user-provided information about a version control system.
  */
-public interface VersionControlSpec {
-    /**
-     * The URL for the repository in the specification.
-     *
-     * <p><b>Note:</b> The return value is a {@link URI} to avoid exposing the
-     * full contract of {@link java.net.URL} clients of this interface.
-     * Specifically, {@link java.net.URL} extends {@link URI} to add network
-     * operations which are both unsuited for simple data specification and
-     * allocate additional memory.</p>
-     */
-    public URI getUrl();
-
-    /**
-     * Sets the URL of the repository.
-     */
-    public VersionControlSpec setUrl(URI url);
+public interface VersionControlSpec extends Describable {
 }
