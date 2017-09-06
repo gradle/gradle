@@ -47,7 +47,8 @@ class GitVersionControlSystemSpec extends Specification {
     def "clone a repository"() {
         given:
         File target = r.createTempDirectory("cloneTarget")
-        GitVersionControlSpec spec = new GitVersionControlSpec().setUrl(new URI("file://" + r.getTrash().getAbsolutePath()))
+        GitVersionControlSpec spec = new GitVersionControlSpec()
+        spec.url = new URI("file://" + r.getTrash().getAbsolutePath())
 
         when:
         gitVcs.populate(target, spec)

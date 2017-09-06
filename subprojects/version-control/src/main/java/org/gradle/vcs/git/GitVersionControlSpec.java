@@ -26,14 +26,28 @@ import java.net.URI;
 public class GitVersionControlSpec implements VersionControlSpec {
     private URI url;
 
-    @Override
+    /**
+     * The URL for the repository in the specification.
+     *
+     * <p><b>Note:</b> The return value is a {@link URI} to avoid exposing the
+     * full contract of {@link java.net.URL} clients of this interface.
+     * Specifically, {@link java.net.URL} extends {@link URI} to add network
+     * operations which are both unsuited for simple data specification and
+     * allocate additional memory.</p>
+     */
     public URI getUrl() {
         return url;
     }
 
-    @Override
-    public GitVersionControlSpec setUrl(URI url) {
+    /**
+     * Sets the URL of the repository.
+     */
+    public void setUrl(URI url) {
         this.url = url;
-        return this;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return "Git Repository at " + getUrl();
     }
 }

@@ -33,12 +33,16 @@ public class GitVersionControlSystem implements VersionControlSystem {
     private static final Logger LOGGER = Logging.getLogger(GitVersionControlSystem.class);
     @Override
     public void populate(File workingDir, VersionControlSpec spec) {
-        CloneCommand clone = new CloneCommand().setURI(spec.getUrl().toString()).setDirectory(workingDir);
+        if (!(spec instanceof GitVersionControlSpec)) {
+            throw new IllegalArgumentException("The GitVersionControlSystem can only handle GitVersionConrolSpec instances.");
+        }
+        GitVersionControlSpec gitSpec = (GitVersionControlSpec) spec;
+        CloneCommand clone = new CloneCommand().setURI(gitSpec.getUrl().toString()).setDirectory(workingDir);
         Git git = null;
         try {
             git = clone.call();
         } catch (GitAPIException e) {
-            LOGGER.error("Could not clone: {} to {} because {}", spec.getUrl(), workingDir, e.getStackTrace());
+            LOGGER.error("Could not clone: {} to {} because {}", gitSpec.getUrl(), workingDir, e.getStackTrace());
         }
         if (git != null) {
             git.close();
