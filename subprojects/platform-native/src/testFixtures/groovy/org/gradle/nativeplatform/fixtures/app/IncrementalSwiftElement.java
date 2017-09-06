@@ -16,36 +16,36 @@
 
 package org.gradle.nativeplatform.fixtures.app;
 
-import com.google.common.collect.Sets;
-import org.gradle.api.Transformer;
 import org.gradle.integtests.fixtures.SourceFile;
-import org.gradle.util.CollectionUtils;
 
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class IncrementalSwiftElement extends IncrementalElement {
     @Override
-    protected Set<String> intermediateFilenames(SourceFile sourceFile) {
-        final String name = sourceFile.getName().replace(".swift", "");
-        return CollectionUtils.collect(Sets.newHashSet(".o", "~partial.swiftdoc", "~partial.swiftmodule"), new Transformer<String, String>() {
-            @Override
-            public String transform(String suffix) {
-                return name + suffix;
-            }
-        });
+    protected List<String> toExpectedIntermediateDescendants(SourceElement sourceElement) {
+        List<String> result = new ArrayList<String>();
+
+        String sourceSetName = sourceElement.getSourceSetName();
+        for (SourceFile sourceFile : sourceElement.getFiles()) {
+            result.add(getIntermediateRelativeFilePath(sourceSetName, sourceFile, ".o"));
+            result.add(getIntermediateRelativeFilePath(sourceSetName, sourceFile, "~partial.swiftdoc"));
+            result.add(getIntermediateRelativeFilePath(sourceSetName, sourceFile, "~partial.swiftmodule"));
+        }
+        return result;
     }
 
     @Override
-    public Set<String> getExpectedIntermediateFilenames() {
-        return appendGenericExpectedIntermediateFilenames(super.getExpectedIntermediateFilenames());
+    public List<String> getExpectedIntermediateDescendants() {
+        return appendGenericExpectedIntermediateDescendants(super.getExpectedIntermediateDescendants());
     }
 
     @Override
-    public Set<String> getExpectedAlternateIntermediateFilenames() {
-        return appendGenericExpectedIntermediateFilenames(super.getExpectedAlternateIntermediateFilenames());
+    public List<String> getExpectedAlternateIntermediateDescendants() {
+        return appendGenericExpectedIntermediateDescendants(super.getExpectedAlternateIntermediateDescendants());
     }
 
-    private Set<String> appendGenericExpectedIntermediateFilenames(Set<String> delegate) {
+    private List<String> appendGenericExpectedIntermediateDescendants(List<String> delegate) {
         delegate.add("output-file-map.json");
         delegate.add(getModuleName() + ".swiftmodule");
         delegate.add(getModuleName() + ".swiftdoc");

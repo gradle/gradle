@@ -16,7 +16,6 @@
 
 package org.gradle.language.swift
 
-import groovy.io.FileType
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftModifyExpectedOutputApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftModifyExpectedOutputAppWithLib
@@ -129,7 +128,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
         result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
 
-        files("build/obj/main")*.name as Set == app.alternate.expectedIntermediateFilenames
+        file("build/obj/main/debug").assertHasDescendants(app.alternate.expectedIntermediateDescendants as String[])
         executable("build/exe/main/debug/App").assertExists()
         installation("build/install/main/debug").exec().out == app.expectedAlternateOutput
     }
@@ -156,19 +155,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":assemble")
 
 
-        files("build/obj/main")*.name as Set == lib.alternate.expectedIntermediateFilenames
+        file("build/obj/main/debug").assertHasDescendants(lib.alternate.expectedIntermediateDescendants as String[])
         sharedLibrary("build/lib/main/debug/Hello").assertExists()
-    }
-
-    private Set<File> files(Object path) {
-        File directory = file(path)
-        directory.assertIsDir()
-
-        def result = [] as Set
-        directory.eachFileRecurse(FileType.FILES) {
-            result += it
-        }
-
-        return result
     }
 }
