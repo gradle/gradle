@@ -16,8 +16,39 @@
 package org.gradle.groovy.scripts.internal;
 
 import org.codehaus.groovy.GroovyBugError;
-import org.codehaus.groovy.ast.*;
-import org.codehaus.groovy.ast.expr.*;
+import org.codehaus.groovy.ast.ASTNode;
+import org.codehaus.groovy.ast.AnnotatedNode;
+import org.codehaus.groovy.ast.AnnotationNode;
+import org.codehaus.groovy.ast.ClassHelper;
+import org.codehaus.groovy.ast.ClassNode;
+import org.codehaus.groovy.ast.CompileUnit;
+import org.codehaus.groovy.ast.DynamicVariable;
+import org.codehaus.groovy.ast.FieldNode;
+import org.codehaus.groovy.ast.GenericsType;
+import org.codehaus.groovy.ast.ImportNode;
+import org.codehaus.groovy.ast.InnerClassNode;
+import org.codehaus.groovy.ast.MethodNode;
+import org.codehaus.groovy.ast.ModuleNode;
+import org.codehaus.groovy.ast.Parameter;
+import org.codehaus.groovy.ast.PropertyNode;
+import org.codehaus.groovy.ast.Variable;
+import org.codehaus.groovy.ast.VariableScope;
+import org.codehaus.groovy.ast.expr.AnnotationConstantExpression;
+import org.codehaus.groovy.ast.expr.BinaryExpression;
+import org.codehaus.groovy.ast.expr.CastExpression;
+import org.codehaus.groovy.ast.expr.ClassExpression;
+import org.codehaus.groovy.ast.expr.ClosureExpression;
+import org.codehaus.groovy.ast.expr.ConstantExpression;
+import org.codehaus.groovy.ast.expr.ConstructorCallExpression;
+import org.codehaus.groovy.ast.expr.DeclarationExpression;
+import org.codehaus.groovy.ast.expr.Expression;
+import org.codehaus.groovy.ast.expr.ListExpression;
+import org.codehaus.groovy.ast.expr.MapEntryExpression;
+import org.codehaus.groovy.ast.expr.MapExpression;
+import org.codehaus.groovy.ast.expr.MethodCallExpression;
+import org.codehaus.groovy.ast.expr.PropertyExpression;
+import org.codehaus.groovy.ast.expr.SpreadMapExpression;
+import org.codehaus.groovy.ast.expr.VariableExpression;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.ast.stmt.CatchStatement;
 import org.codehaus.groovy.ast.stmt.ForStatement;
@@ -28,13 +59,18 @@ import org.codehaus.groovy.control.ResolveVisitor;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.syntax.Types;
 import org.codehaus.groovy.transform.trait.Traits;
-import org.gradle.util.DeprecationLogger;
 import org.objectweb.asm.Opcodes;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A Gradle version of the Groovy {@link ResolveVisitor} that takes some shortcuts to make resolving faster. It tries to be as close as the original implementation, while having a significant impact
@@ -65,6 +101,8 @@ public class GradleResolveVisitor extends ResolveVisitor {
     private MethodNode currentMethod;
     private ClassNodeResolver classNodeResolver;
 
+    private Set<String> implicitImports= new HashSet<String>();
+
     /**
      * A ConstructedNestedClass consists of an outer class and a name part, denoting a nested class with an unknown number of levels down. This allows resolve tests to skip this node for further inner
      * class searches and combinations with imports, since the outer class we know is already resolved.
@@ -93,7 +131,6 @@ public class GradleResolveVisitor extends ResolveVisitor {
             }
         }
     }
-
 
     private static String replacePoints(String name) {
         return name.replace('.', '$');
@@ -185,6 +222,10 @@ public class GradleResolveVisitor extends ResolveVisitor {
     public void startResolving(ClassNode node, SourceUnit source) {
         this.source = source;
         visitClass(node);
+    }
+
+    Set<String> getImplicitImports(){
+        return implicitImports;
     }
 
     protected void visitConstructorOrMethod(MethodNode node, boolean isConstructor) {
@@ -535,7 +576,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
                 String fullName = gradlePublicPackage + "." + name;
                 if (resolveFromResolver(type, fullName)) {
                     if ("org.gradle.util".equals(gradlePublicPackage)) {
-                        DeprecationLogger.nagUserWith("Default importing from org.gradle.util has been deprecated. You should import class " + fullName + " explicitly");
+                        implicitImports.add(fullName);
                     }
                     return true;
                 }
