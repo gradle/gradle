@@ -96,28 +96,28 @@ public abstract class IncrementalSwiftElement extends IncrementalElement {
      * Returns a transform that rename the before element to {@code renamed-} followed by the original name.
      */
     protected static Transform rename(SourceFileElement beforeElement) {
-        return rename(beforeElement, "renamed-");
+        return rename(beforeElement, AbstractRenameTransform.DEFAULT_RENAME_PREFIX);
     }
 
-    protected static Transform rename(SourceFileElement beforeElement, String renamePrefix) {
+    protected static Transform rename(final SourceFileElement beforeElement, String renamePrefix) {
         assert beforeElement.getFiles().size() == 1;
-        final String sourceSetName = beforeElement.getSourceSetName();
         final SourceFile beforeFile = beforeElement.getSourceFile();
         final SourceFile afterFile = new SourceFile(beforeFile.getPath(), renamePrefix + beforeFile.getName(), beforeFile.getContent());
 
-        return new Transform() {
+        return new AbstractRenameTransform() {
             @Override
-            public void applyChangesToProject(TestFile projectDir) {
-                TestFile file = projectDir.file(beforeFile.withPath("src/" + sourceSetName));
-
-                file.assertExists();
-
-                file.renameTo(projectDir.file(afterFile.withPath("src/" + sourceSetName)));
+            SourceFile getSourceFile() {
+                return beforeFile;
             }
 
             @Override
-            public List<SourceFile> getBeforeFiles() {
-                return Arrays.asList(beforeFile);
+            SourceFile getDestinationFile() {
+                return afterFile;
+            }
+
+            @Override
+            SourceElement getBeforeElement() {
+                return beforeElement;
             }
 
             @Override

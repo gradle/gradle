@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.fixtures.app;
 
 import com.google.common.collect.Sets;
 import org.gradle.integtests.fixtures.SourceFile;
-import org.gradle.test.fixtures.file.TestFile;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,34 +37,33 @@ public abstract class IncrementalCppElement extends IncrementalElement {
      * Returns a transform that rename the before element to {@code renamed-} followed by the original name.
      */
     protected static Transform rename(CppSourceFileElement beforeElement) {
-        return rename(beforeElement, "renamed-");
+        return rename(beforeElement, AbstractRenameTransform.DEFAULT_RENAME_PREFIX);
     }
 
     protected static Transform rename(final CppSourceFileElement beforeElement, String renamePrefix) {
-        final String sourceSetName = beforeElement.getSourceSetName();
         final SourceFile beforeFile = beforeElement.getSource().getSourceFile();
         final SourceFile afterFile = new SourceFile(beforeFile.getPath(), renamePrefix + beforeFile.getName(), beforeFile.getContent());
 
-        return new Transform() {
+        return new AbstractRenameTransform() {
             @Override
-            public void applyChangesToProject(TestFile projectDir) {
-                TestFile file = projectDir.file(beforeFile.withPath("src/" + sourceSetName));
-
-                file.assertExists();
-
-                file.renameTo(projectDir.file(afterFile.withPath("src/" + sourceSetName)));
+            SourceFile getSourceFile() {
+                return beforeFile;
             }
 
             @Override
-            public List<SourceFile> getBeforeFiles() {
-                return beforeElement.getFiles();
+            SourceFile getDestinationFile() {
+                return afterFile;
+            }
+
+            @Override
+            SourceElement getBeforeElement() {
+                return beforeElement;
             }
 
             @Override
             public List<SourceFile> getAfterFiles() {
                 List<SourceFile> result = new ArrayList<SourceFile>();
-                result.addAll(beforeElement.getPublicHeaders().getFiles());
-                result.addAll(beforeElement.getPrivateHeaders().getFiles());
+                result.addAll(beforeElement.getHeaders().getFiles());
                 result.add(afterFile);
                 return result;
             }

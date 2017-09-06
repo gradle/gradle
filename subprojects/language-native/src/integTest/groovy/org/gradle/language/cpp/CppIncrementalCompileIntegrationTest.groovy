@@ -44,7 +44,7 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
         result.assertTasksNotSkipped(":compileDebugCpp", ":linkDebug", ":installDebug", ":assemble")
 
         files("build/obj/main")*.name as Set == app.expectedAlternateIntermediateFilenames
-        executable("build/exe/main/debug/App").assertExists()
+        executable("build/exe/main/debug/app").assertExists()
         installation("build/install/main/debug").exec().out == app.expectedOutput
     }
 

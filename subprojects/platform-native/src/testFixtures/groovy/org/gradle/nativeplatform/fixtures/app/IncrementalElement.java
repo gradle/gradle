@@ -196,6 +196,32 @@ public abstract class IncrementalElement {
         };
     }
 
+    /**
+     * Generic transform class that rename the source of the before element.
+     */
+    protected static abstract class AbstractRenameTransform implements Transform {
+        public static final String DEFAULT_RENAME_PREFIX = "renamed-";
+
+        abstract SourceFile getSourceFile();
+        abstract SourceFile getDestinationFile();
+        abstract SourceElement getBeforeElement();
+
+        @Override
+        public void applyChangesToProject(TestFile projectDir) {
+            String sourceSetName = getBeforeElement().getSourceSetName();
+            TestFile file = projectDir.file(getSourceFile().withPath("src/" + sourceSetName));
+
+            file.assertExists();
+
+            file.renameTo(projectDir.file(getDestinationFile().withPath("src/" + sourceSetName)));
+        }
+
+        @Override
+        public List<SourceFile> getBeforeFiles() {
+            return getBeforeElement().getFiles();
+        }
+    }
+
     private class OriginalElement extends SourceElement {
         @Override
         public List<SourceFile> getFiles() {
