@@ -63,10 +63,7 @@ public abstract class StringBuildOption<T> extends AbstractBuildOption<T> {
         if (hasCommandLineOption()) {
             if (options.hasOption(commandLineOptionConfiguration.getLongOption())) {
                 String value = options.option(commandLineOptionConfiguration.getLongOption()).getValue();
-
-                if (value != null) {
-                    applyTo(value, settings);
-                }
+                applyTo(value, settings);
             }
         }
     }
