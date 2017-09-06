@@ -137,7 +137,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         given:
         def initScript = file("init.gradle") << """
             allprojects {
-                DeprecationLogger.nagUserOfPluginReplacedWithExternalOne("DeprecatedPlugin", "Foobar") // line 2
+                org.gradle.util.DeprecationLogger.nagUserOfPluginReplacedWithExternalOne("DeprecatedPlugin", "Foobar") // line 2
             }
         """.stripIndent()
 
