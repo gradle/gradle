@@ -77,7 +77,7 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
 
         List<RepositoryResolveState> resolveStates = new ArrayList<RepositoryResolveState>();
         for (ModuleComponentRepository repository : repositories) {
-            resolveStates.add(new RepositoryResolveState(dependency, repository));
+            resolveStates.add(new RepositoryResolveState(versionedComponentChooser, dependency, repository));
         }
 
         final RepositoryChainModuleResolution latestResolved = findLatestModule(resolveStates, errors);
@@ -179,7 +179,8 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
         }
     }
 
-    private class RepositoryResolveState implements ComponentSelectionContext {
+    private static class RepositoryResolveState implements ComponentSelectionContext {
+        private final VersionedComponentChooser versionedComponentChooser;
         private final DefaultBuildableModuleComponentMetaDataResolveResult resolveResult = new DefaultBuildableModuleComponentMetaDataResolveResult();
         private final Map<String, CandidateResult> candidateComponents = new LinkedHashMap<String, CandidateResult>();
         private final Set<String> unmatchedVersions = Sets.newLinkedHashSet();
@@ -190,7 +191,8 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
         private final DependencyMetadata dependency;
         private final ModuleVersionSelector selector;
 
-        public RepositoryResolveState(DependencyMetadata dependency, ModuleComponentRepository repository) {
+        public RepositoryResolveState(VersionedComponentChooser versionedComponentChooser, DependencyMetadata dependency, ModuleComponentRepository repository) {
+            this.versionedComponentChooser = versionedComponentChooser;
             this.dependency = dependency;
             this.selector = dependency.getRequested();
             this.repository = repository;
