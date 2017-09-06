@@ -28,6 +28,7 @@ import org.codehaus.groovy.control.ResolveVisitor;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.syntax.Types;
 import org.codehaus.groovy.transform.trait.Traits;
+import org.gradle.util.DeprecationLogger;
 import org.objectweb.asm.Opcodes;
 
 import java.lang.annotation.Retention;
@@ -531,7 +532,11 @@ public class GradleResolveVisitor extends ResolveVisitor {
                 }
             }
             for (String gradlePublicPackage : gradlePublicPackages) {
-                if (resolveFromResolver(type, gradlePublicPackage + "." + name)) {
+                String fullName = gradlePublicPackage + "." + name;
+                if (resolveFromResolver(type, fullName)) {
+                    if ("org.gradle.util".equals(gradlePublicPackage)) {
+                        DeprecationLogger.nagUserWith("Default importing from org.gradle.util has been deprecated. You should import class " + fullName + " explicitly");
+                    }
                     return true;
                 }
             }
