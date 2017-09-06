@@ -190,7 +190,7 @@ public class DefaultCommandLineConverterTest extends CommandLineConverterTestSup
     @Test
     public void withDryRun() {
         expectedDryRun = true;
-        checkConversion("-dry-run");
+        checkConversion("--dry-run");
     }
 
     @Test
