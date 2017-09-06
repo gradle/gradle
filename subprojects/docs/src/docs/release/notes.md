@@ -38,7 +38,7 @@ Add-->
 
 ### Performance improvements
 
-#### Parallel native compilation and linking tasks
+#### <a name="parallel-native-compilation-and-linking-tasks"></a>Parallel native compilation and linking tasks
 
 Native compile and link tasks now execute in parallel by default, making native builds faster than ever. This means that when two (or more) compile or link tasks have no dependencies on each other, they can execute simultaneously (up to the `max-workers` limit for each Gradle invocation). The resulting performance improvement is highly dependent on project and component structure (for instance, the more inter-dependencies there are between components, the less opportunity there is to execute tasks in parallel) but in our testing, native build times have improved by as much as 50% or more.
 
