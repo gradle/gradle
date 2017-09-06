@@ -107,7 +107,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         result.assertTasksSkipped(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
     }
 
-    def "stale object files are removed for executable"() {
+    def "removes stale object files for executable"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new IncrementalSwiftStaleCompileOutputApp()
 
@@ -133,7 +133,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         installation("build/install/main/debug").exec().out == app.expectedAlternateOutput
     }
 
-    def "stale object files are removed library"() {
+    def "removes stale object files for library"() {
         def lib = new IncrementalSwiftStaleCompileOutputLib()
         settingsFile << "rootProject.name = 'hello'"
 
@@ -153,7 +153,6 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         succeeds "assemble"
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
         result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":assemble")
-
 
         file("build/obj/main/debug").assertHasDescendants(lib.alternate.expectedIntermediateDescendants as String[])
         sharedLibrary("build/lib/main/debug/Hello").assertExists()
