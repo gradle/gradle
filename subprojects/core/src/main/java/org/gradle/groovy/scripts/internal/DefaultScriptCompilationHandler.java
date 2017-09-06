@@ -16,6 +16,7 @@
 
 package org.gradle.groovy.scripts.internal;
 
+import com.google.common.base.Joiner;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyCodeSource;
 import groovy.lang.GroovyResourceLoader;
@@ -29,6 +30,7 @@ import org.codehaus.groovy.control.CompilationUnit;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.MultipleCompilationErrorsException;
 import org.codehaus.groovy.control.Phases;
+import org.codehaus.groovy.control.ProcessingUnit;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
 import org.codehaus.groovy.syntax.SyntaxException;
@@ -52,6 +54,7 @@ import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,6 +68,7 @@ import java.net.URL;
 import java.security.CodeSource;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class DefaultScriptCompilationHandler implements ScriptCompilationHandler {
     private Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
@@ -285,9 +289,21 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                     customVerifier.execute(node);
                     super.visitClass(node);
                 }
-
             };
-            this.resolveVisitor = new GradleResolveVisitor(this, defaultImportPackages, simpleNameToFQN);
+            final GradleResolveVisitor resolveVisitor = new GradleResolveVisitor(this, defaultImportPackages, simpleNameToFQN);
+            this.resolveVisitor = resolveVisitor;
+            this.progressCallback = new ProgressCallback() {
+                @Override
+                public void call(ProcessingUnit context, int phase) throws CompilationFailedException {
+                    if (phase == Phases.CANONICALIZATION) {
+                        Set<String> implicitImports = resolveVisitor.getImplicitImports();
+                        if (!implicitImports.isEmpty()) {
+                            DeprecationLogger.nagUserWith("You're using " + Joiner.on(",").join(implicitImports)
+                                + " from org.gradle.util internal package. Default imports was deprecated now. You should either remove the usage (recommended) or import them explicitly (not recommended)");
+                        }
+                    }
+                }
+            };
         }
     }
 

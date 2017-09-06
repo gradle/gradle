@@ -16,26 +16,32 @@
 
 package org.gradle.groovy.scripts
 
+import com.google.common.base.Joiner
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
 @Issue('https://github.com/gradle/gradle/issues/1793')
 class GradleUtilDefaultImportDeprecationIntegrationTest extends AbstractIntegrationSpec {
+
+    def warning(String... names) {
+        return "You're using ${Joiner.on(",").join(names as HashSet)} from org.gradle.util internal package. Default imports was deprecated now. You should either remove the usage (recommended) or import them explicitly (not recommended)"
+    }
+
     def "no deprecation warning with #importStatement and #className"() {
         given:
         buildFile << """
 ${importStatement}
-task print{
+task noop{
     doLast {
-        println ${className}.current() 
+        ${className}.current() 
     }
 }
 """
         when:
-        succeeds('print')
+        succeeds('noop')
 
         then:
-        !output.contains('Default importing from org.gradle.util has been deprecated. You should import class org.gradle.util.GradleVersion explicitly')
+        !output.contains("from org.gradle.util internal package which was deprecated now.")
 
         where:
         importStatement                        | className
@@ -45,17 +51,34 @@ task print{
 
     def "deprecation warning when using org.gradle.util class without explicit import"() {
         buildFile << '''
-task print{
+task noop{
     doLast {
-        println GradleVersion.current() 
+        GradleVersion.current() 
     }
 }
 '''
         when:
         executer.expectDeprecationWarning()
-        succeeds('print')
+        succeeds('noop')
 
         then:
-        output.contains('Default importing from org.gradle.util has been deprecated. You should import class org.gradle.util.GradleVersion explicitly')
+        outputContains(warning('org.gradle.util.GradleVersion'))
+    }
+
+    def "multiple implicit imports will only be warned once"() {
+        buildFile << '''
+task noop{
+    doLast {
+        GradleVersion.current() 
+        CollectionUtils.toList([])
+    }
+}
+'''
+        when:
+        executer.expectDeprecationWarning()
+        succeeds('noop')
+
+        then:
+        outputContains(warning('org.gradle.util.GradleVersion', 'org.gradle.util.CollectionUtils'))
     }
 }
