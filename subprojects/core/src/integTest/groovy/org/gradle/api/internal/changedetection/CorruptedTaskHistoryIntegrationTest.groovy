@@ -26,7 +26,30 @@ class CorruptedTaskHistoryIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://github.com/gradle/gradle/issues/2827")
     def "broken build doesn't corrupt the artifact history"() {
         def numberOfFiles = 10
+        def numberOfInputProperties = 10
+        def numberOfTasks = 100
+        def millisecondsToKill = 300
 
+        setupTestProject(numberOfFiles, numberOfInputProperties, numberOfTasks, millisecondsToKill)
+
+        executer.beforeExecute {
+            // We need a separate JVM in order not to kill the test JVM
+            requireGradleDistribution()
+        }
+
+        when:
+        succeeds("createFiles")
+        succeeds("clean")
+        fails("createFiles", "-PkillMe=true", "--max-workers=${numberOfTasks}")
+
+        then:
+        file('build/output10').allDescendants().size() == numberOfFiles
+
+        expect:
+        succeeds "createFiles"
+    }
+
+    private void setupTestProject(int numberOfFiles, int numberOfInputProperties, int numberOfTasks, int millisecondsToKill) {
         buildFile << """
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.InputDirectory
@@ -48,7 +71,7 @@ class CreateFiles implements Runnable {
     @Override
     void run() {
         (1..$numberOfFiles).each {
-            new File(outputDir, "\${it}.txt").text = "\${it}"
+            new File(outputDir, "\${it}.txt").text = "output\${it}"
         }
     }
 }            
@@ -61,12 +84,7 @@ class CreateFilesTask extends DefaultTask {
         this.workerExecutor=workerExecutor
     }
     
-    ${
-            (1..10).collect {
-                '''@InputDirectory
-            File inputDir''' + it
-            }.join("\n")
-        }
+    ${(1..numberOfInputProperties).collect { inputProperty(it) }.join("\n")}
     
     @OutputDirectory
     File outputDir
@@ -79,7 +97,7 @@ class CreateFilesTask extends DefaultTask {
         }
         if (project.findProperty("killMe")) {
             new Thread({
-                Thread.sleep(300)
+                Thread.sleep(${millisecondsToKill})
                 System.exit(1)
             }).start()
         }
@@ -90,39 +108,26 @@ apply plugin: 'base'
 
 task createFiles
 
-(1..100).each { num ->
+(1..$numberOfTasks).each { num ->
     createFiles.dependsOn(tasks.create("createFiles\${num}", CreateFilesTask) {
-        ${
-            (1..10).collect {
-                '''inputDir''' + it + ''' = file("inputs")
-            '''
-            }.join("\n")
-        }
+            ${(1..numberOfInputProperties).collect { "inputDir$it = file('inputs')" }.join("\n")}
             outputDir = file("build/output\${num}")
     })           
 }
 
         """
+
         file('inputs').create {
             (1..numberOfFiles).each {
                 file("input${it}.txt").text = "input${it}"
             }
         }
+    }
 
-        executer.beforeExecute {
-            // We need a separate JVM in order not to kill the test JVM
-            requireGradleDistribution()
-        }
-
-        when:
-        succeeds("createFiles")
-        succeeds("clean")
-        fails("createFiles", "-PkillMe=true", "--max-workers=10")
-
-        then:
-        file('build/output10').allDescendants().size() == numberOfFiles
-
-        expect:
-        succeeds "createFiles"
+    private String inputProperty(Integer postfix) {
+        """
+            @InputDirectory
+            File inputDir${postfix}       
+        """
     }
 }
