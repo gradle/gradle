@@ -32,6 +32,10 @@ Do not rebuild project dependencies.
 Shows additional detail in the task listing. See <<sec:listing_tasks>>.
 `-b`, `--build-file`::
 Specifies the build file. See <<sec:selecting_build>>.
+`--build-scan (incubating)`::
+Enables the Gradle build cache. Gradle will try to reuse outputs from previous builds.
+`--no-build-scan (incubating)`::
+Disables the Gradle build cache.
 `-c`, `--settings-file`::
 Specifies the settings file.
 `--console`::
@@ -46,6 +50,8 @@ Set to `rich` to enable color and other rich output in the console output, regar
 Continues task execution after a task failure.
 `--configure-on-demand (incubating)`::
 Only relevant projects are configured in this build run. This means faster builds for large multi-projects. See <<sec:configuration_on_demand>>.
+`--no-configure-on-demand (incubating)`::
+Disables configuration on demand.
 `-D`, `--system-prop`::
 Sets a system property of the JVM, for example `-Dmyprop=myvalue`. See <<sec:gradle_properties_and_system_properties>>.
 `-d`, `--debug`::
@@ -68,6 +74,8 @@ Sets a project property of the root project, for example `-Pmyprop=myvalue`. See
 Specifies the start directory for Gradle. Defaults to current directory. See <<sec:selecting_build>>.
 `--parallel (incubating)`::
 Build projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use. This option should only be used with decoupled projects (see <<sec:decoupled_projects>>). For limitations of this option please see <<sec:parallel_execution>>.
+`--no-parallel (incubating)`::
+Disables parallel execution to build projects.
 `--max-workers (incubating)`::
 Sets the maximum number of workers that Gradle may use. For example `--max-workers=3`. The default is the number of processors.
 `--profile`::
@@ -110,6 +118,8 @@ The <<gradle_daemon>> contains more information about the daemon. For example it
 
 `--daemon`::
 Uses the Gradle daemon to run the build. Starts the daemon if not running or existing daemon busy. <<gradle_daemon>> contains more detailed information when new daemon processes are started.
+`--no-daemon`::
+Does not use the Gradle daemon to run the build.
 `--foreground`::
 Starts the Gradle daemon in the foreground. Useful for debugging or troubleshooting because you can easily monitor the build execution.
 `--no-daemon`::
