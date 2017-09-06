@@ -340,7 +340,7 @@ public class DefaultCommandLineConverterTest extends CommandLineConverterTestSup
         checkConversion("--max-workers", "5");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = CommandLineArgumentException.class)
     public void withInvalidMaxWorkers() {
         checkConversion("--max-workers", "foo");
     }

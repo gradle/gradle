@@ -64,7 +64,7 @@ class ParallelismConfigurationCommandLineConverterTest extends Specification {
         convert("--max-workers", value);
 
         then:
-        thrown(IllegalArgumentException)
+        thrown(CommandLineArgumentException)
 
         where:
         value << ["foo", "0"]
