@@ -41,8 +41,11 @@ public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T> {
 
     @Override
     public void applyFromProperty(Map<String, String> properties, T settings) {
-        boolean value = isTrue(properties.get(gradleProperty));
-        applyTo(value, settings, Origin.GRADLE_PROPERTY);
+        String value = properties.get(gradleProperty);
+
+        if (value != null) {
+            applyTo(isTrue(properties.get(gradleProperty)), settings, Origin.GRADLE_PROPERTY);
+        }
     }
 
     @Override

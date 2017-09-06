@@ -40,7 +40,7 @@ class BooleanBuildOptionTest extends Specification {
 
         then:
         !testSettings.value
-        testSettings.origin == BuildOption.Origin.GRADLE_PROPERTY
+        !testSettings.origin
 
         when:
         testOption.applyFromProperty([(GRADLE_PROPERTY): 'true'], testSettings)
