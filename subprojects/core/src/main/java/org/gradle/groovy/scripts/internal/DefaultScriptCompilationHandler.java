@@ -296,9 +296,9 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 @Override
                 public void call(ProcessingUnit context, int phase) throws CompilationFailedException {
                     if (phase == Phases.CANONICALIZATION) {
-                        Set<String> implicitImports = resolveVisitor.getImplicitImports();
-                        if (!implicitImports.isEmpty()) {
-                            DeprecationLogger.nagUserWith("You're using " + Joiner.on(",").join(implicitImports)
+                        Set<String> deprecatedImports = resolveVisitor.getDeprecatedImports();
+                        if (!deprecatedImports.isEmpty()) {
+                            DeprecationLogger.nagUserWith("You're using " + Joiner.on(",").join(deprecatedImports)
                                 + " from org.gradle.util internal package. Default imports was deprecated now. You should either remove the usage (recommended) or import them explicitly (not recommended)");
                         }
                     }

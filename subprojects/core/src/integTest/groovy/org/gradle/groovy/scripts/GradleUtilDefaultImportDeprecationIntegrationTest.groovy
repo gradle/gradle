@@ -62,7 +62,7 @@ task noop{
         succeeds('noop')
 
         then:
-        outputContains(warning('org.gradle.util.GradleVersion'))
+        outputContains(warning('GradleVersion'))
     }
 
     def "multiple implicit imports will only be warned once"() {
@@ -79,6 +79,6 @@ task noop{
         succeeds('noop')
 
         then:
-        outputContains(warning('org.gradle.util.GradleVersion', 'org.gradle.util.CollectionUtils'))
+        outputContains(warning('GradleVersion', 'CollectionUtils'))
     }
 }
