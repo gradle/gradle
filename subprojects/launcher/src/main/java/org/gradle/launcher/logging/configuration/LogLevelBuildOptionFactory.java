@@ -46,7 +46,7 @@ public class LogLevelBuildOptionFactory implements Factory<List<BuildOption<Logg
         }
 
         @Override
-        public void applyTo(String value, LoggingConfiguration settings) {
+        public void applyTo(String value, LoggingConfiguration settings, Origin origin) {
             LogLevel level = parseLogLevel(value);
             settings.setLogLevel(level);
         }

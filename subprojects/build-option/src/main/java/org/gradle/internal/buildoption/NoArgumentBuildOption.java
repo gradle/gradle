@@ -40,7 +40,7 @@ public abstract class NoArgumentBuildOption<T> extends AbstractBuildOption<T> {
     @Override
     public void applyFromProperty(Map<String, String> properties, T settings) {
         if (properties.get(gradleProperty) != null) {
-            applyTo(settings);
+            applyTo(settings, Origin.GRADLE_PROPERTY);
         }
     }
 
@@ -58,9 +58,9 @@ public abstract class NoArgumentBuildOption<T> extends AbstractBuildOption<T> {
     @Override
     public void applyFromCommandLine(ParsedCommandLine options, T settings) {
         if (hasCommandLineOption() && options.hasOption(commandLineOptionConfiguration.getLongOption())) {
-            applyTo(settings);
+            applyTo(settings, Origin.COMMAND_LINE);
         }
     }
 
-    public abstract void applyTo(T settings);
+    public abstract void applyTo(T settings, Origin origin);
 }

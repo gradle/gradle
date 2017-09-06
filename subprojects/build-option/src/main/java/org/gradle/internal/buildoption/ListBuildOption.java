@@ -45,7 +45,7 @@ public abstract class ListBuildOption<T> extends AbstractBuildOption<T> {
 
         if (value != null) {
             String[] splitValues = value.split("\\s*,\\s*");
-            applyTo(Arrays.asList(splitValues), settings);
+            applyTo(Arrays.asList(splitValues), settings, Origin.GRADLE_PROPERTY);
         }
     }
 
@@ -67,10 +67,10 @@ public abstract class ListBuildOption<T> extends AbstractBuildOption<T> {
         if (hasCommandLineOption()) {
             if (options.hasOption(commandLineOptionConfiguration.getLongOption())) {
                 List<String> value = options.option(commandLineOptionConfiguration.getLongOption()).getValues();
-                applyTo(value, settings);
+                applyTo(value, settings, Origin.COMMAND_LINE);
             }
         }
     }
 
-    public abstract void applyTo(List<String> values, T settings);
+    public abstract void applyTo(List<String> values, T settings, Origin origin);
 }

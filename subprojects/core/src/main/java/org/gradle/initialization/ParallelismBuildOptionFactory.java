@@ -16,6 +16,7 @@
 
 package org.gradle.initialization;
 
+import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.Factory;
 import org.gradle.internal.buildoption.BooleanBuildOption;
@@ -48,7 +49,7 @@ public class ParallelismBuildOptionFactory implements Factory<List<BuildOption<P
         }
 
         @Override
-        public void applyTo(boolean value, ParallelismConfiguration settings) {
+        public void applyTo(boolean value, ParallelismConfiguration settings, Origin origin) {
             settings.setParallelProjectExecutionEnabled(value);
         }
     }
@@ -61,20 +62,24 @@ public class ParallelismBuildOptionFactory implements Factory<List<BuildOption<P
         }
 
         @Override
-        public void applyTo(String value, ParallelismConfiguration settings) {
+        public void applyTo(String value, ParallelismConfiguration settings, Origin origin) {
             try {
                 int workerCount = Integer.parseInt(value);
                 if (workerCount < 1) {
-                    invalidMaxWorkersSwitchValue(value);
+                    handleInvalidMaxWorkersSwitchValue(value, origin);
                 }
                 settings.setMaxWorkerCount(workerCount);
             } catch (NumberFormatException e) {
-                invalidMaxWorkersSwitchValue(value);
+                handleInvalidMaxWorkersSwitchValue(value, origin);
             }
         }
 
-        private void invalidMaxWorkersSwitchValue(String value) {
-            throw new IllegalArgumentException(String.format("Argument value '%s' given for system property %s or --%s option is invalid (must be a positive, non-zero, integer)", value, gradleProperty, commandLineOptionConfiguration.getLongOption()));
+        private void handleInvalidMaxWorkersSwitchValue(String value, Origin origin) {
+            switch (origin) {
+                case GRADLE_PROPERTY: throw new IllegalArgumentException(String.format(String.format("Value '%s' given for %s system property is invalid (must be a positive, non-zero, integer)", value, gradleProperty)));
+                case COMMAND_LINE: throw new CommandLineArgumentException(String.format("Argument value '%s' given for --%s option is invalid (must be a positive, non-zero, integer)", value, commandLineOptionConfiguration.getLongOption()));
+                default: throw new IllegalStateException(String.format("Unexpected context %s", origin));
+            }
         }
     }
 }

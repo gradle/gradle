@@ -40,12 +40,14 @@ class NoArgumentBuildOptionTest extends Specification {
 
         then:
         !testSettings.flag
+        !testSettings.origin
 
         when:
         testOption.applyFromProperty([(GRADLE_PROPERTY): 'val'], testSettings)
 
         then:
         testSettings.flag
+        testSettings.origin == BuildOption.Origin.GRADLE_PROPERTY
     }
 
     def "can configure command line parser"() {
@@ -94,6 +96,7 @@ class NoArgumentBuildOptionTest extends Specification {
 
         then:
         !testSettings.flag
+        !testSettings.origin
 
         when:
         testOption = new TestOption(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION))
@@ -105,6 +108,7 @@ class NoArgumentBuildOptionTest extends Specification {
 
         then:
         testSettings.flag
+        testSettings.origin == BuildOption.Origin.COMMAND_LINE
     }
 
     static void assertNoArguments(CommandLineOption option) {
@@ -127,12 +131,14 @@ class NoArgumentBuildOptionTest extends Specification {
         }
 
         @Override
-        void applyTo(TestSettings settings) {
+        void applyTo(TestSettings settings, BuildOption.Origin origin) {
             settings.flag = true
+            settings.origin = origin
         }
     }
 
     static class TestSettings {
         boolean flag
+        BuildOption.Origin origin
     }
 }

@@ -33,4 +33,8 @@ public interface BuildOption<T> {
     void applyFromProperty(Map<String, String> properties, T settings);
     void configure(CommandLineParser parser);
     void applyFromCommandLine(ParsedCommandLine options, T settings);
+
+    enum Origin {
+        GRADLE_PROPERTY, COMMAND_LINE
+    }
 }

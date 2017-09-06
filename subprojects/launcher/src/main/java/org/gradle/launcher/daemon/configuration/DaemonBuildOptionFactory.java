@@ -62,7 +62,7 @@ public class DaemonBuildOptionFactory implements Factory<List<BuildOption<Daemon
         }
 
         @Override
-        public void applyTo(String value, DaemonParameters settings) {
+        public void applyTo(String value, DaemonParameters settings, Origin origin) {
             try {
                 settings.setIdleTimeout(new Integer(value));
             } catch (NumberFormatException e) {
@@ -79,7 +79,7 @@ public class DaemonBuildOptionFactory implements Factory<List<BuildOption<Daemon
         }
 
         @Override
-        public void applyTo(String value, DaemonParameters settings) {
+        public void applyTo(String value, DaemonParameters settings, Origin origin) {
             try {
                 settings.setPeriodicCheckInterval(new Integer(value));
             } catch (NumberFormatException e) {
@@ -96,7 +96,7 @@ public class DaemonBuildOptionFactory implements Factory<List<BuildOption<Daemon
         }
 
         @Override
-        public void applyTo(String value, DaemonParameters settings) {
+        public void applyTo(String value, DaemonParameters settings, Origin origin) {
             settings.setBaseDir(new File(value));
         }
     }
@@ -109,7 +109,7 @@ public class DaemonBuildOptionFactory implements Factory<List<BuildOption<Daemon
         }
 
         @Override
-        public void applyTo(String value, DaemonParameters settings) {
+        public void applyTo(String value, DaemonParameters settings, Origin origin) {
             settings.setJvmArgs(JvmOptions.fromString(value));
         }
     }
@@ -122,7 +122,7 @@ public class DaemonBuildOptionFactory implements Factory<List<BuildOption<Daemon
         }
 
         @Override
-        public void applyTo(String value, DaemonParameters settings) {
+        public void applyTo(String value, DaemonParameters settings, Origin origin) {
             File javaHome = new File(value);
             if (!javaHome.isDirectory()) {
                 throw new GradleException(String.format("Java home supplied via '%s' is invalid. Invalid directory: %s", gradleProperty, value));
@@ -145,7 +145,7 @@ public class DaemonBuildOptionFactory implements Factory<List<BuildOption<Daemon
         }
 
         @Override
-        public void applyTo(boolean value, DaemonParameters settings) {
+        public void applyTo(boolean value, DaemonParameters settings, Origin origin) {
             settings.setDebug(value);
         }
     }
@@ -158,7 +158,7 @@ public class DaemonBuildOptionFactory implements Factory<List<BuildOption<Daemon
         }
 
         @Override
-        public void applyTo(boolean value, DaemonParameters settings) {
+        public void applyTo(boolean value, DaemonParameters settings, Origin origin) {
             settings.setEnabled(value);
         }
     }
@@ -169,7 +169,7 @@ public class DaemonBuildOptionFactory implements Factory<List<BuildOption<Daemon
         }
 
         @Override
-        public void applyTo(DaemonParameters settings) {
+        public void applyTo(DaemonParameters settings, Origin origin) {
             settings.setForeground(true);
         }
     }
@@ -180,7 +180,7 @@ public class DaemonBuildOptionFactory implements Factory<List<BuildOption<Daemon
         }
 
         @Override
-        public void applyTo(DaemonParameters settings) {
+        public void applyTo(DaemonParameters settings, Origin origin) {
             settings.setStop(true);
         }
     }
@@ -191,7 +191,7 @@ public class DaemonBuildOptionFactory implements Factory<List<BuildOption<Daemon
         }
 
         @Override
-        public void applyTo(DaemonParameters settings) {
+        public void applyTo(DaemonParameters settings, Origin origin) {
             settings.setStatus(true);
         }
     }

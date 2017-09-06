@@ -60,7 +60,7 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
         }
 
         @Override
-        public void applyTo(LoggingConfiguration settings) {
+        public void applyTo(LoggingConfiguration settings, Origin origin) {
             settings.setLogLevel(LogLevel.QUIET);
         }
     }
@@ -74,7 +74,7 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
         }
 
         @Override
-        public void applyTo(LoggingConfiguration settings) {
+        public void applyTo(LoggingConfiguration settings, Origin origin) {
             settings.setLogLevel(LogLevel.WARN);
         }
     }
@@ -88,7 +88,7 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
         }
 
         @Override
-        public void applyTo(LoggingConfiguration settings) {
+        public void applyTo(LoggingConfiguration settings, Origin origin) {
             settings.setLogLevel(LogLevel.INFO);
         }
     }
@@ -102,7 +102,7 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
         }
 
         @Override
-        public void applyTo(LoggingConfiguration settings) {
+        public void applyTo(LoggingConfiguration settings, Origin origin) {
             settings.setLogLevel(LogLevel.DEBUG);
         }
     }
@@ -116,7 +116,7 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
         }
 
         @Override
-        public void applyTo(LoggingConfiguration settings) {
+        public void applyTo(LoggingConfiguration settings, Origin origin) {
             settings.setShowStacktrace(ShowStacktrace.ALWAYS);
         }
     }
@@ -130,7 +130,7 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
         }
 
         @Override
-        public void applyTo(LoggingConfiguration settings) {
+        public void applyTo(LoggingConfiguration settings, Origin origin) {
             settings.setShowStacktrace(ShowStacktrace.ALWAYS_FULL);
         }
     }
@@ -142,7 +142,7 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
         }
 
         @Override
-        public void applyTo(String value, LoggingConfiguration settings) {
+        public void applyTo(String value, LoggingConfiguration settings, Origin origin) {
             String consoleValue = StringUtils.capitalize(value.toLowerCase(Locale.ENGLISH));
             try {
                 ConsoleOutput consoleOutput = ConsoleOutput.valueOf(consoleValue);

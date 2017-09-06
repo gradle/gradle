@@ -40,12 +40,14 @@ class BooleanBuildOptionTest extends Specification {
 
         then:
         !testSettings.value
+        testSettings.origin == BuildOption.Origin.GRADLE_PROPERTY
 
         when:
         testOption.applyFromProperty([(GRADLE_PROPERTY): 'true'], testSettings)
 
         then:
         testSettings.value
+        testSettings.origin == BuildOption.Origin.GRADLE_PROPERTY
     }
 
     def "can configure command line parser"() {
@@ -94,6 +96,7 @@ class BooleanBuildOptionTest extends Specification {
 
         then:
         !testSettings.value
+        !testSettings.origin
 
         when:
         testOption = new TestOption(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION))
@@ -107,6 +110,7 @@ class BooleanBuildOptionTest extends Specification {
 
         then:
         testSettings.value
+        testSettings.origin == BuildOption.Origin.COMMAND_LINE
 
         when:
         parsedCommandLine.addOption(testOption.disabledCommandLineOption, disabledOption)
@@ -114,6 +118,7 @@ class BooleanBuildOptionTest extends Specification {
 
         then:
         !testSettings.value
+        testSettings.origin == BuildOption.Origin.COMMAND_LINE
     }
 
     static void assertNoArguments(CommandLineOption option) {
@@ -136,13 +141,15 @@ class BooleanBuildOptionTest extends Specification {
         }
 
         @Override
-        void applyTo(boolean value, TestSettings settings) {
+        void applyTo(boolean value, TestSettings settings, BuildOption.Origin origin) {
             settings.value = value
+            settings.origin = origin
         }
     }
 
     static class TestSettings {
         boolean value
+        BuildOption.Origin origin
     }
 }
 

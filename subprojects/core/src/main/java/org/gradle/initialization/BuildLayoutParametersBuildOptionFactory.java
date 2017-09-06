@@ -50,7 +50,7 @@ public class BuildLayoutParametersBuildOptionFactory implements Factory<List<Bui
         }
 
         @Override
-        public void applyTo(String value, BuildLayoutParameters settings) {
+        public void applyTo(String value, BuildLayoutParameters settings, Origin origin) {
             Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
             settings.setGradleUserHomeDir(resolver.transform(value));
         }
@@ -62,7 +62,7 @@ public class BuildLayoutParametersBuildOptionFactory implements Factory<List<Bui
         }
 
         @Override
-        public void applyTo(String value, BuildLayoutParameters settings) {
+        public void applyTo(String value, BuildLayoutParameters settings, Origin origin) {
             Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
             settings.setProjectDir(resolver.transform(value));
         }
@@ -74,7 +74,7 @@ public class BuildLayoutParametersBuildOptionFactory implements Factory<List<Bui
         }
 
         @Override
-        public void applyTo(BuildLayoutParameters settings) {
+        public void applyTo(BuildLayoutParameters settings, Origin origin) {
             settings.setSearchUpwards(false);
         }
     }

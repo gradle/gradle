@@ -42,7 +42,7 @@ public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T> {
     @Override
     public void applyFromProperty(Map<String, String> properties, T settings) {
         boolean value = isTrue(properties.get(gradleProperty));
-        applyTo(value, settings);
+        applyTo(value, settings, Origin.GRADLE_PROPERTY);
     }
 
     @Override
@@ -69,11 +69,11 @@ public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T> {
     public void applyFromCommandLine(ParsedCommandLine options, T settings) {
         if (hasCommandLineOption()) {
             if (options.hasOption(commandLineOptionConfiguration.getLongOption())) {
-                applyTo(true, settings);
+                applyTo(true, settings, Origin.COMMAND_LINE);
             }
 
             if (options.hasOption(getDisabledCommandLineOption())) {
-                applyTo(false, settings);
+                applyTo(false, settings, Origin.COMMAND_LINE);
             }
         }
     }
@@ -86,5 +86,5 @@ public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T> {
         return hasCommandLineOption() ? "Disables option --" + commandLineOptionConfiguration.getLongOption() + "." : null;
     }
 
-    public abstract void applyTo(boolean value, T settings);
+    public abstract void applyTo(boolean value, T settings, Origin origin);
 }

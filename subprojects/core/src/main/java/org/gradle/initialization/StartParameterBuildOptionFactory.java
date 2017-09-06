@@ -70,7 +70,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
 
         @Override
-        public void applyTo(String value, StartParameter settings) {
+        public void applyTo(String value, StartParameter settings, Origin origin) {
             Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
             settings.setProjectCacheDir(resolver.transform(value));
         }
@@ -82,7 +82,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
 
         @Override
-        public void applyTo(StartParameter settings) {
+        public void applyTo(StartParameter settings, Origin origin) {
             settings.setRerunTasks(true);
         }
     }
@@ -93,7 +93,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
 
         @Override
-        public void applyTo(StartParameter settings) {
+        public void applyTo(StartParameter settings, Origin origin) {
             settings.setRecompileScripts(true);
         }
     }
@@ -104,7 +104,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
 
         @Override
-        public void applyTo(StartParameter settings) {
+        public void applyTo(StartParameter settings, Origin origin) {
             settings.setProfile(true);
         }
     }
@@ -115,7 +115,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
 
         @Override
-        public void applyTo(StartParameter settings) {
+        public void applyTo(StartParameter settings, Origin origin) {
             settings.setContinueOnFailure(true);
         }
     }
@@ -126,7 +126,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
 
         @Override
-        public void applyTo(StartParameter settings) {
+        public void applyTo(StartParameter settings, Origin origin) {
             settings.setOffline(true);
         }
     }
@@ -137,7 +137,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
 
         @Override
-        public void applyTo(StartParameter settings) {
+        public void applyTo(StartParameter settings, Origin origin) {
             settings.setRefreshDependencies(true);
         }
     }
@@ -148,7 +148,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
 
         @Override
-        public void applyTo(StartParameter settings) {
+        public void applyTo(StartParameter settings, Origin origin) {
             settings.setDryRun(true);
         }
     }
@@ -159,7 +159,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
 
         @Override
-        public void applyTo(StartParameter settings) {
+        public void applyTo(StartParameter settings, Origin origin) {
             settings.setContinuous(true);
         }
     }
@@ -170,7 +170,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
 
         @Override
-        public void applyTo(StartParameter settings) {
+        public void applyTo(StartParameter settings, Origin origin) {
             settings.setBuildProjectDependencies(false);
         }
     }
@@ -181,7 +181,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
 
         @Override
-        public void applyTo(String value, StartParameter settings) {
+        public void applyTo(String value, StartParameter settings, Origin origin) {
             Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
             settings.setBuildFile(resolver.transform(value));
         }
@@ -193,7 +193,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
 
         @Override
-        public void applyTo(String value, StartParameter settings) {
+        public void applyTo(String value, StartParameter settings, Origin origin) {
             Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
             settings.setSettingsFile(resolver.transform(value));
         }
@@ -205,7 +205,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
 
         @Override
-        public void applyTo(List<String> values, StartParameter settings) {
+        public void applyTo(List<String> values, StartParameter settings, Origin origin) {
             Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
 
             for (String script : values) {
@@ -220,7 +220,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
 
         @Override
-        public void applyTo(List<String> values, StartParameter settings) {
+        public void applyTo(List<String> values, StartParameter settings, Origin origin) {
             settings.setExcludedTaskNames(values);
         }
     }
@@ -231,7 +231,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
 
         @Override
-        public void applyTo(List<String> values, StartParameter settings) {
+        public void applyTo(List<String> values, StartParameter settings, Origin origin) {
             Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
 
             for (String includedBuild : values) {
@@ -248,7 +248,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
 
         @Override
-        public void applyTo(boolean value, StartParameter settings) {
+        public void applyTo(boolean value, StartParameter settings, Origin origin) {
             settings.setConfigureOnDemand(value);
         }
     }
@@ -261,7 +261,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
 
         @Override
-        public void applyTo(boolean value, StartParameter settings) {
+        public void applyTo(boolean value, StartParameter settings, Origin origin) {
             settings.setBuildCacheEnabled(value);
         }
     }
@@ -301,7 +301,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
 
         @Override
-        public void applyTo(boolean value, StartParameter settings) {
+        public void applyTo(boolean value, StartParameter settings, Origin origin) {
             // needs special handling
         }
     }

@@ -41,12 +41,14 @@ class StringBuildOptionTest extends Specification {
 
         then:
         !testSettings.value
+        !testSettings.origin
 
         when:
         testOption.applyFromProperty([(GRADLE_PROPERTY): SAMPLE_VALUE], testSettings)
 
         then:
         testSettings.value == SAMPLE_VALUE
+        testSettings.origin == BuildOption.Origin.GRADLE_PROPERTY
     }
 
     def "can configure command line parser"() {
@@ -95,6 +97,7 @@ class StringBuildOptionTest extends Specification {
 
         then:
         !testSettings.value
+        !testSettings.origin
 
         when:
         testOption = new TestOption(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION))
@@ -107,6 +110,7 @@ class StringBuildOptionTest extends Specification {
 
         then:
         testSettings.value == SAMPLE_VALUE
+        testSettings.origin == BuildOption.Origin.COMMAND_LINE
     }
 
     static void assertSingleArgument(CommandLineOption option) {
@@ -129,12 +133,14 @@ class StringBuildOptionTest extends Specification {
         }
 
         @Override
-        void applyTo(String value, TestSettings settings) {
+        void applyTo(String value, TestSettings settings, BuildOption.Origin origin) {
             settings.value = value
+            settings.origin = origin
         }
     }
 
     static class TestSettings {
         String value
+        BuildOption.Origin origin
     }
 }

@@ -41,12 +41,14 @@ class ListBuildOptionTest extends Specification {
 
         then:
         testSettings.values.empty
+        !testSettings.origin
 
         when:
         testOption.applyFromProperty([(GRADLE_PROPERTY): 'val1, val2, val3'], testSettings)
 
         then:
         testSettings.values == SAMPLE_VALUES
+        testSettings.origin == BuildOption.Origin.GRADLE_PROPERTY
     }
 
     def "can configure command line parser"() {
@@ -95,6 +97,7 @@ class ListBuildOptionTest extends Specification {
 
         then:
         testSettings.values.empty
+        !testSettings.origin
 
         when:
         testOption = new TestOption(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION))
@@ -109,6 +112,7 @@ class ListBuildOptionTest extends Specification {
 
         then:
         testSettings.values == SAMPLE_VALUES
+        testSettings.origin == BuildOption.Origin.COMMAND_LINE
     }
 
     static void assertMultipleArgument(CommandLineOption option) {
@@ -131,13 +135,15 @@ class ListBuildOptionTest extends Specification {
         }
 
         @Override
-        void applyTo(List<String> values, TestSettings settings) {
+        void applyTo(List<String> values, TestSettings settings, BuildOption.Origin origin) {
             settings.values.addAll(values)
+            settings.origin = origin
         }
     }
 
     static class TestSettings {
         List<String> values = []
+        BuildOption.Origin origin
     }
 }
 
