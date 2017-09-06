@@ -16,9 +16,7 @@
 
 package org.gradle.vcs.git
 
-import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.junit.TestRepository
-import org.eclipse.jgit.lib.Repository
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.vcs.fixtures.TemporaryGitRepository
 import org.junit.Rule
 import spock.lang.Specification
@@ -26,35 +24,29 @@ import spock.lang.Specification
 class GitVersionControlSystemSpec extends Specification {
     private GitVersionControlSystem gitVcs
 
-    private Git git
-
-    private TestRepository<Repository> tr
-
     @Rule
     TemporaryGitRepository r = new TemporaryGitRepository()
 
     def setup() {
         gitVcs = new GitVersionControlSystem()
-        git = new Git(r.getDatabase())
-        tr = new TestRepository<>(r.getDatabase())
 
         // Commit a file to the repository
-        r.writeTrashFile("Trash.txt", "Hello world!")
-        git.add().addFilepattern("Trash.txt").call()
-        git.commit().setMessage("Initial Commit").call()
+        def textFile = new TestFile(r.getWorkTree(), "source.txt")
+        textFile << "Hello world!"
+        r.commit("Initial Commit", textFile)
     }
 
     def "clone a repository"() {
         given:
         File target = r.createTempDirectory("cloneTarget")
         GitVersionControlSpec spec = new GitVersionControlSpec()
-        spec.url = new URI("file://" + r.getTrash().getAbsolutePath())
+        spec.url = r.getUrl()
 
         when:
         gitVcs.populate(target, spec)
 
         then:
         new File(target, ".git").exists()
-        new File(target, "Trash.txt").exists()
+        new File(target, "source.txt").exists()
     }
 }
