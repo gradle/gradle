@@ -25,7 +25,7 @@ import org.gradle.internal.Cast;
 import javax.annotation.Nullable;
 import java.util.List;
 
-class DefaultListProperty<T> implements ProviderInternal<List<T>>, ListProperty<T> {
+class DefaultListProperty<T> implements PropertyInternal<List<T>>, ListProperty<T> {
     private static final Provider<ImmutableList<Object>> EMPTY_LIST = Providers.of(ImmutableList.of());
     private Provider<? extends List<T>> provider = Cast.uncheckedCast(EMPTY_LIST);
 
@@ -65,12 +65,24 @@ class DefaultListProperty<T> implements ProviderInternal<List<T>>, ListProperty<
     }
 
     @Override
+    public void setFromAnyValue(Object object) {
+        if (object instanceof Provider) {
+            set((Provider<List<T>>) object);
+        } else {
+            if (object != null && !(object instanceof List)) {
+                throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using an instance of type %s.", List.class.getName(), object.getClass().getName()));
+            }
+            set((List<T>) object);
+        }
+    }
+
+    @Override
     public void set(@Nullable List<T> value) {
         if (value == null) {
             this.provider = Providers.notDefined();
-        } else {
-            this.provider = Providers.of(value);
+            return;
         }
+        this.provider = Providers.of(value);
     }
 
     @Override

@@ -22,7 +22,7 @@ import spock.lang.Unroll
 
 class DefaultPropertyStateTest extends PropertySpec<String> {
     @Override
-    PropertyState<String> property() {
+    DefaultPropertyState<String> property() {
         return new DefaultPropertyState<String>(String)
     }
 

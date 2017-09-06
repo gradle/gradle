@@ -18,11 +18,10 @@ package org.gradle.api.internal.provider
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.Transformer
-import org.gradle.api.provider.PropertyState
 
 class DefaultListPropertyTest extends PropertySpec<List<String>> {
     @Override
-    PropertyState<List<String>> property() {
+    DefaultListProperty<String> property() {
         return new DefaultListProperty<String>(String)
     }
 

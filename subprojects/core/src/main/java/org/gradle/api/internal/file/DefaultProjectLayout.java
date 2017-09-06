@@ -206,6 +206,15 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         }
 
         @Override
+        public void setFromAnyValue(Object object) {
+            if (object instanceof File) {
+                set((File) object);
+            } else {
+                super.setFromAnyValue(object);
+            }
+        }
+
+        @Override
         public Provider<File> getAsFile() {
             return new ToFileProvider(this);
         }
@@ -280,6 +289,16 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
             super(Directory.class);
             this.resolver = resolver;
             set(new ResolvingDirectory(resolver, value, null));
+        }
+
+        @Override
+        public void setFromAnyValue(Object object) {
+            if (object instanceof File) {
+                File file = (File) object;
+                set(file);
+            } else {
+                super.setFromAnyValue(object);
+            }
         }
 
         @Override

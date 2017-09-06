@@ -17,13 +17,12 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 
-public class DefaultPropertyState<T> implements PropertyState<T>, ProviderInternal<T> {
+public class DefaultPropertyState<T> implements PropertyInternal<T> {
     private final Class<T> type;
     private Provider<? extends T> provider = Providers.notDefined();
 
@@ -35,6 +34,15 @@ public class DefaultPropertyState<T> implements PropertyState<T>, ProviderIntern
     @Override
     public Class<T> getType() {
         return type;
+    }
+
+    @Override
+    public void setFromAnyValue(Object object) {
+        if (object instanceof Provider) {
+            set((Provider<T>) object);
+        } else {
+            set((T) object);
+        }
     }
 
     @Override

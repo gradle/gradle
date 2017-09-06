@@ -25,10 +25,9 @@ import groovy.lang.MetaClassRegistry;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
-import org.gradle.api.provider.PropertyState;
-import org.gradle.api.provider.Provider;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
@@ -107,21 +106,18 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type BOOLEAN_TYPE = Type.getType(Boolean.TYPE);
         private static final Type OBJECT_ARRAY_TYPE = Type.getType(Object[].class);
         private static final Type ACTION_TYPE = Type.getType(Action.class);
-        private static final Type PROPERTY_STATE_TYPE = Type.getType(PropertyState.class);
-        private static final Type PROVIDER_TYPE = Type.getType(Provider.class);
         private static final Type WITH_SERVICE_REGISTRY = Type.getType(DependencyInjectingInstantiator.WithServiceRegistry.class);
+        private static final Type PROPERTY_INTERNAL_TYPE = Type.getType(PropertyInternal.class);
 
         private static final String RETURN_VOID_FROM_OBJECT = Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE);
         private static final String RETURN_VOID_FROM_OBJECT_CLASS_DYNAMIC_OBJECT = Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE, CLASS_TYPE, DYNAMIC_OBJECT_TYPE);
         private static final String RETURN_CLASS = Type.getMethodDescriptor(CLASS_TYPE);
         private static final String RETURN_VOID_FROM_CONVENTION_AWARE_CONVENTION = Type.getMethodDescriptor(Type.VOID_TYPE, CONVENTION_AWARE_TYPE, CONVENTION_TYPE);
         private static final String RETURN_CONVENTION = Type.getMethodDescriptor(CONVENTION_TYPE);
-        private static final String RETURN_PROPERTY_STATE = Type.getMethodDescriptor(PROPERTY_STATE_TYPE);
         private static final String RETURN_DYNAMIC_OBJECT = Type.getMethodDescriptor(DYNAMIC_OBJECT_TYPE);
         private static final String RETURN_META_CLASS_FROM_CLASS = Type.getMethodDescriptor(Type.getType(MetaClass.class), CLASS_TYPE);
         private static final String RETURN_BOOLEAN_FROM_STRING = Type.getMethodDescriptor(BOOLEAN_TYPE, STRING_TYPE);
         private static final String RETURN_META_CLASS_REGISTRY = Type.getMethodDescriptor(Type.getType(MetaClassRegistry.class));
-        private static final String RETURN_VOID_FROM_PROVIDER = Type.getMethodDescriptor(VOID_TYPE, PROVIDER_TYPE);
         private static final String GET_DECLARED_METHOD_DESCRIPTOR = Type.getMethodDescriptor(METHOD_TYPE, STRING_TYPE, CLASS_ARRAY_TYPE);
         private static final String GET_METHOD_DESCRIPTOR = Type.getMethodDescriptor(OBJECT_TYPE, JAVA_LANG_REFLECT_TYPE);
 
@@ -408,29 +404,16 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         public void addPropertyStateSetters(PropertyMetaData property, Method getter) throws Exception {
 
             // GENERATE public void set<Name>(Object p) {
-            //    if (p instanceof Provider) {
-            //        get<Name>().set((Provider)p);
-            //    } else {
-            //        get<Name>().set(p);
-            //    }
+            //    ((PropertyInternal)<getter>()).setFromAnyValue(p);
             // }
 
-            Label isProvider = new Label();
             MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "set" + StringUtils.capitalize(property.getName()), RETURN_VOID_FROM_OBJECT, null, EMPTY_STRINGS);
             methodVisitor.visitCode();
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
             methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), getter.getName(), Type.getMethodDescriptor(getter), false);
+            methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, PROPERTY_INTERNAL_TYPE.getInternalName());
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
-            methodVisitor.visitTypeInsn(Opcodes.INSTANCEOF, PROVIDER_TYPE.getInternalName());
-            methodVisitor.visitJumpInsn(Opcodes.IFNE, isProvider);
-            // Not a Provider
-            methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
-            methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, PROPERTY_STATE_TYPE.getInternalName(), "set", ClassBuilderImpl.RETURN_VOID_FROM_OBJECT, true);
-            methodVisitor.visitInsn(Opcodes.RETURN);
-            // Is a Provider
-            methodVisitor.visitLabel(isProvider);
-            methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
-            methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, PROPERTY_STATE_TYPE.getInternalName(), "set", RETURN_VOID_FROM_PROVIDER, true);
+            methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, PROPERTY_INTERNAL_TYPE.getInternalName(), "setFromAnyValue", ClassBuilderImpl.RETURN_VOID_FROM_OBJECT, true);
             methodVisitor.visitInsn(Opcodes.RETURN);
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();

@@ -229,6 +229,28 @@ class DefaultProjectLayoutTest extends Specification {
         fileProvider.get() == otherFile
     }
 
+    def "can set directory var untyped using a File"() {
+        def otherDir = projectDir.file("sub-dir")
+
+        expect:
+        def dirVar = layout.newDirectoryVar()
+
+        dirVar.setFromAnyValue(new File("sub-dir"))
+        dirVar.present
+        dirVar.get().getAsFile() == otherDir
+    }
+
+    def "can set file var untyped using a File"() {
+        def otherFile = projectDir.file("some-file")
+
+        expect:
+        def fileVar = layout.newFileVar()
+
+        fileVar.setFromAnyValue(new File("some-file"))
+        fileVar.present
+        fileVar.get().getAsFile() == otherFile
+    }
+
     def "can resolve directory relative to calculated directory"() {
         def dirProvider = Stub(ProviderInternal)
         def pathProvider = Stub(ProviderInternal)

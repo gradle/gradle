@@ -17,13 +17,11 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.Transformer
-import org.gradle.api.provider.PropertyState
 import org.gradle.api.provider.Provider
 import spock.lang.Specification
 
-
 abstract class PropertySpec<T> extends Specification {
-    abstract PropertyState<T> property()
+    abstract PropertyInternal<T> property()
 
     abstract T someValue()
 
@@ -146,6 +144,61 @@ abstract class PropertySpec<T> extends Specification {
         e.message == 'Cannot set the value of a property using a null provider.'
     }
 
+    def "can set untyped using null"() {
+        given:
+        def property = property()
+        property.setFromAnyValue(null)
+
+        expect:
+        !property.present
+        property.getOrNull() == null
+        property.getOrElse(someOtherValue()) == someOtherValue()
+    }
+
+    def "can set untyped using value"() {
+        given:
+        def property = property()
+        property.setFromAnyValue(someValue())
+
+        expect:
+        property.present
+        property.get() == someValue()
+        property.getOrNull() == someValue()
+        property.getOrElse(someOtherValue()) == someValue()
+        property.getOrElse(null) == someValue()
+    }
+
+    def "fails when untyped value is set using incompatible type"() {
+        def property = property()
+
+        when:
+        property.setFromAnyValue(new Thing())
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "Cannot set the value of a property of type ${type().name} using an instance of type ${Thing.name}."
+    }
+
+    def "can set untyped using provider"() {
+        def provider = Stub(ProviderInternal)
+
+        given:
+        provider.type >> type()
+        provider.get() >> someValue()
+        provider.present >> true
+
+        def property = property()
+        property.setFromAnyValue(provider)
+
+        when:
+        def r = property.present
+        def r2 = property.get()
+
+        then:
+        r
+        r2 == someValue()
+    }
+
     def "can map value using a transformation"() {
         def transformer = Mock(Transformer)
         def property = property()
@@ -239,4 +292,6 @@ abstract class PropertySpec<T> extends Specification {
         def e = thrown(IllegalStateException)
         e.message == 'Transformer for this provider returned a null value.'
     }
+
+    static class Thing { }
 }

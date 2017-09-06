@@ -136,6 +136,68 @@ task useFileProvider {
         outputContains("task output file: " + testDirectory.file("output/some-dir/other-child"))
     }
 
+    def "can set directory property value from DSL using a value or a provider"() {
+        given:
+        buildFile << """
+class SomeExtension {
+    final DirectoryVar prop
+    
+    @javax.inject.Inject
+    SomeExtension(ProjectLayout layout) {
+        prop = layout.newDirectoryVar()
+    }
+}
+
+extensions.create('custom', SomeExtension, layout)
+custom.prop = layout.projectDir.dir("dir1")
+assert custom.prop.get().asFile == file("dir1")
+
+custom.prop = providers.provider { layout.projectDir.dir("dir2") }
+assert custom.prop.get().asFile == file("dir2")
+
+custom.prop = layout.buildDir.dir("dir3")
+assert custom.prop.get().asFile == file("build/dir3")
+
+custom.prop = file("dir4")
+assert custom.prop.get().asFile == file("dir4")
+
+"""
+
+        expect:
+        succeeds()
+    }
+
+    def "can set regular file property value from DSL using a value or a provider"() {
+        given:
+        buildFile << """
+class SomeExtension {
+    final RegularFileVar prop
+    
+    @javax.inject.Inject
+    SomeExtension(ProjectLayout layout) {
+        prop = layout.newFileVar()
+    }
+}
+
+extensions.create('custom', SomeExtension, layout)
+custom.prop = layout.projectDir.file("file1")
+assert custom.prop.get().asFile == file("file1")
+
+custom.prop = providers.provider { layout.projectDir.file("file2") }
+assert custom.prop.get().asFile == file("file2")
+
+custom.prop = layout.buildDir.file("file3")
+assert custom.prop.get().asFile == file("build/file3")
+
+custom.prop = file("file4")
+assert custom.prop.get().asFile == file("file4")
+
+"""
+
+        expect:
+        succeeds()
+    }
+
     def "reports failure to set regular file property value using incompatible type"() {
         given:
         buildFile << """
