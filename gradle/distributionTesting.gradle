@@ -20,7 +20,6 @@ import org.gradle.testing.DistributionTest
 ext.distributionTestTasks = tasks.withType(DistributionTest)
 
 distributionTestTasks.all { DistributionTest task ->
-    dependsOn ':intTestImage'
     dependsOn ':toolingApi:toolingApiShadedJar'
     dependsOn ':cleanUpCaches'
     finalizedBy ':cleanUpDaemons'
@@ -50,7 +49,7 @@ distributionTestTasks.all { DistributionTest task ->
         doLast {
             configure(task) {
                 reports.html.destination = file("${project.reporting.baseDir}/$name")
-                gradleHomeDir = rootProject.intTestImage.destinationDir
+                gradleHomeDir = intTestImage.destinationDir
                 gradleUserHomeDir = rootProject.file('intTestHomeDir')
                 toolingApiShadedJarDir = rootProject.project(':toolingApi').toolingApiShadedJar.destinationDir
 

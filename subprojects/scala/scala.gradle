@@ -28,6 +28,7 @@ dependencies {
     testCompile libraries.slf4j_api
 
     integTestRuntime project(":ide")
+    integTestRuntime project(':maven')
 }
 
 useTestFixtures(project: ":plugins") // includes core test fixtures

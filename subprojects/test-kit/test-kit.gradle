@@ -3,6 +3,8 @@ dependencies {
     compile project(':toolingApi')
     compile libraries.commons_io
     runtime project(':native')
+    integTestRuntime project(':toolingApiBuilders')
+    integTestRuntime project(':pluginDevelopment')
 }
 
 task crossVersionTests(type: org.gradle.testing.IntegrationTest) {
