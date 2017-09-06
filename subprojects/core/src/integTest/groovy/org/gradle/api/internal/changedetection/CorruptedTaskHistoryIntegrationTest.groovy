@@ -46,7 +46,7 @@ class CorruptedTaskHistoryIntegrationTest extends AbstractIntegrationSpec {
         fails("createFiles", "-PkillMe=true", "--max-workers=${numberOfTasks}")
 
         then:
-        file('build').allDescendants().size() in ((0.2 * totalNumberOfOutputFiles)..(0.8 * totalNumberOfOutputFiles))
+        file('build').allDescendants().size() in ((0.1 * totalNumberOfOutputFiles)..(0.9 * totalNumberOfOutputFiles))
 
         expect:
         succeeds "createFiles"
