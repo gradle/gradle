@@ -22,18 +22,18 @@ public interface VersionSelector {
     /**
      * Indicates if the given version selector is dynamic.
      */
-    public boolean isDynamic();
+    boolean isDynamic();
 
     /**
      * Indicates if module metadata is required to determine if the
      * selector matches a candidate version.
      */
-    public boolean requiresMetadata();
+    boolean requiresMetadata();
 
     /**
      * Indicates if the selector implies that it matches only a single version.
      */
-    public boolean matchesUniqueVersion();
+    boolean matchesUniqueVersion();
 
     /**
      * Indicates if the selector matches the given candidate version.
@@ -41,7 +41,7 @@ public interface VersionSelector {
      *
      * @param candidate the candidate version
      */
-    public boolean accept(String candidate);
+    boolean accept(String candidate);
 
     /**
      * Indicates if the selector matches the given candidate version.
@@ -49,7 +49,7 @@ public interface VersionSelector {
      *
      * @param candidate the candidate version
      */
-    public boolean accept(Version candidate);
+    boolean accept(Version candidate);
 
     /**
      * Indicates if the selector matches the given candidate version
@@ -59,5 +59,5 @@ public interface VersionSelector {
      *
      * @param candidate the metadata for the candidate version
      */
-    public boolean accept(ComponentMetadata candidate);
+    boolean accept(ComponentMetadata candidate);
 }

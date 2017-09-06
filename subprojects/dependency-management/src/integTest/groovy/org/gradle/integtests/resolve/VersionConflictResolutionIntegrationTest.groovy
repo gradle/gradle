@@ -17,6 +17,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
 
 import static org.hamcrest.Matchers.containsString
@@ -745,5 +746,40 @@ task checkDeps(dependsOn: configurations.compile) {
 
         then:
         failure.assertResolutionFailure(":conf").assertFailedDependencyRequiredBy("project : > org:c:1.0")
+    }
+
+    @ToBeImplemented
+    def "chooses highest version that is included in both ranges"() {
+        given:
+        (1..10).each {
+            mavenRepo.module("org", "leaf", "$it").publish()
+        }
+        mavenRepo.module("org", "a", "1.0").dependsOn("org", "leaf", "[2,6]").publish()
+        mavenRepo.module("org", "b", "1.0").dependsOn("org", "leaf", "[4,8]").publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:a:1.0', 'org:b:1.0'
+            }
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'leaf-6.jar']
+                }
+            }
+        """
+
+        when:
+//        run 'checkDeps'
+        fails 'checkDeps' // shouldn't fail
+
+        then:
+        noExceptionThrown()
     }
 }
