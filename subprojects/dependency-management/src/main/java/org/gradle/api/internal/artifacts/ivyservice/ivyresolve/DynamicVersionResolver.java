@@ -50,6 +50,7 @@ import java.util.Set;
 
 import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult.State.Failed;
 import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult.State.Resolved;
+import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult.State.Unresolved;
 
 public class DynamicVersionResolver implements DependencyToComponentIdResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamicVersionResolver.class);
@@ -135,6 +136,7 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
             }
             switch (request.resolveResult.getState()) {
                 case Failed:
+                case Unresolved:
                     failures.add(request.resolveResult.getFailure());
                     break;
                 case Missing:
@@ -204,6 +206,7 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
             versionListingResult.resolve();
             switch (versionListingResult.result.getState()) {
                 case Failed:
+                case Unresolved:
                     resolveResult.failed(versionListingResult.result.getFailure());
                     break;
                 case Listed:
@@ -298,7 +301,7 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
                     searchedRemotely = true;
                 }
             }
-            if (result.getState() == Resolved || result.getState() == Failed) {
+            if (result.getState() == Resolved || result.getState() == Failed || result.getState() == Unresolved) {
                 return result;
             }
             if (!searchedRemotely) {
@@ -330,6 +333,7 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
                     target.missing();
                     break;
                 case Failed:
+                case Unresolved:
                     target.failed(result.getFailure());
                     break;
                 case Unknown:
