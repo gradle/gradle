@@ -18,10 +18,11 @@ package org.gradle.internal.time;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * A time provider with the semantics of {@link OffsetTimeProvider} and additional monotonicity guarantees.
+ * A clock that measures time based on elapsed time since an initial system wall clock read and never goes backwards.
  * <p>
  * This provider guarantees that non concurrent reads always yield a value that is greater or equal than the previous read.
  * This monotonicity guarantee is important to build scans.
@@ -29,26 +30,32 @@ import java.util.concurrent.atomic.AtomicLong;
  * While System.nanoTime() is usually monotonic it is not actually guaranteed, especially on virtualized hardware.
  *
  * - http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6458294
+ *
+ * @see Time#clock()
  */
-public class MonotonicTimeProvider implements TimeProvider {
+public class MonotonicClock implements Clock {
 
-    private static final TimeProvider INSTANCE = new MonotonicTimeProvider(new OffsetTimeProvider());
+    private final TimeSource timeSource;
+    private final long startMillis;
+    private final long startNanos;
 
-    private final TimeProvider timeProvider;
     private final AtomicLong max = new AtomicLong();
 
-    public static TimeProvider global() {
-        return INSTANCE;
+    public MonotonicClock() {
+        this(new TimeSource.True());
     }
 
     @VisibleForTesting
-    MonotonicTimeProvider(TimeProvider timeProvider) {
-        this.timeProvider = timeProvider;
+    MonotonicClock(TimeSource timeSource) {
+        this.timeSource = timeSource;
+        this.startMillis = timeSource.currentTimeMillis();
+        this.startNanos = timeSource.nanoTime();
     }
 
     @Override
     public long getCurrentTime() {
-        long currentTime = timeProvider.getCurrentTime();
+        long elapsedMills = TimeUnit.NANOSECONDS.toMillis(timeSource.nanoTime() - startNanos);
+        long currentTime = startMillis + elapsedMills;
         long currentMax;
         do {
             currentMax = max.get();
@@ -58,4 +65,23 @@ public class MonotonicTimeProvider implements TimeProvider {
         return currentTime;
     }
 
+    interface TimeSource {
+
+        long currentTimeMillis();
+
+        long nanoTime();
+
+        class True implements TimeSource {
+            @Override
+            public long currentTimeMillis() {
+                return System.currentTimeMillis();
+            }
+
+            @Override
+            public long nanoTime() {
+                return System.nanoTime();
+            }
+        }
+
+    }
 }

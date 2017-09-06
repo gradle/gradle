@@ -271,6 +271,14 @@ class FindBugsSpecBuilderTest extends Specification {
         args.containsAll([ "abc", "def" ])
     }
 
+    def "with JVM args"() {
+        when:
+        def jvmArgs = builder.withJvmArgs(['-Dabc', '-Ddef']).build().jvmArgs
+
+        then:
+        jvmArgs.containsAll(["-Dabc", "-Ddef"])
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/1307")
     def "with showProgress"() {
         when:

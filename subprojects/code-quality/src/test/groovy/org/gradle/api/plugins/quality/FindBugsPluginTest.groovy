@@ -98,6 +98,7 @@ class FindBugsPluginTest extends AbstractProjectBuilderSpec {
             includeFilter == null
             excludeBugsFilter == null
             extraArgs == null
+            jvmArgs == null
         }
     }
 
@@ -125,6 +126,7 @@ class FindBugsPluginTest extends AbstractProjectBuilderSpec {
             includeFilter == null
             excludeBugsFilter == null
             extraArgs == null
+            jvmArgs == null
         }
     }
 
@@ -160,6 +162,7 @@ class FindBugsPluginTest extends AbstractProjectBuilderSpec {
             excludeFilter = new File("exclude.txt")
             excludeBugsFilter = new File("baselineBugs.txt")
             extraArgs = [ '-adjustPriority', 'DM_CONVERT_CASE=raise,DM_CONVERT_CASE=raise']
+            jvmArgs = ['-Xdebug']
         }
 
         expect:
@@ -190,6 +193,7 @@ class FindBugsPluginTest extends AbstractProjectBuilderSpec {
             excludeFilter == project.file("exclude.txt")
             excludeBugsFilter == project.file("baselineBugs.txt")
             extraArgs == [ '-adjustPriority', 'DM_CONVERT_CASE=raise,DM_CONVERT_CASE=raise' ]
+            jvmArgs == ['-Xdebug']
         }
     }
 
@@ -206,6 +210,7 @@ class FindBugsPluginTest extends AbstractProjectBuilderSpec {
             excludeFilterConfig = project.resources.text.fromFile("exclude.txt")
             excludeBugsFilterConfig = project.resources.text.fromFile("baselineBugs.txt")
             extraArgs = [ '-adjustPriority', 'DM_CONVERT_CASE=raise,DM_CONVERT_CASE=raise' ]
+            jvmArgs = ['-Xdebug']
         }
 
         expect:
@@ -229,6 +234,7 @@ class FindBugsPluginTest extends AbstractProjectBuilderSpec {
             excludeFilter == project.file("exclude.txt")
             excludeBugsFilter == project.file("baselineBugs.txt")
             extraArgs == [ '-adjustPriority', 'DM_CONVERT_CASE=raise,DM_CONVERT_CASE=raise' ]
+            jvmArgs == ['-Xdebug']
         }
     }
 

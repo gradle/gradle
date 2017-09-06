@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scan.clock;
+package org.gradle.internal.time;
 
-import org.gradle.internal.scan.UsedByScanPlugin;
-
-/**
- * A view of the Gradle runtime's clock used by build scans.
- *
- * The provider is _required_ to provide monotonic timestamps.
- *
- * @see org.gradle.internal.time.MonotonicTimeProvider
- */
-@UsedByScanPlugin
-public interface BuildScanTimeProvider {
-
-    /**
-     * The current wall clock time.
-     */
-    long getCurrentTime();
-
+public class TrueClock implements Clock {
+    @Override
+    public long getCurrentTime() {
+        return System.currentTimeMillis();
+    }
 }

@@ -86,7 +86,7 @@ class RetryRuleUtil {
                 && failure.cause?.message == "Unable to create directory 'metadata-2.1'") {
 
                 println "Retrying cross version test for " + targetDistVersion.version + " because failure was caused by directory creation race condition"
-                return retryWithCleanProjectDir()
+                return retryWithCleanProjectDir(specification)
             }
         }
 

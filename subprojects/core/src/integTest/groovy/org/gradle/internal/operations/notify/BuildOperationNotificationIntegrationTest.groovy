@@ -61,6 +61,26 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         """
     }
 
+    def "obtains notifications about init scripts"() {
+        when:
+        executer.requireOwnGradleUserHomeDir()
+        def init = executer.gradleUserHomeDir.file("init.d/init.gradle") << """
+            println "init script"
+        """
+        buildScript """
+           ${registerListenerWithDrainRecordings()}
+            task t
+        """
+
+        file("buildSrc/build.gradle") << ""
+
+        succeeds "t"
+
+        then:
+        started(ApplyScriptPluginBuildOperationType.Details, [targetType: "gradle", targetPath: null, file: init.absolutePath, buildPath: ":", uri: null])
+        started(ApplyScriptPluginBuildOperationType.Details, [targetType: "gradle", targetPath: null, file: init.absolutePath, buildPath: ":buildSrc", uri: null])
+    }
+
     def "can emit notifications from start of build"() {
         when:
         buildScript """
@@ -210,7 +230,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
 
     void has(boolean started, Class<?> type, Map<String, ?> payload) {
         def string = notificationLogLine(started, type, payload)
-        assert output.contains(string)
+        assert output.contains(string) : "did not emit event string: $string"
     }
 
     void notIncluded(Class<?> type) {

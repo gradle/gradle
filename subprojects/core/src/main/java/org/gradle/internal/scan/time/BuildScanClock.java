@@ -13,14 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.time;
+
+package org.gradle.internal.scan.time;
+
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
- * A timer with a designated start instant.
+ * A view of the Gradle runtime's clock used by build scans.
+ *
+ * The provider is _required_ to provide monotonic timestamps.
+ *
+ * @since 4.2
  */
-public interface EventTimer extends Timer {
+@UsedByScanPlugin
+public interface BuildScanClock {
+
     /**
-     * The instant that the timer was started, in ms since Epoch.
+     * The current wall clock time.
      */
-    long getStartTime();
+    long getCurrentTime();
+
 }

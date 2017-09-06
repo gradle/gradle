@@ -16,10 +16,9 @@
 package org.gradle.api.internal.tasks.testing.junit.report;
 
 import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.reporting.DurationFormatter;
+import org.gradle.internal.time.TimeFormatting;
 
 public abstract class TestResultModel {
-    public static final DurationFormatter DURATION_FORMATTER = new DurationFormatter();
 
     public abstract TestResult.ResultType getResultType();
 
@@ -28,7 +27,7 @@ public abstract class TestResultModel {
     public abstract String getTitle();
 
     public String getFormattedDuration() {
-        return DURATION_FORMATTER.format(getDuration());
+        return TimeFormatting.formatDurationVeryTerse(getDuration());
     }
 
     public String getStatusClass() {

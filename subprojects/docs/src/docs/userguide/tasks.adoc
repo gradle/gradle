@@ -636,7 +636,7 @@ As you can see, we can both configure the tasks properties and use those propert
 [[sec:runtime_api_configuration]]
 ====== Fine-grained configuration
 
-The runtime API methods only allow you to declare your inputs and outputs in themselves. However, the file-oriented ones return a builder - of type api:org.gradle.api.tasks.TaskInputFilePropertyBuilder[] - that let’s you provide additional information about those inputs and outputs.
+The runtime API methods only allow you to declare your inputs and outputs in themselves. However, the file-oriented ones return a builder - of type api:org.gradle.api.tasks.TaskInputFilePropertyBuilder[] - that lets you provide additional information about those inputs and outputs.
 
 You can learn about all the options provided by the builder in its API documentation, but we’ll show you a simple example here to give you an idea of what you can do.
 

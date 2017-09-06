@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,31 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.util;
+package org.gradle.nativeplatform.fixtures.app
 
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.integtests.fixtures.SourceFile
 
-public class MockTimeProvider implements TimeProvider {
-
-    long current;
-
-    public MockTimeProvider() {
-        this(System.currentTimeMillis());
+class SwiftMainWithDep extends SwiftMain {
+    SwiftMainWithDep(GreeterElement greeter, SumElement sum) {
+        super(greeter, sum)
     }
 
-    public MockTimeProvider(long startTime) {
-        current = startTime;
-    }
-
-    public void increment(long diff) {
-        current += diff;
-    }
-
-    /** Increments the time by 10ms and returns it. */
     @Override
-    public long getCurrentTime() {
-        current += 10L;
-        return current;
+    SourceFile getSourceFile() {
+        def delegate = super.getSourceFile()
+        sourceFile(delegate.path, delegate.name, "import Greeter\n${delegate.content}")
     }
-
 }

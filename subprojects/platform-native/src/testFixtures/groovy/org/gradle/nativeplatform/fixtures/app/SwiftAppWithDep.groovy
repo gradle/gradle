@@ -22,14 +22,12 @@ class SwiftAppWithDep extends SourceElement implements AppElement {
     final SwiftMain main
 
     SwiftAppWithDep(GreeterElement greeter, SumElement sum) {
-        main = new SwiftMain(greeter, sum)
+        main = new SwiftMainWithDep(greeter, sum)
     }
 
     @Override
-    List<SourceFile> getFiles() {
-        return main.getFiles().collect {
-            sourceFile(it.path, it.name, "import Greeter\n${it.content}")
-        }
+    final List<SourceFile> getFiles() {
+        [main.sourceFile]
     }
 
     @Override

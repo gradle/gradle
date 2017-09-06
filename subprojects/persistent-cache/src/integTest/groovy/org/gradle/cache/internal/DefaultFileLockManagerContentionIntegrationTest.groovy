@@ -25,7 +25,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
-import org.gradle.internal.time.TrueTimeProvider
+import org.gradle.internal.time.TrueClock
 
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -34,7 +34,7 @@ import java.util.concurrent.TimeoutException
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegrationSpec {
-    def timeProvider = new TrueTimeProvider()
+    def timeProvider = new TrueClock()
     def addressFactory = new InetAddressFactory()
 
     FileLockContentionHandler receivingFileLockContentionHandler

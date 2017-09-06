@@ -19,7 +19,7 @@ import com.google.common.base.Optional;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.time.CountdownTimer;
-import org.gradle.internal.time.Timers;
+import org.gradle.internal.time.Time;
 import org.gradle.internal.typeconversion.EnumFromCharSequenceNotationParser;
 import org.gradle.internal.typeconversion.NotationConverterToNotationParserAdapter;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -412,7 +412,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         private int cacheHit;
         private int evict;
 
-        private CountdownTimer cleanupTimer = Timers.startTimer(MINIMAL_CLEANUP_INTERVAL);
+        private CountdownTimer cleanupTimer = Time.startCountdownTimer(MINIMAL_CLEANUP_INTERVAL);
 
         private static class MethodInvocationKey {
             private final SoftReference<Class<?>> lookupClass;

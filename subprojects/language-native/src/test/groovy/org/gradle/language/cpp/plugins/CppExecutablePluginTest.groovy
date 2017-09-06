@@ -68,10 +68,13 @@ class CppExecutablePluginTest extends Specification {
         compileDebugCpp.includes.files == [project.file("src/main/headers")] as Set
         compileDebugCpp.source.files == [src] as Set
         compileDebugCpp.objectFileDirectory.get().asFile == projectDir.file("build/obj/main/debug")
+        compileDebugCpp.debuggable
+        !compileDebugCpp.optimized
 
         def linkDebug = project.tasks.linkDebug
         linkDebug instanceof LinkExecutable
         linkDebug.binaryFile.get().asFile == projectDir.file("build/exe/main/debug/" + OperatingSystem.current().getExecutableName("testApp"))
+        linkDebug.debuggable
 
         def installDebug = project.tasks.installDebug
         installDebug instanceof InstallExecutable
@@ -83,10 +86,13 @@ class CppExecutablePluginTest extends Specification {
         compileReleaseCpp.includes.files == [project.file("src/main/headers")] as Set
         compileReleaseCpp.source.files == [src] as Set
         compileReleaseCpp.objectFileDirectory.get().asFile == projectDir.file("build/obj/main/release")
+        !compileReleaseCpp.debuggable
+        compileReleaseCpp.optimized
 
         def linkRelease = project.tasks.linkRelease
         linkRelease instanceof LinkExecutable
         linkRelease.binaryFile.get().asFile == projectDir.file("build/exe/main/release/" + OperatingSystem.current().getExecutableName("testApp"))
+        !linkRelease.debuggable
 
         def installRelease = project.tasks.installRelease
         installRelease instanceof InstallExecutable

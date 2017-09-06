@@ -143,4 +143,21 @@ class FindBugsTest extends Specification {
         then:
         findbugs.extraArgs == [ 'abc', 'def', 'ghi', 'jkl' ]
     }
+
+    def "can add jvm args"() {
+        given:
+        findbugs.jvmArgs = [ '-Dabc' ]
+        expect:
+        findbugs.jvmArgs == [ '-Dabc' ]
+
+        when:
+        findbugs.jvmArgs '-Ddef'
+        then:
+        findbugs.jvmArgs == [ '-Dabc', '-Ddef' ]
+
+        when:
+        findbugs.jvmArgs([ '-Dghi', '-Djkl' ])
+        then:
+        findbugs.jvmArgs == [ '-Dabc', '-Ddef', '-Dghi', '-Djkl' ]
+    }
 }

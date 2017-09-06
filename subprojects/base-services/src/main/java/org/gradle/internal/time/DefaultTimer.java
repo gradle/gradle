@@ -15,47 +15,38 @@
  */
 package org.gradle.internal.time;
 
-import java.util.concurrent.TimeUnit;
+class DefaultTimer implements Timer {
 
-public class DefaultTimer implements Timer {
-    private static final long MS_PER_MINUTE = 60000;
-    private static final long MS_PER_HOUR = MS_PER_MINUTE * 60;
-    protected TimeSource timeSource;
-    protected long startInstantMillis;
+    private final Clock clock;
+    private long startTime;
 
-    DefaultTimer(TimeSource timeSource) {
-        this.timeSource = timeSource;
+    DefaultTimer(Clock clock) {
+        this.clock = clock;
         reset();
     }
 
-    public static String prettyTime(long timeInMs) {
-        StringBuilder result = new StringBuilder();
-        if (timeInMs > MS_PER_HOUR) {
-            result.append(timeInMs / MS_PER_HOUR).append(" hrs ");
-        }
-        if (timeInMs > MS_PER_MINUTE) {
-            result.append((timeInMs % MS_PER_HOUR) / MS_PER_MINUTE).append(" mins ");
-        }
-        result.append((timeInMs % MS_PER_MINUTE) / 1000.0).append(" secs");
-        return result.toString();
+    DefaultTimer(Clock clock, long startTime) {
+        this.clock = clock;
+        this.startTime = Math.min(startTime, clock.getCurrentTime());
     }
 
     @Override
     public String getElapsed() {
-        long timeInMs = getElapsedMillis();
-        return prettyTime(timeInMs);
+        long elapsedMillis = getElapsedMillis();
+        return TimeFormatting.formatDurationVerbose(elapsedMillis);
     }
 
     @Override
     public long getElapsedMillis() {
-        return Math.max(getInstantMillis() - startInstantMillis, 0);
+        return Math.max(clock.getCurrentTime() - startTime, 0);
     }
 
     public void reset() {
-        startInstantMillis = getInstantMillis();
+        startTime = clock.getCurrentTime();
     }
 
-    private long getInstantMillis() {
-        return TimeUnit.NANOSECONDS.toMillis(timeSource.nanoTime());
+    @Override
+    public long getStartTime() {
+        return startTime;
     }
 }

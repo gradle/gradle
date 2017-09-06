@@ -44,6 +44,7 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -54,8 +55,9 @@ import java.util.concurrent.Callable;
 public abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBinary {
     private NativeToolChainInternal toolChain;
     private NativePlatformInternal targetPlatform;
+    private boolean debuggable;
     private final RegularFileVar outputFile;
-    private List<String> linkerArgs;
+    private List<String> linkerArgs = new ArrayList<String>();
     private final ConfigurableFileCollection source;
     private final ConfigurableFileCollection libs;
 
@@ -146,6 +148,18 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     }
 
     /**
+     * Create a debuggable binary?
+     */
+    @Input
+    public boolean isDebuggable() {
+        return debuggable;
+    }
+
+    public void setDebuggable(boolean debuggable) {
+        this.debuggable = debuggable;
+    }
+
+    /**
      * The source object files to be passed to the linker.
      */
     @InputFiles
@@ -207,6 +221,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
         spec.objectFiles(getSource());
         spec.libraries(getLibs());
         spec.args(getLinkerArgs());
+        spec.setDebuggable(isDebuggable());
 
         BuildOperationLogger operationLogger = getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir());
         spec.setOperationLogger(operationLogger);

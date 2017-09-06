@@ -2,7 +2,7 @@ class GreetingPlugin implements Plugin<Project> {
     void apply(Project project) {
         def extension = project.extensions.create('greeting', GreetingPluginExtension, project)
         project.tasks.create('hello', Greeting) {
-            message = extension.messageProvider
+            message = extension.message
             outputFiles = extension.outputFiles
         }
     }
@@ -14,24 +14,8 @@ class GreetingPluginExtension {
 
     GreetingPluginExtension(Project project) {
         message = project.property(String)
-        setMessage('Hello from GreetingPlugin')
+        message.set('Hello from GreetingPlugin')
         outputFiles = project.files()
-    }
-
-    String getMessage() {
-        message.get()
-    }
-
-    void setMessage(String message) {
-        this.message.set(message)
-    }
-
-    Provider<String> getMessageProvider() {
-        message
-    }
-
-    FileCollection getOutputFiles() {
-        outputFiles
     }
 
     void setOutputFiles(FileCollection outputFiles) {
@@ -43,22 +27,6 @@ class Greeting extends DefaultTask {
     final PropertyState<String> message = project.property(String)
     final ConfigurableFileCollection outputFiles = project.files()
 
-    String getMessage() {
-        message.get()
-    }
-
-    void setMessage(String message) {
-        this.message.set(message)
-    }
-
-    void setMessage(Provider<String> message) {
-        this.message.set(message)
-    }
-
-    FileCollection getOutputFiles() {
-        outputFiles
-    }
-
     void setOutputFiles(FileCollection outputFiles) {
         this.outputFiles.setFrom(outputFiles)
     }
@@ -67,7 +35,7 @@ class Greeting extends DefaultTask {
     void printMessage() {
         outputFiles.each {
             logger.quiet "Writing message 'Hi from Gradle' to file"
-            it.text = message
+            it.text = message.get()
         }
     }
 }

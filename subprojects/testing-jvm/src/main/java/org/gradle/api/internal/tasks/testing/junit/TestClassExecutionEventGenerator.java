@@ -16,10 +16,15 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import org.gradle.api.internal.tasks.testing.*;
+import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
+import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
+import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
+import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
-import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.time.Clock;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -27,26 +32,26 @@ import java.util.Set;
 public class TestClassExecutionEventGenerator implements TestResultProcessor, TestClassExecutionListener {
     private final TestResultProcessor resultProcessor;
     private final IdGenerator<?> idGenerator;
-    private final TimeProvider timeProvider;
+    private final Clock clock;
     private final Set<Object> currentTests = new LinkedHashSet<Object>();
     private boolean testsStarted;
     private TestDescriptorInternal currentTestClass;
 
-    public TestClassExecutionEventGenerator(TestResultProcessor resultProcessor, IdGenerator<?> idGenerator, TimeProvider timeProvider) {
+    public TestClassExecutionEventGenerator(TestResultProcessor resultProcessor, IdGenerator<?> idGenerator, Clock clock) {
         this.resultProcessor = resultProcessor;
         this.idGenerator = idGenerator;
-        this.timeProvider = timeProvider;
+        this.clock = clock;
     }
 
     @Override
     public void testClassStarted(String testClassName) {
         currentTestClass = new DefaultTestClassDescriptor(idGenerator.generateId(), testClassName);
-        resultProcessor.started(currentTestClass, new TestStartEvent(timeProvider.getCurrentTime()));
+        resultProcessor.started(currentTestClass, new TestStartEvent(clock.getCurrentTime()));
     }
 
     @Override
     public void testClassFinished(Throwable failure) {
-        long now = timeProvider.getCurrentTime();
+        long now = clock.getCurrentTime();
         try {
             if (failure != null) {
                 if (currentTests.isEmpty()) {

@@ -16,16 +16,16 @@
 
 package org.gradle.api.internal.tasks.testing
 
-import spock.lang.Specification
-import org.gradle.internal.time.TimeProvider
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor
+import org.gradle.internal.time.Clock
+import spock.lang.Specification
 
 class SuiteTestClassProcessorTest extends Specification {
     private final TestResultProcessor resultProcessor = Mock()
     private final TestClassProcessor targetProcessor = Mock()
     private final TestDescriptorInternal suiteDescriptor = Mock()
     private final TestClassRunInfo testClass = Mock()
-    private final TimeProvider timeProvider = Mock()
+    private final Clock timeProvider = Mock()
     private final SuiteTestClassProcessor processor = new SuiteTestClassProcessor(suiteDescriptor, targetProcessor, timeProvider)
 
     def setup() {

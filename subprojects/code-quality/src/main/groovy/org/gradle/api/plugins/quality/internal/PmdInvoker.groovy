@@ -21,6 +21,8 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.quality.Pmd
 import org.gradle.internal.logging.ConsoleRenderer
 
+import org.gradle.util.VersionNumber
+
 abstract class PmdInvoker {
     static void invoke(Pmd pmdTask) {
         def pmdClasspath = pmdTask.pmdClasspath
@@ -37,10 +39,17 @@ abstract class PmdInvoker {
         def stdOutIsAttachedToTerminal = pmdTask.stdOutIsAttachedToTerminal()
         def ignoreFailures = pmdTask.ignoreFailures
         def logger = pmdTask.logger
+        def incrementalAnalysis = pmdTask.incrementalAnalysis
+        def taskName = pmdTask.name
+        def buildDir = pmdTask.project.buildDir
 
-        def prePmd5 = pmdClasspath.any {
-            it.name ==~ /pmd-([1-4]\.[0-9\.]+)\.jar/
-        }
+        def pmdVersion = VersionNumber.parse((pmdClasspath.filter {
+            it.name ==~ /pmd-[^0-9]*([0-9\.]+)\.jar/
+        }.first().name =~ /pmd-[^0-9]*([0-9\.]+)\.jar/)[0][1])
+
+        def prePmd5 = pmdVersion < VersionNumber.parse('5.0.0')
+        def postPmd56 = pmdVersion >= VersionNumber.parse('5.6.0')
+
         def antPmdArgs = [failOnRuleViolation: false, failuresPropertyName: "pmdFailureCount"]
         if (prePmd5) {
             // NOTE: PMD 5.0.2 apparently introduces an element called "language" that serves the same purpose
@@ -52,6 +61,12 @@ abstract class PmdInvoker {
             if (ruleSets == ["java-basic"]) {
                 ruleSets = ['basic']
                 pmdTask.setRuleSets(ruleSets)
+            }
+        } else if (postPmd56) {
+            // PMD 5.6.0 added an incremental analysis cache
+            // https://pmd.github.io/pmd-5.7.0/overview/changelog-old.html#Incremental_Analysis
+            if (incrementalAnalysis) {
+                antPmdArgs["cacheLocation"] = new File(buildDir.path + "/pmd-cache", taskName + ".cache")
             }
         }
 

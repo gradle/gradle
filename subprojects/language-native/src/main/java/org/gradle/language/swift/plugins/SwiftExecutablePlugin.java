@@ -78,7 +78,7 @@ public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
 
         // Configure compile task
         SwiftCompile compile = (SwiftCompile) tasks.getByName("compileDebugSwift");
-        compile.setCompilerArgs(Lists.newArrayList("-g", "-enable-testing"));
+        compile.setCompilerArgs(Lists.newArrayList("-enable-testing"));
 
         // Wire in this install task
         InstallExecutable install = (InstallExecutable) tasks.getByName("installDebug");

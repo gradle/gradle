@@ -51,7 +51,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
-    def "file permissions can be modfied with eachFile closure"() {
+    def "file permissions can be modified with eachFile closure"() {
         given:
         def testSourceFile = file("reference.txt") << 'test file"'
         testSourceFile.mode = 0746

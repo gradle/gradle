@@ -25,7 +25,7 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.IdGenerator;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Clock;
 import org.testng.ISuite;
 import org.testng.ISuiteListener;
 import org.testng.ITestClass;
@@ -42,7 +42,7 @@ import java.util.Set;
 public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestListener, TestNGConfigurationListener, TestNGClassListener {
     private final TestResultProcessor resultProcessor;
     private final IdGenerator<?> idGenerator;
-    private final TimeProvider timeProvider;
+    private final Clock clock;
     private final Object lock = new Object();
     private final Map<ITestContext, Object> testId = new HashMap<ITestContext, Object>();
     private final Map<ISuite, Object> suiteId = new HashMap<ISuite, Object>();
@@ -51,10 +51,10 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
     private final Map<ITestNGMethod, Object> testMethodParentId = new HashMap<ITestNGMethod, Object>();
     private final Set<ITestResult> failedConfigurations = new HashSet<ITestResult>();
 
-    public TestNGTestResultProcessorAdapter(TestResultProcessor resultProcessor, IdGenerator<?> idGenerator, TimeProvider timeProvider) {
+    public TestNGTestResultProcessorAdapter(TestResultProcessor resultProcessor, IdGenerator<?> idGenerator, Clock clock) {
         this.resultProcessor = resultProcessor;
         this.idGenerator = idGenerator;
-        this.timeProvider = timeProvider;
+        this.clock = clock;
     }
 
     @Override
@@ -68,7 +68,7 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
             testInternal = new DefaultTestSuiteDescriptor(idGenerator.generateId(), suite.getName());
             suiteId.put(suite, testInternal.getId());
         }
-        resultProcessor.started(testInternal, new TestStartEvent(timeProvider.getCurrentTime()));
+        resultProcessor.started(testInternal, new TestStartEvent(clock.getCurrentTime()));
     }
 
     @Override
@@ -82,7 +82,7 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
             }
         }
 
-        resultProcessor.completed(id, new TestCompleteEvent(timeProvider.getCurrentTime()));
+        resultProcessor.completed(id, new TestCompleteEvent(clock.getCurrentTime()));
     }
 
     @Override
@@ -92,7 +92,7 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
             testInternal = new DefaultTestClassDescriptor(idGenerator.generateId(), testClass.getName());
             testClassId.put(testClass, testInternal.getId());
         }
-        resultProcessor.started(testInternal, new TestStartEvent(timeProvider.getCurrentTime()));
+        resultProcessor.started(testInternal, new TestStartEvent(clock.getCurrentTime()));
     }
 
     @Override
@@ -101,7 +101,7 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
         synchronized (lock) {
             id = testClassId.remove(testClass);
         }
-        resultProcessor.completed(id, new TestCompleteEvent(timeProvider.getCurrentTime()));
+        resultProcessor.completed(id, new TestCompleteEvent(clock.getCurrentTime()));
     }
 
     @Override
