@@ -201,24 +201,29 @@ public abstract class IncrementalElement {
      */
     protected static abstract class AbstractRenameTransform implements Transform {
         public static final String DEFAULT_RENAME_PREFIX = "renamed-";
+        private final SourceFile sourceFile;
+        private final SourceFile destinationFile;
+        private final SourceElement beforeElement;
 
-        abstract SourceFile getSourceFile();
-        abstract SourceFile getDestinationFile();
-        abstract SourceElement getBeforeElement();
+        AbstractRenameTransform(SourceFile sourceFile, SourceFile destinationFile, SourceElement beforeElement) {
+            this.sourceFile = sourceFile;
+            this.destinationFile = destinationFile;
+            this.beforeElement = beforeElement;
+        }
 
         @Override
         public void applyChangesToProject(TestFile projectDir) {
-            String sourceSetName = getBeforeElement().getSourceSetName();
-            TestFile file = projectDir.file(getSourceFile().withPath("src/" + sourceSetName));
+            String sourceSetName = beforeElement.getSourceSetName();
+            TestFile file = projectDir.file(sourceFile.withPath("src/" + sourceSetName));
 
             file.assertExists();
 
-            file.renameTo(projectDir.file(getDestinationFile().withPath("src/" + sourceSetName)));
+            file.renameTo(projectDir.file(destinationFile.withPath("src/" + sourceSetName)));
         }
 
         @Override
         public List<SourceFile> getBeforeFiles() {
-            return getBeforeElement().getFiles();
+            return beforeElement.getFiles();
         }
     }
 

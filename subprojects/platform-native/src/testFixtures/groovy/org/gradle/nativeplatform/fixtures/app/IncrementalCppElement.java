@@ -41,25 +41,10 @@ public abstract class IncrementalCppElement extends IncrementalElement {
     }
 
     protected static Transform rename(final CppSourceFileElement beforeElement, String renamePrefix) {
-        final SourceFile beforeFile = beforeElement.getSource().getSourceFile();
+        SourceFile beforeFile = beforeElement.getSource().getSourceFile();
         final SourceFile afterFile = new SourceFile(beforeFile.getPath(), renamePrefix + beforeFile.getName(), beforeFile.getContent());
 
-        return new AbstractRenameTransform() {
-            @Override
-            SourceFile getSourceFile() {
-                return beforeFile;
-            }
-
-            @Override
-            SourceFile getDestinationFile() {
-                return afterFile;
-            }
-
-            @Override
-            SourceElement getBeforeElement() {
-                return beforeElement;
-            }
-
+        return new AbstractRenameTransform(beforeFile, afterFile, beforeElement) {
             @Override
             public List<SourceFile> getAfterFiles() {
                 List<SourceFile> result = new ArrayList<SourceFile>();
