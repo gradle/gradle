@@ -18,7 +18,6 @@ package org.gradle.api.provider;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
-import org.gradle.api.tasks.Internal;
 import org.gradle.internal.HasInternalProtocol;
 
 import javax.annotation.Nullable;
@@ -54,7 +53,6 @@ public interface Provider<T> {
      *
      * @return the value or {@code null}
      */
-    @Internal
     @Nullable
     T getOrNull();
 
@@ -84,6 +82,5 @@ public interface Provider<T> {
      *
      * @return {@code true} if there is a value present, otherwise {@code false}
      */
-    @Internal
     boolean isPresent();
 }
