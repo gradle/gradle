@@ -18,12 +18,13 @@ package org.gradle.internal.logging.console.jvm
 
 import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
+
+import static org.gradle.internal.logging.console.jvm.TestedProjectFixture.*
 
 @IgnoreIf({ GradleContextualExecuter.isParallel() })
 abstract class AbstractConsoleJvmTestWorkerFunctionalTest extends AbstractConsoleFunctionalSpec {
@@ -43,9 +44,10 @@ abstract class AbstractConsoleJvmTestWorkerFunctionalTest extends AbstractConsol
     @Unroll
     def "shows test class execution #description test class name in work-in-progress area of console for single project build"() {
         given:
-        buildFile << testableJavaProject()
-        file("src/test/java/${testClass1.fileRepresentation}") << testClass(testClass1.classNameWithoutPackage, SERVER_RESOURCE_1)
-        file("src/test/java/${testClass2.fileRepresentation}") << testClass(testClass2.classNameWithoutPackage, SERVER_RESOURCE_2)
+        buildFile << testableJavaProject(testDependency(), MAX_WORKERS)
+        buildFile << testFrameworkConfiguration()
+        file("src/test/java/${testClass1.fileRepresentation}") << testClass(testAnnotationClass(), testClass1.classNameWithoutPackage, SERVER_RESOURCE_1, server)
+        file("src/test/java/${testClass2.fileRepresentation}") << testClass(testAnnotationClass(), testClass2.classNameWithoutPackage, SERVER_RESOURCE_2, server)
         def testExecution = server.expectConcurrentAndBlock(2, SERVER_RESOURCE_1, SERVER_RESOURCE_2)
 
         when:
@@ -73,11 +75,12 @@ abstract class AbstractConsoleJvmTestWorkerFunctionalTest extends AbstractConsol
         settingsFile << "include 'project1', 'project2'"
         buildFile << """
             subprojects {
-                ${testableJavaProject()}
+                ${testableJavaProject(testDependency(), MAX_WORKERS)}
+                ${testFrameworkConfiguration()}
             }
         """
-        file("project1/src/test/java/${testClass1.fileRepresentation}") << testClass(testClass1.classNameWithoutPackage, SERVER_RESOURCE_1)
-        file("project2/src/test/java/${testClass2.fileRepresentation}") << testClass(testClass2.classNameWithoutPackage, SERVER_RESOURCE_2)
+        file("project1/src/test/java/${testClass1.fileRepresentation}") << testClass(testAnnotationClass(), testClass1.classNameWithoutPackage, SERVER_RESOURCE_1, server)
+        file("project2/src/test/java/${testClass2.fileRepresentation}") << testClass(testAnnotationClass(), testClass2.classNameWithoutPackage, SERVER_RESOURCE_2, server)
         def testExecution = server.expectConcurrentAndBlock(2, SERVER_RESOURCE_1, SERVER_RESOURCE_2)
 
         when:
@@ -99,71 +102,7 @@ abstract class AbstractConsoleJvmTestWorkerFunctionalTest extends AbstractConsol
         JavaTestClass.SHORTENED_TEST1 | JavaTestClass.SHORTENED_TEST2 | 'shortened'
     }
 
-    private String testClass(String testClassName, String serverResource) {
-        """
-            package org.gradle;
-
-            import ${testAnnotationClass()};
-
-            public class $testClassName {
-                @Test
-                public void longRunningTest() {
-                    ${server.callFromBuild(serverResource)}
-                }
-            }
-        """
-    }
-
-    private String testableJavaProject() {
-        """
-            apply plugin: 'java'
-            
-            ${jcenterRepository()}
-            
-            dependencies {
-                testCompile '${testDependency()}'
-            }
-            
-            tasks.withType(Test) {
-                maxParallelForks = $MAX_WORKERS
-            }
-
-            ${testFrameworkConfiguration()}
-        """
-    }
-
     abstract String testAnnotationClass()
     abstract String testDependency()
     abstract String testFrameworkConfiguration()
-
-    static boolean containsTestExecutionWorkInProgressLine(GradleHandle gradleHandle, String taskPath, String testName) {
-        gradleHandle.standardOutput.contains(workInProgressLine("> $taskPath > Executing test $testName"))
-    }
-
-    private static class JavaTestClass {
-        public static final PRESERVED_TEST1 = new JavaTestClass('org.gradle.Test1', 'org.gradle.Test1')
-        public static final PRESERVED_TEST2 = new JavaTestClass('org.gradle.Test2', 'org.gradle.Test2')
-        public static final SHORTENED_TEST1 = new JavaTestClass('org.gradle.AdvancedJavaPackageAbbreviatingClassFunctionalTest', 'org...AdvancedJavaPackageAbbreviatingClassFunctionalTest')
-        public static final SHORTENED_TEST2 = new JavaTestClass('org.gradle.EvenMoreAdvancedJavaPackageAbbreviatingJavaClassFunctionalTest', '...EvenMoreAdvancedJavaPackageAbbreviatingJavaClassFunctionalTest')
-
-        private final String fullyQualifiedClassName
-        private final String renderedClassName
-
-        JavaTestClass(String fullyQualifiedClassName, String renderedClassName) {
-            this.fullyQualifiedClassName = fullyQualifiedClassName
-            this.renderedClassName = renderedClassName
-        }
-
-        String getFileRepresentation() {
-            fullyQualifiedClassName.replace('.', '/') + '.java'
-        }
-
-        String getClassNameWithoutPackage() {
-            fullyQualifiedClassName.substring(fullyQualifiedClassName.lastIndexOf('.') + 1, fullyQualifiedClassName.length())
-        }
-
-        String getRenderedClassName() {
-            renderedClassName
-        }
-    }
 }

@@ -14,26 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.console.jvm
+package org.gradle.api.internal.tasks.testing.testng;
 
-class ConsoleTestNGTestWorkerFunctionalTest extends AbstractConsoleJvmTestWorkerFunctionalTest {
+import org.testng.ITestClass;
 
-    @Override
-    String testAnnotationClass() {
-        'org.testng.annotations.Test'
-    }
+/**
+ * Listener that reacts if a test class is started and finished.
+ * This listener is invoked if the executing TestNG version is >= 6.9.10 which introduces the {@code org.testng.IClassListener}.
+ *
+ * @see TestNGListenerAdapterFactory
+ */
+public interface TestNGClassListener {
 
-    @Override
-    String testDependency() {
-        'org.testng:testng:6.9.13.6'
-    }
-
-    @Override
-    String testFrameworkConfiguration() {
-        """
-            tasks.withType(Test) {
-                useTestNG()
-            }
-        """
-    }
+    void onBeforeClass(ITestClass testClass);
+    void onAfterClass(ITestClass testClass);
 }

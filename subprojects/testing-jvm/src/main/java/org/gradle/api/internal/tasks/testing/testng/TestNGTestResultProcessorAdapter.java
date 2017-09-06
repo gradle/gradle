@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.testng;
 
+import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestMethodDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
@@ -27,6 +28,7 @@ import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 import org.testng.ISuite;
 import org.testng.ISuiteListener;
+import org.testng.ITestClass;
 import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestNGMethod;
@@ -37,13 +39,14 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestListener, TestNGConfigurationListener {
+public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestListener, TestNGConfigurationListener, TestNGClassListener {
     private final TestResultProcessor resultProcessor;
     private final IdGenerator<?> idGenerator;
     private final Clock clock;
     private final Object lock = new Object();
     private final Map<ITestContext, Object> testId = new HashMap<ITestContext, Object>();
     private final Map<ISuite, Object> suiteId = new HashMap<ISuite, Object>();
+    private final Map<ITestClass, Object> testClassId = new HashMap<ITestClass, Object>();
     private final Map<ITestResult, Object> testMethodId = new HashMap<ITestResult, Object>();
     private final Map<ITestNGMethod, Object> testMethodParentId = new HashMap<ITestNGMethod, Object>();
     private final Set<ITestResult> failedConfigurations = new HashSet<ITestResult>();
@@ -83,6 +86,25 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
     }
 
     @Override
+    public void onBeforeClass(ITestClass testClass) {
+        TestDescriptorInternal testInternal;
+        synchronized (lock) {
+            testInternal = new DefaultTestClassDescriptor(idGenerator.generateId(), testClass.getName());
+            testClassId.put(testClass, testInternal.getId());
+        }
+        resultProcessor.started(testInternal, new TestStartEvent(clock.getCurrentTime()));
+    }
+
+    @Override
+    public void onAfterClass(ITestClass testClass) {
+        Object id;
+        synchronized (lock) {
+            id = testClassId.remove(testClass);
+        }
+        resultProcessor.completed(id, new TestCompleteEvent(clock.getCurrentTime()));
+    }
+
+    @Override
     public void onStart(ITestContext iTestContext) {
         TestDescriptorInternal testInternal;
         Object parentId;
@@ -115,7 +137,6 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
         Object parentId;
         synchronized (lock) {
             String name = calculateTestCaseName(iTestResult);
-
             testInternal = new DefaultTestMethodDescriptor(idGenerator.generateId(), iTestResult.getTestClass().getName(), name);
             Object oldTestId = testMethodId.put(iTestResult, testInternal.getId());
             assert oldTestId == null : "Apparently some other test has started but it hasn't finished. "
