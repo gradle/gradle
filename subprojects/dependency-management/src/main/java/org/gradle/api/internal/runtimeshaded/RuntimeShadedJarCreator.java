@@ -127,9 +127,7 @@ class RuntimeShadedJarCreator {
 
     private ZipOutputStream openJarOutputStream(File outputJar) {
         try {
-            ZipOutputStream outputStream = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(outputJar), BUFFER_SIZE));
-            outputStream.setLevel(0);
-            return outputStream;
+            return new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(outputJar), BUFFER_SIZE));
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
