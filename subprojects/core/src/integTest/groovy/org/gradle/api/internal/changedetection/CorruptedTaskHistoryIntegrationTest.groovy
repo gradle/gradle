@@ -26,9 +26,12 @@ class CorruptedTaskHistoryIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://github.com/gradle/gradle/issues/2827")
     def "broken build doesn't corrupt the artifact history"() {
         def numberOfFiles = 10
+        def numberOfOutputFilesPerTask = numberOfFiles
         def numberOfInputProperties = 10
         def numberOfTasks = 100
+        def totalNumberOfOutputDirectories = numberOfTasks
         def millisecondsToKill = 300
+        def totalNumberOfOutputFiles = numberOfTasks * numberOfOutputFilesPerTask + totalNumberOfOutputDirectories
 
         setupTestProject(numberOfFiles, numberOfInputProperties, numberOfTasks, millisecondsToKill)
 
@@ -43,12 +46,24 @@ class CorruptedTaskHistoryIntegrationTest extends AbstractIntegrationSpec {
         fails("createFiles", "-PkillMe=true", "--max-workers=${numberOfTasks}")
 
         then:
-        file('build/output10').allDescendants().size() == numberOfFiles
+        file('build').allDescendants().size() in ((0.2 * totalNumberOfOutputFiles)..(0.8 * totalNumberOfOutputFiles))
 
         expect:
         succeeds "createFiles"
     }
 
+    /**
+     * Setup the test project. <br />
+     *
+     * The test project is setup in a way that the Gradle build can be killed while it is writing to the task history repository, possibly corrupting it. <br />
+     *
+     * We create {@code numberOfTasks} tasks, called {@code createFiles${number}}.
+     * Each of those tasks has {@code numberOfInputProperties} directory inputs, each one of them pointing to the input directory {@code 'inputs'}.
+     * The {@code 'inputs'} directory contains {@code numberOfFiles}.
+     * The {@code createFiles${number}} tasks create {@code numberOfFiles} files into the output directory {@code 'build/output${number}'} by using the worker API. So the task actions execute in parallel.
+     * If the Gradle property {@code 'killMe'} is set to some truthy value, each of those tasks will a new {@link Thread} which will exit the Gradle JVM {@code millisecondsToKill} ms after the task started executing.
+     * Finally, there is one task depending on all the tasks which are creating files. This one is just called {@code createFiles}.
+     */
     private void setupTestProject(int numberOfFiles, int numberOfInputProperties, int numberOfTasks, int millisecondsToKill) {
         buildFile << """
 import org.gradle.api.DefaultTask
