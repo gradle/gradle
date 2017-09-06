@@ -76,6 +76,7 @@ dependencies {
     integTestImplementation project(":internalIntegTesting")
 
     integTestRuntimeOnly project(":plugins")
+    integTestRuntimeOnly project(':maven')
 }
 
 useTestFixtures()

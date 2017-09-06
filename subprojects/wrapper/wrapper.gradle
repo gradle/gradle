@@ -21,8 +21,6 @@ dependencies {
     compile project(":cli")
 
     testCompile libraries.ant
-
-    integTestRuntime rootProject.configurations.testRuntime.allDependencies
 }
 
 ext {

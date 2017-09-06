@@ -86,8 +86,6 @@ ext.useTestFixtures = { params = [:] ->
     }
 }
 
-apply from: "$rootDir/gradle/distributionTesting.gradle"
-
 if (file("src/testFixtures").exists()) {
     apply from: "$rootDir/gradle/testFixtures.gradle"
 }
@@ -107,6 +105,9 @@ if (file("src/performanceTest").exists()) {
 if (file("src/jmh").exists()) {
     apply from: "$rootDir/gradle/jmh.gradle"
 }
+
+apply from: "$rootDir/gradle/distributionTesting.gradle"
+apply from: "$rootDir/gradle/intTestImage.gradle"
 
 task compileAll {
     dependsOn tasks.matching { it instanceof JavaCompile || it instanceof GroovyCompile }

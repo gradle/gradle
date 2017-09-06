@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
-evaluationDependsOn ":distributions"
-evaluationDependsOn ":docs"
-
 task intTestImage(type: Sync) {
     group = "Verification"
     into file("$buildDir/integ test")
 }
 
+distributionTestTasks.all {
+    dependsOn intTestImage
+}
+
+configurations {
+    partialDistribution
+}
+
 if (useAllDistribution) {
-    def allZip = tasks.getByPath(':distributions:allZip')
     task unpackAllDistribution(type: Sync) {
-        dependsOn allZip
-        from { zipTree(allZip.archivePath) }
+        dependsOn ':distributions:allZip'
+        from { zipTree(tasks.getByPath(':distributions:allZip').archivePath) }
         into "$buildDir/tmp/unpacked-all-distribution"
     }
 
@@ -38,13 +42,37 @@ if (useAllDistribution) {
         from(unpackedPath)
     }
 } else {
-    intTestImage {
-        with project(":distributions").binDistImage
-        into "samples", {
-            from { project(":docs").outputs.samples }
+    configurations { selfRuntime }
+
+    afterEvaluate {
+        if (project.tasks.findByName("jar")) {
+            dependencies { selfRuntime project }
         }
-        doLast { task ->
-            ant.chmod(dir: "$destinationDir/bin", perm: "ugo+rx", includes: "**/*")
+
+        intTestImage {
+            into('bin') {
+                from { project(':launcher').startScripts.outputs.files }
+                fileMode = 0755
+            }
+
+            def runtimeClasspathConfigurations = (rootProject.configurations.coreRuntime
+                    + rootProject.configurations.coreRuntimeExtensions
+                    + project.configurations.selfRuntime
+                    + project.configurations.partialDistribution)
+            def libsThisProjectDoesNotUse = (rootProject.configurations.runtime + rootProject.configurations.gradlePlugins) - runtimeClasspathConfigurations
+
+            into 'lib', {
+                from rootProject.configurations.runtime - libsThisProjectDoesNotUse
+                into('plugins') {
+                    from rootProject.configurations.gradlePlugins - rootProject.configurations.runtime - libsThisProjectDoesNotUse
+                }
+            }
+            into 'samples', {
+                from { project(":docs").outputs.samples }
+            }
+            doLast {
+                ant.chmod(dir: "$destinationDir/bin", perm: "ugo+rx", includes: "**/*")
+            }
         }
     }
 }
