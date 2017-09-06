@@ -23,6 +23,7 @@ The following are the features that have been promoted in this Gradle release.
 
 ## Fixed issues
 
+
 ## Deprecations
 
 Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
@@ -43,6 +44,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
+
+Tomas Polesovsky - Support for FindBugs JVM arguments([gradle/gradle#781](https://github.com/gradle/gradle/pull/781))
+
+Juan Martin Sotuyo Dodero - Support PMD's analysis cache([gradle/gradle#2223](https://github.com/gradle/gradle/pull/2223))
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
