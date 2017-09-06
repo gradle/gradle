@@ -27,7 +27,7 @@ import java.util.Map;
 /**
  * A build option that takes a list value e.g. {@code "-Iinit1.gradle -Iinit2.gradle"}.
  *
- * @since 4.2
+ * @since 4.3
  */
 public abstract class ListBuildOption<T> extends AbstractBuildOption<T> {
 

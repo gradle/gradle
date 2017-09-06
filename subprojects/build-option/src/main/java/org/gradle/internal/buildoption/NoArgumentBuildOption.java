@@ -25,7 +25,7 @@ import java.util.Map;
 /**
  * A build option that takes a no argument e.g. {@code "--foreground"}.
  *
- * @since 4.2
+ * @since 4.3
  */
 public abstract class NoArgumentBuildOption<T> extends AbstractBuildOption<T> {
 

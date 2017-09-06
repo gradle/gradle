@@ -27,7 +27,7 @@ import java.util.Map;
  * <p>
  * If a command line option is provided, this build option automatically creates a disabled option out-of-the-box e.g. {@code "--no-daemon"} for the provided option {@code "--daemon"}.
  *
- * @since 4.2
+ * @since 4.3
  */
 public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T> {
 

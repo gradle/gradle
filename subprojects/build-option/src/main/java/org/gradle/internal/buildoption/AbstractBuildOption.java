@@ -19,7 +19,7 @@ package org.gradle.internal.buildoption;
 /**
  * Provides a basic infrastructure for build option implementations.
  *
- * @since 4.2
+ * @since 4.3
  */
 public abstract class AbstractBuildOption<T> implements BuildOption<T> {
 

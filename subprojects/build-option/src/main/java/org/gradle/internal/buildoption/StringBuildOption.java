@@ -24,6 +24,8 @@ import java.util.Map;
 
 /**
  * A build option that takes a string value e.g. {@code "--max-workers=4"}.
+ *
+ * @since 4.3
  */
 public abstract class StringBuildOption<T> extends AbstractBuildOption<T> {
 

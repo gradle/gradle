@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * Configuration for a command line option.
  *
- * @since 4.2
+ * @since 4.3
  */
 public final class CommandLineOptionConfiguration {
     private final String longOption;
