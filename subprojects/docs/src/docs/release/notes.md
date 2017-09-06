@@ -45,12 +45,11 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-Tomas Polesovsky - Support for FindBugs JVM arguments([gradle/gradle#781](https://github.com/gradle/gradle/pull/781))
-
-Juan Martin Sotuyo Dodero - Support PMD's analysis cache([gradle/gradle#2223](https://github.com/gradle/gradle/pull/2223))
+- [Tomáš Polešovský](https://github.com/topolik) - Support for FindBugs JVM arguments (gradle/gradle#781)
+- [Juan Martín Sotuyo Dodero](https://github.com/jsotuyod) - Support PMD's analysis cache (gradle/gradle#2223)
 
 <!--
- - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
+ - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
 -->
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
