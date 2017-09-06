@@ -67,10 +67,7 @@ public abstract class ListBuildOption<T> extends AbstractBuildOption<T> {
         if (hasCommandLineOption()) {
             if (options.hasOption(commandLineOptionConfiguration.getLongOption())) {
                 List<String> value = options.option(commandLineOptionConfiguration.getLongOption()).getValues();
-
-                if (value != null) {
-                    applyTo(value, settings);
-                }
+                applyTo(value, settings);
             }
         }
     }
