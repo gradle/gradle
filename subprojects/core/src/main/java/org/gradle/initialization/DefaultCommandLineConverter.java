@@ -29,6 +29,7 @@ import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.logging.LoggingCommandLineConverter;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.HashMap;
