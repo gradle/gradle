@@ -22,8 +22,8 @@ import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.cli.CommandLineArgumentException;
+import org.gradle.internal.Factory;
 import org.gradle.internal.buildoption.BuildOption;
-import org.gradle.internal.buildoption.BuildOptionFactory;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.NoArgumentBuildOption;
 import org.gradle.internal.buildoption.StringBuildOption;
@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class LoggingConfigurationBuildOptionFactory implements BuildOptionFactory<LoggingConfiguration> {
+public class LoggingConfigurationBuildOptionFactory implements Factory<List<BuildOption<LoggingConfiguration>>> {
 
     private final List<BuildOption<LoggingConfiguration>> options = new ArrayList<BuildOption<LoggingConfiguration>>();
 

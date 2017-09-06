@@ -18,14 +18,14 @@ package org.gradle.launcher.logging.configuration;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
+import org.gradle.internal.Factory;
 import org.gradle.internal.buildoption.BuildOption;
-import org.gradle.internal.buildoption.BuildOptionFactory;
 import org.gradle.internal.buildoption.StringBuildOption;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class LogLevelBuildOptionFactory implements BuildOptionFactory<LoggingConfiguration> {
+public class LogLevelBuildOptionFactory implements Factory<List<BuildOption<LoggingConfiguration>>> {
 
     private final List<BuildOption<LoggingConfiguration>> options = new ArrayList<BuildOption<LoggingConfiguration>>();
 

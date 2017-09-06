@@ -22,9 +22,9 @@ import org.gradle.api.internal.file.BasicFileResolver;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
+import org.gradle.internal.Factory;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
-import org.gradle.internal.buildoption.BuildOptionFactory;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.ListBuildOption;
 import org.gradle.internal.buildoption.NoArgumentBuildOption;
@@ -34,7 +34,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class StartParameterBuildOptionFactory implements BuildOptionFactory<StartParameter> {
+public class StartParameterBuildOptionFactory implements Factory<List<BuildOption<StartParameter>>> {
 
     private final List<BuildOption<StartParameter>> options = new ArrayList<BuildOption<StartParameter>>();
 

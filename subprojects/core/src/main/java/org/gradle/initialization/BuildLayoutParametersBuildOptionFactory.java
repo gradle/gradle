@@ -19,8 +19,8 @@ package org.gradle.initialization;
 import org.gradle.api.Transformer;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.file.BasicFileResolver;
+import org.gradle.internal.Factory;
 import org.gradle.internal.buildoption.BuildOption;
-import org.gradle.internal.buildoption.BuildOptionFactory;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.NoArgumentBuildOption;
 import org.gradle.internal.buildoption.StringBuildOption;
@@ -29,7 +29,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BuildLayoutParametersBuildOptionFactory implements BuildOptionFactory<BuildLayoutParameters> {
+public class BuildLayoutParametersBuildOptionFactory implements Factory<List<BuildOption<BuildLayoutParameters>>> {
 
     private final List<BuildOption<BuildLayoutParameters>> options = new ArrayList<BuildOption<BuildLayoutParameters>>();
 

@@ -17,9 +17,9 @@
 package org.gradle.launcher.daemon.configuration;
 
 import org.gradle.api.GradleException;
+import org.gradle.internal.Factory;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
-import org.gradle.internal.buildoption.BuildOptionFactory;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.NoArgumentBuildOption;
 import org.gradle.internal.buildoption.StringBuildOption;
@@ -32,7 +32,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DaemonBuildOptionFactory implements BuildOptionFactory<DaemonParameters> {
+public class DaemonBuildOptionFactory implements Factory<List<BuildOption<DaemonParameters>>> {
 
     private final List<BuildOption<DaemonParameters>> options = new ArrayList<BuildOption<DaemonParameters>>();
 

@@ -17,16 +17,16 @@
 package org.gradle.initialization;
 
 import org.gradle.concurrent.ParallelismConfiguration;
+import org.gradle.internal.Factory;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
-import org.gradle.internal.buildoption.BuildOptionFactory;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.StringBuildOption;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ParallelismBuildOptionFactory implements BuildOptionFactory<ParallelismConfiguration> {
+public class ParallelismBuildOptionFactory implements Factory<List<BuildOption<ParallelismConfiguration>>> {
 
     private final List<BuildOption<ParallelismConfiguration>> options = new ArrayList<BuildOption<ParallelismConfiguration>>();
 
