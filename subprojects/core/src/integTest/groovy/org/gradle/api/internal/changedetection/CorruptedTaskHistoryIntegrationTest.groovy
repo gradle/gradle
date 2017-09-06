@@ -112,8 +112,12 @@ class CreateFilesTask extends DefaultTask {
         }
         if (project.findProperty("killMe")) {
             new Thread({
-                Thread.sleep(${millisecondsToKill})
-                System.exit(1)
+                while (true) {
+                    Thread.sleep(${millisecondsToKill})
+                    if (outputDir.parentFile.listFiles().size() > 40) {
+                        System.exit(1)
+                    }
+                }
             }).start()
         }
     }
