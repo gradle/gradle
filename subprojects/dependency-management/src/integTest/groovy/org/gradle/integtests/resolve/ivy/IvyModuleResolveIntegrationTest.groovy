@@ -189,14 +189,14 @@ task retrieve(type: Sync) {
         run 'retrieve'
 
         then:
-        file('libs').assertHasDescendants(*(['projectA-1.2.jar'] + jars))
+        file('libs').assertHasDescendants(['projectA-1.2.jar'] + jars)
 
         when:
         server.resetExpectations()
         run 'retrieve'
 
         then:
-        file('libs').assertHasDescendants(*(['projectA-1.2.jar'] + jars))
+        file('libs').assertHasDescendants(['projectA-1.2.jar'] + jars)
 
         where:
         rule                    | jars

@@ -497,6 +497,13 @@ public class TestFile extends File {
     }
 
     /**
+     * Convenience method for {@link #assertHasDescendants(String...)}.
+     */
+    public TestFile assertHasDescendants(List<String> descendants) {
+        return assertHasDescendants(descendants.toArray(new String[0]));
+    }
+
+    /**
      * Asserts that this file contains the given set of descendants (and possibly other files).
      */
     public TestFile assertContainsDescendants(String... descendants) {
