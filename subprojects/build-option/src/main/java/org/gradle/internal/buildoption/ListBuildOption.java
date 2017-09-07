@@ -54,6 +54,7 @@ public abstract class ListBuildOption<T> extends AbstractBuildOption<T> {
         if (hasCommandLineOption()) {
             CommandLineOption option = parser.option(commandLineOptionConfiguration.getAllOptions())
                 .hasDescription(commandLineOptionConfiguration.getDescription())
+                .deprecated(commandLineOptionConfiguration.getDeprecationWarning())
                 .hasArguments();
 
             if (commandLineOptionConfiguration.isIncubating()) {

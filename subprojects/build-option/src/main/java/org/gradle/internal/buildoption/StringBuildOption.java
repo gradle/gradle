@@ -37,7 +37,6 @@ public abstract class StringBuildOption<T> extends AbstractBuildOption<T> {
         super(gradleProperty, commandLineOptionConfiguration);
     }
 
-
     @Override
     public void applyFromProperty(Map<String, String> properties, T settings) {
         String value = properties.get(gradleProperty);
@@ -52,6 +51,7 @@ public abstract class StringBuildOption<T> extends AbstractBuildOption<T> {
         if (hasCommandLineOption()) {
             CommandLineOption option = parser.option(commandLineOptionConfiguration.getAllOptions())
                 .hasDescription(commandLineOptionConfiguration.getDescription())
+                .deprecated(commandLineOptionConfiguration.getDeprecationWarning())
                 .hasArgument();
 
             if (commandLineOptionConfiguration.isIncubating()) {

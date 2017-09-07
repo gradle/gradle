@@ -52,13 +52,17 @@ public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T> {
     public void configure(CommandLineParser parser) {
         if (hasCommandLineOption()) {
             String disabledOption = getDisabledCommandLineOption();
-            CommandLineOption enabledCommandLineOption = parser.option(commandLineOptionConfiguration.getLongOption()).hasDescription(commandLineOptionConfiguration.getDescription());
+            CommandLineOption enabledCommandLineOption = parser.option(commandLineOptionConfiguration.getLongOption())
+                .hasDescription(commandLineOptionConfiguration.getDescription())
+                .deprecated(commandLineOptionConfiguration.getDeprecationWarning());
 
             if (commandLineOptionConfiguration.isIncubating()) {
                 enabledCommandLineOption.incubating();
             }
 
-            CommandLineOption disabledCommandLineOption = parser.option(disabledOption).hasDescription(getDisabledCommandLineDescription());
+            CommandLineOption disabledCommandLineOption = parser.option(disabledOption)
+                .hasDescription(getDisabledCommandLineDescription())
+                .deprecated(commandLineOptionConfiguration.getDeprecationWarning());
 
             if (commandLineOptionConfiguration.isIncubating()) {
                 disabledCommandLineOption.incubating();
