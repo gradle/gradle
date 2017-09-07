@@ -35,6 +35,12 @@ public class DefaultBuildableTypedResolveResult<T, E extends Throwable> extends 
     }
 
     @Override
+    public void unresolved(E failure) {
+        this.result = null;
+        this.failure = failure;
+    }
+
+    @Override
     public T getResult() throws E {
         assertHasResult();
         if (failure != null) {

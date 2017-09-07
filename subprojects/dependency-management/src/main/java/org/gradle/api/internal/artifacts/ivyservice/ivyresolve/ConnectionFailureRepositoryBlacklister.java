@@ -22,7 +22,7 @@ import java.io.InterruptedIOException;
 import java.util.HashSet;
 import java.util.Set;
 
-public class ConnectionInterruptionRepositoryBlacklister implements RepositoryBlacklister {
+public class ConnectionFailureRepositoryBlacklister implements RepositoryBlacklister {
 
     private final Set<String> blacklistedRepositories = new HashSet<String>();
 
@@ -32,10 +32,19 @@ public class ConnectionInterruptionRepositoryBlacklister implements RepositoryBl
     }
 
     @Override
-    public void blacklistRepository(String repositoryId, Throwable throwable) {
-        if (!isBlacklisted(repositoryId) && isRootCauseInterruptedIOException(throwable)) {
-            blacklistedRepositories.add(repositoryId);
+    public boolean blacklistRepository(String repositoryId, Throwable throwable) {
+        boolean blacklisted = isBlacklisted(repositoryId);
+
+        if (blacklisted) {
+            return true;
         }
+
+        if (isRootCauseIOException(throwable)) {
+            blacklistedRepositories.add(repositoryId);
+            return true;
+        }
+
+        return false;
     }
 
     @Override
@@ -43,7 +52,7 @@ public class ConnectionInterruptionRepositoryBlacklister implements RepositoryBl
         return blacklistedRepositories;
     }
 
-    private boolean isRootCauseInterruptedIOException(Throwable throwable) {
+    private boolean isRootCauseIOException(Throwable throwable) {
         return ExceptionUtils.getRootCause(throwable) instanceof InterruptedIOException;
     }
 }

@@ -21,6 +21,6 @@ import java.util.Set;
 public interface RepositoryBlacklister {
 
     boolean isBlacklisted(String repositoryId);
-    void blacklistRepository(String repositoryId, Throwable throwable);
+    boolean blacklistRepository(String repositoryId, Throwable throwable);
     Set<String> getBlacklistedRepositories();
 }

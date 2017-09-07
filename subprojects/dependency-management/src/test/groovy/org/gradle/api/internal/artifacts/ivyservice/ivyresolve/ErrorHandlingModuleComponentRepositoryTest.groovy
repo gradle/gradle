@@ -64,11 +64,11 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
 
         then:
         1 * repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false
-        1 * repositoryBlacklister.blacklistRepository(REPOSITORY_ID, someException)
+        1 * repositoryBlacklister.blacklistRepository(REPOSITORY_ID, someException) >> true
         1 * delegate.listModuleVersions(dependency, result) >> { throw someException }
         0 * delegate._
         1 * dependency.getSelector() >> componentSelector
-        1 * result.failed(_ as ModuleVersionResolveException)
+        1 * result.unresolved(_ as ModuleVersionResolveException)
 
         when:
         access.listModuleVersions(dependency, result)
@@ -77,7 +77,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         1 * repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> true
         0 * repositoryBlacklister._
         1 * dependency.getSelector() >> componentSelector
-        1 * result.failed(_ as ModuleVersionResolveException)
+        1 * result.unresolved(_ as ModuleVersionResolveException)
         0 * delegate._
     }
 
@@ -101,10 +101,10 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
 
         then:
         1 * repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false
-        1 * repositoryBlacklister.blacklistRepository(REPOSITORY_ID, someException)
+        1 * repositoryBlacklister.blacklistRepository(REPOSITORY_ID, someException) >> true
         1 * delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result) >> { throw someException }
         0 * delegate._
-        1 * result.failed(_ as ModuleVersionResolveException)
+        1 * result.unresolved(_ as ModuleVersionResolveException)
         1 * moduleComponentIdentifier.getGroup() >> 'a'
         1 * moduleComponentIdentifier.getModule() >> 'b'
         1 * moduleComponentIdentifier.getVersion() >> '1.0'
@@ -115,7 +115,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         then:
         1 * repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> true
         0 * repositoryBlacklister._
-        1 * result.failed(_ as ModuleVersionResolveException)
+        1 * result.unresolved(_ as ModuleVersionResolveException)
         0 * delegate._
         1 * moduleComponentIdentifier.getGroup() >> 'a'
         1 * moduleComponentIdentifier.getModule() >> 'b'
@@ -143,10 +143,10 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
 
         then:
         1 * repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false
-        1 * repositoryBlacklister.blacklistRepository(REPOSITORY_ID, someException)
+        1 * repositoryBlacklister.blacklistRepository(REPOSITORY_ID, someException) >> true
         1 * delegate.resolveArtifactsWithType(component, artifactType, result) >> { throw someException }
         0 * delegate._
-        1 * result.failed(_ as ArtifactResolveException)
+        1 * result.unresolved(_ as ArtifactResolveException)
         1 * component.getComponentId() >> componentId
 
         when:
@@ -155,7 +155,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         then:
         1 * repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> true
         0 * repositoryBlacklister._
-        1 * result.failed(_ as ArtifactResolveException)
+        1 * result.unresolved(_ as ArtifactResolveException)
         0 * delegate._
         1 * component.getComponentId() >> componentId
     }
@@ -180,10 +180,10 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
 
         then:
         1 * repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false
-        1 * repositoryBlacklister.blacklistRepository(REPOSITORY_ID, someException)
+        1 * repositoryBlacklister.blacklistRepository(REPOSITORY_ID, someException) >> true
         1 * delegate.resolveArtifacts(component, result) >> { throw someException }
         0 * delegate._
-        1 * result.failed(_ as ArtifactResolveException)
+        1 * result.unresolved(_ as ArtifactResolveException)
         1 * component.getComponentId() >> componentId
 
         when:
@@ -192,7 +192,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         then:
         1 * repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> true
         0 * repositoryBlacklister._
-        1 * result.failed(_ as ArtifactResolveException)
+        1 * result.unresolved(_ as ArtifactResolveException)
         0 * delegate._
         1 * component.getComponentId() >> componentId
     }
@@ -218,10 +218,10 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
 
         then:
         1 * repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false
-        1 * repositoryBlacklister.blacklistRepository(REPOSITORY_ID, someException)
+        1 * repositoryBlacklister.blacklistRepository(REPOSITORY_ID, someException) >> true
         1 * delegate.resolveArtifact(artifact, moduleSource, result) >> { throw someException }
         0 * delegate._
-        1 * result.failed(_ as ArtifactResolveException)
+        1 * result.unresolved(_ as ArtifactResolveException)
         1 * artifact.getId() >> artifactId
 
         when:
@@ -230,7 +230,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         then:
         1 * repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> true
         0 * repositoryBlacklister._
-        1 * result.failed(_ as ArtifactResolveException)
+        1 * result.unresolved(_ as ArtifactResolveException)
         0 * delegate._
         1 * artifact.getId() >> artifactId
     }

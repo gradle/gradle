@@ -103,75 +103,104 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
         @Override
         public void listModuleVersions(DependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
             if (repositoryBlacklister.isBlacklisted(repositoryId)) {
-                result.failed(new ModuleVersionResolveException(dependency.getSelector(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE));
+                result.unresolved(new ModuleVersionResolveException(dependency.getSelector(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE));
                 return;
             }
 
             try {
                 delegate.listModuleVersions(dependency, result);
             } catch (Throwable throwable) {
-                repositoryBlacklister.blacklistRepository(repositoryId, throwable);
-                result.failed(new ModuleVersionResolveException(dependency.getSelector(), throwable));
+                boolean blacklisted = repositoryBlacklister.blacklistRepository(repositoryId, throwable);
+
+                if (blacklisted) {
+                    result.unresolved(new ModuleVersionResolveException(dependency.getSelector(), throwable));
+                } else {
+                    result.failed(new ModuleVersionResolveException(dependency.getSelector(), throwable));
+                }
             }
         }
 
         @Override
         public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
             if (repositoryBlacklister.isBlacklisted(repositoryId)) {
-                result.failed(new ModuleVersionResolveException(moduleComponentIdentifier, BLACKLISTED_REPOSITORY_ERROR_MESSAGE));
+                result.unresolved(new ModuleVersionResolveException(moduleComponentIdentifier, BLACKLISTED_REPOSITORY_ERROR_MESSAGE));
                 return;
             }
 
             try {
                 delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
             } catch (Throwable throwable) {
-                repositoryBlacklister.blacklistRepository(repositoryId, throwable);
-                result.failed(new ModuleVersionResolveException(moduleComponentIdentifier, throwable));
+                ModuleVersionResolveException resolveException = new ModuleVersionResolveException(moduleComponentIdentifier, throwable);
+                boolean blacklisted = repositoryBlacklister.blacklistRepository(repositoryId, throwable);
+
+                if (blacklisted) {
+                    result.unresolved(resolveException);
+                } else {
+                    result.failed(resolveException);
+                }
             }
         }
 
         @Override
         public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
             if (repositoryBlacklister.isBlacklisted(repositoryId)) {
-                result.failed(new ArtifactResolveException(component.getComponentId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE));
+                result.unresolved(new ArtifactResolveException(component.getComponentId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE));
                 return;
             }
 
             try {
                 delegate.resolveArtifactsWithType(component, artifactType, result);
             } catch (Throwable throwable) {
-                repositoryBlacklister.blacklistRepository(repositoryId, throwable);
-                result.failed(new ArtifactResolveException(component.getComponentId(), throwable));
+                ArtifactResolveException resolveException = new ArtifactResolveException(component.getComponentId(), throwable);
+                boolean blacklisted = repositoryBlacklister.blacklistRepository(repositoryId, throwable);
+
+                if (blacklisted) {
+                    result.unresolved(resolveException);
+                } else {
+                    result.failed(resolveException);
+                }
             }
         }
 
         @Override
         public void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result) {
             if (repositoryBlacklister.isBlacklisted(repositoryId)) {
-                result.failed(new ArtifactResolveException(component.getComponentId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE));
+                result.unresolved(new ArtifactResolveException(component.getComponentId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE));
                 return;
             }
 
             try {
                 delegate.resolveArtifacts(component, result);
             } catch (Throwable throwable) {
-                repositoryBlacklister.blacklistRepository(repositoryId, throwable);
-                result.failed(new ArtifactResolveException(component.getComponentId(), throwable));
+                ArtifactResolveException resolveException = new ArtifactResolveException(component.getComponentId(), throwable);
+                boolean blacklisted = repositoryBlacklister.blacklistRepository(repositoryId, throwable);
+
+                if (blacklisted) {
+                    result.unresolved(resolveException);
+                } else {
+                    result.failed(resolveException);
+                }
             }
         }
 
         @Override
         public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
             if (repositoryBlacklister.isBlacklisted(repositoryId)) {
-                result.failed(new ArtifactResolveException(artifact.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE));
+                result.unresolved(new ArtifactResolveException(artifact.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE));
                 return;
             }
 
             try {
                 delegate.resolveArtifact(artifact, moduleSource, result);
             } catch (Throwable throwable) {
-                repositoryBlacklister.blacklistRepository(repositoryId, throwable);
-                result.failed(new ArtifactResolveException(artifact.getId(), throwable));
+                ArtifactResolveException resolveException = new ArtifactResolveException(artifact.getId(), throwable);
+                boolean blacklisted = repositoryBlacklister.blacklistRepository(repositoryId, throwable);
+
+                if (blacklisted) {
+                    result.unresolved(resolveException);
+                } else {
+                    result.failed(resolveException);
+                }
             }
         }
 

@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
  */
 public interface BuildableModuleComponentMetaDataResolveResult extends ResourceAwareResolveResult, ResolveResult {
     enum State {
-        Resolved, Missing, Failed, Unknown
+        Resolved, Missing, Failed, Unknown, Unresolved
     }
 
     /**
@@ -58,6 +58,13 @@ public interface BuildableModuleComponentMetaDataResolveResult extends ResourceA
      * Marks the resolve as failed with the given exception.
      */
     void failed(ModuleVersionResolveException failure);
+
+    /**
+     * Marks the module as unresolved with the given exception.
+     * <p>
+     * A module is considered unresolved if presence of module in repository could not be determined.
+     */
+    void unresolved(ModuleVersionResolveException failure);
 
     /**
      * Marks the module version as definitely missing.

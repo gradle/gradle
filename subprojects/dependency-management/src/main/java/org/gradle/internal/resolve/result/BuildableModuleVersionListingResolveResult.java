@@ -28,7 +28,7 @@ import java.util.Set;
 public interface BuildableModuleVersionListingResolveResult extends ResourceAwareResolveResult, ResolveResult {
 
     static enum State {
-        Listed, Failed, Unknown
+        Listed, Failed, Unknown, Unresolved
     }
 
     /**
@@ -55,6 +55,13 @@ public interface BuildableModuleVersionListingResolveResult extends ResourceAwar
      * Marks the list as failed with the given exception.
      */
     void failed(ModuleVersionResolveException failure);
+
+    /**
+     * Marks the list as unresolved with the given exception.
+     * <p>
+     * A list is considered unresolved if presence of module in repository could not be determined.
+     */
+    void unresolved(ModuleVersionResolveException failure);
 
     /**
      * Returns true if the result is from an authoritative source. Defaults to true.

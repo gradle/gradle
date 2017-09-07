@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -23,10 +24,11 @@ import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.test.fixtures.maven.MavenRepository
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import spock.lang.Ignore
 
 import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.SOCKET_TIMEOUT_SYSTEM_PROPERTY
 
-class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyResolutionTest {
+class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     private static final String GROUP_ID = 'group'
     private static final String VERSION = '1.0'
@@ -36,7 +38,7 @@ class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyReso
     def setup() {
         moduleA = publishMavenModule(mavenHttpRepo, 'a')
         downloadedLibsDir = file('build/libs')
-        executer.withArgument("-D${SOCKET_TIMEOUT_SYSTEM_PROPERTY}=2000")
+        executer.withArgument("-D${SOCKET_TIMEOUT_SYSTEM_PROPERTY}=1000")
     }
 
     def "fails single build script dependency resolution if HTTP connection exceeds timeout"() {
@@ -55,7 +57,7 @@ class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyReso
         fails('help')
 
         then:
-        assertDependencyReadTimeout(moduleA)
+        assertDependencyMetaDataReadTimeout(moduleA)
     }
 
     def "fails single application dependency resolution if HTTP connection exceeds timeout"() {
@@ -71,7 +73,7 @@ class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyReso
         fails('resolve')
 
         then:
-        assertDependencyReadTimeout(moduleA)
+        assertDependencyMetaDataReadTimeout(moduleA)
         !downloadedLibsDir.isDirectory()
     }
 
@@ -93,9 +95,9 @@ class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyReso
         fails('resolve', '--max-workers=3')
 
         then:
-        assertDependencyReadTimeout(moduleA)
-        assertDependencyReadTimeout(moduleB)
-        assertDependencyReadTimeout(moduleC)
+        assertDependencyMetaDataReadTimeout(moduleA)
+        assertDependencyMetaDataReadTimeout(moduleB)
+        assertDependencyMetaDataReadTimeout(moduleC)
         !downloadedLibsDir.isDirectory()
     }
 
@@ -115,7 +117,7 @@ class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyReso
         fails('resolve', '--max-workers=1')
 
         then:
-        assertDependencyReadTimeout(moduleA)
+        assertDependencyMetaDataReadTimeout(moduleA)
         assertDependencySkipped(moduleB)
         assertDependencySkipped(moduleC)
         !downloadedLibsDir.isDirectory()
@@ -136,7 +138,7 @@ class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyReso
         fails('resolve', '--max-workers=1')
 
         then:
-        assertDependencyReadTimeout(moduleA)
+        assertDependencyMetaDataReadTimeout(moduleA)
         assertDependencySkipped(moduleB)
         !downloadedLibsDir.isDirectory()
 
@@ -151,10 +153,10 @@ class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyReso
         downloadedLibsDir.assertContainsDescendants('a-1.0.jar', 'b-1.0.jar')
     }
 
-    def "tries dependency resolution from secondary repository if HTTP connection exceeds timeout"() {
+    def "fails build if HTTP connection exceeds timeout when resolving metadata"() {
         given:
         MavenHttpRepository backupMavenHttpRepo = new MavenHttpRepository(server, '/repo-2', new MavenFileRepository(file('maven-repo-2')))
-        MavenHttpModule moduleABackup = publishMavenModule(backupMavenHttpRepo, 'a')
+        publishMavenModule(backupMavenHttpRepo, 'a')
 
         buildFile << """
             ${mavenRepository(mavenHttpRepo)}
@@ -165,12 +167,78 @@ class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyReso
 
         when:
         moduleA.pom.expectGetBlocking()
-        moduleABackup.pom.expectGet()
-        moduleABackup.artifact.expectGet()
-        succeeds('resolve')
+        fails('resolve')
 
         then:
-        downloadedLibsDir.assertHasDescendants('a-1.0.jar')
+        assertDependencyMetaDataReadTimeout(moduleA)
+        !downloadedLibsDir.isDirectory()
+    }
+
+    def "fails build if HTTP connection exceeds timeout when resolving artifact"() {
+        given:
+        MavenHttpRepository backupMavenHttpRepo = new MavenHttpRepository(server, '/repo-2', new MavenFileRepository(file('maven-repo-2')))
+        publishMavenModule(backupMavenHttpRepo, 'a')
+
+        buildFile << """
+            ${mavenRepository(mavenHttpRepo)}
+            ${mavenRepository(backupMavenHttpRepo)}
+            ${customConfigDependencyAssignment(moduleA)}
+            ${configSyncTask()}
+        """
+
+        when:
+        moduleA.pom.expectGet()
+        moduleA.artifact.expectGetBlocking()
+        fails('resolve')
+
+        then:
+        assertDependencyArtifactReadTimeout(moduleA)
+        !downloadedLibsDir.isDirectory()
+    }
+
+    @NotYetImplemented
+    @Ignore
+    def "fails build if HTTP connection returns internal server error when resolving metadata"() {
+        given:
+        MavenHttpRepository backupMavenHttpRepo = new MavenHttpRepository(server, '/repo-2', new MavenFileRepository(file('maven-repo-2')))
+        publishMavenModule(backupMavenHttpRepo, 'a')
+
+        buildFile << """
+            ${mavenRepository(mavenHttpRepo)}
+            ${mavenRepository(backupMavenHttpRepo)}
+            ${customConfigDependencyAssignment(moduleA)}
+            ${configSyncTask()}
+        """
+
+        when:
+        moduleA.pom.expectGetBroken()
+        fails('resolve')
+
+        then:
+        assertDependencyMetaDataInternalServerError(moduleA)
+        !downloadedLibsDir.isDirectory()
+    }
+
+    def "fails build if HTTP connection returns internal server error when resolving artifact"() {
+        given:
+        MavenHttpRepository backupMavenHttpRepo = new MavenHttpRepository(server, '/repo-2', new MavenFileRepository(file('maven-repo-2')))
+        publishMavenModule(backupMavenHttpRepo, 'a')
+
+        buildFile << """
+            ${mavenRepository(mavenHttpRepo)}
+            ${mavenRepository(backupMavenHttpRepo)}
+            ${customConfigDependencyAssignment(moduleA)}
+            ${configSyncTask()}
+        """
+
+        when:
+        moduleA.pom.expectGet()
+        moduleA.artifact.expectGetBroken()
+        fails('resolve')
+
+        then:
+        assertDependencyArtifactInternalServerError(moduleA)
+        !downloadedLibsDir.isDirectory()
     }
 
     private String mavenRepository(MavenRepository repo) {
@@ -202,18 +270,35 @@ class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyReso
         """
     }
 
-    private void assertDependencyReadTimeout(MavenModule module) {
-        failure.error.contains("""> Could not resolve ${mavenModuleCoordinates(module)}.
-   > Could not get resource '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.pom'.
-      > Could not GET '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.pom'.
-         > Read timed out""")
+    private void assertDependencyMetaDataReadTimeout(MavenModule module) {
+        failure.assertHasCause("Could not resolve ${mavenModuleCoordinates(module)}.")
+        failure.assertHasCause("Could not get resource '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.pom'.")
+        failure.assertHasCause("Could not GET '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.pom'.")
+        failure.assertHasCause("Read timed out")
+    }
+
+    private void assertDependencyMetaDataInternalServerError(MavenModule module) {
+        failure.assertHasCause("Could not resolve ${mavenModuleCoordinates(module)}.")
+        failure.assertHasCause("Could not get resource '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.pom'.")
+        failure.assertHasCause("Could not GET '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.pom'. Received status code 500 from server: broken")
+    }
+
+    private void assertDependencyArtifactReadTimeout(MavenModule module) {
+        failure.assertHasCause("Could not download ${module.artifactId}.jar (${mavenModuleCoordinates(module)})")
+        failure.assertHasCause("Could not get resource '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.jar'.")
+        failure.assertHasCause("Could not GET '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.jar'.")
+        failure.assertHasCause("Read timed out")
+    }
+
+    private void assertDependencyArtifactInternalServerError(MavenModule module) {
+        failure.assertHasCause("Could not download ${module.artifactId}.jar (${mavenModuleCoordinates(module)})")
+        failure.assertHasCause("Could not get resource '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.jar'.")
+        failure.assertHasCause("Could not GET '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.jar'. Received status code 500 from server: broken")
     }
 
     private void assertDependencySkipped(MavenModule module) {
-        failure.error.contains("""> Could not resolve ${mavenModuleCoordinates(module)}.
-  Required by:
-      project :
-   > Skipped due to earlier error""")
+        failure.assertHasCause("Could not resolve ${mavenModuleCoordinates(module)}.")
+        failure.assertHasCause("Skipped due to earlier error")
     }
 
     private String mavenModuleCoordinates(MavenHttpModule module) {
@@ -221,7 +306,7 @@ class DependencyResolveTimeoutIntegrationTest extends AbstractHttpDependencyReso
     }
 
     private String mavenModuleRepositoryPath(MavenHttpModule module) {
-        "$module.groupId/$module.artifactId/$module.artifactId-$module.version"
+        "$module.groupId/$module.artifactId/$module.version/$module.artifactId-$module.version"
     }
 
     private MavenHttpModule publishMavenModule(MavenHttpRepository mavenHttpRepo, String artifactId) {

@@ -42,4 +42,9 @@ public interface BuildableTypedResolveResult<T, E extends Throwable> extends Res
      * Marks the resolution as failed with the given failure.
      */
     void failed(E failure);
+
+    /**
+     * Marks the resolution as unresolved with the given failure.
+     */
+    void unresolved(E failure);
 }

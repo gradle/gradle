@@ -62,6 +62,13 @@ public class DefaultBuildableModuleComponentMetaDataResolveResult extends Defaul
     }
 
     @Override
+    public void unresolved(ModuleVersionResolveException failure) {
+        reset(State.Unresolved);
+        this.failure = failure;
+        authoritative = true;
+    }
+
+    @Override
     public State getState() {
         return state;
     }
@@ -102,7 +109,7 @@ public class DefaultBuildableModuleComponentMetaDataResolveResult extends Defaul
     }
 
     private void assertResolved() {
-        if (state == State.Failed) {
+        if (state == State.Failed || state == State.Unresolved) {
             throw failure;
         }
         if (state != State.Resolved) {
