@@ -1,4 +1,4 @@
-tThe Gradle team is pleased to announce Gradle 4.2.
+The Gradle team is pleased to announce Gradle 4.2.
 
 First and foremost, progress has been made to improve Gradle's support for building native applications. The first outcome is [parallel task execution for native compilation and linking tasks](#parallel-native-compilation-and-linking-tasks) _by default_. This has reduced build times for native performance scenarios by as much as half.
 
