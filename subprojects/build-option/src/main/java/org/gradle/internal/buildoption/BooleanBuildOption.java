@@ -51,7 +51,6 @@ public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T> {
     @Override
     public void configure(CommandLineParser parser) {
         if (hasCommandLineOption()) {
-            String disabledOption = getDisabledCommandLineOption();
             CommandLineOption enabledCommandLineOption = parser.option(commandLineOptionConfiguration.getLongOption())
                 .hasDescription(commandLineOptionConfiguration.getDescription())
                 .deprecated(commandLineOptionConfiguration.getDeprecationWarning());
@@ -60,6 +59,7 @@ public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T> {
                 enabledCommandLineOption.incubating();
             }
 
+            String disabledOption = getDisabledCommandLineOption();
             CommandLineOption disabledCommandLineOption = parser.option(disabledOption)
                 .hasDescription(getDisabledCommandLineDescription())
                 .deprecated(commandLineOptionConfiguration.getDeprecationWarning());
@@ -85,11 +85,11 @@ public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T> {
         }
     }
 
-    protected String getDisabledCommandLineOption() {
+    private String getDisabledCommandLineOption() {
         return hasCommandLineOption() ? "no-" + commandLineOptionConfiguration.getLongOption() : null;
     }
 
-    protected String getDisabledCommandLineDescription() {
+    private String getDisabledCommandLineDescription() {
         return hasCommandLineOption() ? "Disables option --" + commandLineOptionConfiguration.getLongOption() + "." : null;
     }
 

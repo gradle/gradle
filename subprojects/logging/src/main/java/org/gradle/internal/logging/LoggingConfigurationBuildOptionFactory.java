@@ -136,6 +136,7 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
     }
 
     public static class ConsoleOption extends StringBuildOption<LoggingConfiguration> {
+        public static final String LONG_OPTION = "console";
 
         public ConsoleOption() {
             super(null, CommandLineOptionConfiguration.create("console", "Specifies which type of console output to generate. Values are 'plain', 'auto' (default) or 'rich'."));
@@ -148,7 +149,7 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
                 ConsoleOutput consoleOutput = ConsoleOutput.valueOf(consoleValue);
                 settings.setConsoleOutput(consoleOutput);
             } catch (IllegalArgumentException e) {
-                throw new CommandLineArgumentException(String.format("Unrecognized value '%s' for %s.", value, commandLineOptionConfiguration.getLongOption()));
+                throw new CommandLineArgumentException(String.format("Unrecognized value '%s' for %s.", value, LONG_OPTION));
             }
         }
     }
