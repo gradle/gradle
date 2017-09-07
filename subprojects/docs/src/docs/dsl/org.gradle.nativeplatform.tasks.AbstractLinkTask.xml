@@ -30,6 +30,9 @@
                 <td>libs</td>
             </tr>
             <tr>
+                <td>debuggable</td>
+            </tr>
+            <tr>
                 <td>linkerArgs</td>
             </tr>
             <tr>
@@ -37,6 +40,9 @@
             </tr>
             <tr>
                 <td>toolChain</td>
+            </tr>
+            <tr>
+                <td>targetPlatform</td>
             </tr>
         </table>
     </section>
