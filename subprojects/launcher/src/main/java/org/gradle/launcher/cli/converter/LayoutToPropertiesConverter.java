@@ -28,7 +28,6 @@ import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptionFactory;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptionFactory;
-import org.gradle.launcher.logging.configuration.LogLevelBuildOptionFactory;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -48,7 +47,6 @@ public class LayoutToPropertiesConverter {
         allBuildOptions.addAll(new BuildLayoutParametersBuildOptionFactory().create());
         allBuildOptions.addAll(new StartParameterBuildOptionFactory().create());
         allBuildOptions.addAll(new LoggingConfigurationBuildOptionFactory().create());
-        allBuildOptions.addAll(new LogLevelBuildOptionFactory().create());
         allBuildOptions.addAll(new DaemonBuildOptionFactory().create());
         allBuildOptions.addAll(new ParallelismBuildOptionFactory().create());
     }

@@ -54,6 +54,7 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
     }
 
     public static class LogLevelOption extends AbstractBuildOption<LoggingConfiguration> {
+        public static final String GRADLE_PROPERTY = "org.gradle.logging.level";
         public static final String QUIET_LONG_OPTION = "quiet";
         public static final String QUIET_SHORT_OPTION = "q";
         public static final String WARN_LONG_OPTION = "warn";
@@ -64,12 +65,17 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
         public static final String DEBUG_SHORT_OPTION = "d";
 
         public LogLevelOption() {
-            super(null, CommandLineOptionConfiguration.create(QUIET_LONG_OPTION, QUIET_SHORT_OPTION, "Log errors only."), CommandLineOptionConfiguration.create(WARN_LONG_OPTION, WARN_SHORT_OPTION, "Set log level to warn."), CommandLineOptionConfiguration.create(INFO_LONG_OPTION, INFO_SHORT_OPTION, "Set log level to info."), CommandLineOptionConfiguration.create(DEBUG_LONG_OPTION, DEBUG_SHORT_OPTION, "Log in debug mode (includes normal stacktrace)."));
+            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(QUIET_LONG_OPTION, QUIET_SHORT_OPTION, "Log errors only."), CommandLineOptionConfiguration.create(WARN_LONG_OPTION, WARN_SHORT_OPTION, "Set log level to warn."), CommandLineOptionConfiguration.create(INFO_LONG_OPTION, INFO_SHORT_OPTION, "Set log level to info."), CommandLineOptionConfiguration.create(DEBUG_LONG_OPTION, DEBUG_SHORT_OPTION, "Log in debug mode (includes normal stacktrace)."));
         }
 
         @Override
         public void applyFromProperty(Map<String, String> properties, LoggingConfiguration settings) {
-            // not supported
+            String value = properties.get(gradleProperty);
+
+            if (value != null) {
+                LogLevel level = parseLogLevel(value);
+                settings.setLogLevel(level);
+            }
         }
 
         @Override
@@ -104,6 +110,19 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
                 settings.setLogLevel(LogLevel.INFO);
             } else if (options.hasOption(DEBUG_LONG_OPTION)) {
                 settings.setLogLevel(LogLevel.DEBUG);
+            }
+        }
+
+        private LogLevel parseLogLevel(String value) {
+            try {
+                LogLevel logLevel = LogLevel.valueOf(value.toUpperCase());
+                if (logLevel == LogLevel.ERROR) {
+                    throw new IllegalArgumentException("Log level cannot be set to 'ERROR'.");
+                }
+                return logLevel;
+            } catch (IllegalArgumentException e) {
+                String message = String.format("Value '%s' given for %s system property is invalid.  (must be one of quiet, warn, lifecycle, info, or debug)", value, gradleProperty);
+                throw new IllegalArgumentException(message, e);
             }
         }
     }
