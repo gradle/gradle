@@ -1,4 +1,4 @@
-The Gradle team is pleased to announce Gradle 4.2.
+tThe Gradle team is pleased to announce Gradle 4.2.
 
 First and foremost, progress has been made to improve Gradle's support for building native applications. The first outcome is [parallel task execution for native compilation and linking tasks](#parallel-native-compilation-and-linking-tasks) _by default_. This has reduced build times for native performance scenarios by as much as half.
 
@@ -171,7 +171,7 @@ For more details see the [`HttpBuildCache.allowUntrustedServer`](dsl/org.gradle.
 
 ## Promoted features
 
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
+Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
 See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the features that have been promoted in this Gradle release.
@@ -199,7 +199,7 @@ We highly recommend migrating to Java 8 as soon as possible to get better experi
 
 We deprecated the usage of the following characters in domain object names such as project or task names:
 space character, `/`, `\\`, `:`, `<`, `>`, `"`, `?`, `*` and `|`. We also deprecated `.` as leading or trailing character.
-These character represent path separators or have other special semantics in file systems. This caused inconsistent and unexpected behavior in different Gradle features.
+These characters represent path separators or have other special semantics in file systems. This caused inconsistent and unexpected behavior in different Gradle features.
 Using these characters in names will be forbidden in Gradle 5.0. 
 
 ## Potential breaking changes
