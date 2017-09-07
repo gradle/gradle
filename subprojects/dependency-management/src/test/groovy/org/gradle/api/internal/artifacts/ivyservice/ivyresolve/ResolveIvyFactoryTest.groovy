@@ -53,6 +53,7 @@ class ResolveIvyFactoryTest extends Specification {
     VersionSelectorScheme versionSelectorScheme
     VersionComparator versionComparator
     ImmutableModuleIdentifierFactory moduleIdentifierFactory
+    RepositoryBlacklister repositoryBlacklister
 
     def setup() {
         moduleVersionsCache = Mock(ModuleVersionsCache)
@@ -69,10 +70,11 @@ class ResolveIvyFactoryTest extends Specification {
         moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
         versionSelectorScheme = Mock(VersionSelectorScheme)
         versionComparator = Mock(VersionComparator)
+        repositoryBlacklister = Mock(RepositoryBlacklister)
 
         resolveIvyFactory = new ResolveIvyFactory(moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache,
             cachedArtifactIndex, startParameterResolutionOverride, buildCommencedTimeProvider,
-            inMemoryCachedRepositoryFactory, versionSelectorScheme, versionComparator, moduleIdentifierFactory)
+            inMemoryCachedRepositoryFactory, versionSelectorScheme, versionComparator, moduleIdentifierFactory, repositoryBlacklister)
     }
 
     def "returns an empty resolver when no repositories are configured" () {
