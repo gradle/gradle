@@ -5,28 +5,32 @@ import groovy.transform.ToString
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
-import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.w3c.dom.NodeList
 
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathFactory
-
-
 /**
  * This is a Gradle task that runs through the user guide's source XML files
  * and checks that all sections have {@code id} attributes and there are no
  * duplicate section IDs.
  */
 @CompileStatic
+@CacheableTask
 class UserGuideSectionVerifier extends DefaultTask {
+
     @InputFiles
+    @PathSensitive(PathSensitivity.NAME_ONLY)
     FileCollection docbookFiles
 
-    @Input
-    String fileEncoding = "UTF-8"
+    @OutputFile
+    File reportFile = project.file("${project.buildDir}/reports/user-guide/section-verifier-error.txt")
 
     @TaskAction
     void verify() {
@@ -52,8 +56,11 @@ class UserGuideSectionVerifier extends DefaultTask {
         }
 
         if (exceptionMessage.size() > 0) {
-            throw new GradleException(exceptionMessage.toString())
+            def message = exceptionMessage.toString()
+            reportFile.text = message
+            throw new GradleException(message)
         }
+        reportFile.text = ''
     }
 
     private ValidationResult validateSections(File file) {
