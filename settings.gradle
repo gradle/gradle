@@ -92,6 +92,7 @@ include 'runtimeApiInfo'
 include 'persistentCache'
 include 'buildCache'
 include 'coreApi'
+include 'versionControl'
 
 rootProject.name = 'gradle'
 rootProject.children.each {project ->

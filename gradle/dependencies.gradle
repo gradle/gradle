@@ -102,7 +102,8 @@ libraries += [
     jansi: dependencies.module('org.fusesource.jansi:jansi:1.14'),
     xerces: "xerces:xercesImpl:2.9.1",
     objenesis: 'org.objenesis:objenesis:1.2@jar',
-    jsoup:'org.jsoup:jsoup:1.6.3'
+    jsoup:'org.jsoup:jsoup:1.6.3',
+    jgit: 'org.eclipse.jgit:org.eclipse.jgit:4.5.3.201708160445-r', // 4.6+ requires Java 8
 ]
 
 libraries.maven3 = dependencies.module("org.apache.maven:maven-core:${versions.maven}") {
