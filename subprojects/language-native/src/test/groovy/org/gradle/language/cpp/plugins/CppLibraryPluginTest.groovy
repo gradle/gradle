@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp.plugins
 
+import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.cpp.CppLibrary
 import org.gradle.language.cpp.tasks.CppCompile
@@ -116,5 +117,33 @@ class CppLibraryPluginTest extends Specification {
 
         def link = project.tasks.linkDebug
         link.outputFile == projectDir.file("output/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("testLib"))
+    }
+
+    def "adds publications when maven-publish plugin is applied"() {
+        when:
+        project.pluginManager.apply(CppLibraryPlugin)
+        project.pluginManager.apply(MavenPublishPlugin)
+        project.version = 1.2
+        project.group = 'my.group'
+        project.library.baseName = 'mylib'
+
+        then:
+        def publishing = project.publishing
+        publishing.publications.size() == 3
+
+        def main = publishing.publications.main
+        main.groupId == 'my.group'
+        main.artifactId == 'mylib'
+        main.version == '1.2'
+
+        def debug = publishing.publications.debug
+        debug.groupId == 'my.group'
+        debug.artifactId == 'mylib_debug'
+        debug.version == '1.2'
+
+        def release = publishing.publications.release
+        release.groupId == 'my.group'
+        release.artifactId == 'mylib_release'
+        release.version == '1.2'
     }
 }

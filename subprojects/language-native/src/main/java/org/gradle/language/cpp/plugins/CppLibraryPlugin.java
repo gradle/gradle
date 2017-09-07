@@ -16,20 +16,28 @@
 
 package org.gradle.language.cpp.plugins;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.publish.PublishingExtension;
+import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppLibrary;
@@ -135,10 +143,13 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
 
         Configuration implementation = library.getImplementationDependencies();
 
+        Usage linkUsage = objectFactory.named(Usage.class, Usage.NATIVE_LINK);
+        final Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
+
         Configuration debugLinkElements = configurations.create("debugLinkElements");
         debugLinkElements.extendsFrom(implementation);
         debugLinkElements.setCanBeResolved(false);
-        debugLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
+        debugLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
         debugLinkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, true);
         // TODO - should reflect changes to task output file
         debugLinkElements.getOutgoing().artifact(debugLinkFile, new Action<ConfigurablePublishArtifact>() {
@@ -148,17 +159,17 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
             }
         });
 
-        Configuration debugRuntimeElements = configurations.create("debugRuntimeElements");
+        final Configuration debugRuntimeElements = configurations.create("debugRuntimeElements");
         debugRuntimeElements.extendsFrom(implementation);
         debugRuntimeElements.setCanBeResolved(false);
-        debugRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
+        debugRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
         debugRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, true);
         debugRuntimeElements.getOutgoing().artifact(linkDebug.getBinaryFile());
 
         Configuration releaseLinkElements = configurations.create("releaseLinkElements");
         releaseLinkElements.extendsFrom(implementation);
         releaseLinkElements.setCanBeResolved(false);
-        releaseLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
+        releaseLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
         releaseLinkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, false);
         // TODO - should reflect changes to task output file
         releaseLinkElements.getOutgoing().artifact(releaseLinkFile, new Action<ConfigurablePublishArtifact>() {
@@ -168,11 +179,85 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
             }
         });
 
-        Configuration releaseRuntimeElements = configurations.create("releaseRuntimeElements");
+        final Configuration releaseRuntimeElements = configurations.create("releaseRuntimeElements");
         releaseRuntimeElements.extendsFrom(implementation);
         releaseRuntimeElements.setCanBeResolved(false);
-        releaseRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
+        releaseRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
         releaseRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, false);
         releaseRuntimeElements.getOutgoing().artifact(linkRelease.getBinaryFile());
+
+        project.getPluginManager().withPlugin("maven-publish", new Action<AppliedPlugin>() {
+            @Override
+            public void execute(AppliedPlugin appliedPlugin) {
+                project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
+                    @Override
+                    public void execute(PublishingExtension extension) {
+                        extension.getPublications().create("main", MavenPublication.class, new Action<MavenPublication>() {
+                            @Override
+                            public void execute(MavenPublication publication) {
+                                publication.setGroupId(project.getGroup().toString());
+                                publication.setArtifactId(library.getBaseName().get());
+                                publication.setVersion(project.getVersion().toString());
+                            }
+                        });
+                        extension.getPublications().create("debug", MavenPublication.class, new Action<MavenPublication>() {
+                            @Override
+                            public void execute(MavenPublication publication) {
+                                publication.setGroupId(project.getGroup().toString());
+                                publication.setArtifactId(library.getBaseName().get() + "_debug");
+                                publication.setVersion(project.getVersion().toString());
+                                publication.from(new RuntimeVariant("debug", runtimeUsage, debugRuntimeElements));
+                            }
+                        });
+                        extension.getPublications().create("release", MavenPublication.class, new Action<MavenPublication>() {
+                            @Override
+                            public void execute(MavenPublication publication) {
+                                publication.setGroupId(project.getGroup().toString());
+                                publication.setArtifactId(library.getBaseName().get() + "_release");
+                                publication.setVersion(project.getVersion().toString());
+                                publication.from(new RuntimeVariant("release", runtimeUsage, releaseRuntimeElements));
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    private static class RuntimeVariant implements SoftwareComponentInternal {
+        private final String name;
+        private final Usage runtimeUsage;
+        private final Configuration runtimeElementsConfiguration;
+
+        RuntimeVariant(String name, Usage runtimeUsage, Configuration runtimeElementsConfiguration) {
+            this.name = name;
+            this.runtimeUsage = runtimeUsage;
+            this.runtimeElementsConfiguration = runtimeElementsConfiguration;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public Set<? extends UsageContext> getUsages() {
+            return ImmutableSet.of(new UsageContext() {
+                @Override
+                public Usage getUsage() {
+                    return runtimeUsage;
+                }
+
+                @Override
+                public Set<PublishArtifact> getArtifacts() {
+                    return runtimeElementsConfiguration.getArtifacts();
+                }
+
+                @Override
+                public Set<ModuleDependency> getDependencies() {
+                    return ImmutableSet.of();
+                }
+            });
+        }
     }
 }
