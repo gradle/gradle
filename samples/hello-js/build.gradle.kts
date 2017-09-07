@@ -1,9 +1,8 @@
-import org.gradle.kotlin.dsl.kotlin
 import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
 
 buildscript {
     repositories {
-        mavenCentral()
+        jcenter()
     }
     dependencies {
         classpath(kotlin("gradle-plugin"))
@@ -23,23 +22,31 @@ repositories {
 }
 
 tasks.withType<Kotlin2JsCompile> {
-    kotlinOptions.outputFile = "$projectDir/web/output.js"
-    kotlinOptions.moduleKind = "plain"
+    kotlinOptions.outputFile = "$buildDir/web/output.js"
     kotlinOptions.sourceMap = true
 }
 
-val build by tasks
-build.doLast {
-    configurations["compile"].forEach { file: File ->
+val assembleWeb by tasks.creating
+assembleWeb.doLast {
+    configurations["compileClasspath"].forEach { file: File ->
         copy {
             includeEmptyDirs = false
 
             from(zipTree(file.absoluteFile))
-            into("$projectDir/web")
+            into("$buildDir/web")
             include { fileTreeElement ->
                 val path = fileTreeElement.path
                 path.endsWith(".js") && (path.startsWith("META-INF/resources/") || !path.startsWith("META-INF/"))
             }
         }
+        copy {
+            from("${the<JavaPluginConvention>().sourceSets["main"].output.resourcesDir}/index.html")
+            into("$buildDir/web")
+        }
     }
 }
+
+val assemble by tasks
+val classes by tasks
+assemble.dependsOn(assembleWeb)
+assembleWeb.dependsOn(classes)
