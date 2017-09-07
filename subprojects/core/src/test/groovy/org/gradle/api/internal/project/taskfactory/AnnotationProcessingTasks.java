@@ -109,6 +109,11 @@ public class AnnotationProcessingTasks {
         }
     }
 
+    public static class TaskWithAction extends DefaultTask {
+        @TaskAction
+        public void doStuff() {}
+    }
+
     public static class TaskWithIncrementalAction extends DefaultTask {
         private final Action<IncrementalTaskInputs> action;
 
@@ -145,7 +150,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithInputFile extends DefaultTask {
+    public static class TaskWithInputFile extends TaskWithAction {
         File inputFile;
 
         public TaskWithInputFile(File inputFile) {
@@ -158,7 +163,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithInputDir extends DefaultTask {
+    public static class TaskWithInputDir extends TaskWithAction {
         File inputDir;
 
         public TaskWithInputDir(File inputDir) {
@@ -171,7 +176,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithInput extends DefaultTask {
+    public static class TaskWithInput extends TaskWithAction {
         String inputValue;
 
         public TaskWithInput(String inputValue) {
@@ -184,7 +189,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithBooleanInput extends DefaultTask {
+    public static class TaskWithBooleanInput extends TaskWithAction {
         boolean inputValue;
 
         public TaskWithBooleanInput(boolean inputValue) {
@@ -216,7 +221,7 @@ public class AnnotationProcessingTasks {
 
     }
 
-    public static class TaskWithOutputFile extends DefaultTask {
+    public static class TaskWithOutputFile extends TaskWithAction {
         File outputFile;
 
         public TaskWithOutputFile(File outputFile) {
@@ -229,7 +234,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithOutputFiles extends DefaultTask {
+    public static class TaskWithOutputFiles extends TaskWithAction {
         List<File> outputFiles;
 
         public TaskWithOutputFiles(List<File> outputFiles) {
@@ -243,7 +248,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithBridgeMethod extends DefaultTask implements WithProperty<SpecificProperty> {
+    public static class TaskWithBridgeMethod extends TaskWithAction implements WithProperty<SpecificProperty> {
         @org.gradle.api.tasks.Nested
         private SpecificProperty nestedProperty = new SpecificProperty();
         public int traversedOutputsCount;
@@ -268,7 +273,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithOptionalOutputFile extends DefaultTask {
+    public static class TaskWithOptionalOutputFile extends TaskWithAction {
         @OutputFile
         @org.gradle.api.tasks.Optional
         public File getOutputFile() {
@@ -276,7 +281,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithOptionalOutputFiles extends DefaultTask {
+    public static class TaskWithOptionalOutputFiles extends TaskWithAction {
         @SuppressWarnings("deprecation")
         @OutputFiles
         @org.gradle.api.tasks.Optional
@@ -285,7 +290,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithOutputDir extends DefaultTask {
+    public static class TaskWithOutputDir extends TaskWithAction {
         File outputDir;
 
         public TaskWithOutputDir(File outputDir) {
@@ -298,7 +303,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithOutputDirs extends DefaultTask {
+    public static class TaskWithOutputDirs extends TaskWithAction {
         List<File> outputDirs;
 
         public TaskWithOutputDirs(List<File> outputDirs) {
@@ -312,7 +317,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithOptionalOutputDir extends DefaultTask {
+    public static class TaskWithOptionalOutputDir extends TaskWithAction {
         @OutputDirectory
         @org.gradle.api.tasks.Optional
         public File getOutputDir() {
@@ -320,7 +325,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithOptionalOutputDirs extends DefaultTask {
+    public static class TaskWithOptionalOutputDirs extends TaskWithAction {
         @SuppressWarnings("deprecation")
         @OutputDirectories
         @org.gradle.api.tasks.Optional
@@ -329,7 +334,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithInputFiles extends DefaultTask {
+    public static class TaskWithInputFiles extends TaskWithAction {
         Iterable<? extends File> input;
 
         public TaskWithInputFiles(Iterable<? extends File> input) {
@@ -359,7 +364,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithOptionalInputFile extends DefaultTask {
+    public static class TaskWithOptionalInputFile extends TaskWithAction {
         @InputFile
         @org.gradle.api.tasks.Optional
         public File getInputFile() {
@@ -367,7 +372,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithNestedBean extends DefaultTask {
+    public static class TaskWithNestedBean extends TaskWithAction {
         Bean bean = new Bean();
 
         public TaskWithNestedBean(File inputFile) {
@@ -385,7 +390,7 @@ public class AnnotationProcessingTasks {
     }
 
 
-    public static class TaskWithNestedBeanWithPrivateClass extends DefaultTask {
+    public static class TaskWithNestedBeanWithPrivateClass extends TaskWithAction {
         Bean2 bean = new Bean2();
 
         public TaskWithNestedBeanWithPrivateClass(File inputFile, File inputFile2) {
@@ -414,7 +419,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithOptionalNestedBean extends DefaultTask {
+    public static class TaskWithOptionalNestedBean extends TaskWithAction {
         @Nested
         @org.gradle.api.tasks.Optional
         public Bean getBean() {
@@ -422,7 +427,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithOptionalNestedBeanWithPrivateType extends DefaultTask {
+    public static class TaskWithOptionalNestedBeanWithPrivateType extends TaskWithAction {
         Bean2 bean = new Bean2();
 
         @Nested
@@ -451,7 +456,7 @@ public class AnnotationProcessingTasks {
     }
 
     //CHECKSTYLE:OFF
-    public static class TaskWithJavaBeanCornerCaseProperties extends DefaultTask {
+    public static class TaskWithJavaBeanCornerCaseProperties extends TaskWithAction {
         private String cCompiler;
         private String CFlags;
         private String dns;

@@ -69,7 +69,6 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
 
         TaskClassValidator validator = taskClassInfo.getValidator();
         if (validator.hasAnythingToValidate()) {
-            task.prependParallelSafeAction(validator);
             validator.addInputsAndOutputs(task);
         }
 
