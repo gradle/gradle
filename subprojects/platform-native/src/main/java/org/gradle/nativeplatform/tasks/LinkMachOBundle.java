@@ -27,10 +27,10 @@ import org.gradle.nativeplatform.internal.LinkerSpec;
  * @since 4.3
  */
 @Incubating
-public class LinkBundle extends AbstractLinkTask {
+public class LinkMachOBundle extends AbstractLinkTask {
     @Override
     protected LinkerSpec createLinkerSpec() {
-        return new LinkBundle.Spec();
+        return new LinkMachOBundle.Spec();
     }
 
     private static class Spec extends DefaultLinkerSpec implements BundleLinkerSpec {

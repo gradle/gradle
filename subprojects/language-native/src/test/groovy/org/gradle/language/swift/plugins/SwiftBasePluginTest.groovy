@@ -22,10 +22,10 @@ import org.gradle.language.swift.SwiftBinary
 import org.gradle.language.swift.SwiftBundle
 import org.gradle.language.swift.SwiftExecutable
 import org.gradle.language.swift.SwiftSharedLibrary
-import org.gradle.language.swift.tasks.CreateBundle
+import org.gradle.language.swift.tasks.CreateSwiftBundle
 import org.gradle.language.swift.tasks.SwiftCompile
 import org.gradle.nativeplatform.tasks.InstallExecutable
-import org.gradle.nativeplatform.tasks.LinkBundle
+import org.gradle.nativeplatform.tasks.LinkMachOBundle
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -128,12 +128,12 @@ class SwiftBasePluginTest extends Specification {
 
         then:
         def link = project.tasks[linkTaskName]
-        link instanceof LinkBundle
+        link instanceof LinkMachOBundle
         link.binaryFile.get().asFile == projectDir.file("build/exe/${bundleDir}" + OperatingSystem.current().getExecutableName("TestBundle"))
 
         and:
         def bundleTask = project.tasks[bundleTaskName]
-        bundleTask instanceof CreateBundle
+        bundleTask instanceof CreateSwiftBundle
         bundleTask.outputDir.get().asFile == projectDir.file("build/bundle/${bundleDir}TestBundle.xctest")
 
         where:

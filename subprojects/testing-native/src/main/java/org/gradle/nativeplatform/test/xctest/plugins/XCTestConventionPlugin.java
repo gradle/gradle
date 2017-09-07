@@ -36,10 +36,10 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
 import org.gradle.language.swift.plugins.SwiftExecutablePlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
-import org.gradle.language.swift.tasks.CreateBundle;
+import org.gradle.language.swift.tasks.CreateSwiftBundle;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
-import org.gradle.nativeplatform.tasks.LinkBundle;
+import org.gradle.nativeplatform.tasks.LinkMachOBundle;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.internal.MacOSSdkPlatformPathLocator;
@@ -99,12 +99,12 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         compile.setModuleName(project.getName() + "Test");
 
         // Add a link task
-        LinkBundle link = (LinkBundle) tasks.getByName("linkTest");
+        LinkMachOBundle link = (LinkMachOBundle) tasks.getByName("linkTest");
         link.getLinkerArgs().set(Lists.newArrayList("-F" + frameworkDir.getAbsolutePath(), "-framework", "XCTest", "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks", "-Xlinker", "-rpath", "-Xlinker", "@loader_path/../Frameworks"));
 
         configureTestedComponent(project);
 
-        CreateBundle bundle = (CreateBundle) tasks.getByName("bundleTest");
+        CreateSwiftBundle bundle = (CreateSwiftBundle) tasks.getByName("bundleTest");
 
         final XcTest xcTest = tasks.create("xcTest", XcTest.class);
         // TODO - should respect changes to build directory

@@ -17,9 +17,9 @@
 package org.gradle.nativeplatform.test.xctest.plugins
 
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.language.swift.tasks.CreateBundle
+import org.gradle.language.swift.tasks.CreateSwiftBundle
 import org.gradle.language.swift.tasks.SwiftCompile
-import org.gradle.nativeplatform.tasks.LinkBundle
+import org.gradle.nativeplatform.tasks.LinkMachOBundle
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite
 import org.gradle.nativeplatform.test.xctest.tasks.XcTest
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -73,12 +73,12 @@ class XCTestConventionPluginTest extends Specification {
         !compileSwift.optimized
 
         def link = project.tasks.linkTest
-        link instanceof LinkBundle
+        link instanceof LinkMachOBundle
         link.binaryFile.get().asFile == projectDir.file("build/exe/test/" + OperatingSystem.current().getExecutableName("TestAppTest"))
         link.debuggable
 
         def bundle = project.tasks.createXcTestBundle
-        bundle instanceof CreateBundle
+        bundle instanceof CreateSwiftBundle
         bundle.outputDir == project.file("build/bundle/testAppTest.xctest")
 
         def test = project.tasks.xcTest

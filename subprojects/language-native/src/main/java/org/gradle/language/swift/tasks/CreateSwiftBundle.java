@@ -36,14 +36,14 @@ import javax.inject.Inject;
  * @since 4.3
  */
 @Incubating
-public class CreateBundle extends DefaultTask {
+public class CreateSwiftBundle extends DefaultTask {
     private final RegularFileVar informationFile;
     private final RegularFileVar executableFile;
     private final DirectoryVar outputDir;
     private final SwiftStdlibToolLocator swiftStdlibToolLocator;
 
     @Inject
-    public CreateBundle(SwiftStdlibToolLocator swiftStdlibToolLocator) {
+    public CreateSwiftBundle(SwiftStdlibToolLocator swiftStdlibToolLocator) {
         this.informationFile = newInputFile();
         this.executableFile = newInputFile();
         this.outputDir = newOutputDirectory();
