@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp.plugins
 
+import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.cpp.CppApplication
 import org.gradle.language.cpp.tasks.CppCompile
@@ -134,5 +135,36 @@ class CppExecutablePluginTest extends Specification {
 
         link.setOutputFile(project.file("exe"))
         install.executable == link.outputFile
+    }
+
+    def "adds publications when maven-publish plugin is applied"() {
+        when:
+        project.pluginManager.apply(CppExecutablePlugin)
+        project.pluginManager.apply(MavenPublishPlugin)
+        project.version = 1.2
+        project.group = 'my.group'
+        project.executable.baseName = 'test_app'
+
+        then:
+        def publishing = project.publishing
+        publishing.publications.size() == 3
+
+        def main = publishing.publications.main
+        main.groupId == 'my.group'
+        main.artifactId == 'test_app'
+        main.version == '1.2'
+        main.artifacts.empty
+
+        def debug = publishing.publications.debug
+        debug.groupId == 'my.group'
+        debug.artifactId == 'test_app_debug'
+        debug.version == '1.2'
+        debug.artifacts.size() == 1
+
+        def release = publishing.publications.release
+        release.groupId == 'my.group'
+        release.artifactId == 'test_app_release'
+        release.version == '1.2'
+        release.artifacts.size() == 1
     }
 }
