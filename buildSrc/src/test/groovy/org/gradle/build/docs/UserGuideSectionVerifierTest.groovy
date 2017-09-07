@@ -1,6 +1,5 @@
 package org.gradle.build.docs
 
-import jdk.nashorn.internal.ir.annotations.Ignore
 import org.gradle.api.GradleException
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
@@ -10,7 +9,6 @@ import spock.lang.Specification
 /**
  * Unit test for {@link UserGuideSectionVerifier}.
  */
-@Ignore
 class UserGuideSectionVerifierTest extends Specification {
     @Rule final TemporaryFolder projectDirProvider = new TemporaryFolder()
 
