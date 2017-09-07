@@ -31,13 +31,13 @@ public interface TestNGClassListener {
 
     /**
      * for compatibility reasons with testng 6.9.10
-     * */
+     */
     void onBeforeClass(ITestClass testClass, IMethodInstance mi);
 
     void onAfterClass(ITestClass testClass);
 
     /**
      * for compatibility reasons with testng 6.9.10
-     * */
+     */
     void onAfterClass(ITestClass testClass, IMethodInstance mi);
 }
