@@ -17,6 +17,7 @@
 package org.gradle.language.cpp.plugins
 
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
+import org.gradle.api.tasks.bundling.Zip
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.cpp.CppLibrary
 import org.gradle.language.cpp.tasks.CppCompile
@@ -119,6 +120,16 @@ class CppLibraryPluginTest extends Specification {
         link.outputFile == projectDir.file("output/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("testLib"))
     }
 
+    def "adds header zip task when maven-publish plugin is applied"() {
+        when:
+        project.pluginManager.apply(CppLibraryPlugin)
+        project.pluginManager.apply(MavenPublishPlugin)
+
+        then:
+        def zip = project.tasks.cppHeaders
+        zip instanceof Zip
+    }
+
     def "adds publications when maven-publish plugin is applied"() {
         when:
         project.pluginManager.apply(CppLibraryPlugin)
@@ -135,15 +146,18 @@ class CppLibraryPluginTest extends Specification {
         main.groupId == 'my.group'
         main.artifactId == 'mylib'
         main.version == '1.2'
+        main.artifacts.size() == 1
 
         def debug = publishing.publications.debug
         debug.groupId == 'my.group'
         debug.artifactId == 'mylib_debug'
         debug.version == '1.2'
+        debug.artifacts.size() == 1
 
         def release = publishing.publications.release
         release.groupId == 'my.group'
         release.artifactId == 'mylib_release'
         release.version == '1.2'
+        release.artifacts.size() == 1
     }
 }

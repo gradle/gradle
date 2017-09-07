@@ -53,6 +53,15 @@ allprojects { p ->
         return new NativeInstallationFixture(file(installDir), os)
     }
 
+    def String withExecutableSuffix(Object path) {
+        return path + OperatingSystem.current().getExecutableSuffix()
+    }
+
+    def String getExecutableExtension() {
+        def suffix = OperatingSystem.current().executableSuffix
+        return suffix.empty ? "" : suffix.substring(1)
+    }
+
     def ExecutableFixture executable(Object path) {
         return toolChain.executable(file(path))
     }
@@ -63,6 +72,14 @@ allprojects { p ->
 
     def TestFile objectFile(Object path) {
         return toolChain.objectFile(file(path))
+    }
+
+    def String withSharedLibrarySuffix(Object path) {
+        return path + OperatingSystem.current().sharedLibrarySuffix
+    }
+
+    def String getSharedLibraryExtension() {
+        return OperatingSystem.current().sharedLibrarySuffix.substring(1)
     }
 
     def SharedLibraryFixture sharedLibrary(Object path) {

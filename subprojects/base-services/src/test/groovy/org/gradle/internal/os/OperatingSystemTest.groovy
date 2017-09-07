@@ -89,6 +89,7 @@ class OperatingSystemTest extends Specification {
         def os = new OperatingSystem.Windows()
 
         expect:
+        os.executableSuffix == ".exe"
         os.getExecutableName("a.exe") == "a.exe"
         os.getExecutableName("a.EXE") == "a.EXE"
         os.getExecutableName("a") == "a.exe"
@@ -101,6 +102,7 @@ class OperatingSystemTest extends Specification {
         def os = new OperatingSystem.Windows()
 
         expect:
+        os.sharedLibrarySuffix == ".dll"
         os.getSharedLibraryName("a.dll") == "a.dll"
         os.getSharedLibraryName("a.DLL") == "a.DLL"
         os.getSharedLibraryName("a") == "a.dll"
@@ -222,6 +224,7 @@ class OperatingSystemTest extends Specification {
         def os = new OperatingSystem.Unix()
 
         expect:
+        os.executableSuffix == ""
         os.getExecutableName("a.sh") == "a.sh"
         os.getExecutableName("a") == "a"
     }
@@ -230,6 +233,7 @@ class OperatingSystemTest extends Specification {
         def os = new OperatingSystem.Unix()
 
         expect:
+        os.sharedLibrarySuffix == ".so"
         os.getSharedLibraryName("a.so") == "a.so"
         os.getSharedLibraryName("liba.so") == "liba.so"
         os.getSharedLibraryName("a") == "liba.so"
@@ -301,6 +305,7 @@ class OperatingSystemTest extends Specification {
         def os = new OperatingSystem.MacOs()
 
         expect:
+        os.sharedLibrarySuffix == ".dylib"
         os.getSharedLibraryName("a.dylib") == "a.dylib"
         os.getSharedLibraryName("liba.dylib") == "liba.dylib"
         os.getSharedLibraryName("a") == "liba.dylib"

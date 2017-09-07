@@ -16,20 +16,15 @@
 
 package org.gradle.language.cpp.plugins;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.RegularFile;
-import org.gradle.api.internal.component.SoftwareComponentInternal;
-import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
@@ -37,11 +32,14 @@ import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.PublishingExtension;
+import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.internal.DefaultCppLibrary;
+import org.gradle.language.cpp.internal.RuntimeVariant;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
@@ -81,7 +79,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(CppBasePlugin.class);
 
-        TaskContainer tasks = project.getTasks();
+        final TaskContainer tasks = project.getTasks();
         ConfigurationContainer configurations = project.getConfigurations();
         DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
         ObjectFactory objectFactory = project.getObjects();
@@ -189,20 +187,30 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         project.getPluginManager().withPlugin("maven-publish", new Action<AppliedPlugin>() {
             @Override
             public void execute(AppliedPlugin appliedPlugin) {
+                final Zip headersZip = tasks.create("cppHeaders", Zip.class);
+                headersZip.from(library.getHeaderFiles());
+                // TODO - should track changes to build directory
+                headersZip.setDestinationDir(new File(project.getBuildDir(), "headers"));
+                headersZip.setArchiveName("cpp-headers.zip");
+
                 project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
                     @Override
                     public void execute(PublishingExtension extension) {
                         extension.getPublications().create("main", MavenPublication.class, new Action<MavenPublication>() {
                             @Override
                             public void execute(MavenPublication publication) {
+                                // TODO - should track changes to properties
                                 publication.setGroupId(project.getGroup().toString());
                                 publication.setArtifactId(library.getBaseName().get());
                                 publication.setVersion(project.getVersion().toString());
+                                MavenArtifact headersArtifact = publication.artifact(headersZip);
+                                headersArtifact.setClassifier("cpp-headers");
                             }
                         });
                         extension.getPublications().create("debug", MavenPublication.class, new Action<MavenPublication>() {
                             @Override
                             public void execute(MavenPublication publication) {
+                                // TODO - should track changes to properties
                                 publication.setGroupId(project.getGroup().toString());
                                 publication.setArtifactId(library.getBaseName().get() + "_debug");
                                 publication.setVersion(project.getVersion().toString());
@@ -212,6 +220,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                         extension.getPublications().create("release", MavenPublication.class, new Action<MavenPublication>() {
                             @Override
                             public void execute(MavenPublication publication) {
+                                // TODO - should track changes to properties
                                 publication.setGroupId(project.getGroup().toString());
                                 publication.setArtifactId(library.getBaseName().get() + "_release");
                                 publication.setVersion(project.getVersion().toString());
@@ -224,40 +233,4 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private static class RuntimeVariant implements SoftwareComponentInternal {
-        private final String name;
-        private final Usage runtimeUsage;
-        private final Configuration runtimeElementsConfiguration;
-
-        RuntimeVariant(String name, Usage runtimeUsage, Configuration runtimeElementsConfiguration) {
-            this.name = name;
-            this.runtimeUsage = runtimeUsage;
-            this.runtimeElementsConfiguration = runtimeElementsConfiguration;
-        }
-
-        @Override
-        public String getName() {
-            return name;
-        }
-
-        @Override
-        public Set<? extends UsageContext> getUsages() {
-            return ImmutableSet.of(new UsageContext() {
-                @Override
-                public Usage getUsage() {
-                    return runtimeUsage;
-                }
-
-                @Override
-                public Set<PublishArtifact> getArtifacts() {
-                    return runtimeElementsConfiguration.getArtifacts();
-                }
-
-                @Override
-                public Set<ModuleDependency> getDependencies() {
-                    return ImmutableSet.of();
-                }
-            });
-        }
-    }
 }

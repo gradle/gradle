@@ -16,23 +16,25 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppLib
+import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.maven.MavenFileRepository
 
-class CppLibraryPublishingIntegrationTest extends AbstractIntegrationSpec {
+class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "can publish binaries and headers of a library to a maven repository"() {
         def lib = new CppLib()
+        assert !lib.publicHeaders.files.empty
 
         given:
         buildFile << """
             apply plugin: 'cpp-library'
             apply plugin: 'maven-publish'
             
-            group = 'my.group'
-            version = '1.0-milestone-8a'
+            group = 'some.group'
+            version = '1.2'
             library {
-                baseName = 'mylib'
+                baseName = 'test'
             }
             publishing {
                 repositories { maven { url 'repo' } }
@@ -44,21 +46,26 @@ class CppLibraryPublishingIntegrationTest extends AbstractIntegrationSpec {
         run('publish')
 
         then:
-        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":generatePomFileForDebugPublication", ":publishDebugPublicationToMavenRepository", ":generatePomFileForMainPublication", ":publishMainPublicationToMavenRepository", ":compileReleaseCpp", ":linkRelease", ":generatePomFileForReleasePublication", ":publishReleasePublicationToMavenRepository", ":publish")
+        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":generatePomFileForDebugPublication", ":publishDebugPublicationToMavenRepository", ":cppHeaders", ":generatePomFileForMainPublication", ":publishMainPublicationToMavenRepository", ":compileReleaseCpp", ":linkRelease", ":generatePomFileForReleasePublication", ":publishReleasePublicationToMavenRepository", ":publish")
+
+        def headersZip = file("build/headers/cpp-headers.zip")
+        new ZipTestFixture(headersZip).hasDescendants(lib.headers.files*.name)
 
         def repo = new MavenFileRepository(file("repo"))
 
-        def main = repo.module('my.group', 'mylib', '1.0-milestone-8a')
+        def main = repo.module('some.group', 'test', '1.2')
         main.assertPublished()
+        main.assertArtifactsPublished("test-1.2-cpp-headers.zip", "test-1.2.pom")
+        main.artifactFile(classifier: 'cpp-headers', type: 'zip').assertIsCopyOf(headersZip)
 
-        def debug = repo.module('my.group', 'mylib_debug', '1.0-milestone-8a')
+        def debug = repo.module('some.group', 'test_debug', '1.2')
         debug.assertPublished()
-        debug.assertArtifactsPublished("mylib_debug-1.0-milestone-8a.dylib", "mylib_debug-1.0-milestone-8a.pom")
-        debug.artifactFile(type: 'dylib').assertIsCopyOf(file("build/lib/main/debug/libmylib.dylib"))
+        debug.assertArtifactsPublished(withSharedLibrarySuffix("test_debug-1.2"), "test_debug-1.2.pom")
+        debug.artifactFile(type: sharedLibraryExtension).assertIsCopyOf(sharedLibrary("build/lib/main/debug/test").file)
 
-        def release = repo.module('my.group', 'mylib_release', '1.0-milestone-8a')
+        def release = repo.module('some.group', 'test_release', '1.2')
         release.assertPublished()
-        release.assertArtifactsPublished("mylib_release-1.0-milestone-8a.dylib", "mylib_release-1.0-milestone-8a.pom")
-        release.artifactFile(type: 'dylib').assertIsCopyOf(file("build/lib/main/release/libmylib.dylib"))
+        release.assertArtifactsPublished(withSharedLibrarySuffix("test_release-1.2"), "test_release-1.2.pom")
+        release.artifactFile(type: sharedLibraryExtension).assertIsCopyOf(sharedLibrary("build/lib/main/release/test").file)
     }
 }
