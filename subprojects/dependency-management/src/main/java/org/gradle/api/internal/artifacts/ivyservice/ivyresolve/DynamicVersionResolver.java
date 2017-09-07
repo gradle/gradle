@@ -187,7 +187,7 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
      *
      * 1. selecting a version, thanks to the versioned component chooser, for a specific version selector
      * 2. once the selection is done, fetch metadata for this component
-     * 
+     *
      */
     private static class RepositoryResolveState implements ComponentSelectionContext {
         private final VersionedComponentChooser versionedComponentChooser;
