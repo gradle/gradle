@@ -35,8 +35,8 @@ public abstract class ListBuildOption<T> extends AbstractBuildOption<T> {
         super(gradleProperty);
     }
 
-    public ListBuildOption(String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
-        super(gradleProperty, commandLineOptionConfiguration);
+    public ListBuildOption(String gradleProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
+        super(gradleProperty, commandLineOptionConfigurations);
     }
 
     @Override
@@ -51,13 +51,13 @@ public abstract class ListBuildOption<T> extends AbstractBuildOption<T> {
 
     @Override
     public void configure(CommandLineParser parser) {
-        if (hasCommandLineOption()) {
-            CommandLineOption option = parser.option(commandLineOptionConfiguration.getAllOptions())
-                .hasDescription(commandLineOptionConfiguration.getDescription())
-                .deprecated(commandLineOptionConfiguration.getDeprecationWarning())
+        for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
+            CommandLineOption option = parser.option(config.getAllOptions())
+                .hasDescription(config.getDescription())
+                .deprecated(config.getDeprecationWarning())
                 .hasArguments();
 
-            if (commandLineOptionConfiguration.isIncubating()) {
+            if (config.isIncubating()) {
                 option.incubating();
             }
         }
@@ -65,9 +65,9 @@ public abstract class ListBuildOption<T> extends AbstractBuildOption<T> {
 
     @Override
     public void applyFromCommandLine(ParsedCommandLine options, T settings) {
-        if (hasCommandLineOption()) {
-            if (options.hasOption(commandLineOptionConfiguration.getLongOption())) {
-                List<String> value = options.option(commandLineOptionConfiguration.getLongOption()).getValues();
+        for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
+            if (options.hasOption(config.getLongOption())) {
+                List<String> value = options.option(config.getLongOption()).getValues();
                 applyTo(value, settings, Origin.COMMAND_LINE);
             }
         }

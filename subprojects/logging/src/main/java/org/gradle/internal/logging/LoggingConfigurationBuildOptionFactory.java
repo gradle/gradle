@@ -22,7 +22,11 @@ import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.cli.CommandLineArgumentException;
+import org.gradle.cli.CommandLineOption;
+import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.ParsedCommandLine;
 import org.gradle.internal.Factory;
+import org.gradle.internal.buildoption.AbstractBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.EnabledOnlyBooleanBuildOption;
@@ -31,6 +35,7 @@ import org.gradle.internal.buildoption.StringBuildOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class LoggingConfigurationBuildOptionFactory implements Factory<List<BuildOption<LoggingConfiguration>>> {
 
@@ -42,7 +47,6 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
         options.add(new InfoOption());
         options.add(new DebugOption());
         options.add(new StacktraceOption());
-        options.add(new FullStacktraceOption());
         options.add(new ConsoleOption());
     }
 
@@ -107,31 +111,41 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
         }
     }
 
-    public static class StacktraceOption extends EnabledOnlyBooleanBuildOption<LoggingConfiguration> {
-        public static final String LONG_OPTION = "stacktrace";
-        public static final String SHORT_OPTION = "s";
+    public static class StacktraceOption extends AbstractBuildOption<LoggingConfiguration> {
+        public static final String STACKTRACE_LONG_OPTION = "stacktrace";
+        public static final String STACKTRACE_SHORT_OPTION = "s";
+        public static final String FULL_STACKTRACE_LONG_OPTION = "full-stacktrace";
+        public static final String FULL_STACKTRACE_SHORT_OPTION = "S";
 
         public StacktraceOption() {
-            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, "Print out the stacktrace for all exceptions."));
+            super(null, CommandLineOptionConfiguration.create(STACKTRACE_LONG_OPTION, STACKTRACE_SHORT_OPTION, "Print out the stacktrace for all exceptions."), CommandLineOptionConfiguration.create(FULL_STACKTRACE_LONG_OPTION, FULL_STACKTRACE_SHORT_OPTION, "Print out the full (very verbose) stacktrace for all exceptions."));
         }
 
         @Override
-        public void applyTo(LoggingConfiguration settings, Origin origin) {
-            settings.setShowStacktrace(ShowStacktrace.ALWAYS);
-        }
-    }
-
-    public static class FullStacktraceOption extends EnabledOnlyBooleanBuildOption<LoggingConfiguration> {
-        public static final String LONG_OPTION = "full-stacktrace";
-        public static final String SHORT_OPTION = "S";
-
-        public FullStacktraceOption() {
-            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, "Print out the full (very verbose) stacktrace for all exceptions."));
+        public void applyFromProperty(Map<String, String> properties, LoggingConfiguration settings) {
+            // not supported
         }
 
         @Override
-        public void applyTo(LoggingConfiguration settings, Origin origin) {
-            settings.setShowStacktrace(ShowStacktrace.ALWAYS_FULL);
+        public void configure(CommandLineParser parser) {
+            for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
+                CommandLineOption option = parser.option(config.getAllOptions())
+                    .hasDescription(config.getDescription())
+                    .deprecated(config.getDeprecationWarning());
+
+                if (config.isIncubating()) {
+                    option.incubating();
+                }
+            }
+        }
+
+        @Override
+        public void applyFromCommandLine(ParsedCommandLine options, LoggingConfiguration settings) {
+            if (options.hasOption(STACKTRACE_LONG_OPTION)) {
+                settings.setShowStacktrace(ShowStacktrace.ALWAYS);
+            } else if (options.hasOption(FULL_STACKTRACE_LONG_OPTION)) {
+                settings.setShowStacktrace(ShowStacktrace.ALWAYS_FULL);
+            }
         }
     }
 

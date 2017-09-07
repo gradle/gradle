@@ -38,8 +38,8 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
     public static final String WARN = LoggingConfigurationBuildOptionFactory.WarnOption.SHORT_OPTION;
     public static final String INFO = LoggingConfigurationBuildOptionFactory.InfoOption.SHORT_OPTION;
     public static final String QUIET = LoggingConfigurationBuildOptionFactory.QuietOption.SHORT_OPTION;
-    public static final String FULL_STACKTRACE = LoggingConfigurationBuildOptionFactory.FullStacktraceOption.SHORT_OPTION;
-    public static final String STACKTRACE = LoggingConfigurationBuildOptionFactory.StacktraceOption.SHORT_OPTION;
+    public static final String FULL_STACKTRACE = LoggingConfigurationBuildOptionFactory.StacktraceOption.FULL_STACKTRACE_SHORT_OPTION;
+    public static final String STACKTRACE = LoggingConfigurationBuildOptionFactory.StacktraceOption.STACKTRACE_SHORT_OPTION;
     private final BiMap<String, LogLevel> logLevelMap = HashBiMap.create();
     private final BiMap<String, ShowStacktrace> showStacktraceMap = HashBiMap.create();
 

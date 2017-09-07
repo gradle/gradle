@@ -33,8 +33,8 @@ public abstract class StringBuildOption<T> extends AbstractBuildOption<T> {
         super(gradleProperty);
     }
 
-    public StringBuildOption(String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
-        super(gradleProperty, commandLineOptionConfiguration);
+    public StringBuildOption(String gradleProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
+        super(gradleProperty, commandLineOptionConfigurations);
     }
 
     @Override
@@ -48,13 +48,13 @@ public abstract class StringBuildOption<T> extends AbstractBuildOption<T> {
 
     @Override
     public void configure(CommandLineParser parser) {
-        if (hasCommandLineOption()) {
-            CommandLineOption option = parser.option(commandLineOptionConfiguration.getAllOptions())
-                .hasDescription(commandLineOptionConfiguration.getDescription())
-                .deprecated(commandLineOptionConfiguration.getDeprecationWarning())
+        for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
+            CommandLineOption option = parser.option(config.getAllOptions())
+                .hasDescription(config.getDescription())
+                .deprecated(config.getDeprecationWarning())
                 .hasArgument();
 
-            if (commandLineOptionConfiguration.isIncubating()) {
+            if (config.isIncubating()) {
                 option.incubating();
             }
         }
@@ -62,9 +62,9 @@ public abstract class StringBuildOption<T> extends AbstractBuildOption<T> {
 
     @Override
     public void applyFromCommandLine(ParsedCommandLine options, T settings) {
-        if (hasCommandLineOption()) {
-            if (options.hasOption(commandLineOptionConfiguration.getLongOption())) {
-                String value = options.option(commandLineOptionConfiguration.getLongOption()).getValue();
+        for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
+            if (options.hasOption(config.getLongOption())) {
+                String value = options.option(config.getLongOption()).getValue();
                 applyTo(value, settings, Origin.COMMAND_LINE);
             }
         }

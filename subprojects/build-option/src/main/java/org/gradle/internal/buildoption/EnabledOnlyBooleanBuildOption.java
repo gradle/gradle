@@ -33,8 +33,8 @@ public abstract class EnabledOnlyBooleanBuildOption<T> extends AbstractBuildOpti
         super(gradleProperty, null);
     }
 
-    public EnabledOnlyBooleanBuildOption(String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
-        super(gradleProperty, commandLineOptionConfiguration);
+    public EnabledOnlyBooleanBuildOption(String gradleProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
+        super(gradleProperty, commandLineOptionConfigurations);
     }
 
     @Override
@@ -46,12 +46,12 @@ public abstract class EnabledOnlyBooleanBuildOption<T> extends AbstractBuildOpti
 
     @Override
     public void configure(CommandLineParser parser) {
-        if (hasCommandLineOption()) {
-            CommandLineOption option = parser.option(commandLineOptionConfiguration.getAllOptions())
-                .hasDescription(commandLineOptionConfiguration.getDescription())
-                .deprecated(commandLineOptionConfiguration.getDeprecationWarning());
+        for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
+            CommandLineOption option = parser.option(config.getAllOptions())
+                .hasDescription(config.getDescription())
+                .deprecated(config.getDeprecationWarning());
 
-            if (commandLineOptionConfiguration.isIncubating()) {
+            if (config.isIncubating()) {
                 option.incubating();
             }
         }
@@ -59,8 +59,10 @@ public abstract class EnabledOnlyBooleanBuildOption<T> extends AbstractBuildOpti
 
     @Override
     public void applyFromCommandLine(ParsedCommandLine options, T settings) {
-        if (hasCommandLineOption() && options.hasOption(commandLineOptionConfiguration.getLongOption())) {
-            applyTo(settings, Origin.COMMAND_LINE);
+        for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
+            if (options.hasOption(config.getLongOption())) {
+                applyTo(settings, Origin.COMMAND_LINE);
+            }
         }
     }
 

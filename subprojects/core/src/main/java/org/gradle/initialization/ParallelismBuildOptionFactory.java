@@ -56,6 +56,7 @@ public class ParallelismBuildOptionFactory implements Factory<List<BuildOption<P
 
     public static class MaxWorkersOption extends StringBuildOption<ParallelismConfiguration> {
         public static final String GRADLE_PROPERTY = "org.gradle.workers.max";
+        public static final String LONG_OPTION = "max-workers";
 
         public MaxWorkersOption() {
             super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create("max-workers", "Configure the number of concurrent workers Gradle is allowed to use.").incubating());
@@ -77,7 +78,7 @@ public class ParallelismBuildOptionFactory implements Factory<List<BuildOption<P
         private void handleInvalidMaxWorkersSwitchValue(String value, Origin origin) {
             switch (origin) {
                 case GRADLE_PROPERTY: throw new IllegalArgumentException(String.format(String.format("Value '%s' given for %s system property is invalid (must be a positive, non-zero, integer)", value, gradleProperty)));
-                case COMMAND_LINE: throw new CommandLineArgumentException(String.format("Argument value '%s' given for --%s option is invalid (must be a positive, non-zero, integer)", value, commandLineOptionConfiguration.getLongOption()));
+                case COMMAND_LINE: throw new CommandLineArgumentException(String.format("Argument value '%s' given for --%s option is invalid (must be a positive, non-zero, integer)", value, LONG_OPTION));
                 default: throw new IllegalStateException(String.format("Unexpected context %s", origin));
             }
         }

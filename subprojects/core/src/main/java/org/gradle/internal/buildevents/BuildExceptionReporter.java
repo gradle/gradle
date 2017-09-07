@@ -188,7 +188,7 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
         }
         if (details.exceptionStyle == ExceptionStyle.NONE) {
             resolution.text("Run with ");
-            resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptionFactory.StacktraceOption.LONG_OPTION);
+            resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptionFactory.StacktraceOption.STACKTRACE_LONG_OPTION);
             resolution.text(" option to get the stack trace. ");
         }
         if (loggingConfiguration.getLogLevel() != LogLevel.DEBUG) {

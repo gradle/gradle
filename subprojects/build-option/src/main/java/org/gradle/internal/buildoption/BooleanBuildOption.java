@@ -35,8 +35,8 @@ public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T> {
         super(gradleProperty);
     }
 
-    public BooleanBuildOption(String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
-        super(gradleProperty, commandLineOptionConfiguration);
+    public BooleanBuildOption(String gradleProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
+        super(gradleProperty, commandLineOptionConfigurations);
     }
 
     @Override
@@ -50,47 +50,47 @@ public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T> {
 
     @Override
     public void configure(CommandLineParser parser) {
-        if (hasCommandLineOption()) {
-            CommandLineOption enabledCommandLineOption = parser.option(commandLineOptionConfiguration.getLongOption())
-                .hasDescription(commandLineOptionConfiguration.getDescription())
-                .deprecated(commandLineOptionConfiguration.getDeprecationWarning());
+        for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
+            CommandLineOption enabledCommandLineOption = parser.option(config.getLongOption())
+                .hasDescription(config.getDescription())
+                .deprecated(config.getDeprecationWarning());
 
-            if (commandLineOptionConfiguration.isIncubating()) {
+            if (config.isIncubating()) {
                 enabledCommandLineOption.incubating();
             }
 
-            String disabledOption = getDisabledCommandLineOption();
+            String disabledOption = getDisabledCommandLineOption(config);
             CommandLineOption disabledCommandLineOption = parser.option(disabledOption)
-                .hasDescription(getDisabledCommandLineDescription())
-                .deprecated(commandLineOptionConfiguration.getDeprecationWarning());
+                .hasDescription(getDisabledCommandLineDescription(config))
+                .deprecated(config.getDeprecationWarning());
 
-            if (commandLineOptionConfiguration.isIncubating()) {
+            if (config.isIncubating()) {
                 disabledCommandLineOption.incubating();
             }
 
-            parser.allowOneOf(commandLineOptionConfiguration.getLongOption(), disabledOption);
+            parser.allowOneOf(config.getLongOption(), disabledOption);
         }
     }
 
     @Override
     public void applyFromCommandLine(ParsedCommandLine options, T settings) {
-        if (hasCommandLineOption()) {
-            if (options.hasOption(commandLineOptionConfiguration.getLongOption())) {
+        for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
+            if (options.hasOption(config.getLongOption())) {
                 applyTo(true, settings, Origin.COMMAND_LINE);
             }
 
-            if (options.hasOption(getDisabledCommandLineOption())) {
+            if (options.hasOption(getDisabledCommandLineOption(config))) {
                 applyTo(false, settings, Origin.COMMAND_LINE);
             }
         }
     }
 
-    private String getDisabledCommandLineOption() {
-        return hasCommandLineOption() ? "no-" + commandLineOptionConfiguration.getLongOption() : null;
+    private String getDisabledCommandLineOption(CommandLineOptionConfiguration config) {
+        return "no-" + config.getLongOption();
     }
 
-    private String getDisabledCommandLineDescription() {
-        return hasCommandLineOption() ? "Disables option --" + commandLineOptionConfiguration.getLongOption() + "." : null;
+    private String getDisabledCommandLineDescription(CommandLineOptionConfiguration config) {
+        return "Disables option --" + config.getLongOption() + ".";
     }
 
     public abstract void applyTo(boolean value, T settings, Origin origin);

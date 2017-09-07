@@ -16,6 +16,10 @@
 
 package org.gradle.internal.buildoption;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Provides a basic infrastructure for build option implementations.
  *
@@ -24,15 +28,16 @@ package org.gradle.internal.buildoption;
 public abstract class AbstractBuildOption<T> implements BuildOption<T> {
 
     protected final String gradleProperty;
-    protected final CommandLineOptionConfiguration commandLineOptionConfiguration;
+    protected final List<CommandLineOptionConfiguration> commandLineOptionConfigurations;
 
-    AbstractBuildOption(String gradleProperty) {
+    public AbstractBuildOption(String gradleProperty) {
         this(gradleProperty, null);
     }
 
-    AbstractBuildOption(String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
+    public AbstractBuildOption(String gradleProperty, CommandLineOptionConfiguration... commandLineOptionConfiguration) {
         this.gradleProperty = gradleProperty;
-        this.commandLineOptionConfiguration = commandLineOptionConfiguration;
+        this.commandLineOptionConfigurations = commandLineOptionConfiguration != null ? Arrays.asList(commandLineOptionConfiguration) : Collections.<CommandLineOptionConfiguration>emptyList();
+
     }
 
     @Override
@@ -42,9 +47,5 @@ public abstract class AbstractBuildOption<T> implements BuildOption<T> {
 
     public boolean isTrue(String value) {
         return value != null && value.trim().equalsIgnoreCase("true");
-    }
-
-    protected boolean hasCommandLineOption() {
-        return commandLineOptionConfiguration != null;
     }
 }
