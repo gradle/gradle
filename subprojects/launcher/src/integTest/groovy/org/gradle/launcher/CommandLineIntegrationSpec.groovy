@@ -96,26 +96,4 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
         free
     }
-
-    def "cannot combine --scan and --no-scan"() {
-        given:
-        requireGradleDistribution()
-        file("buildSrc/src/main/groovy/BuildScanPlugin.groovy").text = """
-            package com.gradle.test.build.dummy
-            import org.gradle.api.Plugin
-            import org.gradle.api.Project
-
-            class BuildScanPlugin implements Plugin<Project> {
-                void apply(Project project){
-                }
-            }
-        """
-
-        when:
-        args("--scan", "--no-scan")
-
-        then:
-        fails("tasks")
-        errorOutput.contains("Command line switches '--scan' and '--no-scan' are mutually exclusive and must not be used together.")
-    }
 }
