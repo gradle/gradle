@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.bundling.Jar
+
 plugins {
     `maven-publish`
     kotlin("jvm")
@@ -14,6 +16,11 @@ dependencies {
     compile(kotlin("stdlib"))
 }
 
+val sourcesJar by tasks.creating(Jar::class) {
+    classifier = "sources"
+    from(java.sourceSets["main"].allSource)
+}
+
 publishing {
     repositories {
         maven {
@@ -24,6 +31,7 @@ publishing {
 
     publications.create("mavenJava", MavenPublication::class.java) {
         from(components["java"])
+        artifact(sourcesJar)
     }
 }
 
