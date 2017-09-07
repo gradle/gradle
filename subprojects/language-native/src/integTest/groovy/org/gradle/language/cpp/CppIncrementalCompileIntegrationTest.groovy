@@ -16,7 +16,6 @@
 
 package org.gradle.language.cpp
 
-import groovy.io.FileType
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.IncrementalCppStaleCompileOutputApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalCppStaleCompileOutputLib
@@ -43,7 +42,7 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
         result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":installDebug", ":assemble")
         result.assertTasksNotSkipped(":compileDebugCpp", ":linkDebug", ":installDebug", ":assemble")
 
-        files("build/obj/main")*.name as Set == app.expectedAlternateIntermediateFilenames
+        file("build/obj/main/debug").assertHasDescendants(appendDebugDescendants(app.expectedAlternateIntermediateDescendants))
         executable("build/exe/main/debug/app").assertExists()
         installation("build/install/main/debug").exec().out == app.expectedOutput
     }
@@ -69,18 +68,20 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
         result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":assemble")
         result.assertTasksNotSkipped(":compileDebugCpp", ":linkDebug", ":assemble")
 
-        files("build/obj/main")*.name as Set == lib.expectedAlternateIntermediateFilenames
+        file("build/obj/main/debug").assertHasDescendants(appendDebugDescendants(lib.expectedAlternateIntermediateDescendants))
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 
+    private List<String> appendDebugDescendants(List<String> intermediateDescendants) {
+        if (!toolChain.isVisualCpp()) {
+            return intermediateDescendants
+        }
 
-    private Set<File> files(Object path) {
-        File directory = file(path)
-        directory.assertIsDir()
-
-        def result = [] as Set
-        directory.eachFileRecurse(FileType.FILES) {
-            result += it
+        List<String> result = new ArrayList<>(intermediateDescendants);
+        for (String intermediateDescendant : intermediateDescendants) {
+            if (intermediateDescendant.endsWith(".obj")) {
+                result.add(intermediateDescendant + ".pdb")
+            }
         }
 
         return result

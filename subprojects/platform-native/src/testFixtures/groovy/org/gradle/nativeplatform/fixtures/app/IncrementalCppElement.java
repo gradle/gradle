@@ -16,21 +16,24 @@
 
 package org.gradle.nativeplatform.fixtures.app;
 
-import com.google.common.collect.Sets;
 import org.gradle.integtests.fixtures.SourceFile;
+import org.gradle.internal.os.OperatingSystem;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 public abstract class IncrementalCppElement extends IncrementalElement {
     @Override
-    protected Set<String> intermediateFilenames(SourceFile sourceFile) {
-        if (sourceFile.getName().endsWith(".h")) {
-            return Collections.emptySet();
+    protected List<String> toExpectedIntermediateDescendants(SourceElement sourceElement) {
+        List<String> result = new ArrayList<String>();
+
+        String sourceSetName = sourceElement.getSourceSetName();
+        for (SourceFile sourceFile : sourceElement.getFiles()) {
+            if (!sourceFile.getName().endsWith(".h")) {
+                result.add(getIntermediateRelativeFilePath(sourceSetName, sourceFile, OperatingSystem.current().isWindows() ? ".obj" : ".o"));
+            }
         }
-        return Sets.newHashSet(sourceFile.getName().replace(".cpp", ".o"));
+        return result;
     }
 
     /**

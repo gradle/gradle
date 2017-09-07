@@ -30,4 +30,6 @@ class IncrementalCppStaleCompileOutputApp extends IncrementalCppApp {
     ]
     final String expectedOutput = main.expectedOutput
     final String expectedAlternateOutput = main.expectedOutput
+
+
 }
