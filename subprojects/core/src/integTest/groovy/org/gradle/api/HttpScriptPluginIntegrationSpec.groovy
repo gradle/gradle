@@ -21,6 +21,8 @@ import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.matchers.UserAgentMatcher
 import org.gradle.util.GradleVersion
+import org.gradle.util.ToBeImplemented
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
@@ -63,6 +65,31 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         scheme  | useKeystore
         "http"  | false
         "https" | true
+    }
+
+    @ToBeImplemented
+    @Issue("https://github.com/gradle/gradle/issues/2891")
+    def "can apply script with URI containing a query string"() {
+        when:
+        def queryString = 'p=foo;a=blob_plain;f=bar;hb=foo/bar/foo'
+        def script = file('external.gradle')
+        server.expectGetWithQueryString('/external.gradle', queryString, script)
+
+        script << """
+            task doStuff
+            assert buildscript.sourceFile == null
+            assert "${server.uri}/external.gradle?$queryString" == buildscript.sourceURI as String
+"""
+
+        buildFile << """
+            apply from: '$server.uri/external.gradle?$queryString'
+            defaultTasks 'doStuff'
+"""
+
+        then:
+        // It should succeed
+        // succeeds()
+        fails()
     }
 
     def "uses encoding specified by http server"() {
