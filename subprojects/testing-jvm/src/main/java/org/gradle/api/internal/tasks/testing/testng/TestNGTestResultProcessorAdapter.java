@@ -98,7 +98,6 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
 
     @Override
     public void onBeforeClass(ITestClass testClass, IMethodInstance mi) {
-        onBeforeClass(testClass);
     }
 
     @Override
@@ -112,7 +111,6 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
 
     @Override
     public void onAfterClass(ITestClass testClass, IMethodInstance mi) {
-        onAfterClass(testClass);
     }
 
     @Override
@@ -151,8 +149,8 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
             testInternal = new DefaultTestMethodDescriptor(idGenerator.generateId(), iTestResult.getTestClass().getName(), name);
             Object oldTestId = testMethodId.put(iTestResult, testInternal.getId());
             assert oldTestId == null : "Apparently some other test has started but it hasn't finished. "
-                    + "Expect the resultProcessor to break. "
-                    + "Don't expect to see this assertion stack trace due to the current architecture";
+                + "Expect the resultProcessor to break. "
+                + "Don't expect to see this assertion stack trace due to the current architecture";
 
             parentId = testMethodParentId.get(iTestResult.getMethod());
             assert parentId != null;
@@ -169,9 +167,9 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
         String name = iTestResult.getName();
         if (parameters != null && parameters.length > 0) {
             StringBuilder builder = new StringBuilder(name).
-                    append("[").
-                    append(iTestResult.getMethod().getCurrentInvocationCount()).
-                    append("]");
+                append("[").
+                append(iTestResult.getMethod().getCurrentInvocationCount()).
+                append("]");
 
             StringBuilder paramsListBuilder = new StringBuilder("(");
             int i = 0;
@@ -258,7 +256,7 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
         }
         // Synthesise a test for the broken configuration method
         TestDescriptorInternal test = new DefaultTestMethodDescriptor(idGenerator.generateId(),
-                testResult.getMethod().getTestClass().getName(), testResult.getMethod().getMethodName());
+            testResult.getMethod().getTestClass().getName(), testResult.getMethod().getMethodName());
         resultProcessor.started(test, new TestStartEvent(testResult.getStartMillis()));
         resultProcessor.failure(test.getId(), testResult.getThrowable());
         resultProcessor.completed(test.getId(), new TestCompleteEvent(testResult.getEndMillis(), TestResult.ResultType.FAILURE));

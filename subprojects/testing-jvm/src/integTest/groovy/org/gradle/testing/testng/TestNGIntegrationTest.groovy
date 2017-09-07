@@ -26,8 +26,8 @@ import spock.lang.Issue
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
 
-@TargetCoverage({TestNGCoverage.STANDARD_COVERAGE_WITH_INITIAL_ICLASS_LISTENER})
-public class TestNGIntegrationTest extends MultiVersionIntegrationSpec  {
+@TargetCoverage({ TestNGCoverage.STANDARD_COVERAGE_WITH_INITIAL_ICLASS_LISTENER })
+class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
 
     def setup() {
         executer.noExtraLogging()
