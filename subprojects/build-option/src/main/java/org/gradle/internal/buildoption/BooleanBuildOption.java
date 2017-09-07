@@ -50,9 +50,9 @@ public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T> {
     @Override
     public void configure(CommandLineParser parser) {
         for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
-            configureCommandLineOption(parser, new String[] { config.getLongOption() }, config.getDescription(), config.getDeprecationWarning(), config.isIncubating());
+            configureCommandLineOption(parser, new String[] {config.getLongOption()}, config.getDescription(), config.getDeprecationWarning(), config.isIncubating());
             String disabledOption = getDisabledCommandLineOption(config);
-            configureCommandLineOption(parser, new String[] { disabledOption }, config.getDescription(), config.getDeprecationWarning(), config.isIncubating());
+            configureCommandLineOption(parser, new String[] {disabledOption}, config.getDescription(), config.getDeprecationWarning(), config.isIncubating());
             parser.allowOneOf(config.getLongOption(), disabledOption);
         }
     }
