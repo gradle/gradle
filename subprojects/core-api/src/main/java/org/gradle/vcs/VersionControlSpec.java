@@ -16,9 +16,13 @@
 package org.gradle.vcs;
 
 import org.gradle.api.Describable;
+import org.gradle.api.Incubating;
 
 /**
  * Captures user-provided information about a version control system.
+ *
+ * @since 4.3
  */
+@Incubating
 public interface VersionControlSpec extends Describable {
 }
