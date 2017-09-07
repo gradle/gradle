@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
+apply plugin: 'java-library'
+
 dependencies {
+    api project(':coreApi')
+
     implementation project(':core')
-    implementation project(':coreApi')
     implementation libraries.jgit
+
+    testFixturesImplementation project(":internalTesting")
 }
 
 useTestFixtures()
