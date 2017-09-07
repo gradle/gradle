@@ -16,6 +16,7 @@
 
 package org.gradle.testing.fixture
 
+import com.google.common.collect.ObjectArrays
 import org.gradle.internal.jvm.Jvm
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository;
@@ -23,17 +24,18 @@ import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterReposito
 class TestNGCoverage {
     final static String NEWEST = Jvm.current().javaVersion.java7Compatible ? '6.9.9' : '6.8.7'
     final static String[] STANDARD_COVERAGE = ['5.14.10', '6.2', '6.8.7', NEWEST]
+    final static String[] STANDARD_COVERAGE_WITH_INITIAL_ICLASS_LISTENER =  ObjectArrays.concat("6.9.10", STANDARD_COVERAGE)
     final static String[] PRESERVE_ORDER = Jvm.current().javaVersion.java7Compatible ? ['5.14.6', '6.1.1', '6.9.4', NEWEST] : ['5.14.6', '6.1.1'] // skipped NEWEST (6.8.7) because of cbeust/testng#639
     final static String[] GROUP_BY_INSTANCES = ['6.1', '6.8.7', NEWEST]
 
     /**
      * Adds java plugin and configures TestNG support in given build script file.
      */
-    static void enableTestNG(File buildFile) {
+    static void enableTestNG(File buildFile, version = NEWEST) {
         buildFile << """
             apply plugin: 'java'
             ${jcenterRepository()}
-            dependencies { testCompile "org.testng:testng:${NEWEST}" }
+            dependencies { testCompile "org.testng:testng:${version}" }
             test.useTestNG()
         """
     }

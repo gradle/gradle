@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
+import org.testng.IMethodInstance;
 import org.testng.ISuite;
 import org.testng.ISuiteListener;
 import org.testng.ITestClass;
@@ -96,12 +97,22 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
     }
 
     @Override
+    public void onBeforeClass(ITestClass testClass, IMethodInstance mi) {
+        onBeforeClass(testClass);
+    }
+
+    @Override
     public void onAfterClass(ITestClass testClass) {
         Object id;
         synchronized (lock) {
             id = testClassId.remove(testClass);
         }
         resultProcessor.completed(id, new TestCompleteEvent(clock.getCurrentTime()));
+    }
+
+    @Override
+    public void onAfterClass(ITestClass testClass, IMethodInstance mi) {
+        onAfterClass(testClass);
     }
 
     @Override

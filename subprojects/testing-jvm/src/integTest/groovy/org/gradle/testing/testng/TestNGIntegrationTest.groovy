@@ -16,28 +16,28 @@
 
 package org.gradle.testing.testng
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
 
-class TestNGIntegrationTest extends AbstractIntegrationSpec {
+@TargetCoverage({TestNGCoverage.STANDARD_COVERAGE_WITH_INITIAL_ICLASS_LISTENER})
+public class TestNGIntegrationTest extends MultiVersionIntegrationSpec  {
 
     def setup() {
         executer.noExtraLogging()
+        TestNGCoverage.enableTestNG(buildFile, version)
     }
 
     def "executes tests in correct environment"() {
         given:
         buildFile << """
-            apply plugin: 'java'
-            ${mavenCentralRepository()}
-            dependencies { testCompile 'org.testng:testng:6.3.1' }
             test {
-                useTestNG()
                 systemProperties.testSysProperty = 'value'
                 systemProperties.testDir = projectDir
                 environment.TEST_ENV_VAR = 'value'
@@ -88,12 +88,7 @@ class TestNGIntegrationTest extends AbstractIntegrationSpec {
     def "can listen for test results"() {
         given:
         buildFile << """
-            apply plugin: 'java'
-            ${mavenCentralRepository()}
-            dependencies { testCompile 'org.testng:testng:6.3.1' }
-            
             test {
-                useTestNG()
                 ignoreFailures = true
             }
             
@@ -141,15 +136,6 @@ class TestNGIntegrationTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-1532")
     def "supports thread pool size"() {
         given:
-        buildFile << """
-            apply plugin: "java"
-            ${mavenCentralRepository()}
-            dependencies { testCompile 'org.testng:testng:6.3.1' }
-            
-            test {
-                useTestNG()
-            }
-        """.stripIndent()
         file('src/test/java/SomeTest.java') << '''
             import org.testng.Assert;
             import org.testng.annotations.Test;
@@ -166,9 +152,6 @@ class TestNGIntegrationTest extends AbstractIntegrationSpec {
 
     def "supports test groups"() {
         buildFile << """
-            apply plugin: "java"
-            ${mavenCentralRepository()}
-            dependencies { testCompile "org.testng:testng:6.3.1" }
             ext {
                 ngIncluded = "database"
                 ngExcluded = "slow"
@@ -207,14 +190,6 @@ class TestNGIntegrationTest extends AbstractIntegrationSpec {
 
     def "supports test factory"() {
         given:
-        buildFile << """
-            apply plugin: "java"
-            ${mavenCentralRepository()}
-            dependencies { compile "org.testng:testng:6.3.1" }
-            test {
-                useTestNG()
-            }
-        """.stripIndent()
         file('src/test/java/org/gradle/factory/FactoryTest.java') << '''
             package org.gradle.factory;
             import org.testng.annotations.Test;
@@ -255,15 +230,6 @@ class TestNGIntegrationTest extends AbstractIntegrationSpec {
     @Ignore("Not fixed yet.")
     def "picks up changes"() {
         given:
-        buildFile << """
-            apply plugin: "java"
-            ${mavenCentralRepository()}
-            dependencies { testCompile 'org.testng:testng:6.3.1' }
-            
-            test {
-                useTestNG()
-            }
-        """.stripIndent()
         file('src/test/java/SomeTest.java') << """
             import org.testng.Assert;
             import org.testng.annotations.Test;

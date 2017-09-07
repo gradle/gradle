@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.testng;
 
+import org.testng.IMethodInstance;
 import org.testng.ITestClass;
 
 /**
@@ -27,5 +28,16 @@ import org.testng.ITestClass;
 public interface TestNGClassListener {
 
     void onBeforeClass(ITestClass testClass);
+
+    /**
+     * for compatibility reasons with testng 6.9.10
+     * */
+    void onBeforeClass(ITestClass testClass, IMethodInstance mi);
+
     void onAfterClass(ITestClass testClass);
+
+    /**
+     * for compatibility reasons with testng 6.9.10
+     * */
+    void onAfterClass(ITestClass testClass, IMethodInstance mi);
 }
