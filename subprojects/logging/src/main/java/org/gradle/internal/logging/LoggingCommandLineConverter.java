@@ -20,7 +20,6 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
-import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.cli.AbstractCommandLineConverter;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
@@ -34,22 +33,17 @@ import java.util.Set;
 
 public class LoggingCommandLineConverter extends AbstractCommandLineConverter<LoggingConfiguration> {
     private final List<BuildOption<LoggingConfiguration>> buildOptions = new LoggingConfigurationBuildOptionFactory().create();
-    public static final String DEBUG = LoggingConfigurationBuildOptionFactory.DebugOption.SHORT_OPTION;
-    public static final String WARN = LoggingConfigurationBuildOptionFactory.WarnOption.SHORT_OPTION;
-    public static final String INFO = LoggingConfigurationBuildOptionFactory.InfoOption.SHORT_OPTION;
-    public static final String QUIET = LoggingConfigurationBuildOptionFactory.QuietOption.SHORT_OPTION;
-    public static final String FULL_STACKTRACE = LoggingConfigurationBuildOptionFactory.StacktraceOption.FULL_STACKTRACE_SHORT_OPTION;
-    public static final String STACKTRACE = LoggingConfigurationBuildOptionFactory.StacktraceOption.STACKTRACE_SHORT_OPTION;
+    public static final String DEBUG = LoggingConfigurationBuildOptionFactory.LogLevelOption.DEBUG_SHORT_OPTION;
+    public static final String WARN = LoggingConfigurationBuildOptionFactory.LogLevelOption.WARN_SHORT_OPTION;
+    public static final String INFO = LoggingConfigurationBuildOptionFactory.LogLevelOption.INFO_SHORT_OPTION;
+    public static final String QUIET = LoggingConfigurationBuildOptionFactory.LogLevelOption.QUIET_SHORT_OPTION;
     private final BiMap<String, LogLevel> logLevelMap = HashBiMap.create();
-    private final BiMap<String, ShowStacktrace> showStacktraceMap = HashBiMap.create();
 
     public LoggingCommandLineConverter() {
         logLevelMap.put(QUIET, LogLevel.QUIET);
         logLevelMap.put(WARN, LogLevel.WARN);
         logLevelMap.put(INFO, LogLevel.INFO);
         logLevelMap.put(DEBUG, LogLevel.DEBUG);
-        showStacktraceMap.put(FULL_STACKTRACE, ShowStacktrace.ALWAYS_FULL);
-        showStacktraceMap.put(STACKTRACE, ShowStacktrace.ALWAYS);
     }
 
     public LoggingConfiguration convert(ParsedCommandLine commandLine, LoggingConfiguration loggingConfiguration) throws CommandLineArgumentException {
@@ -64,9 +58,6 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
         for (BuildOption<LoggingConfiguration> option : buildOptions) {
             option.configure(parser);
         }
-
-        parser.allowOneOf(DEBUG, QUIET, INFO, WARN);
-        parser.allowOneOf(STACKTRACE, FULL_STACKTRACE);
     }
 
     /**
