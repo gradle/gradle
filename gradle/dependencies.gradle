@@ -104,7 +104,6 @@ libraries += [
     objenesis: 'org.objenesis:objenesis:1.2@jar',
     jsoup:'org.jsoup:jsoup:1.6.3',
     jgit: 'org.eclipse.jgit:org.eclipse.jgit:4.8.0.201706111038-r',
-    jgitTest: 'org.eclipse.jgit:org.eclipse.jgit.junit:4.8.0.201706111038-r',
 ]
 
 libraries.maven3 = dependencies.module("org.apache.maven:maven-core:${versions.maven}") {

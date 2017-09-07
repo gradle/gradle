@@ -18,10 +18,6 @@ dependencies {
     implementation project(':core')
     implementation project(':coreApi')
     implementation libraries.jgit
-
-    testImplementation libraries.jgitTest
-
-    testFixturesCompile libraries.jgitTest
 }
 
 useTestFixtures()

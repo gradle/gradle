@@ -16,7 +16,7 @@
 
 package org.gradle.vcs.git
 
-import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.vcs.fixtures.TemporaryGitRepository
 import org.junit.Rule
 import spock.lang.Specification
@@ -25,28 +25,34 @@ class GitVersionControlSystemSpec extends Specification {
     private GitVersionControlSystem gitVcs
 
     @Rule
-    TemporaryGitRepository r = new TemporaryGitRepository()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+
+    @Rule
+    TemporaryGitRepository repo = new TemporaryGitRepository(tmpDir)
 
     def setup() {
         gitVcs = new GitVersionControlSystem()
 
         // Commit a file to the repository
-        def textFile = new TestFile(r.getWorkTree(), "source.txt")
+        def textFile = repo.workTree.file("source.txt")
         textFile << "Hello world!"
-        r.commit("Initial Commit", textFile)
+        def anotherSource = repo.workTree.file("dir/another.txt")
+        anotherSource << "Goodbye world!"
+        repo.commit("Initial Commit", textFile, anotherSource)
     }
 
     def "clone a repository"() {
         given:
-        File target = r.createTempDirectory("cloneTarget")
+        def target = tmpDir.file("workingDir")
         GitVersionControlSpec spec = new GitVersionControlSpec()
-        spec.url = r.getUrl()
+        spec.url = repo.getUrl()
 
         when:
         gitVcs.populate(target, spec)
 
         then:
-        new File(target, ".git").exists()
-        new File(target, "source.txt").exists()
+        target.file( ".git").assertIsDir()
+        target.file( "source.txt").text == "Hello world!"
+        target.file( "dir/another.txt").text == "Goodbye world!"
     }
 }
