@@ -16,15 +16,16 @@
 
 package org.gradle.nativeplatform.fixtures.app;
 
+import org.gradle.api.internal.file.TestFiles;
 import org.gradle.integtests.fixtures.SourceFile;
+import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme;
 import org.gradle.test.fixtures.file.TestFile;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public abstract class IncrementalElement {
     public final OriginalElement original = new OriginalElement();
@@ -48,24 +49,24 @@ public abstract class IncrementalElement {
         original.writeToProject(projectDir);
     }
 
-    public Set<String> getExpectedIntermediateFilenames() {
-        return toExpectedAlternateIntermediateFilenames(original.getFiles());
+    public List<String> getExpectedIntermediateDescendants() {
+        return toExpectedIntermediateDescendants(original);
     }
 
-    public Set<String> getExpectedAlternateIntermediateFilenames() {
-        return toExpectedAlternateIntermediateFilenames(alternate.getFiles());
+    public List<String> getExpectedAlternateIntermediateDescendants() {
+        return toExpectedIntermediateDescendants(alternate);
     }
 
-    private Set<String> toExpectedAlternateIntermediateFilenames(List<SourceFile> sourceFiles) {
-        Set<String> result = new HashSet<String>();
-        for (SourceFile file : sourceFiles) {
-            result.addAll(intermediateFilenames(file));
-        }
+    protected abstract List<String> toExpectedIntermediateDescendants(SourceElement sourceElement);
 
-        return result;
+    protected String getIntermediateRelativeFilePath(String sourceSetName, SourceFile sourceFile, String fileSuffix) {
+        File baseDir = TestFile.listRoots()[0];  // Pick the first root as the virtual base for the source file
+        File outputFile = new CompilerOutputFileNamingScheme(TestFiles.resolver(baseDir))
+            .withObjectFileNameSuffix(fileSuffix)
+            .withOutputBaseFolder(new File(""))
+            .map(new File(baseDir, "src/" + sourceSetName + "/" + sourceFile.getPath() + "/" + sourceFile.getName()));
+        return outputFile.getPath().substring(baseDir.getPath().length());
     }
-
-    protected abstract Set<String> intermediateFilenames(SourceFile sourceFile);
 
     public interface Transform {
         void applyChangesToProject(TestFile projectDir);
@@ -238,8 +239,8 @@ public abstract class IncrementalElement {
             return result;
         }
 
-        public Set<String> getExpectedIntermediateFilenames() {
-            return IncrementalElement.this.getExpectedIntermediateFilenames();
+        public List<String> getExpectedIntermediateDescendants() {
+            return IncrementalElement.this.getExpectedIntermediateDescendants();
         }
     }
 
@@ -253,8 +254,8 @@ public abstract class IncrementalElement {
             return result;
         }
 
-        public Set<String> getExpectedIntermediateFilenames() {
-            return IncrementalElement.this.getExpectedAlternateIntermediateFilenames();
+        public List<String> getExpectedIntermediateDescendants() {
+            return IncrementalElement.this.getExpectedAlternateIntermediateDescendants();
         }
     }
 }

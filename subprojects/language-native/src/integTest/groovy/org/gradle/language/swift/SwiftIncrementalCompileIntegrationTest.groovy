@@ -19,6 +19,8 @@ package org.gradle.language.swift
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftModifyExpectedOutputApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftModifyExpectedOutputAppWithLib
+import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftStaleCompileOutputApp
+import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftStaleCompileOutputLib
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -103,5 +105,56 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         then:
         result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
         result.assertTasksSkipped(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+    }
+
+    def "removes stale object files for executable"() {
+        settingsFile << "rootProject.name = 'app'"
+        def app = new IncrementalSwiftStaleCompileOutputApp()
+
+        given:
+        app.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-executable'
+         """
+
+        and:
+        succeeds "assemble"
+        app.applyChangesToProject(testDirectory)
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
+        result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
+
+        file("build/obj/main/debug").assertHasDescendants(app.alternate.expectedIntermediateDescendants as String[])
+        executable("build/exe/main/debug/App").assertExists()
+        installation("build/install/main/debug").exec().out == app.expectedAlternateOutput
+    }
+
+    def "removes stale object files for library"() {
+        def lib = new IncrementalSwiftStaleCompileOutputLib()
+        settingsFile << "rootProject.name = 'hello'"
+
+        given:
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-library'
+         """
+
+        and:
+        succeeds "assemble"
+        lib.applyChangesToProject(testDirectory)
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
+        result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":assemble")
+
+        file("build/obj/main/debug").assertHasDescendants(lib.alternate.expectedIntermediateDescendants as String[])
+        sharedLibrary("build/lib/main/debug/Hello").assertExists()
     }
 }

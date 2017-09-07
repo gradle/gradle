@@ -22,7 +22,6 @@ import org.gradle.nativeplatform.fixtures.app.SwiftXcTestTestApp
 import org.gradle.nativeplatform.fixtures.app.TestElement
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.nativeplatform.fixtures.app.SourceTestElement.newTestCase
@@ -105,7 +104,6 @@ apply plugin: 'xctest'
         task << ["test", "check", "build"]
     }
 
-    @Ignore("https://github.com/gradle/gradle-native/issues/94")
     def "doesn't execute removed test suite and case"() {
         def oldTestApp = new SwiftXcTestTestApp([
             newTestSuite("FooTestSuite", [
