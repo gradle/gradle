@@ -23,17 +23,17 @@ import org.gradle.cli.ParsedCommandLine;
 import java.util.Map;
 
 /**
- * A build option that takes a no argument e.g. {@code "--foreground"}.
+ * A build option representing a boolean option with a enabled mode only e.g. {@code "--foreground"}.
  *
  * @since 4.3
  */
-public abstract class NoArgumentBuildOption<T> extends AbstractBuildOption<T> {
+public abstract class EnabledOnlyBooleanBuildOption<T> extends AbstractBuildOption<T> {
 
-    public NoArgumentBuildOption(String gradleProperty) {
+    public EnabledOnlyBooleanBuildOption(String gradleProperty) {
         super(gradleProperty, null);
     }
 
-    public NoArgumentBuildOption(String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
+    public EnabledOnlyBooleanBuildOption(String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
         super(gradleProperty, commandLineOptionConfiguration);
     }
 

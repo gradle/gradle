@@ -21,7 +21,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
-import org.gradle.internal.buildoption.NoArgumentBuildOption;
+import org.gradle.internal.buildoption.EnabledOnlyBooleanBuildOption;
 import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.internal.jvm.JavaHomeException;
 import org.gradle.internal.jvm.JavaInfo;
@@ -163,7 +163,7 @@ public class DaemonBuildOptionFactory implements Factory<List<BuildOption<Daemon
         }
     }
 
-    public static class ForegroundOption extends NoArgumentBuildOption<DaemonParameters> {
+    public static class ForegroundOption extends EnabledOnlyBooleanBuildOption<DaemonParameters> {
         public ForegroundOption() {
             super(null, CommandLineOptionConfiguration.create("foreground", "Starts the Gradle Daemon in the foreground.").incubating());
         }
@@ -174,7 +174,7 @@ public class DaemonBuildOptionFactory implements Factory<List<BuildOption<Daemon
         }
     }
 
-    public static class StopOption extends NoArgumentBuildOption<DaemonParameters> {
+    public static class StopOption extends EnabledOnlyBooleanBuildOption<DaemonParameters> {
         public StopOption() {
             super(null, CommandLineOptionConfiguration.create("stop", "Stops the Gradle Daemon if it is running."));
         }
@@ -185,7 +185,7 @@ public class DaemonBuildOptionFactory implements Factory<List<BuildOption<Daemon
         }
     }
 
-    public static class StatusOption extends NoArgumentBuildOption<DaemonParameters> {
+    public static class StatusOption extends EnabledOnlyBooleanBuildOption<DaemonParameters> {
         public StatusOption() {
             super(null, CommandLineOptionConfiguration.create("status", "Shows status of running and recently stopped Gradle Daemon(s)."));
         }

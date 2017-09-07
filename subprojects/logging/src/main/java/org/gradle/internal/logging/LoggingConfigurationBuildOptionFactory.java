@@ -25,7 +25,7 @@ import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
-import org.gradle.internal.buildoption.NoArgumentBuildOption;
+import org.gradle.internal.buildoption.EnabledOnlyBooleanBuildOption;
 import org.gradle.internal.buildoption.StringBuildOption;
 
 import java.util.ArrayList;
@@ -51,7 +51,7 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
         return options;
     }
 
-    public static class QuietOption extends NoArgumentBuildOption<LoggingConfiguration> {
+    public static class QuietOption extends EnabledOnlyBooleanBuildOption<LoggingConfiguration> {
         public static final String LONG_OPTION = "quiet";
         public static final String SHORT_OPTION = "q";
 
@@ -65,7 +65,7 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
         }
     }
 
-    public static class WarnOption extends NoArgumentBuildOption<LoggingConfiguration> {
+    public static class WarnOption extends EnabledOnlyBooleanBuildOption<LoggingConfiguration> {
         public static final String LONG_OPTION = "warn";
         public static final String SHORT_OPTION = "w";
 
@@ -79,7 +79,7 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
         }
     }
 
-    public static class InfoOption extends NoArgumentBuildOption<LoggingConfiguration> {
+    public static class InfoOption extends EnabledOnlyBooleanBuildOption<LoggingConfiguration> {
         public static final String LONG_OPTION = "info";
         public static final String SHORT_OPTION = "i";
 
@@ -93,7 +93,7 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
         }
     }
 
-    public static class DebugOption extends NoArgumentBuildOption<LoggingConfiguration> {
+    public static class DebugOption extends EnabledOnlyBooleanBuildOption<LoggingConfiguration> {
         public static final String LONG_OPTION = "debug";
         public static final String SHORT_OPTION = "d";
 
@@ -107,7 +107,7 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
         }
     }
 
-    public static class StacktraceOption extends NoArgumentBuildOption<LoggingConfiguration> {
+    public static class StacktraceOption extends EnabledOnlyBooleanBuildOption<LoggingConfiguration> {
         public static final String LONG_OPTION = "stacktrace";
         public static final String SHORT_OPTION = "s";
 
@@ -121,7 +121,7 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
         }
     }
 
-    public static class FullStacktraceOption extends NoArgumentBuildOption<LoggingConfiguration> {
+    public static class FullStacktraceOption extends EnabledOnlyBooleanBuildOption<LoggingConfiguration> {
         public static final String LONG_OPTION = "full-stacktrace";
         public static final String SHORT_OPTION = "S";
 

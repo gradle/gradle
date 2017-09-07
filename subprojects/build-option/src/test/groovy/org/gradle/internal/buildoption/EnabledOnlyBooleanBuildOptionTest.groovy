@@ -23,7 +23,7 @@ import spock.lang.Specification
 
 import static org.gradle.internal.buildoption.BuildOptionFixture.*
 
-class NoArgumentBuildOptionTest extends Specification {
+class EnabledOnlyBooleanBuildOptionTest extends Specification {
 
     def testSettings = new TestSettings()
     def commandLineParser = new CommandLineParser()
@@ -128,7 +128,7 @@ class NoArgumentBuildOptionTest extends Specification {
         testSettings.origin == BuildOption.Origin.COMMAND_LINE
     }
 
-    static class TestOption extends NoArgumentBuildOption<TestSettings> {
+    static class TestOption extends EnabledOnlyBooleanBuildOption<TestSettings> {
 
         TestOption(String gradleProperty) {
             super(gradleProperty)

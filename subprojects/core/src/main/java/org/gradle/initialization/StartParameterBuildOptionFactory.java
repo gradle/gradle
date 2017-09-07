@@ -24,7 +24,7 @@ import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.ListBuildOption;
-import org.gradle.internal.buildoption.NoArgumentBuildOption;
+import org.gradle.internal.buildoption.EnabledOnlyBooleanBuildOption;
 import org.gradle.internal.buildoption.StringBuildOption;
 
 import java.io.File;
@@ -73,7 +73,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
     }
 
-    public static class RerunTasksOption extends NoArgumentBuildOption<StartParameter> {
+    public static class RerunTasksOption extends EnabledOnlyBooleanBuildOption<StartParameter> {
         public RerunTasksOption() {
             super(null, CommandLineOptionConfiguration.create("rerun-tasks", "Ignore previously cached task results."));
         }
@@ -84,7 +84,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
     }
 
-    public static class RecompileScriptsOption extends NoArgumentBuildOption<StartParameter> {
+    public static class RecompileScriptsOption extends EnabledOnlyBooleanBuildOption<StartParameter> {
         public RecompileScriptsOption() {
             super(null, CommandLineOptionConfiguration.create("recompile-scripts", "Force build script recompiling."));
         }
@@ -95,7 +95,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
     }
 
-    public static class ProfileOption extends NoArgumentBuildOption<StartParameter> {
+    public static class ProfileOption extends EnabledOnlyBooleanBuildOption<StartParameter> {
         public ProfileOption() {
             super(null, CommandLineOptionConfiguration.create("profile", "Profile build execution time and generates a report in the <build_dir>/reports/profile directory."));
         }
@@ -106,7 +106,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
     }
 
-    public static class ContinueOption extends NoArgumentBuildOption<StartParameter> {
+    public static class ContinueOption extends EnabledOnlyBooleanBuildOption<StartParameter> {
         public ContinueOption() {
             super(null, CommandLineOptionConfiguration.create("continue", "Continue task execution after a task failure."));
         }
@@ -117,7 +117,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
     }
 
-    public static class OfflineOption extends NoArgumentBuildOption<StartParameter> {
+    public static class OfflineOption extends EnabledOnlyBooleanBuildOption<StartParameter> {
         public OfflineOption() {
             super(null, CommandLineOptionConfiguration.create("offline", "Execute the build without accessing network resources."));
         }
@@ -128,7 +128,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
     }
 
-    public static class RefreshDependenciesOption extends NoArgumentBuildOption<StartParameter> {
+    public static class RefreshDependenciesOption extends EnabledOnlyBooleanBuildOption<StartParameter> {
         public RefreshDependenciesOption() {
             super(null, CommandLineOptionConfiguration.create("refresh-dependencies", "Refresh the state of dependencies."));
         }
@@ -139,7 +139,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
     }
 
-    public static class DryRunOption extends NoArgumentBuildOption<StartParameter> {
+    public static class DryRunOption extends EnabledOnlyBooleanBuildOption<StartParameter> {
         public DryRunOption() {
             super(null, CommandLineOptionConfiguration.create("dry-run", "m", "Run the builds with all task actions disabled."));
         }
@@ -150,7 +150,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
     }
 
-    public static class ContinuousOption extends NoArgumentBuildOption<StartParameter> {
+    public static class ContinuousOption extends EnabledOnlyBooleanBuildOption<StartParameter> {
         public ContinuousOption() {
             super(null, CommandLineOptionConfiguration.create("continuous", "t", "Enables continuous build. Gradle does not exit and will re-execute tasks when task file inputs change.").incubating());
         }
@@ -161,7 +161,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
     }
 
-    public static class NoProjectDependenciesRebuildOption extends NoArgumentBuildOption<StartParameter> {
+    public static class NoProjectDependenciesRebuildOption extends EnabledOnlyBooleanBuildOption<StartParameter> {
         public NoProjectDependenciesRebuildOption() {
             super(null, CommandLineOptionConfiguration.create("no-rebuild", "a", "Do not rebuild project dependencies."));
         }
