@@ -104,13 +104,13 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
         configureTestedComponent(project);
 
-        CreateSwiftBundle bundle = (CreateSwiftBundle) tasks.getByName("bundleTest");
+        CreateSwiftBundle bundle = (CreateSwiftBundle) tasks.getByName("bundleSwiftTest");
 
         final XcTest xcTest = tasks.create("xcTest", XcTest.class);
         // TODO - should respect changes to build directory
         xcTest.setBinResultsDir(project.file("build/results/test/bin"));
         xcTest.setTestBundleDir(bundle.getOutputDir());
-        xcTest.setWorkingDir(buildDirectory.dir("bundle"));
+        xcTest.setWorkingDir(buildDirectory.dir("bundle/test"));
         // TODO - should respect changes to reports dir
         xcTest.getReports().getHtml().setDestination(buildDirectory.dir("reports/test").map(new Transformer<File, Directory>() {
             @Override

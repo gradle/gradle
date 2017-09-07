@@ -31,7 +31,7 @@ import org.gradle.process.ExecSpec;
 import javax.inject.Inject;
 
 /**
- * Creates Apple bundle.
+ * Creates Apple bundle from compiled Swift code.
  *
  * @since 4.3
  */

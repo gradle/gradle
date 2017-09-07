@@ -77,13 +77,13 @@ class XCTestConventionPluginTest extends Specification {
         link.binaryFile.get().asFile == projectDir.file("build/exe/test/" + OperatingSystem.current().getExecutableName("TestAppTest"))
         link.debuggable
 
-        def bundle = project.tasks.createXcTestBundle
+        def bundle = project.tasks.bundleSwiftTest
         bundle instanceof CreateSwiftBundle
-        bundle.outputDir == project.file("build/bundle/testAppTest.xctest")
+        bundle.outputDir.get().asFile == project.file("build/bundle/test/TestAppTest.xctest")
 
         def test = project.tasks.xcTest
         test instanceof XcTest
-        test.workingDir == projectDir
+        test.workingDir == projectDir.file("build/bundle/test")
         test.binResultsDir == projectDir.file("build/results/test/bin")
         test.reports.html.destination == projectDir.file("build/reports/test")
         test.reports.junitXml.destination == projectDir.file("build/reports/test/xml")
@@ -99,13 +99,13 @@ class XCTestConventionPluginTest extends Specification {
         compileSwift.objectFileDir.get().asFile == projectDir.file("output/obj/test")
 
         def link = project.tasks.linkTest
-        link.binaryFile.get().asFile == projectDir.file("output/exe/" + OperatingSystem.current().getExecutableName("testAppTest"))
+        link.binaryFile.get().asFile == projectDir.file("output/exe/test/" + OperatingSystem.current().getExecutableName("TestAppTest"))
 
-        def bundle = project.tasks.createXcTestBundle
-        bundle.outputDir == project.file("output/bundle/testAppTest.xctest")
+        def bundle = project.tasks.bundleSwiftTest
+        bundle.outputDir.get().asFile == project.file("output/bundle/test/TestAppTest.xctest")
 
         def test = project.tasks.xcTest
-        test.workingDir == projectDir
+        test.workingDir == projectDir.file("output/bundle/test")
         test.reports.html.destination == projectDir.file("output/reports/test")
         test.reports.junitXml.destination == projectDir.file("output/reports/test/xml")
     }

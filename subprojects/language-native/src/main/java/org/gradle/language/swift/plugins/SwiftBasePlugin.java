@@ -158,7 +158,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     link.setToolChain(toolChain);
                     link.setDebuggable(binary.isDebuggable());
 
-                    final CreateSwiftBundle bundle = tasks.create(names.getTaskName("bundle"), CreateSwiftBundle.class);
+                    final CreateSwiftBundle bundle = tasks.create(names.getTaskName("bundleSwift"), CreateSwiftBundle.class);
                     bundle.getExecutableFile().set(link.getBinaryFile());
                     bundle.getInformationFile().set(((SwiftBundle) binary).getInformationPropertyList());
                     Provider<Directory> bundleLocation = buildDirectory.dir(providers.provider(new Callable<String>() {

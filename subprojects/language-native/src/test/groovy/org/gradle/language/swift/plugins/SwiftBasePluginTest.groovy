@@ -137,10 +137,10 @@ class SwiftBasePluginTest extends Specification {
         bundleTask.outputDir.get().asFile == projectDir.file("build/bundle/${bundleDir}TestBundle.xctest")
 
         where:
-        name        | linkTaskName    | bundleTaskName    | bundleDir
-        "main"      | "link"          | "bundle"          | "main/"
-        "mainDebug" | "linkDebug"     | "bundleDebug"     | "main/debug/"
-        "test"      | "linkTest"      | "bundleTest"      | "test/"
-        "testDebug" | "linkTestDebug" | "bundleTestDebug" | "test/debug/"
+        name        | linkTaskName    | bundleTaskName         | bundleDir
+        "main"      | "link"          | "bundleSwift"          | "main/"
+        "mainDebug" | "linkDebug"     | "bundleSwiftDebug"     | "main/debug/"
+        "test"      | "linkTest"      | "bundleSwiftTest"      | "test/"
+        "testDebug" | "linkTestDebug" | "bundleSwiftTestDebug" | "test/debug/"
     }
 }
