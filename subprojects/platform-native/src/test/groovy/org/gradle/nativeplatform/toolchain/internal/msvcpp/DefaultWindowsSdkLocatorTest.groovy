@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,115 +16,66 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp
 
-import net.rubygrapefruit.platform.MissingRegistryEntryException
-import net.rubygrapefruit.platform.WindowsRegistry
-import org.gradle.internal.os.OperatingSystem
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TreeVisitor
-import org.gradle.util.VersionNumber
-import org.junit.Rule
 import spock.lang.Specification
 
+
 class DefaultWindowsSdkLocatorTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    final WindowsRegistry windowsRegistry = Stub(WindowsRegistry)
-    final OperatingSystem operatingSystem = Stub(OperatingSystem) {
-        isWindows() >> true
-        getExecutableName(_ as String) >> { String exeName -> exeName }
+    final WindowsSdkLocator.SearchResult legacySdkLookup = Stub(WindowsSdkLocator.SearchResult)
+    final LegacyWindowsSdkLocator legacyWindowsSdkLocator = Stub(LegacyWindowsSdkLocator) {
+        locateWindowsSdks(_) >> legacySdkLookup
     }
-    final WindowsSdkLocator windowsSdkLocator = new DefaultWindowsSdkLocator(operatingSystem, windowsRegistry)
+    final WindowsKitComponentLocator.SearchResult windowsKitLookup = Stub(WindowsKitComponentLocator.SearchResult)
+    WindowsKitWindowsSdkLocator windowsKitSdkLocator = Stub(WindowsKitWindowsSdkLocator) {
+        locateComponents(_) >> windowsKitLookup
+    }
 
-    def "uses highest version SDK found in registry"() {
-        def dir1 = sdkDir("sdk1")
-        def dir2 = sdkDir("sdk2")
+    WindowsSdkLocator locator = new DefaultWindowsSdkLocator(legacyWindowsSdkLocator, windowsKitSdkLocator)
 
+    def "prefers a windows kit sdk over a legacy sdk"() {
+        def sdk = Mock(WindowsKitWindowsSdk)
         given:
-        operatingSystem.findInPath(_) >> null
-        windowsRegistry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows/) >> ["v1", "v2"]
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "InstallationFolder") >> dir1.absolutePath
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductVersion") >> "7.0"
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductName") >> "sdk 1"
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v2/, "InstallationFolder") >> dir2.absolutePath
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v2/, "ProductVersion") >> "7.1"
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v2/, "ProductName") >> "sdk 2"
+        legacySdkLookup.available >> true
+        windowsKitLookup.available >> true
+        windowsKitLookup.component >> sdk
 
         when:
-        def result = windowsSdkLocator.locateWindowsSdks(null)
+        def result = locator.locateWindowsSdks(null)
 
         then:
         result.available
-        result.sdk.name == "sdk 2"
-        result.sdk.version == VersionNumber.parse("7.1")
-        result.sdk.baseDir == dir2
+        result.sdk == sdk
     }
 
-    def "uses windows kit if version is higher than windows SDK"() {
-        def dir1 = sdkDir("sdk1")
-        def dir2 = kitDir("sdk2")
-        def dir3 = kitDir("sdk3")
+    def "finds a legacy sdk when a windows kit sdk cannot be found"() {
+        def sdk = Mock(LegacyWindowsSdk)
 
         given:
-        operatingSystem.findInPath(_) >> null
-        windowsRegistry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\SDKs\Windows/) >> ["v1"]
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "InstallationFolder") >> dir1.absolutePath
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductVersion") >> "7.1"
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductName") >> "sdk 1"
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot") >> dir2.absolutePath
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot81") >> dir3.absolutePath
+        legacySdkLookup.available >> true
+        legacySdkLookup.sdk >> sdk
+        windowsKitLookup.available >> false
+        windowsKitLookup.component >> null
 
         when:
-        def result = windowsSdkLocator.locateWindowsSdks(null)
+        def result = locator.locateWindowsSdks(null)
 
         then:
         result.available
-        result.sdk.name == "Windows Kit 8.1"
-        result.sdk.version == VersionNumber.parse("8.1")
-        result.sdk.baseDir == dir3
+        result.sdk == sdk
     }
 
-    def "handles missing SDKs and Kits"() {
-        def dir = sdkDir("sdk1")
-
-        given:
-        operatingSystem.findInPath(_) >> null
-        windowsRegistry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\SDKs\Windows/) >> { throw new MissingRegistryEntryException("missing") }
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot") >> { throw new MissingRegistryEntryException("missing") }
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot81") >> dir.absolutePath
-
-        when:
-        def result = windowsSdkLocator.locateWindowsSdks(null)
-
-        then:
-        result.available
-        result.sdk.name == "Windows Kit 8.1"
-        result.sdk.version == VersionNumber.parse("8.1")
-        result.sdk.baseDir == dir
-    }
-
-    def "locates windows SDK based on executables in path"() {
-        def sdkDir = sdkDir("sdk")
-
-        given:
-        operatingSystem.findInPath("rc.exe") >> sdkDir.file("bin/rc.exe")
-
-        when:
-        def result = windowsSdkLocator.locateWindowsSdks(null)
-
-        then:
-        result.available
-        result.sdk.name == "Path-resolved Windows SDK"
-        result.sdk.version == VersionNumber.UNKNOWN
-        result.sdk.baseDir == sdkDir
-    }
-
-    def "SDK not available when not found in registry or system path"() {
+    def "does not find an sdk if neither locator is successful"() {
         def visitor = Mock(TreeVisitor)
 
         given:
-        operatingSystem.findInPath(_) >> null
+        legacySdkLookup.available >> false
+        legacySdkLookup.sdk >> null
+        legacySdkLookup.explain(_) >> { args -> args[0].node("fail") }
+        windowsKitLookup.available >> false
+        windowsKitLookup.component >> null
 
         when:
-        def result = windowsSdkLocator.locateWindowsSdks(null)
+        def result = locator.locateWindowsSdks(null)
 
         then:
         !result.available
@@ -134,123 +85,6 @@ class DefaultWindowsSdkLocatorTest extends Specification {
         result.explain(visitor)
 
         then:
-        1 * visitor.node("Could not locate a Windows SDK installation, using the Windows registry and system path.")
-    }
-
-    def "uses windows SDK using specified install dir"() {
-        def sdkDir1 = this.sdkDir("sdk-1")
-        def sdkDir2 = this.sdkDir("sdk-2")
-        def ignoredDir = sdkDir("ignored")
-
-        given:
-        operatingSystem.findInPath(_) >> null
-        windowsRegistry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows/) >> ["v1"]
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "InstallationFolder") >> ignoredDir.absolutePath
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductVersion") >> "7.0"
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductName") >> "installed sdk"
-        assert windowsSdkLocator.locateWindowsSdks(null).available
-
-        when:
-        def result = windowsSdkLocator.locateWindowsSdks(sdkDir1)
-
-        then:
-        result.available
-        result.sdk.name == "User-provided Windows SDK"
-        result.sdk.version == VersionNumber.UNKNOWN
-        result.sdk.baseDir == sdkDir1
-
-        when:
-        result = windowsSdkLocator.locateWindowsSdks(sdkDir2)
-
-        then:
-        result.available
-        result.sdk.name == "User-provided Windows SDK"
-        result.sdk.version == VersionNumber.UNKNOWN
-        result.sdk.baseDir == sdkDir2
-    }
-
-    def "SDK not available when specified install dir does not look like an SDK"() {
-        def sdkDir1 = tmpDir.createDir("dir")
-        def ignoredDir = sdkDir("ignored")
-        def visitor = Mock(TreeVisitor)
-
-        given:
-        operatingSystem.findInPath(_) >> null
-        windowsRegistry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows/) >> ["v1"]
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "InstallationFolder") >> ignoredDir.absolutePath
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductVersion") >> "7.0"
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductName") >> "installed sdk"
-        assert windowsSdkLocator.locateWindowsSdks(null).available
-
-        when:
-        def result = windowsSdkLocator.locateWindowsSdks(sdkDir1)
-
-        then:
-        !result.available
-        result.sdk == null
-
-        when:
-        result.explain(visitor)
-
-        then:
-        1 * visitor.node("The specified installation directory '$sdkDir1' does not appear to contain a Windows SDK installation.")
-    }
-
-    def "fills in meta-data from registry for SDK discovered using the path"() {
-        def sdkDir = sdkDir("sdk1")
-
-        given:
-        operatingSystem.findInPath("rc.exe") >> sdkDir.file("bin/rc.exe")
-
-        and:
-        windowsRegistry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows/) >> ["v1"]
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "InstallationFolder") >> sdkDir.absolutePath
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductVersion") >> "7.0"
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductName") >> "installed sdk"
-
-        when:
-        def result = windowsSdkLocator.locateWindowsSdks(null)
-
-        then:
-        result.available
-        result.sdk.name == "installed sdk"
-        result.sdk.version == VersionNumber.parse("7.0")
-        result.sdk.baseDir == sdkDir
-    }
-
-    def "fills in meta-data from registry for SDK specified by user"() {
-        def sdkDir = sdkDir("sdk1")
-
-        given:
-        operatingSystem.findInPath(_) >> null
-
-        and:
-        windowsRegistry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows/) >> ["v1"]
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "InstallationFolder") >> sdkDir.absolutePath
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductVersion") >> "7.0"
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductName") >> "installed sdk"
-
-        when:
-        def result = windowsSdkLocator.locateWindowsSdks(sdkDir)
-
-        then:
-        result.available
-        result.sdk.name == "installed sdk"
-        result.sdk.version == VersionNumber.parse("7.0")
-        result.sdk.baseDir == sdkDir
-    }
-
-    def sdkDir(String name) {
-        def dir = tmpDir.createDir(name)
-        dir.createFile("bin/rc.exe")
-        dir.createFile("lib/kernel32.lib")
-        return dir
-    }
-
-    def kitDir(String name) {
-        def dir = tmpDir.createDir(name)
-        dir.createFile("bin/x86/rc.exe")
-        dir.createFile("lib/win8/um/x86/kernel32.lib")
-        return dir
+        1 * visitor.node("fail")
     }
 }

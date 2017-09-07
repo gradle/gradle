@@ -30,6 +30,8 @@ import org.gradle.nativeplatform.platform.internal.NativePlatforms;
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProviderFactory;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultUcrtLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultVisualStudioLocator;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultLegacyWindowsSdkLocator;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultWindowsKitWindowsSdkLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultWindowsSdkLocator;
 
 public class NativeBinaryServices extends AbstractPluginServiceRegistry {
@@ -47,6 +49,8 @@ public class NativeBinaryServices extends AbstractPluginServiceRegistry {
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new NativeDependencyResolverServices());
         registration.add(DefaultVisualStudioLocator.class);
+        registration.add(DefaultLegacyWindowsSdkLocator.class);
+        registration.add(DefaultWindowsKitWindowsSdkLocator.class);
         registration.add(DefaultWindowsSdkLocator.class);
         registration.add(DefaultUcrtLocator.class);
         registration.add(CompilerMetaDataProviderFactory.class);

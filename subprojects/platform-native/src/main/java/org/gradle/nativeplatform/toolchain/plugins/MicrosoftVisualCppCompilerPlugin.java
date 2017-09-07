@@ -32,6 +32,7 @@ import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 import org.gradle.nativeplatform.toolchain.VisualCpp;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultWindowsSdkLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.UcrtLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualCppToolChain;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioLocator;
@@ -60,7 +61,7 @@ public class MicrosoftVisualCppCompilerPlugin implements Plugin<Project> {
             final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory = serviceRegistry.get(CompilerOutputFileNamingSchemeFactory.class);
             final VisualStudioLocator visualStudioLocator = serviceRegistry.get(VisualStudioLocator.class);
             final UcrtLocator ucrtLocator = serviceRegistry.get(UcrtLocator.class);
-            final WindowsSdkLocator windowsSdkLocator = serviceRegistry.get(WindowsSdkLocator.class);
+            final WindowsSdkLocator windowsSdkLocator = serviceRegistry.get(DefaultWindowsSdkLocator.class);
             final WorkerLeaseService workerLeaseService = serviceRegistry.get(WorkerLeaseService.class);
 
             toolChainRegistry.registerFactory(VisualCpp.class, new NamedDomainObjectFactory<VisualCpp>() {

@@ -16,20 +16,5 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import org.gradle.api.Named;
-import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
-import org.gradle.util.VersionNumber;
-
-import java.io.File;
-
-public interface WindowsSdk extends Named {
-    VersionNumber getVersion();
-
-    File getResourceCompiler(NativePlatformInternal platform);
-
-    File getBinDir(NativePlatformInternal platform);
-
-    File[] getIncludeDirs();
-
-    File getLibDir(NativePlatformInternal platform);
+public interface LegacyWindowsSdkLocator extends WindowsSdkLocator {
 }

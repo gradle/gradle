@@ -16,14 +16,15 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import org.gradle.api.Named;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
 
-public abstract class WindowsKitComponent {
-    protected final File baseDir;
-    protected final String name;
-    protected final VersionNumber version;
+public abstract class WindowsKitComponent implements Named {
+    private final File baseDir;
+    private final String name;
+    private final VersionNumber version;
 
     public WindowsKitComponent(File baseDir, VersionNumber version, String name) {
         this.baseDir = baseDir;
@@ -52,15 +53,15 @@ public abstract class WindowsKitComponent {
             return false;
         }
 
-        WindowsKitComponent ucrt = (WindowsKitComponent) o;
+        WindowsKitComponent component = (WindowsKitComponent) o;
 
-        if (!baseDir.equals(ucrt.baseDir)) {
+        if (!baseDir.equals(component.baseDir)) {
             return false;
         }
-        if (!name.equals(ucrt.name)) {
+        if (!name.equals(component.name)) {
             return false;
         }
-        return version.equals(ucrt.version);
+        return version.equals(component.version);
 
     }
 

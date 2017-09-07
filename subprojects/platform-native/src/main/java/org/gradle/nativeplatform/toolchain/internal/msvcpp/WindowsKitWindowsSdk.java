@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,15 +21,32 @@ import org.gradle.util.VersionNumber;
 
 import java.io.File;
 
-public class Ucrt extends WindowsKitComponent {
+public class WindowsKitWindowsSdk extends WindowsKitComponent implements WindowsSdk {
 
-    public Ucrt(File baseDir, VersionNumber version, String name) {
+    public WindowsKitWindowsSdk(File baseDir, VersionNumber version, String name) {
         super(baseDir, version, name);
+    }
+
+    @Override
+    public File getResourceCompiler(NativePlatformInternal platform) {
+        return new File(getBinDir(platform), "rc.exe");
+    }
+
+    @Override
+    public File getBinDir(NativePlatformInternal platform) {
+        if (platform.getArchitecture().isAmd64()) {
+            return new File(getBaseDir(), "bin/x64");
+        }
+        if (platform.getArchitecture().isArm()) {
+            return new File(getBaseDir(), "bin/arm");
+        }
+        return new File(getBaseDir(), "bin/x86");
     }
 
     public File[] getIncludeDirs() {
         return new File[] {
-            new File(getBaseDir(), "Include/" + getVersion().toString() + "/ucrt")
+            new File(getBaseDir(), "Include/" + getVersion().toString() + "/um"),
+            new File(getBaseDir(), "Include/" + getVersion().toString() + "/shared")
         };
     }
 
@@ -41,6 +58,6 @@ public class Ucrt extends WindowsKitComponent {
         if (platform.getArchitecture().isArm()) {
             platformDir = "arm";
         }
-        return new File(getBaseDir(), "Lib/" + getVersion().toString() + "/ucrt/" + platformDir);
+        return new File(getBaseDir(), "Lib/" + getVersion().toString() + "/um/" + platformDir);
     }
 }

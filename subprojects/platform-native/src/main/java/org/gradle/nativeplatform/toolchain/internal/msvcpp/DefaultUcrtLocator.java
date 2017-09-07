@@ -17,36 +17,44 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import java.io.File;
 
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.VersionNumber;
 
 import net.rubygrapefruit.platform.WindowsRegistry;
 
 public class DefaultUcrtLocator extends AbstractWindowsKitLocator<Ucrt> implements UcrtLocator {
-    private static final String TOOL_NAME = "ucrt";
-    private static final String NAME_USER = "User-provided UCRT";
-    private static final String NAME_KIT = "UCRT";
+    private static final String DISPLAY_NAME = "Universal C Runtime";
+    private static final String COMPONENT_NAME = "ucrt";
 
-    public DefaultUcrtLocator(OperatingSystem os, WindowsRegistry windowsRegistry) {
-        super(os, windowsRegistry);
-    }
-
-    public Ucrt newComponent(File baseDir, VersionNumber version, DiscoveryType discoveryType) {
-        String displayName;
-        switch(discoveryType) {
-            case USER:
-                displayName = NAME_USER;
-                break;
-            case AUTO:
-                displayName = NAME_KIT + " " + version.getMajor();
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown discovery method for " + getComponentName() + ": " + discoveryType);
-        }
-        return new Ucrt(baseDir, displayName, version);
+    public DefaultUcrtLocator(WindowsRegistry windowsRegistry) {
+        super(windowsRegistry);
     }
 
     public String getComponentName() {
-        return TOOL_NAME;
+        return COMPONENT_NAME;
+    }
+
+    @Override
+    String getDisplayName() {
+        return DISPLAY_NAME;
+    }
+
+    @Override
+    boolean isValidComponentBaseDir(File baseDir) {
+        // Nothing special to check for UCRT
+        return true;
+    }
+
+    @Override
+    boolean isValidComponentIncludeDir(File includeDir) {
+        return new File(includeDir, "io.h").exists();
+    }
+
+    @Override
+    boolean isValidComponentLibDir(File libDir) {
+        return new File(libDir, "x86/libucrt.lib").exists();
+    }
+
+    public Ucrt newComponent(File baseDir, VersionNumber version, DiscoveryType discoveryType) {
+        return new Ucrt(baseDir, version, getVersionedDisplayName(version, discoveryType));
     }
 }

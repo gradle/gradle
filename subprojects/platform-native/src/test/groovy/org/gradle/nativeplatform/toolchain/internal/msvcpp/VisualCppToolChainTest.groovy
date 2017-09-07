@@ -54,8 +54,8 @@ class VisualCppToolChainTest extends Specification {
     final WindowsSdkLocator windowsSdkLocator = Stub(WindowsSdkLocator) {
         locateWindowsSdks(_) >> windowsSdkLookup
     }
-    final WindowsKitComponentLocator ucrtLocator = Stub(UcrtLocator) {
-        locateUcrts(_) >> ucrtLookup
+    final UcrtLocator ucrtLocator = Stub(UcrtLocator) {
+        locateComponents(_) >> ucrtLookup
     }
 	final OperatingSystem operatingSystem = Stub(OperatingSystem) {
         isWindows() >> true
