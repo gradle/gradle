@@ -16,7 +16,6 @@
 
 package org.gradle.internal.buildoption;
 
-import org.gradle.cli.CommandLineOption;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 
@@ -51,23 +50,9 @@ public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T> {
     @Override
     public void configure(CommandLineParser parser) {
         for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
-            CommandLineOption enabledCommandLineOption = parser.option(config.getLongOption())
-                .hasDescription(config.getDescription())
-                .deprecated(config.getDeprecationWarning());
-
-            if (config.isIncubating()) {
-                enabledCommandLineOption.incubating();
-            }
-
+            configureCommandLineOption(parser, new String[] { config.getLongOption() }, config.getDescription(), config.getDeprecationWarning(), config.isIncubating());
             String disabledOption = getDisabledCommandLineOption(config);
-            CommandLineOption disabledCommandLineOption = parser.option(disabledOption)
-                .hasDescription(getDisabledCommandLineDescription(config))
-                .deprecated(config.getDeprecationWarning());
-
-            if (config.isIncubating()) {
-                disabledCommandLineOption.incubating();
-            }
-
+            configureCommandLineOption(parser, new String[] { disabledOption }, config.getDescription(), config.getDeprecationWarning(), config.isIncubating());
             parser.allowOneOf(config.getLongOption(), disabledOption);
         }
     }

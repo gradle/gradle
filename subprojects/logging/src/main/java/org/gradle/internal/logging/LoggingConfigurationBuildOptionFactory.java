@@ -23,7 +23,6 @@ import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.cli.CommandLineArgumentException;
-import org.gradle.cli.CommandLineOption;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.internal.Factory;
@@ -81,13 +80,7 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
         @Override
         public void configure(CommandLineParser parser) {
             for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
-                CommandLineOption option = parser.option(config.getAllOptions())
-                    .hasDescription(config.getDescription())
-                    .deprecated(config.getDeprecationWarning());
-
-                if (config.isIncubating()) {
-                    option.incubating();
-                }
+                configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.getDeprecationWarning(), config.isIncubating());
             }
 
             List<String> allShortOptions = CollectionUtils.collect(commandLineOptionConfigurations, new Transformer<String, CommandLineOptionConfiguration>() {
@@ -145,13 +138,7 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
         @Override
         public void configure(CommandLineParser parser) {
             for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
-                CommandLineOption option = parser.option(config.getAllOptions())
-                    .hasDescription(config.getDescription())
-                    .deprecated(config.getDeprecationWarning());
-
-                if (config.isIncubating()) {
-                    option.incubating();
-                }
+                configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.getDeprecationWarning(), config.isIncubating());
             }
 
             List<String> allShortOptions = CollectionUtils.collect(commandLineOptionConfigurations, new Transformer<String, CommandLineOptionConfiguration>() {

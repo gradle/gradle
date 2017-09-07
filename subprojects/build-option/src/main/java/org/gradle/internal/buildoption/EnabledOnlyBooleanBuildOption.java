@@ -16,7 +16,6 @@
 
 package org.gradle.internal.buildoption;
 
-import org.gradle.cli.CommandLineOption;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 
@@ -30,7 +29,7 @@ import java.util.Map;
 public abstract class EnabledOnlyBooleanBuildOption<T> extends AbstractBuildOption<T> {
 
     public EnabledOnlyBooleanBuildOption(String gradleProperty) {
-        super(gradleProperty, null);
+        super(gradleProperty, new CommandLineOptionConfiguration[] {});
     }
 
     public EnabledOnlyBooleanBuildOption(String gradleProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
@@ -47,13 +46,7 @@ public abstract class EnabledOnlyBooleanBuildOption<T> extends AbstractBuildOpti
     @Override
     public void configure(CommandLineParser parser) {
         for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
-            CommandLineOption option = parser.option(config.getAllOptions())
-                .hasDescription(config.getDescription())
-                .deprecated(config.getDeprecationWarning());
-
-            if (config.isIncubating()) {
-                option.incubating();
-            }
+            configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.getDeprecationWarning(), config.isIncubating());
         }
     }
 

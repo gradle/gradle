@@ -52,14 +52,7 @@ public abstract class ListBuildOption<T> extends AbstractBuildOption<T> {
     @Override
     public void configure(CommandLineParser parser) {
         for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
-            CommandLineOption option = parser.option(config.getAllOptions())
-                .hasDescription(config.getDescription())
-                .deprecated(config.getDeprecationWarning())
-                .hasArguments();
-
-            if (config.isIncubating()) {
-                option.incubating();
-            }
+            configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.getDeprecationWarning(), config.isIncubating()).hasArguments();
         }
     }
 

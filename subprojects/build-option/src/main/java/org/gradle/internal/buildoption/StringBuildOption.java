@@ -16,7 +16,6 @@
 
 package org.gradle.internal.buildoption;
 
-import org.gradle.cli.CommandLineOption;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 
@@ -49,14 +48,7 @@ public abstract class StringBuildOption<T> extends AbstractBuildOption<T> {
     @Override
     public void configure(CommandLineParser parser) {
         for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
-            CommandLineOption option = parser.option(config.getAllOptions())
-                .hasDescription(config.getDescription())
-                .deprecated(config.getDeprecationWarning())
-                .hasArgument();
-
-            if (config.isIncubating()) {
-                option.incubating();
-            }
+            configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.getDeprecationWarning(), config.isIncubating()).hasArgument();
         }
     }
 
