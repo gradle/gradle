@@ -17,40 +17,67 @@
 package org.gradle.nativeplatform.fixtures.app;
 
 import org.gradle.integtests.fixtures.SourceFile;
+import org.gradle.test.fixtures.file.TestFile;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public abstract class IncrementalSwiftElement extends IncrementalElement {
-    @Override
-    protected List<String> toExpectedIntermediateDescendants(SourceElement sourceElement) {
-        List<String> result = new ArrayList<String>();
-
-        String sourceSetName = sourceElement.getSourceSetName();
-        for (SourceFile sourceFile : sourceElement.getFiles()) {
-            result.add(getIntermediateRelativeFilePath(sourceSetName, sourceFile, ".o"));
-            result.add(getIntermediateRelativeFilePath(sourceSetName, sourceFile, "~partial.swiftdoc"));
-            result.add(getIntermediateRelativeFilePath(sourceSetName, sourceFile, "~partial.swiftmodule"));
-        }
-        return result;
-    }
-
-    @Override
-    public List<String> getExpectedIntermediateDescendants() {
-        return appendGenericExpectedIntermediateDescendants(super.getExpectedIntermediateDescendants());
-    }
-
-    @Override
-    public List<String> getExpectedAlternateIntermediateDescendants() {
-        return appendGenericExpectedIntermediateDescendants(super.getExpectedAlternateIntermediateDescendants());
-    }
-
-    private List<String> appendGenericExpectedIntermediateDescendants(List<String> delegate) {
-        delegate.add("output-file-map.json");
-        delegate.add(getModuleName() + ".swiftmodule");
-        delegate.add(getModuleName() + ".swiftdoc");
-        return delegate;
-    }
-
     public abstract String getModuleName();
+
+    /**
+     * Returns a transform that replace the content of the before element with the content of the after element.
+     * Both elements must have the same location.
+     */
+    protected static Transform modify(final SourceFileElement beforeElement, SourceFileElement afterElement) {
+        assert beforeElement.getFiles().size() == 1;
+        assert afterElement.getFiles().size() == 1;
+        assert beforeElement.getSourceSetName().equals(afterElement.getSourceSetName());
+        final String sourceSetName = beforeElement.getSourceSetName();
+        final SourceFile beforeFile = beforeElement.getSourceFile();
+        final SourceFile afterFile = afterElement.getSourceFile();
+        assert beforeFile.getPath().equals(afterFile.getPath());
+        assert beforeFile.getName().equals(afterFile.getName());
+        assert !beforeFile.getContent().equals(afterFile.getContent());
+
+        return new Transform() {
+            @Override
+            public void applyChangesToProject(TestFile projectDir) {
+                TestFile file = projectDir.file(beforeFile.withPath("src/" + sourceSetName));
+                file.assertExists();
+
+                file.write(afterFile.getContent());
+            }
+
+            @Override
+            public List<SourceFile> getBeforeFiles() {
+                return Arrays.asList(beforeFile);
+            }
+
+            @Override
+            public List<SourceFile> getAfterFiles() {
+                return Arrays.asList(afterFile);
+            }
+        };
+    }
+
+    /**
+     * Returns a transform that rename the before element to {@code renamed-} followed by the original name.
+     */
+    protected static Transform rename(SourceFileElement beforeElement) {
+        return rename(beforeElement, AbstractRenameTransform.DEFAULT_RENAME_PREFIX);
+    }
+
+    protected static Transform rename(SourceFileElement beforeElement, String renamePrefix) {
+        assert beforeElement.getFiles().size() == 1;
+        SourceFile beforeFile = beforeElement.getSourceFile();
+        final SourceFile afterFile = new SourceFile(beforeFile.getPath(), renamePrefix + beforeFile.getName(), beforeFile.getContent());
+
+        return new AbstractRenameTransform(beforeFile, afterFile, beforeElement) {
+            @Override
+            public List<SourceFile> getAfterFiles() {
+                return Arrays.asList(afterFile);
+            }
+        };
+    }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.file;
 
+import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
@@ -499,19 +500,12 @@ public class TestFile extends File {
     /**
      * Convenience method for {@link #assertHasDescendants(String...)}.
      */
-    public TestFile assertHasDescendants(List<String> descendants) {
-        return assertHasDescendants(descendants.toArray(new String[0]));
-    }
-
-    /**
-     * Asserts that this file contains the given set of descendants (and possibly other files).
-     */
-    public TestFile assertContainsDescendants(String... descendants) {
+    public TestFile assertHasDescendants(Iterable<String> descendants) {
         assertIsDir();
         Set<String> actual = new TreeSet<String>();
         visit(actual, "", this);
 
-        Set<String> expected = new TreeSet<String>(Arrays.asList(descendants));
+        Set<String> expected = new TreeSet<String>(Lists.newArrayList(descendants));
 
         Set<String> missing = new TreeSet<String>(expected);
         missing.removeAll(actual);
@@ -519,6 +513,14 @@ public class TestFile extends File {
         assertTrue(String.format("For dir: %s, missing files: %s, expected: %s, actual: %s", this, missing, expected, actual), missing.isEmpty());
 
         return this;
+
+    }
+
+    /**
+     * Asserts that this file contains the given set of descendants (and possibly other files).
+     */
+    public TestFile assertContainsDescendants(String... descendants) {
+        return assertHasDescendants(Arrays.asList(descendants));
     }
 
     public TestFile assertIsEmptyDir() {
@@ -711,6 +713,13 @@ public class TestFile extends File {
 
     public ExecOutput execute(List args, List env) {
         return new TestFileHelper(this).execute(args, env);
+    }
+
+    /**
+     * Relativizes the URI of this file according to the base directory.
+     */
+    public URI relativizeFrom(TestFile baseDir) {
+        return baseDir.toURI().relativize(toURI());
     }
 
     public class Snapshot {
