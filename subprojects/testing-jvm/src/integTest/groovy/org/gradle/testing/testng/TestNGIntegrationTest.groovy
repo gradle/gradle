@@ -275,4 +275,75 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
             }
         '''.stripIndent()
     }
+
+    @Ignore("Test class events refer to gradle test executer which is wrong in the hierarchy")
+    def "test class events references correct suite as parent"() {
+        given:
+        def testNgSuite = file("src/test/resources/testng.xml")
+        buildFile << """
+        import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
+        import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
+        import org.gradle.api.internal.tasks.testing.TestStartEvent;
+        import org.gradle.api.tasks.testing.TestOutputEvent;
+        import org.gradle.api.tasks.testing.TestResult;
+        import org.gradle.api.internal.tasks.testing.results.TestListenerInternal
+
+        test {
+          useTestNG {
+            setSuiteXmlFiles([new File("${(testNgSuite.absolutePath)}")])
+          }
+          
+        }
+        gradle.addListener(new TestListenerInternal() {
+                void started(TestDescriptorInternal d, TestStartEvent s) {
+                    println "Started \${d.name} -- \${d.className} -- \${d.parent?.name}"    
+                }
+
+                void completed(TestDescriptorInternal d, TestResult result, TestCompleteEvent cE) {
+                    println "Finished \${d.name} -- \${d.className} -- \${d.parent?.name}"    
+                }
+
+                void output(TestDescriptorInternal descriptor, TestOutputEvent output) {
+                }
+        }) 
+        """
+        file("src/test/java/org/company/SystemOutTest.java") << """
+        package org.company;
+        import org.testng.Assert;
+        import org.testng.annotations.Test;
+        @Test
+        public class SystemOutTest {
+          @Test
+          public void testOut() {
+            System.out.println("System.out rules!");
+            Assert.assertTrue(true);
+          }
+        }
+        """
+        testNgSuite << """
+        <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+        <suite name="TestSuite">
+          <test name="LightTest">
+            <classes>
+              <class name="org.company.SystemOutTest"/>
+            </classes>
+          </test>
+          <test name="FullTest">
+            <classes>
+              <class name="org.company.SystemOutTest"/>
+            </classes>
+          </test>
+        </suite>
+        """
+
+        when:
+        fails 'test'
+
+        then:
+        output.contains("Started org.company.SystemOutTest -- org.company.SystemOutTest -- LightTest")
+        output.contains("Started org.company.SystemOutTest -- org.company.SystemOutTest -- FullTest")
+        output.contains("Finished org.company.SystemOutTest -- org.company.SystemOutTest -- LightTest")
+        output.contains("Finished org.company.SystemOutTest -- org.company.SystemOutTest -- FullTest")
+    }
+
 }
