@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.test.xctest.internal;
+package org.gradle.language.swift;
 
-import org.gradle.process.internal.ExecActionFactory;
+import org.gradle.api.Incubating;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.provider.Provider;
 
-import javax.inject.Inject;
-import java.util.Arrays;
-import java.util.List;
-
-public class SwiftStdlibToolLocator extends AbstractLocator {
-    @Inject
-    public SwiftStdlibToolLocator(ExecActionFactory execActionFactory) {
-        super(execActionFactory);
-    }
-
-    @Override
-    protected List<String> getXcrunFlags() {
-        return Arrays.asList("--find", "swift-stdlib-tool");
-    }
+/**
+ * An bundle built from Swift source.
+ *
+ * @since 4.3
+ */
+@Incubating
+public interface SwiftBundle extends SwiftBinary {
+    /**
+     * Defines the location of Info.plist.
+     */
+    Provider<RegularFile> getInformationPropertyList();
 }

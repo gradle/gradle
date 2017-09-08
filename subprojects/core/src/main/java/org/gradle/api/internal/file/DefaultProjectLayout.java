@@ -91,6 +91,18 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     }
 
     @Override
+    public DirectoryVar newInputDirectory(final Task consumer) {
+        final DefaultDirectoryVar directoryVar = new DefaultDirectoryVar(projectDir.fileResolver);
+        consumer.dependsOn(new AbstractTaskDependency() {
+            @Override
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                directoryVar.visitDependencies(context);
+            }
+        });
+        return directoryVar;
+    }
+
+    @Override
     public Provider<RegularFile> file(Provider<File> provider) {
         return new AbstractMappingProvider<RegularFile, File>(RegularFile.class, provider) {
             @Override

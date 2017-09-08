@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.test.xctest.internal;
+package org.gradle.language.swift.internal;
 
-import org.gradle.language.swift.internal.AbstractLocator;
 import org.gradle.process.internal.ExecActionFactory;
 
 import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.List;
 
-public class MacOSSdkPlatformPathLocator extends AbstractLocator {
+public class SwiftStdlibToolLocator extends AbstractLocator {
     @Inject
-    public MacOSSdkPlatformPathLocator(ExecActionFactory execActionFactory) {
+    public SwiftStdlibToolLocator(ExecActionFactory execActionFactory) {
         super(execActionFactory);
     }
 
     @Override
     protected List<String> getXcrunFlags() {
-        return Arrays.asList("--show-sdk-platform-path");
+        return Arrays.asList("--find", "swift-stdlib-tool");
     }
 }

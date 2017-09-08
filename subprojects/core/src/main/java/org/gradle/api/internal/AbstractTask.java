@@ -1005,4 +1005,15 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     protected RegularFileVar newInputFile() {
         return getServices().get(TaskFileVarFactory.class).newInputFile(this);
     }
+
+    /**
+     * Creates a new input directory property for this task.
+     *
+     * @return The property.
+     * @since 4.3
+     */
+    @Incubating
+    protected DirectoryVar newInputDirectory() {
+        return getServices().get(TaskFileVarFactory.class).newInputDirectory(this);
+    }
 }

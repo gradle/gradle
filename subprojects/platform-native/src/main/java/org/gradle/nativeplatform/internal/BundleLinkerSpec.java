@@ -14,23 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.test.xctest.internal;
+package org.gradle.nativeplatform.internal;
 
-import org.gradle.language.swift.internal.AbstractLocator;
-import org.gradle.process.internal.ExecActionFactory;
-
-import javax.inject.Inject;
-import java.util.Arrays;
-import java.util.List;
-
-public class MacOSSdkPlatformPathLocator extends AbstractLocator {
-    @Inject
-    public MacOSSdkPlatformPathLocator(ExecActionFactory execActionFactory) {
-        super(execActionFactory);
-    }
-
-    @Override
-    protected List<String> getXcrunFlags() {
-        return Arrays.asList("--show-sdk-platform-path");
-    }
+public interface BundleLinkerSpec extends LinkerSpec {
 }

@@ -14,40 +14,36 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.test.xctest.tasks;
+package org.gradle.language.swift.tasks;
 
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryVar;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileVar;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.nativeplatform.test.xctest.internal.SwiftStdlibToolLocator;
+import org.gradle.language.swift.internal.SwiftStdlibToolLocator;
 import org.gradle.process.ExecSpec;
 
 import javax.inject.Inject;
-import java.io.File;
 
 /**
- * Creates XCTest bundle for execution.
+ * Creates Apple bundle from compiled Swift code.
  *
- * @since 4.2
+ * @since 4.3
  */
 @Incubating
-public class CreateXcTestBundle extends DefaultTask {
+public class CreateSwiftBundle extends DefaultTask {
     private final RegularFileVar informationFile;
     private final RegularFileVar executableFile;
     private final DirectoryVar outputDir;
     private final SwiftStdlibToolLocator swiftStdlibToolLocator;
 
     @Inject
-    public CreateXcTestBundle(SwiftStdlibToolLocator swiftStdlibToolLocator) {
+    public CreateSwiftBundle(SwiftStdlibToolLocator swiftStdlibToolLocator) {
         this.informationFile = newInputFile();
         this.executableFile = newInputFile();
         this.outputDir = newOutputDirectory();
@@ -84,7 +80,7 @@ public class CreateXcTestBundle extends DefaultTask {
                 execSpec.executable(swiftStdlibToolLocator.find());
                 execSpec.args(
                     "--copy",
-                    "--scan-executable", getExecutableFile().getAbsolutePath(),
+                    "--scan-executable", executableFile.getAsFile().get().getAbsolutePath(),
                     "--destination", outputDir.dir("Contents/Frameworks").get().getAsFile().getAbsolutePath(),
                     "--platform", "macosx",
                     "--resource-destination", outputDir.dir("Contents/Resources").get().getAsFile().getAbsolutePath(),
@@ -95,41 +91,17 @@ public class CreateXcTestBundle extends DefaultTask {
     }
 
     @OutputDirectory
-    public File getOutputDir() {
-        return outputDir.getAsFile().getOrNull();
-    }
-
-    public void setOutputDir(File outputDir) {
-        this.outputDir.set(outputDir);
-    }
-
-    public void setOutputDir(Provider<? extends Directory> outputDir) {
-        this.outputDir.set(outputDir);
+    public DirectoryVar getOutputDir() {
+        return outputDir;
     }
 
     @InputFile
-    public File getExecutableFile() {
-        return executableFile.getAsFile().getOrNull();
-    }
-
-    public void setExecutableFile(File executableFile) {
-        this.executableFile.set(executableFile);
-    }
-
-    public void setExecutableFile(Provider<? extends RegularFile> executableFile) {
-        this.executableFile.set(executableFile);
+    public RegularFileVar getExecutableFile() {
+        return executableFile;
     }
 
     @InputFile
-    public File getInformationFile() {
-        return informationFile.getAsFile().getOrNull();
-    }
-
-    public void setInformationFile(File informationFile) {
-        this.informationFile.set(informationFile);
-    }
-
-    public void setInformationFile(Provider<? extends RegularFile> informationFile) {
-        this.informationFile.set(informationFile);
+    public RegularFileVar getInformationFile() {
+        return informationFile;
     }
 }

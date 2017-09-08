@@ -14,23 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.test.xctest.internal;
+package org.gradle.nativeplatform.tasks;
 
-import org.gradle.language.swift.internal.AbstractLocator;
-import org.gradle.process.internal.ExecActionFactory;
+import org.gradle.api.Incubating;
+import org.gradle.nativeplatform.internal.BundleLinkerSpec;
+import org.gradle.nativeplatform.internal.DefaultLinkerSpec;
+import org.gradle.nativeplatform.internal.LinkerSpec;
 
-import javax.inject.Inject;
-import java.util.Arrays;
-import java.util.List;
-
-public class MacOSSdkPlatformPathLocator extends AbstractLocator {
-    @Inject
-    public MacOSSdkPlatformPathLocator(ExecActionFactory execActionFactory) {
-        super(execActionFactory);
+/**
+ * Links a binary bundle from object files and imported libraries.
+ *
+ * @since 4.3
+ */
+@Incubating
+public class LinkMachOBundle extends AbstractLinkTask {
+    @Override
+    protected LinkerSpec createLinkerSpec() {
+        return new LinkMachOBundle.Spec();
     }
 
-    @Override
-    protected List<String> getXcrunFlags() {
-        return Arrays.asList("--show-sdk-platform-path");
+    private static class Spec extends DefaultLinkerSpec implements BundleLinkerSpec {
     }
 }

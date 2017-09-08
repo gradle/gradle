@@ -8,10 +8,20 @@ Add-->
 
 ### Improvements for plugin authors
 
+In Gradle 4.1, we added APIs that allow a specific task output directory or output file to be wired in as an input for another task, in a way that allows the task dependencies to be inferred and that deals with later changes to the configured locations of those outputs. It is intended to be a more robust, performant and descriptive alternative to using `File` property types and calls to `Task.dependsOn`.
+
+It added factory methods on `DefaultTask` - i.e. `newInputFile()`, `newOutputFile()`, and `newOutputDirectory()` - to allow a task implementation class to create `DirectoryVar` instances that represent an output directory, and `RegularFileVar` instances that represent an output file or directory. When used as an output directory or file property, these instances carry dependency information about the producing task. When used as an input file property, the producing task is tracked as a dependency of the consuming task. Similar support for input files is done using `ConfigurableFileCollection` and friends, as has been possible for quite a while.
+
+In Gradle 4.3, we added a new factory method on `DefaultTask` - i.e. `newInputDirectory()` - to allow a task implementation class to create `DirectoryVar` instances that represent an input directory.
+
 TBD: `Provider<T>` and `PropertyState<T>` can be used with `@Input` properties.
 TBD: `ListProperty<T>`
 TBD: `Provider.map()`
 TBD: `PropertyState<Directory>` and `PropertyState<RegularFile>` can be set using `File` in DSL.
+
+<!--
+### Example new and noteworthy
+-->
 
 ## Promoted features
 
