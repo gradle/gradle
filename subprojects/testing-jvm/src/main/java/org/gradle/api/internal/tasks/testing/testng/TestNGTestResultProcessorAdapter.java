@@ -34,6 +34,7 @@ import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestNGMethod;
 import org.testng.ITestResult;
+import org.testng.xml.XmlSuite;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,6 +48,7 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
     private final Object lock = new Object();
     private final Map<ITestContext, Object> testId = new HashMap<ITestContext, Object>();
     private final Map<ISuite, Object> suiteId = new HashMap<ISuite, Object>();
+    private final Map<XmlSuite, Object> xmlSuiteIds = new HashMap<XmlSuite, Object>();
     private final Map<ITestClass, Object> testClassId = new HashMap<ITestClass, Object>();
     private final Map<ITestResult, Object> testMethodId = new HashMap<ITestResult, Object>();
     private final Map<ITestNGMethod, Object> testMethodParentId = new HashMap<ITestNGMethod, Object>();
@@ -66,8 +68,10 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
                 // Can get duplicate start events
                 return;
             }
-            testInternal = new DefaultTestSuiteDescriptor(idGenerator.generateId(), suite.getName());
+            Object id = idGenerator.generateId();
+            testInternal = new DefaultTestSuiteDescriptor(id, suite.getName());
             suiteId.put(suite, testInternal.getId());
+            xmlSuiteIds.put(suite.getXmlSuite(), id);
         }
         resultProcessor.started(testInternal, new TestStartEvent(clock.getCurrentTime()));
     }
@@ -77,6 +81,7 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
         Object id;
         synchronized (lock) {
             id = suiteId.remove(suite);
+            xmlSuiteIds.remove(suite.getXmlSuite());
             if (id == null) {
                 // Can get duplicate finish events
                 return;
@@ -89,11 +94,14 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
     @Override
     public void onBeforeClass(ITestClass testClass) {
         TestDescriptorInternal testInternal;
+        Object parentId;
         synchronized (lock) {
             testInternal = new DefaultTestClassDescriptor(idGenerator.generateId(), testClass.getName());
             testClassId.put(testClass, testInternal.getId());
+            XmlSuite xmlSuite = testClass.getXmlTest().getSuite();
+            parentId = xmlSuiteIds.get(xmlSuite);
         }
-        resultProcessor.started(testInternal, new TestStartEvent(clock.getCurrentTime()));
+        resultProcessor.started(testInternal, new TestStartEvent(clock.getCurrentTime(), parentId));
     }
 
     @Override
