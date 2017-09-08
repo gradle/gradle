@@ -276,6 +276,7 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
         '''.stripIndent()
     }
 
+    @Issue("https://github.com/gradle/gradle-private/issues/954")
     @Ignore("Test class events refer to gradle test executer which is wrong in the hierarchy")
     def "test class events references correct suite as parent"() {
         given:
