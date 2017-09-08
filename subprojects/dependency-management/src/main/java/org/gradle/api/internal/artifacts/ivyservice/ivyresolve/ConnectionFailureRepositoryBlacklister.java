@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.gradle.api.UncheckedIOException;
 
 import java.io.InterruptedIOException;
 import java.util.HashSet;
@@ -53,6 +54,7 @@ public class ConnectionFailureRepositoryBlacklister implements RepositoryBlackli
     }
 
     private boolean isRootCauseIOException(Throwable throwable) {
-        return ExceptionUtils.getRootCause(throwable) instanceof InterruptedIOException;
+        Throwable rootCause = ExceptionUtils.getRootCause(throwable);
+        return rootCause instanceof UncheckedIOException || rootCause instanceof InterruptedIOException;
     }
 }
