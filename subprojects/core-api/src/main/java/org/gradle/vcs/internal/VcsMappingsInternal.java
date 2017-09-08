@@ -17,19 +17,14 @@
 package org.gradle.vcs.internal;
 
 import org.gradle.api.Action;
+import org.gradle.internal.Actions;
 import org.gradle.vcs.VcsMapping;
 import org.gradle.vcs.VcsMappings;
 import org.gradle.vcs.VersionControlSpec;
-import org.gradle.internal.Actions;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
 
 public interface VcsMappingsInternal extends VcsMappings {
     Action<VcsMapping> getVcsMappingRule();
     boolean hasRules();
-    Collection<File> getImplicitIncludedBuilds();
 
     VcsMappingsInternal NO_OP = new VcsMappingsInternal() {
         @Override
@@ -40,11 +35,6 @@ public interface VcsMappingsInternal extends VcsMappings {
         @Override
         public boolean hasRules() {
             return false;
-        }
-
-        @Override
-        public Collection<File> getImplicitIncludedBuilds() {
-            return Collections.emptyList();
         }
 
         @Override

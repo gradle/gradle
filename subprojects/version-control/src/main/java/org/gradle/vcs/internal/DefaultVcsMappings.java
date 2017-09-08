@@ -19,16 +19,13 @@ package org.gradle.vcs.internal;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.vcs.VcsMapping;
-import org.gradle.vcs.VcsMappings;
-import org.gradle.vcs.VersionControlSpec;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.vcs.VcsMapping;
+import org.gradle.vcs.VcsMappings;
+import org.gradle.vcs.VersionControlSpec;
 
-import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Set;
 
 public class DefaultVcsMappings implements VcsMappingsInternal {
@@ -67,11 +64,6 @@ public class DefaultVcsMappings implements VcsMappingsInternal {
     @Override
     public boolean hasRules() {
         return !vcsMappings.isEmpty();
-    }
-
-    @Override
-    public Collection<File> getImplicitIncludedBuilds() {
-        return Collections.emptyList();
     }
 
     private static class GavFilteredRule implements Action<VcsMapping> {

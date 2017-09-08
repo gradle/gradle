@@ -16,12 +16,10 @@
 
 package org.gradle.initialization;
 
-import org.gradle.vcs.internal.VcsMappingsInternal;
 import org.gradle.composite.internal.IncludedBuildFactory;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.internal.composite.CompositeBuildSettingsLoader;
 import org.gradle.internal.composite.CompositeContextBuilder;
-import org.gradle.internal.sources.VcsMappingsSettingsLoader;
 
 public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
     private final ISettingsFinder settingsFinder;
@@ -29,16 +27,14 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
     private final BuildSourceBuilder buildSourceBuilder;
     private final CompositeContextBuilder compositeContextBuilder;
     private final IncludedBuildFactory includedBuildFactory;
-    private final VcsMappingsInternal vcsMappingsInternal;
 
     public DefaultSettingsLoaderFactory(ISettingsFinder settingsFinder, SettingsProcessor settingsProcessor, BuildSourceBuilder buildSourceBuilder,
-                                        CompositeContextBuilder compositeContextBuilder, IncludedBuildFactory includedBuildFactory, VcsMappingsInternal vcsMappingsInternal) {
+                                        CompositeContextBuilder compositeContextBuilder, IncludedBuildFactory includedBuildFactory) {
         this.settingsFinder = settingsFinder;
         this.settingsProcessor = settingsProcessor;
         this.buildSourceBuilder = buildSourceBuilder;
         this.compositeContextBuilder = compositeContextBuilder;
         this.includedBuildFactory = includedBuildFactory;
-        this.vcsMappingsInternal = vcsMappingsInternal;
     }
 
     @Override
@@ -53,7 +49,7 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
 
     private SettingsLoader compositeBuildSettingsLoader() {
         return new CompositeBuildSettingsLoader(
-            new VcsMappingsSettingsLoader(defaultSettingsLoader(), vcsMappingsInternal),
+            defaultSettingsLoader(),
             compositeContextBuilder,
             includedBuildFactory
         );
