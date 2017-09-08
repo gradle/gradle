@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcherScheme;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.BasicDomainObjectContext;
@@ -108,12 +108,12 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
             return new DeprecationListeningPluginResolutionServiceClient(inMemoryCachingClient);
         }
 
-        PluginResolutionServiceResolver createPluginResolutionServiceResolver(PluginResolutionServiceClient pluginResolutionServiceClient, VersionSelectorScheme versionSelectorScheme,
+        PluginResolutionServiceResolver createPluginResolutionServiceResolver(PluginResolutionServiceClient pluginResolutionServiceClient, VersionMatcherScheme versionMatcherScheme,
                                                                               StartParameter startParameter, final DependencyManagementServices dependencyManagementServices,
                                                                               final FileResolver fileResolver, final DependencyMetaDataProvider dependencyMetaDataProvider,
                                                                               ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector) {
             final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory = makeDependencyResolutionServicesFactory(dependencyManagementServices, fileResolver, dependencyMetaDataProvider);
-            return new PluginResolutionServiceResolver(pluginResolutionServiceClient, versionSelectorScheme, startParameter, classLoaderScopeRegistry.getCoreScope(), dependencyResolutionServicesFactory, pluginInspector);
+            return new PluginResolutionServiceResolver(pluginResolutionServiceClient, versionMatcherScheme, startParameter, classLoaderScopeRegistry.getCoreScope(), dependencyResolutionServicesFactory, pluginInspector);
         }
 
         PluginResolverFactory createPluginResolverFactory(PluginRegistry pluginRegistry, DocumentationRegistry documentationRegistry, PluginResolutionServiceResolver pluginResolutionServiceResolver,
@@ -137,7 +137,7 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
             return instantiator.newInstance(DefaultPluginResolutionStrategy.class, listenerManager);
         }
 
-        DefaultPluginRepositoryFactory createPluginRepositoryFactory(PluginResolutionServiceResolver pluginResolutionServiceResolver, VersionSelectorScheme versionSelectorScheme,
+        DefaultPluginRepositoryFactory createPluginRepositoryFactory(PluginResolutionServiceResolver pluginResolutionServiceResolver, VersionMatcherScheme versionMatcherScheme,
                                                                      final DependencyManagementServices dependencyManagementServices, final FileResolver fileResolver,
                                                                      final DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator,
                                                                      final AuthenticationSchemeRegistry authenticationSchemeRegistry) {
@@ -145,7 +145,7 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
             final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory = makeDependencyResolutionServicesFactory(
                 dependencyManagementServices, fileResolver, dependencyMetaDataProvider);
             return new DefaultPluginRepositoryFactory(pluginResolutionServiceResolver,
-                dependencyResolutionServicesFactory, versionSelectorScheme, instantiator,
+                dependencyResolutionServicesFactory, versionMatcherScheme, instantiator,
                 authenticationSchemeRegistry);
         }
 

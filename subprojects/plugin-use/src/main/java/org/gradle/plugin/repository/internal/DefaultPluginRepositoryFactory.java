@@ -19,7 +19,7 @@ package org.gradle.plugin.repository.internal;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcherScheme;
 import org.gradle.api.internal.artifacts.repositories.AuthenticationSupporter;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.authentication.Authentication;
@@ -38,19 +38,19 @@ import java.util.Map;
 public class DefaultPluginRepositoryFactory implements PluginRepositoryFactory {
     private final AuthenticationSchemeRegistry authenticationSchemeRegistry;
     private final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory;
-    private final VersionSelectorScheme versionSelectorScheme;
+    private final VersionMatcherScheme versionMatcherScheme;
     private final PluginResolutionServiceResolver pluginResolutionServiceResolver;
     private final Instantiator instantiator;
 
     public DefaultPluginRepositoryFactory(
         PluginResolutionServiceResolver pluginResolutionServiceResolver,
         Factory<DependencyResolutionServices> dependencyResolutionServicesFactory,
-        VersionSelectorScheme versionSelectorScheme, Instantiator instantiator,
+        VersionMatcherScheme versionMatcherScheme, Instantiator instantiator,
         AuthenticationSchemeRegistry authenticationSchemeRegistry) {
         this.pluginResolutionServiceResolver = pluginResolutionServiceResolver;
         this.instantiator = instantiator;
         this.dependencyResolutionServicesFactory = dependencyResolutionServicesFactory;
-        this.versionSelectorScheme = versionSelectorScheme;
+        this.versionMatcherScheme = versionMatcherScheme;
         this.authenticationSchemeRegistry = authenticationSchemeRegistry;
     }
 
@@ -59,7 +59,7 @@ public class DefaultPluginRepositoryFactory implements PluginRepositoryFactory {
         AuthenticationContainer authenticationContainer = makeAuthenticationContainer(instantiator, authenticationSchemeRegistry);
         AuthenticationSupportedInternal delegate = new AuthenticationSupporter(instantiator, authenticationContainer);
         DefaultMavenPluginRepository mavenPluginRepository = instantiator.newInstance(
-            DefaultMavenPluginRepository.class, fileResolver, dependencyResolutionServicesFactory.create(), versionSelectorScheme, delegate);
+            DefaultMavenPluginRepository.class, fileResolver, dependencyResolutionServicesFactory.create(), versionMatcherScheme, delegate);
         configurationAction.execute(mavenPluginRepository);
         return mavenPluginRepository;
     }
@@ -69,7 +69,7 @@ public class DefaultPluginRepositoryFactory implements PluginRepositoryFactory {
         AuthenticationContainer authenticationContainer = makeAuthenticationContainer(instantiator, authenticationSchemeRegistry);
         AuthenticationSupportedInternal delegate = new AuthenticationSupporter(instantiator, authenticationContainer);
         DefaultIvyPluginRepository ivyPluginRepository = instantiator.newInstance(
-            DefaultIvyPluginRepository.class, fileResolver, dependencyResolutionServicesFactory.create(), versionSelectorScheme, delegate);
+            DefaultIvyPluginRepository.class, fileResolver, dependencyResolutionServicesFactory.create(), versionMatcherScheme, delegate);
         configurationAction.execute(ivyPluginRepository);
         return ivyPluginRepository;
     }

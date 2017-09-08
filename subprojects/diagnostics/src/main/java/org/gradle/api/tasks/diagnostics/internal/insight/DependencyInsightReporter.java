@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcherScheme;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyEdge;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyReportHeader;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
@@ -38,7 +38,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class DependencyInsightReporter {
-    public Collection<RenderableDependency> prepare(Collection<DependencyResult> input, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator) {
+    public Collection<RenderableDependency> prepare(Collection<DependencyResult> input, VersionMatcherScheme versionMatcherScheme, VersionComparator versionComparator) {
         LinkedList<RenderableDependency> out = new LinkedList<RenderableDependency>();
         List<DependencyEdge> dependencies = CollectionUtils.collect(input, new Transformer<DependencyEdge, DependencyResult>() {
             @Override
@@ -50,7 +50,7 @@ public class DependencyInsightReporter {
                 }
             }
         });
-        Collection<DependencyEdge> sorted = DependencyResultSorter.sort(dependencies, versionSelectorScheme, versionComparator);
+        Collection<DependencyEdge> sorted = DependencyResultSorter.sort(dependencies, versionMatcherScheme, versionComparator);
 
         //remember if module id was annotated
         HashSet<ComponentIdentifier> annotated = new HashSet<ComponentIdentifier>();

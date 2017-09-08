@@ -17,10 +17,10 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 import org.gradle.api.artifacts.ComponentMetadata;
 
-public class LatestVersionSelector extends AbstractStringVersionSelector {
+public class LatestVersionMatcher extends AbstractStringVersionMatcher {
     private final String selectorStatus;
 
-    public LatestVersionSelector(String selector) {
+    public LatestVersionMatcher(String selector) {
         super(selector);
         selectorStatus = selector.substring("latest.".length());
     }

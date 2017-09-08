@@ -33,9 +33,9 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderF
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryCachedRepositoryFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionMatcherScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcherScheme;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleMetaDataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache;
@@ -232,8 +232,8 @@ class DependencyManagementBuildScopeServices {
         return finderFactory.create();
     }
 
-    VersionSelectorScheme createVersionSelectorScheme(VersionComparator versionComparator) {
-        return new DefaultVersionSelectorScheme(versionComparator);
+    VersionMatcherScheme createVersionSelectorScheme(VersionComparator versionComparator) {
+        return new DefaultVersionMatcherScheme(versionComparator);
     }
 
     VersionComparator createVersionComparator() {
@@ -267,7 +267,9 @@ class DependencyManagementBuildScopeServices {
     ResolveIvyFactory createResolveIvyFactory(StartParameter startParameter, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache, ModuleArtifactsCache moduleArtifactsCache,
                                               ArtifactAtRepositoryCachedArtifactIndex artifactAtRepositoryCachedArtifactIndex,
                                               BuildCommencedTimeProvider buildCommencedTimeProvider, InMemoryCachedRepositoryFactory inMemoryCachedRepositoryFactory,
-                                              VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+                                              VersionMatcherScheme versionMatcherScheme,
+                                              VersionComparator versionComparator,
+                                              ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         StartParameterResolutionOverride startParameterResolutionOverride = new StartParameterResolutionOverride(startParameter);
         return new ResolveIvyFactory(
             moduleVersionsCache,
@@ -277,8 +279,9 @@ class DependencyManagementBuildScopeServices {
             startParameterResolutionOverride,
             buildCommencedTimeProvider,
             inMemoryCachedRepositoryFactory,
-            versionSelectorScheme,
-            versionComparator, moduleIdentifierFactory);
+            versionMatcherScheme,
+            versionComparator,
+            moduleIdentifierFactory);
     }
 
     ArtifactDependencyResolver createArtifactDependencyResolver(ResolveIvyFactory resolveIvyFactory,

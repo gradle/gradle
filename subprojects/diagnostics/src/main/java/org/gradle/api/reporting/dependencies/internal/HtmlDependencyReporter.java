@@ -19,7 +19,7 @@ package org.gradle.api.reporting.dependencies.internal;
 import org.gradle.api.Project;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcherScheme;
 import org.gradle.reporting.HtmlReportBuilder;
 import org.gradle.reporting.HtmlReportRenderer;
 import org.gradle.reporting.ReportRenderer;
@@ -46,8 +46,8 @@ public class HtmlDependencyReporter extends ReportRenderer<Set<Project>, File> {
     private File outputDirectory;
     private final JsonProjectDependencyRenderer renderer;
 
-    public HtmlDependencyReporter(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator) {
-        renderer = new JsonProjectDependencyRenderer(versionSelectorScheme, versionComparator);
+    public HtmlDependencyReporter(VersionMatcherScheme versionMatcherScheme, VersionComparator versionComparator) {
+        renderer = new JsonProjectDependencyRenderer(versionMatcherScheme, versionComparator);
     }
 
     @Override

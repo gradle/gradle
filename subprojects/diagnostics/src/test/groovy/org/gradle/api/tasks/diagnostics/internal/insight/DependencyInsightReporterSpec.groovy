@@ -18,7 +18,7 @@ package org.gradle.api.tasks.diagnostics.internal.insight
 
 import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionMatcherScheme
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult
 import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult
@@ -31,7 +31,7 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.FORCED
 
 class DependencyInsightReporterSpec extends Specification {
-    def versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator())
+    def versionSelectorScheme = new DefaultVersionMatcherScheme(new DefaultVersionComparator())
     def versionComparator = new DefaultVersionComparator()
 
     def "sorts dependencies"() {

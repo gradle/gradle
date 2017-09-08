@@ -19,7 +19,7 @@ package org.gradle.api.tasks.diagnostics.internal.insight
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionMatcherScheme
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyEdge
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
@@ -30,7 +30,7 @@ import spock.lang.Unroll
 import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
 
 class DependencyResultSorterSpec extends Specification {
-    def versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator())
+    def versionSelectorScheme = new DefaultVersionMatcherScheme(new DefaultVersionComparator())
     def versionComparator = new DefaultVersionComparator()
 
     @Unroll

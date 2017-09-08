@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
+package org.gradle.api.internal.artifacts
 
-import org.gradle.api.artifacts.ComponentMetadata;
+import org.gradle.internal.serialize.SerializerSpec
 
-abstract class AbstractVersionSelector implements VersionSelector {
-    private final String selector;
+import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
-    protected AbstractVersionSelector(String selector) {
-        this.selector = selector;
-    }
+class ModuleVersionMatcherSerializerTest extends SerializerSpec {
+    private serializer = new ModuleVersionSelectorSerializer()
 
-    protected final String getSelector() {
-        return selector;
-    }
+    def "serializes"() {
+        when:
+        def result = serialize(newSelector("org", "foo", "5.0"), serializer)
 
-    public boolean accept(ComponentMetadata candidate) {
-        return accept(candidate.getId().getVersion());
+        then:
+        result == newSelector("org", "foo", "5.0")
     }
 }
