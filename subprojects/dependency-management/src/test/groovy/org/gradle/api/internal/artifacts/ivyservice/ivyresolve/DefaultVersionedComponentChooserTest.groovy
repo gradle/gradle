@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionMatcherScheme
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -37,7 +37,7 @@ import org.gradle.internal.rules.SpecRuleAction
 import spock.lang.Specification
 
 class DefaultVersionedComponentChooserTest extends Specification {
-    def versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator())
+    def versionSelectorScheme = new DefaultVersionMatcherScheme(new DefaultVersionComparator())
     def versionComparator = new DefaultVersionComparator()
     def componentSelectionRules = Mock(ComponentSelectionRulesInternal)
 

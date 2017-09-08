@@ -13,32 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 /**
- * Version matcher for dynamic version selectors ending in '+'.
+ * Compares version matchers against candidate versions, indicating whether they match or not.
+ *
  */
-public class SubVersionSelector extends AbstractStringVersionSelector {
-    private final String prefix;
+public interface VersionMatcherScheme {
+    /**
+     * Returns an appropriate {@link VersionMatcher} for the given selector string.
+     *
+     * @param selectorString - the string representation of the selector
+     * @return the {@link VersionMatcher}
+     */
+    VersionMatcher parseSelector(String selectorString);
 
-    public SubVersionSelector(String selector) {
-        super(selector);
-        prefix = selector.substring(0, selector.length() - 1);
-    }
-
-    public boolean isDynamic() {
-        return true;
-    }
-
-    public boolean requiresMetadata() {
-        return false;
-    }
-
-    public boolean matchesUniqueVersion() {
-        return false;
-    }
-
-    public boolean accept(String candidate) {
-        return candidate.startsWith(prefix);
-    }
+    /**
+     * Renders a {@link VersionMatcher} to a selector string.
+     */
+    String renderSelector(VersionMatcher selector);
 }

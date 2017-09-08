@@ -18,13 +18,13 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 
 import spock.lang.Specification
 
-class DefaultVersionSelectorSchemeTest extends Specification {
-    def matcher = new DefaultVersionSelectorScheme(new DefaultVersionComparator())
+class DefaultVersionMatcherSchemeTest extends Specification {
+    def matcher = new DefaultVersionMatcherScheme(new DefaultVersionComparator())
 
     def "creates version range selector" () {
         expect:
-        matcher.parseSelector(selector) instanceof VersionRangeSelector
-        
+        matcher.parseSelector(selector) instanceof VersionRangeMatcher
+
         where:
         selector << [
             "[1.0,2.0]",
@@ -39,10 +39,10 @@ class DefaultVersionSelectorSchemeTest extends Specification {
             "[1.0]",
         ]
     }
-    
+
     def "creates sub version selector" () {
         expect:
-        matcher.parseSelector(selector) instanceof SubVersionSelector
+        matcher.parseSelector(selector) instanceof SubVersionMatcher
 
         where:
         selector << [
@@ -53,7 +53,7 @@ class DefaultVersionSelectorSchemeTest extends Specification {
 
     def "creates latest version selector" () {
         expect:
-        matcher.parseSelector(selector) instanceof LatestVersionSelector
+        matcher.parseSelector(selector) instanceof LatestVersionMatcher
 
         where:
         selector << [
@@ -65,7 +65,7 @@ class DefaultVersionSelectorSchemeTest extends Specification {
 
     def "creates exact version selector as default" () {
         expect:
-        matcher.parseSelector(selector) instanceof ExactVersionSelector
+        matcher.parseSelector(selector) instanceof ExactVersionMatcher
 
         where:
         selector << [

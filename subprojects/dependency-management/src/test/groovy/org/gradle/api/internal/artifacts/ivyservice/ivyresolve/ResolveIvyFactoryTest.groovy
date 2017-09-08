@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyIntern
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryCachedRepositoryFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcherScheme
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
@@ -50,7 +50,7 @@ class ResolveIvyFactoryTest extends Specification {
     StartParameterResolutionOverride startParameterResolutionOverride
     BuildCommencedTimeProvider buildCommencedTimeProvider
     InMemoryCachedRepositoryFactory inMemoryCachedRepositoryFactory
-    VersionSelectorScheme versionSelectorScheme
+    VersionMatcherScheme versionSelectorScheme
     VersionComparator versionComparator
     ImmutableModuleIdentifierFactory moduleIdentifierFactory
 
@@ -67,7 +67,7 @@ class ResolveIvyFactoryTest extends Specification {
             _ * cached(_) >> { ModuleComponentRepository repository -> repository }
         }
         moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
-        versionSelectorScheme = Mock(VersionSelectorScheme)
+        versionSelectorScheme = Mock(VersionMatcherScheme)
         versionComparator = Mock(VersionComparator)
 
         resolveIvyFactory = new ResolveIvyFactory(moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache,

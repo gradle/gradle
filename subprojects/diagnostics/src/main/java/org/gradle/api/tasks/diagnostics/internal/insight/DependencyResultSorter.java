@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.VersionInfo;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcherScheme;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyEdge;
 import org.gradle.util.CollectionUtils;
 
@@ -37,16 +37,16 @@ public class DependencyResultSorter {
      * If requested matches selected then it will override the version comparison
      * so that the dependency that was selected is more prominent.
      */
-    public static Collection<DependencyEdge> sort(Collection<DependencyEdge> input, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator) {
-        return CollectionUtils.sort(input, new DependencyComparator(versionSelectorScheme, versionComparator));
+    public static Collection<DependencyEdge> sort(Collection<DependencyEdge> input, VersionMatcherScheme versionMatcherScheme, VersionComparator versionComparator) {
+        return CollectionUtils.sort(input, new DependencyComparator(versionMatcherScheme, versionComparator));
     }
 
     private static class DependencyComparator implements Comparator<DependencyEdge> {
-        private final VersionSelectorScheme versionSelectorScheme;
+        private final VersionMatcherScheme versionMatcherScheme;
         private final VersionComparator versionComparator;
 
-        private DependencyComparator(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator) {
-            this.versionSelectorScheme = versionSelectorScheme;
+        private DependencyComparator(VersionMatcherScheme versionMatcherScheme, VersionComparator versionComparator) {
+            this.versionMatcherScheme = versionMatcherScheme;
             this.versionComparator = versionComparator;
         }
 
@@ -129,8 +129,8 @@ public class DependencyResultSorter {
             }
 
             //order dynamic selectors after static selectors
-            boolean leftDynamic = versionSelectorScheme.parseSelector(leftRequested.getVersion()).isDynamic();
-            boolean rightDynamic = versionSelectorScheme.parseSelector(rightRequested.getVersion()).isDynamic();
+            boolean leftDynamic = versionMatcherScheme.parseSelector(leftRequested.getVersion()).isDynamic();
+            boolean rightDynamic = versionMatcherScheme.parseSelector(rightRequested.getVersion()).isDynamic();
             if (leftDynamic && !rightDynamic) {
                 return 1;
             } else if (!leftDynamic && rightDynamic) {

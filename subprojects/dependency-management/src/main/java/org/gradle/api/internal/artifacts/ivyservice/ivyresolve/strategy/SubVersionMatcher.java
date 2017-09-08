@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
-public abstract class AbstractStringVersionSelector extends AbstractVersionSelector {
-    protected AbstractStringVersionSelector(String selector) {
+/**
+ * Version matcher for dynamic version selectors ending in '+'.
+ */
+public class SubVersionMatcher extends AbstractStringVersionMatcher {
+    private final String prefix;
+
+    public SubVersionMatcher(String selector) {
         super(selector);
+        prefix = selector.substring(0, selector.length() - 1);
     }
 
-    @Override
-    public boolean accept(Version candidate) {
-        return accept(candidate.getSource());
+    public boolean isDynamic() {
+        return true;
+    }
+
+    public boolean requiresMetadata() {
+        return false;
+    }
+
+    public boolean matchesUniqueVersion() {
+        return false;
+    }
+
+    public boolean accept(String candidate) {
+        return candidate.startsWith(prefix);
     }
 }

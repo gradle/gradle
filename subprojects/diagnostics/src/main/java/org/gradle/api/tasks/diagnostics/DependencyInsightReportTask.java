@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcherScheme;
 import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
@@ -146,7 +146,7 @@ public class DependencyInsightReportTask extends DefaultTask {
     }
 
     @Inject
-    protected VersionSelectorScheme getVersionSelectorScheme() {
+    protected VersionMatcherScheme getVersionSelectorScheme() {
         throw new UnsupportedOperationException();
     }
 

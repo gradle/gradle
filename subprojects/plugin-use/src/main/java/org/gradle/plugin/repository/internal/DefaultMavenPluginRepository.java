@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcherScheme;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.plugin.repository.MavenPluginRepository;
@@ -34,8 +34,8 @@ class DefaultMavenPluginRepository extends AbstractArtifactPluginRepository impl
 
     public DefaultMavenPluginRepository(
         FileResolver fileResolver, DependencyResolutionServices dependencyResolutionServices,
-        VersionSelectorScheme versionSelectorScheme, AuthenticationSupportedInternal delegate) {
-        super(MAVEN, fileResolver, dependencyResolutionServices, versionSelectorScheme, delegate);
+        VersionMatcherScheme versionMatcherScheme, AuthenticationSupportedInternal delegate) {
+        super(MAVEN, fileResolver, dependencyResolutionServices, versionMatcherScheme, delegate);
     }
 
     @Override
