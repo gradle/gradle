@@ -77,15 +77,22 @@ public class BuildSourceBuilder {
             LOGGER.debug("Gradle source dir does not exist. We leave.");
             return ClassPath.EMPTY;
         }
+
         return buildOperationExecutor.call(new CallableBuildOperation<ClassPath>() {
             @Override
             public ClassPath call(BuildOperationContext context) {
-                return buildBuildSrc(startParameter);
+                ClassPath classPath = buildBuildSrc(startParameter);
+                context.setResult(new BuildBuildSrcBuildOperationType.Result() {
+                });
+                return classPath;
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Build buildSrc").progressDisplayName("buildSrc");
+                return BuildOperationDescriptor.displayName("Build buildSrc").
+                    progressDisplayName("buildSrc").
+                    details(new BuildBuildSrcBuildOperationType.Details() {
+                    });
             }
         });
     }
