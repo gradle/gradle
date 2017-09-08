@@ -161,6 +161,11 @@ public class VersionRangeSelector extends AbstractVersionVersionSelector {
         return false;
     }
 
+    @Override
+    public boolean requiresAllVersions() {
+        return true;
+    }
+
     public boolean accept(Version candidate) {
         if (lowerBound != null && !isHigher(candidate, lowerBoundVersion, lowerInclusive)) {
             return false;

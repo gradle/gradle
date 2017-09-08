@@ -37,6 +37,11 @@ public class LatestVersionSelector extends AbstractStringVersionSelector {
         return true;
     }
 
+    @Override
+    public boolean requiresAllVersions() {
+        return false;
+    }
+
     public boolean accept(String candidate) {
         throw new UnsupportedOperationException("accept(String, String)");
     }

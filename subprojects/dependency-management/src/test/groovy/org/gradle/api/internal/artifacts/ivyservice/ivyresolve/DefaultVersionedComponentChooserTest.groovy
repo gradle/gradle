@@ -107,6 +107,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         then:
         _ * dependency.requested >> selector
         _ * a.version >> version("1.2")
+        _ * a.id >> DefaultModuleComponentIdentifier.newId("group", "name", "1.2")
         _ * b.version >> version("1.3")
         _ * b.id >> selected
         _ * c.version >> version("2.0")

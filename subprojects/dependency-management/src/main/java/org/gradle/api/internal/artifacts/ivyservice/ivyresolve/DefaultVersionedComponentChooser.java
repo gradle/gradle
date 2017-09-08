@@ -69,14 +69,16 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
     }
 
     public void selectNewestMatchingComponent(Collection<? extends ModuleComponentResolveState> versions, ComponentSelectionContext result, ModuleVersionSelector requested) {
-        VersionSelector requestedVersion = versionSelectorScheme.parseSelector(requested.getVersion());
+        VersionSelector requestedVersionSelector = versionSelectorScheme.parseSelector(requested.getVersion());
         Collection<SpecRuleAction<? super ComponentSelection>> rules = componentSelectionRules.getRules();
+
+        boolean matched = false;
 
         // Loop over all listed versions, sorted by LATEST first
         for (ModuleComponentResolveState candidate : sortLatestFirst(versions)) {
             MetadataProvider metadataProvider = createMetadataProvider(candidate);
 
-            boolean versionMatches = versionMatches(requestedVersion, candidate, metadataProvider);
+            boolean versionMatches = versionMatches(requestedVersionSelector, candidate, metadataProvider);
             if (!metadataProvider.isUsable()) {
                 // maybe we have already determined that this is NOT usable
                 // so we don't need to proceed further
@@ -97,19 +99,25 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
                 // this version is selected AND not rejected by any metadata rule. This is the one
                 // we want, so we mark it and return
                 result.matches(candidateIdentifier);
-                return;
+                matched = true;
+                if (!requestedVersionSelector.requiresAllVersions()) {
+                    return;
+                }
+                continue;
             }
 
             // Mark this version as rejected
             result.rejected(version);
-            if (requestedVersion.matchesUniqueVersion()) {
+            if (requestedVersionSelector.matchesUniqueVersion()) {
                 // Only consider one candidate, because matchesUniqueVersion means that there's no ambiguity on the version number
                 break;
             }
         }
-        // if we reach this point, no match was found, either because there are no versions matching the selector
-        // or all of them were rejected
-        result.noMatchFound();
+        if (!matched) {
+            // if we reach this point, no match was found, either because there are no versions matching the selector
+            // or all of them were rejected
+            result.noMatchFound();
+        }
     }
 
     private static MetadataProvider createMetadataProvider(ModuleComponentResolveState candidate) {

@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
 
 import static org.hamcrest.Matchers.containsString
@@ -748,7 +747,6 @@ task checkDeps(dependsOn: configurations.compile) {
         failure.assertResolutionFailure(":conf").assertFailedDependencyRequiredBy("project : > org:c:1.0")
     }
 
-    @ToBeImplemented
     def "chooses highest version that is included in both ranges"() {
         given:
         (1..10).each {
@@ -776,8 +774,7 @@ task checkDeps(dependsOn: configurations.compile) {
         """
 
         when:
-//        run 'checkDeps'
-        fails 'checkDeps' // shouldn't fail
+        run 'checkDeps'
 
         then:
         noExceptionThrown()
