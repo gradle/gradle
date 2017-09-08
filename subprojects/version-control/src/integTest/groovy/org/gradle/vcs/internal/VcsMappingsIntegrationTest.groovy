@@ -17,7 +17,9 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 
+@Ignore("skip these tests until we add some kind of implementation that uses vcs mappings")
 class VcsMappingsIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         settingsFile << """
