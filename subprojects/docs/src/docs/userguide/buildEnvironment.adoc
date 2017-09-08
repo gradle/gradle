@@ -50,6 +50,8 @@ When set to true, Gradle will run the build with remote debugging enabled, liste
 When set to false, Gradle will not monitor the memory usage of running daemons. See <<sec:what_can_go_wrong_with_daemon>>.
 `org.gradle.caching`::
 When set to true, Gradle will try to reuse outputs from previous builds. See <<sec:build_cache_intro>>.
+`org.gradle.console`::
+When set to plain, auto or rich, Gradle will use different type of console. See <<sec:console_build_output>>.
 
 [[sec:forked_java_processes]]
 ==== Forked Java processes
