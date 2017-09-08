@@ -31,6 +31,6 @@ class RecompileScriptsDeprecationIntegrationTest extends AbstractIntegrationSpec
 
         then:
         succeeds('hello')
-        outputContains(DefaultCommandLineConverter.RECOMPILE_SCRIPTS_DEPRECATION)
+        outputContains(StartParameterBuildOptionFactory.RecompileScriptsOption.RECOMPILE_SCRIPTS_DEPRECATION)
     }
 }
