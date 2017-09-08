@@ -17,11 +17,17 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import spock.lang.IgnoreIf
 
 import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 
+@Requires(TestPrecondition.XCODE)
+@IgnoreIf({GradleContextualExecuter.embedded})
 class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
     def setup() {
         settingsFile << """
@@ -59,6 +65,27 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
 
         def project = xcodeProject("app/app.xcodeproj").projectFile
         project.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("greeter/build/obj/main/debug"))
+
+        when:
+        def resultDebugApp = newXcodebuildExecuter()
+            .withWorkspace("${rootProjectName}.xcworkspace")
+            .withScheme('App Executable')
+            .succeeds()
+
+        then:
+        resultDebugApp.assertTasksExecuted(':greeter:compileDebugSwift', ':greeter:linkDebug',
+            ':app:compileDebugSwift', ':app:linkDebug')
+
+        when:
+        def resultReleaseApp = newXcodebuildExecuter()
+            .withWorkspace("${rootProjectName}.xcworkspace")
+            .withScheme('App Executable')
+            .withConfiguration('Release')
+            .succeeds()
+
+        then:
+        resultReleaseApp.assertTasksExecuted(':greeter:compileReleaseSwift', ':greeter:linkRelease',
+            ':app:compileReleaseSwift', ':app:linkRelease')
     }
 
     def "create xcode project Swift executable with transitive dependencies"() {
@@ -106,6 +133,28 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         appProject.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("hello/build/obj/main/debug"), file("log/build/obj/main/debug"))
         def helloProject = xcodeProject("hello/hello.xcodeproj").projectFile
         helloProject.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("log/build/obj/main/debug"))
+
+        when:
+        def resultDebugApp = newXcodebuildExecuter()
+            .withWorkspace("${rootProjectName}.xcworkspace")
+            .withScheme('App Executable')
+            .succeeds()
+
+        then:
+        resultDebugApp.assertTasksExecuted(':log:compileDebugSwift', ':log:linkDebug',
+            ':hello:compileDebugSwift', ':hello:linkDebug',
+            ':app:compileDebugSwift', ':app:linkDebug')
+
+        when:
+        def resultReleaseHello = newXcodebuildExecuter()
+            .withWorkspace("${rootProjectName}.xcworkspace")
+            .withScheme('Hello SharedLibrary')
+            .withConfiguration('Release')
+            .succeeds()
+
+        then:
+        resultReleaseHello.assertTasksExecuted(':hello:compileReleaseSwift', ':hello:linkRelease',
+            ':log:compileReleaseSwift', ':log:linkRelease')
     }
 
     def "create xcode project Swift executable inside composite build"() {
@@ -147,5 +196,24 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
 
         def project = xcodeProject("${rootProjectName}.xcodeproj").projectFile
         project.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("greeter/build/obj/main/debug"))
+
+        when:
+        def resultDebugApp = newXcodebuildExecuter()
+            .withWorkspace("${rootProjectName}.xcworkspace")
+            .withScheme('App Executable')
+            .succeeds()
+
+        then:
+        resultDebugApp.assertTasksExecuted(':greeter:compileDebugSwift', ':greeter:linkDebug', ':compileDebugSwift', ':linkDebug')
+
+        when:
+        def resultReleaseGreeter = newXcodebuildExecuter()
+            .withWorkspace("${rootProjectName}.xcworkspace")
+            .withScheme('Greeter SharedLibrary')
+            .withConfiguration('Release')
+            .succeeds()
+
+        then:
+        resultReleaseGreeter.assertTasksExecuted(':compileReleaseSwift', ':linkRelease')
     }
 }

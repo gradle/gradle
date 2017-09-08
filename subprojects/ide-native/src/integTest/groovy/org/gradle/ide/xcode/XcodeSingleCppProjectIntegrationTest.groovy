@@ -17,12 +17,18 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppLib
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import spock.lang.IgnoreIf
 
 import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 
 class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
+    @Requires(TestPrecondition.XCODE)
+    @IgnoreIf({GradleContextualExecuter.embedded})
     def "create xcode project C++ executable"() {
         given:
         buildFile << """
@@ -60,8 +66,29 @@ apply plugin: 'cpp-executable'
 
         project.products.children.size() == 1
         project.products.children[0].path == exe("build/exe/main/debug/app").absolutePath
+
+        when:
+        def resultDebug = newXcodebuildExecuter()
+            .withProject(file("${rootProjectName}.xcodeproj"))
+            .withScheme('App Executable')
+            .succeeds()
+
+        then:
+        resultDebug.assertTasksExecuted(':compileDebugCpp', ':linkDebug')
+
+        when:
+        def resultRelease = newXcodebuildExecuter()
+            .withProject(file("${rootProjectName}.xcodeproj"))
+            .withScheme('App Executable')
+            .withConfiguration('Release')
+            .succeeds()
+
+        then:
+        resultRelease.assertTasksExecuted(':compileReleaseCpp', ':linkRelease')
     }
 
+    @Requires(TestPrecondition.XCODE)
+    @IgnoreIf({GradleContextualExecuter.embedded})
     def "create xcode project C++ library"() {
         given:
         buildFile << """
@@ -100,6 +127,25 @@ apply plugin: 'cpp-library'
 
         project.products.children.size() == 1
         project.products.children[0].path == sharedLib("build/lib/main/debug/app").absolutePath
+
+        when:
+        def resultDebug = newXcodebuildExecuter()
+            .withProject("${rootProjectName}.xcodeproj")
+            .withScheme('App SharedLibrary')
+            .succeeds()
+
+        then:
+        resultDebug.assertTasksExecuted(':compileDebugSwift', ':linkDebug')
+
+        when:
+        def resultRelease = newXcodebuildExecuter()
+            .withProject("${rootProjectName}.xcodeproj")
+            .withScheme('App SharedLibrary')
+            .withConfiguration('Release')
+            .succeeds()
+
+        then:
+        resultRelease.assertTasksExecuted(':compileReleaseSwift', ':linkRelease')
     }
 
     def "new source files are included in the project"() {

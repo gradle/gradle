@@ -51,4 +51,8 @@ rootProject.name = "${rootProjectName}"
     protected XcodeWorkspacePackage xcodeWorkspace(String path) {
         new XcodeWorkspacePackage(file(path))
     }
+
+    protected XcodebuildExecuter newXcodebuildExecuter() {
+        new XcodebuildExecuter(testDirectory)
+    }
 }

@@ -17,15 +17,144 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import spock.lang.IgnoreIf
 
 import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 
+@Requires(TestPrecondition.XCODE)
+@IgnoreIf({GradleContextualExecuter.embedded})
 class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
     def setup() {
         settingsFile << """
             include 'app', 'greeter'
         """
+    }
+
+    def "create xcode project C++ executable"() {
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'cpp-executable'
+                dependencies {
+                    implementation project(':greeter')
+                }
+            }
+            project(':greeter') {
+                apply plugin: 'cpp-library'
+            }
+"""
+        def app = new CppAppWithLibrary()
+        app.greeter.writeToProject(file('greeter'))
+        app.main.writeToProject(file('app'))
+
+        when:
+        succeeds("xcode")
+
+        then:
+        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeSchemeAppExecutable", ":app:xcode",
+            ":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeSchemeGreeterSharedLibrary", ":greeter:xcode",
+            ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+
+        xcodeWorkspace("${rootProjectName}.xcworkspace")
+            .contentFile.assertHasProjects([file("${rootProjectName}.xcodeproj"), file('app/app.xcodeproj'), file('greeter/greeter.xcodeproj')]*.absolutePath)
+
+        def project = xcodeProject("app/app.xcodeproj").projectFile
+        project.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("app/src/main/headers"), file("greeter/src/main/public"))
+
+        when:
+        def resultDebugApp = newXcodebuildExecuter()
+            .withWorkspace("${rootProjectName}.xcworkspace")
+            .withScheme('App Executable')
+            .succeeds()
+
+        then:
+        resultDebugApp.assertTasksExecuted(':greeter:compileDebugCpp', ':greeter:linkDebug',
+            ':app:compileDebugCpp', ':app:linkDebug')
+
+        when:
+        def resultReleaseApp = newXcodebuildExecuter()
+            .withWorkspace("${rootProjectName}.xcworkspace")
+            .withScheme('App Executable')
+            .withConfiguration('Release')
+            .succeeds()
+
+        then:
+        resultReleaseApp.assertTasksExecuted(':greeter:compileReleaseCpp', ':greeter:linkRelease',
+            ':app:compileReleaseCpp', ':app:linkRelease')
+    }
+
+    def "create xcode project C++ executable with transitive dependencies"() {
+        def app = new CppAppWithLibraries()
+
+        given:
+        settingsFile.text =  """
+            include 'app', 'log', 'hello'
+            rootProject.name = "${rootProjectName}"
+        """
+        buildFile << """
+            project(':app') {
+                apply plugin: 'cpp-executable'
+                dependencies {
+                    implementation project(':hello')
+                }
+            }
+            project(':hello') {
+                apply plugin: 'cpp-library'
+                dependencies {
+                    implementation project(':log')
+                }
+            }
+            project(':log') {
+                apply plugin: 'cpp-library'
+            }
+        """
+        app.greeterLib.writeToProject(file("hello"))
+        app.loggerLib.writeToProject(file("log"))
+        app.main.writeToProject(file("app"))
+
+        when:
+        succeeds("xcode")
+
+        then:
+        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeSchemeAppExecutable", ":app:xcode",
+            ":log:xcodeProject", ":log:xcodeProjectWorkspaceSettings", ":log:xcodeSchemeLogSharedLibrary", ":log:xcode",
+            ":hello:xcodeProject", ":hello:xcodeProjectWorkspaceSettings", ":hello:xcodeSchemeHelloSharedLibrary", ":hello:xcode",
+            ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+
+        xcodeWorkspace("${rootProjectName}.xcworkspace")
+            .contentFile.assertHasProjects([file("${rootProjectName}.xcodeproj"), file('app/app.xcodeproj'), file('log/log.xcodeproj'), file('hello/hello.xcodeproj')]*.absolutePath)
+
+        def appProject = xcodeProject("app/app.xcodeproj").projectFile
+        appProject.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("app/src/main/headers"), file("hello/src/main/public"))
+        def helloProject = xcodeProject("hello/hello.xcodeproj").projectFile
+        helloProject.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("hello/src/main/public"), file("hello/src/main/headers"), file("log/src/main/public"))
+
+        when:
+        def resultDebugApp = newXcodebuildExecuter()
+            .withWorkspace("${rootProjectName}.xcworkspace")
+            .withScheme('App Executable')
+            .succeeds()
+
+        then:
+        resultDebugApp.assertTasksExecuted(':log:compileDebugCpp', ':log:linkDebug',
+            ':hello:compileDebugCpp', ':hello:linkDebug',
+            ':app:compileDebugCpp', ':app:linkDebug')
+
+        when:
+        def resultReleaseHello = newXcodebuildExecuter()
+            .withWorkspace("${rootProjectName}.xcworkspace")
+            .withScheme('Hello SharedLibrary')
+            .withConfiguration('Release')
+            .succeeds()
+
+        then:
+        resultReleaseHello.assertTasksExecuted(':hello:compileReleaseCpp', ':hello:linkRelease',
+            ':log:compileReleaseCpp', ':log:linkRelease')
     }
 
     def "create xcode project C++ executable inside composite build"() {
@@ -67,37 +196,24 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
 
         def project = xcodeProject("${rootProjectName}.xcodeproj").projectFile
         project.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("src/main/headers"), file("greeter/src/main/public"))
-    }
-
-    def "create xcode project C++ executable"() {
-        given:
-        buildFile << """
-            project(':app') {
-                apply plugin: 'cpp-executable'
-                dependencies {
-                    implementation project(':greeter')
-                }
-            }
-            project(':greeter') {
-                apply plugin: 'cpp-library'
-            }
-"""
-        def app = new CppAppWithLibrary()
-        app.greeter.writeToProject(file('greeter'))
-        app.main.writeToProject(file('app'))
 
         when:
-        succeeds("xcode")
+        def resultDebugApp = newXcodebuildExecuter()
+            .withWorkspace("${rootProjectName}.xcworkspace")
+            .withScheme('App Executable')
+            .succeeds()
 
         then:
-        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeSchemeAppExecutable", ":app:xcode",
-            ":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeSchemeGreeterSharedLibrary", ":greeter:xcode",
-            ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+        resultDebugApp.assertTasksExecuted(':greeter:compileDebugCpp', ':greeter:linkDebug', ':compileDebugCpp', ':linkDebug')
 
-        xcodeWorkspace("${rootProjectName}.xcworkspace")
-            .contentFile.assertHasProjects([file("${rootProjectName}.xcodeproj"), file('app/app.xcodeproj'), file('greeter/greeter.xcodeproj')]*.absolutePath)
+        when:
+        def resultReleaseGreeter = newXcodebuildExecuter()
+            .withWorkspace("${rootProjectName}.xcworkspace")
+            .withScheme('Greeter SharedLibrary')
+            .withConfiguration('Release')
+            .succeeds()
 
-        def project = xcodeProject("app/app.xcodeproj").projectFile
-        project.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("app/src/main/headers"), file("greeter/src/main/public"))
+        then:
+        resultReleaseGreeter.assertTasksExecuted(':compileReleaseCpp', ':linkRelease')
     }
 }
