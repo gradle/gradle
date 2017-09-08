@@ -17,25 +17,11 @@
 package org.gradle.nativeplatform.fixtures.app;
 
 import org.gradle.integtests.fixtures.SourceFile;
-import org.gradle.internal.os.OperatingSystem;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public abstract class IncrementalCppElement extends IncrementalElement {
-    @Override
-    protected List<String> toExpectedIntermediateDescendants(SourceElement sourceElement) {
-        List<String> result = new ArrayList<String>();
-
-        String sourceSetName = sourceElement.getSourceSetName();
-        for (SourceFile sourceFile : sourceElement.getFiles()) {
-            if (!sourceFile.getName().endsWith(".h")) {
-                result.add(getIntermediateRelativeFilePath(sourceSetName, sourceFile, OperatingSystem.current().isWindows() ? ".obj" : ".o"));
-            }
-        }
-        return result;
-    }
-
     /**
      * Returns a transform that rename the before element to {@code renamed-} followed by the original name.
      */

@@ -16,16 +16,19 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.api.internal.file.BaseDirFileResolver
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.IncrementalCppStaleCompileOutputApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalCppStaleCompileOutputLib
 import org.gradle.nativeplatform.fixtures.app.SourceElement
-import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
+import org.junit.Assume
 
 class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+    def setup() {
+        // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
+        Assume.assumeTrue(toolChain.id != "mingw" && toolChain.id != "gcccygwin")
+    }
+
     def "removes stale object files for executable"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new IncrementalCppStaleCompileOutputApp()
@@ -81,25 +84,21 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
         List<String> result = new ArrayList<String>()
 
         String sourceSetName = sourceElement.getSourceSetName()
-        String rootObjectFilesDirPath = "build/obj/main/debug"
-        File rootObjectFilesDir = file(rootObjectFilesDirPath)
+        String intermediateFilesDirPath = "build/obj/main/debug"
+        File intermediateFilesDir = file(intermediateFilesDirPath)
         for (SourceFile sourceFile : sourceElement.getFiles()) {
             if (!sourceFile.getName().endsWith(".h")) {
                 def cppFile = file("src", sourceSetName, sourceFile.path, sourceFile.name)
-                result.add(objectFileFor(cppFile, "build/obj/main/debug").relativizeFrom(rootObjectFilesDir).path)
+                result.add(objectFileFor(cppFile, intermediateFilesDirPath).relativizeFrom(intermediateFilesDir).path)
                 if (toolChain.isVisualCpp()) {
-                    result.add(debugFileFor(cppFile).relativizeFrom(rootObjectFilesDir).path)
+                    result.add(debugFileFor(cppFile).relativizeFrom(intermediateFilesDir).path)
                 }
             }
         }
         return result
     }
 
-    def debugFileFor(File sourceFile, String rootObjectFilesDir = "build/obj/main/debug") {
-        File objectFile = new CompilerOutputFileNamingSchemeFactory(new BaseDirFileResolver(TestFiles.fileSystem(), testDirectory, TestFiles.getPatternSetFactory())).create()
-            .withObjectFileNameSuffix(".obj.pdb")
-            .withOutputBaseFolder(file(rootObjectFilesDir))
-            .map(file(sourceFile))
-        return file(getTestDirectory().toURI().relativize(objectFile.toURI()))
+    def debugFileFor(File sourceFile, String intermediateFilesDir = "build/obj/main/debug") {
+        return intermediateFileFor(sourceFile, intermediateFilesDir, ".obj.pdb")
     }
 }

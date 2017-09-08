@@ -19,41 +19,10 @@ package org.gradle.nativeplatform.fixtures.app;
 import org.gradle.integtests.fixtures.SourceFile;
 import org.gradle.test.fixtures.file.TestFile;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public abstract class IncrementalSwiftElement extends IncrementalElement {
-    @Override
-    protected List<String> toExpectedIntermediateDescendants(SourceElement sourceElement) {
-        List<String> result = new ArrayList<String>();
-
-        String sourceSetName = sourceElement.getSourceSetName();
-        for (SourceFile sourceFile : sourceElement.getFiles()) {
-            result.add(getIntermediateRelativeFilePath(sourceSetName, sourceFile, ".o"));
-            result.add(getIntermediateRelativeFilePath(sourceSetName, sourceFile, "~partial.swiftdoc"));
-            result.add(getIntermediateRelativeFilePath(sourceSetName, sourceFile, "~partial.swiftmodule"));
-        }
-        return result;
-    }
-
-    @Override
-    public List<String> getExpectedIntermediateDescendants() {
-        return appendGenericExpectedIntermediateDescendants(super.getExpectedIntermediateDescendants());
-    }
-
-    @Override
-    public List<String> getExpectedAlternateIntermediateDescendants() {
-        return appendGenericExpectedIntermediateDescendants(super.getExpectedAlternateIntermediateDescendants());
-    }
-
-    private List<String> appendGenericExpectedIntermediateDescendants(List<String> delegate) {
-        delegate.add("output-file-map.json");
-        delegate.add(getModuleName() + ".swiftmodule");
-        delegate.add(getModuleName() + ".swiftdoc");
-        return delegate;
-    }
-
     public abstract String getModuleName();
 
     /**

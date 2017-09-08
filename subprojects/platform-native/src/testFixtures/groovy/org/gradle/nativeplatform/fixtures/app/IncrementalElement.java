@@ -16,12 +16,9 @@
 
 package org.gradle.nativeplatform.fixtures.app;
 
-import org.gradle.api.internal.file.TestFiles;
 import org.gradle.integtests.fixtures.SourceFile;
-import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme;
 import org.gradle.test.fixtures.file.TestFile;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -47,25 +44,6 @@ public abstract class IncrementalElement {
      */
     public void writeToProject(TestFile projectDir) {
         original.writeToProject(projectDir);
-    }
-
-    public List<String> getExpectedIntermediateDescendants() {
-        return toExpectedIntermediateDescendants(original);
-    }
-
-    public List<String> getExpectedAlternateIntermediateDescendants() {
-        return toExpectedIntermediateDescendants(alternate);
-    }
-
-    protected abstract List<String> toExpectedIntermediateDescendants(SourceElement sourceElement);
-
-    protected String getIntermediateRelativeFilePath(String sourceSetName, SourceFile sourceFile, String fileSuffix) {
-        File baseDir = TestFile.listRoots()[0];  // Pick the first root as the virtual base for the source file
-        File outputFile = new CompilerOutputFileNamingScheme(TestFiles.resolver(baseDir))
-            .withObjectFileNameSuffix(fileSuffix)
-            .withOutputBaseFolder(new File(""))
-            .map(new File(baseDir, "src/" + sourceSetName + "/" + sourceFile.getPath() + "/" + sourceFile.getName()));
-        return outputFile.getPath().substring(baseDir.getPath().length());
     }
 
     public interface Transform {
@@ -236,10 +214,6 @@ public abstract class IncrementalElement {
             }
             return result;
         }
-
-        public List<String> getExpectedIntermediateDescendants() {
-            return IncrementalElement.this.getExpectedIntermediateDescendants();
-        }
     }
 
     private class AlternateElement extends SourceElement {
@@ -250,10 +224,6 @@ public abstract class IncrementalElement {
                 result.addAll(transform.getAfterFiles());
             }
             return result;
-        }
-
-        public List<String> getExpectedIntermediateDescendants() {
-            return IncrementalElement.this.getExpectedAlternateIntermediateDescendants();
         }
     }
 }

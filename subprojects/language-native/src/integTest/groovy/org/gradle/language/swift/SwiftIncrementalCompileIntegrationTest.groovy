@@ -16,11 +16,13 @@
 
 package org.gradle.language.swift
 
+import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftModifyExpectedOutputApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftModifyExpectedOutputAppWithLib
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftStaleCompileOutputApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftStaleCompileOutputLib
+import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -128,7 +130,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
         result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
 
-        file("build/obj/main/debug").assertHasDescendants(app.alternate.expectedIntermediateDescendants)
+        file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.alternate, app.moduleName))
         executable("build/exe/main/debug/App").assertExists()
         installation("build/install/main/debug").exec().out == app.expectedAlternateOutput
     }
@@ -154,7 +156,35 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
         result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":assemble")
 
-        file("build/obj/main/debug").assertHasDescendants(lib.alternate.expectedIntermediateDescendants)
+        file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(lib.alternate, lib.moduleName))
         sharedLibrary("build/lib/main/debug/Hello").assertExists()
+    }
+
+    private List<String> expectIntermediateDescendants(SourceElement sourceElement, String moduleName) {
+        List<String> result = new ArrayList<String>()
+
+        String sourceSetName = sourceElement.getSourceSetName()
+        String intermediateFilesDirPath = "build/obj/main/debug"
+        File intermediateFilesDir = file(intermediateFilesDirPath)
+        for (SourceFile sourceFile : sourceElement.getFiles()) {
+            if (!sourceFile.getName().endsWith(".h")) {
+                def cppFile = file("src", sourceSetName, sourceFile.path, sourceFile.name)
+                result.add(objectFileFor(cppFile, intermediateFilesDirPath).relativizeFrom(intermediateFilesDir).path)
+                result.add(swiftmoduleFileFor(cppFile).relativizeFrom(intermediateFilesDir).path)
+                result.add(swiftdocFileFor(cppFile).relativizeFrom(intermediateFilesDir).path)
+            }
+        }
+        result.add("output-file-map.json")
+        result.add(moduleName + ".swiftmodule")
+        result.add(moduleName + ".swiftdoc")
+        return result
+    }
+
+    def swiftmoduleFileFor(File sourceFile, String intermediateFilesDir = "build/obj/main/debug") {
+        return intermediateFileFor(sourceFile, intermediateFilesDir, "~partial.swiftmodule")
+    }
+
+    def swiftdocFileFor(File sourceFile, String intermediateFilesDir = "build/obj/main/debug") {
+        return intermediateFileFor(sourceFile, intermediateFilesDir, "~partial.swiftdoc")
     }
 }

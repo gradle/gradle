@@ -78,10 +78,14 @@ allprojects { p ->
     }
 
     def objectFileFor(File sourceFile, String rootObjectFilesDir = "build/objs/main/main${sourceType}") {
+        return intermediateFileFor(sourceFile, rootObjectFilesDir, OperatingSystem.current().isWindows() ? ".obj" : ".o")
+    }
+
+    def intermediateFileFor(File sourceFile, String intermediateFilesDir, String intermediateFileSuffix) {
         File objectFile = new CompilerOutputFileNamingSchemeFactory(new BaseDirFileResolver(TestFiles.fileSystem(), testDirectory, TestFiles.getPatternSetFactory())).create()
-                        .withObjectFileNameSuffix(OperatingSystem.current().isWindows() ? ".obj" : ".o")
-                        .withOutputBaseFolder(file(rootObjectFilesDir))
-                        .map(file(sourceFile))
+            .withObjectFileNameSuffix(intermediateFileSuffix)
+            .withOutputBaseFolder(file(intermediateFilesDir))
+            .map(file(sourceFile))
         return file(getTestDirectory().toURI().relativize(objectFile.toURI()))
     }
 
