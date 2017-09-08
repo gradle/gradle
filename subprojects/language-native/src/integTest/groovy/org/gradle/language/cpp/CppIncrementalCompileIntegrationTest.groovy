@@ -16,9 +16,14 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.api.internal.file.BaseDirFileResolver
+import org.gradle.api.internal.file.TestFiles
+import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.IncrementalCppStaleCompileOutputApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalCppStaleCompileOutputLib
+import org.gradle.nativeplatform.fixtures.app.SourceElement
+import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
 
 class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "removes stale object files for executable"() {
@@ -42,7 +47,7 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
         result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":installDebug", ":assemble")
         result.assertTasksNotSkipped(":compileDebugCpp", ":linkDebug", ":installDebug", ":assemble")
 
-        file("build/obj/main/debug").assertHasDescendants(appendDebugDescendants(app.expectedAlternateIntermediateDescendants))
+        file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.alternate))
         executable("build/exe/main/debug/app").assertExists()
         installation("build/install/main/debug").exec().out == app.expectedOutput
     }
@@ -68,22 +73,33 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
         result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":assemble")
         result.assertTasksNotSkipped(":compileDebugCpp", ":linkDebug", ":assemble")
 
-        file("build/obj/main/debug").assertHasDescendants(appendDebugDescendants(lib.expectedAlternateIntermediateDescendants))
+        file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(lib.alternate))
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 
-    private List<String> appendDebugDescendants(List<String> intermediateDescendants) {
-        if (!toolChain.isVisualCpp()) {
-            return intermediateDescendants
-        }
+    private List<String> expectIntermediateDescendants(SourceElement sourceElement) {
+        List<String> result = new ArrayList<String>()
 
-        List<String> result = new ArrayList<>(intermediateDescendants);
-        for (String intermediateDescendant : intermediateDescendants) {
-            if (intermediateDescendant.endsWith(".obj")) {
-                result.add(intermediateDescendant + ".pdb")
+        String sourceSetName = sourceElement.getSourceSetName()
+        String rootObjectFilesDirPath = "build/obj/main/debug"
+        File rootObjectFilesDir = file(rootObjectFilesDirPath)
+        for (SourceFile sourceFile : sourceElement.getFiles()) {
+            if (!sourceFile.getName().endsWith(".h")) {
+                def cppFile = file("src", sourceSetName, sourceFile.path, sourceFile.name)
+                result.add(objectFileFor(cppFile, "build/obj/main/debug").relativizeFrom(rootObjectFilesDir).path)
+                if (toolChain.isVisualCpp()) {
+                    result.add(debugFileFor(cppFile).relativizeFrom(rootObjectFilesDir).path)
+                }
             }
         }
-
         return result
+    }
+
+    def debugFileFor(File sourceFile, String rootObjectFilesDir = "build/obj/main/debug") {
+        File objectFile = new CompilerOutputFileNamingSchemeFactory(new BaseDirFileResolver(TestFiles.fileSystem(), testDirectory, TestFiles.getPatternSetFactory())).create()
+            .withObjectFileNameSuffix(".obj.pdb")
+            .withOutputBaseFolder(file(rootObjectFilesDir))
+            .map(file(sourceFile))
+        return file(getTestDirectory().toURI().relativize(objectFile.toURI()))
     }
 }
