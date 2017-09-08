@@ -779,4 +779,249 @@ task checkDeps(dependsOn: configurations.compile) {
         then:
         noExceptionThrown()
     }
+
+    def "chooses highest version that is included in all ranges"() {
+        given:
+        (1..10).each {
+            mavenRepo.module("org", "leaf", "$it").publish()
+        }
+        mavenRepo.module("org", "a", "1.0").dependsOn("org", "leaf", "[2,6]").publish()
+        mavenRepo.module("org", "b", "1.0").dependsOn("org", "leaf", "[4,8]").publish()
+        mavenRepo.module("org", "c", "1.0").dependsOn("org", "leaf", "[3,5]").publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:a:1.0', 'org:b:1.0', 'org:c:1.0'
+            }
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'leaf-5.jar']
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "chooses highest version that is included in all ranges, when dependencies are included at different transitivity levels"() {
+        given:
+        (1..10).each {
+            mavenRepo.module("org", "leaf", "$it").publish()
+        }
+        // top level
+        mavenRepo.module("org", "a", "1.0").dependsOn("org", "leaf", "[2,6]").publish()
+
+        // b will include 'leaf' through a transitive dependency
+        mavenRepo.module("org", "b", "1.0").dependsOn("org", "b2", "1.0").publish()
+        mavenRepo.module("org", "b2", "1.0").dependsOn("org", "leaf", "[3,5]").publish()
+
+        // c will include 'leaf' through a 2d level transitive dependency
+        mavenRepo.module("org", "c", "1.0").dependsOn("org", "c2", "1.0").publish()
+        mavenRepo.module("org", "c2", "1.0").dependsOn("org", "c3", "1.0").publish()
+        mavenRepo.module("org", "c3", "1.0").dependsOn("org", "leaf", "[3,5]").publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:a:1.0', 'org:b:1.0', 'org:c:1.0'
+            }
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'b2-1.0.jar', 'c-1.0.jar', 'c2-1.0.jar','c3-1.0.jar', 'leaf-5.jar']
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "upgrades version when ranges are disjoint"() {
+        given:
+        (1..10).each {
+            mavenRepo.module("org", "leaf", "$it").publish()
+        }
+        mavenRepo.module("org", "a", "1.0").dependsOn("org", "leaf", "[2,3]").publish()
+        mavenRepo.module("org", "b", "1.0").dependsOn("org", "leaf", "[5,8]").publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:a:1.0', 'org:b:1.0'
+            }
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'leaf-8.jar']
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "upgrades version when one of the ranges is disjoint"() {
+        given:
+        (1..10).each {
+            mavenRepo.module("org", "leaf", "$it").publish()
+        }
+        mavenRepo.module("org", "a", "1.0").dependsOn("org", "leaf", "[2,6]").publish()
+        mavenRepo.module("org", "b", "1.0").dependsOn("org", "leaf", "[3,4]").publish()
+        mavenRepo.module("org", "c", "1.0").dependsOn("org", "leaf", "[7,8]").publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:a:1.0', 'org:b:1.0', 'org:c:1.0'
+            }
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'leaf-8.jar']
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "chooses highest version of all versions fully included within range"() {
+        given:
+        (1..12).each {
+            mavenRepo.module("org", "leaf", "$it").publish()
+        }
+        mavenRepo.module("org", "a", "1.0").dependsOn("org", "leaf", "[1,12]").publish()
+        mavenRepo.module("org", "b", "1.0").dependsOn("org", "leaf", "[3,8]").publish()
+        mavenRepo.module("org", "c", "1.0").dependsOn("org", "leaf", "[2,10]").publish()
+        mavenRepo.module("org", "d", "1.0").dependsOn("org", "leaf", "[4,7]").publish()
+        mavenRepo.module("org", "e", "1.0").dependsOn("org", "leaf", "[4,11]").publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:a:1.0', 'org:b:1.0', 'org:c:1.0', 'org:d:1.0', 'org:e:1.0'
+            }
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'e-1.0.jar', 'leaf-7.jar']
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "selects the minimal version when in there's an open range"() {
+        given:
+        (1..10).each {
+            mavenRepo.module("org", "leaf", "$it").publish()
+        }
+        mavenRepo.module("org", "a", "1.0").dependsOn("org", "leaf", "[2,6]").publish()
+        mavenRepo.module("org", "b", "1.0").dependsOn("org", "leaf", "[5,)").publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:a:1.0', 'org:b:1.0'
+            }
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'leaf-6.jar']
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "range selector should not win over sub-version selector"() {
+        given:
+        (1..10).each {
+            mavenRepo.module("org", "leaf", "1.$it").publish()
+        }
+        mavenRepo.module("org", "a", "1.0").dependsOn("org", "leaf", "[1.2,1.6]").publish()
+        mavenRepo.module("org", "b", "1.0").dependsOn("org", "leaf", "1.+").publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:a:1.0', 'org:b:1.0'
+            }
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'leaf-1.10.jar']
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        noExceptionThrown()
+    }
 }
