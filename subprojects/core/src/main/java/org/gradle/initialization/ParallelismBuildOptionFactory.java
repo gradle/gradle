@@ -16,7 +16,6 @@
 
 package org.gradle.initialization;
 
-import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.Factory;
 import org.gradle.internal.buildoption.BooleanBuildOption;
@@ -67,20 +66,24 @@ public class ParallelismBuildOptionFactory implements Factory<List<BuildOption<P
             try {
                 int workerCount = Integer.parseInt(value);
                 if (workerCount < 1) {
-                    handleInvalidMaxWorkersSwitchValue(value, origin);
+                    handleInvalidValue(origin, value);
                 }
                 settings.setMaxWorkerCount(workerCount);
             } catch (NumberFormatException e) {
-                handleInvalidMaxWorkersSwitchValue(value, origin);
+                handleInvalidValue(origin, value);
             }
         }
 
-        private void handleInvalidMaxWorkersSwitchValue(String value, Origin origin) {
-            switch (origin) {
-                case GRADLE_PROPERTY: throw new IllegalArgumentException(String.format(String.format("Value '%s' given for %s system property is invalid (must be a positive, non-zero, integer)", value, gradleProperty)));
-                case COMMAND_LINE: throw new CommandLineArgumentException(String.format("Argument value '%s' given for --%s option is invalid (must be a positive, non-zero, integer)", value, LONG_OPTION));
-                default: throw new IllegalStateException(String.format("Unexpected context %s", origin));
-            }
+        private void handleInvalidValue(Origin origin, String value) {
+            origin.handleInvalidValue(createGradlePropertyFailureMessage(value), createCommandLineFailureMessage(value));
+        }
+
+        private String createGradlePropertyFailureMessage(String value) {
+            return String.format(String.format("Value '%s' given for %s system property is invalid (must be a positive, non-zero, integer)", value, gradleProperty));
+        }
+
+        private String createCommandLineFailureMessage(String value) {
+            return String.format("Argument value '%s' given for --%s option is invalid (must be a positive, non-zero, integer)", value, LONG_OPTION);
         }
     }
 }
