@@ -20,7 +20,6 @@ import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.TestNGCoverage
-import spock.lang.Issue
 
 import static org.gradle.testing.fixture.TestNGCoverage.FIXED_ICLASS_LISTENER
 import static org.gradle.testing.fixture.TestNGCoverage.NEWEST
@@ -36,7 +35,6 @@ class TestNGClassIntegrationTest extends MultiVersionIntegrationSpec {
         TestNGCoverage.enableTestNG(buildFile, version)
     }
 
-    @Issue("https://github.com/gradle/gradle-private/issues/954")
     def "test class events references correct suite as parent"() {
         given:
         def testNgSuite = file("src/test/resources/testng.xml")
