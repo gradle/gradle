@@ -28,6 +28,9 @@ import static org.gradle.testing.fixture.TestNGCoverage.NEWEST
 @TargetCoverage({ [FIXED_ICLASS_LISTENER, NEWEST] })
 class TestNGClassIntegrationTest extends MultiVersionIntegrationSpec {
 
+    private final static String STARTED_EVENT_DESCRIPTOR = 'Started'
+    private final static String FINISHED_EVENT_DESCRIPTOR = 'Finished'
+
     def setup() {
         executer.noExtraLogging()
         TestNGCoverage.enableTestNG(buildFile, version)
@@ -54,11 +57,11 @@ class TestNGClassIntegrationTest extends MultiVersionIntegrationSpec {
     
             gradle.addListener(new TestListenerInternal() {
                 void started(TestDescriptorInternal d, TestStartEvent s) {
-                    printEventInformation('Started', d)
+                    printEventInformation('$STARTED_EVENT_DESCRIPTOR', d)
                 }
     
                 void completed(TestDescriptorInternal d, TestResult result, TestCompleteEvent cE) {
-                    printEventInformation('Finished', d)
+                    printEventInformation('$FINISHED_EVENT_DESCRIPTOR', d)
                 }
     
                 private void printEventInformation(String eventTypeDescription, TestDescriptorInternal d) {
@@ -106,11 +109,13 @@ class TestNGClassIntegrationTest extends MultiVersionIntegrationSpec {
         succeeds 'test'
 
         then:
-        containsTestClassEvent('Started')
-        containsTestClassEvent('Finished')
+        containsTestClassEvent(STARTED_EVENT_DESCRIPTOR, 'LightTest')
+        containsTestClassEvent(STARTED_EVENT_DESCRIPTOR, 'FullTest')
+        containsTestClassEvent(FINISHED_EVENT_DESCRIPTOR, 'LightTest')
+        containsTestClassEvent(FINISHED_EVENT_DESCRIPTOR, 'FullTest')
     }
 
-    private boolean containsTestClassEvent(String eventTypeDescription) {
-        output.contains("$eventTypeDescription event type ${DefaultTestClassDescriptor.getName()} with descriptor org.company.SystemOutTest and parent TestSuite")
+    private boolean containsTestClassEvent(String eventTypeDescription, String parent) {
+        output.contains("$eventTypeDescription event type ${DefaultTestClassDescriptor.getName()} with descriptor org.company.SystemOutTest and parent $parent")
     }
 }

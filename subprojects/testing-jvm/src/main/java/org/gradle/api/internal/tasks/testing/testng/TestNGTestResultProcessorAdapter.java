@@ -34,7 +34,7 @@ import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestNGMethod;
 import org.testng.ITestResult;
-import org.testng.xml.XmlSuite;
+import org.testng.xml.XmlTest;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,7 +48,7 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
     private final Object lock = new Object();
     private final Map<ITestContext, Object> testId = new HashMap<ITestContext, Object>();
     private final Map<ISuite, Object> suiteId = new HashMap<ISuite, Object>();
-    private final Map<XmlSuite, Object> xmlSuiteIds = new HashMap<XmlSuite, Object>();
+    private final Map<XmlTest, Object> xmlTestIds = new HashMap<XmlTest, Object>();
     private final Map<ITestClass, Object> testClassId = new HashMap<ITestClass, Object>();
     private final Map<ITestResult, Object> testMethodId = new HashMap<ITestResult, Object>();
     private final Map<ITestNGMethod, Object> testMethodParentId = new HashMap<ITestNGMethod, Object>();
@@ -71,7 +71,6 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
             Object id = idGenerator.generateId();
             testInternal = new DefaultTestSuiteDescriptor(id, suite.getName());
             suiteId.put(suite, testInternal.getId());
-            xmlSuiteIds.put(suite.getXmlSuite(), id);
         }
         resultProcessor.started(testInternal, new TestStartEvent(clock.getCurrentTime()));
     }
@@ -81,7 +80,6 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
         Object id;
         synchronized (lock) {
             id = suiteId.remove(suite);
-            xmlSuiteIds.remove(suite.getXmlSuite());
             if (id == null) {
                 // Can get duplicate finish events
                 return;
@@ -98,8 +96,7 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
         synchronized (lock) {
             testInternal = new DefaultTestClassDescriptor(idGenerator.generateId(), testClass.getName());
             testClassId.put(testClass, testInternal.getId());
-            XmlSuite xmlSuite = testClass.getXmlTest().getSuite();
-            parentId = xmlSuiteIds.get(xmlSuite);
+            parentId = xmlTestIds.get(testClass.getXmlTest());
         }
         resultProcessor.started(testInternal, new TestStartEvent(clock.getCurrentTime(), parentId));
     }
@@ -126,8 +123,10 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
         TestDescriptorInternal testInternal;
         Object parentId;
         synchronized (lock) {
-            testInternal = new DefaultTestSuiteDescriptor(idGenerator.generateId(), iTestContext.getName());
+            Object id = idGenerator.generateId();
+            testInternal = new DefaultTestSuiteDescriptor(id, iTestContext.getName());
             parentId = suiteId.get(iTestContext.getSuite());
+            xmlTestIds.put(iTestContext.getCurrentXmlTest(), id);
             testId.put(iTestContext, testInternal.getId());
             for (ITestNGMethod method : iTestContext.getAllTestMethods()) {
                 testMethodParentId.put(method, testInternal.getId());
@@ -141,6 +140,7 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
         Object id;
         synchronized (lock) {
             id = testId.remove(iTestContext);
+            xmlTestIds.remove(iTestContext.getCurrentXmlTest());
             for (ITestNGMethod method : iTestContext.getAllTestMethods()) {
                 testMethodParentId.remove(method);
             }
