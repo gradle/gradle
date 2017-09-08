@@ -16,18 +16,28 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.internal.component.external.descriptor.Configuration;
+import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
+import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
@@ -40,6 +50,7 @@ import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -187,12 +198,12 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
      *
      * 1. selecting a version, thanks to the versioned component chooser, for a specific version selector
      * 2. once the selection is done, fetch metadata for this component
-     *
      */
     private static class RepositoryResolveState implements ComponentSelectionContext {
         private final VersionedComponentChooser versionedComponentChooser;
         private final BuildableModuleComponentMetaDataResolveResult resolvedVersionMetadata = new DefaultBuildableModuleComponentMetaDataResolveResult();
         private final Map<String, CandidateResult> candidateComponents = new LinkedHashMap<String, CandidateResult>();
+        private final List<String> allMatchingVersions = Lists.newArrayListWithExpectedSize(1);
         private final Set<String> unmatchedVersions = Sets.newLinkedHashSet();
         private final Set<String> rejectedVersions = Sets.newLinkedHashSet();
         private final VersionListResult versionListingResult;
@@ -200,6 +211,7 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
         private final AttemptCollector attemptCollector;
         private final DependencyMetadata dependency;
         private final ModuleVersionSelector selector;
+        private ModuleComponentResolveMetadata selected;
 
         public RepositoryResolveState(VersionedComponentChooser versionedComponentChooser, DependencyMetadata dependency, ModuleComponentRepository repository) {
             this.versionedComponentChooser = versionedComponentChooser;
@@ -233,12 +245,41 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
         private void selectMatchingVersionAndResolve() {
             // TODO - reuse metaData if it was already fetched to select the component from the version list
             versionedComponentChooser.selectNewestMatchingComponent(candidates(), this, selector);
+            applyResolutionResult();
+        }
+
+        private void applyResolutionResult() {
+            if (selected != null) {
+                if (allMatchingVersions.size()==1) {
+                    resolvedVersionMetadata.resolved(selected);
+                } else {
+                    resolvedVersionMetadata.resolved(new ModuleComponentResolveMetadataWithMultipleCandidates(allMatchingVersions, selected));
+                }
+            }
         }
 
         @Override
         public void matches(ModuleComponentIdentifier moduleComponentIdentifier) {
-            CandidateResult candidateResult = candidateComponents.get(moduleComponentIdentifier.getVersion());
-            candidateResult.resolve(resolvedVersionMetadata);
+            String version = moduleComponentIdentifier.getVersion();
+            CandidateResult candidateResult = candidateComponents.get(version);
+            // The following code deserves a bit of explanation.
+            // Some selectors (ranges) are allowed to say that multiple versions within the range are compatible.
+            // So this "matches" method will be called several times, once for each version matching within range.
+            // However, we only need metadata for the first (and latest) matching version, which will effectively
+            // be added to the graph.
+            // For the other versions within range, we don't need to check if they _actually_ return metadata, all
+            // we need to know is that they match.
+            // Should a conflict occur, because 2 ranges overlap, we will select the range with the highest matching
+            // upper bound, which happens to be the one with the metadata resolved. However conflict resolution needs
+            // us to "remember" about the ranges, so that we can compute if the intersection is not null.
+            // That's why we add all "matching candidates" to the list, but only try to effectively resolve the upper bound.
+            // It's worth noting that if we have a range [3,8], and that version 8 is matching, but there's no metadata
+            // associated with it, this method will return null, so the _effective_ upper bound will be 7 (again, if
+            // metadata for 7 exists).
+            allMatchingVersions.add(version);
+            if (selected == null) {
+                selected = candidateResult.tryResolveMetadata(resolvedVersionMetadata);
+            }
         }
 
         @Override
@@ -344,23 +385,24 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
         /**
          * Once a version has been selected, this tries to resolve metadata for this specific version. If it can it
          * will copy the result to the target builder
+         *
          * @param target where to put metadata
+         * @return the resolved metadata, if it could be resoved
          */
-        public void resolve(BuildableModuleComponentMetaDataResolveResult target) {
+        private ModuleComponentResolveMetadata tryResolveMetadata(BuildableModuleComponentMetaDataResolveResult target) {
             BuildableModuleComponentMetaDataResolveResult result = resolve();
             switch (result.getState()) {
                 case Resolved:
-                    target.resolved(result.getMetaData());
-                    break;
+                    return result.getMetaData();
                 case Missing:
                     result.applyTo(target);
                     target.missing();
-                    break;
+                    return null;
                 case Failed:
                     target.failed(result.getFailure());
-                    break;
+                    return null;
                 case Unknown:
-                    break;
+                    return null;
                 default:
                     throw new IllegalStateException();
             }
@@ -411,6 +453,117 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
 
         private void process(DependencyMetadata dynamicVersionDependency, ModuleComponentRepositoryAccess moduleAccess) {
             moduleAccess.listModuleVersions(dynamicVersionDependency, result);
+        }
+    }
+
+    private static class ModuleComponentResolveMetadataWithMultipleCandidates implements ModuleComponentResolveMetadata, HasMultipleCandidateVersions {
+        private final ModuleComponentResolveMetadata metadata;
+        private final List<String> allCandidateVersions;
+
+        private ModuleComponentResolveMetadataWithMultipleCandidates(List<String> allCandidateVersions, ModuleComponentResolveMetadata metadata) {
+            this.allCandidateVersions = allCandidateVersions;
+            this.metadata = metadata;
+        }
+
+        @Override
+        public ModuleComponentIdentifier getComponentId() {
+            return metadata.getComponentId();
+        }
+
+        @Override
+        public ModuleComponentResolveMetadata withSource(ModuleSource source) {
+            return new ModuleComponentResolveMetadataWithMultipleCandidates(allCandidateVersions, metadata.withSource(source));
+        }
+
+        @Override
+        public MutableModuleComponentResolveMetadata asMutable() {
+            return metadata.asMutable();
+        }
+
+        @Override
+        public ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier) {
+            return metadata.artifact(type, extension, classifier);
+        }
+
+        @Override
+        public ModuleVersionIdentifier getId() {
+            return metadata.getId();
+        }
+
+        @Override
+        @Nullable
+        public List<ModuleComponentArtifactMetadata> getArtifacts() {
+            return metadata.getArtifacts();
+        }
+
+        @Override
+        public ModuleSource getSource() {
+            return metadata.getSource();
+        }
+
+        @Override
+        public AttributesSchemaInternal getAttributesSchema() {
+            return metadata.getAttributesSchema();
+        }
+
+        @Override
+        public ModuleDescriptorState getDescriptor() {
+            return metadata.getDescriptor();
+        }
+
+        @Override
+        public List<? extends DependencyMetadata> getDependencies() {
+            return metadata.getDependencies();
+        }
+
+        @Override
+        public Set<String> getConfigurationNames() {
+            return metadata.getConfigurationNames();
+        }
+
+        @Override
+        public Map<String, Configuration> getConfigurationDefinitions() {
+            return getSelected().getConfigurationDefinitions();
+        }
+
+        @Override
+        public List<? extends ConfigurationMetadata> getConsumableConfigurationsHavingAttributes() {
+            return metadata.getConsumableConfigurationsHavingAttributes();
+        }
+
+        @Override
+        @Nullable
+        public ConfigurationMetadata getConfiguration(String name) {
+            return metadata.getConfiguration(name);
+        }
+
+        @Override
+        public boolean isGenerated() {
+            return metadata.isGenerated();
+        }
+
+        @Override
+        public boolean isChanging() {
+            return metadata.isChanging();
+        }
+
+        @Override
+        public String getStatus() {
+            return metadata.getStatus();
+        }
+
+        @Override
+        public List<String> getStatusScheme() {
+            return metadata.getStatusScheme();
+        }
+
+        public ModuleComponentResolveMetadata getSelected() {
+            return metadata;
+        }
+
+        @Override
+        public List<String> getAllVersions() {
+            return ImmutableList.copyOf(allCandidateVersions);
         }
     }
 }

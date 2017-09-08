@@ -33,6 +33,8 @@ public interface ComponentResolutionState extends StringVersioned {
     @Nullable
     ComponentResolveMetadata getMetaData();
 
+    boolean isResolved();
+
     ComponentSelectionReason getSelectionReason();
 
     void setSelectionReason(ComponentSelectionReason componentSelectionReason);

@@ -72,6 +72,9 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         VersionSelector requestedVersionMatcher = versionSelectorScheme.parseSelector(requested.getVersion());
         Collection<SpecRuleAction<? super ComponentSelection>> rules = componentSelectionRules.getRules();
 
+        boolean matched = false;
+
+        // Loop over all listed versions, sorted by LATEST first
         for (ModuleComponentResolveState candidate : sortLatestFirst(versions)) {
             MetadataProvider metadataProvider = createMetadataProvider(candidate);
 
@@ -89,7 +92,11 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
             ModuleComponentIdentifier candidateIdentifier = candidate.getId();
             if (!isRejectedByRules(candidateIdentifier, rules, metadataProvider)) {
                 result.matches(candidateIdentifier);
-                return;
+                matched = true;
+                if (!requestedVersionMatcher.requiresAllVersions()) {
+                    return;
+                }
+                continue;
             }
 
             // Mark this version as rejected
@@ -99,9 +106,11 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
                 break;
             }
         }
-        // if we reach this point, no match was found, either because there are no versions matching the selector
-        // or all of them were rejected
-        result.noMatchFound();
+        if (!matched) {
+            // if we reach this point, no match was found, either because there are no versions matching the selector
+            // or all of them were rejected
+            result.noMatchFound();
+        }
     }
 
     /**

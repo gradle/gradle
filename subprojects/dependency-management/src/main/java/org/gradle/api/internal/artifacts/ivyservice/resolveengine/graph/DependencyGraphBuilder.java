@@ -36,6 +36,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Modul
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictResolutionResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.MultipleCandidateModulesConflictResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.PotentialConflict;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -116,6 +117,7 @@ public class DependencyGraphBuilder {
         moduleResolver.resolve(resolveContext, rootModule);
 
         final ResolveState resolveState = new ResolveState(idGenerator, rootModule, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleIdentifierFactory, moduleExclusions);
+        conflictHandler.registerResolver(MultipleCandidateModulesConflictResolver.create());
         conflictHandler.registerResolver(new DirectDependencyForcingResolver(resolveState.root.component));
 
         traverseGraph(resolveState);
@@ -847,6 +849,11 @@ public class DependencyGraphBuilder {
                 resolve();
             }
             return metaData;
+        }
+
+        @Override
+        public boolean isResolved() {
+            return metaData != null;
         }
 
         public void setMetaData(ComponentResolveMetadata metaData) {
