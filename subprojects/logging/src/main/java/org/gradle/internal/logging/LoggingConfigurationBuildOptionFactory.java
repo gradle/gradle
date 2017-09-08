@@ -17,7 +17,6 @@
 package org.gradle.internal.logging;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Transformer;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
@@ -30,7 +29,6 @@ import org.gradle.internal.buildoption.AbstractBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.StringBuildOption;
-import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +60,7 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
         public static final String INFO_SHORT_OPTION = "i";
         public static final String DEBUG_LONG_OPTION = "debug";
         public static final String DEBUG_SHORT_OPTION = "d";
+        private static final String[] ALL_SHORT_OPTIONS = new String[]{QUIET_SHORT_OPTION, WARN_SHORT_OPTION, INFO_SHORT_OPTION, DEBUG_SHORT_OPTION};
 
         public LogLevelOption() {
             super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(QUIET_LONG_OPTION, QUIET_SHORT_OPTION, "Log errors only."), CommandLineOptionConfiguration.create(WARN_LONG_OPTION, WARN_SHORT_OPTION, "Set log level to warn."), CommandLineOptionConfiguration.create(INFO_LONG_OPTION, INFO_SHORT_OPTION, "Set log level to info."), CommandLineOptionConfiguration.create(DEBUG_LONG_OPTION, DEBUG_SHORT_OPTION, "Log in debug mode (includes normal stacktrace)."));
@@ -83,14 +82,7 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
                 configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.getDeprecationWarning(), config.isIncubating());
             }
 
-            List<String> allShortOptions = CollectionUtils.collect(commandLineOptionConfigurations, new Transformer<String, CommandLineOptionConfiguration>() {
-                @Override
-                public String transform(CommandLineOptionConfiguration commandLineOptionConfiguration) {
-                    return commandLineOptionConfiguration.getShortOption();
-                }
-            });
-
-            parser.allowOneOf(allShortOptions.toArray(new String[allShortOptions.size()]));
+            parser.allowOneOf(ALL_SHORT_OPTIONS);
         }
 
         @Override
@@ -125,6 +117,7 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
         public static final String STACKTRACE_SHORT_OPTION = "s";
         public static final String FULL_STACKTRACE_LONG_OPTION = "full-stacktrace";
         public static final String FULL_STACKTRACE_SHORT_OPTION = "S";
+        private static final String[] ALL_SHORT_OPTIONS = new String[]{STACKTRACE_SHORT_OPTION, FULL_STACKTRACE_SHORT_OPTION};
 
         public StacktraceOption() {
             super(null, CommandLineOptionConfiguration.create(STACKTRACE_LONG_OPTION, STACKTRACE_SHORT_OPTION, "Print out the stacktrace for all exceptions."), CommandLineOptionConfiguration.create(FULL_STACKTRACE_LONG_OPTION, FULL_STACKTRACE_SHORT_OPTION, "Print out the full (very verbose) stacktrace for all exceptions."));
@@ -141,14 +134,7 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
                 configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.getDeprecationWarning(), config.isIncubating());
             }
 
-            List<String> allShortOptions = CollectionUtils.collect(commandLineOptionConfigurations, new Transformer<String, CommandLineOptionConfiguration>() {
-                @Override
-                public String transform(CommandLineOptionConfiguration commandLineOptionConfiguration) {
-                    return commandLineOptionConfiguration.getShortOption();
-                }
-            });
-
-            parser.allowOneOf(allShortOptions.toArray(new String[allShortOptions.size()]));
+            parser.allowOneOf(ALL_SHORT_OPTIONS);
         }
 
         @Override
