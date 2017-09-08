@@ -188,16 +188,16 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
         }
         if (details.exceptionStyle == ExceptionStyle.NONE) {
             resolution.text("Run with ");
-            resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptionFactory.StacktraceOption.LONG_OPTION);
+            resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptionFactory.StacktraceOption.STACKTRACE_LONG_OPTION);
             resolution.text(" option to get the stack trace. ");
         }
         if (loggingConfiguration.getLogLevel() != LogLevel.DEBUG) {
             resolution.text("Run with ");
             if (loggingConfiguration.getLogLevel() != LogLevel.INFO) {
-                resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptionFactory.InfoOption.LONG_OPTION);
+                resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptionFactory.LogLevelOption.INFO_LONG_OPTION);
                 resolution.text(" or ");
             }
-            resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptionFactory.DebugOption.LONG_OPTION);
+            resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptionFactory.LogLevelOption.DEBUG_LONG_OPTION);
             resolution.text(" option to get more log output.");
         }
     }

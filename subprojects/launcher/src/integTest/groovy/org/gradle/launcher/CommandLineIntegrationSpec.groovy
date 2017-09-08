@@ -41,7 +41,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         fails "help"
 
         and:
-        failure.assertHasDescription "Argument value '$value' given for system property org.gradle.workers.max or --max-workers option is invalid (must be a positive, non-zero, integer)"
+        errorOutput.trim().readLines()[0] == "Argument value '$value' given for --max-workers option is invalid (must be a positive, non-zero, integer)"
 
         where:
         value << ["-1", "0", "foo", " 1"]
@@ -59,7 +59,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         fails "help"
 
         and:
-        failure.assertHasDescription "Argument value '$value' given for system property org.gradle.workers.max or --max-workers option is invalid (must be a positive, non-zero, integer"
+        failure.assertHasDescription "Value '$value' given for org.gradle.workers.max system property is invalid (must be a positive, non-zero, integer)"
 
         where:
         value << ["-1", "0", "foo", " 1"]
@@ -95,27 +95,5 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         }
 
         free
-    }
-
-    def "cannot combine --scan and --no-scan"() {
-        given:
-        requireGradleDistribution()
-        file("buildSrc/src/main/groovy/BuildScanPlugin.groovy").text = """
-            package com.gradle.test.build.dummy
-            import org.gradle.api.Plugin
-            import org.gradle.api.Project
-
-            class BuildScanPlugin implements Plugin<Project> {
-                void apply(Project project){
-                }
-            }
-        """
-
-        when:
-        args("--scan", "--no-scan")
-
-        then:
-        fails("tasks")
-        errorOutput.contains("Command line switches '--scan' and '--no-scan' are mutually exclusive and must not be used together.")
     }
 }

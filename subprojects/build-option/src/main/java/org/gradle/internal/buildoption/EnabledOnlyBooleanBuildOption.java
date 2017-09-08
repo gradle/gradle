@@ -16,51 +16,48 @@
 
 package org.gradle.internal.buildoption;
 
-import org.gradle.cli.CommandLineOption;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 
 import java.util.Map;
 
 /**
- * A build option that takes a no argument e.g. {@code "--foreground"}.
+ * A build option representing a boolean option with a enabled mode only e.g. {@code "--foreground"}.
  *
  * @since 4.3
  */
-public abstract class NoArgumentBuildOption<T> extends AbstractBuildOption<T> {
+public abstract class EnabledOnlyBooleanBuildOption<T> extends AbstractBuildOption<T> {
 
-    public NoArgumentBuildOption(String gradleProperty) {
-        super(gradleProperty, null);
+    public EnabledOnlyBooleanBuildOption(String gradleProperty) {
+        super(gradleProperty, new CommandLineOptionConfiguration[] {});
     }
 
-    public NoArgumentBuildOption(String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
-        super(gradleProperty, commandLineOptionConfiguration);
+    public EnabledOnlyBooleanBuildOption(String gradleProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
+        super(gradleProperty, commandLineOptionConfigurations);
     }
 
     @Override
     public void applyFromProperty(Map<String, String> properties, T settings) {
         if (properties.get(gradleProperty) != null) {
-            applyTo(settings);
+            applyTo(settings, Origin.GRADLE_PROPERTY);
         }
     }
 
     @Override
     public void configure(CommandLineParser parser) {
-        if (hasCommandLineOption()) {
-            CommandLineOption option = parser.option(commandLineOptionConfiguration.getAllOptions()).hasDescription(commandLineOptionConfiguration.getDescription());
-
-            if (commandLineOptionConfiguration.isIncubating()) {
-                option.incubating();
-            }
+        for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
+            configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.getDeprecationWarning(), config.isIncubating());
         }
     }
 
     @Override
     public void applyFromCommandLine(ParsedCommandLine options, T settings) {
-        if (hasCommandLineOption() && options.hasOption(commandLineOptionConfiguration.getLongOption())) {
-            applyTo(settings);
+        for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
+            if (options.hasOption(config.getLongOption())) {
+                applyTo(settings, Origin.COMMAND_LINE);
+            }
         }
     }
 
-    public abstract void applyTo(T settings);
+    public abstract void applyTo(T settings, Origin origin);
 }

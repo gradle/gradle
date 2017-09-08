@@ -16,7 +16,6 @@
 
 package org.gradle.internal.buildoption;
 
-import org.gradle.cli.CommandLineOption;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 
@@ -35,56 +34,49 @@ public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T> {
         super(gradleProperty);
     }
 
-    public BooleanBuildOption(String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
-        super(gradleProperty, commandLineOptionConfiguration);
+    public BooleanBuildOption(String gradleProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
+        super(gradleProperty, commandLineOptionConfigurations);
     }
 
     @Override
     public void applyFromProperty(Map<String, String> properties, T settings) {
-        boolean value = isTrue(properties.get(gradleProperty));
-        applyTo(value, settings);
+        String value = properties.get(gradleProperty);
+
+        if (value != null) {
+            applyTo(isTrue(properties.get(gradleProperty)), settings, Origin.GRADLE_PROPERTY);
+        }
     }
 
     @Override
     public void configure(CommandLineParser parser) {
-        if (hasCommandLineOption()) {
-            String disabledOption = getDisabledCommandLineOption();
-            CommandLineOption enabledCommandLineOption = parser.option(commandLineOptionConfiguration.getLongOption()).hasDescription(commandLineOptionConfiguration.getDescription());
-
-            if (commandLineOptionConfiguration.isIncubating()) {
-                enabledCommandLineOption.incubating();
-            }
-
-            CommandLineOption disabledCommandLineOption = parser.option(disabledOption).hasDescription(getDisabledCommandLineDescription());
-
-            if (commandLineOptionConfiguration.isIncubating()) {
-                disabledCommandLineOption.incubating();
-            }
-
-            parser.allowOneOf(commandLineOptionConfiguration.getLongOption(), disabledOption);
+        for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
+            configureCommandLineOption(parser, new String[] {config.getLongOption()}, config.getDescription(), config.getDeprecationWarning(), config.isIncubating());
+            String disabledOption = getDisabledCommandLineOption(config);
+            configureCommandLineOption(parser, new String[] {disabledOption}, config.getDescription(), config.getDeprecationWarning(), config.isIncubating());
+            parser.allowOneOf(config.getLongOption(), disabledOption);
         }
     }
 
     @Override
     public void applyFromCommandLine(ParsedCommandLine options, T settings) {
-        if (hasCommandLineOption()) {
-            if (options.hasOption(commandLineOptionConfiguration.getLongOption())) {
-                applyTo(true, settings);
+        for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
+            if (options.hasOption(config.getLongOption())) {
+                applyTo(true, settings, Origin.COMMAND_LINE);
             }
 
-            if (options.hasOption(getDisabledCommandLineOption())) {
-                applyTo(false, settings);
+            if (options.hasOption(getDisabledCommandLineOption(config))) {
+                applyTo(false, settings, Origin.COMMAND_LINE);
             }
         }
     }
 
-    protected String getDisabledCommandLineOption() {
-        return hasCommandLineOption() ? "no-" + commandLineOptionConfiguration.getLongOption() : null;
+    private String getDisabledCommandLineOption(CommandLineOptionConfiguration config) {
+        return "no-" + config.getLongOption();
     }
 
-    protected String getDisabledCommandLineDescription() {
-        return hasCommandLineOption() ? "Disables option --" + commandLineOptionConfiguration.getLongOption() + "." : null;
+    private String getDisabledCommandLineDescription(CommandLineOptionConfiguration config) {
+        return "Disables option --" + config.getLongOption() + ".";
     }
 
-    public abstract void applyTo(boolean value, T settings);
+    public abstract void applyTo(boolean value, T settings, Origin origin);
 }

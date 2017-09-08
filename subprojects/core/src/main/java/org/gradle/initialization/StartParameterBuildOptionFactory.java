@@ -19,15 +19,12 @@ package org.gradle.initialization;
 import org.gradle.StartParameter;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.BasicFileResolver;
-import org.gradle.cli.CommandLineArgumentException;
-import org.gradle.cli.CommandLineParser;
-import org.gradle.cli.ParsedCommandLine;
 import org.gradle.internal.Factory;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.ListBuildOption;
-import org.gradle.internal.buildoption.NoArgumentBuildOption;
+import org.gradle.internal.buildoption.EnabledOnlyBooleanBuildOption;
 import org.gradle.internal.buildoption.StringBuildOption;
 
 import java.io.File;
@@ -70,107 +67,107 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
 
         @Override
-        public void applyTo(String value, StartParameter settings) {
+        public void applyTo(String value, StartParameter settings, Origin origin) {
             Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
             settings.setProjectCacheDir(resolver.transform(value));
         }
     }
 
-    public static class RerunTasksOption extends NoArgumentBuildOption<StartParameter> {
+    public static class RerunTasksOption extends EnabledOnlyBooleanBuildOption<StartParameter> {
         public RerunTasksOption() {
             super(null, CommandLineOptionConfiguration.create("rerun-tasks", "Ignore previously cached task results."));
         }
 
         @Override
-        public void applyTo(StartParameter settings) {
+        public void applyTo(StartParameter settings, Origin origin) {
             settings.setRerunTasks(true);
         }
     }
 
-    public static class RecompileScriptsOption extends NoArgumentBuildOption<StartParameter> {
+    public static class RecompileScriptsOption extends EnabledOnlyBooleanBuildOption<StartParameter> {
         public RecompileScriptsOption() {
             super(null, CommandLineOptionConfiguration.create("recompile-scripts", "Force build script recompiling."));
         }
 
         @Override
-        public void applyTo(StartParameter settings) {
+        public void applyTo(StartParameter settings, Origin origin) {
             settings.setRecompileScripts(true);
         }
     }
 
-    public static class ProfileOption extends NoArgumentBuildOption<StartParameter> {
+    public static class ProfileOption extends EnabledOnlyBooleanBuildOption<StartParameter> {
         public ProfileOption() {
             super(null, CommandLineOptionConfiguration.create("profile", "Profile build execution time and generates a report in the <build_dir>/reports/profile directory."));
         }
 
         @Override
-        public void applyTo(StartParameter settings) {
+        public void applyTo(StartParameter settings, Origin origin) {
             settings.setProfile(true);
         }
     }
 
-    public static class ContinueOption extends NoArgumentBuildOption<StartParameter> {
+    public static class ContinueOption extends EnabledOnlyBooleanBuildOption<StartParameter> {
         public ContinueOption() {
             super(null, CommandLineOptionConfiguration.create("continue", "Continue task execution after a task failure."));
         }
 
         @Override
-        public void applyTo(StartParameter settings) {
+        public void applyTo(StartParameter settings, Origin origin) {
             settings.setContinueOnFailure(true);
         }
     }
 
-    public static class OfflineOption extends NoArgumentBuildOption<StartParameter> {
+    public static class OfflineOption extends EnabledOnlyBooleanBuildOption<StartParameter> {
         public OfflineOption() {
             super(null, CommandLineOptionConfiguration.create("offline", "Execute the build without accessing network resources."));
         }
 
         @Override
-        public void applyTo(StartParameter settings) {
+        public void applyTo(StartParameter settings, Origin origin) {
             settings.setOffline(true);
         }
     }
 
-    public static class RefreshDependenciesOption extends NoArgumentBuildOption<StartParameter> {
+    public static class RefreshDependenciesOption extends EnabledOnlyBooleanBuildOption<StartParameter> {
         public RefreshDependenciesOption() {
             super(null, CommandLineOptionConfiguration.create("refresh-dependencies", "Refresh the state of dependencies."));
         }
 
         @Override
-        public void applyTo(StartParameter settings) {
+        public void applyTo(StartParameter settings, Origin origin) {
             settings.setRefreshDependencies(true);
         }
     }
 
-    public static class DryRunOption extends NoArgumentBuildOption<StartParameter> {
+    public static class DryRunOption extends EnabledOnlyBooleanBuildOption<StartParameter> {
         public DryRunOption() {
             super(null, CommandLineOptionConfiguration.create("dry-run", "m", "Run the builds with all task actions disabled."));
         }
 
         @Override
-        public void applyTo(StartParameter settings) {
+        public void applyTo(StartParameter settings, Origin origin) {
             settings.setDryRun(true);
         }
     }
 
-    public static class ContinuousOption extends NoArgumentBuildOption<StartParameter> {
+    public static class ContinuousOption extends EnabledOnlyBooleanBuildOption<StartParameter> {
         public ContinuousOption() {
             super(null, CommandLineOptionConfiguration.create("continuous", "t", "Enables continuous build. Gradle does not exit and will re-execute tasks when task file inputs change.").incubating());
         }
 
         @Override
-        public void applyTo(StartParameter settings) {
+        public void applyTo(StartParameter settings, Origin origin) {
             settings.setContinuous(true);
         }
     }
 
-    public static class NoProjectDependenciesRebuildOption extends NoArgumentBuildOption<StartParameter> {
+    public static class NoProjectDependenciesRebuildOption extends EnabledOnlyBooleanBuildOption<StartParameter> {
         public NoProjectDependenciesRebuildOption() {
             super(null, CommandLineOptionConfiguration.create("no-rebuild", "a", "Do not rebuild project dependencies."));
         }
 
         @Override
-        public void applyTo(StartParameter settings) {
+        public void applyTo(StartParameter settings, Origin origin) {
             settings.setBuildProjectDependencies(false);
         }
     }
@@ -181,7 +178,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
 
         @Override
-        public void applyTo(String value, StartParameter settings) {
+        public void applyTo(String value, StartParameter settings, Origin origin) {
             Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
             settings.setBuildFile(resolver.transform(value));
         }
@@ -193,7 +190,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
 
         @Override
-        public void applyTo(String value, StartParameter settings) {
+        public void applyTo(String value, StartParameter settings, Origin origin) {
             Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
             settings.setSettingsFile(resolver.transform(value));
         }
@@ -205,7 +202,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
 
         @Override
-        public void applyTo(List<String> values, StartParameter settings) {
+        public void applyTo(List<String> values, StartParameter settings, Origin origin) {
             Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
 
             for (String script : values) {
@@ -220,7 +217,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
 
         @Override
-        public void applyTo(List<String> values, StartParameter settings) {
+        public void applyTo(List<String> values, StartParameter settings, Origin origin) {
             settings.setExcludedTaskNames(values);
         }
     }
@@ -231,7 +228,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
 
         @Override
-        public void applyTo(List<String> values, StartParameter settings) {
+        public void applyTo(List<String> values, StartParameter settings, Origin origin) {
             Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
 
             for (String includedBuild : values) {
@@ -248,7 +245,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
 
         @Override
-        public void applyTo(boolean value, StartParameter settings) {
+        public void applyTo(boolean value, StartParameter settings, Origin origin) {
             settings.setConfigureOnDemand(value);
         }
     }
@@ -261,7 +258,7 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
 
         @Override
-        public void applyTo(boolean value, StartParameter settings) {
+        public void applyTo(boolean value, StartParameter settings, Origin origin) {
             settings.setBuildCacheEnabled(value);
         }
     }
@@ -272,37 +269,12 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
         }
 
         @Override
-        public void configure(CommandLineParser parser) {
-            if (hasCommandLineOption()) {
-                String disabledOption = getDisabledCommandLineOption();
-                parser.option(commandLineOptionConfiguration.getLongOption()).hasDescription(commandLineOptionConfiguration.getDescription());
-                parser.option(disabledOption).hasDescription(getDisabledCommandLineDescription());
-                // does not behave like a regular boolean option and therefore doesn't call CommandLineParser.allowOneOf
+        public void applyTo(boolean value, StartParameter settings, Origin origin) {
+            if (value) {
+                settings.setBuildScan(true);
+            } else {
+                settings.setNoBuildScan(true);
             }
-        }
-
-        @Override
-        public void applyFromCommandLine(ParsedCommandLine options, StartParameter settings) {
-            if (hasCommandLineOption()) {
-                String enabledOption = commandLineOptionConfiguration.getLongOption();
-                String disabledOption = getDisabledCommandLineOption();
-
-                if (options.hasOption(enabledOption)) {
-                    settings.setBuildScan(true);
-                }
-
-                if (options.hasOption(disabledOption)) {
-                    if(options.hasOption(enabledOption)){
-                        throw new CommandLineArgumentException(String.format("Command line switches '--%s' and '--%s' are mutually exclusive and must not be used together.", enabledOption, disabledOption));
-                    }
-                    settings.setNoBuildScan(true);
-                }
-            }
-        }
-
-        @Override
-        public void applyTo(boolean value, StartParameter settings) {
-            // needs special handling
         }
     }
 }

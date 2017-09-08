@@ -22,27 +22,26 @@ import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.cli.CommandLineArgumentException;
+import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.ParsedCommandLine;
 import org.gradle.internal.Factory;
+import org.gradle.internal.buildoption.AbstractBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
-import org.gradle.internal.buildoption.NoArgumentBuildOption;
 import org.gradle.internal.buildoption.StringBuildOption;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class LoggingConfigurationBuildOptionFactory implements Factory<List<BuildOption<LoggingConfiguration>>> {
 
     private final List<BuildOption<LoggingConfiguration>> options = new ArrayList<BuildOption<LoggingConfiguration>>();
 
     public LoggingConfigurationBuildOptionFactory() {
-        options.add(new QuietOption());
-        options.add(new WarnOption());
-        options.add(new InfoOption());
-        options.add(new DebugOption());
+        options.add(new LogLevelOption());
         options.add(new StacktraceOption());
-        options.add(new FullStacktraceOption());
         options.add(new ConsoleOption());
     }
 
@@ -51,104 +50,118 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
         return options;
     }
 
-    public static class QuietOption extends NoArgumentBuildOption<LoggingConfiguration> {
-        public static final String LONG_OPTION = "quiet";
-        public static final String SHORT_OPTION = "q";
+    public static class LogLevelOption extends AbstractBuildOption<LoggingConfiguration> {
+        public static final String GRADLE_PROPERTY = "org.gradle.logging.level";
+        public static final String QUIET_LONG_OPTION = "quiet";
+        public static final String QUIET_SHORT_OPTION = "q";
+        public static final String WARN_LONG_OPTION = "warn";
+        public static final String WARN_SHORT_OPTION = "w";
+        public static final String INFO_LONG_OPTION = "info";
+        public static final String INFO_SHORT_OPTION = "i";
+        public static final String DEBUG_LONG_OPTION = "debug";
+        public static final String DEBUG_SHORT_OPTION = "d";
+        private static final String[] ALL_SHORT_OPTIONS = new String[]{QUIET_SHORT_OPTION, WARN_SHORT_OPTION, INFO_SHORT_OPTION, DEBUG_SHORT_OPTION};
 
-        public QuietOption() {
-            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, "Log errors only."));
+        public LogLevelOption() {
+            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(QUIET_LONG_OPTION, QUIET_SHORT_OPTION, "Log errors only."), CommandLineOptionConfiguration.create(WARN_LONG_OPTION, WARN_SHORT_OPTION, "Set log level to warn."), CommandLineOptionConfiguration.create(INFO_LONG_OPTION, INFO_SHORT_OPTION, "Set log level to info."), CommandLineOptionConfiguration.create(DEBUG_LONG_OPTION, DEBUG_SHORT_OPTION, "Log in debug mode (includes normal stacktrace)."));
         }
 
         @Override
-        public void applyTo(LoggingConfiguration settings) {
-            settings.setLogLevel(LogLevel.QUIET);
-        }
-    }
+        public void applyFromProperty(Map<String, String> properties, LoggingConfiguration settings) {
+            String value = properties.get(gradleProperty);
 
-    public static class WarnOption extends NoArgumentBuildOption<LoggingConfiguration> {
-        public static final String LONG_OPTION = "warn";
-        public static final String SHORT_OPTION = "w";
-
-        public WarnOption() {
-            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, "Set log level to warn."));
+            if (value != null) {
+                LogLevel level = parseLogLevel(value);
+                settings.setLogLevel(level);
+            }
         }
 
         @Override
-        public void applyTo(LoggingConfiguration settings) {
-            settings.setLogLevel(LogLevel.WARN);
-        }
-    }
+        public void configure(CommandLineParser parser) {
+            for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
+                configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.getDeprecationWarning(), config.isIncubating());
+            }
 
-    public static class InfoOption extends NoArgumentBuildOption<LoggingConfiguration> {
-        public static final String LONG_OPTION = "info";
-        public static final String SHORT_OPTION = "i";
-
-        public InfoOption() {
-            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, "Set log level to info."));
+            parser.allowOneOf(ALL_SHORT_OPTIONS);
         }
 
         @Override
-        public void applyTo(LoggingConfiguration settings) {
-            settings.setLogLevel(LogLevel.INFO);
+        public void applyFromCommandLine(ParsedCommandLine options, LoggingConfiguration settings) {
+            if (options.hasOption(QUIET_LONG_OPTION)) {
+                settings.setLogLevel(LogLevel.QUIET);
+            } else if (options.hasOption(WARN_LONG_OPTION)) {
+                settings.setLogLevel(LogLevel.WARN);
+            } else if (options.hasOption(INFO_LONG_OPTION)) {
+                settings.setLogLevel(LogLevel.INFO);
+            } else if (options.hasOption(DEBUG_LONG_OPTION)) {
+                settings.setLogLevel(LogLevel.DEBUG);
+            }
+        }
+
+        private LogLevel parseLogLevel(String value) {
+            try {
+                LogLevel logLevel = LogLevel.valueOf(value.toUpperCase());
+                if (logLevel == LogLevel.ERROR) {
+                    throw new IllegalArgumentException("Log level cannot be set to 'ERROR'.");
+                }
+                return logLevel;
+            } catch (IllegalArgumentException e) {
+                String message = String.format("Value '%s' given for %s system property is invalid.  (must be one of quiet, warn, lifecycle, info, or debug)", value, gradleProperty);
+                throw new IllegalArgumentException(message, e);
+            }
         }
     }
 
-    public static class DebugOption extends NoArgumentBuildOption<LoggingConfiguration> {
-        public static final String LONG_OPTION = "debug";
-        public static final String SHORT_OPTION = "d";
-
-        public DebugOption() {
-            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, "Log in debug mode (includes normal stacktrace)."));
-        }
-
-        @Override
-        public void applyTo(LoggingConfiguration settings) {
-            settings.setLogLevel(LogLevel.DEBUG);
-        }
-    }
-
-    public static class StacktraceOption extends NoArgumentBuildOption<LoggingConfiguration> {
-        public static final String LONG_OPTION = "stacktrace";
-        public static final String SHORT_OPTION = "s";
+    public static class StacktraceOption extends AbstractBuildOption<LoggingConfiguration> {
+        public static final String STACKTRACE_LONG_OPTION = "stacktrace";
+        public static final String STACKTRACE_SHORT_OPTION = "s";
+        public static final String FULL_STACKTRACE_LONG_OPTION = "full-stacktrace";
+        public static final String FULL_STACKTRACE_SHORT_OPTION = "S";
+        private static final String[] ALL_SHORT_OPTIONS = new String[]{STACKTRACE_SHORT_OPTION, FULL_STACKTRACE_SHORT_OPTION};
 
         public StacktraceOption() {
-            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, "Print out the stacktrace for all exceptions."));
+            super(null, CommandLineOptionConfiguration.create(STACKTRACE_LONG_OPTION, STACKTRACE_SHORT_OPTION, "Print out the stacktrace for all exceptions."), CommandLineOptionConfiguration.create(FULL_STACKTRACE_LONG_OPTION, FULL_STACKTRACE_SHORT_OPTION, "Print out the full (very verbose) stacktrace for all exceptions."));
         }
 
         @Override
-        public void applyTo(LoggingConfiguration settings) {
-            settings.setShowStacktrace(ShowStacktrace.ALWAYS);
-        }
-    }
-
-    public static class FullStacktraceOption extends NoArgumentBuildOption<LoggingConfiguration> {
-        public static final String LONG_OPTION = "full-stacktrace";
-        public static final String SHORT_OPTION = "S";
-
-        public FullStacktraceOption() {
-            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, "Print out the full (very verbose) stacktrace for all exceptions."));
+        public void applyFromProperty(Map<String, String> properties, LoggingConfiguration settings) {
+            // not supported
         }
 
         @Override
-        public void applyTo(LoggingConfiguration settings) {
-            settings.setShowStacktrace(ShowStacktrace.ALWAYS_FULL);
+        public void configure(CommandLineParser parser) {
+            for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
+                configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.getDeprecationWarning(), config.isIncubating());
+            }
+
+            parser.allowOneOf(ALL_SHORT_OPTIONS);
+        }
+
+        @Override
+        public void applyFromCommandLine(ParsedCommandLine options, LoggingConfiguration settings) {
+            if (options.hasOption(STACKTRACE_LONG_OPTION)) {
+                settings.setShowStacktrace(ShowStacktrace.ALWAYS);
+            } else if (options.hasOption(FULL_STACKTRACE_LONG_OPTION)) {
+                settings.setShowStacktrace(ShowStacktrace.ALWAYS_FULL);
+            }
         }
     }
 
     public static class ConsoleOption extends StringBuildOption<LoggingConfiguration> {
+        public static final String LONG_OPTION = "console";
 
         public ConsoleOption() {
             super(null, CommandLineOptionConfiguration.create("console", "Specifies which type of console output to generate. Values are 'plain', 'auto' (default) or 'rich'."));
         }
 
         @Override
-        public void applyTo(String value, LoggingConfiguration settings) {
+        public void applyTo(String value, LoggingConfiguration settings, Origin origin) {
             String consoleValue = StringUtils.capitalize(value.toLowerCase(Locale.ENGLISH));
             try {
                 ConsoleOutput consoleOutput = ConsoleOutput.valueOf(consoleValue);
                 settings.setConsoleOutput(consoleOutput);
             } catch (IllegalArgumentException e) {
-                throw new CommandLineArgumentException(String.format("Unrecognized value '%s' for %s.", value, commandLineOptionConfiguration.getLongOption()));
+                throw new CommandLineArgumentException(String.format("Unrecognized value '%s' for %s.", value, LONG_OPTION));
             }
         }
     }

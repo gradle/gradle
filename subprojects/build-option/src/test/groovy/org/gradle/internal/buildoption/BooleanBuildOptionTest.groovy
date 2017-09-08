@@ -21,13 +21,11 @@ import org.gradle.cli.CommandLineParser
 import org.gradle.cli.ParsedCommandLine
 import spock.lang.Specification
 
+import static org.gradle.internal.buildoption.BuildOptionFixture.*
+
 class BooleanBuildOptionTest extends Specification {
 
-    private static final String GRADLE_PROPERTY = 'org.gradle.test'
-    private static final String LONG_OPTION = 'test'
-    private static final String SHORT_OPTION = 't'
-    private static final String DESCRIPTION = 'some test'
-
+    public static final String DISABLED_LONG_OPTION = "no-$LONG_OPTION"
     def testSettings = new TestSettings()
     def commandLineParser = new CommandLineParser()
 
@@ -40,12 +38,14 @@ class BooleanBuildOptionTest extends Specification {
 
         then:
         !testSettings.value
+        !testSettings.origin
 
         when:
         testOption.applyFromProperty([(GRADLE_PROPERTY): 'true'], testSettings)
 
         then:
         testSettings.value
+        testSettings.origin == BuildOption.Origin.GRADLE_PROPERTY
     }
 
     def "can configure command line parser"() {
@@ -62,8 +62,12 @@ class BooleanBuildOptionTest extends Specification {
         testOption.configure(commandLineParser)
 
         then:
-        assertNoArguments(commandLineParser.optionsByString[LONG_OPTION])
-        assertNoArguments(commandLineParser.optionsByString[testOption.disabledCommandLineOption])
+        CommandLineOption enabledOption = commandLineParser.optionsByString[LONG_OPTION]
+        CommandLineOption disabledOption = commandLineParser.optionsByString[DISABLED_LONG_OPTION]
+        assertNoArguments(enabledOption)
+        assertNoArguments(disabledOption)
+        assertNoDeprecationWarning(enabledOption)
+        assertNoDeprecationWarning(disabledOption)
     }
 
     def "can configure incubating command line option"() {
@@ -79,10 +83,26 @@ class BooleanBuildOptionTest extends Specification {
 
         then:
         assertIncubating(commandLineParser.optionsByString[LONG_OPTION], incubating)
-        assertIncubating(commandLineParser.optionsByString[testOption.disabledCommandLineOption], incubating)
+        assertIncubating(commandLineParser.optionsByString[DISABLED_LONG_OPTION], incubating)
 
         where:
         incubating << [false, true]
+    }
+
+    def "can configure deprecated command line option"() {
+        given:
+        String deprecationWarning = 'replaced by other'
+
+        when:
+        def commandLineOptionConfiguration = CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION)
+            .deprecated(deprecationWarning)
+
+        def testOption = new TestOption(GRADLE_PROPERTY, commandLineOptionConfiguration)
+        testOption.configure(commandLineParser)
+
+        then:
+        assertDeprecationWarning(commandLineParser.optionsByString[LONG_OPTION], deprecationWarning)
+        assertDeprecationWarning(commandLineParser.optionsByString[DISABLED_LONG_OPTION], deprecationWarning)
     }
 
     def "can apply from command line"() {
@@ -94,11 +114,12 @@ class BooleanBuildOptionTest extends Specification {
 
         then:
         !testSettings.value
+        !testSettings.origin
 
         when:
         testOption = new TestOption(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION))
         def enabledOption = new CommandLineOption([LONG_OPTION])
-        def disabledOption = new CommandLineOption([testOption.disabledCommandLineOption])
+        def disabledOption = new CommandLineOption([DISABLED_LONG_OPTION])
         options << enabledOption
         options << disabledOption
         parsedCommandLine = new ParsedCommandLine(options)
@@ -107,22 +128,15 @@ class BooleanBuildOptionTest extends Specification {
 
         then:
         testSettings.value
+        testSettings.origin == BuildOption.Origin.COMMAND_LINE
 
         when:
-        parsedCommandLine.addOption(testOption.disabledCommandLineOption, disabledOption)
+        parsedCommandLine.addOption(DISABLED_LONG_OPTION, disabledOption)
         testOption.applyFromCommandLine(parsedCommandLine, testSettings)
 
         then:
         !testSettings.value
-    }
-
-    static void assertNoArguments(CommandLineOption option) {
-        assert !option.allowsArguments
-        assert !option.allowsMultipleArguments
-    }
-
-    static void assertIncubating(CommandLineOption option, boolean incubating) {
-        assert option.incubating == incubating
+        testSettings.origin == BuildOption.Origin.COMMAND_LINE
     }
 
     static class TestOption extends BooleanBuildOption<TestSettings> {
@@ -136,13 +150,15 @@ class BooleanBuildOptionTest extends Specification {
         }
 
         @Override
-        void applyTo(boolean value, TestSettings settings) {
+        void applyTo(boolean value, TestSettings settings, BuildOption.Origin origin) {
             settings.value = value
+            settings.origin = origin
         }
     }
 
     static class TestSettings {
         boolean value
+        BuildOption.Origin origin
     }
 }
 

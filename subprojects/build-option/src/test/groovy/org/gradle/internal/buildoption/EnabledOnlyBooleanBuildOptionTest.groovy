@@ -21,12 +21,9 @@ import org.gradle.cli.CommandLineParser
 import org.gradle.cli.ParsedCommandLine
 import spock.lang.Specification
 
-class NoArgumentBuildOptionTest extends Specification {
+import static org.gradle.internal.buildoption.BuildOptionFixture.*
 
-    private static final String GRADLE_PROPERTY = 'org.gradle.test'
-    private static final String LONG_OPTION = 'test'
-    private static final String SHORT_OPTION = 't'
-    private static final String DESCRIPTION = 'some test'
+class EnabledOnlyBooleanBuildOptionTest extends Specification {
 
     def testSettings = new TestSettings()
     def commandLineParser = new CommandLineParser()
@@ -40,12 +37,14 @@ class NoArgumentBuildOptionTest extends Specification {
 
         then:
         !testSettings.flag
+        !testSettings.origin
 
         when:
         testOption.applyFromProperty([(GRADLE_PROPERTY): 'val'], testSettings)
 
         then:
         testSettings.flag
+        testSettings.origin == BuildOption.Origin.GRADLE_PROPERTY
     }
 
     def "can configure command line parser"() {
@@ -62,8 +61,12 @@ class NoArgumentBuildOptionTest extends Specification {
         testOption.configure(commandLineParser)
 
         then:
-        assertNoArguments(commandLineParser.optionsByString[LONG_OPTION])
-        assertNoArguments(commandLineParser.optionsByString[SHORT_OPTION])
+        CommandLineOption longOption = commandLineParser.optionsByString[LONG_OPTION]
+        CommandLineOption shortOption = commandLineParser.optionsByString[SHORT_OPTION]
+        assertNoArguments(longOption)
+        assertNoArguments(shortOption)
+        assertNoDeprecationWarning(longOption)
+        assertNoDeprecationWarning(shortOption)
     }
 
     def "can configure incubating command line option"() {
@@ -85,6 +88,22 @@ class NoArgumentBuildOptionTest extends Specification {
         incubating << [false, true]
     }
 
+    def "can configure deprecated command line option"() {
+        given:
+        String deprecationWarning = 'replaced by other'
+
+        when:
+        def commandLineOptionConfiguration = CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION)
+            .deprecated(deprecationWarning)
+
+        def testOption = new TestOption(GRADLE_PROPERTY, commandLineOptionConfiguration)
+        testOption.configure(commandLineParser)
+
+        then:
+        assertDeprecationWarning(commandLineParser.optionsByString[LONG_OPTION], deprecationWarning)
+        assertDeprecationWarning(commandLineParser.optionsByString[SHORT_OPTION], deprecationWarning)
+    }
+
     def "can apply from command line"() {
         when:
         def testOption = new TestOption(GRADLE_PROPERTY)
@@ -94,6 +113,7 @@ class NoArgumentBuildOptionTest extends Specification {
 
         then:
         !testSettings.flag
+        !testSettings.origin
 
         when:
         testOption = new TestOption(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION))
@@ -105,18 +125,10 @@ class NoArgumentBuildOptionTest extends Specification {
 
         then:
         testSettings.flag
+        testSettings.origin == BuildOption.Origin.COMMAND_LINE
     }
 
-    static void assertNoArguments(CommandLineOption option) {
-        assert !option.allowsArguments
-        assert !option.allowsMultipleArguments
-    }
-
-    static void assertIncubating(CommandLineOption option, boolean incubating) {
-        assert option.incubating == incubating
-    }
-
-    static class TestOption extends NoArgumentBuildOption<TestSettings> {
+    static class TestOption extends EnabledOnlyBooleanBuildOption<TestSettings> {
 
         TestOption(String gradleProperty) {
             super(gradleProperty)
@@ -127,12 +139,14 @@ class NoArgumentBuildOptionTest extends Specification {
         }
 
         @Override
-        void applyTo(TestSettings settings) {
+        void applyTo(TestSettings settings, BuildOption.Origin origin) {
             settings.flag = true
+            settings.origin = origin
         }
     }
 
     static class TestSettings {
         boolean flag
+        BuildOption.Origin origin
     }
 }

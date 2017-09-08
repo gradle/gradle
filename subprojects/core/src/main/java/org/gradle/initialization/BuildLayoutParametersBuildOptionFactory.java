@@ -22,7 +22,7 @@ import org.gradle.api.internal.file.BasicFileResolver;
 import org.gradle.internal.Factory;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
-import org.gradle.internal.buildoption.NoArgumentBuildOption;
+import org.gradle.internal.buildoption.EnabledOnlyBooleanBuildOption;
 import org.gradle.internal.buildoption.StringBuildOption;
 
 import java.io.File;
@@ -50,7 +50,7 @@ public class BuildLayoutParametersBuildOptionFactory implements Factory<List<Bui
         }
 
         @Override
-        public void applyTo(String value, BuildLayoutParameters settings) {
+        public void applyTo(String value, BuildLayoutParameters settings, Origin origin) {
             Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
             settings.setGradleUserHomeDir(resolver.transform(value));
         }
@@ -62,19 +62,19 @@ public class BuildLayoutParametersBuildOptionFactory implements Factory<List<Bui
         }
 
         @Override
-        public void applyTo(String value, BuildLayoutParameters settings) {
+        public void applyTo(String value, BuildLayoutParameters settings, Origin origin) {
             Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
             settings.setProjectDir(resolver.transform(value));
         }
     }
 
-    public static class NoSearchUpwardsOption extends NoArgumentBuildOption<BuildLayoutParameters> {
+    public static class NoSearchUpwardsOption extends EnabledOnlyBooleanBuildOption<BuildLayoutParameters> {
         public NoSearchUpwardsOption() {
             super(null, CommandLineOptionConfiguration.create("no-search-upward", "u", "Don't search in parent folders for a " + Settings.DEFAULT_SETTINGS_FILE + " file."));
         }
 
         @Override
-        public void applyTo(BuildLayoutParameters settings) {
+        public void applyTo(BuildLayoutParameters settings, Origin origin) {
             settings.setSearchUpwards(false);
         }
     }

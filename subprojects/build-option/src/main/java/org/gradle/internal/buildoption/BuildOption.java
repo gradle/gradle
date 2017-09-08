@@ -16,6 +16,7 @@
 
 package org.gradle.internal.buildoption;
 
+import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 
@@ -33,4 +34,15 @@ public interface BuildOption<T> {
     void applyFromProperty(Map<String, String> properties, T settings);
     void configure(CommandLineParser parser);
     void applyFromCommandLine(ParsedCommandLine options, T settings);
+
+    enum Origin {
+        GRADLE_PROPERTY, COMMAND_LINE;
+
+        public void handleInvalidValue(String gradlePropertyFailureMessage, String commandLineFailureMessage) {
+            switch (this) {
+                case GRADLE_PROPERTY: throw new IllegalArgumentException(gradlePropertyFailureMessage);
+                case COMMAND_LINE: throw new CommandLineArgumentException(commandLineFailureMessage);
+            }
+        }
+    }
 }

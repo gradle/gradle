@@ -16,6 +16,13 @@
 
 package org.gradle.internal.buildoption;
 
+import org.gradle.cli.CommandLineOption;
+import org.gradle.cli.CommandLineParser;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Provides a basic infrastructure for build option implementations.
  *
@@ -24,15 +31,16 @@ package org.gradle.internal.buildoption;
 public abstract class AbstractBuildOption<T> implements BuildOption<T> {
 
     protected final String gradleProperty;
-    protected final CommandLineOptionConfiguration commandLineOptionConfiguration;
+    protected final List<CommandLineOptionConfiguration> commandLineOptionConfigurations;
 
-    AbstractBuildOption(String gradleProperty) {
-        this(gradleProperty, null);
+    public AbstractBuildOption(String gradleProperty) {
+        this(gradleProperty, new CommandLineOptionConfiguration[] {});
     }
 
-    AbstractBuildOption(String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
+    public AbstractBuildOption(String gradleProperty, CommandLineOptionConfiguration... commandLineOptionConfiguration) {
         this.gradleProperty = gradleProperty;
-        this.commandLineOptionConfiguration = commandLineOptionConfiguration;
+        this.commandLineOptionConfigurations = commandLineOptionConfiguration != null ? Arrays.asList(commandLineOptionConfiguration) : Collections.<CommandLineOptionConfiguration>emptyList();
+
     }
 
     @Override
@@ -40,11 +48,19 @@ public abstract class AbstractBuildOption<T> implements BuildOption<T> {
         return gradleProperty;
     }
 
-    public boolean isTrue(String value) {
+    protected boolean isTrue(String value) {
         return value != null && value.trim().equalsIgnoreCase("true");
     }
 
-    protected boolean hasCommandLineOption() {
-        return commandLineOptionConfiguration != null;
+    protected CommandLineOption configureCommandLineOption(CommandLineParser parser, String[] options, String description, String deprecationWarning, boolean incubating) {
+        CommandLineOption option = parser.option(options)
+            .hasDescription(description)
+            .deprecated(deprecationWarning);
+
+        if (incubating) {
+            option.incubating();
+        }
+
+        return option;
     }
 }

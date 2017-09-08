@@ -34,6 +34,10 @@ The following are the features that have been promoted in this Gradle release.
 ### Example promoted
 -->
 
+### Disabled equivalents for existing command line options
+
+All Command line options that allow to enable a feature now also have an equivalent for disabling the feature. For example the command line option `--build-scan` supports `--no-build-scan` as well. Some of the existing command line options did not follow the same pattern. With this version of Gradle every boolean-based command line option also expose a "disabled" option. For more information please review the list of [command line options](userguide/gradle_command_line.html) in the user guide.
+
 ## Fixed issues
 
 

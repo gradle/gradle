@@ -21,7 +21,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
-import org.gradle.internal.buildoption.NoArgumentBuildOption;
+import org.gradle.internal.buildoption.EnabledOnlyBooleanBuildOption;
 import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.internal.jvm.JavaHomeException;
 import org.gradle.internal.jvm.JavaInfo;
@@ -62,7 +62,7 @@ public class DaemonBuildOptionFactory implements Factory<List<BuildOption<Daemon
         }
 
         @Override
-        public void applyTo(String value, DaemonParameters settings) {
+        public void applyTo(String value, DaemonParameters settings, Origin origin) {
             try {
                 settings.setIdleTimeout(new Integer(value));
             } catch (NumberFormatException e) {
@@ -79,7 +79,7 @@ public class DaemonBuildOptionFactory implements Factory<List<BuildOption<Daemon
         }
 
         @Override
-        public void applyTo(String value, DaemonParameters settings) {
+        public void applyTo(String value, DaemonParameters settings, Origin origin) {
             try {
                 settings.setPeriodicCheckInterval(new Integer(value));
             } catch (NumberFormatException e) {
@@ -96,7 +96,7 @@ public class DaemonBuildOptionFactory implements Factory<List<BuildOption<Daemon
         }
 
         @Override
-        public void applyTo(String value, DaemonParameters settings) {
+        public void applyTo(String value, DaemonParameters settings, Origin origin) {
             settings.setBaseDir(new File(value));
         }
     }
@@ -109,7 +109,7 @@ public class DaemonBuildOptionFactory implements Factory<List<BuildOption<Daemon
         }
 
         @Override
-        public void applyTo(String value, DaemonParameters settings) {
+        public void applyTo(String value, DaemonParameters settings, Origin origin) {
             settings.setJvmArgs(JvmOptions.fromString(value));
         }
     }
@@ -122,7 +122,7 @@ public class DaemonBuildOptionFactory implements Factory<List<BuildOption<Daemon
         }
 
         @Override
-        public void applyTo(String value, DaemonParameters settings) {
+        public void applyTo(String value, DaemonParameters settings, Origin origin) {
             File javaHome = new File(value);
             if (!javaHome.isDirectory()) {
                 throw new GradleException(String.format("Java home supplied via '%s' is invalid. Invalid directory: %s", gradleProperty, value));
@@ -145,7 +145,7 @@ public class DaemonBuildOptionFactory implements Factory<List<BuildOption<Daemon
         }
 
         @Override
-        public void applyTo(boolean value, DaemonParameters settings) {
+        public void applyTo(boolean value, DaemonParameters settings, Origin origin) {
             settings.setDebug(value);
         }
     }
@@ -158,40 +158,40 @@ public class DaemonBuildOptionFactory implements Factory<List<BuildOption<Daemon
         }
 
         @Override
-        public void applyTo(boolean value, DaemonParameters settings) {
+        public void applyTo(boolean value, DaemonParameters settings, Origin origin) {
             settings.setEnabled(value);
         }
     }
 
-    public static class ForegroundOption extends NoArgumentBuildOption<DaemonParameters> {
+    public static class ForegroundOption extends EnabledOnlyBooleanBuildOption<DaemonParameters> {
         public ForegroundOption() {
             super(null, CommandLineOptionConfiguration.create("foreground", "Starts the Gradle Daemon in the foreground.").incubating());
         }
 
         @Override
-        public void applyTo(DaemonParameters settings) {
+        public void applyTo(DaemonParameters settings, Origin origin) {
             settings.setForeground(true);
         }
     }
 
-    public static class StopOption extends NoArgumentBuildOption<DaemonParameters> {
+    public static class StopOption extends EnabledOnlyBooleanBuildOption<DaemonParameters> {
         public StopOption() {
             super(null, CommandLineOptionConfiguration.create("stop", "Stops the Gradle Daemon if it is running."));
         }
 
         @Override
-        public void applyTo(DaemonParameters settings) {
+        public void applyTo(DaemonParameters settings, Origin origin) {
             settings.setStop(true);
         }
     }
 
-    public static class StatusOption extends NoArgumentBuildOption<DaemonParameters> {
+    public static class StatusOption extends EnabledOnlyBooleanBuildOption<DaemonParameters> {
         public StatusOption() {
             super(null, CommandLineOptionConfiguration.create("status", "Shows status of running and recently stopped Gradle Daemon(s)."));
         }
 
         @Override
-        public void applyTo(DaemonParameters settings) {
+        public void applyTo(DaemonParameters settings, Origin origin) {
             settings.setStatus(true);
         }
     }

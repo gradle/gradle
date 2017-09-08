@@ -16,7 +16,6 @@
 
 package org.gradle.internal.buildoption;
 
-import org.gradle.cli.CommandLineOption;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 
@@ -33,42 +32,35 @@ public abstract class StringBuildOption<T> extends AbstractBuildOption<T> {
         super(gradleProperty);
     }
 
-    public StringBuildOption(String gradleProperty, CommandLineOptionConfiguration commandLineOptionConfiguration) {
-        super(gradleProperty, commandLineOptionConfiguration);
+    public StringBuildOption(String gradleProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
+        super(gradleProperty, commandLineOptionConfigurations);
     }
-
 
     @Override
     public void applyFromProperty(Map<String, String> properties, T settings) {
         String value = properties.get(gradleProperty);
 
         if (value != null) {
-            applyTo(value, settings);
+            applyTo(value, settings, Origin.GRADLE_PROPERTY);
         }
     }
 
     @Override
     public void configure(CommandLineParser parser) {
-        if (hasCommandLineOption()) {
-            CommandLineOption option = parser.option(commandLineOptionConfiguration.getAllOptions())
-                .hasDescription(commandLineOptionConfiguration.getDescription())
-                .hasArgument();
-
-            if (commandLineOptionConfiguration.isIncubating()) {
-                option.incubating();
-            }
+        for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
+            configureCommandLineOption(parser, config.getAllOptions(), config.getDescription(), config.getDeprecationWarning(), config.isIncubating()).hasArgument();
         }
     }
 
     @Override
     public void applyFromCommandLine(ParsedCommandLine options, T settings) {
-        if (hasCommandLineOption()) {
-            if (options.hasOption(commandLineOptionConfiguration.getLongOption())) {
-                String value = options.option(commandLineOptionConfiguration.getLongOption()).getValue();
-                applyTo(value, settings);
+        for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
+            if (options.hasOption(config.getLongOption())) {
+                String value = options.option(config.getLongOption()).getValue();
+                applyTo(value, settings, Origin.COMMAND_LINE);
             }
         }
     }
 
-    public abstract void applyTo(String value, T settings);
+    public abstract void applyTo(String value, T settings, Origin origin);
 }

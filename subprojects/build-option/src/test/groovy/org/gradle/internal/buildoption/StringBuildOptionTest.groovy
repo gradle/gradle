@@ -21,12 +21,10 @@ import org.gradle.cli.CommandLineParser
 import org.gradle.cli.ParsedCommandLine
 import spock.lang.Specification
 
+import static org.gradle.internal.buildoption.BuildOptionFixture.*
+
 class StringBuildOptionTest extends Specification {
 
-    private static final String GRADLE_PROPERTY = 'org.gradle.test'
-    private static final String LONG_OPTION = 'test'
-    private static final String SHORT_OPTION = 't'
-    private static final String DESCRIPTION = 'some test'
     private static final String SAMPLE_VALUE = 'val'
 
     def testSettings = new TestSettings()
@@ -41,12 +39,14 @@ class StringBuildOptionTest extends Specification {
 
         then:
         !testSettings.value
+        !testSettings.origin
 
         when:
         testOption.applyFromProperty([(GRADLE_PROPERTY): SAMPLE_VALUE], testSettings)
 
         then:
         testSettings.value == SAMPLE_VALUE
+        testSettings.origin == BuildOption.Origin.GRADLE_PROPERTY
     }
 
     def "can configure command line parser"() {
@@ -63,8 +63,12 @@ class StringBuildOptionTest extends Specification {
         testOption.configure(commandLineParser)
 
         then:
-        assertSingleArgument(commandLineParser.optionsByString[LONG_OPTION])
-        assertSingleArgument(commandLineParser.optionsByString[SHORT_OPTION])
+        CommandLineOption longOption = commandLineParser.optionsByString[LONG_OPTION]
+        CommandLineOption shortOption = commandLineParser.optionsByString[SHORT_OPTION]
+        assertSingleArgument(longOption)
+        assertSingleArgument(shortOption)
+        assertNoDeprecationWarning(longOption)
+        assertNoDeprecationWarning(shortOption)
     }
 
     def "can configure incubating command line option"() {
@@ -86,6 +90,22 @@ class StringBuildOptionTest extends Specification {
         incubating << [false, true]
     }
 
+    def "can configure deprecated command line option"() {
+        given:
+        String deprecationWarning = 'replaced by other'
+
+        when:
+        def commandLineOptionConfiguration = CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION)
+            .deprecated(deprecationWarning)
+
+        def testOption = new TestOption(GRADLE_PROPERTY, commandLineOptionConfiguration)
+        testOption.configure(commandLineParser)
+
+        then:
+        assertDeprecationWarning(commandLineParser.optionsByString[LONG_OPTION], deprecationWarning)
+        assertDeprecationWarning(commandLineParser.optionsByString[SHORT_OPTION], deprecationWarning)
+    }
+
     def "can apply from command line"() {
         when:
         def testOption = new TestOption(GRADLE_PROPERTY)
@@ -95,6 +115,7 @@ class StringBuildOptionTest extends Specification {
 
         then:
         !testSettings.value
+        !testSettings.origin
 
         when:
         testOption = new TestOption(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, DESCRIPTION))
@@ -107,15 +128,7 @@ class StringBuildOptionTest extends Specification {
 
         then:
         testSettings.value == SAMPLE_VALUE
-    }
-
-    static void assertSingleArgument(CommandLineOption option) {
-        assert option.allowsArguments
-        assert !option.allowsMultipleArguments
-    }
-
-    static void assertIncubating(CommandLineOption option, boolean incubating) {
-        assert option.incubating == incubating
+        testSettings.origin == BuildOption.Origin.COMMAND_LINE
     }
 
     static class TestOption extends StringBuildOption<TestSettings> {
@@ -129,12 +142,14 @@ class StringBuildOptionTest extends Specification {
         }
 
         @Override
-        void applyTo(String value, TestSettings settings) {
+        void applyTo(String value, TestSettings settings, BuildOption.Origin origin) {
             settings.value = value
+            settings.origin = origin
         }
     }
 
     static class TestSettings {
         String value
+        BuildOption.Origin origin
     }
 }
