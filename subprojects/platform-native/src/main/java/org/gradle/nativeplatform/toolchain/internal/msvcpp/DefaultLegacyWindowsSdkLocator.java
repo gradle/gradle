@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 import net.rubygrapefruit.platform.MissingRegistryEntryException;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Transformer;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.TreeVisitor;
@@ -29,6 +30,8 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.gradle.util.CollectionUtils.collect;
 
 //TODO: Simplify this class by busting it up into a locator for legacy SDKs and locator(s) for Windows 8 kits
 public class DefaultLegacyWindowsSdkLocator implements LegacyWindowsSdkLocator {
@@ -78,18 +81,34 @@ public class DefaultLegacyWindowsSdkLocator implements LegacyWindowsSdkLocator {
 
     @Override
     public SearchResult locateWindowsSdks(File candidate) {
-        if (!initialised) {
-            locateSdksInRegistry();
-            locateKitsInRegistry();
-            locateSdkInPath();
-            initialised = true;
-        }
+        initializeWindowsSdks();
 
         if (candidate != null) {
             return locateUserSpecifiedSdk(candidate);
         }
 
         return locateDefaultSdk();
+    }
+
+    @Override
+    public List<SearchResult> locateAllWindowsSdks() {
+        initializeWindowsSdks();
+
+        return collect(foundSdks.values(), new Transformer<SearchResult, WindowsSdk>() {
+            @Override
+            public SearchResult transform(WindowsSdk windowsSdk) {
+                return new SdkFound(windowsSdk);
+            }
+        });
+    }
+
+    private void initializeWindowsSdks() {
+        if (!initialised) {
+            locateSdksInRegistry();
+            locateKitsInRegistry();
+            locateSdkInPath();
+            initialised = true;
+        }
     }
 
     private void locateSdksInRegistry() {

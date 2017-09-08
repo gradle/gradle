@@ -77,6 +77,11 @@ public class LegacyWindowsSdk implements WindowsSdk {
     }
 
     @Override
+    public File getBaseDir() {
+        return baseDir;
+    }
+
+    @Override
     public File getResourceCompiler(NativePlatformInternal platform) {
         return new File(getBinDir(platform), "rc.exe");
     }

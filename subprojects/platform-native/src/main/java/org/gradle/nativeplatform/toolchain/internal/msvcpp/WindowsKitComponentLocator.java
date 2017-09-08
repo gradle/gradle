@@ -16,12 +16,15 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import java.io.File;
+import java.util.List;
 
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 
 public interface WindowsKitComponentLocator<T extends WindowsKitComponent> {
 
     SearchResult<T> locateComponents(File candidate);
+
+    List<SearchResult<T>> locateAllComponents();
 
     interface SearchResult<T> extends ToolSearchResult {
         T getComponent();

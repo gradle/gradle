@@ -32,4 +32,6 @@ public interface WindowsSdk extends Named {
     File[] getIncludeDirs();
 
     File getLibDir(NativePlatformInternal platform);
+
+    File getBaseDir();
 }

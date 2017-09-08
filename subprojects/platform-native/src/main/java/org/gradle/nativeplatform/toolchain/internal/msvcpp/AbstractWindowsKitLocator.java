@@ -16,8 +16,10 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import com.google.common.collect.Lists;
 import net.rubygrapefruit.platform.MissingRegistryEntryException;
 import net.rubygrapefruit.platform.WindowsRegistry;
+import org.gradle.api.Transformer;
 import org.gradle.internal.FileUtils;
 import org.gradle.util.TreeVisitor;
 import org.gradle.util.VersionNumber;
@@ -38,7 +40,9 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public abstract class AbstractWindowsKitLocator<T extends WindowsKitComponent> {
+import static org.gradle.util.CollectionUtils.collect;
+
+public abstract class AbstractWindowsKitLocator<T extends WindowsKitComponent> implements WindowsKitComponentLocator<T> {
     private static final String USER_PROVIDED = "User-provided";
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractWindowsKitLocator.class);
     private final Map<File, Set<T>> foundComponents = new HashMap<File, Set<T>>();
@@ -66,17 +70,38 @@ public abstract class AbstractWindowsKitLocator<T extends WindowsKitComponent> {
         this.windowsRegistry = windowsRegistry;
     }
 
+    @Override
     public WindowsKitComponentLocator.SearchResult<T> locateComponents(File candidate) {
-        if (!initialised) {
-            locateComponentsInRegistry();
-            initialised = true;
-        }
+        initializeComponents();
 
         if (candidate != null) {
             return locateUserSpecifiedComponent(candidate);
         }
 
         return locateDefaultComponent();
+    }
+
+    @Override
+    public List<SearchResult<T>> locateAllComponents() {
+        initializeComponents();
+
+        List<SearchResult<T>> allComponents = Lists.newArrayList();
+        for (Set<T> components : foundComponents.values()) {
+            allComponents.addAll(collect(components, new Transformer<SearchResult<T>, T>() {
+                @Override
+                public SearchResult<T> transform(T component) {
+                    return new ComponentFound(component);
+                }
+            }));
+        }
+        return allComponents;
+    }
+
+    private void initializeComponents() {
+        if (!initialised) {
+            locateComponentsInRegistry();
+            initialised = true;
+        }
     }
 
     private WindowsKitComponentLocator.SearchResult<T> locateDefaultComponent() {

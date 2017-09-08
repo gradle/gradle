@@ -16,9 +16,14 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import com.google.common.collect.Lists;
+import org.gradle.api.Transformer;
 import org.gradle.util.TreeVisitor;
 
 import java.io.File;
+import java.util.List;
+
+import static org.gradle.util.CollectionUtils.collect;
 
 public class DefaultWindowsSdkLocator implements WindowsSdkLocator {
     private final LegacyWindowsSdkLocator legacyWindowsSdkLocator;
@@ -32,6 +37,19 @@ public class DefaultWindowsSdkLocator implements WindowsSdkLocator {
     @Override
     public SearchResult locateWindowsSdks(File candidate) {
         return new SdkSearchResult(legacyWindowsSdkLocator.locateWindowsSdks(candidate), windowsKitWindowsSdkLocator.locateComponents(candidate));
+    }
+
+    @Override
+    public List<SearchResult> locateAllWindowsSdks() {
+        List<SearchResult> allSdks = Lists.newArrayList();
+        allSdks.addAll(legacyWindowsSdkLocator.locateAllWindowsSdks());
+        allSdks.addAll(collect(windowsKitWindowsSdkLocator.locateAllComponents(), new Transformer<SearchResult, WindowsKitComponentLocator.SearchResult<WindowsKitWindowsSdk>>() {
+            @Override
+            public SearchResult transform(WindowsKitComponentLocator.SearchResult<WindowsKitWindowsSdk> searchResult) {
+                return new SearchResultAdapter(searchResult);
+            }
+        }));
+        return allSdks;
     }
 
     private static class SdkSearchResult implements SearchResult {
@@ -62,6 +80,29 @@ public class DefaultWindowsSdkLocator implements WindowsSdkLocator {
         @Override
         public void explain(TreeVisitor<? super String> visitor) {
             legacySearchResult.explain(visitor);
+        }
+    }
+
+    private static class SearchResultAdapter implements SearchResult {
+        final WindowsKitComponentLocator.SearchResult<WindowsKitWindowsSdk> delegate;
+
+        public SearchResultAdapter(WindowsKitComponentLocator.SearchResult<WindowsKitWindowsSdk> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public WindowsSdk getSdk() {
+            return delegate.getComponent();
+        }
+
+        @Override
+        public boolean isAvailable() {
+            return delegate.isAvailable();
+        }
+
+        @Override
+        public void explain(TreeVisitor<? super String> visitor) {
+            delegate.explain(visitor);
         }
     }
 }

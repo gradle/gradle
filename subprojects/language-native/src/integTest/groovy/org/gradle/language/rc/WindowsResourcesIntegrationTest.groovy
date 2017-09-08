@@ -15,21 +15,68 @@
  */
 package org.gradle.language.rc
 
+import net.rubygrapefruit.platform.WindowsRegistry
 import org.apache.commons.lang.RandomStringUtils
+import org.gradle.api.Transformer
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.AbstractNativeLanguageIntegrationTest
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultLegacyWindowsSdkLocator
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultWindowsKitWindowsSdkLocator
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultWindowsSdkLocator
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.LegacyWindowsSdkLocator
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsKitWindowsSdkLocator
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdk
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdkLocator
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.gradle.util.TextUtil
 import spock.lang.Ignore
+import spock.lang.Unroll
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
+import static org.gradle.util.CollectionUtils.collect
 import static org.gradle.util.Matchers.containsText
 
 @RequiresInstalledToolChain(VISUALCPP)
 class WindowsResourcesIntegrationTest extends AbstractNativeLanguageIntegrationTest {
-
+    static final List<WindowsSdk> NON_DEFAULT_SDKS = getNonDefaultSdks()
     HelloWorldApp helloWorldApp = new WindowsResourceHelloWorldApp()
+
+    @Unroll
+    def "compile and link executable with #sdk.name (#sdk.version.toString()) [#tc.displayName]"() {
+        given:
+        buildFile << """
+            model {
+                components {
+                    main(NativeExecutableSpec)
+                }
+            
+                toolChains {
+                    ${toolChain.id} {
+                        windowsSdkDir "${TextUtil.normaliseFileSeparators(sdk.getBaseDir().absolutePath)}"
+                    }
+                }
+            }
+        """
+
+        and:
+        helloWorldApp.writeSources(file("src/main"))
+
+        when:
+        run "mainExecutable"
+
+        then:
+        def mainExecutable = executable("build/exe/main/main")
+        mainExecutable.assertExists()
+        mainExecutable.exec().out == helloWorldApp.englishOutput
+
+        where:
+        sdk << NON_DEFAULT_SDKS
+        tc = toolChain
+    }
 
     def "user receives a reasonable error message when resource compilation fails"() {
         given:
@@ -149,5 +196,19 @@ model {
         // this test is just for verifying explicitly the behaviour of the windows resource compiler
         // that's why we explicitly trigger this task instead of main.
         succeeds "mainExecutable"
+    }
+
+    static List<WindowsSdk> getNonDefaultSdks() {
+        LegacyWindowsSdkLocator legacyLocator = new DefaultLegacyWindowsSdkLocator(OperatingSystem.current(), NativeServicesTestFixture.getInstance().get(WindowsRegistry.class))
+        WindowsKitWindowsSdkLocator windowsKitLocator = new DefaultWindowsKitWindowsSdkLocator(NativeServicesTestFixture.getInstance().get(WindowsRegistry.class));
+        WindowsSdkLocator locator = new DefaultWindowsSdkLocator(legacyLocator, windowsKitLocator)
+        WindowsSdk defaultSdk = locator.locateWindowsSdks(null).sdk
+        List<WindowsSdk> allSdks = collect(locator.locateAllWindowsSdks(), new Transformer<WindowsSdk, WindowsSdkLocator.SearchResult>() {
+            @Override
+            WindowsSdk transform(WindowsSdkLocator.SearchResult searchResult) {
+                return searchResult.sdk
+            }
+        })
+        return allSdks - defaultSdk
     }
 }
