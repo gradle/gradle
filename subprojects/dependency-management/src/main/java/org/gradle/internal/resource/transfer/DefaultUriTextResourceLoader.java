@@ -39,7 +39,15 @@ public class DefaultUriTextResourceLoader extends BasicTextResourceLoader {
 
     @Override
     public TextResource loadUri(String description, URI source) {
+        // Not a cacheable transport scheme (e.g., file://)
         if (!cachedSchemas.contains(source.getScheme())) {
+            return super.loadUri(description, source);
+        }
+
+        // Not cacheable if the URI uses a query string, our underlying
+        // infrastructure cannot cache this because we only key off of the path
+        // of the URI
+        if (source.getRawQuery() != null) {
             return super.loadUri(description, source);
         }
 
