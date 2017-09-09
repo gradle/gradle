@@ -311,6 +311,12 @@ public class DefaultCommandLineConverterTest extends CommandLineConverterTestSup
         checkConversion("-refresh-dependencies");
     }
 
+    @Test
+    public void withRecompileScripts() {
+        expectedRecompileScripts = true;
+        checkConversion("--recompile-scripts");
+    }
+
     @Test(expected = CommandLineArgumentException.class)
     public void withUnknownOption() {
         checkConversion("--unknown");
