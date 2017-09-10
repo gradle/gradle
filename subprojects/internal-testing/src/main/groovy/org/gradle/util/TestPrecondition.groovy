@@ -45,6 +45,12 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     NO_FILE_PERMISSIONS({
         !FILE_PERMISSIONS.fulfilled
     }),
+    WITH_ROOT_PERMISSION({
+        'root' == System.getProperty('user.name')
+    }),
+    WITHOUT_ROOT_PERMISSION({
+        !WITH_ROOT_PERMISSION.fulfilled
+    }),
     SET_ENV_VARIABLE({
         !UNKNOWN_OS.fulfilled && JavaVersion.current() < JavaVersion.VERSION_1_9
     }),
