@@ -39,7 +39,6 @@ import org.gradle.tooling.internal.consumer.connection.NonCancellableConsumerCon
 import org.gradle.tooling.internal.consumer.connection.ParameterValidatingConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.ShutdownAwareConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.TestExecutionConsumerConnection;
-import org.gradle.tooling.internal.consumer.connection.UnsupportedOlderVersionConnection;
 import org.gradle.tooling.internal.consumer.converters.ConsumerTargetTypeProvider;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.BuildActionRunner;
@@ -54,6 +53,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+
+import static org.gradle.tooling.UnsupportedVersionException.*;
 
 public class DefaultToolingImplementationLoader implements ToolingImplementationLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultToolingImplementationLoader.class);
@@ -84,7 +85,7 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
 
             // Adopting the connection to a refactoring friendly type that the consumer owns
             AbstractConsumerConnection adaptedConnection;
-            if (connection instanceof InternalTestExecutionConnection){
+            if (connection instanceof InternalTestExecutionConnection) {
                 adaptedConnection = new TestExecutionConsumerConnection(connection, modelMapping, adapter);
             } else if (connection instanceof StoppableConnection) {
                 adaptedConnection = new ShutdownAwareConsumerConnection(connection, modelMapping, adapter);
@@ -97,8 +98,11 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
             } else if (connection instanceof BuildActionRunner) {
                 adaptedConnection = new BuildActionRunnerBackedConsumerConnection(connection, modelMapping, adapter);
             } else {
-                return new UnsupportedOlderVersionConnection(connection, adapter);
+                throw unsupportedProvider();
             }
+
+            checkProviderVersion(adaptedConnection.getVersionDetails().getVersion());
+
             adaptedConnection.configure(connectionParameters);
             if (!adaptedConnection.getVersionDetails().supportsCancellation()) {
                 return new ParameterValidatingConsumerConnection(adaptedConnection.getVersionDetails(), new NonCancellableConsumerConnectionAdapter(adaptedConnection));

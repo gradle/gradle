@@ -125,7 +125,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
 
             launcher.run();
         } catch (UnsupportedVersionException e) {
-            throw new InvalidRunnerConfigurationException("The build could not be executed due to a feature not being supported by the target Gradle version", e);
+            throw e;
         } catch (BuildException t) {
             return new GradleExecutionResult(new BuildOperationParameters(targetGradleVersion, parameters.isEmbedded()), outputBuffer.readAsString(), tasks, t);
         } catch (GradleConnectionException t) {

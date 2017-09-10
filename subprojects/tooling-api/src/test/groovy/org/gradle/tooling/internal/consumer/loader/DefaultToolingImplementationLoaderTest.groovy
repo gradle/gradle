@@ -18,10 +18,10 @@ package org.gradle.tooling.internal.consumer.loader
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.actor.ActorFactory
 import org.gradle.internal.classloader.ClasspathUtil
-import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.internal.consumer.ConnectionParameters
 import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.internal.consumer.connection.ActionAwareConsumerConnection
@@ -31,7 +31,6 @@ import org.gradle.tooling.internal.consumer.connection.ModelBuilderBackedConsume
 import org.gradle.tooling.internal.consumer.connection.NoToolingApiConnection
 import org.gradle.tooling.internal.consumer.connection.NonCancellableConsumerConnectionAdapter
 import org.gradle.tooling.internal.consumer.connection.ShutdownAwareConsumerConnection
-import org.gradle.tooling.internal.consumer.connection.UnsupportedOlderVersionConnection
 import org.gradle.tooling.internal.protocol.BuildActionRunner
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1
@@ -119,10 +118,10 @@ class DefaultToolingImplementationLoaderTest extends Specification {
             ClasspathUtil.getClasspathForClass(GradleVersion.class))
 
         when:
-        def adaptedConnection = loader.create(distribution, loggerFactory, progressListener, connectionParameters, cancellationToken)
+        loader.create(distribution, loggerFactory, progressListener, connectionParameters, cancellationToken)
 
         then:
-        adaptedConnection.class == UnsupportedOlderVersionConnection.class
+        thrown(UnsupportedVersionException)
 
         where:
         connectionImplementation  | _
@@ -139,7 +138,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         def loader = new DefaultToolingImplementationLoader()
 
         given:
-        distribution.getToolingImplementationClasspath(loggerFactory, progressListener, userHomeDir, cancellationToken) >> ClassPath.EMPTY
+        distribution.getToolingImplementationClasspath(loggerFactory, progressListener, userHomeDir, cancellationToken) >> new DefaultClassPath(ClasspathUtil.getClasspathForClass(GradleVersion.class))
 
         expect:
         loader.create(distribution, loggerFactory, progressListener, connectionParameters, cancellationToken) instanceof NoToolingApiConnection

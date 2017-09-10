@@ -17,6 +17,9 @@
 package org.gradle.testkit.runner
 
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
+import org.gradle.tooling.UnsupportedVersionException
+
+import static org.gradle.tooling.UnsupportedVersionException.*
 
 @NonCrossVersion
 class GradleRunnerUnsupportedGradleVersionFailureIntegrationTest extends BaseGradleRunnerIntegrationTest {
@@ -33,7 +36,7 @@ class GradleRunnerUnsupportedGradleVersionFailureIntegrationTest extends BaseGra
         result.output
 
         then:
-        def e = thrown UnsupportedFeatureException
-        e.message == "The version of Gradle you are using (1.1) is not supported by TestKit. TestKit supports all Gradle versions 1.2 and later."
+        def e = thrown UnsupportedVersionException
+        e.message == "Support for Gradle older than ${MIN_PROVIDER_VERSION.version} has been removed. You should upgrade your Gradle to version ${MIN_PROVIDER_VERSION.version} or later."
     }
 }
