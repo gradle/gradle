@@ -21,6 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
 
 /**
  * Configuration for a C++ library, defining the source files and header directories that make up the library plus other settings.
@@ -44,9 +45,14 @@ public interface CppLibrary extends CppComponent {
     void publicHeaders(Action<? super ConfigurableFileCollection> action);
 
     /**
-     * Returns the public header files of this component, as defined in {@link #getPublicHeaders()}.
+     * Returns the public header file directories of this component, as defined in {@link #getPublicHeaders()}.
      */
     FileCollection getPublicHeaderDirs();
+
+    /**
+     * Returns public header files of this component.
+     */
+    FileTree getPublicHeaderFiles();
 
     /**
      * Returns the API dependencies of this library.

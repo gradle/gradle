@@ -38,6 +38,6 @@ class CppLib extends CppSourceElement {
 
     @Override
     SourceElement getSources() {
-        ofElements(greeter.source, sum.source)
+        ofElements(greeter.sources, sum.sources)
     }
 }

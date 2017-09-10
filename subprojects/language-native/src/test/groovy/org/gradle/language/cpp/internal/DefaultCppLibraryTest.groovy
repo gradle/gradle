@@ -110,6 +110,23 @@ class DefaultCppLibraryTest extends Specification {
         library.headerFiles.files == [f3, f1, f2] as Set
     }
 
+    def "can query the public header files of the library"() {
+        def d1 = tmpDir.createDir("d1")
+        def f1 = d1.createFile("a.h")
+        def f2 = d1.createFile("nested/b.h")
+        d1.createFile("ignore-me.cpp")
+        def f3 = tmpDir.createFile("src/main/public/c.h")
+        tmpDir.createFile("src/main/headers/ignore.h")
+        tmpDir.createFile("src/main/headers/ignore.cpp")
+        tmpDir.createFile("src/main/public/ignore.cpp")
+
+        expect:
+        library.publicHeaderFiles.files == [f3] as Set
+
+        library.publicHeaders.from(d1)
+        library.publicHeaderFiles.files == [f1, f2] as Set
+    }
+
     def "uses component name to determine header directories"() {
         def h1 = tmpDir.createFile("src/a/public")
         def h2 = tmpDir.createFile("src/b/public")

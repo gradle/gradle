@@ -188,10 +188,10 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
             @Override
             public void execute(AppliedPlugin appliedPlugin) {
                 final Zip headersZip = tasks.create("cppHeaders", Zip.class);
-                headersZip.from(library.getHeaderFiles());
+                headersZip.from(library.getPublicHeaderFiles());
                 // TODO - should track changes to build directory
                 headersZip.setDestinationDir(new File(project.getBuildDir(), "headers"));
-                headersZip.setArchiveName("cpp-headers.zip");
+                headersZip.setArchiveName("cpp-api-headers.zip");
 
                 project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
                     @Override
@@ -204,7 +204,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                                 publication.setArtifactId(library.getBaseName().get());
                                 publication.setVersion(project.getVersion().toString());
                                 MavenArtifact headersArtifact = publication.artifact(headersZip);
-                                headersArtifact.setClassifier("cpp-headers");
+                                headersArtifact.setClassifier("cpp-api-headers");
                             }
                         });
                         extension.getPublications().create("debug", MavenPublication.class, new Action<MavenPublication>() {

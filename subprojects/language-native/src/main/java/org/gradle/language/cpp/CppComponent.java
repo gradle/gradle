@@ -71,7 +71,7 @@ public interface CppComponent extends SoftwareComponent {
     void privateHeaders(Action<? super ConfigurableFileCollection> action);
 
     /**
-     * Returns the private header files of this component, as defined in {@link #getPrivateHeaders()}.
+     * Returns the private header include directories of this component, as defined in {@link #getPrivateHeaders()}.
      */
     FileCollection getPrivateHeaderDirs();
 

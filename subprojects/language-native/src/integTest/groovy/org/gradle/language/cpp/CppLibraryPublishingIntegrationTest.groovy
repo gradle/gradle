@@ -40,7 +40,9 @@ class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainInte
                 repositories { maven { url 'repo' } }
             }
 """
-        lib.writeToProject(testDirectory)
+        lib.publicHeaders.writeToSourceDir(file("src/main/public"))
+        lib.privateHeaders.writeToProject(testDirectory)
+        lib.sources.writeToProject(testDirectory)
 
         when:
         run('publish')
@@ -48,15 +50,15 @@ class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainInte
         then:
         result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":generatePomFileForDebugPublication", ":publishDebugPublicationToMavenRepository", ":cppHeaders", ":generatePomFileForMainPublication", ":publishMainPublicationToMavenRepository", ":compileReleaseCpp", ":linkRelease", ":generatePomFileForReleasePublication", ":publishReleasePublicationToMavenRepository", ":publish")
 
-        def headersZip = file("build/headers/cpp-headers.zip")
-        new ZipTestFixture(headersZip).hasDescendants(lib.headers.files*.name)
+        def headersZip = file("build/headers/cpp-api-headers.zip")
+        new ZipTestFixture(headersZip).hasDescendants(lib.publicHeaders.files*.name)
 
         def repo = new MavenFileRepository(file("repo"))
 
         def main = repo.module('some.group', 'test', '1.2')
         main.assertPublished()
-        main.assertArtifactsPublished("test-1.2-cpp-headers.zip", "test-1.2.pom")
-        main.artifactFile(classifier: 'cpp-headers', type: 'zip').assertIsCopyOf(headersZip)
+        main.assertArtifactsPublished("test-1.2-cpp-api-headers.zip", "test-1.2.pom")
+        main.artifactFile(classifier: 'cpp-api-headers', type: 'zip').assertIsCopyOf(headersZip)
 
         def debug = repo.module('some.group', 'test_debug', '1.2')
         debug.assertPublished()
