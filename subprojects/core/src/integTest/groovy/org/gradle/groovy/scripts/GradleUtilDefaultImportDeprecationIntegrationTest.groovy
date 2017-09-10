@@ -24,7 +24,7 @@ import spock.lang.Issue
 class GradleUtilDefaultImportDeprecationIntegrationTest extends AbstractIntegrationSpec {
 
     def warning(String... names) {
-        return "You're using ${Joiner.on(",").join(names as HashSet)} from org.gradle.util internal package. Default imports was deprecated now. You should either remove the usage (recommended) or import them explicitly (not recommended)"
+        "Using ${Joiner.on(",").join(names as HashSet)} from the private org.gradle.util package without an explicit import is deprecated. Please either stop using these private classes (recommended) or import them explicitly at the top of your build file (not recommended). The implicit import will be removed in Gradle 5.0"
     }
 
     def "no deprecation warning with #importStatement and #className"() {

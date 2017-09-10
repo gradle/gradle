@@ -281,7 +281,6 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     private class CustomCompilationUnit extends CompilationUnit {
-
         public CustomCompilationUnit(CompilerConfiguration compilerConfiguration, CodeSource codeSource, final Action<? super ClassNode> customVerifier, GroovyClassLoader groovyClassLoader) {
             super(compilerConfiguration, codeSource, groovyClassLoader);
             this.verifier = new Verifier() {
@@ -298,8 +297,8 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                     if (phase == Phases.CANONICALIZATION) {
                         Set<String> deprecatedImports = resolveVisitor.getDeprecatedImports();
                         if (!deprecatedImports.isEmpty()) {
-                            DeprecationLogger.nagUserWith("You're using " + Joiner.on(",").join(deprecatedImports)
-                                + " from org.gradle.util internal package. Default imports was deprecated now. You should either remove the usage (recommended) or import them explicitly (not recommended)");
+                            DeprecationLogger.nagUserWith("Using " + Joiner.on(",").join(deprecatedImports)
+                                + " from the private org.gradle.util package without an explicit import is deprecated. Please either stop using these private classes (recommended) or import them explicitly at the top of your build file (not recommended). The implicit import will be removed in Gradle 5.0");
                         }
                     }
                 }
