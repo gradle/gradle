@@ -41,7 +41,7 @@ task noop {
     }
 
     // AbstractConsumerConnection.getVersionDetail was introduced in 1.2
-    def minProviderVersionDetail = GradleVersion.version('1.1')
+    def minProviderVersionDetail = GradleVersion.version('1.2')
 
     def currentVersionMessage(GradleVersion version, GradleVersion lowerBound) {
         if (version >= lowerBound) {
@@ -184,7 +184,7 @@ public class TestClient {
         def stdout = new ByteArrayOutputStream()
         def executer = new ScriptExecuter()
         executer.workingDir(projectDir)
-        executer.standardOutput = stdout
+        executer.errorOutput = stdout
         executer.commandLine("build/install/test/bin/test")
         executer.run().assertNormalExitValue()
 
