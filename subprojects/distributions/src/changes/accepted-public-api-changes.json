@@ -106,6 +106,16 @@
             "changes": [
                 "Interface has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.tooling.UnsupportedVersionException",
+            "member": "Method org.gradle.tooling.UnsupportedVersionException.checkProviderVersion(java.lang.String)",
+            "acceptation": "Internal usage"
+        },
+        {
+            "type": "org.gradle.tooling.UnsupportedVersionException",
+            "member": "Method org.gradle.tooling.UnsupportedVersionException.unsupportedProvider()",
+            "acceptation": "Internal usage"
         }
 
     ]
