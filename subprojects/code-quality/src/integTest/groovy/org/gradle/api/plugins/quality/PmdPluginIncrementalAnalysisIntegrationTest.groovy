@@ -16,7 +16,13 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.Matchers
 import org.gradle.util.TestPrecondition
+import org.gradle.util.VersionNumber
+
+import static org.gradle.util.Matchers.containsLine
+import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.Matchers.not
 
 class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -39,22 +45,122 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "incremental analysis can be enabled"() {
+        given:
         goodCode()
-        buildFile << '''
-        pmd {
-            incrementalAnalysis = true
-        }
-'''
+        buildFile << 'pmd { incrementalAnalysis = true }'
 
-        expect:
-        succeeds("check")
+        when:
+        args('--info')
+        succeeds("pmdMain")
         file("build/pmd-cache/pmdMain.cache").exists()
+
+        then:
+        output.contains('Analysis cache invalidated, rulesets changed')
+
+        when:
+        args('--rerun-tasks', '--info')
+        succeeds("pmdMain")
+
+        then:
+        !output.contains('Analysis cache invalidated, rulesets changed')
+    }
+
+    def 'incremental analysis is transparent'() {
+        given:
+        buildFile << 'pmd { incrementalAnalysis = true }'
+        goodCode()
+        badCode()
+
+        when:
+        fails('pmdMain')
+
+        then:
+        file("build/reports/pmd/main.xml").assertContents(Matchers.containsText('BadClass'))
+
+        when:
+        file('src/main/java/org/gradle/BadClass.java').delete()
+        succeeds('pmdMain')
+
+        then:
+        file("build/reports/pmd/main.xml").
+            assertContents(not(containsLine(containsString('BadClass'))))
+    }
+
+    def 'incremental analysis invalidated when #reason'() {
+        given:
+        goodCode()
+        customRuleSet()
+        buildFile << 'pmd { incrementalAnalysis = true }'
+
+        when:
+        succeeds('pmdMain')
+        buildFile << "\npmd{${code}}"
+        succeeds('pmdMain', '--info')
+
+        then:
+        outputContains("Analysis cache invalidated, ${reason}")
+
+
+        where:
+        reason                | code
+        'PMD version changed' | 'toolVersion="5.8.0"'
+        'rulesets changed'    | 'ruleSetFiles = files("customRuleSet.xml")'
+    }
+
+    def "incremental analysis is available in 5.6.0+"() {
+        given:
+        buildFile << """
+pmd { 
+    incrementalAnalysis = true
+    toolVersion = '${version}'
+}    
+"""
+        goodCode()
+
+        when:
+        supportIncrementalAnalysis(version) ? succeeds('pmdMain') : fails('pmdMain')
+
+        then:
+        supportIncrementalAnalysis(version) ? failure == null : failure.error.contains('Incremental analysis only supports Pmd 5.6.0+')
+
+        where:
+        _ | version
+        _ | '4.3'
+        _ | '5.0.5'
+        _ | '5.1.1'
+        _ | '5.3.3'
+        _ | '5.6.0'
+        _ | PmdPlugin.DEFAULT_PMD_VERSION
+    }
+
+    private supportIncrementalAnalysis(String version) {
+        return VersionNumber.parse(version) >= VersionNumber.parse('5.6.0')
     }
 
     private goodCode() {
-        file("src/main/java/org/gradle/Class1.java") <<
-            "package org.gradle; class Class1 { public boolean isFoo(Object arg) { return true; } }"
-        file("src/test/java/org/gradle/Class1Test.java") <<
-            "package org.gradle; class Class1Test { public boolean isFoo(Object arg) { return true; } }"
+        file("src/main/java/org/gradle/GoodClass.java") <<
+            "package org.gradle; class GoodClass { public boolean isFoo(Object arg) { return true; } }"
+    }
+
+    private badCode() {
+        // PMD Lvl 2 Warning BooleanInstantiation
+        // PMD Lvl 3 Warning OverrideBothEqualsAndHashcode
+        file("src/main/java/org/gradle/BadClass.java") <<
+            "package org.gradle; class BadClass { public boolean equals(Object arg) { return java.lang.Boolean.valueOf(true); } }"
+    }
+
+    private customRuleSet() {
+        file("customRuleSet.xml") << """
+            <ruleset name="custom"
+                xmlns="http://pmd.sf.net/ruleset/1.0.0"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:schemaLocation="http://pmd.sf.net/ruleset/1.0.0 http://pmd.sf.net/ruleset_xml_schema.xsd"
+                xsi:noNamespaceSchemaLocation="http://pmd.sf.net/ruleset_xml_schema.xsd">
+
+                <description>Custom rule set</description>
+
+                <rule ref="rulesets/java/braces.xml"/>
+            </ruleset>
+        """
     }
 }

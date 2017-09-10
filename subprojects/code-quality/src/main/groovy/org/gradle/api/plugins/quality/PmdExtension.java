@@ -198,7 +198,7 @@ public class PmdExtension extends CodeQualityExtension {
     /**
      * Retrieves wether to use incremental analysis or not.
      *
-     * This is only supported for PMD 5.6.0 or better.
+     * This is only supported for PMD 5.6.0 or better. See <a href="https://pmd.github.io/pmd-5.6.0/overview/changelog.html#Incremental_Analysis"></a> for more details.
      *
      * @since 4.3
      */
@@ -210,7 +210,7 @@ public class PmdExtension extends CodeQualityExtension {
     /**
      * Configures wether to use incremental analysis or not.
      *
-     * This is only supported for PMD 5.6.0 or better.
+     * This is only supported for PMD 5.6.0 or better.See <a href="https://pmd.github.io/pmd-5.6.0/overview/changelog.html#Incremental_Analysis"></a> for more details.
      *
      * @param incrementalAnalysis True to enable incremental analysis.
      *
