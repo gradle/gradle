@@ -30,33 +30,50 @@ import java.util.Set;
 public class DefaultUriTextResourceLoader extends BasicTextResourceLoader {
 
     private final ExternalResourceAccessor externalResourceAccessor;
-    private final Set<String> cachedSchemas;
+    private final Set<String> cachedSchemes;
 
-    public DefaultUriTextResourceLoader(ExternalResourceAccessor externalResourceAccessor, Set<String> cachedSchemas) {
+    public DefaultUriTextResourceLoader(ExternalResourceAccessor externalResourceAccessor, Set<String> cachedSchemes) {
         this.externalResourceAccessor = externalResourceAccessor;
-        this.cachedSchemas = cachedSchemas;
+        this.cachedSchemes = cachedSchemes;
     }
 
     @Override
     public TextResource loadUri(String description, URI source) {
-        // Not a cacheable transport scheme (e.g., file://)
-        if (!cachedSchemas.contains(source.getScheme())) {
+        if (isCacheable(source)) {
+            LocallyAvailableExternalResource resource = externalResourceAccessor.resolveUri(source);
+            if (resource == null) {
+                throw ResourceExceptions.getMissing(source);
+            }
+            ExternalResourceMetaData metaData = resource.getMetaData();
+            String contentType = metaData == null ? null : metaData.getContentType();
+            return new DownloadedUriTextResource(description, source, contentType, resource.getFile());
+        } else {
+            // fallback to old behavior of always loading the resource
             return super.loadUri(description, source);
         }
 
-        // Not cacheable if the URI uses a query string, our underlying
-        // infrastructure cannot cache this because we only key off of the path
-        // of the URI
-        if (source.getRawQuery() != null) {
-            return super.loadUri(description, source);
-        }
+    }
 
-        LocallyAvailableExternalResource resource = externalResourceAccessor.resolveUri(source);
-        if (resource == null) {
-            throw ResourceExceptions.getMissing(source);
-        }
-        ExternalResourceMetaData metaData = resource.getMetaData();
-        String contentType = metaData == null ? null : metaData.getContentType();
-        return new DownloadedUriTextResource(description, source, contentType, resource.getFile());
+    private boolean isCacheable(URI source) {
+        return isCacheableScheme(source) && isCacheableResource(source);
+    }
+
+    /**
+     * Is {@code source} a cacheable transport scheme (e.g., http)?
+     *
+     * Schemes like file:// are not cacheable.
+     */
+    private boolean isCacheableScheme(URI source) {
+        return cachedSchemes.contains(source.getScheme());
+    }
+
+    /**
+     * Is {@code source} a cacheable URL?
+     *
+     * A URI is not cacheable if it uses a query string because our underlying infrastructure
+     * relies on paths to uniquely identify resources and not path+query components.
+     */
+    private boolean isCacheableResource(URI source) {
+        return source.getRawQuery() == null;
     }
 }
