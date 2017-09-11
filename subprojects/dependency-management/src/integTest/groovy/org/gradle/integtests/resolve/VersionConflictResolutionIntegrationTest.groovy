@@ -780,6 +780,43 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
+    def "chooses highest version that is included in both ranges when fail on conflict is set"() {
+        given:
+        (1..10).each {
+            mavenRepo.module("org", "leaf", "$it").publish()
+        }
+        mavenRepo.module("org", "a", "1.0").dependsOn("org", "leaf", "[2,6]").publish()
+        mavenRepo.module("org", "b", "1.0").dependsOn("org", "leaf", "[4,8]").publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf {
+                    resolutionStrategy {
+                        failOnVersionConflict()
+                    }
+                }
+            }
+            dependencies {
+                conf 'org:a:1.0', 'org:b:1.0'
+            }
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'leaf-6.jar']
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        noExceptionThrown()
+    }
+
     def "chooses highest version that is included in all ranges"() {
         given:
         (1..10).each {
@@ -889,6 +926,40 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
+    def "upgrades version when ranges are disjoint unless failOnVersionConflict is set"() {
+        given:
+        (1..10).each {
+            mavenRepo.module("org", "leaf", "$it").publish()
+        }
+        mavenRepo.module("org", "a", "1.0").dependsOn("org", "leaf", "[2,3]").publish()
+        mavenRepo.module("org", "b", "1.0").dependsOn("org", "leaf", "[5,8]").publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf {
+                    resolutionStrategy.failOnVersionConflict()
+                }
+            }
+            dependencies {
+                conf 'org:a:1.0', 'org:b:1.0'
+            }
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                }
+            }
+        """
+
+        when:
+        fails 'checkDeps'
+
+        then:
+        failure.assertThatCause(containsString('A conflict was found between the following modules:'))
+    }
+
     def "upgrades version when one of the ranges is disjoint"() {
         given:
         (1..10).each {
@@ -921,6 +992,43 @@ task checkDeps(dependsOn: configurations.compile) {
 
         then:
         noExceptionThrown()
+    }
+
+    def "fails when one of the ranges is disjoint and fail on conflict is set"() {
+        given:
+        (1..10).each {
+            mavenRepo.module("org", "leaf", "$it").publish()
+        }
+        mavenRepo.module("org", "a", "1.0").dependsOn("org", "leaf", "[2,6]").publish()
+        mavenRepo.module("org", "b", "1.0").dependsOn("org", "leaf", "[3,4]").publish()
+        mavenRepo.module("org", "c", "1.0").dependsOn("org", "leaf", "[7,8]").publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf {
+                    resolutionStrategy {
+                        failOnVersionConflict()
+                    }
+                }
+            }
+            dependencies {
+                conf 'org:a:1.0', 'org:b:1.0', 'org:c:1.0'
+            }
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                }
+            }
+        """
+
+        when:
+        fails 'checkDeps'
+
+        then:
+        failure.assertThatCause(containsString('A conflict was found between the following modules:'))
     }
 
     def "chooses highest version of all versions fully included within range"() {
