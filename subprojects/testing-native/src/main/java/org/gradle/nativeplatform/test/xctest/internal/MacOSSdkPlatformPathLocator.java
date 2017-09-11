@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.test.xctest.internal;
 
+import org.gradle.language.swift.internal.AbstractLocator;
 import org.gradle.process.internal.ExecActionFactory;
 
 import javax.inject.Inject;

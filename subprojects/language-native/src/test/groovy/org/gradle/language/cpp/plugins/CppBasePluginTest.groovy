@@ -46,7 +46,7 @@ class CppBasePluginTest extends Specification {
         then:
         def compileCpp = project.tasks[taskName]
         compileCpp instanceof CppCompile
-        compileCpp.objectFileDirectory.get().asFile == projectDir.file("build/obj/${objDir}")
+        compileCpp.objectFileDir.get().asFile == projectDir.file("build/obj/${objDir}")
 
         where:
         name        | taskName              | objDir

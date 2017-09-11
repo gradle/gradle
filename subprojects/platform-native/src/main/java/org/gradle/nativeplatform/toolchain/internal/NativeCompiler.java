@@ -71,8 +71,7 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> extends Abstra
             public void execute(BuildOperationQueue<CommandLineToolInvocation> buildQueue) {
                 buildQueue.setLogLocation(spec.getOperationLogger().getLogLocation());
                 for (File sourceFile : spec.getSourceFiles()) {
-                    CommandLineToolInvocation perFileInvocation =
-                        createPerFileInvocation(genericArgs, sourceFile, objectDir, spec);
+                    CommandLineToolInvocation perFileInvocation = createPerFileInvocation(genericArgs, sourceFile, objectDir, spec);
                     buildQueue.add(perFileInvocation);
                 }
             }
@@ -83,7 +82,7 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> extends Abstra
         return Collections.singletonList(sourceFile.getAbsolutePath());
     }
 
-    protected abstract List<String> getOutputArgs(File outputFile);
+    protected abstract List<String> getOutputArgs(T spec, File outputFile);
 
     protected abstract void addOptionsFileArgs(List<String> args, File tempDir);
 
@@ -139,9 +138,8 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> extends Abstra
     }
 
     protected CommandLineToolInvocation createPerFileInvocation(List<String> genericArgs, File sourceFile, File objectDir, T spec) {
-        String objectFileSuffix = objectFileExtension;
         List<String> sourceArgs = getSourceArgs(sourceFile);
-        List<String> outputArgs = getOutputArgs(getOutputFileDir(sourceFile, objectDir, objectFileSuffix));
+        List<String> outputArgs = getOutputArgs(spec, getOutputFileDir(sourceFile, objectDir, objectFileExtension));
         List<String> pchArgs = maybeGetPCHArgs(spec, sourceFile);
 
         return newInvocation("compiling ".concat(sourceFile.getName()), objectDir, buildPerFileArgs(genericArgs, sourceArgs, outputArgs, pchArgs), spec.getOperationLogger());

@@ -88,6 +88,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     Handler getCustomHandler() {
         return new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+                String d = request.getQueryString()
                 if (request.handled) {
                     return
                 }
@@ -311,6 +312,13 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
      */
     HttpResourceInteraction expectGet(String path, File srcFile) {
         return expect(path, false, ['GET'], fileHandler(path, srcFile))
+    }
+
+    /**
+     * Allows one GET request for the given URL with a query string. Reads the request content from the given file.
+     */
+    HttpResourceInteraction expectGetWithQueryString(String path, String query, File srcFile) {
+        return expect(path, false, ['GET'], withQueryString(query, fileHandler(path, srcFile)))
     }
 
     /**
@@ -541,6 +549,25 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
                     return
                 }
                 action.handle(request, response)
+            }
+        }
+    }
+
+    private Action withQueryString(String query, Action action) {
+        return new Action() {
+            @Override
+            HttpResourceInteraction getInteraction() {
+                return action.interaction
+            }
+
+            String getDisplayName() {
+                return action.displayName
+            }
+
+            void handle(HttpServletRequest request, HttpServletResponse response) {
+                if (request.queryString == query) {
+                    action.handle(request, response)
+                }
             }
         }
     }

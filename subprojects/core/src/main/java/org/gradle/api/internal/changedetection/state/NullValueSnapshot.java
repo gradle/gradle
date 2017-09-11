@@ -34,14 +34,6 @@ public class NullValueSnapshot implements ValueSnapshot, Isolatable<Object> {
     }
 
     @Override
-    public ValueSnapshot isolatableSnapshot(Object value, ValueSnapshotter snapshotter) {
-        if (value == null) {
-            return this;
-        }
-        return snapshotter.isolatableSnapshot(value);
-    }
-
-    @Override
     public void appendToHasher(BuildCacheHasher hasher) {
         hasher.putNull();
     }

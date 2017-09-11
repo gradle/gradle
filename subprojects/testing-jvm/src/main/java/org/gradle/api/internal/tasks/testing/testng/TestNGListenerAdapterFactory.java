@@ -23,7 +23,9 @@ import org.testng.ITestListener;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 class TestNGListenerAdapterFactory {
     private final ClassLoader classLoader;
@@ -55,8 +57,18 @@ class TestNGListenerAdapterFactory {
     }
 
     private ITestListener createProxy(Class<?> configListenerClass, final ITestListener listener) {
-        Class<?>[] interfaces = new Class<?>[]{ITestListener.class, ISuiteListener.class, configListenerClass};
-        return (ITestListener) Proxy.newProxyInstance(classLoader, interfaces, new AdaptedListener(listener));
+        List<Class<?>> interfaces = new ArrayList<Class<?>>();
+        interfaces.add(ITestListener.class);
+        interfaces.add(ISuiteListener.class);
+        interfaces.add(configListenerClass);
+
+        Class<?> iClassListenerClass = tryLoadClass("org.testng.IClassListener");
+
+        if (iClassListenerClass != null) {
+            interfaces.add(iClassListenerClass);
+        }
+
+        return (ITestListener) Proxy.newProxyInstance(classLoader, interfaces.toArray(new Class<?>[interfaces.size()]), new AdaptedListener(listener));
     }
 
     private static class AdaptedListener implements InvocationHandler {

@@ -76,6 +76,9 @@ class LinkExeLinker extends AbstractCompiler<LinkerSpec> {
         @Override
         public List<String> transform(LinkerSpec spec) {
             List<String> args = new ArrayList<String>();
+            if (spec.isDebuggable()) {
+                args.add("/DEBUG");
+            }
             args.addAll(escapeUserArgs(spec.getAllArgs()));
             args.add("/OUT:" + spec.getOutputFile().getAbsolutePath());
             args.add("/NOLOGO");

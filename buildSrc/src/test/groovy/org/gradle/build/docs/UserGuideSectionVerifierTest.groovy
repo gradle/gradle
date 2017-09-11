@@ -24,6 +24,7 @@ class UserGuideSectionVerifierTest extends Specification {
                 include "**/*.xml"
             }
         }
+        initOutputFile(verifierTask)
 
         when: "I execute the task"
         verifierTask.verify()
@@ -49,6 +50,7 @@ class UserGuideSectionVerifierTest extends Specification {
                 include "**/*.xml"
             }
         }
+        initOutputFile(verifierTask)
 
         when: "I execute the task"
         verifierTask.verify()
@@ -76,6 +78,7 @@ class UserGuideSectionVerifierTest extends Specification {
                 include "**/*.xml"
             }
         }
+        initOutputFile(verifierTask)
 
         when: "I execute the task"
         verifierTask.verify()
@@ -100,6 +103,7 @@ class UserGuideSectionVerifierTest extends Specification {
                 include "**/*.xml"
             }
         }
+        initOutputFile(verifierTask)
 
         expect: "The verification doesn't throw an exception"
         verifierTask.verify()
@@ -111,6 +115,7 @@ class UserGuideSectionVerifierTest extends Specification {
         def verifierTask = project.tasks.create("verifySectionIds", UserGuideSectionVerifier) { task ->
             task.docbookFiles = project.files()
         }
+        initOutputFile(verifierTask)
 
         expect: "The verification doesn't throw an exception"
         verifierTask.verify()
@@ -229,5 +234,10 @@ class UserGuideSectionVerifierTest extends Specification {
     <section id="other2"></section>
 </chapter>
 """, "UTF-8")
+    }
+
+    private initOutputFile(UserGuideSectionVerifier verifierTask) {
+        verifierTask.reportFile.parentFile.mkdirs()
+        verifierTask.reportFile.createNewFile()
     }
 }

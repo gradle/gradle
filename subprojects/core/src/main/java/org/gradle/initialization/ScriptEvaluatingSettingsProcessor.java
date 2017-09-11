@@ -21,8 +21,8 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.configuration.ScriptApplicator;
+import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
-import org.gradle.internal.time.Timers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +51,7 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
                                     SettingsLocation settingsLocation,
                                     ClassLoaderScope buildRootClassLoaderScope,
                                     StartParameter startParameter) {
-        Timer timer = Timers.startTimer();
+        Timer timer = Time.startTimer();
 
         SettingsInternal settings = createSettings(gradle, settingsLocation, buildRootClassLoaderScope, startParameter);
         applySettingsScript(settingsLocation, settings);

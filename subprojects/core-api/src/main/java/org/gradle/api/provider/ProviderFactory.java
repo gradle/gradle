@@ -19,6 +19,7 @@ package org.gradle.api.provider;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 
+import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
@@ -48,24 +49,39 @@ import java.util.concurrent.Callable;
 public interface ProviderFactory {
 
     /**
-     * Creates a {@code Provider} implementation based on the provided value.
+     * Creates a {@link Provider} whose value is calculated using the given {@link Callable}.
+     *
+     * <p>The provider is live and will call the {@link Callable} each time its value is queried. The {@link Callable} may return {@code null}, in which case the provider is considered to have no value.
      *
      * @param value The {@code java.util.concurrent.Callable} use to calculate the value.
      * @return The provider. Never returns null.
-     * @throws org.gradle.api.InvalidUserDataException If the provided value is null.
      */
-    <T> Provider<T> provider(Callable<T> value);
+    <T> Provider<T> provider(Callable<? extends T> value);
 
     /**
-     * Creates a {@code PropertyState} implementation based on the provided class.
-     * The value returned by the property state is the default value of the standard Java data type.
+     * Creates a {@link PropertyState} implementation to hold values of the given type.
+     *
+     * <p>The property will have a value equal to the default value of that type as defined by the Java language specification.
      * Please see <a href="https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html">Oracle's Java manual</a> for more information.
      * <p>
-     * Any other data type than the standard Java data types returns null as default value.
+     * Any other data type than the standard Java data types returns a property with no value defined.
      *
-     * @param clazz The class to be used for property state.
-     * @return The property state. Never returns null.
-     * @throws org.gradle.api.InvalidUserDataException If the provided class is null.
+     * @param valueType The type of the property.
+     * @return The property. Never returns null.
+     * @throws IllegalArgumentException If the value type is a parameterized type.
      */
-    <T> PropertyState<T> property(Class<T> clazz);
+    <T> PropertyState<T> property(Class<T> valueType);
+
+    /**
+     * Creates a {@link PropertyState} implementation to hold a {@link List} of the given element type. The property with have an empty list as its initial value.
+     *
+     * <p>The implementation will return immutable {@link List} values from its query methods.</p>
+     *
+     * @param elementType The type of element.
+     * @param <T> The type of element.
+     * @return The property. Never returns null;
+     * @throws IllegalArgumentException If the element type is a parameterized type.
+     * @since 4.3
+     */
+    <T> ListProperty<T> listProperty(Class<T> elementType);
 }

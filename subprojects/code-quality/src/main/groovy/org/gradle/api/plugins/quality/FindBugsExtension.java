@@ -64,6 +64,7 @@ public class FindBugsExtension extends CodeQualityExtension {
     private TextResource excludeFilterConfig;
     private TextResource excludeBugsFilterConfig;
     private Collection<String> extraArgs;
+    private Collection<String> jvmArgs;
     private boolean showProgress;
 
     public FindBugsExtension(Project project) {
@@ -263,7 +264,7 @@ public class FindBugsExtension extends CodeQualityExtension {
      * This should only be used for arguments that cannot be provided by Gradle directly.
      * Gradle does not try to interpret or validate the arguments before passing them to FindBugs.
      * <p>
-     * See the <a href="https://code.google.com/p/findbugs/source/browse/findbugs/src/java/edu/umd/cs/findbugs/TextUICommandLine.java">FindBugs
+     * See the <a href="https://github.com/findbugsproject/findbugs/blob/master/findbugs/src/java/edu/umd/cs/findbugs/TextUICommandLine.java">FindBugs
      * TextUICommandLine source</a> for available options.
      *
      * @since 2.6
@@ -279,13 +280,37 @@ public class FindBugsExtension extends CodeQualityExtension {
      * This should only be used for arguments that cannot be provided by Gradle directly.
      * Gradle does not try to interpret or validate the arguments before passing them to FindBugs.
      * <p>
-     * See the <a href="https://code.google.com/p/findbugs/source/browse/findbugs/src/java/edu/umd/cs/findbugs/TextUICommandLine.java">FindBugs
+     * See the <a href="https://github.com/findbugsproject/findbugs/blob/master/findbugs/src/java/edu/umd/cs/findbugs/TextUICommandLine.java">FindBugs
      * TextUICommandLine source</a> for available options.
      *
      * @since 2.6
      */
     public void setExtraArgs(Collection<String> extraArgs) {
         this.extraArgs = extraArgs;
+    }
+
+    /**
+     * Any additional arguments to be passed along to FindBugs JVM process.
+     * <p>
+     * Arguments can contain general JVM flags like {@code -Xdebug} and also FindBugs system properties like {@code -Dfindbugs.loadPropertiesFrom=...}
+     *
+     * @since 4.3
+     */
+    @Incubating
+    public Collection<String> getJvmArgs() {
+        return jvmArgs;
+    }
+
+    /**
+     * Any additional arguments to be passed along to FindBugs JVM process.
+     * <p>
+     * Arguments can contain general JVM flags like {@code -Xdebug} and also FindBugs system properties like {@code -Dfindbugs.loadPropertiesFrom=...}
+     *
+     * @since 4.3
+     */
+    @Incubating
+    public void setJvmArgs(Collection<String> jvmArgs) {
+        this.jvmArgs = jvmArgs;
     }
 
     /**

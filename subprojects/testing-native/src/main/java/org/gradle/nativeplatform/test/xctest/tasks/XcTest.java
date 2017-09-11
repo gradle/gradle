@@ -40,7 +40,7 @@ public class XcTest extends Test {
     public XcTest(ObjectFactory objectFactory) {
         setTestExecuter(objectFactory.newInstance(NativeTestExecuter.class));
 
-        getExtensions().getExtraProperties().set("testBundleDir", newOutputDirectory());
+        getExtensions().getExtraProperties().set("testBundleDir", newInputDirectory());
         getExtensions().getExtraProperties().set("workingDir", newOutputDirectory());
         setExecutable("java");
         setTestClassesDirs(getProject().files());

@@ -63,7 +63,7 @@ class NativeComponentPluginTest extends AbstractProjectBuilderSpec {
             it == testExecutable.tasks.link
             it.toolChain == testExecutable.toolChain
             it.targetPlatform == testExecutable.targetPlatform
-            it.linkerArgs == testExecutable.linker.args
+            it.linkerArgs.get() == testExecutable.linker.args
         }
 
         and:
@@ -93,7 +93,7 @@ class NativeComponentPluginTest extends AbstractProjectBuilderSpec {
             it == sharedLibraryBinary.tasks.link
             it.toolChain == sharedLibraryBinary.toolChain
             it.targetPlatform == sharedLibraryBinary.targetPlatform
-            it.linkerArgs == sharedLibraryBinary.linker.args
+            it.linkerArgs.get() == sharedLibraryBinary.linker.args
         }
 
         and:

@@ -20,7 +20,7 @@ import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.UpdateNowEvent;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Clock;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,22 +36,22 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
     private final OutputEventListener listener;
 
     private final ScheduledExecutorService executor;
-    private final TimeProvider timeProvider;
+    private final Clock clock;
     private final int throttleMs;
     private final Object lock = new Object();
 
     private long lastUpdate;
     private final List<OutputEvent> queue = new ArrayList<OutputEvent>();
 
-    public ThrottlingOutputEventListener(OutputEventListener listener, TimeProvider timeProvider) {
-        this(listener, Integer.getInteger("org.gradle.console.throttle", 85), Executors.newSingleThreadScheduledExecutor(), timeProvider);
+    public ThrottlingOutputEventListener(OutputEventListener listener, Clock clock) {
+        this(listener, Integer.getInteger("org.gradle.console.throttle", 85), Executors.newSingleThreadScheduledExecutor(), clock);
     }
 
-    ThrottlingOutputEventListener(OutputEventListener listener, int throttleMs, ScheduledExecutorService executor, TimeProvider timeProvider) {
+    ThrottlingOutputEventListener(OutputEventListener listener, int throttleMs, ScheduledExecutorService executor, Clock clock) {
         this.throttleMs = throttleMs;
         this.listener = listener;
         this.executor = executor;
-        this.timeProvider = timeProvider;
+        this.clock = clock;
         scheduleUpdateNow();
     }
 
@@ -59,7 +59,7 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
         executor.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                onOutput(new UpdateNowEvent(timeProvider.getCurrentTime()));
+                onOutput(new UpdateNowEvent(clock.getCurrentTime()));
             }
         }, UPDATE_NOW_FLUSH_INITIAL_DELAY_AND_PERIOD_MS, UPDATE_NOW_FLUSH_INITIAL_DELAY_AND_PERIOD_MS, TimeUnit.MILLISECONDS);
     }
@@ -70,7 +70,7 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
 
             if (newEvent instanceof EndOutputEvent) {
                 // Flush and clean up
-                renderNow(timeProvider.getCurrentTime());
+                renderNow(clock.getCurrentTime());
                 executor.shutdown();
                 return;
             }
@@ -80,7 +80,7 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
                 return;
             }
 
-            long now = timeProvider.getCurrentTime();
+            long now = clock.getCurrentTime();
             if (now - lastUpdate >= throttleMs) {
                 // Has been long enough since last update - flush now
                 renderNow(now);
@@ -92,7 +92,7 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
                 @Override
                 public void run() {
                     synchronized (lock) {
-                        renderNow(timeProvider.getCurrentTime());
+                        renderNow(clock.getCurrentTime());
                     }
                 }
             }, throttleMs, TimeUnit.MILLISECONDS);

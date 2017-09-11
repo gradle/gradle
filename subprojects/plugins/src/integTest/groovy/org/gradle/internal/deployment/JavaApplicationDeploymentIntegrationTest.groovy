@@ -17,6 +17,7 @@
 package org.gradle.internal.deployment
 
 import org.gradle.launcher.continuous.Java7RequiringContinuousIntegrationTest
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
 
 class JavaApplicationDeploymentIntegrationTest extends Java7RequiringContinuousIntegrationTest {
@@ -29,7 +30,7 @@ class JavaApplicationDeploymentIntegrationTest extends Java7RequiringContinuousI
             task run(type: ${RunApplication.canonicalName}) {
                 classpath = sourceSets.main.runtimeClasspath
                 mainClassName = "org.gradle.deployment.Main"
-                arguments = [ file("log").absolutePath, "Hello, World!" ]
+                arguments = [ file("log").absolutePath, file("ready").absolutePath, "Hello, World!" ]
             }
         """
 
@@ -49,6 +50,7 @@ class JavaApplicationDeploymentIntegrationTest extends Java7RequiringContinuousI
                     writer.close();
                     
                     // wait forever
+                    new File(args[1]).createNewFile();
                     Object lock = new Object();
                     synchronized(lock) {
                         while (true) {
@@ -70,6 +72,7 @@ class JavaApplicationDeploymentIntegrationTest extends Java7RequiringContinuousI
         when:
         succeeds("run")
         then:
+        assertApplicationReady()
         assertLogHasMessage("[APP] > Hello, World!")
     }
 
@@ -77,12 +80,15 @@ class JavaApplicationDeploymentIntegrationTest extends Java7RequiringContinuousI
         when:
         succeeds("run")
         then:
+        assertApplicationReady()
         assertLogHasMessage("[APP] > Hello, World!")
 
         when:
+        file("ready").delete()
         messageSrc.text = messageSrc.text.replace("APP", "NEW")
         succeeds()
         then:
+        assertApplicationReady()
         assertLogHasMessage("[NEW] > Hello, World!")
     }
 
@@ -95,6 +101,7 @@ class JavaApplicationDeploymentIntegrationTest extends Java7RequiringContinuousI
         when:
         succeeds("run")
         then:
+        assertApplicationReady()
         assertLogHasMessage("[APP] > Hello, World!")
 
         when:
@@ -102,6 +109,12 @@ class JavaApplicationDeploymentIntegrationTest extends Java7RequiringContinuousI
         succeeds()
         then:
         assertLogDoesNotHasMessage("[NEW] > Hello, World!")
+    }
+
+    void assertApplicationReady() {
+        ConcurrentTestUtil.poll {
+            file("ready").assertIsFile()
+        }
     }
 
     void assertLogHasMessage(String message) {

@@ -12,6 +12,7 @@ dependencies {
     compile project(':jvmServices')
     compile project(':core')
     compile project(':cli')
+    compile project(':buildOption')
     compile project(':toolingApi')
     compile project(':native')
     compile project(':logging')

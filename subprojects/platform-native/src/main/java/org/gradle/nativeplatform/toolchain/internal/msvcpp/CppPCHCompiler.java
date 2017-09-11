@@ -34,7 +34,7 @@ public class CppPCHCompiler extends VisualCppNativeCompiler<CppPCHCompileSpec> {
     }
 
     @Override
-    protected List<String> getOutputArgs(File outputFile) {
+    protected List<String> getOutputArgs(CppPCHCompileSpec spec, File outputFile) {
         return Collections.singletonList("/Fp" + outputFile.getAbsolutePath());
     }
 }

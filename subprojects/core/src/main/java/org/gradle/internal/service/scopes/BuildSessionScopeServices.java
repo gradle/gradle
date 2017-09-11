@@ -85,7 +85,8 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.buildevents.BuildExecutionTimer;
+import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
 import org.gradle.internal.work.DefaultWorkerLeaseService;
@@ -100,7 +101,7 @@ import java.io.File;
  */
 public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
-    public BuildSessionScopeServices(final ServiceRegistry parent, final StartParameter startParameter, ClassPath injectedPluginClassPath) {
+    public BuildSessionScopeServices(final ServiceRegistry parent, final StartParameter startParameter, BuildExecutionTimer buildExecutionTimer, ClassPath injectedPluginClassPath) {
         super(parent);
         register(new Action<ServiceRegistration>() {
             @Override
@@ -112,6 +113,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
             }
         });
         add(InjectedPluginClasspath.class, new InjectedPluginClasspath(injectedPluginClassPath));
+        add(BuildExecutionTimer.class, buildExecutionTimer);
         addProvider(new CacheRepositoryServices(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir()));
 
         // Must be no higher than this scope as needs cache repository services.
@@ -140,7 +142,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
     BuildOperationExecutor createBuildOperationExecutor(
         ListenerManager listenerManager,
-        TimeProvider timeProvider,
+        Clock clock,
         ProgressLoggerFactory progressLoggerFactory,
         WorkerLeaseService workerLeaseService,
         ExecutorFactory executorFactory,
@@ -152,7 +154,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
     ) {
         return new DefaultBuildOperationExecutor(
             listenerManager.getBroadcaster(BuildOperationListener.class),
-            timeProvider, progressLoggerFactory,
+            clock, progressLoggerFactory,
             new DefaultBuildOperationQueueFactory(workerLeaseService),
             executorFactory,
             resourceLockCoordinationService,

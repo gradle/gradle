@@ -114,6 +114,12 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
                     importRootArgs.add("-I");
                     importRootArgs.add(importRoot.getAbsolutePath());
                 }
+                if (spec.isDebuggable()) {
+                    genericArgs.add("-g");
+                }
+                if (spec.isOptimized()) {
+                    genericArgs.add("-O");
+                }
 
                 CommandLineToolInvocation perFileInvocation =
                     newInvocation("compiling swift file(s)", objectDir, Iterables.concat(genericArgs, outputArgs, importRootArgs), spec.getOperationLogger());

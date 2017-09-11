@@ -17,8 +17,8 @@ package org.gradle.configuration.project;
 
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.configuration.ScriptApplicator;
+import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
-import org.gradle.internal.time.Timers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +34,7 @@ public class BuildScriptProcessor implements ProjectConfigureAction {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Evaluating {} using {}.", project, project.getBuildScriptSource().getDisplayName());
         }
-        final Timer clock = Timers.startTimer();
+        final Timer clock = Time.startTimer();
         try {
             scriptApplicator.applyTo(project, project.getBuildScriptSource(), project.getBuildscript(), project.getClassLoaderScope(), project.getBaseClassLoaderScope(), true);
         } finally {

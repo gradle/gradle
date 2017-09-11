@@ -16,18 +16,18 @@
 package org.gradle.internal.logging.text
 
 import org.gradle.api.logging.LogLevel
-import org.gradle.internal.operations.BuildOperationIdentifierRegistry
-import org.gradle.internal.logging.events.OperationIdentifier
-import org.gradle.internal.time.TimeProvider
-import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.OutputSpecification
+import org.gradle.internal.logging.events.OperationIdentifier
+import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.services.LoggingBackedStyledTextOutput
+import org.gradle.internal.operations.BuildOperationIdentifierRegistry
+import org.gradle.internal.time.Clock
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.*
 
 class LoggingBackedStyledTextOutputTest extends OutputSpecification {
     private final OutputEventListener listener = Mock()
-    private final TimeProvider timeProvider = { 1200L } as TimeProvider
+    private final Clock timeProvider = { 1200L } as Clock
     private final LoggingBackedStyledTextOutput output = new LoggingBackedStyledTextOutput(listener, 'category', LogLevel.INFO, timeProvider)
 
     def forwardsLineOfTextToListener() {

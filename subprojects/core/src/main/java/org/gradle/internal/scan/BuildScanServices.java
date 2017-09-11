@@ -16,20 +16,23 @@
 
 package org.gradle.internal.scan;
 
-import org.gradle.internal.scan.clock.BuildScanTimeProvider;
-import org.gradle.internal.scan.clock.DefaultBuildScanTimeProvider;
+import org.gradle.internal.buildevents.BuildExecutionTimer;
 import org.gradle.internal.scan.config.BuildScanConfigServices;
+import org.gradle.internal.scan.time.BuildScanBuildStartedTime;
+import org.gradle.internal.scan.time.BuildScanClock;
+import org.gradle.internal.scan.time.DefaultBuildScanBuildStartedTime;
+import org.gradle.internal.scan.time.DefaultBuildScanClock;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Clock;
 
 public class BuildScanServices extends AbstractPluginServiceRegistry {
 
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new Object() {
-            BuildScanTimeProvider createTimeProvider(TimeProvider timeProvider) {
-                return new DefaultBuildScanTimeProvider(timeProvider);
+            BuildScanClock createTimeProvider(Clock clock) {
+                return new DefaultBuildScanClock(clock);
             }
         });
     }
@@ -37,5 +40,10 @@ public class BuildScanServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.addProvider(new BuildScanConfigServices());
+        registration.addProvider(new Object() {
+            BuildScanBuildStartedTime createBuildScanBuildStartedTime(BuildExecutionTimer buildExecutionTimer) {
+                return new DefaultBuildScanBuildStartedTime(buildExecutionTimer);
+            }
+        });
     }
 }

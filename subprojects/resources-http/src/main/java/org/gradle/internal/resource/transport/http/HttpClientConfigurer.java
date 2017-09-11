@@ -30,7 +30,6 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.config.CookieSpecs;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.protocol.HttpClientContext;
@@ -92,7 +91,6 @@ public class HttpClientConfigurer {
         configureProxy(builder, credentialsProvider, httpSettings);
         configureUserAgent(builder);
         configureCookieSpecRegistry(builder);
-        configureRequestConfig(builder);
         builder.setDefaultCredentialsProvider(credentialsProvider);
         builder.setMaxConnTotal(MAX_HTTP_CONNECTIONS);
         builder.setMaxConnPerRoute(MAX_HTTP_CONNECTIONS);
@@ -194,15 +192,6 @@ public class HttpClientConfigurer {
             .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecProvider())
             .build()
         );
-    }
-
-    private void configureRequestConfig(HttpClientBuilder builder) {
-        HttpTimeoutSettings timeoutSettings = httpSettings.getTimeoutSettings();
-        RequestConfig config = RequestConfig.custom()
-            .setConnectTimeout(timeoutSettings.getConnectionTimeout())
-            .setSocketTimeout(timeoutSettings.getSocketTimeout())
-            .build();
-        builder.setDefaultRequestConfig(config);
     }
 
     private PasswordCredentials getPasswordCredentials(Authentication authentication) {

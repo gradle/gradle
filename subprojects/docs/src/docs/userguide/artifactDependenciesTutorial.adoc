@@ -56,7 +56,7 @@ A Configuration is a named set of dependencies and artifacts. There are three ma
 Declaring Dependencies::
 The plugin uses configurations to make it easy for build authors to declare what other subprojects or external artifacts are needed for various purposes during the execution of tasks defined by the plugin.
 Resolving Dependencies::
-The plugin uses configurations to find (and possibly download) inputs to to the tasks it defines.
+The plugin uses configurations to find (and possibly download) inputs to the tasks it defines.
 Exposing Artifacts for Consumption::
 The plugin uses configurations to define what _artifacts_ it generates for other projects to consume.
 
@@ -120,7 +120,7 @@ Or Bintray's JCenter:
         </sample>
 ++++
 
-Or a any other remote Maven repository:
+Or any other remote Maven repository:
 
 ++++
 <sample id="defineRemoteMavenRepo" dir="userguide/artifacts/defineRepository" title="Usage of a remote Maven repository">

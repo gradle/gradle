@@ -243,7 +243,7 @@ class SwiftExecutableIntegrationTest extends AbstractInstalledToolChainIntegrati
         and:
         buildFile << """
             apply plugin: 'swift-executable'
-            compileDebugSwift.objectFileDirectory = layout.buildDirectory.dir("object-files")
+            compileDebugSwift.objectFileDir = layout.buildDirectory.dir("object-files")
             linkDebug.binaryFile = layout.buildDirectory.file("exe/some-app.exe")
             installDebug.installDirectory = layout.buildDirectory.dir("some-app")
          """

@@ -22,12 +22,12 @@ import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
-import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.NoSuchMethodException;
+import org.gradle.internal.time.Clock;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
 import org.testng.IMethodInstance;
@@ -49,18 +49,18 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
     private final TestNGSpec options;
     private final List<File> suiteFiles;
     private final IdGenerator<?> idGenerator;
-    private final TimeProvider timeProvider;
+    private final Clock clock;
     private final ActorFactory actorFactory;
     private ClassLoader applicationClassLoader;
     private Actor resultProcessorActor;
     private TestResultProcessor resultProcessor;
 
-    public TestNGTestClassProcessor(File testReportDir, TestNGSpec options, List<File> suiteFiles, IdGenerator<?> idGenerator, TimeProvider timeProvider, ActorFactory actorFactory) {
+    public TestNGTestClassProcessor(File testReportDir, TestNGSpec options, List<File> suiteFiles, IdGenerator<?> idGenerator, Clock clock, ActorFactory actorFactory) {
         this.testReportDir = testReportDir;
         this.options = options;
         this.suiteFiles = suiteFiles;
         this.idGenerator = idGenerator;
-        this.timeProvider = timeProvider;
+        this.clock = clock;
         this.actorFactory = actorFactory;
     }
 
@@ -125,7 +125,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         } else {
             testNg.setTestClasses(testClasses.toArray(new Class[0]));
         }
-        testNg.addListener((Object) adaptListener(new TestNGTestResultProcessorAdapter(resultProcessor, idGenerator, timeProvider)));
+        testNg.addListener((Object) adaptListener(new TestNGTestResultProcessorAdapter(resultProcessor, idGenerator, clock)));
         testNg.run();
     }
 

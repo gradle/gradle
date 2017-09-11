@@ -16,9 +16,13 @@
 
 package org.gradle.language.swift
 
+import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftApp
-import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftAppWithLib
+import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftModifyExpectedOutputApp
+import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftModifyExpectedOutputAppWithLib
+import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftStaleCompileOutputApp
+import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftStaleCompileOutputLib
+import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -26,10 +30,10 @@ import org.gradle.util.TestPrecondition
 class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "rebuilds application when a single source file changes"() {
         settingsFile << "rootProject.name = 'app'"
-        def app = new IncrementalSwiftApp()
+        def app = new IncrementalSwiftModifyExpectedOutputApp()
 
         given:
-        app.app.writeToProject(testDirectory)
+        app.writeToProject(testDirectory)
 
         and:
         buildFile << """
@@ -42,16 +46,16 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         then:
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
         result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
-        executable("build/exe/main/debug/App").exec().out == app.app.expectedOutput
+        executable("build/exe/main/debug/App").exec().out == app.expectedOutput
 
         when:
-        app.alternateApp.files.first().writeToDir(file('src/main'))
+        app.applyChangesToProject(testDirectory)
         succeeds "assemble"
 
         then:
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
         result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
-        executable("build/exe/main/debug/App").exec().out == app.alternateApp.expectedOutput
+        executable("build/exe/main/debug/App").exec().out == app.expectedAlternateOutput
 
         when:
         succeeds "assemble"
@@ -63,7 +67,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
 
     def "rebuilds application when a single source file in library changes"() {
         settingsFile << "include 'app', 'greeter'"
-        def app = new IncrementalSwiftAppWithLib()
+        def app = new IncrementalSwiftModifyExpectedOutputAppWithLib()
 
         given:
         buildFile << """
@@ -89,7 +93,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
 
         when:
-        app.alternateLibrary.files.first().writeToDir(file('greeter/src/main/'))
+        app.library.applyChangesToProject(file('greeter'))
         succeeds ":app:assemble"
 
         then:
@@ -103,5 +107,84 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         then:
         result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
         result.assertTasksSkipped(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+    }
+
+    def "removes stale object files for executable"() {
+        settingsFile << "rootProject.name = 'app'"
+        def app = new IncrementalSwiftStaleCompileOutputApp()
+
+        given:
+        app.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-executable'
+         """
+
+        and:
+        succeeds "assemble"
+        app.applyChangesToProject(testDirectory)
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
+        result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
+
+        file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.alternate, app.moduleName))
+        executable("build/exe/main/debug/App").assertExists()
+        installation("build/install/main/debug").exec().out == app.expectedAlternateOutput
+    }
+
+    def "removes stale object files for library"() {
+        def lib = new IncrementalSwiftStaleCompileOutputLib()
+        settingsFile << "rootProject.name = 'hello'"
+
+        given:
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-library'
+         """
+
+        and:
+        succeeds "assemble"
+        lib.applyChangesToProject(testDirectory)
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
+        result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":assemble")
+
+        file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(lib.alternate, lib.moduleName))
+        sharedLibrary("build/lib/main/debug/Hello").assertExists()
+    }
+
+    private List<String> expectIntermediateDescendants(SourceElement sourceElement, String moduleName) {
+        List<String> result = new ArrayList<String>()
+
+        String sourceSetName = sourceElement.getSourceSetName()
+        String intermediateFilesDirPath = "build/obj/main/debug"
+        File intermediateFilesDir = file(intermediateFilesDirPath)
+        for (SourceFile sourceFile : sourceElement.getFiles()) {
+            if (!sourceFile.getName().endsWith(".h")) {
+                def cppFile = file("src", sourceSetName, sourceFile.path, sourceFile.name)
+                result.add(objectFileFor(cppFile, intermediateFilesDirPath).relativizeFrom(intermediateFilesDir).path)
+                result.add(swiftmoduleFileFor(cppFile).relativizeFrom(intermediateFilesDir).path)
+                result.add(swiftdocFileFor(cppFile).relativizeFrom(intermediateFilesDir).path)
+            }
+        }
+        result.add("output-file-map.json")
+        result.add(moduleName + ".swiftmodule")
+        result.add(moduleName + ".swiftdoc")
+        return result
+    }
+
+    def swiftmoduleFileFor(File sourceFile, String intermediateFilesDir = "build/obj/main/debug") {
+        return intermediateFileFor(sourceFile, intermediateFilesDir, "~partial.swiftmodule")
+    }
+
+    def swiftdocFileFor(File sourceFile, String intermediateFilesDir = "build/obj/main/debug") {
+        return intermediateFileFor(sourceFile, intermediateFilesDir, "~partial.swiftdoc")
     }
 }

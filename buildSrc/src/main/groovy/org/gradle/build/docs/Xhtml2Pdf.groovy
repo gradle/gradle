@@ -18,6 +18,7 @@ package org.gradle.build.docs
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
@@ -28,6 +29,7 @@ import org.gradle.api.tasks.TaskAction
 /**
  * Converts an Xhtml document into a PDF
  */
+@CacheableTask
 class Xhtml2Pdf extends DefaultTask {
     @InputFile
     @PathSensitive(PathSensitivity.NONE)

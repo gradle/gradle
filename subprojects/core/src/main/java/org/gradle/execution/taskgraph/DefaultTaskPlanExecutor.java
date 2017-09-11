@@ -23,15 +23,14 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.concurrent.ManagedExecutor;
+import org.gradle.internal.time.Time;
+import org.gradle.internal.time.TimeFormatting;
 import org.gradle.internal.time.Timer;
-import org.gradle.internal.time.Timers;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.internal.work.WorkerLeaseService;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
-
-import static org.gradle.internal.time.DefaultEventTimer.prettyTime;
 
 class DefaultTaskPlanExecutor implements TaskPlanExecutor {
     private static final Logger LOGGER = Logging.getLogger(DefaultTaskPlanExecutor.class);
@@ -90,8 +89,8 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
 
         public void run() {
             final AtomicLong busy = new AtomicLong(0);
-            Timer totalTimer = Timers.startTimer();
-            final Timer taskTimer = Timers.startTimer();
+            Timer totalTimer = Time.startTimer();
+            final Timer taskTimer = Time.startTimer();
 
             WorkerLease childLease = parentWorkerLease.createChild();
             boolean moreTasksToExecute = true;
@@ -106,7 +105,7 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
                         long taskDuration = taskTimer.getElapsedMillis();
                         busy.addAndGet(taskDuration);
                         if (LOGGER.isInfoEnabled()) {
-                            LOGGER.info("{} ({}) completed. Took {}.", taskPath, Thread.currentThread(), prettyTime(taskDuration));
+                            LOGGER.info("{} ({}) completed. Took {}.", taskPath, Thread.currentThread(), TimeFormatting.formatDurationVerbose(taskDuration));
                         }
                     }
                 });
@@ -115,7 +114,7 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
             long total = totalTimer.getElapsedMillis();
 
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Task worker [{}] finished, busy: {}, idle: {}", Thread.currentThread(), prettyTime(busy.get()), prettyTime(total - busy.get()));
+                LOGGER.debug("Task worker [{}] finished, busy: {}, idle: {}", Thread.currentThread(), TimeFormatting.formatDurationVerbose(busy.get()), TimeFormatting.formatDurationVerbose(total - busy.get()));
             }
         }
 

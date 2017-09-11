@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
@@ -28,4 +29,7 @@ public interface ProviderInternal<T> extends Provider<T> {
      */
     @Nullable
     Class<T> getType();
+
+    @Override
+    <S> ProviderInternal<S> map(Transformer<? extends S, ? super T> transformer);
 }

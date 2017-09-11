@@ -16,38 +16,28 @@
 
 package org.gradle.initialization;
 
-import org.gradle.api.Transformer;
-import org.gradle.api.initialization.Settings;
-import org.gradle.api.internal.file.BasicFileResolver;
 import org.gradle.cli.AbstractCommandLineConverter;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
+import org.gradle.internal.buildoption.BuildOption;
 
-import java.io.File;
+import java.util.List;
 
 public class LayoutCommandLineConverter extends AbstractCommandLineConverter<BuildLayoutParameters> {
-    public static final String GRADLE_USER_HOME = "g";
-    private static final String NO_SEARCH_UPWARDS = "u";
-    private static final String PROJECT_DIR = "p";
+    private List<BuildOption<BuildLayoutParameters>> buildOptions = new BuildLayoutParametersBuildOptionFactory().create();
 
     public BuildLayoutParameters convert(ParsedCommandLine options, BuildLayoutParameters target) throws CommandLineArgumentException {
-        Transformer<File, String> resolver = new BasicFileResolver(target.getCurrentDir());
-        if (options.hasOption(NO_SEARCH_UPWARDS)) {
-            target.setSearchUpwards(false);
+        for (BuildOption<BuildLayoutParameters> option : buildOptions) {
+            option.applyFromCommandLine(options, target);
         }
-        if (options.hasOption(PROJECT_DIR)) {
-            target.setProjectDir(resolver.transform(options.option(PROJECT_DIR).getValue()));
-        }
-        if (options.hasOption(GRADLE_USER_HOME)) {
-            target.setGradleUserHomeDir(resolver.transform(options.option(GRADLE_USER_HOME).getValue()));
-        }
+
         return target;
     }
 
     public void configure(CommandLineParser parser) {
-        parser.option(NO_SEARCH_UPWARDS, "no-search-upward").hasDescription("Don't search in parent folders for a " + Settings.DEFAULT_SETTINGS_FILE + " file.");
-        parser.option(PROJECT_DIR, "project-dir").hasArgument().hasDescription("Specifies the start directory for Gradle. Defaults to current directory.");
-        parser.option(GRADLE_USER_HOME, "gradle-user-home").hasArgument().hasDescription("Specifies the gradle user home directory.");
+        for (BuildOption<BuildLayoutParameters> option : buildOptions) {
+            option.configure(parser);
+        }
     }
 }

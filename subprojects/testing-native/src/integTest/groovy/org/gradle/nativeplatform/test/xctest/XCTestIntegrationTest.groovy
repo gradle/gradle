@@ -22,7 +22,7 @@ import org.gradle.nativeplatform.fixtures.app.SwiftXcTestTestApp
 import org.gradle.nativeplatform.fixtures.app.TestElement
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
+import spock.lang.Unroll
 
 import static org.gradle.nativeplatform.fixtures.app.SourceTestElement.newTestCase
 import static org.gradle.nativeplatform.fixtures.app.SourceTestElement.newTestSuite
@@ -42,8 +42,8 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
-        result.assertTasksSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
+        result.assertTasksSkipped(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
     }
 
     def "test task fail when test cases fail"() {
@@ -60,7 +60,7 @@ apply plugin: 'xctest'
         fails("test")
 
         then:
-        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest")
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest")
         testApp.expectedSummaryOutputPattern.matcher(output).find()
     }
 
@@ -78,11 +78,32 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
         testApp.expectedSummaryOutputPattern.matcher(output).find()
     }
 
-    @Ignore("https://github.com/gradle/gradle-native/issues/94")
+    @Unroll
+    def "#task lifecycle task runs tests"() {
+        def testApp = new SwiftXcTestTestApp([
+            newTestSuite("PassingTestSuite", [
+                newTestCase("testPass", TestElement.TestCase.Result.PASS)
+            ])
+        ])
+
+        given:
+        testApp.writeToProject(testDirectory)
+
+        when:
+        succeeds(task)
+
+        then:
+        executed(":xcTest")
+        testApp.expectedSummaryOutputPattern.matcher(output).find()
+
+        where:
+        task << ["test", "check", "build"]
+    }
+
     def "doesn't execute removed test suite and case"() {
         def oldTestApp = new SwiftXcTestTestApp([
             newTestSuite("FooTestSuite", [
@@ -107,7 +128,7 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
         oldTestApp.expectedSummaryOutputPattern.matcher(output).find()
 
         when:
@@ -116,7 +137,7 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
         newTestApp.expectedSummaryOutputPattern.matcher(output).find()
     }
 
@@ -144,7 +165,7 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
         oldTestApp.expectedSummaryOutputPattern.matcher(output).find()
 
         when:
@@ -153,7 +174,7 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
         newTestApp.expectedSummaryOutputPattern.matcher(output).find()
     }
 
@@ -172,8 +193,8 @@ apply plugin: 'xctest'
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
-        result.assertTasksSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
+        result.assertTasksSkipped(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
     }
 
     def "xctest component can specify a dependency on another library"() {
@@ -204,7 +225,7 @@ dependencies {
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
     }
 
     def "assemble task doesn't build or run any of the tests"() {
@@ -223,5 +244,33 @@ dependencies {
         then:
         result.assertTasksExecuted(":assemble")
         result.assertTasksSkipped(":assemble")
+    }
+
+    def "build logic can change source layout convention"() {
+        def testApp = new SwiftXcTestTestApp([
+            newTestSuite("PassingTestSuite", [
+                newTestCase("testPass", TestElement.TestCase.Result.PASS)
+            ])
+        ])
+
+        given:
+        testApp.writeToSourceDir(file("Tests"))
+        file("src/test/swift/broken.swift") << "ignore me!"
+
+        and:
+        buildFile << """
+            xctest {
+                source.from 'Tests'
+                resourceDir.set(file('Tests'))
+            }
+         """
+
+        expect:
+        succeeds "test"
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
+
+        file("build/obj/test").assertIsDir()
+        executable("build/exe/test/AppTest").assertExists()
+        testApp.expectedSummaryOutputPattern.matcher(output).find()
     }
 }

@@ -157,6 +157,14 @@ class InputPropertiesSerializerTest extends Specification {
         original == written
     }
 
+    def "serializes provider properties"() {
+        def original = [a: new ProviderSnapshot(new StringValueSnapshot("123"))]
+        write(original)
+
+        expect:
+        original == written
+    }
+
     private ArrayValueSnapshot array(ValueSnapshot... elements) {
         return new ArrayValueSnapshot(elements)
     }

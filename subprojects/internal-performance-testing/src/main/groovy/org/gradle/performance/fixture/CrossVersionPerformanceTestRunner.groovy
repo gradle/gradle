@@ -22,8 +22,8 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.internal.time.TimeProvider
-import org.gradle.internal.time.TrueTimeProvider
+import org.gradle.internal.time.Clock
+import org.gradle.internal.time.TrueClock
 import org.gradle.performance.results.CrossVersionPerformanceResults
 import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.MeasuredOperationList
@@ -45,7 +45,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     TestProjectLocator testProjectLocator = new TestProjectLocator()
     final BuildExperimentRunner experimentRunner
     final ReleasedVersionDistributions releases
-    final TimeProvider timeProvider = new TrueTimeProvider()
+    final Clock timeProvider = new TrueClock()
 
     String testProject
     File workingDir

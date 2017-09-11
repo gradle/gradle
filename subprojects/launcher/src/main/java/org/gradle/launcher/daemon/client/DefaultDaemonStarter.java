@@ -28,8 +28,8 @@ import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.serialize.FlushableEncoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
+import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
-import org.gradle.internal.time.Timers;
 import org.gradle.launcher.daemon.DaemonExecHandleBuilder;
 import org.gradle.launcher.daemon.bootstrap.DaemonGreeter;
 import org.gradle.launcher.daemon.bootstrap.DaemonOutputConsumer;
@@ -136,7 +136,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
 
     private DaemonStartupInfo startProcess(List<String> args, File workingDir, InputStream stdInput) {
         LOGGER.debug("Starting daemon process: workingDir = {}, daemonArgs: {}", workingDir, args);
-        Timer clock = Timers.startTimer();
+        Timer clock = Time.startTimer();
         try {
             GFileUtils.mkdirs(workingDir);
 

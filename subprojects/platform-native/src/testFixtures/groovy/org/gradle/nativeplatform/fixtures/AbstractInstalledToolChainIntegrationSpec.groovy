@@ -20,7 +20,7 @@ import org.gradle.api.internal.file.BaseDirFileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.internal.time.TrueTimeProvider
+import org.gradle.internal.time.TrueClock
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.runner.RunWith
@@ -78,16 +78,20 @@ allprojects { p ->
     }
 
     def objectFileFor(File sourceFile, String rootObjectFilesDir = "build/objs/main/main${sourceType}") {
+        return intermediateFileFor(sourceFile, rootObjectFilesDir, OperatingSystem.current().isWindows() ? ".obj" : ".o")
+    }
+
+    def intermediateFileFor(File sourceFile, String intermediateFilesDir, String intermediateFileSuffix) {
         File objectFile = new CompilerOutputFileNamingSchemeFactory(new BaseDirFileResolver(TestFiles.fileSystem(), testDirectory, TestFiles.getPatternSetFactory())).create()
-                        .withObjectFileNameSuffix(OperatingSystem.current().isWindows() ? ".obj" : ".o")
-                        .withOutputBaseFolder(file(rootObjectFilesDir))
-                        .map(file(sourceFile))
+            .withObjectFileNameSuffix(intermediateFileSuffix)
+            .withOutputBaseFolder(file(intermediateFilesDir))
+            .map(file(sourceFile))
         return file(getTestDirectory().toURI().relativize(objectFile.toURI()))
     }
 
     protected void maybeWait() {
         if (toolChain.visualCpp) {
-            def now = new TrueTimeProvider().getCurrentTime()
+            def now = new TrueClock().getCurrentTime()
             def nextSecond = now % 1000
             Thread.sleep(1200 - nextSecond)
         }

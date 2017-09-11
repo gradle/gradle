@@ -16,28 +16,28 @@
 
 package org.gradle.testing.testng
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
 
-class TestNGIntegrationTest extends AbstractIntegrationSpec {
+@TargetCoverage({ TestNGCoverage.STANDARD_COVERAGE_WITH_INITIAL_ICLASS_LISTENER })
+class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
 
     def setup() {
         executer.noExtraLogging()
+        TestNGCoverage.enableTestNG(buildFile, version)
     }
 
     def "executes tests in correct environment"() {
         given:
         buildFile << """
-            apply plugin: 'java'
-            ${mavenCentralRepository()}
-            dependencies { testCompile 'org.testng:testng:6.3.1' }
             test {
-                useTestNG()
                 systemProperties.testSysProperty = 'value'
                 systemProperties.testDir = projectDir
                 environment.TEST_ENV_VAR = 'value'
@@ -88,12 +88,7 @@ class TestNGIntegrationTest extends AbstractIntegrationSpec {
     def "can listen for test results"() {
         given:
         buildFile << """
-            apply plugin: 'java'
-            ${mavenCentralRepository()}
-            dependencies { testCompile 'org.testng:testng:6.3.1' }
-            
             test {
-                useTestNG()
                 ignoreFailures = true
             }
             
@@ -141,15 +136,6 @@ class TestNGIntegrationTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-1532")
     def "supports thread pool size"() {
         given:
-        buildFile << """
-            apply plugin: "java"
-            ${mavenCentralRepository()}
-            dependencies { testCompile 'org.testng:testng:6.3.1' }
-            
-            test {
-                useTestNG()
-            }
-        """.stripIndent()
         file('src/test/java/SomeTest.java') << '''
             import org.testng.Assert;
             import org.testng.annotations.Test;
@@ -166,9 +152,6 @@ class TestNGIntegrationTest extends AbstractIntegrationSpec {
 
     def "supports test groups"() {
         buildFile << """
-            apply plugin: "java"
-            ${mavenCentralRepository()}
-            dependencies { testCompile "org.testng:testng:6.3.1" }
             ext {
                 ngIncluded = "database"
                 ngExcluded = "slow"
@@ -207,14 +190,6 @@ class TestNGIntegrationTest extends AbstractIntegrationSpec {
 
     def "supports test factory"() {
         given:
-        buildFile << """
-            apply plugin: "java"
-            ${mavenCentralRepository()}
-            dependencies { compile "org.testng:testng:6.3.1" }
-            test {
-                useTestNG()
-            }
-        """.stripIndent()
         file('src/test/java/org/gradle/factory/FactoryTest.java') << '''
             package org.gradle.factory;
             import org.testng.annotations.Test;
@@ -255,15 +230,6 @@ class TestNGIntegrationTest extends AbstractIntegrationSpec {
     @Ignore("Not fixed yet.")
     def "picks up changes"() {
         given:
-        buildFile << """
-            apply plugin: "java"
-            ${mavenCentralRepository()}
-            dependencies { testCompile 'org.testng:testng:6.3.1' }
-            
-            test {
-                useTestNG()
-            }
-        """.stripIndent()
         file('src/test/java/SomeTest.java') << """
             import org.testng.Assert;
             import org.testng.annotations.Test;
@@ -309,4 +275,76 @@ class TestNGIntegrationTest extends AbstractIntegrationSpec {
             }
         '''.stripIndent()
     }
+
+    @Issue("https://github.com/gradle/gradle-private/issues/954")
+    @Ignore("Test class events refer to gradle test executer which is wrong in the hierarchy")
+    def "test class events references correct suite as parent"() {
+        given:
+        def testNgSuite = file("src/test/resources/testng.xml")
+        buildFile << """
+        import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
+        import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
+        import org.gradle.api.internal.tasks.testing.TestStartEvent;
+        import org.gradle.api.tasks.testing.TestOutputEvent;
+        import org.gradle.api.tasks.testing.TestResult;
+        import org.gradle.api.internal.tasks.testing.results.TestListenerInternal
+
+        test {
+          useTestNG {
+            setSuiteXmlFiles([new File("${(testNgSuite.absolutePath)}")])
+          }
+          
+        }
+        gradle.addListener(new TestListenerInternal() {
+                void started(TestDescriptorInternal d, TestStartEvent s) {
+                    println "Started \${d.name} -- \${d.className} -- \${d.parent?.name}"    
+                }
+
+                void completed(TestDescriptorInternal d, TestResult result, TestCompleteEvent cE) {
+                    println "Finished \${d.name} -- \${d.className} -- \${d.parent?.name}"    
+                }
+
+                void output(TestDescriptorInternal descriptor, TestOutputEvent output) {
+                }
+        }) 
+        """
+        file("src/test/java/org/company/SystemOutTest.java") << """
+        package org.company;
+        import org.testng.Assert;
+        import org.testng.annotations.Test;
+        @Test
+        public class SystemOutTest {
+          @Test
+          public void testOut() {
+            System.out.println("System.out rules!");
+            Assert.assertTrue(true);
+          }
+        }
+        """
+        testNgSuite << """
+        <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+        <suite name="TestSuite">
+          <test name="LightTest">
+            <classes>
+              <class name="org.company.SystemOutTest"/>
+            </classes>
+          </test>
+          <test name="FullTest">
+            <classes>
+              <class name="org.company.SystemOutTest"/>
+            </classes>
+          </test>
+        </suite>
+        """
+
+        when:
+        fails 'test'
+
+        then:
+        output.contains("Started org.company.SystemOutTest -- org.company.SystemOutTest -- LightTest")
+        output.contains("Started org.company.SystemOutTest -- org.company.SystemOutTest -- FullTest")
+        output.contains("Finished org.company.SystemOutTest -- org.company.SystemOutTest -- LightTest")
+        output.contains("Finished org.company.SystemOutTest -- org.company.SystemOutTest -- FullTest")
+    }
+
 }

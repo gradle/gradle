@@ -29,8 +29,4 @@ public class ValueSnapshotStrategy {
     public ValueSnapshot snapshot(Object value) {
         return snapshotter.snapshot(value);
     }
-
-    public ValueSnapshot snapshot(Object value, ValueSnapshot candidate) {
-        return snapshotter.snapshot(value, candidate);
-    }
 }

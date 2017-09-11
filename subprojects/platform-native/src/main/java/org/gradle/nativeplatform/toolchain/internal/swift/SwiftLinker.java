@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.nativeplatform.internal.BundleLinkerSpec;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.SharedLibraryLinkerSpec;
 import org.gradle.nativeplatform.toolchain.internal.AbstractCompiler;
@@ -65,6 +66,9 @@ class SwiftLinker extends AbstractCompiler<LinkerSpec> {
 
             if (spec instanceof SharedLibraryLinkerSpec) {
                 args.add("-emit-library");
+            } else if (spec instanceof BundleLinkerSpec) {
+                args.add("-Xlinker");
+                args.add("-bundle");
             } else {
                 args.add("-emit-executable");
             }

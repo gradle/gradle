@@ -89,7 +89,7 @@ public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
                 task.setMacros(((PreprocessingTool) tool).getMacros());
             }
 
-            task.setCompilerArgs(tool.getArgs());
+            task.getCompilerArgs().set(tool.getArgs());
         }
     }
 

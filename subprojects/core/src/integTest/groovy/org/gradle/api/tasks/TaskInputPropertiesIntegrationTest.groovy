@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.api.file.FileCollection
+import org.gradle.api.provider.Provider
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.Actions
 import spock.lang.Issue
@@ -39,8 +40,10 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        when: fails "foo"
-        then: failure.assertHasDescription("Unable to store input properties for task ':foo'. Property 'b' with value 'xxx' cannot be serialized.")
+        when:
+        fails "foo"
+        then:
+        failure.assertHasDescription("Unable to store input properties for task ':foo'. Property 'b' with value 'xxx' cannot be serialized.")
     }
 
     def "deals gracefully with not serializable contents of GStrings"() {
@@ -218,10 +221,10 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         failureCauseContains "Chaining of the TaskInputs.$method method is not supported since Gradle 4.0."
 
         where:
-        method              | call
-        "file(Object)"      | 'file("a")'
-        "dir(Object)"       | 'dir("a")'
-        "files(Object...)"  | 'files("a", "b")'
+        method             | call
+        "file(Object)"     | 'file("a")'
+        "dir(Object)"      | 'dir("a")'
+        "files(Object...)" | 'files("a", "b")'
     }
 
     @Unroll
@@ -466,5 +469,6 @@ task someTask(type: SomeTask) {
         "Iterable<java.io.File>"         | "[file('1'), file('2')] as Set" | "files('1')"
         FileCollection.name              | "files('1', '2')"               | "configurations.create('empty')"
         "java.util.Map<String, Boolean>" | "[a: true, b: false]"           | "[a: true, b: true]"
+        "${Provider.name}<String>"       | "providers.provider { 'a' }"    | "providers.provider { 'b' }"
     }
 }

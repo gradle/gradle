@@ -15,6 +15,7 @@ allprojects {
                     classpath.entries.removeAll { it.path.contains("/subprojects") && it.kind == 'lib' }
                     // Add needed resources for running gradle as a non daemon java application
                     classpath.entries.add(new org.gradle.plugins.ide.eclipse.model.SourceFolder("build/generated-resources/main", null))
+                    classpath.entries.add(new org.gradle.plugins.ide.eclipse.model.SourceFolder("build/generated-resources/test", null))
                 }
             }
             jdt {
