@@ -59,7 +59,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         fails "help"
 
         and:
-        failure.assertHasDescription "Value '$value' given for org.gradle.workers.max system property is invalid (must be a positive, non-zero, integer)"
+        failure.assertHasDescription "Value '$value' given for org.gradle.workers.max Gradle property is invalid (must be a positive, non-zero, integer)"
 
         where:
         value << ["-1", "0", "foo", " 1"]
