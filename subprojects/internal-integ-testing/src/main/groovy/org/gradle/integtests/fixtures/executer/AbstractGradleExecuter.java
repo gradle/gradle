@@ -1167,7 +1167,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             }
 
             private boolean isDeprecationMessageInHelpDescription(String s) {
-                // deprecation message displayed by `gradle --help`
                 return s.matches(".*\\[deprecated.*]");
             }
         };
