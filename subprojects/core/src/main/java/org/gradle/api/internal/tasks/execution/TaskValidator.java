@@ -15,10 +15,12 @@
  */
 package org.gradle.api.internal.tasks.execution;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 
 import java.util.Collection;
 
+@NonNullApi
 public interface TaskValidator {
     /**
      * Validates this task, adding violations to the given collections.
