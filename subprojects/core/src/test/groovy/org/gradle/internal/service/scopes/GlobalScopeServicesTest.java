@@ -66,7 +66,9 @@ import org.gradle.process.internal.health.memory.OsMemoryInfo;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
 
 public class GlobalScopeServicesTest {
