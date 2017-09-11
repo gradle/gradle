@@ -67,13 +67,15 @@ class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainInte
 
         def debug = repo.module('some.group', 'test_debug', '1.2')
         debug.assertPublished()
-        debug.assertArtifactsPublished(withSharedLibrarySuffix("test_debug-1.2"), "test_debug-1.2.pom")
+        debug.assertArtifactsPublished(withSharedLibrarySuffix("test_debug-1.2"), withLinkLibrarySuffix("test_debug-1.2"), "test_debug-1.2.pom")
         debug.artifactFile(type: sharedLibraryExtension).assertIsCopyOf(sharedLibrary("build/lib/main/debug/test").file)
+        debug.artifactFile(type: linkLibrarySuffix).assertIsCopyOf(sharedLibrary("build/lib/main/debug/test").linkFile)
 
         def release = repo.module('some.group', 'test_release', '1.2')
         release.assertPublished()
-        release.assertArtifactsPublished(withSharedLibrarySuffix("test_release-1.2"), "test_release-1.2.pom")
+        release.assertArtifactsPublished(withSharedLibrarySuffix("test_release-1.2"), withLinkLibrarySuffix("test_release-1.2"), "test_release-1.2.pom")
         release.artifactFile(type: sharedLibraryExtension).assertIsCopyOf(sharedLibrary("build/lib/main/release/test").file)
+        release.artifactFile(type: linkLibrarySuffix).assertIsCopyOf(sharedLibrary("build/lib/main/release/test").linkFile)
     }
 
     def "can publish multiple libraries to a maven repository"() {

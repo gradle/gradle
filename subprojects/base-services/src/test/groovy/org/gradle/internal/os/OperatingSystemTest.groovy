@@ -103,6 +103,7 @@ class OperatingSystemTest extends Specification {
 
         expect:
         os.sharedLibrarySuffix == ".dll"
+        os.linkLibrarySuffix == ".lib"
         os.getSharedLibraryName("a.dll") == "a.dll"
         os.getSharedLibraryName("a.DLL") == "a.DLL"
         os.getSharedLibraryName("a") == "a.dll"
@@ -234,6 +235,7 @@ class OperatingSystemTest extends Specification {
 
         expect:
         os.sharedLibrarySuffix == ".so"
+        os.linkLibrarySuffix == ".so"
         os.getSharedLibraryName("a.so") == "a.so"
         os.getSharedLibraryName("liba.so") == "liba.so"
         os.getSharedLibraryName("a") == "liba.so"
@@ -306,6 +308,7 @@ class OperatingSystemTest extends Specification {
 
         expect:
         os.sharedLibrarySuffix == ".dylib"
+        os.linkLibrarySuffix == ".dylib"
         os.getSharedLibraryName("a.dylib") == "a.dylib"
         os.getSharedLibraryName("liba.dylib") == "liba.dylib"
         os.getSharedLibraryName("a") == "liba.dylib"

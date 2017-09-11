@@ -74,6 +74,14 @@ allprojects { p ->
         return toolChain.objectFile(file(path))
     }
 
+    def String withLinkLibrarySuffix(Object path) {
+        return path + OperatingSystem.current().linkLibrarySuffix
+    }
+
+    def String getLinkLibrarySuffix() {
+        return OperatingSystem.current().linkLibrarySuffix.substring(1)
+    }
+
     def String withSharedLibrarySuffix(Object path) {
         return path + OperatingSystem.current().sharedLibrarySuffix
     }

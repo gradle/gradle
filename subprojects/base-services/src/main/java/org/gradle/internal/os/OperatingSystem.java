@@ -117,6 +117,8 @@ public abstract class OperatingSystem {
 
     public abstract String getStaticLibraryName(String libraryName);
 
+    public abstract String getLinkLibrarySuffix();
+
     @UsedByScanPlugin
     public abstract String getFamilyName();
 
@@ -207,6 +209,11 @@ public abstract class OperatingSystem {
         @Override
         public String getSharedLibrarySuffix() {
             return ".dll";
+        }
+
+        @Override
+        public String getLinkLibrarySuffix() {
+            return ".lib";
         }
 
         @Override
@@ -303,6 +310,11 @@ public abstract class OperatingSystem {
         @Override
         public String getSharedLibrarySuffix() {
             return ".so";
+        }
+
+        @Override
+        public String getLinkLibrarySuffix() {
+            return getSharedLibrarySuffix();
         }
 
         @Override
