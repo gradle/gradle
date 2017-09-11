@@ -39,10 +39,10 @@ assembleWeb.doLast {
                 path.endsWith(".js") && (path.startsWith("META-INF/resources/") || !path.startsWith("META-INF/"))
             }
         }
-        copy {
-            from("${the<JavaPluginConvention>().sourceSets["main"].output.resourcesDir}/index.html")
-            into("$buildDir/web")
-        }
+    }
+    copy {
+        from("${the<JavaPluginConvention>().sourceSets["main"].output.resourcesDir}/index.html")
+        into("$buildDir/web")
     }
 }
 
