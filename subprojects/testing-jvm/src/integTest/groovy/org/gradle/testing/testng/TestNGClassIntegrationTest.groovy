@@ -23,6 +23,7 @@ import org.gradle.testing.fixture.TestNGCoverage
 
 import static org.gradle.testing.fixture.TestNGCoverage.FIXED_ICLASS_LISTENER
 import static org.gradle.testing.fixture.TestNGCoverage.NEWEST
+import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 @TargetCoverage({ [FIXED_ICLASS_LISTENER, NEWEST] })
 class TestNGClassIntegrationTest extends MultiVersionIntegrationSpec {
@@ -40,16 +41,16 @@ class TestNGClassIntegrationTest extends MultiVersionIntegrationSpec {
         def testNgSuite = file("src/test/resources/testng.xml")
 
         buildFile << """
-            import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
-            import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
-            import org.gradle.api.internal.tasks.testing.TestStartEvent;
-            import org.gradle.api.tasks.testing.TestOutputEvent;
-            import org.gradle.api.tasks.testing.TestResult;
+            import org.gradle.api.internal.tasks.testing.TestCompleteEvent
+            import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
+            import org.gradle.api.internal.tasks.testing.TestStartEvent
             import org.gradle.api.internal.tasks.testing.results.TestListenerInternal
+            import org.gradle.api.tasks.testing.TestOutputEvent
+            import org.gradle.api.tasks.testing.TestResult
     
             test {
                 useTestNG {
-                    setSuiteXmlFiles([new File("${(testNgSuite.absolutePath)}")])
+                    suites file("${(normaliseFileSeparators(testNgSuite.absolutePath))}")
                 }
             }
     
