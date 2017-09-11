@@ -25,12 +25,9 @@ class JavaScriptSampleTest : AbstractSampleTest("hello-js") {
         engine.eval("var console = {}; console.log = print;")
 
         // Load Kotlin JS stdlib
-        val pathToKotlinJsStdLib = "$projectRoot/build/web/kotlin.js"
-        val pathToBuildOutputJs = "$projectRoot/build/web/output.js"
-
-        engine.eval(FileReader(File(pathToKotlinJsStdLib)))
+        engine.eval(FileReader(File("$projectRoot/build/web/kotlin.js")))
         // Run build output
-        engine.eval(FileReader(File(pathToBuildOutputJs)))
+        engine.eval(FileReader(File("$projectRoot/build/web/output.js")))
 
         assertThat(
             sw.buffer.toString(),
