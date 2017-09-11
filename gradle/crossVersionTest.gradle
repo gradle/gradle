@@ -80,7 +80,6 @@ releasedVersions.testedVersions.each { targetVersion ->
         description "Runs the cross-version tests against Gradle ${targetVersion}"
         systemProperties['org.gradle.integtest.versions'] = targetVersion
         systemProperties['org.gradle.integtest.executer'] = 'forking'
-        include '**/ToolingApiDeprecatedProviderCrossVersionSpec.class','**/ToolingApiUnsupportedProviderCrossVersionSpec.class'
     }
 }
 

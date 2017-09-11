@@ -101,7 +101,6 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
                 throw unsupportedProvider();
             }
 
-            System.out.println("123");
             checkProviderVersion(adaptedConnection.getVersionDetails().getVersion());
 
             adaptedConnection.configure(connectionParameters);
