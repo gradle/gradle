@@ -72,30 +72,22 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         VersionMatcher requestedVersionMatcher = versionMatcherScheme.parseSelector(requested.getVersion());
         Collection<SpecRuleAction<? super ComponentSelection>> rules = componentSelectionRules.getRules();
 
-        // Loop over all listed versions, sorted by LATEST first
         for (ModuleComponentResolveState candidate : sortLatestFirst(versions)) {
             MetadataProvider metadataProvider = createMetadataProvider(candidate);
 
             boolean versionMatches = versionMatches(requestedVersionMatcher, candidate, metadataProvider);
-            if (!metadataProvider.isUsable()) {
-                // maybe we have already determined that this is NOT usable
-                // so we don't need to proceed further
-                applyTo(metadataProvider, result);
+            if (metadataIsNotUsable(result, metadataProvider)) {
                 return;
             }
 
             String version = candidate.getVersion().getSource();
             if (!versionMatches) {
-                // this version doesn't match the selector, we need to go on with the next listed one
                 result.notMatched(version);
                 continue;
             }
 
             ModuleComponentIdentifier candidateIdentifier = candidate.getId();
-            boolean accepted = !isRejectedByRules(candidateIdentifier, rules, metadataProvider);
-            if (accepted) {
-                // this version is selected AND not rejected by any metadata rule. This is the one
-                // we want, so we mark it and return
+            if (!isRejectedByRules(candidateIdentifier, rules, metadataProvider)) {
                 result.matches(candidateIdentifier);
                 return;
             }
@@ -110,6 +102,22 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         // if we reach this point, no match was found, either because there are no versions matching the selector
         // or all of them were rejected
         result.noMatchFound();
+    }
+
+    /**
+     * This method checks if the metadata provider already knows that metadata for this version is not usable.
+     * If that's the case it means it's not necessary to perform more checks for this version, because we already
+     * know it's broken in some way.
+     * @param result where to notify that metadata is broken, if broken
+     * @param metadataProvider the metadata provider
+     * @return true if metadata is not usable
+     */
+    private boolean metadataIsNotUsable(ComponentSelectionContext result, MetadataProvider metadataProvider) {
+        if (!metadataProvider.isUsable()) {
+            applyTo(metadataProvider, result);
+            return true;
+        }
+        return false;
     }
 
     private static MetadataProvider createMetadataProvider(ModuleComponentResolveState candidate) {
