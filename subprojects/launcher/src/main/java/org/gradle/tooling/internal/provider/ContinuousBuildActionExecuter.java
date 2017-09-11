@@ -70,7 +70,22 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
     @Override
     public Object execute(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters, ServiceRegistry buildSessionScopeServices) {
         BuildCancellationToken cancellationToken = requestContext.getCancellationToken();
-
+        if (actionParameters.isContinuous()) {
+            SingleMessageLogger.incubatingFeatureUsed("Continuous build");
+            DefaultContinuousExecutionGate alwaysOpenExecutionGate = new DefaultContinuousExecutionGate();
+            final CancellableOperationManager cancellableOperationManager = createCancellableOperationManager(actionParameters, cancellationToken);
+            return executeMultipleBuilds(action, requestContext, actionParameters, buildSessionScopeServices, cancellableOperationManager, alwaysOpenExecutionGate);
+        } else {
+            try {
+                return delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices);
+            } finally {
+                final CancellableOperationManager cancellableOperationManager = createCancellableOperationManager(actionParameters, cancellationToken);
+                waitForDeployments(action, requestContext, actionParameters, buildSessionScopeServices, cancellableOperationManager);
+            }
+        }
+    }
+    
+    private CancellableOperationManager createCancellableOperationManager(BuildActionParameters actionParameters, BuildCancellationToken cancellationToken) {
         final CancellableOperationManager cancellableOperationManager;
         if (actionParameters.isInteractive()) {
             if (!(System.in instanceof DisconnectableInputStream)) {
@@ -81,18 +96,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
         } else {
             cancellableOperationManager = new PassThruCancellableOperationManager(cancellationToken);
         }
-
-        if (actionParameters.isContinuous()) {
-            SingleMessageLogger.incubatingFeatureUsed("Continuous build");
-            DefaultContinuousExecutionGate alwaysOpenExecutionGate = new DefaultContinuousExecutionGate();
-            return executeMultipleBuilds(action, requestContext, actionParameters, buildSessionScopeServices, cancellableOperationManager, alwaysOpenExecutionGate);
-        } else {
-            try {
-                return delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices);
-            } finally {
-                waitForDeployments(action, requestContext, actionParameters, buildSessionScopeServices, cancellableOperationManager);
-            }
-        }
+        return cancellableOperationManager;
     }
 
     private void waitForDeployments(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters, ServiceRegistry buildSessionScopeServices, CancellableOperationManager cancellableOperationManager) {
