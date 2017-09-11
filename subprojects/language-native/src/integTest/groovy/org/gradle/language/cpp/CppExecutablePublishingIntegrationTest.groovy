@@ -18,6 +18,7 @@ package org.gradle.language.cpp
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppApp
+import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.junit.Assume
 
@@ -67,5 +68,60 @@ class CppExecutablePublishingIntegrationTest extends AbstractInstalledToolChainI
         release.assertPublished()
         release.assertArtifactsPublished(withExecutableSuffix("test_release-1.2"), "test_release-1.2.pom")
         release.artifactFile(type: executableExtension).assertIsCopyOf(executable("build/exe/main/release/test").file)
+    }
+
+    def "can publish executable and library to Maven repository"() {
+        def app = new CppAppWithLibrary()
+
+        given:
+        settingsFile << "include 'greeter', 'app'"
+        buildFile << """
+            subprojects {
+                apply plugin: 'maven-publish'
+                
+                group = 'some.group'
+                version = '1.2'
+                publishing {
+                    repositories { maven { url '../repo' } }
+                }
+            }
+            project(':app') { 
+                apply plugin: 'cpp-executable'
+                dependencies {
+                    implementation project(':greeter')
+                }
+            }
+            project(':greeter') { 
+                apply plugin: 'cpp-library'
+            }
+"""
+        app.greeter.writeToProject(file('greeter'))
+        app.main.writeToProject(file('app'))
+
+        when:
+        run('publish')
+
+        then:
+        def repo = new MavenFileRepository(file("repo"))
+
+        def appModule = repo.module('some.group', 'app', '1.2')
+        appModule.assertPublished()
+
+        def appDebugModule = repo.module('some.group', 'app_debug', '1.2')
+        appDebugModule.assertPublished()
+        appDebugModule.parsedPom.scopes.runtime.assertDependsOn("some.group:greeter:1.2")
+
+        def appReleaseModule = repo.module('some.group', 'app_release', '1.2')
+        appReleaseModule.assertPublished()
+        appReleaseModule.parsedPom.scopes.runtime.assertDependsOn("some.group:greeter:1.2")
+
+        def greeterModule = repo.module('some.group', 'greeter', '1.2')
+        greeterModule.assertPublished()
+
+        def greeterDebugModule = repo.module('some.group', 'greeter_debug', '1.2')
+        greeterDebugModule.assertPublished()
+
+        def greeterReleaseModule = repo.module('some.group', 'greeter_release', '1.2')
+        greeterReleaseModule.assertPublished()
     }
 }

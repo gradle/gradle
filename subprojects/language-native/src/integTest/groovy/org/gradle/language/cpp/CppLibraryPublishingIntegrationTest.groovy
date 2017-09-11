@@ -17,6 +17,7 @@
 package org.gradle.language.cpp
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -73,5 +74,57 @@ class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainInte
         release.assertPublished()
         release.assertArtifactsPublished(withSharedLibrarySuffix("test_release-1.2"), "test_release-1.2.pom")
         release.artifactFile(type: sharedLibraryExtension).assertIsCopyOf(sharedLibrary("build/lib/main/release/test").file)
+    }
+
+    def "can publish multiple libraries to a maven repository"() {
+        def lib = new CppAppWithLibraries()
+
+        given:
+        settingsFile << "include 'greeter', 'logger'"
+        buildFile << """
+            subprojects {
+                apply plugin: 'cpp-library'
+                apply plugin: 'maven-publish'
+                
+                group = 'some.group'
+                version = '1.2'
+                publishing {
+                    repositories { maven { url '../repo' } }
+                }
+            }
+            project(':greeter') { 
+                dependencies {
+                    implementation project(':logger')
+                }
+            }
+"""
+        lib.greeterLib.writeToProject(file('greeter'))
+        lib.loggerLib.writeToProject(file('logger'))
+
+        when:
+        run('publish')
+
+        then:
+        def repo = new MavenFileRepository(file("repo"))
+
+        def greeterModule = repo.module('some.group', 'greeter', '1.2')
+        greeterModule.assertPublished()
+
+        def greeterDebugModule = repo.module('some.group', 'greeter_debug', '1.2')
+        greeterDebugModule.assertPublished()
+        greeterDebugModule.parsedPom.scopes.runtime.assertDependsOn("some.group:logger:1.2")
+
+        def greeterReleaseModule = repo.module('some.group', 'greeter_release', '1.2')
+        greeterReleaseModule.assertPublished()
+        greeterReleaseModule.parsedPom.scopes.runtime.assertDependsOn("some.group:logger:1.2")
+
+        def loggerModule = repo.module('some.group', 'logger', '1.2')
+        loggerModule.assertPublished()
+
+        def loggerDebugModule = repo.module('some.group', 'logger_debug', '1.2')
+        loggerDebugModule.assertPublished()
+
+        def loggerReleaseModule = repo.module('some.group', 'logger_release', '1.2')
+        loggerReleaseModule.assertPublished()
     }
 }
