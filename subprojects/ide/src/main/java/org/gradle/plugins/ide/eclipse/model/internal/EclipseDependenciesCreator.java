@@ -16,10 +16,15 @@
 
 package org.gradle.plugins.ide.eclipse.model.internal;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.AbstractLibrary;
@@ -32,13 +37,19 @@ import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDepende
 import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency;
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
 import org.gradle.plugins.ide.internal.resolver.model.UnresolvedIdeRepoFileDependency;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class EclipseDependenciesCreator {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(EclipseDependenciesCreator.class);
 
     private final IdeDependenciesExtractor dependenciesExtractor;
     private final EclipseClasspath classpath;
@@ -79,19 +90,50 @@ public class EclipseDependenciesCreator {
         boolean downloadSources = classpath.isDownloadSources();
         boolean downloadJavadoc = classpath.isDownloadJavadoc();
 
+        Map<String, Set<String>> pathToSourceSets = collectRuntimeClasspathPathSourceSets();
+
         Collection<IdeExtendedRepoFileDependency> repoFileDependencies = dependenciesExtractor.extractRepoFileDependencies(classpath.getProject().getDependencies(), classpath.getPlusConfigurations(), classpath.getMinusConfigurations(), downloadSources, downloadJavadoc);
         for (IdeExtendedRepoFileDependency dependency : repoFileDependencies) {
-            libraries.add(createLibraryEntry(dependency.getFile(), dependency.getSourceFile(), dependency.getJavadocFile(), classpath, dependency.getId()));
+            libraries.add(createLibraryEntry(dependency.getFile(), dependency.getSourceFile(), dependency.getJavadocFile(), classpath, dependency.getId(), pathToSourceSets));
         }
 
         Collection<IdeLocalFileDependency> localFileDependencies = dependenciesExtractor.extractLocalFileDependencies(classpath.getPlusConfigurations(), classpath.getMinusConfigurations());
         for (IdeLocalFileDependency it : localFileDependencies) {
-            libraries.add(createLibraryEntry(it.getFile(), null, null, classpath, null));
+            libraries.add(createLibraryEntry(it.getFile(), null, null, classpath, null, pathToSourceSets));
         }
         return libraries;
     }
 
-    private static AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, EclipseClasspath classpath, ModuleVersionIdentifier id) {
+    private Map<String, Set<String>> collectRuntimeClasspathPathSourceSets() {
+        Map<String, Set<String>> pathToSourceSetNames = Maps.newHashMap();
+        Iterable<SourceSet> sourceSets = classpath.getSourceSets();
+
+        // for non-java projects there are no source sets configured
+        if (sourceSets == null) {
+            return pathToSourceSetNames;
+        }
+
+        try {
+            for (SourceSet sourceSet : sourceSets) {
+                String name = sourceSet.getName().replace(",", "");
+                FileCollection classpath = sourceSet.getRuntimeClasspath();
+                for (File f : classpath) {
+                    String path = f.getAbsolutePath();
+                    Set<String> names = pathToSourceSetNames.get(path);
+                    if (names == null) {
+                        names = Sets.newLinkedHashSet();
+                    }
+                    names.add(name);
+                    pathToSourceSetNames.put(path, names);
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.debug("Failed to collect source sets for Eclipse dependencies", e);
+        }
+        return pathToSourceSetNames;
+    }
+
+    private static AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, EclipseClasspath classpath, ModuleVersionIdentifier id, Map<String, Set<String>> pathToSourceSets) {
         FileReferenceFactory referenceFactory = classpath.getFileReferenceFactory();
 
         FileReference binaryRef = referenceFactory.fromFile(binary);
@@ -104,6 +146,11 @@ public class EclipseDependenciesCreator {
         out.setSourcePath(sourceRef);
         out.setExported(false);
         out.setModuleVersion(id);
+
+        Set<String> sourceSets = pathToSourceSets.get(binary.getAbsolutePath());
+        if (sourceSets != null) {
+            out.getEntryAttributes().put("gradle_source_sets", Joiner.on(',').join(sourceSets));
+        }
         return out;
     }
 }
