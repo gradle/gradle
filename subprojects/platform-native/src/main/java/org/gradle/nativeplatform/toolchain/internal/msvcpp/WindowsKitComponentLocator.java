@@ -24,7 +24,7 @@ public interface WindowsKitComponentLocator<T extends WindowsKitComponent> {
 
     SearchResult<T> locateComponents(File candidate);
 
-    List<SearchResult<T>> locateAllComponents();
+    List<T> locateAllComponents();
 
     interface SearchResult<T> extends ToolSearchResult {
         T getComponent();

@@ -21,7 +21,7 @@ import org.gradle.util.VersionNumber;
 
 import net.rubygrapefruit.platform.WindowsRegistry;
 
-public class DefaultUcrtLocator extends AbstractWindowsKitLocator<Ucrt> implements UcrtLocator {
+public class DefaultUcrtLocator extends AbstractWindowsKitComponentLocator<Ucrt> implements UcrtLocator {
     private static final String DISPLAY_NAME = "Universal C Runtime";
     private static final String COMPONENT_NAME = "ucrt";
 

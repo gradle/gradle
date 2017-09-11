@@ -19,7 +19,6 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 import com.google.common.collect.Lists;
 import net.rubygrapefruit.platform.MissingRegistryEntryException;
 import net.rubygrapefruit.platform.WindowsRegistry;
-import org.gradle.api.Transformer;
 import org.gradle.internal.FileUtils;
 import org.gradle.util.TreeVisitor;
 import org.gradle.util.VersionNumber;
@@ -40,11 +39,9 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.gradle.util.CollectionUtils.collect;
-
-public abstract class AbstractWindowsKitLocator<T extends WindowsKitComponent> implements WindowsKitComponentLocator<T> {
+public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitComponent> implements WindowsKitComponentLocator<T> {
     private static final String USER_PROVIDED = "User-provided";
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractWindowsKitLocator.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractWindowsKitComponentLocator.class);
     private final Map<File, Set<T>> foundComponents = new HashMap<File, Set<T>>();
     private final WindowsRegistry windowsRegistry;
     private boolean initialised;
@@ -66,7 +63,7 @@ public abstract class AbstractWindowsKitLocator<T extends WindowsKitComponent> i
         }
     };
 
-    AbstractWindowsKitLocator(WindowsRegistry windowsRegistry) {
+    AbstractWindowsKitComponentLocator(WindowsRegistry windowsRegistry) {
         this.windowsRegistry = windowsRegistry;
     }
 
@@ -82,17 +79,12 @@ public abstract class AbstractWindowsKitLocator<T extends WindowsKitComponent> i
     }
 
     @Override
-    public List<SearchResult<T>> locateAllComponents() {
+    public List<T> locateAllComponents() {
         initializeComponents();
 
-        List<SearchResult<T>> allComponents = Lists.newArrayList();
+        List<T> allComponents = Lists.newArrayList();
         for (Set<T> components : foundComponents.values()) {
-            allComponents.addAll(collect(components, new Transformer<SearchResult<T>, T>() {
-                @Override
-                public SearchResult<T> transform(T component) {
-                    return new ComponentFound(component);
-                }
-            }));
+            allComponents.addAll(components);
         }
         return allComponents;
     }

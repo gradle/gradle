@@ -16,5 +16,47 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-public interface WindowsKitWindowsSdkLocator extends WindowsKitComponentLocator<WindowsKitWindowsSdk> {
+import net.rubygrapefruit.platform.WindowsRegistry;
+import org.gradle.util.VersionNumber;
+
+import java.io.File;
+
+public class WindowsKitWindowsSdkLocator extends AbstractWindowsKitComponentLocator<WindowsKitWindowsSdk> {
+    private static final String COMPONENT_NAME = "um";
+    private static final String DISPLAY_NAME = "Windows SDK";
+    private static final String RC_EXE = "rc.exe";
+
+    public WindowsKitWindowsSdkLocator(WindowsRegistry windowsRegistry) {
+        super(windowsRegistry);
+    }
+
+    @Override
+    String getComponentName() {
+        return COMPONENT_NAME;
+    }
+
+    @Override
+    String getDisplayName() {
+        return DISPLAY_NAME;
+    }
+
+    @Override
+    boolean isValidComponentBaseDir(File baseDir) {
+        return new File(baseDir, "bin/x86/" + RC_EXE).exists();
+    }
+
+    @Override
+    boolean isValidComponentIncludeDir(File includeDir) {
+        return new File(includeDir, "windows.h").exists();
+    }
+
+    @Override
+    boolean isValidComponentLibDir(File libDir) {
+        return new File(libDir, "x86/kernel32.lib").exists();
+    }
+
+    @Override
+    WindowsKitWindowsSdk newComponent(File baseDir, VersionNumber version, DiscoveryType discoveryType) {
+        return new WindowsKitWindowsSdk(baseDir, version, getVersionedDisplayName(version, discoveryType));
+    }
 }

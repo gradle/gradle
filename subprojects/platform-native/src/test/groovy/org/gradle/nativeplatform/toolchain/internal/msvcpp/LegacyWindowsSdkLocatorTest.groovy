@@ -25,14 +25,14 @@ import org.gradle.util.VersionNumber
 import org.junit.Rule
 import spock.lang.Specification
 
-class DefaultLegacyWindowsSdkLocatorTest extends Specification {
+class LegacyWindowsSdkLocatorTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final WindowsRegistry windowsRegistry = Stub(WindowsRegistry)
     final OperatingSystem operatingSystem = Stub(OperatingSystem) {
         isWindows() >> true
         getExecutableName(_ as String) >> { String exeName -> exeName }
     }
-    final WindowsSdkLocator windowsSdkLocator = new DefaultLegacyWindowsSdkLocator(operatingSystem, windowsRegistry)
+    final WindowsSdkLocator windowsSdkLocator = new LegacyWindowsSdkLocator(operatingSystem, windowsRegistry)
 
     def "uses highest version SDK found in registry"() {
         def dir1 = sdkDir("sdk1")

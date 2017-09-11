@@ -22,11 +22,11 @@ import spock.lang.Specification
 
 class DefaultWindowsSdkLocatorTest extends Specification {
     final WindowsSdkLocator.SearchResult legacySdkLookup = Stub(WindowsSdkLocator.SearchResult)
-    final LegacyWindowsSdkLocator legacyWindowsSdkLocator = Stub(LegacyWindowsSdkLocator) {
+    final WindowsSdkLocator legacyWindowsSdkLocator = Stub(WindowsSdkLocator) {
         locateWindowsSdks(_) >> legacySdkLookup
     }
     final WindowsKitComponentLocator.SearchResult windowsKitLookup = Stub(WindowsKitComponentLocator.SearchResult)
-    WindowsKitWindowsSdkLocator windowsKitSdkLocator = Stub(WindowsKitWindowsSdkLocator) {
+    WindowsKitComponentLocator windowsKitSdkLocator = Stub(WindowsKitComponentLocator) {
         locateComponents(_) >> windowsKitLookup
     }
 

@@ -24,10 +24,10 @@ import org.gradle.util.VersionNumber
 import org.junit.Rule
 import spock.lang.Specification
 
-class DefaultWindowsKitWindowsSdkLocatorTest extends Specification {
+class WindowsKitWindowsSdkLocatorTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final WindowsRegistry windowsRegistry = Stub(WindowsRegistry)
-    final WindowsKitWindowsSdkLocator windowsSdkLocator = new DefaultWindowsKitWindowsSdkLocator(windowsRegistry)
+    final WindowsKitComponentLocator<WindowsKitWindowsSdk> windowsSdkLocator = new WindowsKitWindowsSdkLocator(windowsRegistry)
 
     def "uses highest Windows Kit version found"() {
         def dir1 = kitDir("sdk1", versions as String[])

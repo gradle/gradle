@@ -17,17 +17,12 @@ package org.gradle.language.rc
 
 import net.rubygrapefruit.platform.WindowsRegistry
 import org.apache.commons.lang.RandomStringUtils
-import org.gradle.api.Transformer
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.AbstractNativeLanguageIntegrationTest
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultLegacyWindowsSdkLocator
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultWindowsKitWindowsSdkLocator
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultWindowsSdkLocator
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.LegacyWindowsSdkLocator
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsKitWindowsSdkLocator
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdk
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdkLocator
 import org.gradle.test.fixtures.file.TestFile
@@ -37,7 +32,6 @@ import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
-import static org.gradle.util.CollectionUtils.collect
 import static org.gradle.util.Matchers.containsText
 
 @RequiresInstalledToolChain(VISUALCPP)
@@ -199,16 +193,8 @@ model {
     }
 
     static List<WindowsSdk> getNonDefaultSdks() {
-        LegacyWindowsSdkLocator legacyLocator = new DefaultLegacyWindowsSdkLocator(OperatingSystem.current(), NativeServicesTestFixture.getInstance().get(WindowsRegistry.class))
-        WindowsKitWindowsSdkLocator windowsKitLocator = new DefaultWindowsKitWindowsSdkLocator(NativeServicesTestFixture.getInstance().get(WindowsRegistry.class));
-        WindowsSdkLocator locator = new DefaultWindowsSdkLocator(legacyLocator, windowsKitLocator)
+        WindowsSdkLocator locator = new DefaultWindowsSdkLocator(OperatingSystem.current(), NativeServicesTestFixture.getInstance().get(WindowsRegistry.class))
         WindowsSdk defaultSdk = locator.locateWindowsSdks(null).sdk
-        List<WindowsSdk> allSdks = collect(locator.locateAllWindowsSdks(), new Transformer<WindowsSdk, WindowsSdkLocator.SearchResult>() {
-            @Override
-            WindowsSdk transform(WindowsSdkLocator.SearchResult searchResult) {
-                return searchResult.sdk
-            }
-        })
-        return allSdks - defaultSdk
+        return locator.locateAllWindowsSdks() - defaultSdk
     }
 }

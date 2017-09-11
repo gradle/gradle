@@ -24,7 +24,7 @@ public interface WindowsSdkLocator {
 
     SearchResult locateWindowsSdks(File candidate);
 
-    List<SearchResult> locateAllWindowsSdks();
+    List<WindowsSdk> locateAllWindowsSdks();
 
     interface SearchResult extends ToolSearchResult {
         WindowsSdk getSdk();
