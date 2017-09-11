@@ -34,7 +34,7 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.internal.DefaultCppApplication;
-import org.gradle.language.cpp.internal.RuntimeVariant;
+import org.gradle.language.cpp.internal.NativeVariant;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
 
@@ -130,7 +130,7 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
                                 publication.setGroupId(project.getGroup().toString());
                                 publication.setArtifactId(application.getBaseName().get() + "_debug");
                                 publication.setVersion(project.getVersion().toString());
-                                publication.from(new RuntimeVariant("debug", runtimeUsage, debugRuntimeElements));
+                                publication.from(new NativeVariant("debug", null, null, runtimeUsage, debugRuntimeElements));
                             }
                         });
                         extension.getPublications().create("release", MavenPublication.class, new Action<MavenPublication>() {
@@ -140,7 +140,7 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
                                 publication.setGroupId(project.getGroup().toString());
                                 publication.setArtifactId(application.getBaseName().get() + "_release");
                                 publication.setVersion(project.getVersion().toString());
-                                publication.from(new RuntimeVariant("release", runtimeUsage, releaseRuntimeElements));
+                                publication.from(new NativeVariant("release", null, null, runtimeUsage, releaseRuntimeElements));
                             }
                         });
                     }

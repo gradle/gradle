@@ -152,12 +152,16 @@ class CppLibraryPluginTest extends Specification {
         debug.groupId == 'my.group'
         debug.artifactId == 'mylib_debug'
         debug.version == '1.2'
-        debug.artifacts.size() == 1
+        debug.artifacts.size() == expectedSharedLibFiles()
 
         def release = publishing.publications.release
         release.groupId == 'my.group'
         release.artifactId == 'mylib_release'
         release.version == '1.2'
-        release.artifacts.size() == 1
+        release.artifacts.size() == expectedSharedLibFiles()
+    }
+
+    private int expectedSharedLibFiles() {
+        OperatingSystem.current().windows ? 2 : 1
     }
 }

@@ -39,7 +39,7 @@ import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.internal.DefaultCppLibrary;
-import org.gradle.language.cpp.internal.RuntimeVariant;
+import org.gradle.language.cpp.internal.NativeVariant;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
@@ -141,10 +141,10 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
 
         Configuration implementation = library.getImplementationDependencies();
 
-        Usage linkUsage = objectFactory.named(Usage.class, Usage.NATIVE_LINK);
+        final Usage linkUsage = objectFactory.named(Usage.class, Usage.NATIVE_LINK);
         final Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
 
-        Configuration debugLinkElements = configurations.create("debugLinkElements");
+        final Configuration debugLinkElements = configurations.create("debugLinkElements");
         debugLinkElements.extendsFrom(implementation);
         debugLinkElements.setCanBeResolved(false);
         debugLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
@@ -164,7 +164,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         debugRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, true);
         debugRuntimeElements.getOutgoing().artifact(linkDebug.getBinaryFile());
 
-        Configuration releaseLinkElements = configurations.create("releaseLinkElements");
+        final Configuration releaseLinkElements = configurations.create("releaseLinkElements");
         releaseLinkElements.extendsFrom(implementation);
         releaseLinkElements.setCanBeResolved(false);
         releaseLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
@@ -214,7 +214,8 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                                 publication.setGroupId(project.getGroup().toString());
                                 publication.setArtifactId(library.getBaseName().get() + "_debug");
                                 publication.setVersion(project.getVersion().toString());
-                                publication.from(new RuntimeVariant("debug", runtimeUsage, debugRuntimeElements));
+                                // TODO - have publishing better deal with an artifact that can have multiple usages
+                                publication.from(new NativeVariant("debug", linkUsage, debugLinkElements, runtimeUsage, debugRuntimeElements));
                             }
                         });
                         extension.getPublications().create("release", MavenPublication.class, new Action<MavenPublication>() {
@@ -224,7 +225,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                                 publication.setGroupId(project.getGroup().toString());
                                 publication.setArtifactId(library.getBaseName().get() + "_release");
                                 publication.setVersion(project.getVersion().toString());
-                                publication.from(new RuntimeVariant("release", runtimeUsage, releaseRuntimeElements));
+                                publication.from(new NativeVariant("release", linkUsage, releaseLinkElements, runtimeUsage, releaseRuntimeElements));
                             }
                         });
                     }

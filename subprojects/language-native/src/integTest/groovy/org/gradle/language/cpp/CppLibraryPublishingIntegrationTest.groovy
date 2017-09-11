@@ -40,9 +40,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainInte
                 repositories { maven { url 'repo' } }
             }
 """
-        lib.publicHeaders.writeToSourceDir(file("src/main/public"))
-        lib.privateHeaders.writeToProject(testDirectory)
-        lib.sources.writeToProject(testDirectory)
+        lib.writeToProject(testDirectory)
 
         when:
         run('publish')

@@ -19,7 +19,24 @@ package org.gradle.nativeplatform.fixtures.app
 import static org.gradle.nativeplatform.fixtures.app.SourceFileElement.ofFile
 
 class CppGreeter extends CppLibraryElement implements GreeterElement {
-    final SourceFileElement header = ofFile(sourceFile("headers", "greeter.h", """
+    final SourceFileElement header
+    final SourceFileElement privateHeader
+    final SourceFileElement source
+
+    SourceElement getPublicHeaders() {
+        return header
+    }
+
+    SourceElement getPrivateHeaders() {
+        return privateHeader
+    }
+
+    SourceElement getSources() {
+        return source
+    }
+
+    CppGreeter(String publicHeaderDir = "headers") {
+        header = ofFile(sourceFile(publicHeaderDir, "greeter.h", """
 #ifdef _WIN32
 #define EXPORT_FUNC __declspec(dllexport)
 #else
@@ -32,11 +49,11 @@ public:
 };
 """))
 
-    final SourceFileElement privateHeader = ofFile(sourceFile("headers", "greeter_consts.h", """
+        privateHeader = ofFile(sourceFile("headers", "greeter_consts.h", """
 #define GREETING "${HelloWorldApp.HELLO_WORLD}"
 """))
 
-    final SourceFileElement source = ofFile(sourceFile("cpp", "greeter.cpp", """
+        source = ofFile(sourceFile("cpp", "greeter.cpp", """
 #include <iostream>
 #include "greeter.h"
 #include "greeter_consts.h"
@@ -45,10 +62,12 @@ void Greeter::sayHello() {
     std::cout << GREETING << std::endl;
 }
 """))
+    }
 
-    final SourceElement publicHeaders = header
-    final SourceElement privateHeaders = privateHeader
-    final SourceElement sources = source
+    @Override
+    CppGreeter asLib() {
+        return new CppGreeter("public")
+    }
 
     @Override
     String getExpectedOutput() {
