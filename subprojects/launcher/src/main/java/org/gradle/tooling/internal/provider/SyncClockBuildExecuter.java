@@ -22,29 +22,29 @@ import org.gradle.initialization.DefaultBuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.time.Clock;
+import org.gradle.internal.time.ClockSync;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildExecuter;
 
 /**
- * Ensures that the client provided build start time is not after when the build request was received.
+ * Synchronizes the runtime clock to the current wall time clock and normalizes the build start time.
  *
  * The client started time cannot be entirely trusted as we cannot guarantee that its clock is in sync with the build runtime's.
  * By forcing it to be no later than when the runtime received the request, we avoid odd bugs such as negative build times.
  */
-class NormalizeBuildStartTimeBuildExecuter implements BuildExecuter {
+class SyncClockBuildExecuter implements BuildExecuter {
 
-    private final Clock clock;
+    private final ClockSync clockSync;
     private final BuildExecuter delegate;
 
-    public NormalizeBuildStartTimeBuildExecuter(Clock clock, BuildExecuter delegate) {
-        this.clock = clock;
+    SyncClockBuildExecuter(ClockSync clockSync, BuildExecuter delegate) {
+        this.clockSync = clockSync;
         this.delegate = delegate;
     }
 
     @Override
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
-        long currentTime = clock.getCurrentTime();
+        long currentTime = clockSync.sync();
         if (requestContext.getStartTime() > currentTime) {
             BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(requestContext.getClient(), currentTime);
             requestContext = new DefaultBuildRequestContext(buildRequestMetaData, requestContext.getCancellationToken(), requestContext.getEventConsumer());

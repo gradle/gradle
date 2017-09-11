@@ -29,6 +29,8 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
+import org.gradle.internal.time.Time;
+import org.gradle.internal.time.Timer;
 import org.gradle.launcher.bootstrap.EntryPoint;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
@@ -69,6 +71,9 @@ public class DaemonMain extends EntryPoint {
         if (args.length != 1) {
             invalidArgs("Following arguments are required: <gradle-version>");
         }
+
+        long startedAt = System.currentTimeMillis();
+        Timer uptimeTimer = Time.startTimer();
 
         // Read configuration from stdin
 

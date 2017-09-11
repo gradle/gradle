@@ -85,7 +85,7 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.buildevents.BuildExecutionTimer;
+import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
@@ -101,7 +101,7 @@ import java.io.File;
  */
 public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
-    public BuildSessionScopeServices(final ServiceRegistry parent, final StartParameter startParameter, BuildExecutionTimer buildExecutionTimer, ClassPath injectedPluginClassPath) {
+    public BuildSessionScopeServices(final ServiceRegistry parent, final StartParameter startParameter, BuildStartedTime buildStartedTime, ClassPath injectedPluginClassPath) {
         super(parent);
         register(new Action<ServiceRegistration>() {
             @Override
@@ -113,7 +113,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
             }
         });
         add(InjectedPluginClasspath.class, new InjectedPluginClasspath(injectedPluginClassPath));
-        add(BuildExecutionTimer.class, buildExecutionTimer);
+        add(BuildStartedTime.class, buildStartedTime);
         addProvider(new CacheRepositoryServices(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir()));
 
         // Must be no higher than this scope as needs cache repository services.

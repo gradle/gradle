@@ -33,6 +33,7 @@ import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -44,7 +45,7 @@ import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 import org.gradle.internal.service.scopes.BuildTreeScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
-import org.gradle.internal.buildevents.BuildExecutionTimer;
+import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.invocation.DefaultGradle;
 
@@ -84,8 +85,8 @@ public class ProjectBuilderImpl {
         startParameter.setGradleUserHomeDir(userHomeDir);
         NativeServices.initialize(userHomeDir);
 
-        BuildExecutionTimer buildExecutionTimer = BuildExecutionTimer.startingNow();
-        BuildSessionScopeServices buildSessionScopeServices = new BuildSessionScopeServices(getUserHomeServices(userHomeDir), startParameter, buildExecutionTimer, ClassPath.EMPTY);
+        BuildStartedTime buildStartedTime = BuildStartedTime.startingAt(globalServices.get(Clock.class).getCurrentTime());
+        BuildSessionScopeServices buildSessionScopeServices = new BuildSessionScopeServices(getUserHomeServices(userHomeDir), startParameter, buildStartedTime, ClassPath.EMPTY);
         BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices(buildSessionScopeServices);
         ServiceRegistry topLevelRegistry = new TestBuildScopeServices(buildTreeScopeServices, homeDir);
         GradleInternal gradle = CLASS_GENERATOR.newInstance(DefaultGradle.class, null, startParameter, topLevelRegistry.get(ServiceRegistryFactory.class));

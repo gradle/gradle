@@ -21,7 +21,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.format.DurationFormatter;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.time.Timer;
+import org.gradle.internal.time.Clock;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.FailureHeader;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.SuccessHeader;
@@ -30,13 +30,16 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.SuccessHea
  * A {@link org.gradle.BuildListener} which logs the final result of the build.
  */
 public class BuildResultLogger extends BuildAdapter {
-    private final StyledTextOutputFactory textOutputFactory;
-    private final Timer buildTimer;
-    private final DurationFormatter durationFormatter;
 
-    public BuildResultLogger(StyledTextOutputFactory textOutputFactory, Timer buildTimer, DurationFormatter durationFormatter) {
+    private final StyledTextOutputFactory textOutputFactory;
+    private final BuildStartedTime buildStartedTime;
+    private final DurationFormatter durationFormatter;
+    private final Clock clock;
+
+    public BuildResultLogger(StyledTextOutputFactory textOutputFactory, BuildStartedTime buildStartedTime, Clock clock, DurationFormatter durationFormatter) {
         this.textOutputFactory = textOutputFactory;
-        this.buildTimer = buildTimer;
+        this.buildStartedTime = buildStartedTime;
+        this.clock = clock;
         this.durationFormatter = durationFormatter;
     }
 
@@ -52,6 +55,7 @@ public class BuildResultLogger extends BuildAdapter {
             textOutput.withStyle(FailureHeader).text(action + " FAILED");
         }
 
-        textOutput.formatln(" in %s", durationFormatter.format(buildTimer.getElapsedMillis()));
+        long buildDurationMillis = clock.getCurrentTime() - buildStartedTime.getStartTime();
+        textOutput.formatln(" in %s", durationFormatter.format(buildDurationMillis));
     }
 }

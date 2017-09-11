@@ -15,8 +15,30 @@
  */
 package org.gradle.internal.time;
 
+/**
+ * A clock that uses elapsed time from a wall clock sync point to determine the time.
+ * <p>
+ * System.currentTimeMillis() is susceptible to system time adjustments, which happen in small amounts quite often.
+ * This can cause problems in that subsequent clock reads may yield times that are earlier,
+ * which leads to confusing timestamp event streams and inaccurate duration measurements.
+ * <p>
+ * This clock uses System.nanoTime() to track elapsed time since a wall clock read.
+ * It is therefore impervious to system wall clock time adjustments and may report different
+ * times than System.currentTimeMillis().
+ * <p>
+ * Another key difference is that only considers time that has elapsed while the system has been awake.
+ * If the machine hibernates, the clock effectively stops until it awakens.
+ * <p>
+ * A clock may be attached to a {@link ClockSync}, which can sync it with the system wall clock.
+ */
 public interface Clock {
 
+    /**
+     * The current time based on elapsed awake time since the last wall clock sync.
+     * <p>
+     * Values are guaranteed to be monotonic, except after calls to {@link ClockSync#sync()}
+     * of any owning sync, which may cause the next current time read to be earlier than previous reads.
+     */
     long getCurrentTime();
 
 }

@@ -20,17 +20,17 @@ import spock.lang.Specification
 
 import java.util.concurrent.TimeUnit
 
-class MonotonicClockTest extends Specification {
+class MonotonicElapsedTimeClockTest extends Specification {
 
     private static final long START_MILLIS = 641353121231L
     private static final long START_NANOS = 222222222222222222L
 
-    private MonotonicClock.TimeSource timeSource = Mock(MonotonicClock.TimeSource) {
+    private TimeSource timeSource = Mock(TimeSource) {
         1 * currentTimeMillis() >> START_MILLIS
         1 * nanoTime() >> START_NANOS
     }
 
-    private Clock clock = new MonotonicClock(timeSource)
+    private Clock clock = new MonotonicElapsedTimeClock(timeSource)
 
     def "prevents time from going backwards"() {
         when:

@@ -100,6 +100,7 @@ import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
+import org.gradle.internal.time.ClockSync;
 import org.gradle.internal.time.Time;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractors;
@@ -299,8 +300,12 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return new DefaultGradleUserHomeScopeServiceRegistry(globalServices, new GradleUserHomeScopeServices(globalServices));
     }
 
-    Clock createTimeProvider() {
-        return Time.clock();
+    ClockSync createClockSync() {
+        return Time.clockSync();
+    }
+
+    Clock createClock(ClockSync clockSync) {
+        return clockSync.getClock();
     }
 
     OsMemoryInfo createOsMemoryInfo() {

@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scan.time;
-
-import org.gradle.internal.buildevents.BuildStartedTime;
-import org.gradle.internal.scan.UsedByScanPlugin;
+package org.gradle.internal.time;
 
 /**
- * Used to determine when the build was started.
- *
- * This is effectively a build scan specific view of {@link BuildStartedTime}.
+ * Synchronizes the attached clock with the current system wall time.
  */
-@UsedByScanPlugin
-public interface BuildScanBuildStartedTime {
+public interface ClockSync {
 
-    long getBuildStartedTime();
+    Clock getClock();
+
+    /**
+     * Resets the notion of the current time to be based on the system wall clock time and returns it.
+     */
+    long sync();
 
 }

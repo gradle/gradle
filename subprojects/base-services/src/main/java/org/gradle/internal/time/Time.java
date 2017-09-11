@@ -20,29 +20,29 @@ import java.util.concurrent.TimeUnit;
 
 public abstract class Time {
 
-    private static final Clock CLOCK = new MonotonicClock();
+    private static final ClockSync CLOCK_SYNC = new DefaultClockSync(TimeSource.TRUE);
 
     private Time() {
     }
 
+    public static ClockSync clockSync() {
+        return CLOCK_SYNC;
+    }
+
     public static Clock clock() {
-        return CLOCK;
+        return CLOCK_SYNC.getClock();
     }
 
     public static Timer startTimer() {
-        return new DefaultTimer(clock());
-    }
-
-    public static Timer startTimerAt(long startTime) {
-        return new DefaultTimer(clock(), startTime);
+        return new DefaultTimer(TimeSource.TRUE);
     }
 
     public static CountdownTimer startCountdownTimer(long timeoutMillis) {
-        return new DefaultCountdownTimer(clock(), timeoutMillis, TimeUnit.MILLISECONDS);
+        return new DefaultCountdownTimer(TimeSource.TRUE, timeoutMillis, TimeUnit.MILLISECONDS);
     }
 
     public static CountdownTimer startCountdownTimer(long timeout, TimeUnit unit) {
-        return new DefaultCountdownTimer(clock(), timeout, unit);
+        return new DefaultCountdownTimer(TimeSource.TRUE, timeout, unit);
     }
 
 }

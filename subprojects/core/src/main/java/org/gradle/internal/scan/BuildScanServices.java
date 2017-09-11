@@ -16,7 +16,7 @@
 
 package org.gradle.internal.scan;
 
-import org.gradle.internal.buildevents.BuildExecutionTimer;
+import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.scan.config.BuildScanConfigServices;
 import org.gradle.internal.scan.time.BuildScanBuildStartedTime;
 import org.gradle.internal.scan.time.BuildScanClock;
@@ -41,8 +41,8 @@ public class BuildScanServices extends AbstractPluginServiceRegistry {
     public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.addProvider(new BuildScanConfigServices());
         registration.addProvider(new Object() {
-            BuildScanBuildStartedTime createBuildScanBuildStartedTime(BuildExecutionTimer buildExecutionTimer) {
-                return new DefaultBuildScanBuildStartedTime(buildExecutionTimer);
+            BuildScanBuildStartedTime createBuildScanBuildStartedTime(BuildStartedTime buildStartedTime) {
+                return new DefaultBuildScanBuildStartedTime(buildStartedTime);
             }
         });
     }

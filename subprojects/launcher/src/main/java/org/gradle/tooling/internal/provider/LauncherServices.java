@@ -31,7 +31,7 @@ import org.gradle.internal.progress.BuildOperationListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
-import org.gradle.internal.time.Clock;
+import org.gradle.internal.time.ClockSync;
 import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.launcher.exec.BuildTreeScopeBuildActionExecuter;
 import org.gradle.launcher.exec.ChainingBuildActionRunner;
@@ -70,9 +70,9 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                           GradleUserHomeScopeServiceRegistry userHomeServiceRegistry,
                                           FileSystemChangeWaiterFactory fileSystemChangeWaiterFactory,
                                           ParallelismConfigurationManager parallelismConfigurationManager,
-                                          Clock clock
+                                          ClockSync clockSync
         ) {
-            return new NormalizeBuildStartTimeBuildExecuter(clock,
+            return new SyncClockBuildExecuter(clockSync,
                 new SetupLoggingActionExecuter(
                     new SessionFailureReportingActionExecuter(
                         new StartParamsValidatingActionExecuter(
@@ -92,10 +92,12 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                             fileSystemChangeWaiterFactory,
                                             inputsListener,
                                             styledTextOutputFactory,
-                                            executorFactory),
+                                            executorFactory,
+                                            clockSync.getClock()),
                                         userHomeServiceRegistry)),
                                 parallelismConfigurationManager)),
-                        styledTextOutputFactory),
+                        styledTextOutputFactory,
+                        clockSync.getClock()),
                     loggingManager));
         }
 

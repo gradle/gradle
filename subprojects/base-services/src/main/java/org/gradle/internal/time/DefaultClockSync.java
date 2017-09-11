@@ -13,35 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.internal.time;
 
-import java.util.concurrent.TimeUnit;
-
-class DefaultTimer implements Timer {
+class DefaultClockSync implements ClockSync {
 
     private final TimeSource timeSource;
-    private long startTime;
+    private final HotSwappableClock delegate;
 
-    DefaultTimer(TimeSource timeSource) {
+    DefaultClockSync(TimeSource timeSource) {
         this.timeSource = timeSource;
-        reset();
+        this.delegate = new HotSwappableClock(new MonotonicElapsedTimeClock(timeSource));
+        sync();
     }
 
     @Override
-    public String getElapsed() {
-        long elapsedMillis = getElapsedMillis();
-        return TimeFormatting.formatDurationVerbose(elapsedMillis);
+    public Clock getClock() {
+        return delegate;
     }
 
     @Override
-    public long getElapsedMillis() {
-        long elapsedNanos = timeSource.nanoTime() - startTime;
-        long elapsedMillis = TimeUnit.NANOSECONDS.toMillis(elapsedNanos);
-        return Math.max(elapsedMillis, 0);
-    }
-
-    public void reset() {
-        startTime = timeSource.nanoTime();
+    public long sync() {
+        MonotonicElapsedTimeClock next = new MonotonicElapsedTimeClock(timeSource);
+        delegate.set(next);
+        return next.getStartTime();
     }
 
 }

@@ -16,8 +16,6 @@
 
 package org.gradle.internal.time;
 
-import com.google.common.annotations.VisibleForTesting;
-
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -33,7 +31,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * @see Time#clock()
  */
-public class MonotonicClock implements Clock {
+public class MonotonicElapsedTimeClock implements Clock {
 
     private final TimeSource timeSource;
     private final long startMillis;
@@ -41,18 +39,16 @@ public class MonotonicClock implements Clock {
 
     private final AtomicLong max = new AtomicLong();
 
-    public MonotonicClock() {
-        this(new TimeSource.True());
-    }
-
-    @VisibleForTesting
-    MonotonicClock(TimeSource timeSource) {
+    MonotonicElapsedTimeClock(TimeSource timeSource) {
         this.timeSource = timeSource;
         this.startMillis = timeSource.currentTimeMillis();
         this.startNanos = timeSource.nanoTime();
     }
 
-    @Override
+    long getStartTime() {
+        return startMillis;
+    }
+
     public long getCurrentTime() {
         long elapsedMills = TimeUnit.NANOSECONDS.toMillis(timeSource.nanoTime() - startNanos);
         long currentTime = startMillis + elapsedMills;
@@ -65,23 +61,4 @@ public class MonotonicClock implements Clock {
         return currentTime;
     }
 
-    interface TimeSource {
-
-        long currentTimeMillis();
-
-        long nanoTime();
-
-        class True implements TimeSource {
-            @Override
-            public long currentTimeMillis() {
-                return System.currentTimeMillis();
-            }
-
-            @Override
-            public long nanoTime() {
-                return System.nanoTime();
-            }
-        }
-
-    }
 }

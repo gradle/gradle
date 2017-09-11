@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scan.time;
+package org.gradle.internal.time
 
-import org.gradle.internal.buildevents.BuildStartedTime;
-import org.gradle.internal.scan.UsedByScanPlugin;
+import java.util.concurrent.TimeUnit
 
-/**
- * Used to determine when the build was started.
- *
- * This is effectively a build scan specific view of {@link BuildStartedTime}.
- */
-@UsedByScanPlugin
-public interface BuildScanBuildStartedTime {
+class ControlledTimeSource implements TimeSource {
 
-    long getBuildStartedTime();
+    long nanoTime
+    long currentTimeMillis
+
+    @Override
+    long currentTimeMillis() {
+        currentTimeMillis
+    }
+
+    @Override
+    long nanoTime() {
+        TimeUnit.MILLISECONDS.toNanos(nanoTime)
+    }
 
 }

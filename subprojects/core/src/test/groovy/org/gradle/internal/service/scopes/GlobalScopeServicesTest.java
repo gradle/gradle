@@ -56,7 +56,7 @@ import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
-import org.gradle.internal.time.MonotonicClock;
+import org.gradle.internal.time.MonotonicElapsedTimeClock;
 import org.gradle.process.internal.health.memory.DefaultJvmMemoryInfo;
 import org.gradle.process.internal.health.memory.DefaultMemoryManager;
 import org.gradle.process.internal.health.memory.DefaultOsMemoryInfo;
@@ -192,7 +192,7 @@ public class GlobalScopeServicesTest {
 
     @Test
     public void providesATimeProvider() throws Exception {
-        assertThat(registry().get(Clock.class), instanceOf(MonotonicClock.class));
+        assertThat(registry().get(Clock.class), instanceOf(MonotonicElapsedTimeClock.class));
     }
 
     @Test

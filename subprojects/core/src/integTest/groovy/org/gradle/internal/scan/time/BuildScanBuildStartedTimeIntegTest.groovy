@@ -17,7 +17,7 @@
 package org.gradle.internal.scan.time
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.buildevents.BuildExecutionTimer
+import org.gradle.internal.buildevents.BuildStartedTime
 
 class BuildScanBuildStartedTimeIntegTest extends AbstractIntegrationSpec {
 
@@ -25,7 +25,7 @@ class BuildScanBuildStartedTimeIntegTest extends AbstractIntegrationSpec {
         when:
         buildFile << """
             def time = project.services.get($BuildScanBuildStartedTime.name).buildStartedTime
-            def timer = project.services.get($BuildExecutionTimer.name)
+            def timer = project.services.get($BuildStartedTime.name)
             assert timer.startTime == time
             
             println "timestamp: \$time"

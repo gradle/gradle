@@ -17,20 +17,20 @@
 package org.gradle.tooling.internal.provider
 
 import org.gradle.initialization.BuildRequestContext
-import org.gradle.internal.time.Clock
+import org.gradle.internal.time.ClockSync
 import org.gradle.launcher.exec.BuildExecuter
 import spock.lang.Specification
 
-class NormalizeBuildStartTimeBuildExecuterTest extends Specification {
+class SyncClockBuildExecuterTest extends Specification {
 
-    def clock = Mock(Clock)
+    def clockSync = Mock(ClockSync)
     def delegate = Mock(BuildExecuter)
-    def executer = new NormalizeBuildStartTimeBuildExecuter(clock, delegate)
+    def executer = new SyncClockBuildExecuter(clockSync, delegate)
 
     def "does not alter request context if time is earlier than receive time"() {
         given:
         def ctx = context(10)
-        clock.currentTime >> 20
+        clockSync.sync() >> 20
 
         when:
         executer.execute(null, ctx, null, null)
@@ -42,7 +42,7 @@ class NormalizeBuildStartTimeBuildExecuterTest extends Specification {
     def "sets request time to now if client time is later"() {
         given:
         def ctx = context(20)
-        clock.currentTime >> 10
+        clockSync.sync() >> 10
 
         when:
         executer.execute(null, ctx, null, null)

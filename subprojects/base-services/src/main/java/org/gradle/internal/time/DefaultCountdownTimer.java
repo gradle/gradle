@@ -24,8 +24,8 @@ class DefaultCountdownTimer extends DefaultTimer implements CountdownTimer {
 
     private final long timeoutMillis;
 
-    DefaultCountdownTimer(Clock clock, long timeout, TimeUnit unit) {
-        super(clock);
+    DefaultCountdownTimer(TimeSource timeSource, long timeout, TimeUnit unit) {
+        super(timeSource);
         Preconditions.checkArgument(timeout > 0);
         this.timeoutMillis = unit.toMillis(timeout);
     }

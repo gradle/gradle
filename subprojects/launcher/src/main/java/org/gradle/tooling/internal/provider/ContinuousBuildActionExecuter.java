@@ -43,7 +43,8 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.buildevents.BuildExecutionTimer;
+import org.gradle.internal.buildevents.BuildStartedTime;
+import org.gradle.internal.time.Clock;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.util.DisconnectableInputStream;
@@ -53,14 +54,16 @@ import org.gradle.util.SingleMessageLogger;
 public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final BuildActionExecuter<BuildActionParameters> delegate;
     private final TaskInputsListener inputsListener;
+    private final Clock clock;
     private final OperatingSystem operatingSystem;
     private final FileSystemChangeWaiterFactory changeWaiterFactory;
     private final ExecutorFactory executorFactory;
     private final StyledTextOutput logger;
 
-    public ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileSystemChangeWaiterFactory changeWaiterFactory, TaskInputsListener inputsListener, StyledTextOutputFactory styledTextOutputFactory, ExecutorFactory executorFactory) {
+    public ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileSystemChangeWaiterFactory changeWaiterFactory, TaskInputsListener inputsListener, StyledTextOutputFactory styledTextOutputFactory, ExecutorFactory executorFactory, Clock clock) {
         this.delegate = delegate;
         this.inputsListener = inputsListener;
+        this.clock = clock;
         this.operatingSystem = OperatingSystem.current();
         this.executorFactory = executorFactory;
         this.changeWaiterFactory = changeWaiterFactory;
@@ -111,7 +114,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
     private Object executeMultipleBuilds(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters, final ServiceRegistry buildSessionScopeServices,
                                          CancellableOperationManager cancellableOperationManager, ContinuousExecutionGate continuousExecutionGate) {
         BuildCancellationToken cancellationToken = requestContext.getCancellationToken();
-        BuildExecutionTimer buildExecutionTimer = buildSessionScopeServices.get(BuildExecutionTimer.class);
+        BuildStartedTime buildStartedTime = buildSessionScopeServices.get(BuildStartedTime.class);
 
         Object lastResult;
         while (true) {
@@ -155,7 +158,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
                 break;
             } else {
                 logger.println("Change detected, executing build...").println();
-                buildExecutionTimer.reset();
+                buildStartedTime.reset(clock.getCurrentTime());
             }
         }
 
