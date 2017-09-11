@@ -55,7 +55,7 @@ Support for script plugins from `http://` and `https://` URLs has been improved:
 - Script plugins are cached and only downloaded when necessary instead of on every build.
 - When using [`--offline`](userguide/dependency_management.html#sub:cache_offline), Gradle will not try to download script plugins if a cached copy exists.
 - [Proxy authentication settings](userguide/build_environment.html#sec:accessing_the_web_via_a_proxy) are now honored when downloading script plugins.
-- **NOTE**: URLs that contain a [query part](https://docs.oracle.com/javase/7/docs/api/java/net/URI.html) will not be cached.
+- **NOTE**: URLs that contain a query component (information following a `?` in a URL) will not be cached. 
 
 ### Support for Google Cloud Storage backed repositories
 
