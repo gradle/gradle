@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 public abstract class Time {
 
-    private static final ClockSync CLOCK_SYNC = new DefaultClockSync(TimeSource.TRUE);
+    private static final ClockSync CLOCK_SYNC = new DefaultClockSync(TimeSource.SYSTEM);
 
     private Time() {
     }
@@ -34,15 +34,15 @@ public abstract class Time {
     }
 
     public static Timer startTimer() {
-        return new DefaultTimer(TimeSource.TRUE);
+        return new DefaultTimer(TimeSource.SYSTEM);
     }
 
     public static CountdownTimer startCountdownTimer(long timeoutMillis) {
-        return new DefaultCountdownTimer(TimeSource.TRUE, timeoutMillis, TimeUnit.MILLISECONDS);
+        return new DefaultCountdownTimer(TimeSource.SYSTEM, timeoutMillis, TimeUnit.MILLISECONDS);
     }
 
     public static CountdownTimer startCountdownTimer(long timeout, TimeUnit unit) {
-        return new DefaultCountdownTimer(TimeSource.TRUE, timeout, unit);
+        return new DefaultCountdownTimer(TimeSource.SYSTEM, timeout, unit);
     }
 
 }

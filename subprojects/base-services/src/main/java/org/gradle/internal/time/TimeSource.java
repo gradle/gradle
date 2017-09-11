@@ -22,13 +22,7 @@ interface TimeSource {
 
     long nanoTime();
 
-    TimeSource TRUE = new True();
-
-    class True implements TimeSource {
-
-        private True() {
-        }
-
+    TimeSource SYSTEM = new TimeSource() {
         @Override
         public long currentTimeMillis() {
             return System.currentTimeMillis();
@@ -38,6 +32,6 @@ interface TimeSource {
         public long nanoTime() {
             return System.nanoTime();
         }
-    }
+    };
 
 }
