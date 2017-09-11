@@ -117,7 +117,7 @@ class BuildScopeServicesTest extends Specification {
         sessionServices.get(PluginRepositoryRegistry) >> Mock(PluginRepositoryRegistry)
         sessionServices.get(PluginRepositoryFactory) >> Mock(PluginRepositoryFactory)
         sessionServices.get(BuildOperationExecutor) >> Mock(BuildOperationExecutor)
-        sessionServices.get(BuildStartedTime) >> BuildStartedTime.startingNow()
+        sessionServices.get(BuildStartedTime) >> BuildStartedTime.startingAt(0)
         def parentListenerManager = Mock(ListenerManager)
         sessionServices.get(ListenerManager) >> parentListenerManager
         parentListenerManager.createChild() >> listenerManager

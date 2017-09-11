@@ -40,7 +40,7 @@ class DefaultGradleLauncherFactoryTest extends Specification {
     def startParameter = new StartParameter()
     final def globalServices = new DefaultServiceRegistry(LoggingServiceRegistry.newEmbeddableLogging(), NativeServicesTestFixture.getInstance()).addProvider(new GlobalScopeServices(false))
     final def userHomeServices = globalServices.get(GradleUserHomeScopeServiceRegistry).getServicesFor(tmpDir.createDir("user-home"))
-    final def sessionServices = new BuildSessionScopeServices(userHomeServices, startParameter, BuildStartedTime.startingNow(), ClassPath.EMPTY)
+    final def sessionServices = new BuildSessionScopeServices(userHomeServices, startParameter, BuildStartedTime.startingAt(System.currentTimeMillis()), ClassPath.EMPTY)
     final def buildTreeServices = new BuildTreeScopeServices(sessionServices)
     final def listenerManager = globalServices.get(ListenerManager)
     final def progressLoggerFactory = globalServices.get(ProgressLoggerFactory)
