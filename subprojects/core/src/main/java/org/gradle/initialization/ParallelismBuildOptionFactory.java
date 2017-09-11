@@ -79,7 +79,7 @@ public class ParallelismBuildOptionFactory implements Factory<List<BuildOption<P
         }
 
         private String createGradlePropertyFailureMessage(String value) {
-            return String.format(String.format("Value '%s' given for %s system property is invalid (must be a positive, non-zero, integer)", value, gradleProperty));
+            return String.format(String.format("Value '%s' given for %s Gradle property is invalid (must be a positive, non-zero, integer)", value, gradleProperty));
         }
 
         private String createCommandLineFailureMessage(String value) {
