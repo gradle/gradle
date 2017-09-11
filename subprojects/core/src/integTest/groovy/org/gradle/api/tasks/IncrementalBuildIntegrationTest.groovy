@@ -1245,4 +1245,23 @@ task generate(type: TransformerTask) {
         skippedTasks.contains(':myTask')
     }
 
+    def "task with no actions is skipped even if it has inputs"() {
+        buildFile << """
+            task taskWithInputs(type: TaskWithInputs) {
+                input = 'some-name'
+            }
+
+            class TaskWithInputs extends DefaultTask {
+                @Input
+                String input
+            }            
+        """
+
+        when:
+        succeeds 'taskWithInputs'
+
+        then:
+        skipped(':taskWithInputs')
+    }
+
 }
