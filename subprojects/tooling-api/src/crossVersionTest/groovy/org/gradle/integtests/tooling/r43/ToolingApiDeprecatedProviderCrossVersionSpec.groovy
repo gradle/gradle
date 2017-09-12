@@ -23,20 +23,29 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 class ToolingApiDeprecatedProviderCrossVersionSpec extends ToolingApiVersionSupport {
     @TargetGradleVersion(">=1.2 <2.6")
     def "deprecation warning in build execution for >=1.2 and <2.6 providers"() {
-        expect:
-        buildViaScript().count(providerDeprecationMessage(targetDist.version.version)) == 1
+        when:
+        build()
+
+        then:
+        output.toString().count(providerDeprecationMessage(targetDist.version.version)) == 1
     }
 
     @TargetGradleVersion(">=1.2 <2.6")
     def "deprecation warning in model retrieval for >=1.2 and <2.6 providers"() {
-        expect:
-        getModelViaScript().count(providerDeprecationMessage(targetDist.version.version)) == 1
+        when:
+        getModel()
+
+        then:
+        output.toString().count(providerDeprecationMessage(targetDist.version.version)) == 1
     }
 
     @TargetGradleVersion(">=1.8 <2.6")
     def "deprecation warning in build action execution for >=1.8 and <2.6 providers"() {
-        expect:
-        buildActionViaScript().count(providerDeprecationMessage(targetDist.version.version)) == 1
+        when:
+        buildAction()
+
+        then:
+        output.toString().count(providerDeprecationMessage(targetDist.version.version)) == 1
     }
 
     // No test for test action since it was introduced in 2.6

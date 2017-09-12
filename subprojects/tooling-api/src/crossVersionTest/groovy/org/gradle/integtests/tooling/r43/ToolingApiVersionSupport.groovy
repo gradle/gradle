@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r43
 
-import org.gradle.integtests.fixtures.ScriptExecuter
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.r18.NullAction
 import org.gradle.tooling.ProjectConnection
@@ -66,128 +65,35 @@ task noop {
     def build() {
         withConnection { ProjectConnection connection ->
             def build = connection.newBuild()
-            build.standardOutput = output
+            build.standardError = output
             build.run()
         }
-    }
-    def buildViaScript() {
-        packageExecutable('.newBuild().forTasks("noop").run()')
-        buildFile.write(noopScript())
-        return runScript()
     }
 
     // since 1.0
     def getModel() {
         withConnection { ProjectConnection connection ->
             def model = connection.model(EclipseProject)
-            model.standardOutput = output
+            model.standardError = output
             model.get()
         }
-    }
-    def getModelViaScript() {
-        packageExecutable('.model(org.gradle.tooling.model.eclipse.EclipseProject.class).get()')
-        buildFile.write(noopScript())
-        return runScript()
     }
 
     // since 1.8
     def buildAction() {
         withConnection { ProjectConnection connection ->
             def action = connection.action(new NullAction())
-            action.standardOutput = output
+            action.standardError = output
             action.run()
         }
-    }
-
-    def buildActionViaScript() {
-        packageExecutable('.action(new org.gradle.tooling.BuildAction(){public Object execute(org.gradle.tooling.BuildController controller) {return null;}}).run()')
-        buildFile.write(noopScript())
-        return runScript()
     }
 
     // since 2.6
     def testExecution() {
         withConnection { ProjectConnection connection ->
             def launcher = connection.newTestLauncher().withJvmTestClasses("class")
-            launcher.standardOutput = output
+            launcher.standardError = output
             launcher.run()
         }
-    }
-
-    def testExecutionViaScript() {
-        packageExecutable('.newTestLauncher().withJvmTestClasses("TestClientTest").run()')
-        buildFile.write""" 
-apply plugin: 'java'
-repositories {
-    maven {
-        url '${buildContext.libsRepo.toURI()}'
-    }
-    maven {
-        url 'https://repo.gradle.org/gradle/libs-releases-local'
-    }
-}
-${mavenCentralRepository()}
-dependencies {
-    testCompile 'junit:junit:4.12'
-}
-"""
-        file('src/main').deleteDir()
-        file('src/test/java/TestClientTest.java') << '''
-public class TestClientTest{
-    @org.junit.Test public void test(){
-    }
-}'''
-        return runScript()
-    }
-
-    def packageExecutable(String operation) {
-        settingsFile << "rootProject.name = 'test'"
-
-        buildFile << """
-apply plugin: 'application'
-sourceCompatibility = 1.6
-targetCompatibility = 1.6
-repositories {
-    maven {
-        url '${buildContext.libsRepo.toURI()}'
-    }
-    maven {
-        url 'https://repo.gradle.org/gradle/libs-releases-local'
-    }
-}
-${mavenCentralRepository()}
-dependencies {
-    compile "org.gradle:gradle-tooling-api:${GradleVersion.current().version}"
-    runtime 'org.slf4j:slf4j-simple:1.7.10'
-}
-mainClassName = 'TestClient'
-"""
-        file('src/main/java/TestClient.java') << """
-import org.gradle.tooling.GradleConnector;
-import java.io.File;
-public class TestClient {
-    public static void main(String[] args) {
-        GradleConnector
-            .newConnector()
-            .forProjectDirectory(new File("${projectDir.toString().replace('\\', '/')}"))
-            .useInstallation(new File("${targetDist.gradleHomeDir.toString().replace('\\', '/')}"))
-            .connect()
-            ${operation};
-    }
-}
-"""
-
-        dist.executer(temporaryFolder, buildContext).inDirectory(projectDir).withTasks("installDist").run()
-    }
-
-    String runScript() {
-        def stdout = new ByteArrayOutputStream()
-        def executer = new ScriptExecuter()
-        executer.workingDir(projectDir)
-        executer.errorOutput = stdout
-        executer.commandLine("build/install/test/bin/test")
-        executer.run().assertNormalExitValue()
-
-        return stdout.toString()
     }
 }

@@ -28,7 +28,7 @@ class ToolingApiUnsupportedProviderCrossVersionSpec extends ToolingApiVersionSup
 
         then:
         caughtGradleConnectionException = thrown()
-        caughtGradleConnectionException.message.contains(providerUnsupportedMessage(targetDist.version.version))
+        caughtGradleConnectionException.message.contains("Support for builds using Gradle versions older than 1.2 was removed in tooling API version 3.0. You are currently using Gradle version ${targetDist.version.version}. You should upgrade your Gradle build to use Gradle 1.2 or later.")
     }
 
     @TargetGradleVersion("<1.2")
@@ -38,7 +38,7 @@ class ToolingApiUnsupportedProviderCrossVersionSpec extends ToolingApiVersionSup
 
         then:
         caughtGradleConnectionException = thrown()
-        caughtGradleConnectionException.message.contains(providerUnsupportedMessage(targetDist.version.version))
+        caughtGradleConnectionException.message.contains("Support for builds using Gradle versions older than 1.2 was removed in tooling API version 3.0. You are currently using Gradle version ${targetDist.version.version}. You should upgrade your Gradle build to use Gradle 1.2 or later.")
     }
 
     @TargetGradleVersion("<1.2")
@@ -48,7 +48,7 @@ class ToolingApiUnsupportedProviderCrossVersionSpec extends ToolingApiVersionSup
 
         then:
         caughtGradleConnectionException = thrown()
-        caughtGradleConnectionException.message.contains(providerUnsupportedMessage(targetDist.version.version))
+        caughtGradleConnectionException.message.contains("The version of Gradle you are using (${targetDist.version.version}) does not support the BuildActionExecuter API. Support for this is available in Gradle 1.8 and all later versions.")
     }
 
     @TargetGradleVersion(">=1.2 <1.8")
@@ -68,7 +68,7 @@ class ToolingApiUnsupportedProviderCrossVersionSpec extends ToolingApiVersionSup
 
         then:
         caughtGradleConnectionException = thrown()
-        caughtGradleConnectionException.message.contains(providerUnsupportedMessage(targetDist.version.version))
+        caughtGradleConnectionException.message.contains("The version of Gradle you are using (${targetDist.version.version}) does not support the TestLauncher API. Support for this is available in Gradle 2.6 and all later versions.")
     }
 
     @TargetGradleVersion(">=1.2 <2.6")
