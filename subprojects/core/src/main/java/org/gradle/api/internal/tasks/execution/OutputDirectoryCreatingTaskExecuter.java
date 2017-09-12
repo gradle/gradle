@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.OutputType;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -28,7 +27,6 @@ import org.gradle.api.logging.Logging;
 
 import java.io.File;
 
-import static org.gradle.internal.FileUtils.canonicalize;
 import static org.gradle.util.GFileUtils.mkdirs;
 
 /**
@@ -45,21 +43,15 @@ public class OutputDirectoryCreatingTaskExecuter implements TaskExecuter {
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         for (TaskOutputFilePropertySpec outputProperty : task.getOutputs().getFileProperties()) {
             OutputType type = outputProperty.getOutputType();
-            if (outputProperty instanceof CacheableTaskOutputFilePropertySpec) {
-                CacheableTaskOutputFilePropertySpec cacheableProperty = (CacheableTaskOutputFilePropertySpec) outputProperty;
-                File output = cacheableProperty.getOutputFile();
+            for (File output : outputProperty.getPropertyFiles()) {
                 ensureOutput(outputProperty, output, type);
-            } else {
-                for (File output : outputProperty.getPropertyFiles()) {
-                    ensureOutput(outputProperty, output, type);
-                }
             }
         }
 
         executer.execute(task, state, context);
     }
 
-    private void ensureOutput(TaskOutputFilePropertySpec outputProperty, File output, OutputType type) {
+    private static void ensureOutput(TaskOutputFilePropertySpec outputProperty, File output, OutputType type) {
         if (output == null) {
             LOGGER.debug("Not ensuring directory exists for property {}, because value is null", outputProperty);
             return;
@@ -67,11 +59,11 @@ public class OutputDirectoryCreatingTaskExecuter implements TaskExecuter {
         switch (type) {
             case DIRECTORY:
                 LOGGER.debug("Ensuring directory exists for property {} at {}", outputProperty, output);
-                mkdirs(canonicalize(output));
+                mkdirs(output);
                 break;
             case FILE:
                 LOGGER.debug("Ensuring parent directory exists for property {} at {}", outputProperty, output);
-                mkdirs(canonicalize(output).getParentFile());
+                mkdirs(output.getParentFile());
                 break;
             default:
                 throw new AssertionError();
