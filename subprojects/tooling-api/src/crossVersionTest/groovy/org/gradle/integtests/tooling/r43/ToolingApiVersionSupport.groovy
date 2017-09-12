@@ -26,11 +26,7 @@ abstract class ToolingApiVersionSupport extends ToolingApiSpecification {
     def output = new ByteArrayOutputStream()
 
     def setup() {
-        file("build.gradle") << noopScript()
-    }
-
-    def noopScript() {
-        """
+        file("build.gradle") << """
 task noop {
     doLast {
         println "noop"
