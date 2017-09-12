@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * - http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6458294
  *
- * @see Time#clock()
+ * @see Time#systemWallClock()
  */
 public class MonotonicElapsedTimeClock implements Clock {
 

@@ -27,7 +27,7 @@ public class StaticLoggerBinder implements LoggerFactoryBinder {
     private static final StaticLoggerBinder SINGLETON = new StaticLoggerBinder();
     private static final String LOGGER_FACTORY_CLASS_STR = OutputEventListenerBackedLoggerContext.class.getName();
 
-    private final OutputEventListenerBackedLoggerContext factory = new OutputEventListenerBackedLoggerContext(System.out, System.err, Time.clock());
+    private final OutputEventListenerBackedLoggerContext factory = new OutputEventListenerBackedLoggerContext(System.out, System.err, Time.systemWallClock());
 
     public static StaticLoggerBinder getSingleton() {
         return SINGLETON;

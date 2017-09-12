@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,27 @@
 
 package org.gradle.internal.time;
 
-public class TrueClock implements Clock {
+public class MockClock implements Clock {
+
+    long current;
+
+    public MockClock() {
+        this(System.currentTimeMillis());
+    }
+
+    public MockClock(long startTime) {
+        current = startTime;
+    }
+
+    public void increment(long diff) {
+        current += diff;
+    }
+
+    /** Increments the time by 10ms and returns it. */
     @Override
     public long getCurrentTime() {
-        return System.currentTimeMillis();
+        current += 10L;
+        return current;
     }
+
 }

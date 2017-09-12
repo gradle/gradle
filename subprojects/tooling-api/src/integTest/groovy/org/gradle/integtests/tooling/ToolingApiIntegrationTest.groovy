@@ -24,7 +24,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.internal.time.Clock
 import org.gradle.internal.time.CountdownTimer
 import org.gradle.internal.time.Time
-import org.gradle.internal.time.TrueClock
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
@@ -36,7 +35,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
     final GradleDistribution otherVersion = new ReleasedVersionDistributions().mostRecentFinalRelease
-    final Clock timeProvider = new TrueClock()
+    final Clock clock = Time.systemWallClock()
 
     TestFile projectDir
 

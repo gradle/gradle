@@ -123,7 +123,7 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
             versionUnderTest: GradleVersion.current().getVersion(),
             vcsBranch: Git.current().branchName,
             vcsCommits: [Git.current().commitId],
-            startTime: timeProvider.getCurrentTime(),
+            startTime: clock.getCurrentTime(),
             channel: determineChannel()
         )
     }

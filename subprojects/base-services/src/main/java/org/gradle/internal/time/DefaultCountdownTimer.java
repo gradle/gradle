@@ -39,4 +39,9 @@ class DefaultCountdownTimer extends DefaultTimer implements CountdownTimer {
     public long getRemainingMillis() {
         return Math.max(timeoutMillis - getElapsedMillis(), 0);
     }
+
+    @Override
+    public long getTimeoutMillis() {
+        return timeoutMillis;
+    }
 }

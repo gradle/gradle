@@ -301,7 +301,7 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
     }
 
     ClockSync createClockSync() {
-        return Time.clockSync();
+        return Time.elapsedTimeClockSync();
     }
 
     Clock createClock(ClockSync clockSync) {

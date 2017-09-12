@@ -28,7 +28,7 @@ import org.gradle.internal.logging.events.UpdateNowEvent
 import org.gradle.internal.logging.format.LogHeaderFormatter
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.progress.BuildOperationCategory
-import org.gradle.util.MockClock
+import org.gradle.internal.time.MockClock
 import spock.lang.Subject
 
 class GroupingProgressLogEventGeneratorTest extends OutputSpecification {

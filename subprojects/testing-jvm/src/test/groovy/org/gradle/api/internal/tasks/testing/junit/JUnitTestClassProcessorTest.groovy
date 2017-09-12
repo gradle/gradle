@@ -20,7 +20,7 @@ import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.internal.actor.TestActorFactory
 import org.gradle.internal.id.LongIdGenerator
-import org.gradle.internal.time.TrueClock
+import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Issue
@@ -40,7 +40,7 @@ class JUnitTestClassProcessorTest extends Specification {
     @Subject classProcessor = withSpec(spec)
 
     JUnitTestClassProcessor withSpec(spec) {
-        new JUnitTestClassProcessor(spec, new LongIdGenerator(), new TestActorFactory(), new TrueClock())
+        new JUnitTestClassProcessor(spec, new LongIdGenerator(), new TestActorFactory(), Time.systemWallClock())
     }
 
     void process(Class ... clazz) {

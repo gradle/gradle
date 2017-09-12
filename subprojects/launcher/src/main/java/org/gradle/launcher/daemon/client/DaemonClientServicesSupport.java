@@ -96,8 +96,8 @@ public abstract class DaemonClientServicesSupport extends DefaultServiceRegistry
         return new TcpOutgoingConnector();
     }
 
-    Clock createTimeProvider() {
-        return Time.clock();
+    Clock createClock() {
+        return Time.systemWallClock();
     }
 
     ProgressLoggerFactory createProgressLoggerFactory(Clock clock) {

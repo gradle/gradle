@@ -17,22 +17,18 @@
 package org.gradle.integtests.fixtures.daemon
 
 import org.gradle.integtests.fixtures.ProcessFixture
-import org.gradle.internal.time.Clock
-import org.gradle.internal.time.TrueClock
 import org.gradle.launcher.daemon.context.DaemonContext
+import org.gradle.launcher.daemon.server.api.DaemonStateControl.State
 
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.*
 import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*
 
 abstract class AbstractDaemonFixture implements DaemonFixture {
     public static final int STATE_CHANGE_TIMEOUT = 20000
     final DaemonContext context
-    final Clock timeProvider
 
     AbstractDaemonFixture(File daemonLog) {
-        this.timeProvider = new TrueClock()
         this.context = DaemonContextParser.parseFrom(daemonLog.text)
-        if(!this.context) {
+        if (!this.context) {
             println "Could not parse daemon log: \n$daemonLog.text"
         }
         if (this.context?.pid == null) {
@@ -41,7 +37,7 @@ abstract class AbstractDaemonFixture implements DaemonFixture {
 
             println "start daemon.log content: "
             println "{daemonLog.text.isEmpty()}) = ${daemonLog.text.isEmpty()})"
-            println daemonLog.text;
+            println daemonLog.text
             println "end daemon.log content"
 
         }

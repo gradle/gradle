@@ -24,7 +24,7 @@ import org.gradle.api.tasks.testing.TestResult.ResultType
 import org.gradle.api.tasks.testing.testng.TestNGOptions
 import org.gradle.internal.actor.TestActorFactory
 import org.gradle.internal.id.LongIdGenerator
-import org.gradle.internal.time.TrueClock
+import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.testng.ITestContext
@@ -47,7 +47,7 @@ class TestNGTestClassProcessorTest extends Specification {
 
     def options = Spy(TestNGSpec, constructorArgs:[new TestNGOptions(dir.testDirectory), new DefaultTestFilter()])
 
-    @Subject classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [], new LongIdGenerator(), new TrueClock(), new TestActorFactory())
+    @Subject classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [], new LongIdGenerator(), Time.systemWallClock(), new TestActorFactory())
 
     void process(Class ... clazz) {
         classProcessor.startProcessing(processor)
@@ -260,7 +260,7 @@ class TestNGTestClassProcessorTest extends Specification {
     </classes>
   </test>
 </suite>"""
-        classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [suite], new LongIdGenerator(), new TrueClock(), new TestActorFactory())
+        classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [suite], new LongIdGenerator(), Time.systemWallClock(), new TestActorFactory())
 
         when:
         classProcessor.startProcessing(processor)
@@ -304,7 +304,7 @@ class TestNGTestClassProcessorTest extends Specification {
     </classes>
   </test>
 </suite>"""
-        classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [suite1, suite2], new LongIdGenerator(), new TrueClock(), new TestActorFactory())
+        classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [suite1, suite2], new LongIdGenerator(), Time.systemWallClock(), new TestActorFactory())
 
         when:
         classProcessor.startProcessing(processor)

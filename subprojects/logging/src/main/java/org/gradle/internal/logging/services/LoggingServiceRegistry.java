@@ -110,7 +110,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     }
 
     protected Clock createTimeProvider() {
-        return Time.clock();
+        return Time.systemWallClock();
     }
 
     protected StyledTextOutputFactory createStyledTextOutputFactory() {

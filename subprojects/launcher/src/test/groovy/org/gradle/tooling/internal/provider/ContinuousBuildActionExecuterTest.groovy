@@ -25,6 +25,7 @@ import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.initialization.DefaultBuildRequestContext
 import org.gradle.initialization.NoOpBuildEventConsumer
 import org.gradle.initialization.ReportedException
+import org.gradle.internal.buildevents.BuildStartedTime
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.filewatch.FileSystemChangeWaiter
@@ -33,8 +34,7 @@ import org.gradle.internal.filewatch.PendingChangesListener
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.buildevents.BuildStartedTime
-import org.gradle.internal.time.TrueClock
+import org.gradle.internal.time.Time
 import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.util.RedirectStdIn
@@ -190,6 +190,6 @@ class ContinuousBuildActionExecuterTest extends Specification {
     }
 
     private ContinuousBuildActionExecuter executer() {
-        new ContinuousBuildActionExecuter(delegate, waiterFactory, inputsListener, new TestStyledTextOutputFactory(), executorFactory, new TrueClock())
+        new ContinuousBuildActionExecuter(delegate, waiterFactory, inputsListener, new TestStyledTextOutputFactory(), executorFactory, Time.systemWallClock())
     }
 }

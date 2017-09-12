@@ -38,7 +38,7 @@ class CyclicBarrierAnyOfRequestHandler implements TrackingHttpHandler, WaitPreco
     private final Map<String, ResourceHandlerWrapper> expected = new TreeMap<String, ResourceHandlerWrapper>();
     private final int testId;
     private final int timeoutMs;
-    private final Clock clock = Time.clock();
+    private final Clock clock = Time.systemWallClock();
     private int waitingFor;
     private final WaitPrecondition previous;
     private long mostRecentEvent;

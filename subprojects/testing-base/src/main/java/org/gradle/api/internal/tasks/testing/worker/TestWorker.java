@@ -129,7 +129,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
             this.workerProcessContext = workerProcessContext;
         }
 
-        protected Clock createTimeProvider() {
+        protected Clock createClock() {
             return workerProcessContext.getServiceRegistry().get(Clock.class);
         }
 
