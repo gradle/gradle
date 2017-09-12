@@ -24,6 +24,8 @@ import org.gradle.util.VersionNumber
 import org.junit.Rule
 import spock.lang.Specification
 
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsKitComponentLocator.PLATFORMS
+
 class DefaultUcrtLocatorTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final WindowsRegistry windowsRegistry = Stub(WindowsRegistry)
@@ -169,7 +171,7 @@ class DefaultUcrtLocatorTest extends Specification {
     def ucrtDir(String name, String versionDir) {
         def dir = tmpDir.createDir(name)
         dir.createFile("Include/${versionDir}/ucrt/io.h")
-        dir.createFile("Lib/${versionDir}/ucrt/x86/libucrt.lib")
+        PLATFORMS.each { dir.createFile("Lib/${versionDir}/ucrt/${it}/libucrt.lib") }
         return dir
     }
 }

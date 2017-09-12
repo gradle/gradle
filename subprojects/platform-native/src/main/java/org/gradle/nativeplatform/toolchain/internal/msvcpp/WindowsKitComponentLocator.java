@@ -21,6 +21,7 @@ import java.util.List;
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 
 public interface WindowsKitComponentLocator<T extends WindowsKitComponent> {
+    String[] PLATFORMS = new String[] {"x86", "x64"};
 
     SearchResult<T> locateComponents(File candidate);
 

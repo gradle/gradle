@@ -51,7 +51,12 @@ public class DefaultUcrtLocator extends AbstractWindowsKitComponentLocator<Ucrt>
 
     @Override
     boolean isValidComponentLibDir(File libDir) {
-        return new File(libDir, "x86/libucrt.lib").exists();
+        for (String platform : PLATFORMS) {
+            if (!new File(libDir, platform + "/libucrt.lib").exists()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public Ucrt newComponent(File baseDir, VersionNumber version, DiscoveryType discoveryType) {

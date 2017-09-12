@@ -42,7 +42,12 @@ public class WindowsKitWindowsSdkLocator extends AbstractWindowsKitComponentLoca
 
     @Override
     boolean isValidComponentBaseDir(File baseDir) {
-        return new File(baseDir, "bin/x86/" + RC_EXE).exists();
+        for (String platform : PLATFORMS) {
+            if (!new File(baseDir, "bin/" + platform + "/" + RC_EXE).exists()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -52,7 +57,12 @@ public class WindowsKitWindowsSdkLocator extends AbstractWindowsKitComponentLoca
 
     @Override
     boolean isValidComponentLibDir(File libDir) {
-        return new File(libDir, "x86/kernel32.lib").exists();
+        for (String platform : PLATFORMS) {
+            if (!new File(libDir, platform + "/kernel32.lib").exists()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override

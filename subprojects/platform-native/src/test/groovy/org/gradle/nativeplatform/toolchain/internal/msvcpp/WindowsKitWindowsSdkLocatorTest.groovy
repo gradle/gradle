@@ -24,6 +24,8 @@ import org.gradle.util.VersionNumber
 import org.junit.Rule
 import spock.lang.Specification
 
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsKitComponentLocator.PLATFORMS
+
 class WindowsKitWindowsSdkLocatorTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final WindowsRegistry windowsRegistry = Stub(WindowsRegistry)
@@ -187,20 +189,20 @@ class WindowsKitWindowsSdkLocatorTest extends Specification {
 
     def kitDir(String name, String... versions) {
         def dir = tmpDir.createDir(name)
-        dir.createFile("bin/x86/rc.exe")
+        PLATFORMS.each { dir.createFile("bin/${it}/rc.exe") }
         versions.each { version ->
             dir.createFile("Include/${version}/um/windows.h")
-            dir.createFile("Lib/${version}/um/x86/kernel32.lib")
+            PLATFORMS.each { dir.createFile("Lib/${version}/um/${it}/kernel32.lib") }
         }
         return dir
     }
 
     def badKitDir(String name, String... versions) {
         def dir = tmpDir.createDir(name)
-        dir.createFile("bin/x86/rc.exe")
+        PLATFORMS.each { dir.createFile("bin/${it}/rc.exe") }
         versions.each { version ->
             dir.createFile("Include/${version}/um/foo.h")
-            dir.createFile("Lib/${version}/um/x86/bar.lib")
+            PLATFORMS.each { dir.createFile("Lib/${version}/um/${it}/bar.lib") }
         }
         return dir
     }
