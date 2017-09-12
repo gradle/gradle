@@ -23,7 +23,10 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.CppExecutable;
 
+import javax.inject.Inject;
+
 public class DefaultCppExecutable extends DefaultCppBinary implements CppExecutable {
+    @Inject
     public DefaultCppExecutable(String name, ObjectFactory objectFactory, Provider<String> baseName, boolean debuggable, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation) {
         super(name, objectFactory, baseName, debuggable, sourceFiles, componentHeaderDirs, configurations, implementation);
     }

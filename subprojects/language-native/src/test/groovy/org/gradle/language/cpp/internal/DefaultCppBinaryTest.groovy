@@ -38,7 +38,7 @@ class DefaultCppBinaryTest extends Specification {
         _ * configurations.create("cppCompileDebug") >> compile
         _ * configurations.create("nativeLinkDebug") >> link
         _ * configurations.create("nativeRuntimeDebug") >> runtime
-        _ * componentHeaders.plus(compile) >> headerDirs
+        _ * componentHeaders.plus(_) >> headerDirs
 
         binary = new DefaultCppBinary("mainDebug", TestUtil.objectFactory(), Stub(Provider), true, Stub(FileCollection), componentHeaders, configurations, implementation)
     }

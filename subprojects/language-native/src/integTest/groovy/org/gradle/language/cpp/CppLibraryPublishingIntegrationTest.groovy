@@ -79,7 +79,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainInte
     }
 
     def "can publish library and its dependencies to a maven repository"() {
-        def lib = new CppAppWithLibrariesWithApiDependencies()
+        def app = new CppAppWithLibrariesWithApiDependencies()
 
         given:
         settingsFile << "include 'deck', 'card', 'shuffle'"
@@ -101,9 +101,9 @@ class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainInte
                 }
             }
 """
-        lib.deck.writeToProject(file('deck'))
-        lib.card.writeToProject(file('card'))
-        lib.shuffle.writeToProject(file('shuffle'))
+        app.deck.writeToProject(file('deck'))
+        app.card.writeToProject(file('card'))
+        app.shuffle.writeToProject(file('shuffle'))
 
         when:
         run('publish')
@@ -140,5 +140,21 @@ class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainInte
 
         def shuffleReleaseModule = repo.module('some.group', 'shuffle_release', '1.2')
         shuffleReleaseModule.assertPublished()
+
+        when:
+        def consumer = file("consumer").createDir()
+        consumer.file("build.gradle") << """
+            apply plugin: 'cpp-executable'
+            repositories { maven { url '../repo' } }
+            dependencies { implementation 'some.group:deck:1.2' }
+"""
+        app.main.writeToProject(consumer)
+
+        executer.inDirectory(consumer)
+        run("compileDebug")
+
+        then:
+        noExceptionThrown()
+//        installation(consumer.file("build/install/main/debug")).exec().out == app.expectedOutput
     }
 }
