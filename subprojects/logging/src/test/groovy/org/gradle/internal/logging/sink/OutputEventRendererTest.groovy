@@ -37,7 +37,7 @@ class OutputEventRendererTest extends OutputSpecification {
     private OutputEventRenderer renderer
 
     def setup() {
-        renderer = new OutputEventRenderer(Time.systemWallClock())
+        renderer = new OutputEventRenderer(Time.clock())
         renderer.configure(LogLevel.INFO)
     }
 

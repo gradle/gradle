@@ -35,7 +35,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
     final GradleDistribution otherVersion = new ReleasedVersionDistributions().mostRecentFinalRelease
-    final Clock clock = Time.systemWallClock()
+    final Clock clock = Time.clock()
 
     TestFile projectDir
 

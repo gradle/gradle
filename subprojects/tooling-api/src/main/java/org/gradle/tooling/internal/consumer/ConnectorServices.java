@@ -78,7 +78,7 @@ public class ConnectorServices {
         }
 
         protected Clock createTimeProvider() {
-            return Time.systemWallClock();
+            return Time.clock();
         }
 
         protected DistributionFactory createDistributionFactory(Clock clock) {

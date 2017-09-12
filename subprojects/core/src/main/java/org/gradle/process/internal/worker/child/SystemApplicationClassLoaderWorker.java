@@ -186,7 +186,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         }
 
         Clock createClock() {
-            return Time.systemWallClock();
+            return Time.clock();
         }
 
         ListenerManager createListenerManager() {

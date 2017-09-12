@@ -45,7 +45,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     TestProjectLocator testProjectLocator = new TestProjectLocator()
     final BuildExperimentRunner experimentRunner
     final ReleasedVersionDistributions releases
-    final Clock clock = Time.systemWallClock()
+    final Clock clock = Time.clock()
 
     String testProject
     File workingDir

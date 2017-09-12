@@ -47,7 +47,7 @@ class TestNGTestClassProcessorTest extends Specification {
 
     def options = Spy(TestNGSpec, constructorArgs:[new TestNGOptions(dir.testDirectory), new DefaultTestFilter()])
 
-    @Subject classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [], new LongIdGenerator(), Time.systemWallClock(), new TestActorFactory())
+    @Subject classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [], new LongIdGenerator(), Time.clock(), new TestActorFactory())
 
     void process(Class ... clazz) {
         classProcessor.startProcessing(processor)
@@ -260,7 +260,7 @@ class TestNGTestClassProcessorTest extends Specification {
     </classes>
   </test>
 </suite>"""
-        classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [suite], new LongIdGenerator(), Time.systemWallClock(), new TestActorFactory())
+        classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [suite], new LongIdGenerator(), Time.clock(), new TestActorFactory())
 
         when:
         classProcessor.startProcessing(processor)
@@ -304,7 +304,7 @@ class TestNGTestClassProcessorTest extends Specification {
     </classes>
   </test>
 </suite>"""
-        classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [suite1, suite2], new LongIdGenerator(), Time.systemWallClock(), new TestActorFactory())
+        classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [suite1, suite2], new LongIdGenerator(), Time.clock(), new TestActorFactory())
 
         when:
         classProcessor.startProcessing(processor)

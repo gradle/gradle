@@ -26,7 +26,7 @@ import static org.slf4j.Logger.ROOT_LOGGER_NAME
 @Unroll
 class OutputEventListenerBackedLoggerContextTest extends Specification {
 
-    OutputEventListenerBackedLoggerContext context = new OutputEventListenerBackedLoggerContext(System.out, System.err, Time.systemWallClock());
+    OutputEventListenerBackedLoggerContext context = new OutputEventListenerBackedLoggerContext(System.out, System.err, Time.clock());
 
     private OutputEventListenerBackedLogger logger(String name) {
         context.getLogger(name)

@@ -88,7 +88,7 @@ allprojects { p ->
 
     protected void maybeWait() {
         if (toolChain.visualCpp) {
-            def now = Time.systemWallClock().currentTime
+            def now = Time.clock().currentTime
             def nextSecond = now % 1000
             Thread.sleep(1200 - nextSecond)
         }

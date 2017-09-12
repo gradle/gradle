@@ -97,7 +97,7 @@ public abstract class DaemonClientServicesSupport extends DefaultServiceRegistry
     }
 
     Clock createClock() {
-        return Time.systemWallClock();
+        return Time.clock();
     }
 
     ProgressLoggerFactory createProgressLoggerFactory(Clock clock) {

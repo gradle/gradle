@@ -151,7 +151,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     }
 
     private class Measurement implements ToolingApiClasspathProvider {
-        private final Clock clock = Time.systemWallClock()
+        private final Clock clock = Time.clock()
 
         private CrossVersionPerformanceResults run() {
             def testId = experimentSpec.displayName

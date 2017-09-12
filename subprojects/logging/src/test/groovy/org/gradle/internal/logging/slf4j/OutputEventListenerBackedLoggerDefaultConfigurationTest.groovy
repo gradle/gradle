@@ -27,7 +27,7 @@ class OutputEventListenerBackedLoggerDefaultConfigurationTest extends Specificat
     def outStream = new ByteArrayOutputStream()
     def errStream = new ByteArrayOutputStream()
 
-    def context = new OutputEventListenerBackedLoggerContext(new PrintStream(outStream), new PrintStream(errStream), Time.systemWallClock())
+    def context = new OutputEventListenerBackedLoggerContext(new PrintStream(outStream), new PrintStream(errStream), Time.clock())
 
     String getOut() {
         outStream.toString()

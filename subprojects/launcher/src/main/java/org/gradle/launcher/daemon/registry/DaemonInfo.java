@@ -50,7 +50,7 @@ public class DaemonInfo implements Serializable, DaemonConnectDetails {
     private long lastBusy;
 
     public DaemonInfo(Address address, DaemonContext context, byte[] token, State state) {
-        this(address, context, token, state, Time.systemWallClock());
+        this(address, context, token, state, Time.clock());
     }
 
     @VisibleForTesting
@@ -69,7 +69,7 @@ public class DaemonInfo implements Serializable, DaemonConnectDetails {
         this.token = token;
         this.state = state;
         this.lastBusy = lastBusy;
-        this.clock = Time.systemWallClock();
+        this.clock = Time.clock();
     }
 
     public DaemonInfo setState(State state) {

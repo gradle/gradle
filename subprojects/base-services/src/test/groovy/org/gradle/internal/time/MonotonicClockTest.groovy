@@ -20,45 +20,46 @@ import spock.lang.Specification
 
 import java.util.concurrent.TimeUnit
 
-class MonotonicElapsedTimeClockTest extends Specification {
+class MonotonicClockTest extends Specification {
 
     private static final long START_MILLIS = 641353121231L
     private static final long START_NANOS = 222222222222222222L
+    public static final int SYNC_INTERVAL = 1000
 
     private TimeSource timeSource = Mock(TimeSource) {
         1 * currentTimeMillis() >> START_MILLIS
         1 * nanoTime() >> START_NANOS
     }
 
-    private Clock clock = new MonotonicElapsedTimeClock(timeSource)
+    private Clock clock = new MonotonicClock(timeSource, SYNC_INTERVAL)
 
     def "prevents time from going backwards"() {
         when:
-        setDtMs 0
+        setNanos 0
 
         then:
         clock.currentTime == START_MILLIS + 0
 
         when:
-        setDtMs 10
+        setNanos 10
 
         then:
         clock.currentTime == START_MILLIS + 10
 
         when:
-        setDtMs 8
+        setNanos 8
 
         then:
         clock.currentTime == START_MILLIS + 10
 
         when:
-        setDtMs 10
+        setNanos 10
 
         then:
         clock.currentTime == START_MILLIS + 10
 
         when:
-        setDtMs 15
+        setNanos 15
 
         then:
         clock.currentTime == START_MILLIS + 15
@@ -66,16 +67,58 @@ class MonotonicElapsedTimeClockTest extends Specification {
 
     def "provides current time based on nanoTime delta"() {
         when:
-        setDtMs(delta)
+        setNanos(delta)
 
         then:
-        clock.currentTime == START_MILLIS + delta
+        clock.currentTime == START_MILLIS + Math.max(0, delta)
 
         where:
         delta << [0, 100, -100]
     }
 
-    private void setDtMs(final long deltaT) {
-        1 * timeSource.nanoTime() >> START_NANOS + TimeUnit.MILLISECONDS.toNanos(deltaT)
+    def "resyncs with system wall clock"() {
+        when:
+        setNanos(10)
+
+        then:
+        clock.currentTime == time(10)
+
+        when:
+        setNanos(15)
+
+        then:
+        clock.currentTime == time(15)
+
+        when:
+        setNanos(SYNC_INTERVAL + 10)
+        setMillis(20)
+
+        then:
+        clock.currentTime == time(20)
+
+        when:
+        setNanos(SYNC_INTERVAL * 2 + 10)
+        setMillis(10)
+
+        then:
+        clock.currentTime == time(20)
+
+        when:
+        setNanos(SYNC_INTERVAL * 2 + 20)
+
+        then:
+        clock.currentTime == time(30)
+    }
+
+    private void setNanos(long millis) {
+        1 * timeSource.nanoTime() >> START_NANOS + TimeUnit.MILLISECONDS.toNanos(millis)
+    }
+
+    private void setMillis(long millis) {
+        1 * timeSource.currentTimeMillis() >> START_MILLIS + millis
+    }
+
+    private long time(millis) {
+        START_MILLIS + millis
     }
 }

@@ -33,7 +33,7 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
     final GradleDistribution gradleDistribution
     final BuildExperimentRunner experimentRunner
     final TestProjectLocator testProjectLocator = new TestProjectLocator()
-    final Clock clock = Time.systemWallClock()
+    final Clock clock = Time.clock()
 
     String testId
     String testGroup

@@ -93,7 +93,7 @@ class ToolingApiDistributionResolver {
         startParameter.gradleUserHomeDir = new IntegrationTestBuildContext().gradleUserHomeDir
         def userHomeScopeServiceRegistry = globalRegistry.get(GradleUserHomeScopeServiceRegistry)
         def gradleUserHomeServices = userHomeScopeServiceRegistry.getServicesFor(startParameter.gradleUserHomeDir)
-        def buildRequestMetadata = new DefaultBuildRequestMetaData(Time.systemWallClock().currentTime)
+        def buildRequestMetadata = new DefaultBuildRequestMetaData(Time.clock().currentTime)
         def buildSessionServices = new BuildSessionScopeServices(gradleUserHomeServices, startParameter, buildRequestMetadata, ClassPath.EMPTY)
         def buildTreeScopeServices = new BuildTreeScopeServices(buildSessionServices)
         def topLevelRegistry = new BuildScopeServices(buildTreeScopeServices)

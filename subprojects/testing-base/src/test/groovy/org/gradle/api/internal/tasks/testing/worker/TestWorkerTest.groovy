@@ -39,7 +39,7 @@ public class TestWorkerTest extends ConcurrentSpec {
     def test = Mock(TestClassRunInfo)
     def resultProcessor = Mock(TestResultProcessor)
     def worker = new TestWorker(factory)
-    def serviceRegistry = new DefaultServiceRegistry().add(Clock, Time.systemWallClock())
+    def serviceRegistry = new DefaultServiceRegistry().add(Clock, Time.clock())
 
     def setup() {
         workerContext.workerId >> "<worker-id>"

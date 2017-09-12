@@ -71,7 +71,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def setup() {
         buildSessionScopeServices.get(ListenerManager) >> listenerManager
         buildSessionScopeServices.get(BuildStartedTime) >> buildExecutionTimer
-        buildSessionScopeServices.get(Clock) >> Time.systemWallClock()
+        buildSessionScopeServices.get(Clock) >> Time.clock()
         listenerManager.getBroadcaster(PendingChangesListener) >> pendingChangesListener
         waiterFactory.createChangeWaiter(_, _, _) >> waiter
         buildSessionScopeServices.get(DeploymentRegistryInternal) >> deploymentRegistry

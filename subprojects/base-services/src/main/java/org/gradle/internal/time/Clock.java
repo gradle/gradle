@@ -18,8 +18,7 @@ package org.gradle.internal.time;
 /**
  * A device for obtaining the current time.
  *
- * @see Time#systemWallClock()
- * @see Time#elapsedTimeClock()
+ * @see Time#clock()
  */
 public interface Clock {
 

@@ -94,7 +94,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                     userHomeServiceRegistry)),
                             parallelismConfigurationManager)),
                     styledTextOutputFactory,
-                    Time.systemWallClock()),
+                    Time.clock()),
                 loggingManager);
         }
 

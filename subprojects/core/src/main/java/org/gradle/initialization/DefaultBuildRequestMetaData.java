@@ -32,7 +32,7 @@ public class DefaultBuildRequestMetaData implements BuildRequestMetaData {
     }
 
     public DefaultBuildRequestMetaData(BuildClientMetaData buildClientMetaData) {
-        this(buildClientMetaData, Time.systemWallClock().getCurrentTime());
+        this(buildClientMetaData, Time.clock().getCurrentTime());
     }
 
     public BuildClientMetaData getClient() {
