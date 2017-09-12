@@ -26,8 +26,8 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcherScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
 import org.gradle.internal.component.external.descriptor.Artifact;
@@ -78,8 +78,8 @@ public class GradlePomModuleDescriptorBuilder {
     private static final Pattern TIMESTAMP_PATTERN = Pattern.compile("(.+)-\\d{8}\\.\\d{6}-\\d+");
     private static final String[] WILDCARD = new String[]{"*"};
 
-    private final VersionMatcherScheme defaultVersionMatcherScheme;
-    private final VersionMatcherScheme mavenVersionMatcherScheme;
+    private final VersionSelectorScheme defaultVersionSelectorScheme;
+    private final VersionSelectorScheme mavenVersionSelectorScheme;
 
     private MutableModuleDescriptorState descriptor;
     private List<DependencyMetadata> dependencies = Lists.newArrayList();
@@ -87,9 +87,9 @@ public class GradlePomModuleDescriptorBuilder {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final ModuleExclusions moduleExclusions;
 
-    public GradlePomModuleDescriptorBuilder(PomReader pomReader, VersionMatcherScheme gradleVersionMatcherScheme, VersionMatcherScheme mavenVersionMatcherScheme, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions) {
-        this.defaultVersionMatcherScheme = gradleVersionMatcherScheme;
-        this.mavenVersionMatcherScheme = mavenVersionMatcherScheme;
+    public GradlePomModuleDescriptorBuilder(PomReader pomReader, VersionSelectorScheme gradleVersionSelectorScheme, VersionSelectorScheme mavenVersionSelectorScheme, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions) {
+        this.defaultVersionSelectorScheme = gradleVersionSelectorScheme;
+        this.mavenVersionSelectorScheme = mavenVersionSelectorScheme;
         this.pomReader = pomReader;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.moduleExclusions = moduleExclusions;
@@ -188,8 +188,8 @@ public class GradlePomModuleDescriptorBuilder {
     }
 
     private String convertVersionFromMavenSyntax(String version) {
-        VersionMatcher versionMatcher = mavenVersionMatcherScheme.parseSelector(version);
-        return defaultVersionMatcherScheme.renderSelector(versionMatcher);
+        VersionSelector versionSelector = mavenVersionSelectorScheme.parseSelector(version);
+        return defaultVersionSelectorScheme.renderSelector(versionSelector);
     }
 
     /**

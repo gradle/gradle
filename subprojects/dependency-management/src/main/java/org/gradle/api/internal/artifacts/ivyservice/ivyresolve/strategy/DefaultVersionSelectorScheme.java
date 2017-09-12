@@ -16,30 +16,30 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
-public class DefaultVersionMatcherScheme implements VersionMatcherScheme {
+public class DefaultVersionSelectorScheme implements VersionSelectorScheme {
     private final VersionComparator versionComparator;
 
-    public DefaultVersionMatcherScheme(VersionComparator versionComparator) {
+    public DefaultVersionSelectorScheme(VersionComparator versionComparator) {
         this.versionComparator = versionComparator;
     }
 
-    public VersionMatcher parseSelector(String selectorString) {
-        if (VersionRangeMatcher.ALL_RANGE.matcher(selectorString).matches()) {
-            return new VersionRangeMatcher(selectorString, versionComparator.asVersionComparator());
+    public VersionSelector parseSelector(String selectorString) {
+        if (VersionRangeSelector.ALL_RANGE.matcher(selectorString).matches()) {
+            return new VersionRangeSelector(selectorString, versionComparator.asVersionComparator());
         }
 
         if (selectorString.endsWith("+")) {
-            return new SubVersionMatcher(selectorString);
+            return new SubVersionSelector(selectorString);
         }
 
         if (selectorString.startsWith("latest.")) {
-            return new LatestVersionMatcher(selectorString);
+            return new LatestVersionSelector(selectorString);
         }
 
-        return new ExactVersionMatcher(selectorString);
+        return new ExactVersionSelector(selectorString);
     }
 
-    public String renderSelector(VersionMatcher selector) {
-        return ((AbstractVersionMatcher) selector).getSelector();
+    public String renderSelector(VersionSelector selector) {
+        return ((AbstractVersionSelector) selector).getSelector();
     }
 }

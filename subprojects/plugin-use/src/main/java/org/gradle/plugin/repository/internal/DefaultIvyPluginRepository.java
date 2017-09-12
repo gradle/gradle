@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.RepositoryLayout;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcherScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.plugin.repository.IvyPluginRepository;
@@ -39,8 +39,8 @@ class DefaultIvyPluginRepository extends AbstractArtifactPluginRepository implem
 
     public DefaultIvyPluginRepository(
         FileResolver fileResolver, DependencyResolutionServices dependencyResolutionServices,
-        VersionMatcherScheme versionMatcherScheme, AuthenticationSupportedInternal delegate) {
-        super(IVY, fileResolver, dependencyResolutionServices, versionMatcherScheme, delegate);
+        VersionSelectorScheme versionSelectorScheme, AuthenticationSupportedInternal delegate) {
+        super(IVY, fileResolver, dependencyResolutionServices, versionSelectorScheme, delegate);
     }
 
     @Override

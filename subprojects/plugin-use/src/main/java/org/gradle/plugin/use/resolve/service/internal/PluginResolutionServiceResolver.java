@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcherScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.specs.Specs;
@@ -54,19 +54,19 @@ public class PluginResolutionServiceResolver implements PluginResolver {
     private static final String DEFAULT_API_URL = "https://plugins.gradle.org/api/gradle";
 
     private final PluginResolutionServiceClient portalClient;
-    private final VersionMatcherScheme versionMatcherScheme;
+    private final VersionSelectorScheme versionSelectorScheme;
     private final StartParameter startParameter;
     private final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory;
     private final ClassLoaderScope parentScope;
     private final PluginInspector pluginInspector;
 
     public PluginResolutionServiceResolver(
-        PluginResolutionServiceClient portalClient,
-        VersionMatcherScheme versionMatcherScheme, StartParameter startParameter,
-        ClassLoaderScope parentScope, Factory<DependencyResolutionServices> dependencyResolutionServicesFactory, PluginInspector pluginInspector
+            PluginResolutionServiceClient portalClient,
+            VersionSelectorScheme versionSelectorScheme, StartParameter startParameter,
+            ClassLoaderScope parentScope, Factory<DependencyResolutionServices> dependencyResolutionServicesFactory, PluginInspector pluginInspector
     ) {
         this.portalClient = portalClient;
-        this.versionMatcherScheme = versionMatcherScheme;
+        this.versionSelectorScheme = versionSelectorScheme;
         this.startParameter = startParameter;
         this.parentScope = parentScope;
         this.dependencyResolutionServicesFactory = dependencyResolutionServicesFactory;
@@ -127,7 +127,7 @@ public class PluginResolutionServiceResolver implements PluginResolver {
     }
 
     private boolean isDynamicVersion(String version) {
-        return versionMatcherScheme.parseSelector(version).isDynamic();
+        return versionSelectorScheme.parseSelector(version).isDynamic();
     }
 
     private ClassPath resolvePluginDependencies(final PluginUseMetaData metadata) {

@@ -18,9 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 
 import spock.lang.Specification
 
-class MavenVersionMatcherSchemeTest extends Specification {
-    def defaultMatcher = new DefaultVersionMatcherScheme(new DefaultVersionComparator())
-    def mapper = new MavenVersionMatcherScheme(defaultMatcher)
+class MavenVersionSelectorSchemeTest extends Specification {
+    def defaultMatcher = new DefaultVersionSelectorScheme(new DefaultVersionComparator())
+    def mapper = new MavenVersionSelectorScheme(defaultMatcher)
 
     def "translates to maven syntax"() {
         given:

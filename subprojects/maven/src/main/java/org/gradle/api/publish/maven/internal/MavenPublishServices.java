@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.maven.internal;
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcherScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.publication.maven.internal.MavenFactory;
@@ -44,8 +44,8 @@ public class MavenPublishServices extends AbstractPluginServiceRegistry {
             return new DefaultMavenFactory(versionRangeMapper);
         }
 
-        public VersionRangeMapper createVersionRangeMapper(VersionMatcherScheme versionMatcherScheme) {
-            return new MavenVersionRangeMapper(versionMatcherScheme);
+        public VersionRangeMapper createVersionRangeMapper(VersionSelectorScheme versionSelectorScheme) {
+            return new MavenVersionRangeMapper(versionSelectorScheme);
         }
     }
 }

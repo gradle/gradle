@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 
 import org.gradle.api.artifacts.ComponentMetadata
 
-class LatestVersionMatcherTest extends AbstractStringVersionMatcherTest {
+class LatestVersionSelectorTest extends AbstractStringVersionSelectorTest {
 
     def "all handled selectors are dynamic"() {
         expect:
@@ -65,7 +65,7 @@ class LatestVersionMatcherTest extends AbstractStringVersionMatcherTest {
     }
 
     @Override
-    VersionMatcher getSelector(String selector) {
-        return new LatestVersionMatcher(selector)
+    VersionSelector getSelector(String selector) {
+        return new LatestVersionSelector(selector)
     }
 }

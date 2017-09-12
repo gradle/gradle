@@ -46,7 +46,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ShortCircuitEmptyConfigurati
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcherScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.publisher.DefaultIvyDependencyPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.publisher.IvyBackedArtifactPublisher;
@@ -129,7 +129,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                           LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                                           ArtifactIdentifierFileStore artifactIdentifierFileStore,
                                                           ExternalResourceFileStore externalResourceFileStore,
-                                                          VersionMatcherScheme versionMatcherScheme,
+                                                          VersionSelectorScheme versionSelectorScheme,
                                                           AuthenticationSchemeRegistry authenticationSchemeRegistry,
                                                           IvyContextManager ivyContextManager,
                                                           ImmutableModuleIdentifierFactory moduleIdentifierFactory,
@@ -143,7 +143,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 locallyAvailableResourceFinder,
                 artifactIdentifierFileStore,
                 externalResourceFileStore,
-                new GradlePomModuleDescriptorParser(versionMatcherScheme, moduleIdentifierFactory, moduleExclusions, fileResourceRepository),
+                new GradlePomModuleDescriptorParser(versionSelectorScheme, moduleIdentifierFactory, moduleExclusions, fileResourceRepository),
                 authenticationSchemeRegistry,
                 ivyContextManager,
                 moduleIdentifierFactory,

@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.repositories.AuthenticationSupported;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcherScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.plugin.use.resolve.internal.ArtifactRepositoryPluginResolver;
@@ -37,7 +37,7 @@ abstract class AbstractArtifactPluginRepository extends AbstractPluginRepository
     private static final String REPOSITORY_PREFIX = "__pluginRepository__";
     private final FileResolver fileResolver;
     private final DependencyResolutionServices dependencyResolutionServices;
-    private final VersionMatcherScheme versionMatcherScheme;
+    private final VersionSelectorScheme versionSelectorScheme;
     private final AuthenticationSupportedInternal authenticationSupport;
 
     private String name;
@@ -46,11 +46,11 @@ abstract class AbstractArtifactPluginRepository extends AbstractPluginRepository
 
     AbstractArtifactPluginRepository(
         String defaultName, FileResolver fileResolver, DependencyResolutionServices dependencyResolutionServices,
-        VersionMatcherScheme versionMatcherScheme, AuthenticationSupportedInternal authenticationSupport) {
+        VersionSelectorScheme versionSelectorScheme, AuthenticationSupportedInternal authenticationSupport) {
         this.authenticationSupport = authenticationSupport;
         this.fileResolver = fileResolver;
         this.dependencyResolutionServices = dependencyResolutionServices;
-        this.versionMatcherScheme = versionMatcherScheme;
+        this.versionSelectorScheme = versionSelectorScheme;
         this.name = defaultName;
     }
 
@@ -121,7 +121,7 @@ abstract class AbstractArtifactPluginRepository extends AbstractPluginRepository
     public PluginResolver internalAsResolver() {
         if (resolver == null) {
             createArtifactRepositories(dependencyResolutionServices.getResolveRepositoryHandler());
-            resolver = new ArtifactRepositoryPluginResolver(name + '(' + url + ')', dependencyResolutionServices, versionMatcherScheme);
+            resolver = new ArtifactRepositoryPluginResolver(name + '(' + url + ')', dependencyResolutionServices, versionSelectorScheme);
         }
         return resolver;
     }

@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 
-class ExactVersionMatcherTest extends AbstractStringVersionMatcherTest {
+class ExactVersionSelectorTest extends AbstractStringVersionSelectorTest {
     def "considers selector as static"() {
         expect:
         !isDynamic("1.0")
@@ -79,7 +79,7 @@ class ExactVersionMatcherTest extends AbstractStringVersionMatcherTest {
     }
 
     @Override
-    VersionMatcher getSelector(String selector) {
-        return new ExactVersionMatcher(selector)
+    VersionSelector getSelector(String selector) {
+        return new ExactVersionSelector(selector)
     }
 }

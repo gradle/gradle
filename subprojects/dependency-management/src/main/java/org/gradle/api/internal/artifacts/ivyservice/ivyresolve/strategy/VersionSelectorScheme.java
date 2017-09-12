@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,21 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
-public abstract class AbstractVersionVersionMatcher extends AbstractVersionMatcher {
-    protected AbstractVersionVersionMatcher(String selector) {
-        super(selector);
-    }
+/**
+ * Compares version selectors against candidate versions, indicating whether they match or not.
+ *
+ */
+public interface VersionSelectorScheme {
+    /**
+     * Returns an appropriate {@link VersionSelector} for the given selector string.
+     *
+     * @param selectorString - the string representation of the selector
+     * @return the {@link VersionSelector}
+     */
+    VersionSelector parseSelector(String selectorString);
 
-    @Override
-    public boolean accept(String candidate) {
-        return accept(VersionParser.INSTANCE.transform(candidate));
-    }
+    /**
+     * Renders a {@link VersionSelector} to a selector string.
+     */
+    String renderSelector(VersionSelector selector);
 }

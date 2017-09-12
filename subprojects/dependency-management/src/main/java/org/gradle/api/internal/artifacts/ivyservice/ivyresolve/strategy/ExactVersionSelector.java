@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
-import org.gradle.api.artifacts.ComponentMetadata;
-
-abstract class AbstractVersionMatcher implements VersionMatcher {
-    private final String selector;
-
-    protected AbstractVersionMatcher(String selector) {
-        this.selector = selector;
+/**
+ * Version matcher for "static" version selectors (1.0, 1.2.3, etc.).
+ */
+public class ExactVersionSelector extends AbstractStringVersionSelector {
+    public ExactVersionSelector(String selector) {
+        super(selector);
     }
 
-    protected final String getSelector() {
-        return selector;
+    public boolean isDynamic() {
+        return false;
     }
 
-    public boolean accept(ComponentMetadata candidate) {
-        return accept(candidate.getId().getVersion());
+    public boolean requiresMetadata() {
+        return false;
+    }
+
+    public boolean matchesUniqueVersion() {
+        return true;
+    }
+
+    public boolean accept(String candidate) {
+        return getSelector().equals(candidate);
     }
 }

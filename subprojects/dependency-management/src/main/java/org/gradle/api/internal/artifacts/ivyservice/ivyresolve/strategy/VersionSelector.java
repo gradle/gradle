@@ -18,25 +18,25 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 import org.gradle.api.artifacts.ComponentMetadata;
 
-public interface VersionMatcher {
+public interface VersionSelector {
     /**
-     * Indicates if the given version matcher is dynamic.
+     * Indicates if the given version selector is dynamic.
      */
     boolean isDynamic();
 
     /**
-     * Indicates if module metadata is required to determine if this
-     * matcher matches a candidate version.
+     * Indicates if module metadata is required to determine if the
+     * selector matches a candidate version.
      */
     boolean requiresMetadata();
 
     /**
-     * Indicates if the matcher implies that it matches only a single version.
+     * Indicates if the selector implies that it matches only a single version.
      */
     boolean matchesUniqueVersion();
 
     /**
-     * Indicates if the matcher matches the given candidate version.
+     * Indicates if the selector matches the given candidate version.
      * Only called if {@link #requiresMetadata()} returned {@code false}.
      *
      * @param candidate the candidate version
@@ -44,7 +44,7 @@ public interface VersionMatcher {
     boolean accept(String candidate);
 
     /**
-     * Indicates if the matcher matches the given candidate version.
+     * Indicates if the selector matches the given candidate version.
      * Only called if {@link #requiresMetadata()} returned {@code false}.
      *
      * @param candidate the candidate version
@@ -52,7 +52,7 @@ public interface VersionMatcher {
     boolean accept(Version candidate);
 
     /**
-     * Indicates if the matcher matches the given candidate version
+     * Indicates if the selector matches the given candidate version
      * (whose metadata is provided). May also be called if {@link #isDynamic} returned
      * {@code false}, in which case it should return the same result as
      * {@code accept(candidate.getId().getVersion()}.

@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 
-class SubVersionMatcherTest extends AbstractStringVersionMatcherTest {
+class SubVersionSelectorTest extends AbstractStringVersionSelectorTest {
     def "all handled selectors are dynamic"() {
         expect:
         isDynamic("1+")
@@ -58,7 +58,7 @@ class SubVersionMatcherTest extends AbstractStringVersionMatcherTest {
     }
 
     @Override
-    VersionMatcher getSelector(String selector) {
-        return new SubVersionMatcher(selector)
+    VersionSelector getSelector(String selector) {
+        return new SubVersionSelector(selector)
     }
 }

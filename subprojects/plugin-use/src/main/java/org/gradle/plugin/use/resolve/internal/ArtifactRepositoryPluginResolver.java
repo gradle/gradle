@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcherScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.PluginId;
@@ -33,12 +33,12 @@ public class ArtifactRepositoryPluginResolver implements PluginResolver {
 
     private String name;
     private final DependencyResolutionServices resolution;
-    private final VersionMatcherScheme versionMatcherScheme;
+    private final VersionSelectorScheme versionSelectorScheme;
 
-    public ArtifactRepositoryPluginResolver(String name, DependencyResolutionServices resolution, VersionMatcherScheme versionMatcherScheme) {
+    public ArtifactRepositoryPluginResolver(String name, DependencyResolutionServices resolution, VersionSelectorScheme versionSelectorScheme) {
         this.name = name;
         this.resolution = resolution;
-        this.versionMatcherScheme = versionMatcherScheme;
+        this.versionSelectorScheme = versionSelectorScheme;
     }
 
     @Override
@@ -54,7 +54,7 @@ public class ArtifactRepositoryPluginResolver implements PluginResolver {
             return;
         }
 
-        if (versionMatcherScheme.parseSelector(markerVersion).isDynamic()) {
+        if (versionSelectorScheme.parseSelector(markerVersion).isDynamic()) {
             result.notFound(name, "dynamic plugin versions are not supported");
             return;
         }

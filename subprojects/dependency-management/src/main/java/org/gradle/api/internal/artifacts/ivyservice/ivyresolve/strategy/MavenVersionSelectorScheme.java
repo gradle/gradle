@@ -16,34 +16,34 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
-public class MavenVersionMatcherScheme implements VersionMatcherScheme {
+public class MavenVersionSelectorScheme implements VersionSelectorScheme {
 
     public static final String LATEST = "LATEST";
     public static final String RELEASE = "RELEASE";
     private static final String LATEST_INTEGRATION = "latest.integration";
     private static final String LATEST_RELEASE = "latest.release";
 
-    private final VersionMatcherScheme defaultVersionMatcherScheme;
+    private final VersionSelectorScheme defaultVersionSelectorScheme;
 
-    public MavenVersionMatcherScheme(VersionMatcherScheme defaultVersionMatcherScheme) {
-        this.defaultVersionMatcherScheme = defaultVersionMatcherScheme;
+    public MavenVersionSelectorScheme(VersionSelectorScheme defaultVersionSelectorScheme) {
+        this.defaultVersionSelectorScheme = defaultVersionSelectorScheme;
     }
 
-    public VersionMatcher parseSelector(String selectorString) {
+    public VersionSelector parseSelector(String selectorString) {
         if (selectorString.equals(RELEASE)) {
-            return new LatestVersionMatcher(LATEST_RELEASE);
+            return new LatestVersionSelector(LATEST_RELEASE);
         } else if (selectorString.equals(LATEST)) {
-            return new LatestVersionMatcher(LATEST_INTEGRATION);
+            return new LatestVersionSelector(LATEST_INTEGRATION);
         } else {
-            return defaultVersionMatcherScheme.parseSelector(selectorString);
+            return defaultVersionSelectorScheme.parseSelector(selectorString);
         }
     }
 
-    public String renderSelector(VersionMatcher selector) {
-        return toMavenSyntax(defaultVersionMatcherScheme.renderSelector(selector));
+    public String renderSelector(VersionSelector selector) {
+        return toMavenSyntax(defaultVersionSelectorScheme.renderSelector(selector));
     }
 
-    // TODO: VersionMatcher should be more descriptive, so it can be directly translated
+    // TODO: VersionSelector should be more descriptive, so it can be directly translated
     private String toMavenSyntax(String version) {
         if (version.equals(LATEST_INTEGRATION)) {
             return LATEST;

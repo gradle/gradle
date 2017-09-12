@@ -19,8 +19,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 import org.gradle.api.artifacts.ComponentMetadata
 import spock.lang.Specification
 
-abstract class AbstractStringVersionMatcherTest extends Specification {
-    abstract VersionMatcher getSelector(String selector);
+abstract class AbstractStringVersionSelectorTest extends Specification {
+    abstract VersionSelector getSelector(String selector);
 
     def accept(String s1, String s2) {
         return getSelector(s1).accept(s2)

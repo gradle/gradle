@@ -16,15 +16,15 @@
 
 package org.gradle.plugin.use.resolve.internal
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionMatcherScheme
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionMatcherScheme
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.plugin.management.internal.DefaultPluginRequest
 import org.gradle.plugin.management.internal.PluginRequestInternal
 import spock.lang.Specification
 
 class ArtifactRepositoryPluginResolverTest extends Specification {
-    def versionSelectorScheme = new MavenVersionMatcherScheme(new DefaultVersionMatcherScheme())
+    def versionSelectorScheme = new MavenVersionSelectorScheme(new DefaultVersionSelectorScheme())
     def result = Mock(PluginResolutionResult)
 
     def resolver = new ArtifactRepositoryPluginResolver("maven", null, versionSelectorScheme);

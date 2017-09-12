@@ -21,7 +21,7 @@ import spock.lang.Specification
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
-class DefaultModuleVersionMatcherTest extends Specification {
+class DefaultModuleVersionSelectorTest extends Specification {
 
     def "equality"() {
         def selector = newSelector("org", "util", "1.0")

@@ -30,7 +30,7 @@ import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcherScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableModuleResult;
@@ -110,8 +110,8 @@ import java.util.Set;
  * </pre>
  */
 public class JsonProjectDependencyRenderer {
-    public JsonProjectDependencyRenderer(VersionMatcherScheme versionMatcherScheme, VersionComparator versionComparator) {
-        this.versionMatcherScheme = versionMatcherScheme;
+    public JsonProjectDependencyRenderer(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator) {
+        this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
     }
 
@@ -262,7 +262,7 @@ public class JsonProjectDependencyRenderer {
             }
         });
 
-        Collection<RenderableDependency> sortedDeps = new DependencyInsightReporter().prepare(selectedDependencies, versionMatcherScheme, versionComparator);
+        Collection<RenderableDependency> sortedDeps = new DependencyInsightReporter().prepare(selectedDependencies, versionSelectorScheme, versionComparator);
         return CollectionUtils.collect(sortedDeps, new Transformer<Object, RenderableDependency>() {
             @Override
             public Object transform(RenderableDependency dependency) {
@@ -309,6 +309,6 @@ public class JsonProjectDependencyRenderer {
         return name.replace(" -> ", " \u27A1 ");
     }
 
-    private final VersionMatcherScheme versionMatcherScheme;
+    private final VersionSelectorScheme versionSelectorScheme;
     private final VersionComparator versionComparator;
 }

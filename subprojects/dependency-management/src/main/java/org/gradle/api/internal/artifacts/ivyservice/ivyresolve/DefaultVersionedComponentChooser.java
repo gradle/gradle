@@ -23,8 +23,8 @@ import org.gradle.api.internal.artifacts.ComponentSelectionInternal;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.DefaultComponentSelection;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcherScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.result.ComponentSelectionContext;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
@@ -37,13 +37,13 @@ import java.util.List;
 
 class DefaultVersionedComponentChooser implements VersionedComponentChooser {
     private final ComponentSelectionRulesProcessor rulesProcessor = new ComponentSelectionRulesProcessor();
-    private final VersionMatcherScheme versionMatcherScheme;
+    private final VersionSelectorScheme versionSelectorScheme;
     private final VersionComparator versionComparator;
     private final ComponentSelectionRulesInternal componentSelectionRules;
 
-    DefaultVersionedComponentChooser(VersionComparator versionComparator, VersionMatcherScheme versionMatcherScheme, ComponentSelectionRulesInternal componentSelectionRules) {
+    DefaultVersionedComponentChooser(VersionComparator versionComparator, VersionSelectorScheme versionSelectorScheme, ComponentSelectionRulesInternal componentSelectionRules) {
         this.versionComparator = versionComparator;
-        this.versionMatcherScheme = versionMatcherScheme;
+        this.versionSelectorScheme = versionSelectorScheme;
         this.componentSelectionRules = componentSelectionRules;
     }
 
@@ -69,7 +69,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
     }
 
     public void selectNewestMatchingComponent(Collection<? extends ModuleComponentResolveState> versions, ComponentSelectionContext result, ModuleVersionSelector requested) {
-        VersionMatcher requestedVersionMatcher = versionMatcherScheme.parseSelector(requested.getVersion());
+        VersionSelector requestedVersionMatcher = versionSelectorScheme.parseSelector(requested.getVersion());
         Collection<SpecRuleAction<? super ComponentSelection>> rules = componentSelectionRules.getRules();
 
         for (ModuleComponentResolveState candidate : sortLatestFirst(versions)) {
@@ -142,7 +142,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         }
     }
 
-    private static boolean versionMatches(VersionMatcher selector, ModuleComponentResolveState component, MetadataProvider metadataProvider) {
+    private static boolean versionMatches(VersionSelector selector, ModuleComponentResolveState component, MetadataProvider metadataProvider) {
         if (selector.requiresMetadata()) {
             ComponentMetadata componentMetadata = metadataProvider.getComponentMetadata();
             return componentMetadata != null && selector.accept(componentMetadata);
