@@ -28,6 +28,7 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
         return Input.class;
     }
 
+    @SuppressWarnings("Since15")
     public void attachActions(final TaskPropertyActionContext context) {
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, Callable<Object> futureValue) {
@@ -36,9 +37,9 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
         });
         Class<?> valueType = context.getValueType();
         if (File.class.isAssignableFrom(valueType)
+            || java.nio.file.Path.class.isAssignableFrom(valueType)
             || FileCollection.class.isAssignableFrom(valueType)) {
             context.validationMessage("has @Input annotation used on property of type " + valueType.getName());
         }
     }
-
 }
