@@ -727,13 +727,13 @@ class FileSizer extends ArtifactTransform {
         output.count("Transforming") == 2
         output.count("Transforming test-1.3.jar") == 1
         output.count("Transforming test2-2.3.jar") == 1
-        file("build/libs").assertIsEmptyDir()
+        file("build/libs").assertDoesNotExist()
 
         when:
         run "resolve"
 
         then:
-        file("build/libs").assertIsEmptyDir()
+        file("build/libs").assertDoesNotExist()
 
         and:
         output.count("Transforming") == 0

@@ -24,7 +24,6 @@ import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.tasks.TaskOutputsUtil.ensureDirectoryExists;
 import static org.gradle.api.internal.tasks.TaskOutputsUtil.validateDirectory;
 
 @SuppressWarnings("deprecation")
@@ -43,10 +42,5 @@ public class OutputDirectoriesPropertyAnnotationHandler extends AbstractPluralOu
     @Override
     protected void doValidate(String propertyName, File directory, Collection<String> messages) {
         validateDirectory(propertyName, directory, messages);
-    }
-
-    @Override
-    protected void doEnsureExists(File directory) {
-        ensureDirectoryExists(directory);
     }
 }

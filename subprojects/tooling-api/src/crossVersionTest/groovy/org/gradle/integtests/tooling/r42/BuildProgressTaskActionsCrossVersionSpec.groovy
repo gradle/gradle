@@ -72,33 +72,6 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
         task.child('Snapshot task inputs for :custom')
     }
 
-    //This is the current behavior. The behavior of creating each output directory in a separate action might change in the future.
-    def "create output directories actions have informative names"() {
-        given:
-        buildFile << """
-        task custom(type: CustomTask) {
-            customInString = ""
-            customOut1 = file("\$buildDir/out1")
-            customOut2 = file("\$buildDir/out2")
-        }
-        
-        class CustomTask extends DefaultTask {
-            @OutputDirectory File customOut1
-            @OutputDirectory File customOut2
-            @Input String customInString
-            @TaskAction void doSomething() { }
-        }    
-        """
-
-        when:
-        runCustomTask()
-
-        then:
-        def task = events.operation("Task :custom")
-        task.child('Create customOut1 output directory for :custom')
-        task.child('Create customOut2 output directory for :custom')
-    }
-
     def "task actions implemented in annotated methods are named after the method"() {
         given:
         buildFile << """

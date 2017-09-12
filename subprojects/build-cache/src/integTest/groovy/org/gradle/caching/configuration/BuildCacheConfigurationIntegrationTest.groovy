@@ -254,7 +254,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         then:
         result.assertOutputContains("Task output caching is enabled, but no build caches are configured or enabled.")
         and:
-        file("local-cache").assertIsEmptyDir()
+        file("local-cache").assertDoesNotExist()
     }
 
     def "does not populate the build cache when we cannot push to it"() {

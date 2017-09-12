@@ -27,8 +27,8 @@ import spock.lang.Unroll
 
 import java.util.concurrent.Callable
 
-import static org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType.DIRECTORY
-import static org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType.FILE
+import static OutputType.DIRECTORY
+import static OutputType.FILE
 
 @UsesNativeServices
 class DefaultTaskOutputsTest extends Specification {
