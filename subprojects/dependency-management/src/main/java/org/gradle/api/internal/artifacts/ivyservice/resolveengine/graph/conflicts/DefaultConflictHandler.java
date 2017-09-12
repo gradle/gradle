@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
@@ -25,6 +26,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
 import javax.annotation.Nullable;
+import java.util.Map;
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.PotentialConflictFactory.potentialConflict;
 
@@ -34,6 +36,7 @@ public class DefaultConflictHandler implements ConflictHandler {
 
     private final CompositeConflictResolver compositeResolver = new CompositeConflictResolver();
     private final ConflictContainer<ModuleIdentifier, ComponentResolutionState> conflicts = new ConflictContainer<ModuleIdentifier, ComponentResolutionState>();
+    private final Map<ConflictContainer.Conflict, PotentialConflict> actualConflicts = Maps.newHashMap();
     private final ModuleReplacementsData moduleReplacements;
 
     public DefaultConflictHandler(ModuleConflictResolver conflictResolver, ModuleReplacementsData moduleReplacements) {
@@ -47,14 +50,19 @@ public class DefaultConflictHandler implements ConflictHandler {
     @Nullable
     public PotentialConflict registerModule(CandidateModule newModule) {
         ModuleIdentifier replacedBy = moduleReplacements.getReplacementFor(newModule.getId());
-        return potentialConflict(conflicts.newElement(newModule.getId(), newModule.getVersions(), replacedBy));
+        ConflictContainer<ModuleIdentifier, ComponentResolutionState>.Conflict conflict = conflicts.newElement(newModule.getId(), newModule.getVersions(), replacedBy);
+        PotentialConflict potentialConflict = potentialConflict(conflict);
+        if (potentialConflict.conflictExists()) {
+            actualConflicts.put(conflict, potentialConflict);
+        }
+        return potentialConflict;
     }
 
     /**
      * Informs if there are any batched up conflicts.
      */
     public boolean hasConflicts() {
-        return conflicts.hasConflicts();
+        return !actualConflicts.isEmpty();
     }
 
     /**
@@ -64,7 +72,7 @@ public class DefaultConflictHandler implements ConflictHandler {
         assert hasConflicts();
         ConflictContainer.Conflict conflict = conflicts.popConflict();
         ComponentResolutionState selected = compositeResolver.select(conflict.candidates);
-        ConflictResolutionResult result = new DefaultConflictResolutionResult(potentialConflict(conflict), selected);
+        ConflictResolutionResult result = new DefaultConflictResolutionResult(actualConflicts.remove(conflict), selected);
         resolutionAction.execute(result);
         LOGGER.debug("Selected {} from conflicting modules {}.", selected, conflict.candidates);
     }
