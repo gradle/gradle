@@ -134,7 +134,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds("myTask")
         then:
-        dirInBuildDir.assertDoesNotExist()
+        dirInBuildDir.assertIsDir()
         customFile.assertDoesNotExist()
         buildFile.assertExists()
         // We should improve this eventually.  We currently don't delete _all_ outputs from every task
@@ -153,8 +153,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     assert !file("build/file").exists()
                     file("build/file").text = "Created"
-                    assert !file("build/dir").exists() 
-                    assert file("build/dir").mkdirs()
+                    assert file("build/dir").directory 
                 }
             }
         """
@@ -474,7 +473,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
 
             if (project.findProperty('assertRemoved')) {
                 ${taskName}.doFirst {
-                    assert !file('${outputDirPath}').exists()
+                    assert file('${outputDirPath}').directory
                     assert !file('${outputFilePath}').exists()
                 }
             }
