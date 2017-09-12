@@ -20,20 +20,48 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 
+import java.util.Set;
+
 class PotentialConflictFactory {
 
-    static PotentialConflict potentialConflict(final ConflictContainer<ModuleIdentifier, ? extends ComponentResolutionState>.Conflict conflict) {
-        return new PotentialConflict() {
-            public boolean conflictExists() {
-                return conflict != null;
-            }
+    private static final PotentialConflict NO_CONFLICT = new NoConflict();
 
-            public void withParticipatingModules(Action<ModuleIdentifier> action) {
-                assert conflictExists();
-                for (ModuleIdentifier participant : conflict.participants) {
-                    action.execute(participant);
-                }
+    static PotentialConflict potentialConflict(final ConflictContainer<ModuleIdentifier, ? extends ComponentResolutionState>.Conflict conflict) {
+        if (conflict == null) {
+            return NO_CONFLICT;
+        }
+        return new HasConflict(conflict.participants);
+    }
+
+    private static class HasConflict implements PotentialConflict {
+
+        private final Set<ModuleIdentifier> participants;
+
+        private HasConflict(Set<ModuleIdentifier> participants) {
+            this.participants = participants;
+        }
+
+        @Override
+        public void withParticipatingModules(Action<ModuleIdentifier> action) {
+            for (ModuleIdentifier participant : participants) {
+                action.execute(participant);
             }
-        };
+        }
+
+        @Override
+        public boolean conflictExists() {
+            return true;
+        }
+    }
+
+    private static class NoConflict implements PotentialConflict {
+        @Override
+        public void withParticipatingModules(Action<ModuleIdentifier> action) {
+        }
+
+        @Override
+        public boolean conflictExists() {
+            return false;
+        }
     }
 }
