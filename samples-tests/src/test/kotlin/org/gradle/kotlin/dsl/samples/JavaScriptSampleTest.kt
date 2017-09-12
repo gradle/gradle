@@ -8,29 +8,44 @@ import javax.script.ScriptEngineManager
 import java.io.StringWriter
 import org.junit.Assert.assertThat
 import org.hamcrest.CoreMatchers.equalTo
+import java.io.Writer
+import javax.script.ScriptEngine
 
 class JavaScriptSampleTest : AbstractSampleTest("hello-js") {
 
     @Test
     fun `hello world`() {
+
         build("assemble")
 
-        val sw = StringWriter()
-        val engine = ScriptEngineManager().getEngineByName("nashorn").apply {
-            // Redirect output from `print` to this writer
-            context.writer = sw
-        }
-
-        // Wire `console.log` to `print`
-        engine.eval("var console = {}; console.log = print;")
+        val javaScriptOutput = StringWriter()
+        val engine = javaScriptEngine(javaScriptOutput)
 
         // Load Kotlin JS stdlib
-        engine.eval(FileReader(File("$projectRoot/build/web/kotlin.js")))
+        engine.eval(existing("build/web/kotlin.js"))
+
         // Run build output
-        engine.eval(FileReader(File("$projectRoot/build/web/output.js")))
+        engine.eval(existing("build/web/output.js"))
 
         assertThat(
-            sw.buffer.toString(),
+            javaScriptOutput.toString(),
             equalTo("Hello, world!\n"))
     }
+
+
+    private
+    fun javaScriptEngine(outputWriter: Writer) =
+        ScriptEngineManager().getEngineByName("nashorn").apply {
+
+            // Redirect output from `print` to this writer
+            context.writer = outputWriter
+
+            // Wire `console.log` to `print`
+            eval("var console = {}; console.log = print;")
+        }
+
+
+    private
+    fun ScriptEngine.eval(file: File) =
+        eval(FileReader(file))
 }
