@@ -37,6 +37,7 @@ import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
 public class ClientProvidedBuildActionRunner implements BuildActionRunner {
     @Override
+    @SuppressWarnings("deprecation")
     public void run(BuildAction action, final BuildController buildController) {
         if (!(action instanceof ClientProvidedBuildAction)) {
             return;

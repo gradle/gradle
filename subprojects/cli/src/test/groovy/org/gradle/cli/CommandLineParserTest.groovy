@@ -402,25 +402,6 @@ class CommandLineParserTest extends Specification {
         ]
     }
 
-    def showsDeprecationWarning() {
-        def outstr = new StringWriter()
-        def parser = new CommandLineParser(outstr)
-        parser.option("foo").hasDescription("usless option, just for testing").deprecated("Please use --bar instead.")
-        parser.option("x").hasDescription("I'm not deprecated")
-
-        when:
-        parser.parse(["-x"])
-
-        then:
-        outstr.toString() == ''
-
-        when:
-        parser.parse(["--foo"])
-
-        then:
-        outstr.toString().startsWith("The --foo option is deprecated - Please use --bar instead.")
-    }
-
     def parseFailsWhenCommandLineContainsUnknownShortOption() {
         when:
         parser.parse(['-a'])

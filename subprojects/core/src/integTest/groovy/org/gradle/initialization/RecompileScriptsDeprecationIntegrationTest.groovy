@@ -22,20 +22,12 @@ import spock.lang.Issue
 @Issue('https://github.com/gradle/gradle/issues/1425')
 class RecompileScriptsDeprecationIntegrationTest extends AbstractIntegrationSpec {
     def "deprecation warning appears when using --recompile-scripts"() {
-        given:
-        buildFile << '''
-task hello { 
-    doLast { 
-        println "hello" 
-    } 
-}'''
-
         when:
-        executer.expectDeprecationWarning().requireGradleDistribution()
+        executer.expectDeprecationWarning()
         args('--recompile-scripts')
 
         then:
-        succeeds('hello')
+        succeeds('help')
         outputContains(StartParameterBuildOptionFactory.RecompileScriptsOption.DEPRECATION_MESSAGE)
     }
 }

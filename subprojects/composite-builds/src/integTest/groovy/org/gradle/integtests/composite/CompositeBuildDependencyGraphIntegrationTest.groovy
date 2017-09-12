@@ -475,6 +475,9 @@ afterEvaluate {
 
         when:
         withArgs(args)
+        if (args.contains("--configure-on-demand")) {
+            executer.expectDeprecationWarning()
+        }
         checkDependencies()
 
         then:

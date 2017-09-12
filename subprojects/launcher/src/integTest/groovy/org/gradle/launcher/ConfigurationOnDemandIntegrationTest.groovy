@@ -24,6 +24,10 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule ProjectLifecycleFixture fixture = new ProjectLifecycleFixture(executer, temporaryFolder)
 
+    def setup() {
+        executer.expectDeprecationWarning()
+    }
+
     def "start parameter informs about the configuration on demand mode"() {
         file("gradle.properties") << "org.gradle.configureondemand=true"
         buildFile << "assert gradle.startParameter.configureOnDemand"

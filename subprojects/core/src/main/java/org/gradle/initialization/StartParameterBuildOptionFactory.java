@@ -240,9 +240,10 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
 
     public static class ConfigureOnDemandOption extends BooleanBuildOption<StartParameter> {
         public static final String GRADLE_PROPERTY = "org.gradle.configureondemand";
+        public static final String DEPRECATION_MESSAGE = "Support for --configure-on-demand was deprecated and is scheduled to be removed in Gradle 5.0.";
 
         public ConfigureOnDemandOption() {
-            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create("configure-on-demand", "Configure necessary projects only. Gradle will attempt to reduce configuration time for large multi-project builds.").incubating());
+            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create("configure-on-demand", "Configure necessary projects only. Gradle will attempt to reduce configuration time for large multi-project builds.").deprecated(DEPRECATION_MESSAGE));
         }
 
         @Override

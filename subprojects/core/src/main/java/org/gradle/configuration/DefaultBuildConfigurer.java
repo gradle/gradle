@@ -19,11 +19,8 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.util.SingleMessageLogger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class DefaultBuildConfigurer implements BuildConfigurer {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildConfigurer.class);
     private final ProjectConfigurer projectConfigurer;
 
     public DefaultBuildConfigurer(ProjectConfigurer projectConfigurer) {
@@ -42,12 +39,8 @@ public class DefaultBuildConfigurer implements BuildConfigurer {
     private void maybeInformAboutIncubatingMode(GradleInternal gradle) {
         StartParameter startParameter = gradle.getStartParameter();
 
-        if (startParameter.isParallelProjectExecutionEnabled() && startParameter.isConfigureOnDemand()) {
-            SingleMessageLogger.incubatingFeatureUsed("Parallel execution with configuration on demand");
-        } else if (startParameter.isParallelProjectExecutionEnabled()) {
+        if (startParameter.isParallelProjectExecutionEnabled()) {
             SingleMessageLogger.incubatingFeatureUsed("Parallel execution");
-        } else if (startParameter.isConfigureOnDemand()) {
-            SingleMessageLogger.incubatingFeatureUsed("Configuration on demand");
         }
     }
 }

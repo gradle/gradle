@@ -37,7 +37,7 @@ Specifies the Java home for the Gradle build process. The value can be set to ei
 `org.gradle.jvmargs`::
 Specifies the jvmargs used for the daemon process. The setting is particularly useful for tweaking memory settings. At the moment the default settings are pretty generous with regards to memory.
 `org.gradle.configureondemand`::
-Enables new incubating mode that makes Gradle selective when configuring projects. Only relevant projects are configured which results in faster builds for large multi-projects. See <<sec:configuration_on_demand>>.
+When active, Gradle will only configure projects relevant to the requested tasks. This option has been deprecated and is scheduled to be removed Gradle 5.0. See <<sec:configuration_on_demand>>.
 `org.gradle.parallel`::
 When configured, Gradle will run in incubating parallel mode.
 `org.gradle.workers.max`::

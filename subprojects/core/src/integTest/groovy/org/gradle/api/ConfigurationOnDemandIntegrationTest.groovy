@@ -18,11 +18,11 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
 import org.junit.Rule
 import org.junit.runner.RunWith
-import spock.lang.IgnoreIf
 
 @RunWith(FluidDependenciesResolveRunner)
 class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
@@ -31,32 +31,6 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         file("gradle.properties") << "org.gradle.configureondemand=true"
-    }
-
-    @IgnoreIf({ GradleContextualExecuter.isParallel() }) //parallel mode hides incubating message
-    def "presents incubating message"() {
-        file("gradle.properties") << "org.gradle.configureondemand=false"
-        buildFile << "task foo"
-
-        when:
-        run("foo", "--configure-on-demand")
-
-        then:
-        fixture.assertProjectsConfigured(":")
-        output.count("Configuration on demand is an incubating feature") == 1
-    }
-
-    @IgnoreIf({ GradleContextualExecuter.isParallel() }) //parallel mode hides incubating message
-    def "presents incubating message with parallel mode"() {
-        file("gradle.properties") << "org.gradle.configureondemand=false"
-        buildFile << "task foo"
-
-        when:
-        run("foo", "--configure-on-demand", "--parallel")
-
-        then:
-        fixture.assertProjectsConfigured(":")
-        output.count("Parallel execution with configuration on demand is an incubating feature") == 1
     }
 
     def "can be enabled from command line for a single module build"() {
@@ -83,14 +57,6 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fixture.assertProjectsConfigured(":", ":util:impl")
-    }
-
-    def "does not show configuration on demand incubating message in a regular mode"() {
-        file("gradle.properties").text = "org.gradle.configureondemand=false"
-        when:
-        run()
-        then:
-        !output.contains("Configuration on demand is incubating")
     }
 
     def "follows java project dependencies"() {
@@ -512,5 +478,17 @@ allprojects {
         then:
         result.assertTasksExecuted(":a:one")
         fixture.assertProjectsConfigured(":", ":b", ":b:child", ":a")
+    }
+
+    @Override
+    protected ExecutionResult run(String... tasks) {
+        executer.expectDeprecationWarning()
+        return super.run(tasks)
+    }
+
+    @Override
+    protected ExecutionFailure runAndFail(String... tasks) {
+        executer.expectDeprecationWarning()
+        return super.runAndFail(tasks)
     }
 }

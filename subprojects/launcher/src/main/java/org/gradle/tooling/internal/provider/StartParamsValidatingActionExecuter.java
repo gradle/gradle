@@ -18,10 +18,12 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
 import org.gradle.initialization.BuildRequestContext;
+import org.gradle.initialization.StartParameterBuildOptionFactory;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildExecuter;
+import org.gradle.util.DeprecationLogger;
 
 /**
  * Validates certain aspects of the start parameters, prior to starting a session using the parameters.
@@ -59,6 +61,12 @@ public class StartParamsValidatingActionExecuter implements BuildExecuter {
                 }
                 throw new IllegalArgumentException(String.format("The specified settings file '%s' is not a file.", startParameter.getSettingsFile()));
             }
+        }
+        if (startParameter.isConfigureOnDemand()) {
+            DeprecationLogger.nagUserWith(StartParameterBuildOptionFactory.ConfigureOnDemandOption.DEPRECATION_MESSAGE);
+        }
+        if (startParameter.isRecompileScripts()) {
+            DeprecationLogger.nagUserWith(StartParameterBuildOptionFactory.RecompileScriptsOption.DEPRECATION_MESSAGE);
         }
 
         return delegate.execute(action, requestContext, actionParameters, contextServices);
