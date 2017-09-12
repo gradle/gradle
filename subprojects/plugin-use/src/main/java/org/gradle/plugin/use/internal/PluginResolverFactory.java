@@ -18,12 +18,8 @@ package org.gradle.plugin.use.internal;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.internal.Factory;
-import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.plugin.repository.PluginRepository;
 import org.gradle.plugin.repository.internal.PluginRepositoryInternal;
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
@@ -31,8 +27,8 @@ import org.gradle.plugin.use.resolve.internal.CompositePluginResolver;
 import org.gradle.plugin.use.resolve.internal.CorePluginResolver;
 import org.gradle.plugin.use.resolve.internal.NoopPluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
+import org.gradle.plugin.use.resolve.internal.ScriptPluginLoaderCache;
 import org.gradle.plugin.use.resolve.internal.ScriptPluginPluginResolver;
-import org.gradle.plugin.use.resolve.internal.ScriptPluginsScope;
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathPluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver;
 
@@ -46,8 +42,7 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
     private final PluginResolutionServiceResolver pluginResolutionServiceResolver;
     private final PluginRepositoryRegistry pluginRepositoryRegistry;
     private final InjectedClasspathPluginResolver injectedClasspathPluginResolver;
-    private final ProjectRegistry<ProjectInternal> projectRegistry;
-    private final TextResourceLoader textResourceLoader;
+    private final ScriptPluginLoaderCache scriptPluginLoaderCache;
 
     public PluginResolverFactory(
         PluginRegistry pluginRegistry,
@@ -55,16 +50,14 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
         PluginResolutionServiceResolver pluginResolutionServiceResolver,
         PluginRepositoryRegistry pluginRepositoryRegistry,
         InjectedClasspathPluginResolver injectedClasspathPluginResolver,
-        ProjectRegistry<ProjectInternal> projectRegistry,
-        TextResourceLoader textResourceLoader) {
+        ScriptPluginLoaderCache scriptPluginLoaderCache) {
 
         this.pluginRegistry = pluginRegistry;
         this.documentationRegistry = documentationRegistry;
         this.pluginResolutionServiceResolver = pluginResolutionServiceResolver;
         this.pluginRepositoryRegistry = pluginRepositoryRegistry;
         this.injectedClasspathPluginResolver = injectedClasspathPluginResolver;
-        this.projectRegistry = projectRegistry;
-        this.textResourceLoader = textResourceLoader;
+        this.scriptPluginLoaderCache = scriptPluginLoaderCache;
     }
 
     @Override
@@ -77,6 +70,7 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
         addDefaultResolvers(resolvers);
         return resolvers;
     }
+
     /**
      * Returns the default PluginResolvers used by Gradle.
      * <p>
@@ -98,9 +92,7 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
     private void addDefaultResolvers(List<PluginResolver> resolvers) {
         resolvers.add(new NoopPluginResolver(pluginRegistry));
         resolvers.add(new CorePluginResolver(documentationRegistry, pluginRegistry));
-
-        ClassLoaderScope scriptPluginsScope = ScriptPluginsScope.from(projectRegistry);
-        resolvers.add(new ScriptPluginPluginResolver(textResourceLoader, scriptPluginsScope));
+        resolvers.add(new ScriptPluginPluginResolver(scriptPluginLoaderCache));
 
         if (!injectedClasspathPluginResolver.isClasspathEmpty()) {
             resolvers.add(injectedClasspathPluginResolver);

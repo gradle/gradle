@@ -28,7 +28,7 @@ import org.gradle.groovy.scripts.StringScriptSource;
 /**
  * Script plugin loader used by {@link ScriptPluginPluginResolver}.
  */
-public class ScriptPluginPluginLoader {
+public class ScriptPluginLoaderHelper {
 
     public ScriptPlugin load(String scriptContent,
                              String scriptIdentifier,

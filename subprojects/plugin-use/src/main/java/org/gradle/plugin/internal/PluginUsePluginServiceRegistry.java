@@ -33,6 +33,7 @@ import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
+import org.gradle.cache.internal.CacheKeyBuilder;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
@@ -57,6 +58,7 @@ import org.gradle.plugin.use.internal.DefaultPluginRequestApplicator;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.plugin.use.internal.PluginResolverFactory;
+import org.gradle.plugin.use.resolve.internal.ScriptPluginLoaderCache;
 import org.gradle.plugin.use.resolve.service.internal.DeprecationListeningPluginResolutionServiceClient;
 import org.gradle.plugin.use.resolve.service.internal.HttpPluginResolutionServiceClient;
 import org.gradle.plugin.use.resolve.service.internal.InMemoryCachingPluginResolutionServiceClient;
@@ -118,10 +120,14 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
             return new PluginResolutionServiceResolver(pluginResolutionServiceClient, versionSelectorScheme, startParameter, classLoaderScopeRegistry.getCoreScope(), dependencyResolutionServicesFactory, pluginInspector);
         }
 
+        ScriptPluginLoaderCache createScriptPluginLoaderCache(ProjectRegistry<ProjectInternal> projectRegistry, CacheRepository cacheRepository, CacheKeyBuilder cacheKeyBuilder, TextResourceLoader textResourceLoader) {
+            return new ScriptPluginLoaderCache(projectRegistry, cacheRepository, cacheKeyBuilder, textResourceLoader);
+        }
+
         PluginResolverFactory createPluginResolverFactory(PluginRegistry pluginRegistry, DocumentationRegistry documentationRegistry, PluginResolutionServiceResolver pluginResolutionServiceResolver,
                                                           DefaultPluginRepositoryRegistry pluginRepositoryRegistry, InjectedClasspathPluginResolver injectedClasspathPluginResolver,
-                                                          ProjectRegistry<ProjectInternal> projectRegistry, TextResourceLoader textResourceLoader) {
-            return new PluginResolverFactory(pluginRegistry, documentationRegistry, pluginResolutionServiceResolver, pluginRepositoryRegistry, injectedClasspathPluginResolver, projectRegistry, textResourceLoader);
+                                                          ScriptPluginLoaderCache scriptPluginLoaderCache) {
+            return new PluginResolverFactory(pluginRegistry, documentationRegistry, pluginResolutionServiceResolver, pluginRepositoryRegistry, injectedClasspathPluginResolver, scriptPluginLoaderCache);
         }
 
         PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolverFactory, DefaultPluginRepositoryRegistry pluginRepositoryRegistry, PluginResolutionStrategyInternal internalPluginResolutionStrategy, CachedClasspathTransformer cachedClasspathTransformer, ProjectRegistry<ProjectInternal> projectRegistry) {
