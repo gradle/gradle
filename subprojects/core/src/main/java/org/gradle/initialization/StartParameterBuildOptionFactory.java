@@ -85,8 +85,9 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
     }
 
     public static class RecompileScriptsOption extends EnabledOnlyBooleanBuildOption<StartParameter> {
+        public static final String DEPRECATION_MESSAGE = "Support for --recompile-scripts was deprecated and is scheduled to be removed in Gradle 5.0.";
         public RecompileScriptsOption() {
-            super(null, CommandLineOptionConfiguration.create("recompile-scripts", "Force build script recompiling."));
+            super(null, CommandLineOptionConfiguration.create("recompile-scripts", "Force build script recompiling.").deprecated(DEPRECATION_MESSAGE));
         }
 
         @Override

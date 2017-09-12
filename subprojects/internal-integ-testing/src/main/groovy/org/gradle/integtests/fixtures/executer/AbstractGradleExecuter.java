@@ -1145,6 +1145,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                         while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
                             i++;
                         }
+                    } else if (isDeprecationMessageInHelpDescription(line)) {
+                        i++;
                     } else if (line.matches(".*\\s+deprecated.*")) {
                         if (checkDeprecations && expectedDeprecationWarnings <= 0) {
                             throw new AssertionError(String.format("%s line %d contains a deprecation warning: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
@@ -1162,6 +1164,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                         i++;
                     }
                 }
+            }
+
+            private boolean isDeprecationMessageInHelpDescription(String s) {
+                return s.matches(".*\\[deprecated.*]");
             }
         };
     }

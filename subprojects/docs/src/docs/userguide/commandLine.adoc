@@ -84,8 +84,8 @@ Profiles build execution time and generates a report in the `__buildDir__/report
 Specifies the project-specific cache directory. Default value is `.gradle` in the root project directory.
 `-q`, `--quiet`::
 Log errors only. See <<logging>>.
-`--recompile-scripts`::
-Forces scripts to be recompiled, bypassing caching.
+`--recompile-scripts` (deprecated)::
+Forces scripts to be recompiled, bypassing caching. This option has been deprecated and is scheduled to be removed Gradle 5.0. You should avoid using it.
 `--refresh-dependencies`::
 Refresh the state of dependencies. See <<sec:cache_command_line_options>>.
 `--rerun-tasks`::
