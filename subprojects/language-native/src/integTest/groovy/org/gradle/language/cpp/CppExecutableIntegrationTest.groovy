@@ -19,6 +19,7 @@ package org.gradle.language.cpp
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
+import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraryAndOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.CppAppWithOptionalFeature
@@ -333,42 +334,49 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         installation("app/build/install/main/debug").exec().out == app.withFeatureDisabled().expectedOutput
     }
 
-    def "can compile and link against library with dependencies"() {
-        settingsFile << "include 'app', 'lib1', 'lib2'"
-        def app = new CppAppWithLibraries()
+    def "can compile and link against library with api and implementation dependencies"() {
+        settingsFile << "include 'app', 'deck', 'card', 'shuffle'"
+        def app = new CppAppWithLibrariesWithApiDependencies()
 
         given:
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-executable'
                 dependencies {
-                    implementation project(':lib1')
+                    implementation project(':deck')
                 }
             }
-            project(':lib1') {
+            project(':deck') {
                 apply plugin: 'cpp-library'
                 dependencies {
-                    implementation project(':lib2')
+                    api project(':card')
+                    implementation project(':shuffle')
                 }
             }
-            project(':lib2') {
+            project(':card') {
+                apply plugin: 'cpp-library'
+            }
+            project(':shuffle') {
                 apply plugin: 'cpp-library'
             }
 """
-        app.greeterLib.writeToProject(file("lib1"))
-        app.loggerLib.writeToProject(file("lib2"))
+        app.deck.writeToProject(file("deck"))
+        app.card.writeToProject(file("card"))
+        app.shuffle.writeToProject(file("shuffle"))
         app.main.writeToProject(file("app"))
 
         expect:
         succeeds ":app:assemble"
 
-        result.assertTasksExecuted(":lib1:compileDebugCpp", ":lib1:linkDebug", ":lib2:compileDebugCpp", ":lib2:linkDebug", ":app:compileDebugCpp", ":app:linkDebug", ":app:installDebug", ":app:assemble")
-        sharedLibrary("lib1/build/lib/main/debug/lib1").assertExists()
-        sharedLibrary("lib2/build/lib/main/debug/lib2").assertExists()
+        result.assertTasksExecuted(":shuffle:compileDebugCpp", ":shuffle:linkDebug", ":card:compileDebugCpp", ":card:linkDebug", ":deck:compileDebugCpp", ":deck:linkDebug", ":app:compileDebugCpp", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        sharedLibrary("deck/build/lib/main/debug/deck").assertExists()
+        sharedLibrary("card/build/lib/main/debug/card").assertExists()
+        sharedLibrary("shuffle/build/lib/main/debug/shuffle").assertExists()
         executable("app/build/exe/main/debug/app").assertExists()
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
-        sharedLibrary("app/build/install/main/debug/lib/lib1").file.assertExists()
-        sharedLibrary("app/build/install/main/debug/lib/lib2").file.assertExists()
+        sharedLibrary("app/build/install/main/debug/lib/deck").file.assertExists()
+        sharedLibrary("app/build/install/main/debug/lib/card").file.assertExists()
+        sharedLibrary("app/build/install/main/debug/lib/shuffle").file.assertExists()
     }
 
     def "honors changes to library buildDir"() {

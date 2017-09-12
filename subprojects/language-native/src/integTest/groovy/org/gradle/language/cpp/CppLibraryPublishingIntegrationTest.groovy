@@ -17,7 +17,7 @@
 package org.gradle.language.cpp
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
+import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -78,11 +78,11 @@ class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainInte
         release.artifactFile(type: linkLibrarySuffix).assertIsCopyOf(sharedLibrary("build/lib/main/release/test").linkFile)
     }
 
-    def "can publish multiple libraries to a maven repository"() {
-        def lib = new CppAppWithLibraries()
+    def "can publish library and its dependencies to a maven repository"() {
+        def lib = new CppAppWithLibrariesWithApiDependencies()
 
         given:
-        settingsFile << "include 'greeter', 'logger'"
+        settingsFile << "include 'deck', 'card', 'shuffle'"
         buildFile << """
             subprojects {
                 apply plugin: 'cpp-library'
@@ -94,14 +94,16 @@ class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainInte
                     repositories { maven { url '../repo' } }
                 }
             }
-            project(':greeter') { 
+            project(':deck') { 
                 dependencies {
-                    implementation project(':logger')
+                    api project(':card')
+                    implementation project(':shuffle')
                 }
             }
 """
-        lib.greeterLib.writeToProject(file('greeter'))
-        lib.loggerLib.writeToProject(file('logger'))
+        lib.deck.writeToProject(file('deck'))
+        lib.card.writeToProject(file('card'))
+        lib.shuffle.writeToProject(file('shuffle'))
 
         when:
         run('publish')
@@ -109,24 +111,34 @@ class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainInte
         then:
         def repo = new MavenFileRepository(file("repo"))
 
-        def greeterModule = repo.module('some.group', 'greeter', '1.2')
-        greeterModule.assertPublished()
+        def deckModule = repo.module('some.group', 'deck', '1.2')
+        deckModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2")
+        deckModule.assertPublished()
 
-        def greeterDebugModule = repo.module('some.group', 'greeter_debug', '1.2')
-        greeterDebugModule.assertPublished()
-        greeterDebugModule.parsedPom.scopes.runtime.assertDependsOn("some.group:logger:1.2")
+        def deckDebugModule = repo.module('some.group', 'deck_debug', '1.2')
+        deckDebugModule.assertPublished()
+        deckDebugModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2", "some.group:shuffle:1.2")
 
-        def greeterReleaseModule = repo.module('some.group', 'greeter_release', '1.2')
-        greeterReleaseModule.assertPublished()
-        greeterReleaseModule.parsedPom.scopes.runtime.assertDependsOn("some.group:logger:1.2")
+        def deckReleaseModule = repo.module('some.group', 'deck_release', '1.2')
+        deckReleaseModule.assertPublished()
+        deckReleaseModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2", "some.group:shuffle:1.2")
 
-        def loggerModule = repo.module('some.group', 'logger', '1.2')
-        loggerModule.assertPublished()
+        def cardModule = repo.module('some.group', 'card', '1.2')
+        cardModule.assertPublished()
 
-        def loggerDebugModule = repo.module('some.group', 'logger_debug', '1.2')
-        loggerDebugModule.assertPublished()
+        def cardDebugModule = repo.module('some.group', 'card_debug', '1.2')
+        cardDebugModule.assertPublished()
 
-        def loggerReleaseModule = repo.module('some.group', 'logger_release', '1.2')
-        loggerReleaseModule.assertPublished()
+        def cardReleaseModule = repo.module('some.group', 'card_release', '1.2')
+        cardReleaseModule.assertPublished()
+
+        def shuffleModule = repo.module('some.group', 'shuffle', '1.2')
+        shuffleModule.assertPublished()
+
+        def shuffleDebugModule = repo.module('some.group', 'shuffle_debug', '1.2')
+        shuffleDebugModule.assertPublished()
+
+        def shuffleReleaseModule = repo.module('some.group', 'shuffle_release', '1.2')
+        shuffleReleaseModule.assertPublished()
     }
 }
