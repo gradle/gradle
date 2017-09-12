@@ -20,6 +20,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
@@ -30,9 +31,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Map;
 
 public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
     private final TaskClassValidatorExtractor validatorExtractor;
@@ -57,7 +56,7 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
 
     private TaskClassInfo createTaskClassInfo(Class<? extends Task> type) {
         boolean incremental = false;
-        Set<String> processedMethods = new HashSet<String>();
+        Map<String, Class<?>> processedMethods = Maps.newHashMap();
         ImmutableList.Builder<Action<? super Task>> taskActionsBuilder = ImmutableList.builder();
         for (Class current = type; current != null; current = current.getSuperclass()) {
             for (Method method : current.getDeclaredMethods()) {
@@ -81,19 +80,20 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
     }
 
     @Nullable
-    private static Action<? super Task> createTaskAction(Class<? extends Task> taskType, final Method method, Collection<String> processedMethods) {
+    private static Action<? super Task> createTaskAction(Class<? extends Task> taskType, final Method method, Map<String, Class<?>> processedMethods) {
         if (method.getAnnotation(TaskAction.class) == null) {
             return null;
         }
+        Class<?> declaringClass = method.getDeclaringClass();
         if (Modifier.isStatic(method.getModifiers())) {
             throw new GradleException(String.format("Cannot use @TaskAction annotation on static method %s.%s().",
-                method.getDeclaringClass().getSimpleName(), method.getName()));
+                declaringClass.getSimpleName(), method.getName()));
         }
         final Class<?>[] parameterTypes = method.getParameterTypes();
         if (parameterTypes.length > 1) {
             throw new GradleException(String.format(
                 "Cannot use @TaskAction annotation on method %s.%s() as this method takes multiple parameters.",
-                method.getDeclaringClass().getSimpleName(), method.getName()));
+                declaringClass.getSimpleName(), method.getName()));
         }
 
         Action<? super Task> taskAction;
@@ -101,13 +101,20 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
             if (!parameterTypes[0].equals(IncrementalTaskInputs.class)) {
                 throw new GradleException(String.format(
                     "Cannot use @TaskAction annotation on method %s.%s() because %s is not a valid parameter to an action method.",
-                    method.getDeclaringClass().getSimpleName(), method.getName(), parameterTypes[0]));
+                    declaringClass.getSimpleName(), method.getName(), parameterTypes[0]));
             }
             taskAction = new IncrementalTaskAction(taskType, method);
         } else {
             taskAction = new StandardTaskAction(taskType, method);
         }
-        if (!processedMethods.add(method.getName())) {
+
+        Class<?> previousDeclaringClass = processedMethods.put(method.getName(), declaringClass);
+        if (previousDeclaringClass == declaringClass) {
+            throw new GradleException(String.format(
+                "Cannot use @TaskAction annotation on multiple overloads of method %s.%s()",
+                declaringClass.getSimpleName(), method.getName()
+            ));
+        } else if (previousDeclaringClass != null) {
             return null;
         }
         return taskAction;

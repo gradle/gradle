@@ -127,6 +127,21 @@ public class AnnotationProcessingTasks {
         }
     }
 
+    public static class TaskWithOverriddenIncrementalAction extends TaskWithIncrementalAction {
+        private final Action<IncrementalTaskInputs> action;
+
+        public TaskWithOverriddenIncrementalAction(Action<IncrementalTaskInputs> action, Action<IncrementalTaskInputs> superAction) {
+            super(superAction);
+            this.action = action;
+        }
+
+        @Override
+        @TaskAction
+        public void doStuff(IncrementalTaskInputs changes) {
+            action.execute(changes);
+        }
+    }
+
     public static class TaskWithMultipleIncrementalActions extends DefaultTask {
 
         @TaskAction
@@ -136,6 +151,14 @@ public class AnnotationProcessingTasks {
         @TaskAction
         public void doStuff2(IncrementalTaskInputs changes) {
         }
+    }
+
+    public static class TaskWithOverloadedActions extends DefaultTask {
+        @TaskAction
+        public void doStuff() {}
+
+        @TaskAction
+        public void doStuff(IncrementalTaskInputs changes) {}
     }
 
     public static class TaskWithSingleParamAction extends DefaultTask {

@@ -84,9 +84,9 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         thrown(RuntimeException)
     }
 
-    def createsContextualActionFoIncrementalTaskAction() {
+    def createsContextualActionForIncrementalTaskAction() {
         given:
-        def Action<IncrementalTaskInputs> action = Mock(Action)
+        def action = Mock(Action)
         def task = expectTaskCreated(TaskWithIncrementalAction, action)
 
         when:
@@ -94,6 +94,21 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
         then:
         1 * action.execute(_ as IncrementalTaskInputs)
+        0 * _
+    }
+
+    def createsContextualActionForOverriddenIncrementalTaskAction() {
+        given:
+        def action = Mock(Action)
+        def superAction = Mock(Action)
+        def task = expectTaskCreated(TaskWithOverriddenIncrementalAction, action, superAction)
+
+        when:
+        task.execute()
+
+        then:
+        1 * action.execute(_ as IncrementalTaskInputs)
+        0 * _
     }
 
     def cachesClassMetaInfo() {
@@ -121,6 +136,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         TaskWithStaticMethod               | "Cannot use @TaskAction annotation on static method TaskWithStaticMethod.doStuff()."
         TaskWithMultiParamAction           | "Cannot use @TaskAction annotation on method TaskWithMultiParamAction.doStuff() as this method takes multiple parameters."
         TaskWithSingleParamAction          | "Cannot use @TaskAction annotation on method TaskWithSingleParamAction.doStuff() because int is not a valid parameter to an action method."
+        TaskWithOverloadedActions          | "Cannot use @TaskAction annotation on multiple overloads of method TaskWithOverloadedActions.doStuff()"
     }
 
     @Unroll
