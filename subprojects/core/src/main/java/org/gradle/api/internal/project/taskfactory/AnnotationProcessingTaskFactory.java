@@ -21,7 +21,6 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.util.Map;
@@ -63,8 +62,8 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
             });
         }
 
-        for (Factory<Action<Task>> actionFactory : taskClassInfo.getTaskActions()) {
-            task.prependParallelSafeAction(actionFactory.create());
+        for (Action<? super Task> taskAction : taskClassInfo.getTaskActions()) {
+            task.prependParallelSafeAction(taskAction);
         }
 
         TaskClassValidator validator = taskClassInfo.getValidator();

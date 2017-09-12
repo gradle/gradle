@@ -16,36 +16,33 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.internal.Factory;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class TaskClassInfo {
-    private TaskClassValidator validator;
-    private final List<Factory<Action<Task>>> taskActions = new ArrayList<Factory<Action<Task>>>();
-    private boolean incremental;
+    private final boolean incremental;
+    private final List<Action<? super Task>> taskActions;
+    private final TaskClassValidator validator;
+
+    public TaskClassInfo(boolean incremental, ImmutableList<Action<? super Task>> taskActions, TaskClassValidator validator) {
+        this.incremental = incremental;
+        this.taskActions = taskActions;
+        this.validator = validator;
+    }
 
     public TaskClassValidator getValidator() {
         return validator;
     }
 
-    public void setValidator(TaskClassValidator validator) {
-        this.validator = validator;
-    }
-
-    public List<Factory<Action<Task>>> getTaskActions() {
+    public List<Action<? super Task>> getTaskActions() {
         return taskActions;
     }
 
     public boolean isIncremental() {
         return incremental;
-    }
-
-    public void setIncremental(boolean incremental) {
-        this.incremental = incremental;
     }
 
     public boolean isCacheable() {
