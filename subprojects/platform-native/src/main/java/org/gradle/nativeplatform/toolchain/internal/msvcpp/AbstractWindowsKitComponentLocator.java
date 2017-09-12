@@ -127,26 +127,20 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitCom
     }
 
     private void locateComponentsInRegistry(String baseKey) {
-        String[] keys = {
-                REGISTRY_KIT_10
-        };
-
-        for (String key : keys) {
-            try {
-                File windowsKitDir = FileUtils.canonicalize(new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_KIT, key)));
-                String[] versionDirs = getComponentVersionDirs(windowsKitDir);
-                if (isValidComponentBaseDir(windowsKitDir) && versionDirs.length > 0) {
-                    for (String versionDir : versionDirs) {
-                        VersionNumber version = VersionNumber.withPatchNumber().parse(versionDir);
-                        LOGGER.debug("Found {} {} at {}", getDisplayName(), version.toString(), windowsKitDir);
-                        putComponent(newComponent(windowsKitDir, version, DiscoveryType.REGISTRY));
-                    }
-                } else {
-                    LOGGER.debug("Ignoring candidate directory {} as it does not look like a {} installation.", windowsKitDir, getDisplayName());
+        try {
+            File windowsKitDir = FileUtils.canonicalize(new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_KIT, REGISTRY_KIT_10)));
+            String[] versionDirs = getComponentVersionDirs(windowsKitDir);
+            if (isValidComponentBaseDir(windowsKitDir) && versionDirs.length > 0) {
+                for (String versionDir : versionDirs) {
+                    VersionNumber version = VersionNumber.withPatchNumber().parse(versionDir);
+                    LOGGER.debug("Found {} {} at {}", getDisplayName(), version.toString(), windowsKitDir);
+                    putComponent(newComponent(windowsKitDir, version, DiscoveryType.REGISTRY));
                 }
-            } catch (MissingRegistryEntryException e) {
-                // Ignore the version if the string cannot be read
+            } else {
+                LOGGER.debug("Ignoring candidate directory {} as it does not look like a {} installation.", windowsKitDir, getDisplayName());
             }
+        } catch (MissingRegistryEntryException e) {
+            // Ignore the version if the string cannot be read
         }
     }
 
