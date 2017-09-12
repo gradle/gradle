@@ -30,6 +30,7 @@ import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.MutableActionSet;
@@ -145,7 +146,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean useOnlyRequestedJvmOpts;
     private boolean requiresGradleDistribution;
     private boolean useOwnUserHomeServices;
-    private boolean useRichConsole;
+    private ConsoleOutput consoleType;
     private boolean showStacktrace = true;
 
     private int expectedDeprecationWarnings;
@@ -225,7 +226,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         interactive = false;
         checkDeprecations = true;
         durationMeasurement = null;
-        useRichConsole = false;
+        consoleType = null;
         return this;
     }
 
@@ -372,8 +373,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             executer.withDurationMeasurement(durationMeasurement);
         }
 
-        if (useRichConsole) {
-            executer.withRichConsole();
+        if (consoleType != null) {
+            executer.withConsole(consoleType);
         }
 
         if (!showStacktrace) {
@@ -729,8 +730,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     @Override
-    public GradleExecuter withRichConsole() {
-        useRichConsole = true;
+    public GradleExecuter withConsole(ConsoleOutput consoleType) {
+        this.consoleType = consoleType;
         return this;
     }
 
@@ -858,8 +859,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             allArgs.add(getGradleUserHomeDir().getAbsolutePath());
         }
 
-        if (useRichConsole) {
-            allArgs.add("--console=rich");
+        if (consoleType != null) {
+            allArgs.add("--console=" + consoleType.toString().toLowerCase());
         }
 
         allArgs.addAll(args);

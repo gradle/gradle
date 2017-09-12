@@ -144,7 +144,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
 
     public void attachAnsiConsole(OutputStream outputStream) {
         synchronized (lock) {
-            ConsoleMetaData consoleMetaData = new FallbackConsoleMetaData();
+            ConsoleMetaData consoleMetaData = FallbackConsoleMetaData.INSTANCE;
             OutputStreamWriter writer = new OutputStreamWriter(outputStream);
             Console console = new AnsiConsole(writer, writer, getColourMap(), consoleMetaData, true);
             addConsole(console, true, true, consoleMetaData);
@@ -209,11 +209,15 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     public OutputEventRenderer addConsole(Console console, boolean stdout, boolean stderr, ConsoleMetaData consoleMetaData) {
+        return addConsole(console, stdout, stderr, consoleMetaData, false);
+    }
+
+    public OutputEventRenderer addConsole(Console console, boolean stdout, boolean stderr, ConsoleMetaData consoleMetaData, boolean verbose) {
         final OutputEventListener consoleChain = new ThrottlingOutputEventListener(
             new BuildStatusRenderer(
                 new WorkInProgressRenderer(
                     new BuildLogLevelFilterRenderer(
-                        new GroupingProgressLogEventGenerator(new StyledTextOutputBackedRenderer(console.getBuildOutputArea()), clock, new PrettyPrefixedLogHeaderFormatter(), false)),
+                        new GroupingProgressLogEventGenerator(new StyledTextOutputBackedRenderer(console.getBuildOutputArea()), clock, new PrettyPrefixedLogHeaderFormatter(), verbose)),
                     console.getBuildProgressArea(), new DefaultWorkInProgressFormatter(consoleMetaData), new ConsoleLayoutCalculator(consoleMetaData)),
                 console.getStatusBar(), console, consoleMetaData, clock),
             clock);

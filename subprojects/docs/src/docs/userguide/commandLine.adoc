@@ -46,6 +46,8 @@ Set to `plain` to generate plain text only. This option disables all color and o
 Set to `auto` (the default) to enable color and other rich output in the console output when the build process is attached to a console, or to generate plain text only when not attached to a console.
 +
 Set to `rich` to enable color and other rich output in the console output, regardless of whether the build process is not attached to a console. When not attached to a console, the build output will use ANSI control characters to generate the rich output.
++
+Set to `verbose` to enable color and other rich output like the `rich`, but output more detailed message (task name, output, etc.)
 `--continue`::
 Continues task execution after a task failure.
 `--configure-on-demand (incubating)`::

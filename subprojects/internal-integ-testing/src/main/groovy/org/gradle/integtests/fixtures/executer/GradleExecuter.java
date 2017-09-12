@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.executer;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
@@ -419,11 +420,11 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withOwnUserHomeServices();
 
     /**
-     * Executes the build with {@code "--console=rich"} argument.
+     * Executes the build with {@code "--console=rich, auto, verbose"} argument.
      *
      * @see AbstractConsoleFunctionalSpec
      */
-    GradleExecuter withRichConsole();
+    GradleExecuter withConsole(ConsoleOutput consoleOutput);
 
     /**
      * Execute the builds without adding the {@code "--stacktrace"} argument.

@@ -278,7 +278,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             BuildRequestContext buildRequestContext = createBuildRequestContext();
             LoggingManagerInternal loggingManager = GLOBAL_SERVICES.getFactory(LoggingManagerInternal.class).create();
 
-            if (startParameter.getConsoleOutput() == ConsoleOutput.Rich) {
+            if (startParameter.getConsoleOutput() == ConsoleOutput.Rich || startParameter.getConsoleOutput() == ConsoleOutput.Verbose) {
                 // Explicitly enabling rich console forces everything into the stdout listener
                 loggingManager.attachAnsiConsole(new LineBufferingOutputStream(new TextStream() {
                     @Override
