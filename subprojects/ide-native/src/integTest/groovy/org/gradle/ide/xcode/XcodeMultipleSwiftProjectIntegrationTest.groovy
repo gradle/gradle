@@ -59,15 +59,15 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             ":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeSchemeGreeterSharedLibrary", ":greeter:xcode",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
-        xcodeWorkspace("${rootProjectName}.xcworkspace")
-            .contentFile.assertHasProjects([file("${rootProjectName}.xcodeproj"), file('app/app.xcodeproj'), file('greeter/greeter.xcodeproj')]*.absolutePath)
+        rootXcodeWorkspace().contentFile
+            .assertHasProjects([rootXcodeProjectFile, file('app/app.xcodeproj'), file('greeter/greeter.xcodeproj')]*.absolutePath)
 
         def project = xcodeProject("app/app.xcodeproj").projectFile
         project.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("greeter/build/obj/main/debug"))
 
         when:
         def resultDebugApp = xcodebuild()
-            .withWorkspace("${rootProjectName}.xcworkspace")
+            .withWorkspace(rootXcodeWorkspaceFile)
             .withScheme('App Executable')
             .succeeds()
 
@@ -77,7 +77,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
 
         when:
         def resultReleaseApp = xcodebuild()
-            .withWorkspace("${rootProjectName}.xcworkspace")
+            .withWorkspace(rootXcodeWorkspaceFile)
             .withScheme('App Executable')
             .withConfiguration('Release')
             .succeeds()
@@ -125,8 +125,8 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             ":hello:xcodeProject", ":hello:xcodeProjectWorkspaceSettings", ":hello:xcodeSchemeHelloSharedLibrary", ":hello:xcode",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
-        xcodeWorkspace("${rootProjectName}.xcworkspace")
-            .contentFile.assertHasProjects([file("${rootProjectName}.xcodeproj"), file('app/app.xcodeproj'), file('log/log.xcodeproj'), file('hello/hello.xcodeproj')]*.absolutePath)
+        rootXcodeWorkspace().contentFile
+            .assertHasProjects([rootXcodeProjectFile, file('app/app.xcodeproj'), file('log/log.xcodeproj'), file('hello/hello.xcodeproj')]*.absolutePath)
 
         def appProject = xcodeProject("app/app.xcodeproj").projectFile
         appProject.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("hello/build/obj/main/debug"), file("log/build/obj/main/debug"))
@@ -135,7 +135,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
 
         when:
         def resultDebugApp = xcodebuild()
-            .withWorkspace("${rootProjectName}.xcworkspace")
+            .withWorkspace(rootXcodeWorkspaceFile)
             .withScheme('App Executable')
             .succeeds()
 
@@ -146,7 +146,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
 
         when:
         def resultReleaseHello = xcodebuild()
-            .withWorkspace("${rootProjectName}.xcworkspace")
+            .withWorkspace(rootXcodeWorkspaceFile)
             .withScheme('Hello SharedLibrary')
             .withConfiguration('Release')
             .succeeds()
@@ -190,15 +190,15 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         executedAndNotSkipped(":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeSchemeGreeterSharedLibrary",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
-        xcodeWorkspace("${rootProjectName}.xcworkspace")
-            .contentFile.assertHasProjects([file("${rootProjectName}.xcodeproj"), file('greeter/greeter.xcodeproj')]*.absolutePath)
+        rootXcodeWorkspace().contentFile
+            .assertHasProjects([rootXcodeProjectFile, file('greeter/greeter.xcodeproj')]*.absolutePath)
 
-        def project = xcodeProject("${rootProjectName}.xcodeproj").projectFile
+        def project = rootXcodeProject().projectFile
         project.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("greeter/build/obj/main/debug"))
 
         when:
         def resultDebugApp = xcodebuild()
-            .withWorkspace("${rootProjectName}.xcworkspace")
+            .withWorkspace(rootXcodeWorkspaceFile)
             .withScheme('App Executable')
             .succeeds()
 
@@ -207,7 +207,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
 
         when:
         def resultReleaseGreeter = xcodebuild()
-            .withWorkspace("${rootProjectName}.xcworkspace")
+            .withWorkspace(rootXcodeWorkspaceFile)
             .withScheme('Greeter SharedLibrary')
             .withConfiguration('Release')
             .succeeds()

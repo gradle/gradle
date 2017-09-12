@@ -46,7 +46,7 @@ apply plugin: 'cpp-executable'
         then:
         executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
-        def project = xcodeProject("${rootProjectName}.xcodeproj").projectFile
+        def project = rootXcodeProject().projectFile
         project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
         project.buildConfigurationList.buildConfigurations.name == ["Debug", "Release"]
         project.targets.size() == 2
@@ -68,7 +68,7 @@ apply plugin: 'cpp-executable'
 
         when:
         def resultDebug = xcodebuild()
-            .withProject("${rootProjectName}.xcodeproj")
+            .withProject(rootXcodeProjectFile)
             .withScheme('App Executable')
             .succeeds()
 
@@ -77,7 +77,7 @@ apply plugin: 'cpp-executable'
 
         when:
         def resultRelease = xcodebuild()
-            .withProject("${rootProjectName}.xcodeproj")
+            .withProject(rootXcodeProjectFile)
             .withScheme('App Executable')
             .withConfiguration('Release')
             .succeeds()
@@ -108,7 +108,7 @@ apply plugin: 'cpp-library'
         then:
         executedAndNotSkipped(":xcodeProject", ":xcodeSchemeAppSharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
 
-        def project = xcodeProject("${rootProjectName}.xcodeproj").projectFile
+        def project = rootXcodeProject().projectFile
         project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
         project.buildConfigurationList.buildConfigurations.name == ["Debug", "Release"]
         project.targets.size() == 2
@@ -130,7 +130,7 @@ apply plugin: 'cpp-library'
 
         when:
         def resultDebug = xcodebuild()
-            .withProject("${rootProjectName}.xcodeproj")
+            .withProject(rootXcodeProjectFile)
             .withScheme('App SharedLibrary')
             .succeeds()
 
@@ -139,7 +139,7 @@ apply plugin: 'cpp-library'
 
         when:
         def resultRelease = xcodebuild()
-            .withProject("${rootProjectName}.xcodeproj")
+            .withProject(rootXcodeProjectFile)
             .withScheme('App SharedLibrary')
             .withConfiguration('Release')
             .succeeds()
@@ -160,16 +160,16 @@ apply plugin: 'cpp-executable'
         succeeds("xcode")
 
         then:
-        xcodeProject("${rootProjectName}.xcodeproj").projectFile
-            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
+        rootXcodeProject().projectFile.mainGroup
+            .assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
 
         when:
         file("src/main/cpp/new.cpp") << "include <iostream>\n"
         succeeds('xcode')
 
         then:
-        xcodeProject("${rootProjectName}.xcodeproj").projectFile
-            .mainGroup.assertHasChildren(['Products', 'build.gradle', 'new.cpp'] + app.files*.name)
+        rootXcodeProject().projectFile.mainGroup
+            .assertHasChildren(['Products', 'build.gradle', 'new.cpp'] + app.files*.name)
     }
 
     def "deleted source files are not included in the project"() {
@@ -185,16 +185,16 @@ apply plugin: 'cpp-executable'
         succeeds("xcode")
 
         then:
-        xcodeProject("${rootProjectName}.xcodeproj").projectFile
-            .mainGroup.assertHasChildren(['Products', 'build.gradle', 'old.cpp'] + app.files*.name)
+        rootXcodeProject().projectFile.mainGroup
+            .assertHasChildren(['Products', 'build.gradle', 'old.cpp'] + app.files*.name)
 
         when:
         file('src/main/cpp/old.cpp').delete()
         succeeds('xcode')
 
         then:
-        xcodeProject("${rootProjectName}.xcodeproj").projectFile
-            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
+        rootXcodeProject().projectFile.mainGroup
+            .assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
     }
 
     def "executable source files in a non-default location are included in the project"() {
@@ -217,8 +217,8 @@ executable {
         succeeds("xcode")
 
         then:
-        xcodeProject("${rootProjectName}.xcodeproj").projectFile
-            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
+        rootXcodeProject().projectFile.mainGroup
+            .assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
     }
 
     def "library source files in a non-default location are included in the project"() {
@@ -244,8 +244,8 @@ library {
         succeeds("xcode")
 
         then:
-        xcodeProject("${rootProjectName}.xcodeproj").projectFile
-            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
+        rootXcodeProject().projectFile.mainGroup
+            .assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
     }
 
     def "honors changes to executable output locations"() {
@@ -265,7 +265,7 @@ executable.baseName = 'test_app'
         then:
         executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
-        def project = xcodeProject("${rootProjectName}.xcodeproj").projectFile
+        def project = rootXcodeProject().projectFile
         project.targets.size() == 2
 
         project.targets[0].name == 'App Executable'
@@ -295,7 +295,7 @@ library.baseName = 'test_lib'
         then:
         executedAndNotSkipped(":xcodeProject", ":xcodeSchemeAppSharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
 
-        def project = xcodeProject("${rootProjectName}.xcodeproj").projectFile
+        def project = rootXcodeProject().projectFile
         project.targets.size() == 2
 
         project.targets[0].name == 'App SharedLibrary'
