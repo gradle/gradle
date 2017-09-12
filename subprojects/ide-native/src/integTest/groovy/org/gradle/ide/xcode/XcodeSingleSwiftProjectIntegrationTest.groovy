@@ -17,17 +17,16 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.IgnoreIf
 
 class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
     @Requires(TestPrecondition.XCODE)
-    @IgnoreIf({GradleContextualExecuter.embedded})
     def "create xcode project executable"() {
+        executer.requireGradleDistribution()
+
         given:
         buildFile << """
 apply plugin: 'swift-executable'
@@ -83,8 +82,9 @@ apply plugin: 'swift-executable'
     }
 
     @Requires(TestPrecondition.XCODE)
-    @IgnoreIf({GradleContextualExecuter.embedded})
     def "create xcode project library"() {
+        executer.requireGradleDistribution()
+
         given:
         buildFile << """
 apply plugin: 'swift-library'

@@ -17,19 +17,18 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.IgnoreIf
 
 import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 
 class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
     @Requires(TestPrecondition.XCODE)
-    @IgnoreIf({GradleContextualExecuter.embedded})
     def "create xcode project C++ executable"() {
+        executer.requireGradleDistribution()
+
         given:
         buildFile << """
 apply plugin: 'cpp-executable'
@@ -88,8 +87,9 @@ apply plugin: 'cpp-executable'
     }
 
     @Requires(TestPrecondition.XCODE)
-    @IgnoreIf({GradleContextualExecuter.embedded})
     def "create xcode project C++ library"() {
+        executer.requireGradleDistribution()
+
         given:
         buildFile << """
 apply plugin: 'cpp-library'
@@ -135,7 +135,7 @@ apply plugin: 'cpp-library'
             .succeeds()
 
         then:
-        resultDebug.assertTasksExecuted(':compileDebugSwift', ':linkDebug')
+        resultDebug.assertTasksExecuted(':compileDebugCpp', ':linkDebug')
 
         when:
         def resultRelease = newXcodebuildExecuter()
@@ -145,7 +145,7 @@ apply plugin: 'cpp-library'
             .succeeds()
 
         then:
-        resultRelease.assertTasksExecuted(':compileReleaseSwift', ':linkRelease')
+        resultRelease.assertTasksExecuted(':compileReleaseCpp', ':linkRelease')
     }
 
     def "new source files are included in the project"() {

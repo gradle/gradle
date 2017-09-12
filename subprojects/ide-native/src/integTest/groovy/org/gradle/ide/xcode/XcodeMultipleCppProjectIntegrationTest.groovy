@@ -17,22 +17,21 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.IgnoreIf
 
 import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 
 @Requires(TestPrecondition.XCODE)
-@IgnoreIf({GradleContextualExecuter.embedded})
 class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
     def setup() {
         settingsFile << """
             include 'app', 'greeter'
         """
+
+        executer.requireGradleDistribution()
     }
 
     def "create xcode project C++ executable"() {
