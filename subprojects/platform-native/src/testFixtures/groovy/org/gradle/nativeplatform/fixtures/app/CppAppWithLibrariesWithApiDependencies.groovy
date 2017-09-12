@@ -48,11 +48,11 @@ int main() {
 #define EXPORT_FUNC
 #endif
 
-class Deck {
+class EXPORT_FUNC Deck {
     Card card;
 public:
-    void EXPORT_FUNC shuffle();
-    Card& EXPORT_FUNC draw();
+    void shuffle();
+    Card& draw();
 };
 """))
         final SourceFileElement source = ofFile(sourceFile("cpp", "deck.cpp", """
@@ -79,11 +79,11 @@ Card& Deck::draw() {
 #define EXPORT_FUNC
 #endif
 
-class Card {
+class EXPORT_FUNC Card {
     std::string name;
 public:
     Card();
-    std::string& EXPORT_FUNC getName();
+    std::string& getName();
 };
 """))
         final SourceFileElement source = ofFile(sourceFile("cpp", "card.cpp", """
@@ -108,9 +108,9 @@ Card::getName() {
 #define EXPORT_FUNC
 #endif
 
-class ShuffleAlgorithm {
+class EXPORT_FUNC ShuffleAlgorithm {
 public:
-    void EXPORT_FUNC shuffle();
+    void shuffle();
 };
 """))
         final SourceFileElement source = ofFile(sourceFile("cpp", "shuffle.cpp", """
