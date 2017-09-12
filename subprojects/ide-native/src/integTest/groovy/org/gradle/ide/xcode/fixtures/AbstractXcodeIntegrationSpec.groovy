@@ -52,7 +52,7 @@ rootProject.name = "${rootProjectName}"
         new XcodeWorkspacePackage(file(path))
     }
 
-    protected XcodebuildExecuter newXcodebuildExecuter() {
+    protected XcodebuildExecuter xcodebuild() {
         new XcodebuildExecuter(testDirectory)
     }
 }

@@ -62,7 +62,7 @@ apply plugin: 'swift-executable'
         project.products.children[0].path == exe("build/exe/main/debug/App").absolutePath
 
         when:
-        def resultDebug = newXcodebuildExecuter()
+        def resultDebug = xcodebuild()
             .withProject("${rootProjectName}.xcodeproj")
             .withScheme('App Executable')
             .succeeds()
@@ -71,7 +71,7 @@ apply plugin: 'swift-executable'
         resultDebug.assertTasksExecuted(':compileDebugSwift', ':linkDebug')
 
         when:
-        def resultRelease = newXcodebuildExecuter()
+        def resultRelease = xcodebuild()
             .withProject("${rootProjectName}.xcodeproj")
             .withScheme('App Executable')
             .withConfiguration('Release')
@@ -119,7 +119,7 @@ apply plugin: 'swift-library'
         project.products.children[0].path == sharedLib("build/lib/main/debug/App").absolutePath
 
         when:
-        def resultDebug = newXcodebuildExecuter()
+        def resultDebug = xcodebuild()
             .withProject("${rootProjectName}.xcodeproj")
             .withScheme('App SharedLibrary')
             .succeeds()
@@ -128,7 +128,7 @@ apply plugin: 'swift-library'
         resultDebug.assertTasksExecuted(':compileDebugSwift', ':linkDebug')
 
         when:
-        def resultRelease = newXcodebuildExecuter()
+        def resultRelease = xcodebuild()
             .withProject("${rootProjectName}.xcodeproj")
             .withScheme('App SharedLibrary')
             .withConfiguration('Release')

@@ -66,7 +66,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         project.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("app/src/main/headers"), file("greeter/src/main/public"))
 
         when:
-        def resultDebugApp = newXcodebuildExecuter()
+        def resultDebugApp = xcodebuild()
             .withWorkspace("${rootProjectName}.xcworkspace")
             .withScheme('App Executable')
             .succeeds()
@@ -76,7 +76,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             ':app:compileDebugCpp', ':app:linkDebug')
 
         when:
-        def resultReleaseApp = newXcodebuildExecuter()
+        def resultReleaseApp = xcodebuild()
             .withWorkspace("${rootProjectName}.xcworkspace")
             .withScheme('App Executable')
             .withConfiguration('Release')
@@ -134,7 +134,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         helloProject.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("hello/src/main/public"), file("hello/src/main/headers"), file("log/src/main/public"))
 
         when:
-        def resultDebugApp = newXcodebuildExecuter()
+        def resultDebugApp = xcodebuild()
             .withWorkspace("${rootProjectName}.xcworkspace")
             .withScheme('App Executable')
             .succeeds()
@@ -145,7 +145,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             ':app:compileDebugCpp', ':app:linkDebug')
 
         when:
-        def resultReleaseHello = newXcodebuildExecuter()
+        def resultReleaseHello = xcodebuild()
             .withWorkspace("${rootProjectName}.xcworkspace")
             .withScheme('Hello SharedLibrary')
             .withConfiguration('Release')
@@ -197,7 +197,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         project.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("src/main/headers"), file("greeter/src/main/public"))
 
         when:
-        def resultDebugApp = newXcodebuildExecuter()
+        def resultDebugApp = xcodebuild()
             .withWorkspace("${rootProjectName}.xcworkspace")
             .withScheme('App Executable')
             .succeeds()
@@ -206,7 +206,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         resultDebugApp.assertTasksExecuted(':greeter:compileDebugCpp', ':greeter:linkDebug', ':compileDebugCpp', ':linkDebug')
 
         when:
-        def resultReleaseGreeter = newXcodebuildExecuter()
+        def resultReleaseGreeter = xcodebuild()
             .withWorkspace("${rootProjectName}.xcworkspace")
             .withScheme('Greeter SharedLibrary')
             .withConfiguration('Release')

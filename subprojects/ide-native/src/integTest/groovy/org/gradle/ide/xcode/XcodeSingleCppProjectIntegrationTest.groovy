@@ -67,7 +67,7 @@ apply plugin: 'cpp-executable'
         project.products.children[0].path == exe("build/exe/main/debug/app").absolutePath
 
         when:
-        def resultDebug = newXcodebuildExecuter()
+        def resultDebug = xcodebuild()
             .withProject("${rootProjectName}.xcodeproj")
             .withScheme('App Executable')
             .succeeds()
@@ -76,7 +76,7 @@ apply plugin: 'cpp-executable'
         resultDebug.assertTasksExecuted(':compileDebugCpp', ':linkDebug')
 
         when:
-        def resultRelease = newXcodebuildExecuter()
+        def resultRelease = xcodebuild()
             .withProject("${rootProjectName}.xcodeproj")
             .withScheme('App Executable')
             .withConfiguration('Release')
@@ -129,7 +129,7 @@ apply plugin: 'cpp-library'
         project.products.children[0].path == sharedLib("build/lib/main/debug/app").absolutePath
 
         when:
-        def resultDebug = newXcodebuildExecuter()
+        def resultDebug = xcodebuild()
             .withProject("${rootProjectName}.xcodeproj")
             .withScheme('App SharedLibrary')
             .succeeds()
@@ -138,7 +138,7 @@ apply plugin: 'cpp-library'
         resultDebug.assertTasksExecuted(':compileDebugCpp', ':linkDebug')
 
         when:
-        def resultRelease = newXcodebuildExecuter()
+        def resultRelease = xcodebuild()
             .withProject("${rootProjectName}.xcodeproj")
             .withScheme('App SharedLibrary')
             .withConfiguration('Release')

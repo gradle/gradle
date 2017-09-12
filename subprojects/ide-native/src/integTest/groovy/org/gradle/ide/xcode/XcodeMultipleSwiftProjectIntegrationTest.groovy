@@ -66,7 +66,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         project.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("greeter/build/obj/main/debug"))
 
         when:
-        def resultDebugApp = newXcodebuildExecuter()
+        def resultDebugApp = xcodebuild()
             .withWorkspace("${rootProjectName}.xcworkspace")
             .withScheme('App Executable')
             .succeeds()
@@ -76,7 +76,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             ':app:compileDebugSwift', ':app:linkDebug')
 
         when:
-        def resultReleaseApp = newXcodebuildExecuter()
+        def resultReleaseApp = xcodebuild()
             .withWorkspace("${rootProjectName}.xcworkspace")
             .withScheme('App Executable')
             .withConfiguration('Release')
@@ -134,7 +134,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         helloProject.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("log/build/obj/main/debug"))
 
         when:
-        def resultDebugApp = newXcodebuildExecuter()
+        def resultDebugApp = xcodebuild()
             .withWorkspace("${rootProjectName}.xcworkspace")
             .withScheme('App Executable')
             .succeeds()
@@ -145,7 +145,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             ':app:compileDebugSwift', ':app:linkDebug')
 
         when:
-        def resultReleaseHello = newXcodebuildExecuter()
+        def resultReleaseHello = xcodebuild()
             .withWorkspace("${rootProjectName}.xcworkspace")
             .withScheme('Hello SharedLibrary')
             .withConfiguration('Release')
@@ -197,7 +197,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         project.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("greeter/build/obj/main/debug"))
 
         when:
-        def resultDebugApp = newXcodebuildExecuter()
+        def resultDebugApp = xcodebuild()
             .withWorkspace("${rootProjectName}.xcworkspace")
             .withScheme('App Executable')
             .succeeds()
@@ -206,7 +206,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         resultDebugApp.assertTasksExecuted(':greeter:compileDebugSwift', ':greeter:linkDebug', ':compileDebugSwift', ':linkDebug')
 
         when:
-        def resultReleaseGreeter = newXcodebuildExecuter()
+        def resultReleaseGreeter = xcodebuild()
             .withWorkspace("${rootProjectName}.xcworkspace")
             .withScheme('Greeter SharedLibrary')
             .withConfiguration('Release')
