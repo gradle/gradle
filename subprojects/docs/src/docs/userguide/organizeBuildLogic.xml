@@ -111,6 +111,13 @@
         <para>You can configure the current project using an external build script. All of the Gradle build language
             is available in the external script. You can even apply other scripts from the external script.
         </para>
+        <para>
+            Build scripts can be local files or remotely accessible files downloaded via a URL.
+        </para>
+        <para>
+            Remote files will be cached and made available when Gradle runs offline. On each build, Gradle will check if the remote file has changed and will only download the build script file again if it has changed.
+            URLs that contain query strings will not be cached.
+        </para>
         <sample id="configureProjectUsingScript" dir="userguide/tutorial/configureProjectUsingScript" title="Configuring the project using an external build script">
             <sourcefile file="build.gradle"/>
             <sourcefile file="other.gradle"/>

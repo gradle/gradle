@@ -21,6 +21,7 @@ import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.matchers.UserAgentMatcher
 import org.gradle.util.GradleVersion
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
@@ -63,6 +64,96 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         scheme  | useKeystore
         "http"  | false
         "https" | true
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/2891")
+    def "can apply script with URI containing a query string"() {
+        when:
+        def queryString = 'p=foo;a=blob_plain;f=bar;hb=foo/bar/foo'
+        def script = file('external.gradle')
+        server.expectGetWithQueryString('/external.gradle', queryString, script)
+
+        script << """
+            task doStuff
+            assert buildscript.sourceFile == null
+            assert "${server.uri}/external.gradle?$queryString" == buildscript.sourceURI as String
+"""
+
+        buildFile << """
+            apply from: '$server.uri/external.gradle?$queryString'
+            defaultTasks 'doStuff'
+"""
+
+        then:
+        succeeds()
+    }
+
+    def "scripts with same URI path but different query strings are treated as separate things"() {
+        when:
+        def first = file('first.gradle') << """
+            task first
+            assert buildscript.sourceFile == null
+            assert "${server.uri}/external.gradle?first" == buildscript.sourceURI as String
+        """
+        def second = file('second.gradle') << """
+            task second
+            assert buildscript.sourceFile == null
+            assert "${server.uri}/external.gradle?second" == buildscript.sourceURI as String
+        """
+        server.expectGetWithQueryString('/external.gradle', "first", first)
+        server.expectGetWithQueryString('/external.gradle', "second", second)
+
+        buildFile << """
+            apply from: '$server.uri/external.gradle?first'
+            apply from: '$server.uri/external.gradle?second'
+            defaultTasks 'first', 'second'
+"""
+
+        then:
+        succeeds()
+    }
+
+    def "does not cache URIs with query parts"() {
+        when:
+        def queryString = 'p=foo;a=blob_plain;f=bar;hb=foo/bar/foo'
+        def script = file('external.gradle')
+        server.expectGetWithQueryString('/external.gradle', queryString, script)
+
+        script << """
+            task doStuff
+            assert buildscript.sourceFile == null
+            assert "${server.uri}/external.gradle?$queryString" == buildscript.sourceURI as String
+"""
+
+        buildFile << """
+            apply from: '$server.uri/external.gradle?$queryString'
+            defaultTasks 'doStuff'
+"""
+
+        then:
+        succeeds()
+
+        when:
+        server.expectGetWithQueryString('/external.gradle', queryString, script)
+        then:
+        succeeds()
+
+        when:
+        server.stop()
+        then:
+        fails()
+    }
+
+    def "reasonable error message while --offline when applying a script with a query part"() {
+        def url = "$server.uri/external.gradle?query"
+        buildFile << """
+            apply from: '$url'
+            defaultTasks 'doStuff'
+        """
+        server.stop()
+        expect:
+        fails("--offline")
+        result.error.contains("Could not read script '$url'")
     }
 
     def "uses encoding specified by http server"() {

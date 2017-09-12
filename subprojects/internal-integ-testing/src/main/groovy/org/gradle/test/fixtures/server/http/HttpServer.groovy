@@ -314,6 +314,13 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     }
 
     /**
+     * Allows one GET request for the given URL with a query string. Reads the request content from the given file.
+     */
+    HttpResourceInteraction expectGetWithQueryString(String path, String query, File srcFile) {
+        return expect(path, false, ['GET'], withQueryString(query, fileHandler(path, srcFile)))
+    }
+
+    /**
      * Allows one GET request for the given URL, asserting that the request revalidates. Reads the request content from the given file.
      */
     HttpResourceInteraction expectGetRevalidate(String path, File srcFile) {
@@ -540,6 +547,24 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
                     response.sendError(500, "unexpected username '${request.remoteUser}'")
                     return
                 }
+                action.handle(request, response)
+            }
+        }
+    }
+
+    private Action withQueryString(String query, Action action) {
+        return new Action() {
+            @Override
+            HttpResourceInteraction getInteraction() {
+                return action.interaction
+            }
+
+            String getDisplayName() {
+                return action.displayName
+            }
+
+            void handle(HttpServletRequest request, HttpServletResponse response) {
+                assert request.queryString == query
                 action.handle(request, response)
             }
         }

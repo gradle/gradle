@@ -54,13 +54,13 @@ public class DefaultExternalResourceAccessor implements ExternalResourceAccessor
         return resolve(resource, resource.getUri());
     }
 
-    private LocallyAvailableExternalResource resolve(ExternalResourceName resource, URI uri) {
+    private LocallyAvailableExternalResource resolve(final ExternalResourceName resource, URI uri) {
         LOGGER.debug("Loading {}", resource);
 
         try {
-            final String key = Hashing.sha1().hashString(uri.toASCIIString()).toString();
             return resourceAccessor.getResource(resource, new CacheAwareExternalResourceAccessor.ResourceFileStore() {
                 public LocallyAvailableResource moveIntoCache(File downloadedResource) {
+                    String key = Hashing.sha1().hashString(resource.toString()).toString();
                     return fileStore.move(key, downloadedResource);
                 }
             }, null);

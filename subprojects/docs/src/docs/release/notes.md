@@ -46,12 +46,16 @@ Native compile and link tasks now execute in parallel by default, making native 
 
 The `zipTree` and `tarTree` implementations had a major performance issue, unpacking files every time the tree was traversed. This has now been fixed and should speed up builds using these trees a lot.
 
-### Better support for script plugins loaded via HTTP
+### Better support for script plugins from HTTP/HTTPS URLs
 
-Script plugins are applied to Gradle settings or projects via the `apply from: 'URL'` syntax. Support for `http://` and `https://` URLs has been improved in this release:
+Script plugins are applied to Gradle settings or projects with `apply from: 'URL'`. 
 
-- HTTP script plugins are cached for [`--offline`](userguide/dependency_management.html#sub:cache_offline) use.
-- Download of HTTP script plugins honours [proxy authentication settings](userguide/build_environment.html#sec:accessing_the_web_via_a_proxy).
+Support for script plugins from `http://` and `https://` URLs has been improved:
+
+- Script plugins are cached and only downloaded when necessary instead of on every build.
+- When using [`--offline`](userguide/dependency_management.html#sub:cache_offline), Gradle will not try to download script plugins if a cached copy exists.
+- [Proxy authentication settings](userguide/build_environment.html#sec:accessing_the_web_via_a_proxy) are now honored when downloading script plugins.
+- **NOTE**: URLs that contain a query component (information following a `?` in a URL) will not be cached. 
 
 ### Support for Google Cloud Storage backed repositories
 
