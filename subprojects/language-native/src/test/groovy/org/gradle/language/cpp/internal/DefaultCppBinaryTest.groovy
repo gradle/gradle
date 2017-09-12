@@ -46,7 +46,7 @@ class DefaultCppBinaryTest extends Specification {
     def "creates configurations for the binary"() {
         expect:
         binary.compileIncludePath == headerDirs
-        binary.linkLibraries == link
+        binary.linkLibraries
         binary.runtimeLibraries == runtime
     }
 }

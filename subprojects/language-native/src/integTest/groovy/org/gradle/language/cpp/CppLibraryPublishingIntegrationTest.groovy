@@ -151,10 +151,10 @@ class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainInte
         app.main.writeToProject(consumer)
 
         executer.inDirectory(consumer)
-        run("compileDebug")
+        run("assemble")
 
         then:
         noExceptionThrown()
-//        installation(consumer.file("build/install/main/debug")).exec().out == app.expectedOutput
+        installation(consumer.file("build/install/main/debug")).exec().out == app.expectedOutput
     }
 }
