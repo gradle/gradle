@@ -45,6 +45,7 @@ import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
 import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter;
+import org.gradle.api.internal.tasks.execution.OutputDirectoryCreatingTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveBuildCacheKeyExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveTaskArtifactStateTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveTaskOutputCachingStateExecuter;
@@ -121,6 +122,7 @@ public class TaskExecutionServices {
         if (verifyInputsEnabled) {
             executer = new VerifyNoInputChangesTaskExecuter(repository, executer);
         }
+        executer = new OutputDirectoryCreatingTaskExecuter(executer);
         if (taskOutputCacheEnabled) {
             executer = new SkipCachedTaskExecuter(
                 buildCacheController,

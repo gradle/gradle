@@ -27,7 +27,6 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.tasks.TaskOutputsUtil.ensureDirectoryExists;
 import static org.gradle.api.internal.tasks.TaskOutputsUtil.validateDirectory;
 
 public class OutputDirectoryPropertyAnnotationHandler extends AbstractOutputPropertyAnnotationHandler {
@@ -47,14 +46,6 @@ public class OutputDirectoryPropertyAnnotationHandler extends AbstractOutputProp
     @Override
     protected TaskOutputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, Callable<Object> futureValue) {
         return task.getOutputs().dir(futureValue);
-    }
-
-    @Override
-    protected void beforeTask(final Callable<Object> futureValue) {
-        File directory = toFile(futureValue);
-        if (directory != null) {
-            ensureDirectoryExists(directory);
-        }
     }
 
     private File toFile(Object value) {

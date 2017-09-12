@@ -27,12 +27,12 @@ import java.util.Map;
 
 public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertySpec {
 
-    private final CacheableTaskOutputFilePropertySpec.OutputType outputType;
+    private final OutputType outputType;
     private final Object paths;
     private final String taskName;
     private final FileResolver resolver;
 
-    public CompositeTaskOutputPropertySpec(String taskName, FileResolver resolver, CacheableTaskOutputFilePropertySpec.OutputType outputType, Object[] paths) {
+    public CompositeTaskOutputPropertySpec(String taskName, FileResolver resolver, OutputType outputType, Object[] paths) {
         this.taskName = taskName;
         this.resolver = resolver;
         this.outputType = outputType;
@@ -41,7 +41,7 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
             : paths;
     }
 
-    public CacheableTaskOutputFilePropertySpec.OutputType getOutputType() {
+    public OutputType getOutputType() {
         return outputType;
     }
 
@@ -69,7 +69,7 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
             };
         } else {
             return Iterators.<TaskOutputFilePropertySpec>singletonIterator(
-                new NonCacheableTaskOutputPropertySpec(taskName, this, resolver, unpackedPaths)
+                new NonCacheableTaskOutputPropertySpec(taskName, this, resolver, outputType, unpackedPaths)
             );
         }
     }
