@@ -20,24 +20,21 @@ import org.gradle.cli.CommandLineArgumentException
 import spock.lang.Specification
 
 class BuildOptionTest extends Specification {
-    private static final String GRADLE_PROPERTY_FAILURE_MESSAGE = 'Invalid Gradle property value'
-    private static final String COMMAND_LINE_FAILUE_MESSAGE = 'Invalid command line option value'
-
     def "can handle invalid value for Gradle property"() {
         when:
-        BuildOption.Origin.GRADLE_PROPERTY.handleInvalidValue(GRADLE_PROPERTY_FAILURE_MESSAGE, COMMAND_LINE_FAILUE_MESSAGE)
+        BuildOption.Origin.GRADLE_PROPERTY.handleInvalidValue('property', 'option', 'value', 'hint')
 
         then:
         Throwable t = thrown(IllegalArgumentException)
-        t.message == GRADLE_PROPERTY_FAILURE_MESSAGE
+        t.message == "Value 'value' given for property Gradle property is invalid (hint)"
     }
 
     def "can handle invalid value for command line option"() {
         when:
-        BuildOption.Origin.COMMAND_LINE.handleInvalidValue(GRADLE_PROPERTY_FAILURE_MESSAGE, COMMAND_LINE_FAILUE_MESSAGE)
+        BuildOption.Origin.COMMAND_LINE.handleInvalidValue('property', 'option', 'value', 'hint')
 
         then:
         Throwable t = thrown(CommandLineArgumentException)
-        t.message == COMMAND_LINE_FAILUE_MESSAGE
+        t.message == "Argument value 'value' given for --option option is invalid (hint)"
     }
 }

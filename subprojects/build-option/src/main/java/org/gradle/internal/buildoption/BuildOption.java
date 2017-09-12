@@ -30,19 +30,31 @@ import java.util.Map;
  */
 public interface BuildOption<T> {
 
-    @Nullable String getGradleProperty();
+    @Nullable
+    String getGradleProperty();
+
     void applyFromProperty(Map<String, String> properties, T settings);
+
     void configure(CommandLineParser parser);
+
     void applyFromCommandLine(ParsedCommandLine options, T settings);
 
     enum Origin {
-        GRADLE_PROPERTY, COMMAND_LINE;
-
-        public void handleInvalidValue(String gradlePropertyFailureMessage, String commandLineFailureMessage) {
-            switch (this) {
-                case GRADLE_PROPERTY: throw new IllegalArgumentException(gradlePropertyFailureMessage);
-                case COMMAND_LINE: throw new CommandLineArgumentException(commandLineFailureMessage);
+        GRADLE_PROPERTY {
+            @Override
+            public void handleInvalidValue(String property, String option, String value, String hint) {
+                String message = String.format("Value '%s' given for %s Gradle property is invalid (%s)", value, property, hint);
+                throw new IllegalArgumentException(message);
             }
-        }
+        },
+        COMMAND_LINE {
+            @Override
+            public void handleInvalidValue(String property, String option, String value, String hint) {
+                String message = String.format("Argument value '%s' given for --%s option is invalid (%s)", value, option, hint);
+                throw new CommandLineArgumentException(message);
+            }
+        };
+
+        public abstract void handleInvalidValue(String property, String option, String value, String hint);
     }
 }
