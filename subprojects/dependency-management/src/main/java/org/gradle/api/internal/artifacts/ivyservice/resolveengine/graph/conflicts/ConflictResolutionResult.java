@@ -16,14 +16,17 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 
 public interface ConflictResolutionResult {
 
     /**
-     * Conflict this result is about.
+     * Performs an action on all conflicting modules.
+     * @param action the action to execute on each participating module
      */
-    PotentialConflict getConflict();
+    void withParticipatingModules(Action<ModuleIdentifier> action);
 
     /**
      * The actual selected version.

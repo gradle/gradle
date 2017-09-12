@@ -16,19 +16,25 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 
+import java.util.Collection;
+
 class DefaultConflictResolutionResult implements ConflictResolutionResult {
-    private final PotentialConflict conflict;
+    private final Collection<? extends ModuleIdentifier> participatingModules;
     private final ComponentResolutionState selected;
 
-    public DefaultConflictResolutionResult(PotentialConflict conflict, ComponentResolutionState selected) {
-        this.conflict = conflict;
+    public DefaultConflictResolutionResult(Collection<? extends ModuleIdentifier> participatingModules, ComponentResolutionState selected) {
+        this.participatingModules = participatingModules;
         this.selected = selected;
     }
 
-    public PotentialConflict getConflict() {
-        return conflict;
+    public void withParticipatingModules(Action<ModuleIdentifier> action) {
+        for (ModuleIdentifier module : participatingModules) {
+            action.execute(module);
+        }
     }
 
     public ComponentResolutionState getSelected() {

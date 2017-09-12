@@ -1272,9 +1272,9 @@ public class DependencyGraphBuilder {
         }
 
         public void execute(final ConflictResolutionResult result) {
-            result.getConflict().withParticipatingModules(new Action<ModuleIdentifier>() {
+            final ComponentState selected = result.getSelected();
+            result.withParticipatingModules(new Action<ModuleIdentifier>() {
                 public void execute(ModuleIdentifier moduleIdentifier) {
-                    ComponentState selected = result.getSelected();
                     // Restart each configuration. For the evicted configuration, this means moving incoming dependencies across to the
                     // matching selected configuration. For the select configuration, this mean traversing its dependencies.
                     resolveState.getModule(moduleIdentifier).restart(selected);
