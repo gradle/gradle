@@ -193,7 +193,8 @@ public class GlobalScopeServicesTest {
 
     @Test
     public void providesAClock() throws Exception {
-        assertThat(registry().get(Clock.class), sameInstance(registry().get(ClockSync.class).getClock()));
+        ServiceRegistry registry = registry();
+        assertThat(registry.get(Clock.class), sameInstance(registry.get(ClockSync.class).getClock()));
     }
 
     @Test
