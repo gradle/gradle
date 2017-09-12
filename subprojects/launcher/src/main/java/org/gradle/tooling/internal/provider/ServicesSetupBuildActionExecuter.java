@@ -19,7 +19,6 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.StartParameter;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.SessionLifecycleListener;
-import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
@@ -48,7 +47,7 @@ public class ServicesSetupBuildActionExecuter implements BuildExecuter {
             ServiceRegistry buildSessionScopeServices = new BuildSessionScopeServices(
                 userHomeServices,
                 startParameter,
-                BuildStartedTime.startingAt(requestContext.getStartTime()),
+                requestContext,
                 actionParameters.getInjectedPluginClasspath()
             );
             try {

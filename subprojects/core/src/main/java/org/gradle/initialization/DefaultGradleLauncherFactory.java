@@ -59,6 +59,7 @@ import org.gradle.internal.service.scopes.BuildTreeScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.time.Clock;
+import org.gradle.internal.time.Time;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ReportGeneratingProfileListener;
@@ -211,9 +212,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         @Override
         public BuildController nestedBuildController(StartParameter startParameter) {
             final ServiceRegistry userHomeServices = userHomeDirServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
-            Clock clock = buildTreeScopeServices.get(Clock.class);
-            BuildStartedTime buildStartedTime = BuildStartedTime.startingAt(clock.getCurrentTime());
-            BuildSessionScopeServices sessionScopeServices = new BuildSessionScopeServices(userHomeServices, startParameter, buildStartedTime, ClassPath.EMPTY);
+            BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.systemWallClock().getCurrentTime());
+            BuildSessionScopeServices sessionScopeServices = new BuildSessionScopeServices(userHomeServices, startParameter, buildRequestMetaData, ClassPath.EMPTY);
             BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices(sessionScopeServices);
             GradleLauncher childInstance = createChildInstance(startParameter, parent, buildTreeScopeServices, ImmutableList.of(buildTreeScopeServices, sessionScopeServices, new Stoppable() {
                 @Override

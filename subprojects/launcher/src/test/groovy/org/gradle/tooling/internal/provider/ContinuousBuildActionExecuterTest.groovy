@@ -34,6 +34,7 @@ import org.gradle.internal.filewatch.PendingChangesListener
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.time.Clock
 import org.gradle.internal.time.Time
 import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.launcher.exec.BuildActionParameters
@@ -70,6 +71,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def setup() {
         buildSessionScopeServices.get(ListenerManager) >> listenerManager
         buildSessionScopeServices.get(BuildStartedTime) >> buildExecutionTimer
+        buildSessionScopeServices.get(Clock) >> Time.systemWallClock()
         listenerManager.getBroadcaster(PendingChangesListener) >> pendingChangesListener
         waiterFactory.createChangeWaiter(_, _, _) >> waiter
         buildSessionScopeServices.get(DeploymentRegistryInternal) >> deploymentRegistry
@@ -190,6 +192,6 @@ class ContinuousBuildActionExecuterTest extends Specification {
     }
 
     private ContinuousBuildActionExecuter executer() {
-        new ContinuousBuildActionExecuter(delegate, waiterFactory, inputsListener, new TestStyledTextOutputFactory(), executorFactory, Time.systemWallClock())
+        new ContinuousBuildActionExecuter(delegate, waiterFactory, inputsListener, new TestStyledTextOutputFactory(), executorFactory)
     }
 }

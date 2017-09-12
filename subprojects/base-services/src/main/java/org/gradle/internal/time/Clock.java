@@ -19,7 +19,7 @@ package org.gradle.internal.time;
  * A device for obtaining the current time.
  *
  * @see Time#systemWallClock()
- * @see Time#elapsedTimeClockSync()
+ * @see Time#elapsedTimeClock()
  */
 public interface Clock {
 

@@ -55,8 +55,6 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.time.Clock;
-import org.gradle.internal.time.ClockSync;
 import org.gradle.process.internal.health.memory.DefaultJvmMemoryInfo;
 import org.gradle.process.internal.health.memory.DefaultMemoryManager;
 import org.gradle.process.internal.health.memory.DefaultOsMemoryInfo;
@@ -68,7 +66,6 @@ import org.junit.Test;
 
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
 
 public class GlobalScopeServicesTest {
@@ -189,17 +186,6 @@ public class GlobalScopeServicesTest {
     @Test
     public void providesADocumentationRegistry() throws Exception {
         assertThat(registry().get(DocumentationRegistry.class), instanceOf(DocumentationRegistry.class));
-    }
-
-    @Test
-    public void providesAClock() throws Exception {
-        ServiceRegistry registry = registry();
-        assertThat(registry.get(Clock.class), sameInstance(registry.get(ClockSync.class).getClock()));
-    }
-
-    @Test
-    public void providesAClockSync() throws Exception {
-        assertThat(registry().get(ClockSync.class), notNullValue());
     }
 
     @Test

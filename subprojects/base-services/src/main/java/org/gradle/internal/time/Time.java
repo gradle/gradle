@@ -45,10 +45,10 @@ public abstract class Time {
     }
 
     /**
-     * A clock sync for a clock that is based on elapsed time.
+     * A clock that is based on elapsed time.
      *
      * This clock differs from the system wall clock in that it determines the current time
-     * based on the elapsed “CPU time” since a sync with the system wall clock.
+     * based on the elapsed “CPU time” since construction.
      *
      * This rate of time advancement is determined by {@link System#nanoTime()}.
      * This may, depending on the hardware, move at a slightly different rate than the system wall clock.
@@ -57,10 +57,10 @@ public abstract class Time {
      * This clock may also drift from the system wall clock due to the system wall clock adjustments (e.g. NTP adjustments),
      * or if the machine goes to sleep. In such a case, this clock will stop while the system wall clock marches on.
      *
-     * Between sync points, timestamps are guaranteed to be monotonic.
+     * Timestamps are guaranteed to be monotonic.
      */
-    public static ClockSync elapsedTimeClockSync() {
-        return new DefaultClockSync(TimeSource.SYSTEM);
+    public static Clock elapsedTimeClock() {
+        return new MonotonicElapsedTimeClock(TimeSource.SYSTEM);
     }
 
     public static Timer startTimer() {

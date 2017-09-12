@@ -28,12 +28,13 @@ import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.groovy.scripts.StringScriptSource;
+import org.gradle.initialization.BuildRequestMetaData;
+import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.internal.FileUtils;
-import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -45,6 +46,7 @@ import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 import org.gradle.internal.service.scopes.BuildTreeScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
+import org.gradle.internal.time.Time;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.invocation.DefaultGradle;
 
@@ -84,8 +86,8 @@ public class ProjectBuilderImpl {
         startParameter.setGradleUserHomeDir(userHomeDir);
         NativeServices.initialize(userHomeDir);
 
-        BuildStartedTime buildStartedTime = BuildStartedTime.startingAt(System.currentTimeMillis());
-        BuildSessionScopeServices buildSessionScopeServices = new BuildSessionScopeServices(getUserHomeServices(userHomeDir), startParameter, buildStartedTime, ClassPath.EMPTY);
+        BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.systemWallClock().getCurrentTime());
+        BuildSessionScopeServices buildSessionScopeServices = new BuildSessionScopeServices(getUserHomeServices(userHomeDir), startParameter, buildRequestMetaData, ClassPath.EMPTY);
         BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices(buildSessionScopeServices);
         ServiceRegistry topLevelRegistry = new TestBuildScopeServices(buildTreeScopeServices, homeDir);
         GradleInternal gradle = CLASS_GENERATOR.newInstance(DefaultGradle.class, null, startParameter, topLevelRegistry.get(ServiceRegistryFactory.class));
