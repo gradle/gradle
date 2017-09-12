@@ -97,7 +97,6 @@ class TextResourceIntegrationTest extends AbstractIntegrationSpec {
         given:
         def resourceFile = file("web-file.txt")
         server.expectGet("/myConfig.txt", resourceFile)
-        server.expectHead("/myConfig.txt", resourceFile)
         server.start()
 
         buildFile << """

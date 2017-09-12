@@ -59,6 +59,6 @@ public class DefaultTextResourceFactory implements TextResourceFactory {
 
     @Override
     public TextResource fromUri(URI uri) {
-        return new WrappedInternalTextResource(textResourceLoader.loadUri("textResource", uri), tempFileProvider, uri);
+        return new WrappedInternalTextResource(textResourceLoader, tempFileProvider, uri);
     }
 }

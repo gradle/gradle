@@ -36,7 +36,7 @@ class DefaultTextResourceFactoryTest extends AbstractProjectBuilderSpec {
         def textResource = textResourceFactory.fromUri(new URI("http://www.gradle.org/unknown.txt"))
 
         then:
-        1 * textResourceLoader.loadUri("textResource", new URI("http://www.gradle.org/unknown.txt"))
+        0 * _
 
         expect:
         textResource in WrappedInternalTextResource

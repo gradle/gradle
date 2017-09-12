@@ -19,6 +19,7 @@ package org.gradle.api.internal.resources
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.tasks.TaskDependencies
 import org.gradle.internal.resource.TextResource
+import org.gradle.internal.resource.TextResourceLoader
 import spock.lang.Issue
 
 import java.nio.charset.Charset
@@ -28,18 +29,20 @@ import java.nio.charset.StandardCharsets
 class WrappedInternalTextResourceTest extends AbstractTextResourceTest {
 
     TextResource textResource = Mock(TextResource)
+    TextResourceLoader textResourceLoader = Mock(TextResourceLoader)
 
     def setup() {
         def file = project.file("file.txt")
         file.text = "contents"
 
+        textResourceLoader.loadUri("textResource", new URI("http://www.gradle.org/unknown.txt")) >> textResource
         textResource.getFile() >>> [file, null]
         textResource.getDisplayName() >> "Text resource display name"
         textResource.getText() >>> ["contents", "more contents"]
         textResource.getCharset() >> StandardCharsets.UTF_8
         textResource.getAsReader() >> new InputStreamReader(new FileInputStream(file), Charset.defaultCharset())
 
-        resource = new WrappedInternalTextResource(textResource, project.services.get(TemporaryFileProvider), new URI("http://www.gradle.org/unknown.txt"),)
+        resource = new WrappedInternalTextResource(textResourceLoader, project.services.get(TemporaryFileProvider), new URI("http://www.gradle.org/unknown.txt"),)
     }
 
     def "get display name"() {

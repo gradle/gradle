@@ -20,70 +20,58 @@ import com.google.common.io.Files;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.TaskDependencies;
-import org.gradle.api.resources.ResourceException;
 import org.gradle.api.resources.internal.TextResourceInternal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.TextResource;
+import org.gradle.internal.resource.TextResourceLoader;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.Reader;
+import java.net.URI;
 import java.nio.charset.Charset;
 
 /**
  * A {@link org.gradle.api.resources.TextResource} that has a wrapped {@link TextResource} internaly
  */
 public class WrappedInternalTextResource implements TextResourceInternal {
-    private final Object inputProperties;
-    private final TextResource textResource;
+    private final URI uri;
+    private final TextResourceLoader textResourceLoader;
     private final TemporaryFileProvider tempFileProvider;
+    private TextResource textResource;
 
     /**
      * Create a {@link org.gradle.api.resources.TextResource} backed by an internal {@link TextResource}.
-     *
-     * @param textResource the internal resource
+     * @param textResourceLoader the internal resource
      * @param tempFileProvider the temporary file provider
-     * @param inputProperties the input properties for the resource
+     * @param uri the uri from where to load the file
      */
-    public WrappedInternalTextResource(TextResource textResource, TemporaryFileProvider tempFileProvider, Object inputProperties) {
-        this.inputProperties = inputProperties;
-        this.textResource = textResource;
+    public WrappedInternalTextResource(TextResourceLoader textResourceLoader, TemporaryFileProvider tempFileProvider, URI uri) {
+        this.uri = uri;
+        this.textResourceLoader = textResourceLoader;
         this.tempFileProvider = tempFileProvider;
     }
 
     @Override
     public String asString() {
-        return textResource.getText();
+        return getWrappedTextResource().getText();
     }
 
     @Override
     public Reader asReader() {
-        return textResource.getAsReader();
+        return getWrappedTextResource().getAsReader();
     }
 
     @Override
     public File asFile(String targetCharset) {
         try {
-            Charset targetCharsetObj = Charset.forName(targetCharset);
-
-            File file = textResource.getFile();
+            File file = getWrappedTextResource().getFile();
             if (file == null) {
                 file = tempFileProvider.createTemporaryFile("wrappedInternalText", ".txt", "resource");
-                Files.write(textResource.getText(), file, Charset.forName(targetCharset));
+                Files.write(getWrappedTextResource().getText(), file, Charset.forName(targetCharset));
                 return file;
             }
-            if (targetCharsetObj.equals(textResource.getCharset())) {
-                return file;
-            }
-
-            File targetFile = tempFileProvider.createTemporaryFile("uriTextResource", ".txt", "resource");
-            try {
-                Files.asCharSource(file, textResource.getCharset()).copyTo(Files.asCharSink(targetFile, targetCharsetObj));
-            } catch (IOException e) {
-                throw new ResourceException("Could not write " + getDisplayName() + " content to " + targetFile + ".", e);
-            }
-            return targetFile;
+            return FileResourceHelper.asFile(tempFileProvider, file, targetCharset, getWrappedTextResource().getCharset(), getDisplayName(), "uriTextResource");
         } catch (Exception e) {
             throw ResourceExceptions.readFailed(getDisplayName(), e);
         }
@@ -96,7 +84,7 @@ public class WrappedInternalTextResource implements TextResourceInternal {
 
     @Override
     public Object getInputProperties() {
-        return inputProperties;
+        return uri;
     }
 
     @Override
@@ -111,11 +99,18 @@ public class WrappedInternalTextResource implements TextResourceInternal {
 
     @Override
     public String getDisplayName() {
-        return textResource.getDisplayName();
+        return getWrappedTextResource().getDisplayName();
     }
 
     @Override
     public String toString() {
         return getDisplayName();
+    }
+
+    private TextResource getWrappedTextResource() {
+        if (textResource == null) {
+            textResource = textResourceLoader.loadUri("textResource", uri);
+        }
+        return textResource;
     }
 }
