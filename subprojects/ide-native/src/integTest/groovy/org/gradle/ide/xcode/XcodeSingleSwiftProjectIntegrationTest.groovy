@@ -41,7 +41,7 @@ apply plugin: 'swift-executable'
         then:
         executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
-        def project = xcodeProject("app.xcodeproj").projectFile
+        def project = xcodeProject("${rootProjectName}.xcodeproj").projectFile
         project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
         project.buildConfigurationList.buildConfigurations.name == ["Debug", "Release"]
         project.targets.size() == 2
@@ -98,7 +98,7 @@ apply plugin: 'swift-library'
         then:
         executedAndNotSkipped(":xcodeProject", ":xcodeSchemeAppSharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
 
-        def project = xcodeProject("app.xcodeproj").projectFile
+        def project = xcodeProject("${rootProjectName}.xcodeproj").projectFile
         project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
         project.buildConfigurationList.buildConfigurations.name == ["Debug", "Release"]
         project.targets.size() == 2
@@ -248,7 +248,7 @@ executable.module = 'TestApp'
         then:
         executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
-        def project = xcodeProject("app.xcodeproj").projectFile
+        def project = xcodeProject("${rootProjectName}.xcodeproj").projectFile
         project.targets.size() == 2
         project.targets.every { it.productName == 'App' }
         project.targets[0].name == 'App Executable'
@@ -276,7 +276,7 @@ library.module = 'TestLib'
         then:
         executedAndNotSkipped(":xcodeProject", ":xcodeSchemeAppSharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
 
-        def project = xcodeProject("app.xcodeproj").projectFile
+        def project = xcodeProject("${rootProjectName}.xcodeproj").projectFile
         project.targets.size() == 2
         project.targets.every { it.productName == "App" }
         project.targets[0].name == 'App SharedLibrary'

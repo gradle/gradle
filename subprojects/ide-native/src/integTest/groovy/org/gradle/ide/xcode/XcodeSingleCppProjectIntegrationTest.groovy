@@ -68,7 +68,7 @@ apply plugin: 'cpp-executable'
 
         when:
         def resultDebug = newXcodebuildExecuter()
-            .withProject(file("${rootProjectName}.xcodeproj"))
+            .withProject("${rootProjectName}.xcodeproj")
             .withScheme('App Executable')
             .succeeds()
 
@@ -77,7 +77,7 @@ apply plugin: 'cpp-executable'
 
         when:
         def resultRelease = newXcodebuildExecuter()
-            .withProject(file("${rootProjectName}.xcodeproj"))
+            .withProject("${rootProjectName}.xcodeproj")
             .withScheme('App Executable')
             .withConfiguration('Release')
             .succeeds()
