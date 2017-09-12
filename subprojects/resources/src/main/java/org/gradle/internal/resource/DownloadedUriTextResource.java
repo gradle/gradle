@@ -47,11 +47,6 @@ public class DownloadedUriTextResource extends UriTextResource {
     }
 
     @Override
-    public File getFile() {
-        return downloadedResource;
-    }
-
-    @Override
     public Charset getCharset() {
         String charset = extractCharacterEncoding(contentType, DEFAULT_ENCODING);
         return Charset.isSupported(charset) ? Charset.forName(charset) : Charset.forName(DEFAULT_ENCODING);

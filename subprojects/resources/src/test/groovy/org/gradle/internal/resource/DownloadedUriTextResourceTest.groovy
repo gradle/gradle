@@ -110,13 +110,13 @@ class DownloadedUriTextResourceTest extends Specification {
         underTest.getExists()
     }
 
-    def "should return downloaded file"() {
+    def "should not return downloaded file"() {
         when:
         downloadedFile.text = "Some content"
         underTest = new DownloadedUriTextResource("Test description", sourceUri, "", downloadedFile)
 
         then:
-        underTest.getFile() == downloadedFile
+        underTest.getFile() == null
     }
 
     def "should return charset of content type"() {
@@ -164,6 +164,6 @@ class DownloadedUriTextResourceTest extends Specification {
         then:
         resourceLocation.getDisplayName() == "Test description '$sourceUri'"
         resourceLocation.getURI() == sourceUri
-        resourceLocation.getFile() == downloadedFile
+        resourceLocation.getFile() == null
     }
 }
