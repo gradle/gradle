@@ -42,12 +42,17 @@ int main() {
     def deck = new CppSourceFileElement() {
         final SourceFileElement header = ofFile(sourceFile("public", "deck.h", """
 #include "card.h"
+#ifdef _WIN32
+#define EXPORT_FUNC __declspec(dllexport)
+#else
+#define EXPORT_FUNC
+#endif
 
 class Deck {
     Card card;
 public:
-    virtual void shuffle();
-    virtual Card& draw();
+    void EXPORT_FUNC shuffle();
+    Card& EXPORT_FUNC draw();
 };
 """))
         final SourceFileElement source = ofFile(sourceFile("cpp", "deck.cpp", """
@@ -68,12 +73,17 @@ Card& Deck::draw() {
     def card = new CppSourceFileElement() {
         final SourceFileElement header = ofFile(sourceFile("public", "card.h", """
 #include <string>
+#ifdef _WIN32
+#define EXPORT_FUNC __declspec(dllexport)
+#else
+#define EXPORT_FUNC
+#endif
 
 class Card {
     std::string name;
 public:
     Card();
-    std::string& getName();
+    std::string& EXPORT_FUNC getName();
 };
 """))
         final SourceFileElement source = ofFile(sourceFile("cpp", "card.cpp", """
@@ -92,9 +102,15 @@ Card::getName() {
 
     def shuffle = new CppSourceFileElement() {
         final SourceFileElement header = ofFile(sourceFile("public", "shuffle.h", """
+#ifdef _WIN32
+#define EXPORT_FUNC __declspec(dllexport)
+#else
+#define EXPORT_FUNC
+#endif
+
 class ShuffleAlgorithm {
 public:
-    void shuffle();
+    void EXPORT_FUNC shuffle();
 };
 """))
         final SourceFileElement source = ofFile(sourceFile("cpp", "shuffle.cpp", """
