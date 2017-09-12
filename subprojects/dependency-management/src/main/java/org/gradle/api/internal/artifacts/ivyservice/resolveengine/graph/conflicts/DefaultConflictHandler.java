@@ -54,7 +54,7 @@ public class DefaultConflictHandler implements ConflictHandler {
      * Informs if there are any batched up conflicts.
      */
     public boolean hasConflicts() {
-        return conflicts.getSize() > 0;
+        return conflicts.hasConflicts();
     }
 
     /**
