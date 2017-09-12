@@ -26,6 +26,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.testng.Assert.assertTrue;
+
 public class XcodebuildExecuter {
     private final TestFile baseDir;
     private final List<String> args = new ArrayList<String>();
@@ -84,12 +86,18 @@ public class XcodebuildExecuter {
     }
 
     public ExecutionResult run() {
-        ExecOutput result = new TestFile("/usr/bin/xcodebuild").exec(args.toArray());
+        ExecOutput result = findXcodeBuild().exec(args.toArray());
         return new OutputScrapingExecutionResult(result.getOut(), result.getError());
     }
 
     public ExecutionResult succeeds() {
-        ExecOutput result = new TestFile("/usr/bin/xcodebuild").exec(args.toArray());
+        ExecOutput result = findXcodeBuild().exec(args.toArray());
         return new OutputScrapingExecutionResult(result.getOut(), result.getError());
+    }
+
+    private TestFile findXcodeBuild() {
+        TestFile xcodebuild = new TestFile("/usr/bin/xcodebuild");
+        assertTrue(xcodebuild.exists(), "This test requires xcode to be installed in " + xcodebuild.getAbsolutePath());
+        return xcodebuild;
     }
 }
