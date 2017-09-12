@@ -28,10 +28,8 @@ import java.util.concurrent.atomic.AtomicLong;
  * While System.nanoTime() is usually monotonic it is not actually guaranteed, especially on virtualized hardware.
  *
  * - http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6458294
- *
- * @see Time#systemWallClock()
  */
-public class MonotonicElapsedTimeClock implements Clock {
+class MonotonicElapsedTimeClock implements Clock {
 
     private final TimeSource timeSource;
     private final long startMillis;

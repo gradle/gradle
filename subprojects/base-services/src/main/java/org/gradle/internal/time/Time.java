@@ -18,6 +18,9 @@ package org.gradle.internal.time;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Instruments for observing time.
+ */
 public abstract class Time {
 
     private static final Clock SYSTEM = new Clock() {
@@ -27,12 +30,37 @@ public abstract class Time {
         }
     };
 
-    public static ClockSync elapsedTimeClockSync() {
-        return new DefaultClockSync(TimeSource.SYSTEM);
-    }
-
+    /**
+     * A clock that provides the time based on the system wall clock.
+     *
+     * This is identical to use of {@link System#currentTimeMillis()}.
+     * The time provided is susceptible to time adjustments.
+     * It should not be used for measuring short durations or for assigning
+     * ordering timestamps as it may jump backwards or forwards.
+     *
+     * Use {@link #startTimer()} for measuring durations instead.
+     */
     public static Clock systemWallClock() {
         return SYSTEM;
+    }
+
+    /**
+     * A clock sync for a clock that is based on elapsed time.
+     *
+     * This clock differs from the system wall clock in that it determines the current time
+     * based on the elapsed “CPU time” since a sync with the system wall clock.
+     *
+     * This rate of time advancement is determined by {@link System#nanoTime()}.
+     * This may, depending on the hardware, move at a slightly different rate than the system wall clock.
+     * It has been observed that this clock may drift from the system wall clock by a few milliseconds within 10 minutes.
+     *
+     * This clock may also drift from the system wall clock due to the system wall clock adjustments (e.g. NTP adjustments),
+     * or if the machine goes to sleep. In such a case, this clock will stop while the system wall clock marches on.
+     *
+     * Between sync points, timestamps are guaranteed to be monotonic.
+     */
+    public static ClockSync elapsedTimeClockSync() {
+        return new DefaultClockSync(TimeSource.SYSTEM);
     }
 
     public static Timer startTimer() {
