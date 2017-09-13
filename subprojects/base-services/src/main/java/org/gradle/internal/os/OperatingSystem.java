@@ -119,6 +119,8 @@ public abstract class OperatingSystem {
 
     public abstract String getLinkLibrarySuffix();
 
+    public abstract String getLinkLibraryName(String libraryPath);
+
     @UsedByScanPlugin
     public abstract String getFamilyName();
 
@@ -212,13 +214,18 @@ public abstract class OperatingSystem {
         }
 
         @Override
+        public String getSharedLibraryName(String libraryPath) {
+            return withSuffix(libraryPath, ".dll");
+        }
+
+        @Override
         public String getLinkLibrarySuffix() {
             return ".lib";
         }
 
         @Override
-        public String getSharedLibraryName(String libraryPath) {
-            return withSuffix(libraryPath, ".dll");
+        public String getLinkLibraryName(String libraryPath) {
+            return withSuffix(libraryPath, ".lib");
         }
 
         @Override
@@ -315,6 +322,11 @@ public abstract class OperatingSystem {
         @Override
         public String getLinkLibrarySuffix() {
             return getSharedLibrarySuffix();
+        }
+
+        @Override
+        public String getLinkLibraryName(String libraryPath) {
+            return getSharedLibraryName(libraryPath);
         }
 
         @Override

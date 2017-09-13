@@ -16,14 +16,14 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.AbstractNativePublishingIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.junit.Assume
 
-class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class CppLibraryPublishingIntegrationTest extends AbstractNativePublishingIntegrationSpec {
     def setup() {
         // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
         Assume.assumeTrue(toolChain.id != "mingw" && toolChain.id != "gcccygwin")
@@ -156,5 +156,8 @@ class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainInte
         then:
         noExceptionThrown()
         installation(consumer.file("build/install/main/debug")).exec().out == app.expectedOutput
+        sharedLibrary(consumer.file("build/install/main/debug/lib/deck")).file.assertExists()
+        sharedLibrary(consumer.file("build/install/main/debug/lib/card")).file.assertExists()
+        sharedLibrary(consumer.file("build/install/main/debug/lib/shuffle")).file.assertExists()
     }
 }

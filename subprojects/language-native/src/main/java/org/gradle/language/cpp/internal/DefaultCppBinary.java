@@ -22,13 +22,13 @@ import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencyResolveDetails;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.file.FileOperations;
@@ -89,7 +89,7 @@ public class DefaultCppBinary implements CppBinary {
 
         includePath = componentHeaderDirs.plus(new FileCollectionAdapter(new IncludePath(includePathConfig, configurations)));
         linkLibraries = new FileCollectionAdapter(new LinkLibs(nativeLink, configurations));
-        runtimeLibraries = nativeRuntime;
+        runtimeLibraries = new FileCollectionAdapter(new RuntimeLibs(nativeRuntime, configurations));
     }
 
     @Inject
@@ -99,6 +99,11 @@ public class DefaultCppBinary implements CppBinary {
 
     @Inject
     protected TemporaryFileProvider getTemporaryFileProvider() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected NativeDependencyCache getNativeDependencyCache() {
         throw new UnsupportedOperationException();
     }
 
@@ -156,6 +161,7 @@ public class DefaultCppBinary implements CppBinary {
         public Set<File> getFiles() {
             if (result == null) {
                 // All this is intended to go away as more Gradle-specific metadata is included in the publications and the dependency resolution engine can just figure this stuff out for us
+                // This is intentionally dumb and will improve later
 
                 // Collect up the external components in the result to resolve again to get the header zip artifact
                 includePathConfig.getResolvedConfiguration().rethrowFailure();
@@ -181,27 +187,15 @@ public class DefaultCppBinary implements CppBinary {
                     }
                 }
 
-                // This is intentionally dumb and will improve later
-                // Download and unzip the header zip artifacts for external components. The unzipping is done on _each_ resolve.
-                // Also the files of the result are not ordered as they would be if the original configuration is resolved
+                // Download and unzip the header zips
+                // The files of the result are not ordered as they would be if the original configuration is resolved
                 if (!externalDependencies.isEmpty()) {
-                    TemporaryFileProvider temporaryFileProvider = getTemporaryFileProvider();
-                    FileOperations fileOperations = getFileOperations();
-
+                    NativeDependencyCache cache = getNativeDependencyCache();
                     Configuration mappedConfiguration = configurationContainer.detachedConfiguration(externalDependencies.toArray(new Dependency[0]));
                     Set<File> headerZips = mappedConfiguration.getFiles();
-                    for (final File zip : headerZips) {
-                        final File tmpDir = temporaryFileProvider.createTemporaryDirectory("gradle-cpp-headers", null);
-                        final FileTree zipTree = fileOperations.zipTree(zip);
-                        final File unzipDir = new File(tmpDir, zip.getName());
-                        fileOperations.copy(new Action<CopySpec>() {
-                            @Override
-                            public void execute(CopySpec copySpec) {
-                                copySpec.from(zipTree);
-                                copySpec.into(unzipDir);
-                            }
-                        });
-                        files.add(unzipDir);
+                    for (File zip : headerZips) {
+                        File headerDir = cache.getUnpackedHeaders(zip);
+                        files.add(headerDir);
                     }
                 }
                 result = files;
@@ -210,24 +204,21 @@ public class DefaultCppBinary implements CppBinary {
         }
     }
 
-    private class LinkLibs implements MinimalFileSet, Buildable {
-        private final Configuration nativeLink;
+    private abstract class Libs implements MinimalFileSet, Buildable {
         private final ConfigurationContainer configurations;
+        private final Configuration configuration;
+        private final String libExtension;
         private Set<File> result;
 
-        LinkLibs(Configuration nativeLink, ConfigurationContainer configurations) {
-            this.nativeLink = nativeLink;
+        Libs(Configuration configuration, ConfigurationContainer configurations, String libExtension) {
+            this.configuration = configuration;
             this.configurations = configurations;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "Link libraries for " + DefaultCppBinary.this.toString();
+            this.libExtension = libExtension;
         }
 
         @Override
         public TaskDependency getBuildDependencies() {
-            return nativeLink.getBuildDependencies();
+            return configuration.getBuildDependencies();
         }
 
         @Override
@@ -235,12 +226,11 @@ public class DefaultCppBinary implements CppBinary {
             if (result == null) {
                 // All this is intended to go away as more Gradle-specific metadata is included in the publications and the dependency resolution engine can just figure this stuff out for us
 
-                // Collect up the external components in the result to resolve again to get the header zip artifact
-                nativeLink.getResolvedConfiguration().rethrowFailure();
-                Set<ResolvedComponentResult> components = nativeLink.getIncoming().getResolutionResult().getAllComponents();
+                // Collect up the external components in the result to resolve again to get the link artifact
+                configuration.getResolvedConfiguration().rethrowFailure();
+                Set<ResolvedComponentResult> components = configuration.getIncoming().getResolutionResult().getAllComponents();
                 Set<ModuleComponentIdentifier> externalComponents = new HashSet<ModuleComponentIdentifier>(components.size());
                 List<Dependency> externalDependencies = new ArrayList<Dependency>(components.size());
-                String linkLibExtension = OperatingSystem.current().getLinkLibrarySuffix().substring(1);
                 for (ResolvedComponentResult component : components) {
                     if (component.getId() instanceof ModuleComponentIdentifier) {
                         ModuleComponentIdentifier id = (ModuleComponentIdentifier) component.getId();
@@ -249,13 +239,13 @@ public class DefaultCppBinary implements CppBinary {
                         String module = id.getModule() + "_debug";
                         // TODO - use naming scheme for target platform
                         DefaultExternalModuleDependency mappedDependency = new DefaultExternalModuleDependency(id.getGroup(), module, id.getVersion());
-                        mappedDependency.addArtifact(new DefaultDependencyArtifact(module, linkLibExtension, linkLibExtension, null, null));
+                        mappedDependency.addArtifact(new DefaultDependencyArtifact(module, libExtension, libExtension, null, null));
                         externalDependencies.add(mappedDependency);
                     }
                 }
 
                 // Collect the files from anything other than an external component, use these directly in the result
-                ArtifactCollection artifacts = nativeLink.getIncoming().getArtifacts();
+                ArtifactCollection artifacts = configuration.getIncoming().getArtifacts();
                 Set<File> files = new LinkedHashSet<File>();
                 for (ResolvedArtifactResult artifact : artifacts) {
                     if (!externalComponents.contains(artifact.getId().getComponentIdentifier())) {
@@ -268,12 +258,66 @@ public class DefaultCppBinary implements CppBinary {
                 // The files of the result are not ordered as they would be if the original configuration is resolved
                 if (!externalDependencies.isEmpty()) {
                     Configuration mappedConfiguration = configurations.detachedConfiguration(externalDependencies.toArray(new Dependency[0]));
-                    files.addAll(mappedConfiguration.getFiles());
+                    // Redirect transitive runtime dependencies
+                    mappedConfiguration.getResolutionStrategy().eachDependency(new Action<DependencyResolveDetails>() {
+                        @Override
+                        public void execute(DependencyResolveDetails details) {
+                            ModuleVersionSelector requested = details.getRequested();
+                            if (!requested.getName().endsWith("_debug")) {
+                                details.useTarget(requested.getGroup() + ":" + requested.getName() + "_debug:" + requested.getVersion());
+                            }
+                        }
+                    });
+                    // Rename the downloaded file to the expected name for the binary
+                    for (ResolvedArtifactResult artifact : mappedConfiguration.getIncoming().getArtifacts().getArtifacts()) {
+                        ModuleComponentIdentifier id = (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
+                        String originalModuleName = id.getModule().substring(0, id.getModule().length() - "_debug".length());
+                        String libName = getLibraryName(originalModuleName);
+                        files.add(getNativeDependencyCache().getBinary(artifact.getFile(), libName));
+                    }
                 }
 
                 result = files;
             }
             return result;
+        }
+
+        protected abstract String getLibraryName(String baseName);
+    }
+
+    private class LinkLibs extends Libs {
+        LinkLibs(Configuration configuration, ConfigurationContainer configurations) {
+            // TODO - use naming scheme for target platform
+            super(configuration, configurations, OperatingSystem.current().getLinkLibrarySuffix().substring(1));
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "Link libraries for " + DefaultCppBinary.this.toString();
+        }
+
+        @Override
+        protected String getLibraryName(String baseName) {
+            // TODO - use naming scheme for target platform
+            return OperatingSystem.current().getLinkLibraryName(baseName);
+        }
+    }
+
+    private class RuntimeLibs extends Libs {
+        RuntimeLibs(Configuration configuration, ConfigurationContainer configurations) {
+            // TODO - use naming scheme for target platform
+            super(configuration, configurations, OperatingSystem.current().getSharedLibrarySuffix().substring(1));
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "Runtime libraries for " + DefaultCppBinary.this.toString();
+        }
+
+        @Override
+        protected String getLibraryName(String baseName) {
+            // TODO - use naming scheme for target platform
+            return OperatingSystem.current().getSharedLibraryName(baseName);
         }
     }
 }

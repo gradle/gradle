@@ -110,6 +110,8 @@ class OperatingSystemTest extends Specification {
         os.getSharedLibraryName("a.lib") == "a.dll"
         os.getSharedLibraryName("a.b/c") == "a.b/c.dll"
         os.getSharedLibraryName("a.b\\c") == "a.b\\c.dll"
+        os.getLinkLibraryName("a") == "a.lib"
+        os.getLinkLibraryName("a.lib") == "a.lib"
     }
 
     def "windows transforms static library names"() {
@@ -242,6 +244,7 @@ class OperatingSystemTest extends Specification {
         os.getSharedLibraryName("lib1") == "liblib1.so"
         os.getSharedLibraryName("path/liba.so") == "path/liba.so"
         os.getSharedLibraryName("path/a") == "path/liba.so"
+        os.getLinkLibraryName("a") == "liba.so"
     }
 
     def "UNIX transforms static library names"() {
@@ -315,6 +318,7 @@ class OperatingSystemTest extends Specification {
         os.getSharedLibraryName("lib1") == "liblib1.dylib"
         os.getSharedLibraryName("path/liba.dylib") == "path/liba.dylib"
         os.getSharedLibraryName("path/a") == "path/liba.dylib"
+        os.getLinkLibraryName("a") == "liba.dylib"
     }
 
     private static boolean resetOperatingSystemClassStaticFields() {

@@ -47,6 +47,6 @@ class DefaultCppBinaryTest extends Specification {
         expect:
         binary.compileIncludePath == headerDirs
         binary.linkLibraries
-        binary.runtimeLibraries == runtime
+        binary.runtimeLibraries
     }
 }
