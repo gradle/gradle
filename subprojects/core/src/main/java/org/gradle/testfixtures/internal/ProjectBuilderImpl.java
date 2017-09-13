@@ -86,7 +86,7 @@ public class ProjectBuilderImpl {
         startParameter.setGradleUserHomeDir(userHomeDir);
         NativeServices.initialize(userHomeDir);
 
-        BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.clock().getCurrentTime());
+        BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
         BuildSessionScopeServices buildSessionScopeServices = new BuildSessionScopeServices(getUserHomeServices(userHomeDir), startParameter, buildRequestMetaData, ClassPath.EMPTY);
         BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices(buildSessionScopeServices);
         ServiceRegistry topLevelRegistry = new TestBuildScopeServices(buildTreeScopeServices, homeDir);

@@ -212,7 +212,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         @Override
         public BuildController nestedBuildController(StartParameter startParameter) {
             final ServiceRegistry userHomeServices = userHomeDirServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
-            BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.clock().getCurrentTime());
+            BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
             BuildSessionScopeServices sessionScopeServices = new BuildSessionScopeServices(userHomeServices, startParameter, buildRequestMetaData, ClassPath.EMPTY);
             BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices(sessionScopeServices);
             GradleLauncher childInstance = createChildInstance(startParameter, parent, buildTreeScopeServices, ImmutableList.of(buildTreeScopeServices, sessionScopeServices, new Stoppable() {
