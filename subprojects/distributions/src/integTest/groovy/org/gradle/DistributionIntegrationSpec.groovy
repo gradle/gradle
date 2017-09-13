@@ -38,7 +38,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
     abstract String getDistributionLabel()
 
     int getLibJarsCount() {
-        175
+        177
     }
 
     def "no duplicate entries"() {
@@ -121,6 +121,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
         // Plugins
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-dependency-management-${baseVersion}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-version-control-${baseVersion}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-plugins-${baseVersion}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-ide-${baseVersion}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-scala-${baseVersion}.jar"))
