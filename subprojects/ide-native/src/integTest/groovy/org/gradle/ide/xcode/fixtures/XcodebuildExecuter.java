@@ -17,7 +17,9 @@
 package org.gradle.ide.xcode.fixtures;
 
 import com.google.common.collect.Lists;
+import org.gradle.integtests.fixtures.executer.ExecutionFailure;
 import org.gradle.integtests.fixtures.executer.ExecutionResult;
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure;
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult;
 import org.gradle.test.fixtures.file.ExecOutput;
 import org.gradle.test.fixtures.file.TestFile;
@@ -80,19 +82,16 @@ public class XcodebuildExecuter {
         return this;
     }
 
-    public ExecutionResult run(String action) {
-        args.add(action);
-        return run();
-    }
-
-    public ExecutionResult run() {
-        ExecOutput result = findXcodeBuild().exec(args.toArray());
-        return new OutputScrapingExecutionResult(result.getOut(), result.getError());
-    }
-
     public ExecutionResult succeeds() {
         ExecOutput result = findXcodeBuild().exec(args.toArray());
         return new OutputScrapingExecutionResult(result.getOut(), result.getError());
+    }
+
+    public ExecutionFailure fails() {
+        ExecOutput result = findXcodeBuild().execWithFailure(args.toArray());
+        // stderr of Gradle is redirected to stdout of xcodebuild tool. To work around, we consider xcodebuild stdout and stderr as
+        // the error output only if xcodebuild failed most likely due to Gradle.
+        return new OutputScrapingExecutionFailure(result.getOut(), result.getOut() + "\n" + result.getError());
     }
 
     private TestFile findXcodeBuild() {

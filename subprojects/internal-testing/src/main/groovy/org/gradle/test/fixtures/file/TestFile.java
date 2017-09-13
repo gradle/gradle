@@ -708,11 +708,15 @@ public class TestFile extends File {
     }
 
     public ExecOutput exec(Object... args) {
-        return new TestFileHelper(this).execute(Arrays.asList(args), null);
+        return new TestFileHelper(this).executeSuccess(Arrays.asList(args), null);
+    }
+
+    public ExecOutput execWithFailure(Object... args) {
+        return new TestFileHelper(this).executeFailure(Arrays.asList(args), null);
     }
 
     public ExecOutput execute(List args, List env) {
-        return new TestFileHelper(this).execute(args, env);
+        return new TestFileHelper(this).executeSuccess(args, env);
     }
 
     /**
