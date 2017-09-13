@@ -29,12 +29,13 @@ public class ResolvedTaskOutputFilePropertySpec extends AbstractTaskOutputProper
     private final File outputFile;
     private final String propertyName;
 
-    public ResolvedTaskOutputFilePropertySpec(String propertyName, OutputType outputType, File outputFile) {
+    public ResolvedTaskOutputFilePropertySpec(String propertyName, OutputType outputType, @Nullable File outputFile) {
         this.propertyName = propertyName;
         this.outputType = outputType;
         this.outputFile = outputFile;
     }
 
+    @Override
     public String getPropertyName() {
         return propertyName;
     }

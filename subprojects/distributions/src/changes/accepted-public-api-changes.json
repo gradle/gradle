@@ -142,6 +142,11 @@
             "type": "org.gradle.api.tasks.TaskInputFilePropertyBuilder",
             "member": "Implemented interface org.gradle.api.tasks.TaskPropertyBuilder",
             "acceptation": "Introduced a property builder for non-file task input properties"
+        },
+        {
+            "type": "org.gradle.api.specs.AndSpec",
+            "member": "Method org.gradle.api.specs.AndSpec.and(org.gradle.api.specs.Spec)",
+            "acceptation": "Added overload to help with generics"
         }
     ]
 }

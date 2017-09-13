@@ -21,6 +21,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.DeprecationLogger;
 
+import javax.annotation.Nonnull;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -32,6 +33,7 @@ public class TaskPropertyInfo implements Comparable<TaskPropertyInfo> {
         }
     };
     private static final TaskPropertyValue NO_OP_VALUE = new TaskPropertyValue() {
+        @Override
         public Object getValue() {
             return null;
         }
@@ -42,7 +44,9 @@ public class TaskPropertyInfo implements Comparable<TaskPropertyInfo> {
         public void checkValid(Collection<String> messages) {
         }
     };
+
     private static final UpdateAction NO_OP_CONFIGURATION_ACTION = new UpdateAction() {
+        @Override
         public void update(TaskInternal task, Callable<Object> futureValue) {
         }
     };
@@ -123,7 +127,7 @@ public class TaskPropertyInfo implements Comparable<TaskPropertyInfo> {
     }
 
     @Override
-    public int compareTo(TaskPropertyInfo o) {
+    public int compareTo(@Nonnull TaskPropertyInfo o) {
         return propertyName.compareTo(o.getName());
     }
 }

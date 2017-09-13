@@ -48,6 +48,7 @@ public interface TaskInternal extends Task, Configurable<Task> {
     void execute();
 
     @Internal
+    @SuppressWarnings("deprecation")
     StandardOutputCapture getStandardOutputCapture();
 
     @Internal

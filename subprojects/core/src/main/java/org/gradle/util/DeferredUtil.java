@@ -30,7 +30,7 @@ public class DeferredUtil {
      * until it's resolved to null or something other than a Callable or Factory.
      */
     @Nullable
-    public static Object unpack(Object path) {
+    public static Object unpack(@Nullable Object path) {
         Object current = path;
         while (current != null) {
             if (current instanceof Callable) {

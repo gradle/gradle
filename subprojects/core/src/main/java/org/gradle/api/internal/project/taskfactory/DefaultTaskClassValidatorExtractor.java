@@ -45,6 +45,7 @@ import org.gradle.internal.reflect.GroovyMethods;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.Types;
 
+import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -61,6 +62,7 @@ import java.util.Set;
 
 public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExtractor {
     // Avoid reflecting on classes we know we don't need to look at
+    @SuppressWarnings("RedundantTypeArguments")
     private static final Collection<Class<?>> IGNORED_SUPER_CLASSES = ImmutableSet.<Class<?>>of(
         ConventionTask.class, DefaultTask.class, AbstractTask.class, Task.class, Object.class, GroovyObject.class
     );
@@ -330,7 +332,7 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
         }
 
         @Override
-        public int compareTo(Getter o) {
+        public int compareTo(@Nonnull Getter o) {
             // Sort "is"-getters before "get"-getters when both are available
             return method.getName().compareTo(o.method.getName());
         }

@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import groovy.lang.GString;
 import org.gradle.api.Describable;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
@@ -29,6 +30,7 @@ import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 import org.gradle.api.tasks.TaskInputs;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +39,7 @@ import java.util.concurrent.Callable;
 import static org.gradle.api.internal.tasks.TaskPropertyUtils.ensurePropertiesHaveNames;
 import static org.gradle.util.GUtil.uncheckedCall;
 
+@NonNullApi
 public class DefaultTaskInputs implements TaskInputsInternal {
     private final FileCollection allInputFiles;
     private final FileCollection allSourceFiles;
@@ -140,7 +143,8 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return actualProperties;
     }
 
-    private Object prepareValue(Object value) {
+    @Nullable
+    private Object prepareValue(@Nullable Object value) {
         while (true) {
             if (value instanceof Callable) {
                 Callable callable = (Callable) value;
@@ -154,11 +158,12 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
     }
 
-    private static Object avoidGString(Object value) {
+    @Nullable
+    private static Object avoidGString(@Nullable Object value) {
         return (value instanceof GString) ? value.toString() : value;
     }
 
-    public TaskInputPropertyBuilder property(final String name, final Object value) {
+    public TaskInputPropertyBuilder property(final String name, @Nullable final Object value) {
         return taskMutator.mutate("TaskInputs.property(String, Object)", new Callable<TaskInputPropertyBuilder>() {
             @Override
             public TaskInputPropertyBuilder call() throws Exception {
@@ -197,7 +202,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         private final DeclaredTaskInputProperty propertySpec;
         private Object value;
 
-        public PropertyValue(DeclaredTaskInputProperty propertySpec, Object value) {
+        public PropertyValue(DeclaredTaskInputProperty propertySpec, @Nullable Object value) {
             this.propertySpec = propertySpec;
             this.value = value;
         }
@@ -206,11 +211,12 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             return propertySpec;
         }
 
+        @Nullable
         public Object getValue() {
             return value;
         }
 
-        public void setValue(Object value) {
+        public void setValue(@Nullable Object value) {
             this.value = value;
         }
     }

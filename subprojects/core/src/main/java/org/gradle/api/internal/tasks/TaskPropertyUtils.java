@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.TaskFilePropertyBuilder;
 import org.gradle.internal.Cast;
 
@@ -25,6 +26,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.SortedSet;
 
+@NonNullApi
 public class TaskPropertyUtils {
 
     // Note: sorted set used to keep order of properties consistent

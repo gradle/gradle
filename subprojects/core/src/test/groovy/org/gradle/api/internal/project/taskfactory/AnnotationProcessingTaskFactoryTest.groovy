@@ -665,8 +665,9 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         return task
     }
 
-    private static validateException(TaskInternal task, TaskValidationException exception, String... causes) {
+    private static void validateException(TaskInternal task, TaskValidationException exception, String... causes) {
         def expectedMessage = causes.length > 1 ? "Some problems were found with the configuration of $task" : "A problem was found with the configuration of $task"
-        exception.message.contains(expectedMessage) && exception.causes.collect({ it.message }) as Set == causes as Set
+        assert exception.message.contains(expectedMessage)
+        assert exception.causes.collect({ it.message }) as Set == causes as Set
     }
 }

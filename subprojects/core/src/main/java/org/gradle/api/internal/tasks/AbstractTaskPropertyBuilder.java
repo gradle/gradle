@@ -16,16 +16,21 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.TaskPropertyBuilder;
 
+import javax.annotation.Nullable;
+
+@NonNullApi
 abstract class AbstractTaskPropertyBuilder implements TaskPropertyBuilder {
     private String propertyName;
 
+    @Nullable
     public String getPropertyName() {
         return propertyName;
     }
 
-    protected void setPropertyName(String propertyName) {
+    protected void setPropertyName(@Nullable String propertyName) {
         if (propertyName != null) {
             if (propertyName.length() == 0) {
                 throw new IllegalArgumentException("Property name must not be empty string");
@@ -50,7 +55,7 @@ abstract class AbstractTaskPropertyBuilder implements TaskPropertyBuilder {
         setPropertyNameWithoutValidation(propertyName);
     }
 
-    protected void setPropertyNameWithoutValidation(String propertyName) {
+    protected void setPropertyNameWithoutValidation(@Nullable String propertyName) {
         this.propertyName = propertyName;
     }
 

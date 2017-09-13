@@ -23,6 +23,7 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Describable;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.OverlappingOutputs;
@@ -38,6 +39,7 @@ import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -47,6 +49,7 @@ import java.util.concurrent.Callable;
 
 import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.*;
 
+@NonNullApi
 public class DefaultTaskOutputs implements TaskOutputsInternal {
     private static final TaskOutputCachingState ENABLED = DefaultTaskOutputCachingState.enabled();
     public static final TaskOutputCachingState DISABLED = DefaultTaskOutputCachingState.disabled(BUILD_CACHE_DISABLED, "Task output caching is disabled");
@@ -143,6 +146,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return ENABLED;
     }
 
+    @Nullable
     private OverlappingOutputs getOverlappingOutputs() {
         return history != null ? history.getOverlappingOutputs() : null;
     }
@@ -191,7 +195,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             TaskPropertyUtils.ensurePropertiesHaveNames(filePropertiesInternal);
             Iterator<TaskOutputFilePropertySpec> flattenedProperties = Iterators.concat(Iterables.transform(filePropertiesInternal, new Function<TaskPropertySpec, Iterator<? extends TaskOutputFilePropertySpec>>() {
                 @Override
-                public Iterator<? extends TaskOutputFilePropertySpec> apply(TaskPropertySpec propertySpec) {
+                public Iterator<? extends TaskOutputFilePropertySpec> apply(@Nullable TaskPropertySpec propertySpec) {
                     if (propertySpec instanceof CompositeTaskOutputPropertySpec) {
                         return ((CompositeTaskOutputPropertySpec) propertySpec).resolveToOutputProperties();
                     } else {
