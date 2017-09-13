@@ -19,10 +19,13 @@ package org.gradle.tooling.internal.consumer.connection;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.UnsupportedVersionException;
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.build.VersionOnlyBuildEnvironment;
 import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
+import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.internal.Exceptions;
 import org.gradle.util.GradleVersion;
 
@@ -40,20 +43,23 @@ public class VersionControlConsumerConnection implements ConsumerConnection {
     private final boolean deprecated;
     private final boolean unsupported;
 
+    private final ProtocolToModelAdapter adapter;
+
     public VersionControlConsumerConnection(ConsumerConnection delegate, VersionDetails versionDetails) {
-        this(delegate, versionDetails.getVersion(), delegate.getDisplayName());
+        this(delegate, null, versionDetails.getVersion(), delegate.getDisplayName());
     }
 
-    public VersionControlConsumerConnection(ConnectionVersion4 delegate) {
-        this(null, delegate.getMetaData().getVersion(), delegate.getMetaData().getDisplayName());
+    public VersionControlConsumerConnection(ConnectionVersion4 delegate, ProtocolToModelAdapter adapter) {
+        this(null, adapter, delegate.getMetaData().getVersion(), delegate.getMetaData().getDisplayName());
     }
 
-    private VersionControlConsumerConnection(ConsumerConnection connection, String providerVersion, String displayName) {
+    private VersionControlConsumerConnection(ConsumerConnection connection, ProtocolToModelAdapter adapter, String providerVersion, String displayName) {
         this.delegate = connection;
         this.providerVersion = GradleVersion.version(providerVersion);
         this.unsupported = this.providerVersion.compareTo(MIN_PROVIDER_VERSION) < 0;
         this.deprecated = this.providerVersion.compareTo(MIN_LTS_PROVIDER_VERSION) < 0;
         this.displayName = displayName;
+        this.adapter = adapter;
     }
 
 
@@ -71,6 +77,9 @@ public class VersionControlConsumerConnection implements ConsumerConnection {
 
     @Override
     public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+        if (adapter != null && type.equals(BuildEnvironment.class)) {
+            return adapter.adapt(type, doGetBuildEnvironment());
+        }
         checkVersion(new UnsupportedVersionException(String.format(UNSUPPORTED_RUN_MESSAGE, providerVersion.getVersion())));
         checkDeprecation(operationParameters);
         return delegate.run(type, operationParameters);
@@ -88,6 +97,10 @@ public class VersionControlConsumerConnection implements ConsumerConnection {
         checkVersion(Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), providerVersion.getVersion(), "2.6"));
         checkDeprecation(operationParameters);
         delegate.runTests(testExecutionRequest, operationParameters);
+    }
+
+    private Object doGetBuildEnvironment() {
+        return new VersionOnlyBuildEnvironment(providerVersion.getVersion());
     }
 
     private void checkVersion(RuntimeException exception) {

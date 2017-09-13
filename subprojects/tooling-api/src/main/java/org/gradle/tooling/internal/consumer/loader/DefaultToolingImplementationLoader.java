@@ -98,7 +98,7 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
             } else if (connection instanceof BuildActionRunner) {
                 adaptedConnection = new BuildActionRunnerBackedConsumerConnection(connection, modelMapping, adapter);
             } else {
-                return new VersionControlConsumerConnection(connection);
+                return new VersionControlConsumerConnection(connection, adapter);
             }
             adaptedConnection.configure(connectionParameters);
 
