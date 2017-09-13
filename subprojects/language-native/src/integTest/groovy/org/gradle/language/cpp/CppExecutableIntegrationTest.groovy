@@ -282,7 +282,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
                 apply plugin: 'cpp-library'
             }
 """
-        app.greeterLib.writeToProject(file("hello"))
+        app.greeter.writeToProject(file("hello"))
         app.main.writeToProject(file("app"))
 
         expect:

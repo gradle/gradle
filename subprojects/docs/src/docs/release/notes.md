@@ -19,6 +19,21 @@ TBD: `ListProperty<T>`
 TBD: `Provider.map()`
 TBD: `PropertyState<Directory>` and `PropertyState<RegularFile>` can be set using `File` in DSL.
 
+### Directories are created for task outputs declared via the runtime API
+
+For task outputs declared via annotations like `@OutputDirectory` and `@OutputFile`, Gradle always ensured that the necessary directory exists before executing the task. Starting with version 4.3 Gradle will also create directories for outputs that were registered via the runtime API (e.g. by calling methods like `task.outputs.file()` and `dir()`).
+
+```
+task customTask {
+    inputs.file "input.txt"
+    outputs.file "output-dir/output.txt"
+    doLast {
+        mkdir "output-dir" // <-- This is now unnecessary
+        file("output-dir/output.txt") << file("input.txt")
+    }
+}
+```
+
 <!--
 ### Example new and noteworthy
 -->

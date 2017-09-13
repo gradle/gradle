@@ -19,9 +19,6 @@ package org.gradle.api.internal.tasks;
 import java.io.File;
 import java.util.Collection;
 
-import static org.gradle.internal.FileUtils.canonicalize;
-import static org.gradle.util.GFileUtils.mkdirs;
-
 public class TaskOutputsUtil {
     public static void validateFile(String propertyName, File file, Collection<String> messages) {
         if (file.exists()) {
@@ -52,13 +49,5 @@ public class TaskOutputsUtil {
                 }
             }
         }
-    }
-
-    public static void ensureDirectoryExists(File directory) {
-        mkdirs(canonicalize(directory));
-    }
-
-    public static void ensureParentDirectoryExists(File file) {
-        mkdirs(canonicalize(file).getParentFile());
     }
 }

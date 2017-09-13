@@ -18,4 +18,8 @@ package org.gradle.api.internal.artifacts.configurations;
 /**
  * The conflict resolution
  */
-public interface ConflictResolution {}
+public enum ConflictResolution {
+    strict,
+    latest,
+    preferProjectModules
+}

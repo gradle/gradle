@@ -26,7 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionC
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.resolve.result.BuildableComponentSelectionResult;
+import org.gradle.internal.resolve.result.ComponentSelectionContext;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.rules.SpecRuleAction;
 import org.gradle.util.CollectionUtils;
@@ -68,18 +68,18 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         return componentResolveMetadata.isGenerated();
     }
 
-    public void selectNewestMatchingComponent(Collection<? extends ModuleComponentResolveState> versions, BuildableComponentSelectionResult result, ModuleVersionSelector requested) {
-        VersionSelector requestedVersion = versionSelectorScheme.parseSelector(requested.getVersion());
+    public void selectNewestMatchingComponent(Collection<? extends ModuleComponentResolveState> versions, ComponentSelectionContext result, ModuleVersionSelector requested) {
+        VersionSelector requestedVersionMatcher = versionSelectorScheme.parseSelector(requested.getVersion());
         Collection<SpecRuleAction<? super ComponentSelection>> rules = componentSelectionRules.getRules();
 
         for (ModuleComponentResolveState candidate : sortLatestFirst(versions)) {
             MetadataProvider metadataProvider = createMetadataProvider(candidate);
 
-            boolean versionMatches = versionMatches(requestedVersion, candidate, metadataProvider);
-            if (!metadataProvider.isUsable()) {
-                applyTo(metadataProvider, result);
+            boolean versionMatches = versionMatches(requestedVersionMatcher, candidate, metadataProvider);
+            if (metadataIsNotUsable(result, metadataProvider)) {
                 return;
             }
+
             String version = candidate.getVersion().getSource();
             if (!versionMatches) {
                 result.notMatched(version);
@@ -87,32 +87,44 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
             }
 
             ModuleComponentIdentifier candidateIdentifier = candidate.getId();
-            boolean accepted = !isRejectedByRules(candidateIdentifier, rules, metadataProvider);
-            if (!metadataProvider.isUsable()) {
-                applyTo(metadataProvider, result);
-                return;
-            }
-
-            if (accepted) {
+            if (!isRejectedByRules(candidateIdentifier, rules, metadataProvider)) {
                 result.matches(candidateIdentifier);
                 return;
             }
 
+            // Mark this version as rejected
             result.rejected(version);
-            if (requestedVersion.matchesUniqueVersion()) {
-                // Only consider one candidate
+            if (requestedVersionMatcher.matchesUniqueVersion()) {
+                // Only consider one candidate, because matchesUniqueVersion means that there's no ambiguity on the version number
                 break;
             }
         }
-
+        // if we reach this point, no match was found, either because there are no versions matching the selector
+        // or all of them were rejected
         result.noMatchFound();
     }
 
-    protected MetadataProvider createMetadataProvider(ModuleComponentResolveState candidate) {
+    /**
+     * This method checks if the metadata provider already knows that metadata for this version is not usable.
+     * If that's the case it means it's not necessary to perform more checks for this version, because we already
+     * know it's broken in some way.
+     * @param result where to notify that metadata is broken, if broken
+     * @param metadataProvider the metadata provider
+     * @return true if metadata is not usable
+     */
+    private boolean metadataIsNotUsable(ComponentSelectionContext result, MetadataProvider metadataProvider) {
+        if (!metadataProvider.isUsable()) {
+            applyTo(metadataProvider, result);
+            return true;
+        }
+        return false;
+    }
+
+    private static MetadataProvider createMetadataProvider(ModuleComponentResolveState candidate) {
         return new MetadataProvider(candidate);
     }
 
-    private void applyTo(MetadataProvider provider, BuildableComponentSelectionResult result) {
+    private static void applyTo(MetadataProvider provider, ComponentSelectionContext result) {
         BuildableModuleComponentMetaDataResolveResult metaDataResult = provider.getResult();
         switch (metaDataResult.getState()) {
             case Unknown:
@@ -130,7 +142,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         }
     }
 
-    private boolean versionMatches(VersionSelector selector, ModuleComponentResolveState component, MetadataProvider metadataProvider) {
+    private static boolean versionMatches(VersionSelector selector, ModuleComponentResolveState component, MetadataProvider metadataProvider) {
         if (selector.requiresMetadata()) {
             ComponentMetadata componentMetadata = metadataProvider.getComponentMetadata();
             return componentMetadata != null && selector.accept(componentMetadata);

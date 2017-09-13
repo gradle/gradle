@@ -524,10 +524,8 @@ public class TestFile extends File {
     }
 
     public TestFile assertIsEmptyDir() {
-        if (exists()) {
-            assertIsDir();
-            assertHasDescendants();
-        }
+        assertIsDir();
+        assertHasDescendants();
         return this;
     }
 

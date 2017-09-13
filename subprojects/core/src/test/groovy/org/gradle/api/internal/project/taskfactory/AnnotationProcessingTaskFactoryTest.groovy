@@ -98,11 +98,11 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
     def cachesClassMetaInfo() {
         given:
-        def task = expectTaskCreated(TaskWithInputFile, existingFile)
-        def task2 = expectTaskCreated(TaskWithInputFile, missingFile)
+        def taskInfo1 = taskClassInfoStore.getTaskClassInfo(TaskWithInputFile)
+        def taskInfo2 = taskClassInfoStore.getTaskClassInfo(TaskWithInputFile)
 
         expect:
-        task.actions[0].action.is(task2.actions[0].action)
+        taskInfo1.is(taskInfo2)
     }
 
     @Unroll

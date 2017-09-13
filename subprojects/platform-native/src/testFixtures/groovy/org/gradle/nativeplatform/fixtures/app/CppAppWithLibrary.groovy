@@ -20,9 +20,8 @@ package org.gradle.nativeplatform.fixtures.app
  * A C++ app composed of 2 modules: an executable and a library.
  */
 class CppAppWithLibrary implements AppElement {
-    private final greeter = new CppGreeter()
+    final greeter = new CppGreeter().asLib()
     final main = new CppMainUsesGreeter(greeter)
-    final greeterLib = greeter.asLib()
 
     @Override
     String getExpectedOutput() {

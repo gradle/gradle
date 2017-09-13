@@ -52,7 +52,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         """
 
         def app = new CppAppWithLibrary()
-        app.greeterLib.writeToProject(file('greeter'))
+        app.greeter.writeToProject(file('greeter'))
         app.main.writeToProject(testDirectory)
 
         when:
@@ -83,7 +83,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             }
 """
         def app = new CppAppWithLibrary()
-        app.greeterLib.writeToProject(file('greeter'))
+        app.greeter.writeToProject(file('greeter'))
         app.main.writeToProject(file('app'))
 
         when:

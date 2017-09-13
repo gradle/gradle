@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
+package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
-
-/**
- * Strict type, allows configuring (forcing) certain dependency versions using dependency notation
- */
-public class StrictConflictResolution implements ConflictResolution {
+public enum OutputType {
+    FILE, DIRECTORY
 }

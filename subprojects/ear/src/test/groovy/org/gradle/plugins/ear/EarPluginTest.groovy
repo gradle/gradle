@@ -19,6 +19,7 @@ package org.gradle.plugins.ear
 import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
@@ -324,13 +325,9 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
 
     private static void execute(Task task) {
         for (Task dep : task.taskDependencies.getDependencies(task)) {
-            for (Action action : dep.actions) {
-                action.execute(dep)
-            }
+            ((TaskInternal) dep).execute()
         }
-        for (Action action : task.actions) {
-            action.execute(task)
-        }
+        ((TaskInternal) task).execute()
     }
 
     File inEar(path) {

@@ -20,10 +20,8 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 import static org.gradle.internal.Cast.uncheckedCast;
-import static org.gradle.util.GUtil.uncheckedCall;
 
 public abstract class AbstractPluralOutputPropertyAnnotationHandler extends AbstractOutputPropertyAnnotationHandler {
 
@@ -35,15 +33,6 @@ public abstract class AbstractPluralOutputPropertyAnnotationHandler extends Abst
     }
 
     protected abstract void doValidate(String propertyName, File file, Collection<String> messages);
-
-    @Override
-    protected void beforeTask(final Callable<Object> futureValue) {
-        for (File file : toFiles(uncheckedCall(futureValue))) {
-            doEnsureExists(file);
-        }
-    }
-
-    protected abstract void doEnsureExists(File file);
 
     private static Iterable<File> toFiles(Object value) {
         if (value == null) {

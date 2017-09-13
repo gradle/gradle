@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ComponentSelectionRules
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.configurations.ConflictResolution
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal
@@ -158,7 +159,7 @@ public class DefaultResolutionStrategySpec extends Specification {
         then:
         copy.forcedModules == strategy.forcedModules
         copy.componentSelection.rules == strategy.componentSelection.rules
-        copy.conflictResolution instanceof StrictConflictResolution
+        copy.conflictResolution == ConflictResolution.strict
 
         strategy.cachePolicy == cachePolicy
         copy.cachePolicy == newCachePolicy

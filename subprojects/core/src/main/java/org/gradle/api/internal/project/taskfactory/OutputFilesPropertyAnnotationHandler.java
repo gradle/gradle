@@ -25,8 +25,6 @@ import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.tasks.TaskOutputsUtil.ensureParentDirectoryExists;
-
 @SuppressWarnings("deprecation")
 public class OutputFilesPropertyAnnotationHandler extends AbstractPluralOutputPropertyAnnotationHandler {
 
@@ -43,10 +41,5 @@ public class OutputFilesPropertyAnnotationHandler extends AbstractPluralOutputPr
     @Override
     protected void doValidate(String propertyName, File file, Collection<String> messages) {
         TaskOutputsUtil.validateFile(propertyName, file, messages);
-    }
-
-    @Override
-    protected void doEnsureExists(File file) {
-        ensureParentDirectoryExists(file);
     }
 }

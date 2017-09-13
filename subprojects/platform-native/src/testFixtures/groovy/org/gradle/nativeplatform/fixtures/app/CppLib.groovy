@@ -20,8 +20,8 @@ package org.gradle.nativeplatform.fixtures.app
  * A single project C++ library, with several source files.
  */
 class CppLib extends CppSourceElement {
-    final greeter = new CppGreeter()
-    final sum = new CppSum()
+    final greeter = new CppGreeter().asLib()
+    final sum = new CppSum().asLib()
 
     @Override
     SourceElement getHeaders() {
@@ -38,6 +38,6 @@ class CppLib extends CppSourceElement {
 
     @Override
     SourceElement getSources() {
-        ofElements(greeter.source, sum.source)
+        ofElements(greeter.sources, sum.sources)
     }
 }

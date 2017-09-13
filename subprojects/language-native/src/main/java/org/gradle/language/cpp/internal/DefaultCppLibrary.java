@@ -21,9 +21,11 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.CppSharedLibrary;
 
@@ -68,6 +70,11 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     @Override
     public FileCollection getPublicHeaderDirs() {
         return publicHeadersWithConvention;
+    }
+
+    @Override
+    public FileTree getPublicHeaderFiles() {
+        return publicHeadersWithConvention.getAsFileTree().matching(new PatternSet().include("**/*.h"));
     }
 
     @Override

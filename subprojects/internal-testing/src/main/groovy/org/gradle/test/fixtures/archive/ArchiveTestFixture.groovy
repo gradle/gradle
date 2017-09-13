@@ -75,6 +75,10 @@ class ArchiveTestFixture {
     }
 
     def hasDescendants(String... relativePaths) {
+        hasDescendants(relativePaths as List)
+    }
+
+    def hasDescendants(Collection<String> relativePaths) {
         assertThat(filesByRelativePath.keySet(), equalTo(relativePaths as Set))
         def expectedCounts = ArrayListMultimap.create()
         for (String fileName : relativePaths) {

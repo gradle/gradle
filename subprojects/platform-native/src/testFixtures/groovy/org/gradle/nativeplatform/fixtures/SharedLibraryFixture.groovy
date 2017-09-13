@@ -23,6 +23,13 @@ class SharedLibraryFixture extends NativeBinaryFixture {
         super(file, toolChain)
     }
 
+    File getLinkFile() {
+        if (toolChain.visualCpp) {
+            return file.withExtension("lib")
+        }
+        return file
+    }
+
     @Override
     void assertExists() {
         super.assertExists()
