@@ -1,8 +1,8 @@
 import org.gradle.api.tasks.bundling.Jar
 
 plugins {
-    `maven-publish`
     kotlin("jvm")
+    `maven-publish`
 }
 
 group = "org.gradle.sample"
@@ -28,10 +28,11 @@ publishing {
             url = uri("$buildDir/repo")
         }
     }
-
-    publications.create("mavenJava", MavenPublication::class.java) {
-        from(components["java"])
-        artifact(sourcesJar)
+    (publications) {
+        "mavenJava"(MavenPublication::class) {
+            from(components["java"])
+            artifact(sourcesJar)
+        }
     }
 }
 
