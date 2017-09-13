@@ -30,6 +30,7 @@ import org.gradle.plugin.use.PluginDependenciesSpec;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.ScriptPluginDependencySpec;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -110,7 +111,13 @@ public class PluginRequestCollector {
     private List<PluginRequestInternal> collectPluginRequests() {
         return collect(specs, new Transformer<PluginRequestInternal, DependencySpecImpl>() {
             public PluginRequestInternal transform(DependencySpecImpl original) {
-                return new DefaultPluginRequest(scriptSource, original.lineNumber, original.id, original.version, original.script, original.apply);
+                return new DefaultPluginRequest(
+                    scriptSource,
+                    original.lineNumber,
+                    original.id,
+                    original.version,
+                    original.script == null ? null : URI.create(original.script),
+                    original.apply);
             }
         });
     }
@@ -133,7 +140,7 @@ public class PluginRequestCollector {
         if (id != null) {
             return Pair.of("Plugin with id", (Object) id);
         }
-        String script = pluginRequest.getScript();
+        URI script = pluginRequest.getScript();
         if (script != null) {
             return Pair.of("Script Plugin", (Object) script);
         }

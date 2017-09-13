@@ -39,7 +39,7 @@ class PluginRequestsSerializerTest extends SerializerSpec {
             new DefaultPluginRequest("buildscript", 1, "java", null, null, true),
             new DefaultPluginRequest("buildscript", 2, "groovy", null, null, false),
             new DefaultPluginRequest("initscript", 3, "custom", "1.0", null, false),
-            new DefaultPluginRequest("buildscript", 4, "other", null, "other.gradle", true)
+            new DefaultPluginRequest("buildscript", 4, "other", null, URI.create("other.gradle"), true)
         ]), serializer)
 
         then:
@@ -49,7 +49,7 @@ class PluginRequestsSerializerTest extends SerializerSpec {
         and:
         serialized*.id == ["java", "groovy", "custom", "other"].collect { DefaultPluginId.of(it) }
         serialized*.version == [null, null, "1.0", null]
-        serialized*.script == [null, null, null, "other.gradle"]
+        serialized*.script == [null, null, null, URI.create("other.gradle")]
         serialized*.apply == [true, false, false, true]
     }
 }

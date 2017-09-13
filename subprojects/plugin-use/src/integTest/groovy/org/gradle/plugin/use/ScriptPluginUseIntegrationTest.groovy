@@ -324,7 +324,7 @@ class ScriptPluginUseIntegrationTest extends AbstractIntegrationSpec {
                         println("Requested \${requested}")
                         assert requested.id == null
                         assert requested.version == null
-                        assert requested.script == 'other.gradle'
+                        assert requested.script == URI.create('other.gradle')
                         assert requested.module == null
                     }
                 }

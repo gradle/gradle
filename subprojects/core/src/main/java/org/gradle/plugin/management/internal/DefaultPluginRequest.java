@@ -22,6 +22,7 @@ import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 
 import javax.annotation.Nullable;
+import java.net.URI;
 
 public class DefaultPluginRequest implements PluginRequestInternal {
 
@@ -30,12 +31,12 @@ public class DefaultPluginRequest implements PluginRequestInternal {
 
     private final PluginId id;
     private final String version;
-    private final String script;
+    private final URI script;
     private final boolean apply;
     private final ModuleVersionSelector artifact;
 
     public DefaultPluginRequest(ScriptSource requestingScriptSource, int requestingScriptLineNumber,
-                                PluginId id, String version, String script, boolean apply) {
+                                PluginId id, String version, URI script, boolean apply) {
         this(
             requestingScriptSource.getDisplayName(), requestingScriptLineNumber,
             id, version, script, apply, null);
@@ -43,7 +44,7 @@ public class DefaultPluginRequest implements PluginRequestInternal {
 
     // Used for testing only
     public DefaultPluginRequest(String requestingScriptDisplayName, int requestingScriptLineNumber,
-                                String id, String version, String script, boolean apply) {
+                                String id, String version, URI script, boolean apply) {
         this(
             requestingScriptDisplayName, requestingScriptLineNumber,
             id == null ? null : DefaultPluginId.of(id), version, script, apply, null);
@@ -51,7 +52,7 @@ public class DefaultPluginRequest implements PluginRequestInternal {
 
     // Used for serialization/copy/mutation and testing
     public DefaultPluginRequest(String requestingScriptDisplayName, int requestingScriptLineNumber,
-                                PluginId id, String version, String script, boolean apply, ModuleVersionSelector artifact) {
+                                PluginId id, String version, URI script, boolean apply, ModuleVersionSelector artifact) {
 
         this.requestingScriptDisplayName = requestingScriptDisplayName;
         this.requestingScriptLineNumber = requestingScriptLineNumber;
@@ -87,7 +88,7 @@ public class DefaultPluginRequest implements PluginRequestInternal {
 
     @Nullable
     @Override
-    public String getScript() {
+    public URI getScript() {
         return script;
     }
 
@@ -111,7 +112,7 @@ public class DefaultPluginRequest implements PluginRequestInternal {
         return buildDisplayName(id, script, version, artifact, apply);
     }
 
-    public static String buildDisplayName(PluginId id, String script, String version, ModuleVersionSelector artifact, boolean apply) {
+    public static String buildDisplayName(PluginId id, URI script, String version, ModuleVersionSelector artifact, boolean apply) {
         StringBuilder b = new StringBuilder();
         if (id != null) {
             b.append("id '").append(id).append("'");

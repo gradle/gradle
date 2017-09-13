@@ -69,7 +69,7 @@ public class ContextAwarePluginRequest implements PluginRequestInternal {
     }
 
     private String scriptRequestDisplayName() {
-        return buildDisplayName(getId(), getRelativeScriptUri().toString(), getVersion(), getModule(), isApply());
+        return buildDisplayName(getId(), getRelativeScriptUri(), getVersion(), getModule(), isApply());
     }
 
     @Nullable
@@ -95,7 +95,7 @@ public class ContextAwarePluginRequest implements PluginRequestInternal {
 
     @Nullable
     @Override
-    public String getScript() {
+    public URI getScript() {
         return delegate.getScript();
     }
 

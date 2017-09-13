@@ -22,6 +22,7 @@ import org.gradle.internal.HasInternalProtocol;
 import org.gradle.plugin.use.PluginId;
 
 import javax.annotation.Nullable;
+import java.net.URI;
 
 /**
  * Contains information about a plugin that has been requested for resolution.
@@ -45,12 +46,12 @@ public interface PluginRequest {
     String getVersion();
 
     /**
-     * The path or URL to a script plugin.
+     * The URI to a script plugin. Null if the request represents a binary plugin.
      *
      * @since 4.3
      */
     @Nullable
-    String getScript();
+    URI getScript();
 
     /**
      * The implementation module of the plugin if one was explicitly specified, otherwise null.
