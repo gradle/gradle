@@ -30,7 +30,7 @@ import spock.lang.Issue
 
 import java.nio.file.AccessDeniedException
 
-@Requires(TestPrecondition.FILE_PERMISSIONS)
+@Requires([TestPrecondition.FILE_PERMISSIONS, TestPrecondition.WITHOUT_ROOT_PERMISSION])
 @Issue('https://github.com/gradle/gradle/issues/2639')
 class Jdk7UnauthorizedDirectoryWalkerTest extends Specification {
 
