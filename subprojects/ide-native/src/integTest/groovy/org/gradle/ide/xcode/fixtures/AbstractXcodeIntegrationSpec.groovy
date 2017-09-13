@@ -44,11 +44,39 @@ rootProject.name = "${rootProjectName}"
         file(OperatingSystem.current().getSharedLibraryName(str))
     }
 
+    protected TestFile getRootXcodeProjectFile() {
+        file("${rootProjectName}.xcodeproj")
+    }
+
+    protected TestFile getRootXcodeWorkspaceFile() {
+        file("${rootProjectName}.xcworkspace")
+    }
+
     protected XcodeProjectPackage xcodeProject(String path) {
-        new XcodeProjectPackage(file(path))
+        xcodeProject(file(path))
+    }
+
+    protected XcodeProjectPackage xcodeProject(TestFile bundle) {
+        new XcodeProjectPackage(bundle)
+    }
+
+    protected XcodeProjectPackage rootXcodeProject() {
+        xcodeProject(rootXcodeProjectFile)
     }
 
     protected XcodeWorkspacePackage xcodeWorkspace(String path) {
-        new XcodeWorkspacePackage(file(path))
+        xcodeWorkspace(file(path))
+    }
+
+    protected XcodeWorkspacePackage xcodeWorkspace(TestFile bundle) {
+        new XcodeWorkspacePackage(bundle)
+    }
+
+    protected XcodeWorkspacePackage rootXcodeWorkspace() {
+        xcodeWorkspace(rootXcodeWorkspaceFile)
+    }
+
+    protected XcodebuildExecuter xcodebuild() {
+        new XcodebuildExecuter(testDirectory)
     }
 }
