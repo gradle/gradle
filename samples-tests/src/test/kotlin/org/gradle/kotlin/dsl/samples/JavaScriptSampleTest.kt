@@ -28,8 +28,8 @@ class JavaScriptSampleTest : AbstractSampleTest("hello-js") {
         engine.eval(existing("build/web/output.js"))
 
         assertThat(
-            javaScriptOutput.toString(),
-            equalTo("Hello, world!\n"))
+            javaScriptOutput.toString().trim(),
+            equalTo("Hello, world!"))
     }
 
 
