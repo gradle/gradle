@@ -26,6 +26,7 @@ public class DefaultTaskInputPropertySpec extends AbstractTaskInputsDeprecatingT
 
     public DefaultTaskInputPropertySpec(String name) {
         setPropertyNameWithoutValidation(name);
+        this.optional = true;
     }
 
     public boolean isOptional() {
@@ -36,11 +37,6 @@ public class DefaultTaskInputPropertySpec extends AbstractTaskInputsDeprecatingT
     public TaskInputPropertyBuilder optional(boolean optional) {
         this.optional = optional;
         return this;
-    }
-
-    @Override
-    public TaskInputPropertyBuilder optional() {
-        return optional(true);
     }
 
     @Override

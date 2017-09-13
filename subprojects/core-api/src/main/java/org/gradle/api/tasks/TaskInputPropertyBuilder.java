@@ -29,14 +29,9 @@ import java.util.Map;
 @Incubating
 public interface TaskInputPropertyBuilder extends TaskPropertyBuilder, TaskInputs {
     /**
-     * Marks a task property as optional. This means that a value does not have to be specified for the property, but any
-     * value specified must meet the validation constraints for the property.
-     */
-    TaskInputPropertyBuilder optional();
-
-    /**
      * Sets whether the task property is optional. If the task property is optional, it means that a value does not have to be
      * specified for the property, but any value specified must meet the validation constraints for the property.
+     * Non-file properties are optional by default.
      */
     TaskInputPropertyBuilder optional(boolean optional);
 
