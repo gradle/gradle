@@ -25,16 +25,6 @@ import org.gradle.util.GradleVersion
 abstract class ToolingApiVersionSupport extends ToolingApiSpecification {
     def output = new ByteArrayOutputStream()
 
-    def setup() {
-        file("build.gradle") << """
-task noop {
-    doLast {
-        println "noop"
-    }
-}
-"""
-    }
-
     // AbstractConsumerConnection.getVersionDetail was introduced in 1.2
     def minProviderVersionDetail = GradleVersion.version('1.2')
 

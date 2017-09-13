@@ -31,7 +31,7 @@ import org.gradle.tooling.internal.consumer.connection.ModelBuilderBackedConsume
 import org.gradle.tooling.internal.consumer.connection.NoToolingApiConnection
 import org.gradle.tooling.internal.consumer.connection.NonCancellableConsumerConnectionAdapter
 import org.gradle.tooling.internal.consumer.connection.ShutdownAwareConsumerConnection
-import org.gradle.tooling.internal.consumer.connection.UnsupportedOlderVersionConnection
+import org.gradle.tooling.internal.consumer.connection.VersionControlConsumerConnection
 import org.gradle.tooling.internal.protocol.BuildActionRunner
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1
@@ -85,8 +85,8 @@ class DefaultToolingImplementationLoaderTest extends Specification {
 
         when:
         def adaptedConnection = loader.create(distribution, loggerFactory, progressListener, connectionParameters, cancellationToken)
-        // unwrap ParameterValidatingConsumerConnection
-        adaptedConnection = adaptedConnection.delegate
+        // unwrap VersionControlConsumerConnection
+        adaptedConnection = adaptedConnection.delegate.delegate
 
         then:
         def consumerConnection = wrappedToNonCancellableAdapter ? adaptedConnection.delegate : adaptedConnection
@@ -122,7 +122,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         def adaptedConnection = loader.create(distribution, loggerFactory, progressListener, connectionParameters, cancellationToken)
 
         then:
-        adaptedConnection.class == UnsupportedOlderVersionConnection.class
+        adaptedConnection.class == VersionControlConsumerConnection.class
 
         where:
         connectionImplementation  | _
@@ -158,7 +158,7 @@ class TestMetaData implements ConnectionMetaDataVersion1 {
     }
 
     String getDisplayName() {
-        throw new UnsupportedOperationException()
+        return 'TestMetadata'
     }
 }
 

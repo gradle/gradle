@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.consumer.connection;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.tooling.internal.ToolingApiVersionHelper;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.LoggingProvider;
@@ -82,18 +81,9 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
             BuildCancellationToken cancellationToken = parameters.getCancellationToken();
             InternalBuildProgressListener buildProgressListener = parameters.getBuildProgressListener();
             ConsumerConnection connection = onStartAction(cancellationToken, buildProgressListener);
-            checkProviderVersion(parameters);
-
             return action.run(connection);
         } finally {
             onEndAction();
-        }
-    }
-
-    private void checkProviderVersion(ConsumerOperationParameters parameters) {
-        if (connection instanceof ParameterValidatingConsumerConnection) {
-            String providerVersion = ParameterValidatingConsumerConnection.class.cast(connection).getVersionDetails().getVersion();
-            ToolingApiVersionHelper.checkProviderVersion(providerVersion, parameters.getStandardError());
         }
     }
 

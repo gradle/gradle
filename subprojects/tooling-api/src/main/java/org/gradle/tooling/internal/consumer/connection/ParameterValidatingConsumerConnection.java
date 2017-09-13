@@ -59,10 +59,6 @@ public class ParameterValidatingConsumerConnection implements ConsumerConnection
         delegate.runTests(testExecutionRequest, operationParameters);
     }
 
-    public VersionDetails getVersionDetails() {
-        return targetVersionDetails;
-    }
-
     private void validateParameters(ConsumerOperationParameters operationParameters) {
         if (!targetVersionDetails.supportsEnvironmentVariablesCustomization()) {
             if (operationParameters.getEnvironmentVariables() != null) {
