@@ -17,8 +17,8 @@
 package org.gradle.test.fixtures.server.http;
 
 import com.sun.net.httpserver.HttpExchange;
-import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
+import org.gradle.internal.time.Timer;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,7 +30,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
 class CyclicBarrierRequestHandler implements TrackingHttpHandler, WaitPrecondition {
-    private final Clock clock = Time.clock();
+    private final Timer timer = Time.startTimer();
     private final Lock lock;
     private final Condition condition;
     private final List<String> received = new ArrayList<String>();
@@ -87,7 +87,7 @@ class CyclicBarrierRequestHandler implements TrackingHttpHandler, WaitPreconditi
                 throw failure;
             }
 
-            long now = clock.getCurrentTime();
+            long now = timer.getElapsedMillis();
             if (mostRecentEvent < now) {
                 mostRecentEvent = now;
             }
@@ -107,7 +107,7 @@ class CyclicBarrierRequestHandler implements TrackingHttpHandler, WaitPreconditi
             }
 
             while (!pending.isEmpty() && failure == null) {
-                long waitMs = mostRecentEvent + timeoutMs - clock.getCurrentTime();
+                long waitMs = mostRecentEvent + timeoutMs - timer.getElapsedMillis();
                 if (waitMs < 0) {
                     System.out.println(String.format("[%d] timeout waiting for other requests", id));
                     failure = new AssertionError(String.format("Timeout waiting for expected requests to be received. Still waiting for %s, received %s.", pending.keySet(), received));

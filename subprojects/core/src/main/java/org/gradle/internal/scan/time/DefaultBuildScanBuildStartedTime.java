@@ -16,19 +16,19 @@
 
 package org.gradle.internal.scan.time;
 
-import org.gradle.internal.buildevents.BuildExecutionTimer;
+import org.gradle.internal.buildevents.BuildStartedTime;
 
 public class DefaultBuildScanBuildStartedTime implements BuildScanBuildStartedTime {
 
-    private final BuildExecutionTimer buildExecutionTimer;
+    private final BuildStartedTime buildStartedTime;
 
-    public DefaultBuildScanBuildStartedTime(BuildExecutionTimer buildExecutionTimer) {
-        this.buildExecutionTimer = buildExecutionTimer;
+    public DefaultBuildScanBuildStartedTime(BuildStartedTime buildStartedTime) {
+        this.buildStartedTime = buildStartedTime;
     }
 
     @Override
     public long getBuildStartedTime() {
-        return buildExecutionTimer.getStartTime();
+        return buildStartedTime.getStartTime();
     }
 
 }

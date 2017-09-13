@@ -24,8 +24,8 @@ class DefaultCountdownTimer extends DefaultTimer implements CountdownTimer {
 
     private final long timeoutMillis;
 
-    DefaultCountdownTimer(Clock clock, long timeout, TimeUnit unit) {
-        super(clock);
+    DefaultCountdownTimer(TimeSource timeSource, long timeout, TimeUnit unit) {
+        super(timeSource);
         Preconditions.checkArgument(timeout > 0);
         this.timeoutMillis = unit.toMillis(timeout);
     }
@@ -38,5 +38,10 @@ class DefaultCountdownTimer extends DefaultTimer implements CountdownTimer {
     @Override
     public long getRemainingMillis() {
         return Math.max(timeoutMillis - getElapsedMillis(), 0);
+    }
+
+    @Override
+    public long getTimeoutMillis() {
+        return timeoutMillis;
     }
 }

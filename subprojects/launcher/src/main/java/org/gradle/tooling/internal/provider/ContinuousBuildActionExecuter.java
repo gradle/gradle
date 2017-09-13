@@ -30,6 +30,7 @@ import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.ContinuousExecutionGate;
 import org.gradle.initialization.DefaultContinuousExecutionGate;
 import org.gradle.initialization.ReportedException;
+import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.DefaultFileWatcherEventListener;
@@ -43,12 +44,11 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.buildevents.BuildExecutionTimer;
+import org.gradle.internal.time.Clock;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.util.DisconnectableInputStream;
 import org.gradle.util.SingleMessageLogger;
-
 
 public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final BuildActionExecuter<BuildActionParameters> delegate;
@@ -115,7 +115,8 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
     private Object executeMultipleBuilds(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters, final ServiceRegistry buildSessionScopeServices,
                                          CancellableOperationManager cancellableOperationManager, ContinuousExecutionGate continuousExecutionGate) {
         BuildCancellationToken cancellationToken = requestContext.getCancellationToken();
-        BuildExecutionTimer buildExecutionTimer = buildSessionScopeServices.get(BuildExecutionTimer.class);
+        BuildStartedTime buildStartedTime = buildSessionScopeServices.get(BuildStartedTime.class);
+        Clock clock = buildSessionScopeServices.get(Clock.class);
 
         Object lastResult;
         while (true) {
@@ -159,7 +160,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
                 break;
             } else {
                 logger.println("Change detected, executing build...").println();
-                buildExecutionTimer.reset();
+                buildStartedTime.reset(clock.getCurrentTime());
             }
         }
 
