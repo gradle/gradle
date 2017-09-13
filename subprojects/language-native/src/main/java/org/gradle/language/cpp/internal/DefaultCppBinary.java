@@ -38,6 +38,7 @@ import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.nativeplatform.internal.Names;
 
@@ -239,14 +240,16 @@ public class DefaultCppBinary implements CppBinary {
                 Set<ResolvedComponentResult> components = nativeLink.getIncoming().getResolutionResult().getAllComponents();
                 Set<ModuleComponentIdentifier> externalComponents = new HashSet<ModuleComponentIdentifier>(components.size());
                 List<Dependency> externalDependencies = new ArrayList<Dependency>(components.size());
+                String linkLibExtension = OperatingSystem.current().getLinkLibrarySuffix().substring(1);
                 for (ResolvedComponentResult component : components) {
                     if (component.getId() instanceof ModuleComponentIdentifier) {
                         ModuleComponentIdentifier id = (ModuleComponentIdentifier) component.getId();
                         externalComponents.add(id);
                         // TODO - use the correct variant
                         String module = id.getModule() + "_debug";
+                        // TODO - use naming scheme for target platform
                         DefaultExternalModuleDependency mappedDependency = new DefaultExternalModuleDependency(id.getGroup(), module, id.getVersion());
-                        mappedDependency.addArtifact(new DefaultDependencyArtifact(module, "dylib", "dylib", null, null));
+                        mappedDependency.addArtifact(new DefaultDependencyArtifact(module, linkLibExtension, linkLibExtension, null, null));
                         externalDependencies.add(mappedDependency);
                     }
                 }
