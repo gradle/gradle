@@ -47,6 +47,10 @@ abstract class AbstractTaskPropertyBuilder implements TaskPropertyBuilder {
                 previousCharWasADot = false;
             }
         }
+        setPropertyNameWithoutValidation(propertyName);
+    }
+
+    protected void setPropertyNameWithoutValidation(String propertyName) {
         this.propertyName = propertyName;
     }
 

@@ -25,7 +25,7 @@ public class DefaultTaskInputPropertySpec extends AbstractTaskInputsDeprecatingT
     private boolean optional;
 
     public DefaultTaskInputPropertySpec(String name) {
-        setPropertyName(name);
+        setPropertyNameWithoutValidation(name);
     }
 
     public boolean isOptional() {
