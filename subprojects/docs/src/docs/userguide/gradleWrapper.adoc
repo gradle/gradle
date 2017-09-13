@@ -151,20 +151,20 @@ This can be used in conjunction with a proxy, authenticated or not. See <<sec:ac
 
 The Gradle Wrapper allows for verification of the downloaded Gradle distribution via SHA-256 hash sum comparison. This increases security against targeted attacks by preventing a man-in-the-middle attacker from tampering with the downloaded Gradle distribution.
 
-To enable this feature you'll want to first calculate the SHA-256 hash of a known Gradle distribution. You can generate a SHA-256 hash from Linux and OSX or Windows (via https://www.cygwin.com/[Cygwin]) with the `shasum` command.
+To enable this feature, download the `.sha256` file associated with the Gradle distribution you want to verify.
 
-.Generating a SHA-256 hash
-====
+==== Downloading the SHA-256 file
 
-----
+You can download the `.sha256` file by clicking on one of the `sha256` links on whichever page you used to download your distribution:
 
-> shasum -a 256 gradle-2.4-all.zip
-371cb9fbebbe9880d147f59bab36d61eee122854ef8c9ee1ecf12b82368bcf10  gradle-2.4-all.zip
+* https://gradle.org/install
+* https://gradle.org/releases
+* https://gradle.org/release-candidate
+* https://gradle.org/nightly
 
-----
-====
+The format of the file is a single line of text that is the SHA-256 hash of the corresponding zip file.
 
-Add the returned hash sum to the `gradle-wrapper.properties` using the `distributionSha256Sum` property.
+Add the downloaded hash sum to the `gradle-wrapper.properties` using the `distributionSha256Sum` property.
 
 .Configuring SHA-256 checksum verification
 ====
