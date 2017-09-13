@@ -51,7 +51,7 @@ abstract class ToolingApiVersionSupport extends ToolingApiSpecification {
     def build() {
         withConnection { ProjectConnection connection ->
             def build = connection.newBuild()
-            build.standardError = output
+            build.standardOutput = output
             build.run()
         }
     }
@@ -60,7 +60,7 @@ abstract class ToolingApiVersionSupport extends ToolingApiSpecification {
     def getModel() {
         withConnection { ProjectConnection connection ->
             def model = connection.model(EclipseProject)
-            model.standardError = output
+            model.standardOutput = output
             model.get()
         }
     }
@@ -69,7 +69,7 @@ abstract class ToolingApiVersionSupport extends ToolingApiSpecification {
     def buildAction() {
         withConnection { ProjectConnection connection ->
             def action = connection.action(new NullAction())
-            action.standardError = output
+            action.standardOutput = output
             action.run()
         }
     }
@@ -78,7 +78,7 @@ abstract class ToolingApiVersionSupport extends ToolingApiSpecification {
     def testExecution() {
         withConnection { ProjectConnection connection ->
             def launcher = connection.newTestLauncher().withJvmTestClasses("class")
-            launcher.standardError = output
+            launcher.standardOutput = output
             launcher.run()
         }
     }

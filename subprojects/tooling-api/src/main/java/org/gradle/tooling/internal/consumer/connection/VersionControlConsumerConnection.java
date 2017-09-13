@@ -29,8 +29,8 @@ import org.gradle.util.GradleVersion;
 import java.io.IOException;
 
 public class VersionControlConsumerConnection implements ConsumerConnection {
-    private static final String UNSUPPORTED_RUN_MESSAGE = "Support for builds using Gradle versions older than 1.2 was removed in tooling API version 3.0. You are currently using Gradle version %s. You should upgrade your Gradle build to use Gradle 1.2 or later.";
-    private static final String DEPRECATION_WARNING = "Support for %s older than %s is deprecated and will be removed in 5.0.%s You should upgrade your %s.";
+    private static final String UNSUPPORTED_RUN_MESSAGE = "Support for builds using Gradle versions older than 1.2 was removed in tooling API version 3.0. You are currently using Gradle version %s. You should upgrade your Gradle build to use Gradle 1.2 or later.\n";
+    private static final String DEPRECATION_WARNING = "Support for %s older than %s is deprecated and will be removed in 5.0.%s You should upgrade your %s.\n";
     public static final GradleVersion MIN_PROVIDER_VERSION = GradleVersion.version("1.2");
     public static final GradleVersion MIN_LTS_PROVIDER_VERSION = GradleVersion.version("2.6");
 
@@ -97,9 +97,9 @@ public class VersionControlConsumerConnection implements ConsumerConnection {
     }
 
     private void checkDeprecation(ConsumerOperationParameters parameters) {
-        if (deprecated && parameters.getStandardError() != null) {
+        if (deprecated && parameters.getStandardOutput() != null) {
             try {
-                parameters.getStandardError().write(createDeprecationMessage(providerVersion, MIN_LTS_PROVIDER_VERSION, "Gradle").getBytes());
+                parameters.getStandardOutput().write(createDeprecationMessage(providerVersion, MIN_LTS_PROVIDER_VERSION, "Gradle").getBytes());
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
