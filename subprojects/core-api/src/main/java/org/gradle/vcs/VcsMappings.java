@@ -29,7 +29,7 @@ import org.gradle.internal.HasInternalProtocol;
  *         url = "..."
  *     }
  *   }
- *   all { details ->
+ *   addRule("rule for group") { details ->
  *       if (details.requested.group == "group") {
  *           from vcs(GitVcs) {
  *               url = "..."
@@ -43,7 +43,7 @@ import org.gradle.internal.HasInternalProtocol;
 @Incubating
 @HasInternalProtocol
 public interface VcsMappings {
-    VcsMappings all(Action<VcsMapping> rule);
+    VcsMappings addRule(String message, Action<VcsMapping> rule);
     VcsMappings withModule(String groupName, Action<VcsMapping> rule);
     <T extends VersionControlSpec> T vcs(Class<T> type, Action<? super T> configuration);
 }

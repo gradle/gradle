@@ -69,7 +69,7 @@ class VcsMappingsIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             sourceControl {
                 vcsMappings {
-                    all { details ->
+                    addRule("rule") { details ->
                         if (details.requested.group == "org.test") {
                             from vcs(DirectoryRepository) {
                                 sourceDir = file("dep")
@@ -96,7 +96,7 @@ class VcsMappingsIntegrationTest extends AbstractIntegrationSpec {
                             sourceDir = file("does-not-exist")
                         }
                     }
-                    all { details ->
+                    addRule("rule") { details ->
                         if (details.requested.group == "unused") {
                             from vcs(DirectoryRepository) {
                                 sourceDir = file("does-not-exist")

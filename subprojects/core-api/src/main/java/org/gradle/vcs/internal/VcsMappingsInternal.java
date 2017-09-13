@@ -38,7 +38,7 @@ public interface VcsMappingsInternal extends VcsMappings {
         }
 
         @Override
-        public VcsMappings all(Action<VcsMapping> rule) {
+        public VcsMappings addRule(String message, Action<VcsMapping> rule) {
             return this;
         }
 

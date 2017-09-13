@@ -18,6 +18,7 @@ package org.gradle.vcs.internal;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.api.Describable;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
@@ -38,8 +39,8 @@ public class DefaultVcsMappings implements VcsMappingsInternal {
     }
 
     @Override
-    public VcsMappings all(Action<VcsMapping> rule) {
-        vcsMappings.add(rule);
+    public VcsMappings addRule(String message, Action<VcsMapping> rule) {
+        vcsMappings.add(new DescribedRule(message, rule));
         return this;
     }
 
@@ -66,13 +67,32 @@ public class DefaultVcsMappings implements VcsMappingsInternal {
         return !vcsMappings.isEmpty();
     }
 
-    private static class GavFilteredRule implements Action<VcsMapping> {
-        private final String groupName;
+    private static class DescribedRule implements Action<VcsMapping>, Describable {
+        private final String displayName;
         private final Action<VcsMapping> delegate;
 
-        private GavFilteredRule(String groupName, Action<VcsMapping> delegate) {
-            this.groupName = groupName;
+        private DescribedRule(String displayName, Action<VcsMapping> delegate) {
+            this.displayName = displayName;
             this.delegate = delegate;
+        }
+
+        @Override
+        public void execute(VcsMapping vcsMapping) {
+            delegate.execute(vcsMapping);
+        }
+
+        @Override
+        public String getDisplayName() {
+            return displayName;
+        }
+    }
+
+    private static class GavFilteredRule extends DescribedRule {
+        private final String groupName;
+
+        private GavFilteredRule(String groupName, Action<VcsMapping> delegate) {
+            super("filtered rule for module " + groupName, delegate);
+            this.groupName = groupName;
         }
 
         @Override
@@ -80,7 +100,7 @@ public class DefaultVcsMappings implements VcsMappingsInternal {
             if (mapping.getRequested() instanceof ModuleComponentSelector) {
                 ModuleComponentSelector moduleComponentSelector = Cast.uncheckedCast(mapping.getRequested());
                 if (groupName.equals(moduleComponentSelector.getGroup() + ":" + moduleComponentSelector.getModule())) {
-                    delegate.execute(mapping);
+                    super.execute(mapping);
                 }
             }
         }
