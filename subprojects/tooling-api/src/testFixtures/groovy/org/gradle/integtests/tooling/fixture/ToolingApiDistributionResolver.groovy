@@ -20,6 +20,7 @@ import org.gradle.StartParameter
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
+import org.gradle.initialization.DefaultBuildRequestMetaData
 import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
@@ -36,7 +37,7 @@ import org.gradle.internal.service.scopes.BuildTreeScopeServices
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry
 import org.gradle.internal.service.scopes.ProjectScopeServices
-import org.gradle.internal.buildevents.BuildExecutionTimer
+import org.gradle.internal.time.Time
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
@@ -92,8 +93,8 @@ class ToolingApiDistributionResolver {
         startParameter.gradleUserHomeDir = new IntegrationTestBuildContext().gradleUserHomeDir
         def userHomeScopeServiceRegistry = globalRegistry.get(GradleUserHomeScopeServiceRegistry)
         def gradleUserHomeServices = userHomeScopeServiceRegistry.getServicesFor(startParameter.gradleUserHomeDir)
-        def buildExecutionTimer = BuildExecutionTimer.startingNow()
-        def buildSessionServices = new BuildSessionScopeServices(gradleUserHomeServices, startParameter, buildExecutionTimer, ClassPath.EMPTY)
+        def buildRequestMetadata = new DefaultBuildRequestMetaData(Time.currentTimeMillis())
+        def buildSessionServices = new BuildSessionScopeServices(gradleUserHomeServices, startParameter, buildRequestMetadata, ClassPath.EMPTY)
         def buildTreeScopeServices = new BuildTreeScopeServices(buildSessionServices)
         def topLevelRegistry = new BuildScopeServices(buildTreeScopeServices)
         def projectRegistry = new ProjectScopeServices(topLevelRegistry, TestUtil.create(TestNameTestDirectoryProvider.newInstance()).rootProject(), topLevelRegistry.getFactory(LoggingManagerInternal))

@@ -28,20 +28,20 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.initialization.BuildCompletionListener;
-import org.gradle.internal.buildevents.BuildExecutionTimer;
+import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.time.Clock;
 
 /**
  * Adapts various events to build a {@link BuildProfile} model, and then notifies a {@link ReportGeneratingProfileListener} when the model is ready.
  */
 public class ProfileEventAdapter implements BuildListener, ProjectEvaluationListener, TaskExecutionListener, DependencyResolutionListener, BuildCompletionListener {
-    private final BuildExecutionTimer buildExecutionTimer;
+    private final BuildStartedTime buildStartedTime;
     private final Clock clock;
     private final ProfileListener listener;
     private BuildProfile buildProfile;
 
-    public ProfileEventAdapter(BuildExecutionTimer buildExecutionTimer, Clock clock, ProfileListener listener) {
-        this.buildExecutionTimer = buildExecutionTimer;
+    public ProfileEventAdapter(BuildStartedTime buildStartedTime, Clock clock, ProfileListener listener) {
+        this.buildStartedTime = buildStartedTime;
         this.clock = clock;
         this.listener = listener;
     }
@@ -51,7 +51,7 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
         long now = clock.getCurrentTime();
         buildProfile = new BuildProfile(gradle.getStartParameter());
         buildProfile.setBuildStarted(now);
-        buildProfile.setProfilingStarted(buildExecutionTimer.getStartTime());
+        buildProfile.setProfilingStarted(buildStartedTime.getStartTime());
     }
 
     public void settingsEvaluated(Settings settings) {

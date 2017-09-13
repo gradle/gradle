@@ -25,7 +25,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
-import org.gradle.internal.time.TrueClock
+import org.gradle.internal.time.Time
 
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -34,7 +34,6 @@ import java.util.concurrent.TimeoutException
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegrationSpec {
-    def timeProvider = new TrueClock()
     def addressFactory = new InetAddressFactory()
 
     FileLockContentionHandler receivingFileLockContentionHandler
@@ -61,7 +60,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
 
         when:
         def build = executer.withTasks("help").start()
-        def startTime = timeProvider.currentTime
+        def timer = Time.startTimer()
         poll {
             assert (build.standardOutput =~ 'Pinged owner at port').count == 3
         }
@@ -70,7 +69,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         then:
         build.waitForFinish()
         pingRequestCount == 3 || pingRequestCount == 4
-        timeProvider.currentTime - startTime > 3000 // See: DefaultFileLockContentionHandler.PING_DELAY
+        timer.elapsedMillis > 3000 // See: DefaultFileLockContentionHandler.PING_DELAY
     }
 
     def "the lock holder starts the release request only once and discards additional requests in the meantime"() {

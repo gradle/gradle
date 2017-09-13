@@ -22,7 +22,7 @@ import org.gradle.launcher.daemon.registry.DaemonInfo
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry
 import org.gradle.launcher.daemon.server.api.DaemonStateControl
-import org.gradle.util.MockClock
+import org.gradle.internal.time.MockClock
 import spock.lang.Specification
 
 import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Busy

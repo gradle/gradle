@@ -21,15 +21,12 @@ import org.gradle.internal.time.Timer;
 
 public class DaemonRunningStats {
 
-    private final Timer daemonTimer;
-    private Timer currentBuildTimer;
+    private final long startTime = System.currentTimeMillis();
+    private final Timer daemonTimer = Time.startTimer();
+    private final Timer currentBuildTimer = Time.startTimer();
 
     private int buildCount;
     private long allBuildsTime;
-
-    public DaemonRunningStats(Timer daemonTimer) {
-        this.daemonTimer = daemonTimer;
-    }
 
     public int getBuildCount() {
         return buildCount;
@@ -40,11 +37,7 @@ public class DaemonRunningStats {
     }
 
     public long getStartTime() {
-        return daemonTimer.getStartTime();
-    }
-
-    public long getCurrentBuildStart() {
-        return currentBuildTimer.getStartTime();
+        return startTime;
     }
 
     public long getAllBuildsTime() {
@@ -55,7 +48,7 @@ public class DaemonRunningStats {
 
     public void buildStarted() {
         ++buildCount;
-        currentBuildTimer = Time.startTimer();
+        currentBuildTimer.reset();
     }
 
     public void buildFinished() {

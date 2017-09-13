@@ -15,19 +15,16 @@
  */
 package org.gradle.internal.time;
 
+import java.util.concurrent.TimeUnit;
+
 class DefaultTimer implements Timer {
 
-    private final Clock clock;
+    private final TimeSource timeSource;
     private long startTime;
 
-    DefaultTimer(Clock clock) {
-        this.clock = clock;
+    DefaultTimer(TimeSource timeSource) {
+        this.timeSource = timeSource;
         reset();
-    }
-
-    DefaultTimer(Clock clock, long startTime) {
-        this.clock = clock;
-        this.startTime = Math.min(startTime, clock.getCurrentTime());
     }
 
     @Override
@@ -38,15 +35,17 @@ class DefaultTimer implements Timer {
 
     @Override
     public long getElapsedMillis() {
-        return Math.max(clock.getCurrentTime() - startTime, 0);
+        long elapsedNanos = timeSource.nanoTime() - startTime;
+        long elapsedMillis = TimeUnit.NANOSECONDS.toMillis(elapsedNanos);
+
+        // System.nanoTime() can go backwards under some circumstances.
+        // http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6458294
+        // This max() call ensures that we don't return negative durations.
+        return Math.max(elapsedMillis, 0);
     }
 
     public void reset() {
-        startTime = clock.getCurrentTime();
+        startTime = timeSource.nanoTime();
     }
 
-    @Override
-    public long getStartTime() {
-        return startTime;
-    }
 }

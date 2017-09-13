@@ -14,21 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scan.time;
+package org.gradle.internal.time;
 
-import org.gradle.internal.buildevents.BuildStartedTime;
+public class ClockTest {
 
-public class DefaultBuildScanBuildStartedTime implements BuildScanBuildStartedTime {
+    public static void main(String[] args) throws InterruptedException {
+        Clock clock = Time.clock();
+        long m1 = clock.getCurrentTime();
+        long s1 = System.currentTimeMillis();
+        while (true) {
+            Thread.sleep(500);
 
-    private final BuildStartedTime buildStartedTime;
+            long m2 = clock.getCurrentTime();
+            long s2 = System.currentTimeMillis();
+            long d = m2 - s2;
 
-    public DefaultBuildScanBuildStartedTime(BuildStartedTime buildStartedTime) {
-        this.buildStartedTime = buildStartedTime;
+            System.out.println("m: " + m2 + "(" + (m2 - m1) + "), s: " + s2 + "(" + (s2 - s1) + "), d: " + d);
+
+            m1 = m2;
+            s1 = s2;
+        }
     }
-
-    @Override
-    public long getBuildStartedTime() {
-        return buildStartedTime.getStartTime();
-    }
-
 }

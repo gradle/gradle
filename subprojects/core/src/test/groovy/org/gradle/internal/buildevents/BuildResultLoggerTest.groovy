@@ -20,34 +20,35 @@ import org.gradle.BuildResult
 import org.gradle.internal.logging.format.DurationFormatter
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
+import org.gradle.internal.time.Clock
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 import spock.lang.Subject
-import org.gradle.internal.time.Timer;
 
 @Subject(BuildResultLogger)
 class BuildResultLoggerTest extends Specification {
     private StyledTextOutputFactory textOutputFactory = new TestStyledTextOutputFactory()
-    private Timer clock = Mock(Timer)
+    private BuildStartedTime buildStartedTime = BuildStartedTime.startingAt(0)
+    private Clock clock = Mock(Clock)
     private DurationFormatter durationFormatter = Mock(DurationFormatter)
-    private BuildResultLogger subject = new BuildResultLogger(textOutputFactory, clock, durationFormatter)
+    private BuildResultLogger subject = new BuildResultLogger(textOutputFactory, buildStartedTime, clock, durationFormatter)
 
     def "logs build success with total time"() {
         when:
+        1 * clock.currentTime >> 10
         subject.buildFinished(new BuildResult("Action", null, null));
 
         then:
-        1 * clock.getElapsedMillis() >> { 10L }
         1 * durationFormatter.format(10L) >> { "10s" }
         TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.BuildResultLogger}{LIFECYCLE}\n{successheader}ACTION SUCCESSFUL{normal} in 10s\n"
     }
 
     def "logs build failure with total time"() {
         when:
+        1 * clock.currentTime >> 10
         subject.buildFinished(new BuildResult("Action", null, new RuntimeException()));
 
         then:
-        1 * clock.getElapsedMillis() >> { 10L }
         1 * durationFormatter.format(10L) >> { "10s" }
         TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.BuildResultLogger}{ERROR}\n{failureheader}ACTION FAILED{normal} in 10s\n"
     }

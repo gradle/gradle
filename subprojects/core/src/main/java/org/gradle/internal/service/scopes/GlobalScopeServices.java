@@ -299,10 +299,6 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return new DefaultGradleUserHomeScopeServiceRegistry(globalServices, new GradleUserHomeScopeServices(globalServices));
     }
 
-    Clock createTimeProvider() {
-        return Time.clock();
-    }
-
     OsMemoryInfo createOsMemoryInfo() {
         return new DefaultOsMemoryInfo();
     }
@@ -357,5 +353,9 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
 
     StreamHasher createStreamHasher(ContentHasherFactory hasherFactory) {
         return new DefaultStreamHasher(hasherFactory);
+    }
+
+    Clock createClock() {
+        return Time.clock();
     }
 }
