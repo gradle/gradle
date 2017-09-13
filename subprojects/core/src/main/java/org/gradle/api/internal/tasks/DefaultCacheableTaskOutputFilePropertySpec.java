@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.DeferredUtil;
 
 import java.io.File;
 
+@NonNullApi
 public class DefaultCacheableTaskOutputFilePropertySpec extends AbstractTaskOutputPropertySpec implements CacheableTaskOutputFilePropertySpec {
     private final TaskPropertyFileCollection files;
     private final OutputType outputType;

@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
-import org.gradle.api.tasks.TaskPropertyBuilder;
+import org.gradle.api.tasks.TaskFilePropertyBuilder;
 import org.gradle.internal.Cast;
 
 import java.util.Iterator;
@@ -42,7 +42,7 @@ public class TaskPropertyUtils {
         return builder.build();
     }
 
-    public static <T extends TaskPropertySpec & TaskPropertyBuilder> void ensurePropertiesHaveNames(Iterable<T> properties) {
+    public static <T extends TaskPropertySpec & TaskFilePropertyBuilder> void ensurePropertiesHaveNames(Iterable<T> properties) {
         int unnamedPropertyCounter = 0;
         for (T propertySpec : properties) {
             String propertyName = propertySpec.getPropertyName();

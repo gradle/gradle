@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.OutputPathNormalizationStrategy;
 import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 
+@NonNullApi
 abstract class AbstractTaskOutputPropertySpec extends AbstractTaskOutputsDeprecatingTaskPropertyBuilder implements TaskOutputPropertySpecAndBuilder {
     private boolean optional;
 

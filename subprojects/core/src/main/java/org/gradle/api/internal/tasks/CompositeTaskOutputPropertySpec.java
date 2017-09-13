@@ -18,13 +18,16 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.Iterators;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.DeferredUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Iterator;
 import java.util.Map;
 
+@NonNullApi
 public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertySpec {
 
     private final OutputType outputType;
@@ -32,7 +35,7 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
     private final String taskName;
     private final FileResolver resolver;
 
-    public CompositeTaskOutputPropertySpec(String taskName, FileResolver resolver, OutputType outputType, Object[] paths) {
+    public CompositeTaskOutputPropertySpec(String taskName, FileResolver resolver, OutputType outputType, @Nullable Object[] paths) {
         this.taskName = taskName;
         this.resolver = resolver;
         this.outputType = outputType;
@@ -69,7 +72,7 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
             };
         } else {
             return Iterators.<TaskOutputFilePropertySpec>singletonIterator(
-                new NonCacheableTaskOutputPropertySpec(taskName, this, resolver, outputType, unpackedPaths)
+                new NonCacheableTaskOutputPropertySpec(taskName, this, resolver, unpackedPaths)
             );
         }
     }

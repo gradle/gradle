@@ -88,7 +88,7 @@ public interface TaskInputs extends CompatibilityAdapterForTaskInputs {
      * @param name The name of the property. Must not be null.
      * @param value The value for the property. Can be null.
      */
-    TaskInputs property(String name, @Nullable Object value);
+    TaskInputPropertyBuilder property(String name, @Nullable Object value);
 
     /**
      * Registers a set of input properties for this task. See {@link #property(String, Object)} for details.

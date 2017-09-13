@@ -17,12 +17,14 @@
 package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 import org.gradle.api.tasks.TaskOutputs;
 
+@NonNullApi
 abstract class AbstractTaskOutputsDeprecatingTaskPropertyBuilder extends AbstractTaskPropertyBuilder implements TaskOutputs {
     // --- See CompatibilityAdapterForTaskOutputs for an explanation for why these methods are here
 

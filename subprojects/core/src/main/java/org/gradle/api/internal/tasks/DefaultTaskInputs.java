@@ -26,6 +26,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.tasks.TaskInputPropertyBuilder;
 import org.gradle.api.tasks.TaskInputs;
 
 import java.util.HashMap;
@@ -42,7 +43,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     private final FileResolver resolver;
     private final TaskInternal task;
     private final TaskMutator taskMutator;
-    private final Map<String, Object> properties = new HashMap<String, Object>();
+    private final Map<String, PropertyValue> properties = new HashMap<String, PropertyValue>();
     private final List<TaskInputPropertySpecAndBuilder> filePropertiesInternal = Lists.newArrayList();
     private ImmutableSortedSet<TaskInputFilePropertySpec> fileProperties;
 
@@ -120,17 +121,17 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     private TaskInputFilePropertyBuilderInternal addSpec(Object paths) {
-        DefaultTaskInputPropertySpec spec = new DefaultTaskInputPropertySpec(task.getName(), resolver, paths);
+        DefaultTaskInputFilePropertySpec spec = new DefaultTaskInputFilePropertySpec(task.getName(), resolver, paths);
         filePropertiesInternal.add(spec);
         return spec;
     }
 
     public Map<String, Object> getProperties() {
         Map<String, Object> actualProperties = new HashMap<String, Object>();
-        for (Map.Entry<String, Object> entry : properties.entrySet()) {
+        for (Map.Entry<String, PropertyValue> entry : properties.entrySet()) {
             String propertyName = entry.getKey();
             try {
-                Object value = prepareValue(entry.getValue());
+                Object value = prepareValue(entry.getValue().getValue());
                 actualProperties.put(propertyName, value);
             } catch (Exception ex) {
                 throw new InvalidUserDataException(String.format("Error while evaluating property '%s' of %s", propertyName, task), ex);
@@ -157,22 +158,61 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return (value instanceof GString) ? value.toString() : value;
     }
 
-    public TaskInputs property(final String name, final Object value) {
-        taskMutator.mutate("TaskInputs.property(String, Object)", new Runnable() {
+    public TaskInputPropertyBuilder property(final String name, final Object value) {
+        return taskMutator.mutate("TaskInputs.property(String, Object)", new Callable<TaskInputPropertyBuilder>() {
+            @Override
+            public TaskInputPropertyBuilder call() throws Exception {
+                return setProperty(name, value);
+            }
+        });
+    }
+
+    public TaskInputs properties(final Map<String, ?> newProps) {
+        taskMutator.mutate("TaskInputs.properties(Map)", new Runnable() {
+            @Override
             public void run() {
-                properties.put(name, value);
+                for (Map.Entry<String, ?> entry : newProps.entrySet()) {
+                    setProperty(entry.getKey(), entry.getValue());
+                }
             }
         });
         return this;
     }
 
-    public TaskInputs properties(final Map<String, ?> newProps) {
-        taskMutator.mutate("TaskInputs.properties(Map)", new Runnable() {
-            public void run() {
-                properties.putAll(newProps);
-            }
-        });
-        return this;
+    private TaskInputPropertyBuilder setProperty(String name, Object value) {
+        PropertyValue propertyValue = properties.get(name);
+        DeclaredTaskInputProperty spec;
+        if (propertyValue == null) {
+            spec = new DefaultTaskInputPropertySpec(name);
+            propertyValue = new PropertyValue(spec, value);
+            properties.put(name, propertyValue);
+        } else {
+            spec = propertyValue.getPropertySpec();
+            propertyValue.setValue(value);
+        }
+        return spec;
+    }
+
+    private static class PropertyValue {
+        private final DeclaredTaskInputProperty propertySpec;
+        private Object value;
+
+        public PropertyValue(DeclaredTaskInputProperty propertySpec, Object value) {
+            this.propertySpec = propertySpec;
+            this.value = value;
+        }
+
+        public DeclaredTaskInputProperty getPropertySpec() {
+            return propertySpec;
+        }
+
+        public Object getValue() {
+            return value;
+        }
+
+        public void setValue(Object value) {
+            this.value = value;
+        }
     }
 
     private static class TaskInputUnionFileCollection extends CompositeFileCollection implements Describable {

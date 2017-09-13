@@ -20,23 +20,15 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.tasks.TaskPropertyBuilder;
 
 public class NonCacheableTaskOutputPropertySpec extends AbstractTaskOutputsDeprecatingTaskPropertyBuilder implements TaskOutputFilePropertySpec {
 
     private final CompositeTaskOutputPropertySpec parent;
-    private final OutputType outputType;
     private final FileCollection files;
 
-    public NonCacheableTaskOutputPropertySpec(String taskName, CompositeTaskOutputPropertySpec parent, FileResolver resolver, OutputType outputType, Object paths) {
+    public NonCacheableTaskOutputPropertySpec(String taskName, CompositeTaskOutputPropertySpec parent, FileResolver resolver, Object paths) {
         this.parent = parent;
-        this.outputType = outputType;
         this.files = new TaskPropertyFileCollection(taskName, "output", this, resolver, paths);
-    }
-
-    @Override
-    public TaskPropertyBuilder withPropertyName(String propertyName) {
-        return parent.withPropertyName(propertyName);
     }
 
     @Override
@@ -46,7 +38,7 @@ public class NonCacheableTaskOutputPropertySpec extends AbstractTaskOutputsDepre
 
     @Override
     public OutputType getOutputType() {
-        return outputType;
+        return parent.getOutputType();
     }
 
     @Override

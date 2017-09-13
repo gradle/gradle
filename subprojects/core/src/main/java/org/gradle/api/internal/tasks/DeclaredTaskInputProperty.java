@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks;
+package org.gradle.api.internal.tasks;
 
-import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.tasks.TaskInputPropertyBuilder;
 
-/**
- * Describes a property of a task.
- *
- * @since 3.0
- */
-@Incubating
-@HasInternalProtocol
-public interface TaskPropertyBuilder {
+public interface DeclaredTaskInputProperty extends TaskInputPropertySpec, TaskInputPropertyBuilder {
 }
