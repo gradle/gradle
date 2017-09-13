@@ -20,7 +20,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 
 @ToolingApiVersion("current")
-class ToolingApiUnsupportedProviderCrossVersionSpec extends ToolingApiVersionSupport {
+class ToolingApiUnsupportedProviderCrossVersionSpec extends ToolingApiVersionSpecification {
     @TargetGradleVersion("<1.2")
     def "fail in build execution for <1.2 providers"() {
         when:

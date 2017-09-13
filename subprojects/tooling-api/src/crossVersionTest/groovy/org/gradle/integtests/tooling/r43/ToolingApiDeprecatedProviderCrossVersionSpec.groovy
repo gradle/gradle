@@ -20,14 +20,14 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 
 @ToolingApiVersion("current")
-class ToolingApiDeprecatedProviderCrossVersionSpec extends ToolingApiVersionSupport {
+class ToolingApiDeprecatedProviderCrossVersionSpec extends ToolingApiVersionSpecification {
     @TargetGradleVersion(">=1.2 <2.6")
     def "deprecation warning in build execution for >=1.2 and <2.6 providers"() {
         when:
         build()
 
         then:
-        output.toString().count(providerDeprecationMessage(targetDist.version.version)) == 1
+        output.count(providerDeprecationMessage(targetDist.version.version)) == 1
     }
 
     @TargetGradleVersion(">=1.2 <2.6")
@@ -36,7 +36,7 @@ class ToolingApiDeprecatedProviderCrossVersionSpec extends ToolingApiVersionSupp
         getModel()
 
         then:
-        output.toString().count(providerDeprecationMessage(targetDist.version.version)) == 1
+        output.count(providerDeprecationMessage(targetDist.version.version)) == 1
     }
 
     @TargetGradleVersion(">=1.8 <2.6")
@@ -45,7 +45,7 @@ class ToolingApiDeprecatedProviderCrossVersionSpec extends ToolingApiVersionSupp
         buildAction()
 
         then:
-        output.toString().count(providerDeprecationMessage(targetDist.version.version)) == 1
+        output.count(providerDeprecationMessage(targetDist.version.version)) == 1
     }
 
     // No test for test action since it was introduced in 2.6

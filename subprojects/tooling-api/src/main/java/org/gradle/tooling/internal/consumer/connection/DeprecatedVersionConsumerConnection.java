@@ -21,13 +21,11 @@ import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
-import org.gradle.util.GradleVersion;
 
 import java.io.IOException;
 
 public class DeprecatedVersionConsumerConnection implements ConsumerConnection {
-    private static final String DEPRECATION_WARNING = "Support for %s older than %s is deprecated and will be removed in 5.0. You are currently using %s. You should upgrade your %s.\n";
-    private static final GradleVersion MIN_LTS_PROVIDER_VERSION = GradleVersion.version("2.6");
+    private static final String DEPRECATION_WARNING = "Support for builds using Gradle older than 2.6 was deprecated and will be removed in 5.0. You are currently using Gradle version %s. You should upgrade your Gradle build to use Gradle 2.6 or later.\n";
 
     private final ConsumerConnection delegate;
 
@@ -67,16 +65,16 @@ public class DeprecatedVersionConsumerConnection implements ConsumerConnection {
     }
 
     private void outputDeprecationMessage(ConsumerOperationParameters parameters) {
-        if (parameters.getStandardOutput() == null) {
+        if (parameters.getStandardOutput() != null) {
             try {
-                parameters.getStandardOutput().write(createDeprecationMessage(providerVersion, MIN_LTS_PROVIDER_VERSION, "Gradle").getBytes());
+                parameters.getStandardOutput().write(createDeprecationMessage(providerVersion).getBytes());
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
         }
     }
 
-    private static String createDeprecationMessage(String currentVersion, GradleVersion minLtsVersion, String description) {
-        return String.format(DEPRECATION_WARNING, description, minLtsVersion.getVersion(), currentVersion, description);
+    private static String createDeprecationMessage(String currentVersion) {
+        return String.format(DEPRECATION_WARNING, currentVersion);
     }
 }

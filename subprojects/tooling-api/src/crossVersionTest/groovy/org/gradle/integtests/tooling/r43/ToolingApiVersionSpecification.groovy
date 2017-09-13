@@ -22,7 +22,7 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.util.GradleVersion
 
-abstract class ToolingApiVersionSupport extends ToolingApiSpecification {
+abstract class ToolingApiVersionSpecification extends ToolingApiSpecification {
     def output = new ByteArrayOutputStream()
 
     // AbstractConsumerConnection.getVersionDetail was introduced in 1.2
@@ -35,16 +35,17 @@ abstract class ToolingApiVersionSupport extends ToolingApiSpecification {
             return ''
         }
     }
+
     def currentProviderMessage(String version) {
         return currentVersionMessage(GradleVersion.version(version), minProviderVersionDetail)
     }
 
-    String providerUnsupportedMessage(String version) {
-        return "Support for Gradle older than 1.2 has been removed. ${currentProviderMessage(version)}You should upgrade your Gradle to version 1.2 or later."
+    String providerDeprecationMessage(String version) {
+        return "Support for builds using Gradle older than 2.6 was deprecated and will be removed in 5.0. You are currently using Gradle version ${version}. You should upgrade your Gradle build to use Gradle 2.6 or later."
     }
 
-    String providerDeprecationMessage(String version) {
-        return "Support for Gradle older than 2.6 is deprecated and will be removed in 5.0. You are currently using ${version}. You should upgrade your Gradle."
+    String getOutput() {
+        output.toString()
     }
 
     // since 1.0
