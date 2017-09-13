@@ -72,13 +72,6 @@ public class MultipleCandidateModulesConflictResolver implements ModuleConflictR
                 return;
             }
         }
-        // intersection is ordered, so we need to take the first
-        String version = intersection.get(0);
-        for (T candidate : details.getCandidates()) {
-            if (candidate.getId().getVersion().equals(version)) {
-                details.select(candidate);
-                return;
-            }
-        }
+        details.restart();
     }
 }

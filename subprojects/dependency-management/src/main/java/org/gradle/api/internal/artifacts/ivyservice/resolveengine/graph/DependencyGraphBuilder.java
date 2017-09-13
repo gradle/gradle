@@ -203,7 +203,7 @@ public class DependencyGraphBuilder {
         // but we still didn't add the result to the queue. Doing it from resolve threads would result in non-reproducible graphs, where
         // edges could be added in different order. To avoid this, the addition of new edges is done serially.
         for (EdgeState dependency : dependencies) {
-            if (dependency.targetModuleRevision != null && dependency.targetModuleRevision.state == ModuleState.Selected) {
+            if (dependency.targetModuleRevision != null) {
                 dependency.attachToTargetConfigurations();
             }
         }
@@ -739,7 +739,7 @@ public class DependencyGraphBuilder {
         private ModuleState state = ModuleState.New;
         private ComponentSelectionReason selectionReason = VersionSelectionReasons.REQUESTED;
         private ModuleVersionResolveException failure;
-        private SelectorState firstReference;
+        private SelectorState selectedBy;
         private VisitState visitState = VisitState.NotSeen;
 
         private ComponentState(Long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentMetaDataResolver resolver) {
@@ -802,8 +802,8 @@ public class DependencyGraphBuilder {
         }
 
         public void addResolver(SelectorState resolver) {
-            if (firstReference == null) {
-                firstReference = resolver;
+            if (selectedBy == null) {
+                selectedBy = resolver;
             }
         }
 
@@ -817,7 +817,7 @@ public class DependencyGraphBuilder {
                 return true;
             }
 
-            ComponentIdResolveResult idResolveResult = firstReference.idResolveResult;
+            ComponentIdResolveResult idResolveResult = selectedBy.idResolveResult;
             if (idResolveResult.getFailure() != null) {
                 failure = idResolveResult.getFailure();
                 return true;
@@ -834,10 +834,10 @@ public class DependencyGraphBuilder {
                 return;
             }
 
-            ComponentIdResolveResult idResolveResult = firstReference.idResolveResult;
+            ComponentIdResolveResult idResolveResult = selectedBy.idResolveResult;
 
             DefaultBuildableComponentResolveResult result = new DefaultBuildableComponentResolveResult();
-            resolver.resolve(idResolveResult.getId(), DefaultComponentOverrideMetadata.forDependency(firstReference.dependencyMetadata), result);
+            resolver.resolve(idResolveResult.getId(), DefaultComponentOverrideMetadata.forDependency(selectedBy.dependencyMetadata), result);
             if (result.getFailure() != null) {
                 failure = result.getFailure();
                 return;
@@ -875,6 +875,25 @@ public class DependencyGraphBuilder {
         @Override
         public void setSelectionReason(ComponentSelectionReason reason) {
             this.selectionReason = reason;
+        }
+
+        @Override
+        public void restartSelection() {
+            state = ModuleState.New;
+            module.selected = null;
+            for (NodeState node : nodes) {
+                for (EdgeState edge : node.incomingEdges) {
+                    if (edge.selector.selected != null) {
+                       // edge.from.removeOutgoingEdges();
+                        edge.from.previousTraversalExclusions = null;
+                        edge.from.outgoingEdges.clear();
+                        module.resolveState.onMoreSelected(edge.from);
+                    }
+                }
+            }
+            for (SelectorState selector : module.selectors) {
+                selector.reset();
+            }
         }
 
         @Override
@@ -1215,6 +1234,12 @@ public class DependencyGraphBuilder {
         public void restart(ComponentState moduleRevision) {
             this.selected = moduleRevision;
             this.targetModule = moduleRevision.module;
+        }
+
+        public void reset() {
+            this.idResolveResult = null;
+            this.selected = null;
+            this.targetModule = null;
         }
     }
 
