@@ -151,13 +151,23 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
         app.library.writeToProject(file("greeter"))
         app.executable.writeToProject(file("app"))
 
-        and:
+        when:
         succeeds "assemble"
+
+        then:
+        executable("app/build/exe/main/debug/app").assertExists()
+        file("app/build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.executable.original))
+        installation("app/build/install/main/debug").assertInstalled()
+
+        sharedLibrary("greeter/build/lib/main/debug/greeter").assertExists()
+        file("greeter/build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.library.original))
+
+        when:
         app.library.applyChangesToProject(file('greeter'))
         app.executable.applyChangesToProject(file('app'))
-
-        expect:
         succeeds "assemble"
+
+        then:
         result.assertTasksExecuted(":greeter:compileDebugCpp", ":greeter:linkDebug", ":greeter:assemble",
             ":app:compileDebugCpp", ":app:linkDebug", ":app:installDebug", ":app:assemble",
             ":assemble")
@@ -185,12 +195,19 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
             apply plugin: 'cpp-executable'
          """
 
-        and:
+        when:
         succeeds "assemble"
-        app.applyChangesToProject(testDirectory)
 
-        expect:
+        then:
+        executable("build/exe/main/debug/app").assertExists()
+        file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.original))
+        installation("build/install/main/debug").assertInstalled()
+
+        when:
+        app.applyChangesToProject(testDirectory)
         succeeds "assemble"
+
+        then:
         result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":installDebug", ":assemble")
         result.assertTasksNotSkipped(":compileDebugCpp", ":linkDebug", ":installDebug", ":assemble")
 
@@ -212,12 +229,18 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
             apply plugin: 'cpp-library'
          """
 
-        and:
+        when:
         succeeds "assemble"
-        lib.applyChangesToProject(testDirectory)
 
-        expect:
+        then:
+        sharedLibrary("build/lib/main/debug/hello").assertExists()
+        file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(lib.original))
+
+        when:
+        lib.applyChangesToProject(testDirectory)
         succeeds "assemble"
+
+        then:
         result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":assemble")
         result.assertTasksNotSkipped(":compileDebugCpp", ":linkDebug", ":assemble")
 
