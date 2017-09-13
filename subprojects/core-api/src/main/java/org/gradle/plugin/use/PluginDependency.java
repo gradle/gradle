@@ -22,6 +22,8 @@ import org.gradle.api.Incubating;
  * A mutable specification of a dependency on a plugin.
  *
  * See {@link PluginDependenciesSpec} for more information about declaring plugin dependencies.
+ *
+ * @since 4.3
  */
 @Incubating
 public interface PluginDependency {

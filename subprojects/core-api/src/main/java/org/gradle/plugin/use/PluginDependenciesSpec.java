@@ -134,7 +134,7 @@ public interface PluginDependenciesSpec {
      *
      * @param script the path, relative to the requesting script, or URL
      * @return this
-     * @since 4.2
+     * @since 4.3
      */
     ScriptPluginDependencySpec script(String script);
 

@@ -47,7 +47,7 @@ public interface PluginRequest {
     /**
      * The path or URL to a script plugin.
      *
-     * @since 4.2
+     * @since 4.3
      */
     @Nullable
     String getScript();
