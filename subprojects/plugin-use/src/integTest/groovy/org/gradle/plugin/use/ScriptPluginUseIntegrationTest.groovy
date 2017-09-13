@@ -281,7 +281,7 @@ class ScriptPluginUseIntegrationTest extends AbstractIntegrationSpec {
         file("gradle/other.gradle") << """
 
             buildscript {
-                repositories { jcenter() }
+                ${jcenterRepository()}
                 dependencies {
                     classpath("org.apache.commons:commons-lang3:3.6")
                 }
