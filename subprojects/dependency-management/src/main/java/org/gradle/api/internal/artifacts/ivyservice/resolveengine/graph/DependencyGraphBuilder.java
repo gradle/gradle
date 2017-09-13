@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
@@ -41,6 +42,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
@@ -1223,16 +1225,19 @@ public class DependencyGraphBuilder {
             this.root = root;
         }
 
-        public <T extends ComponentResolutionState> T select(Collection<? extends T> candidates) {
+        @Override
+        public <T extends ComponentResolutionState> void select(ConflictResolverDetails<T> details) {
+            Collection<? extends T> candidates = details.getCandidates();
             for (NodeState configuration : root.nodes) {
                 for (EdgeState outgoingEdge : configuration.outgoingEdges) {
                     if (outgoingEdge.dependencyMetadata.isForce() && candidates.contains(outgoingEdge.targetModuleRevision)) {
                         outgoingEdge.targetModuleRevision.selectionReason = VersionSelectionReasons.FORCED;
-                        return (T) outgoingEdge.targetModuleRevision;
+                        details.select(Cast.<T>uncheckedCast(outgoingEdge.targetModuleRevision));
+                        return;
                     }
                 }
             }
-            return null;
+            return;
         }
     }
 

@@ -17,11 +17,10 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.HasMultipleCandidateVersions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 
-import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -49,19 +48,18 @@ public class MultipleCandidateModulesConflictResolver implements ModuleConflictR
         return INSTANCE;
     }
 
-    @Nullable
     @Override
-    public <T extends ComponentResolutionState> T select(Collection<? extends T> candidates) {
+    public <T extends ComponentResolutionState> void select(ConflictResolverDetails<T> details) {
         List<String> intersection = null;
-        for (T candidate : candidates) {
+        for (T candidate : details.getCandidates()) {
             if (!candidate.isResolved()) {
                 // this check avoids eagerly resolving metadata in case it can be deferred.
                 // We can do this because this conflict resolver won't be of any use for cases where metadata wasn't necessary.
-                return null;
+                return;
             }
             ComponentResolveMetadata md = candidate.getMetaData();
             if (!(md instanceof HasMultipleCandidateVersions)) {
-                return null;
+                return;
             }
             // We make sure to use _lists_ in order to preserve order
             List<String> allVersions = ((HasMultipleCandidateVersions) md).getAllVersions();
@@ -71,16 +69,16 @@ public class MultipleCandidateModulesConflictResolver implements ModuleConflictR
                 intersection.retainAll(allVersions);
             }
             if (intersection.isEmpty()) {
-                return null;
+                return;
             }
         }
         // intersection is ordered, so we need to take the first
         String version = intersection.get(0);
-        for (T candidate : candidates) {
+        for (T candidate : details.getCandidates()) {
             if (candidate.getId().getVersion().equals(version)) {
-                return candidate;
+                details.select(candidate);
+                return;
             }
         }
-        return null;
     }
 }

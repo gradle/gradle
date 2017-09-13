@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.HasMultipleCandidateVersions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import spock.lang.Specification
 
@@ -27,6 +28,11 @@ class MultipleCandidateModulesConflictResolverTest extends Specification {
 
     final List<? extends ComponentResolutionState> candidates = []
     private ComponentResolutionState selected
+    final ConflictResolverDetails details = Mock() {
+        getCandidates() >> { candidates }
+        getSelected() >> { selected }
+        select(_) >> { selected = it[0] }
+    }
 
     def "doesn't select a candidate if they are not of expected type"() {
         given:
@@ -41,8 +47,8 @@ class MultipleCandidateModulesConflictResolverTest extends Specification {
 
     def "selects highest candidate in ranges"() {
         given:
-        candidates << range(3,6)
-        candidates << range(4,8)
+        candidates << range(3, 6)
+        candidates << range(4, 8)
 
         when:
         resolveConflicts()
@@ -53,10 +59,10 @@ class MultipleCandidateModulesConflictResolverTest extends Specification {
 
     def "selects highest candidate when there are more than 2 ranges"() {
         given:
-        candidates << range(1,10)
-        candidates << range(3,6)
-        candidates << range(3,4)
-        candidates << range(4,9)
+        candidates << range(1, 10)
+        candidates << range(3, 6)
+        candidates << range(3, 4)
+        candidates << range(4, 9)
 
         when:
         resolveConflicts()
@@ -67,8 +73,8 @@ class MultipleCandidateModulesConflictResolverTest extends Specification {
 
     def "doesn't selects when ranges are disjoint"() {
         given:
-        candidates << range(3,6)
-        candidates << range(7,8)
+        candidates << range(3, 6)
+        candidates << range(7, 8)
 
         when:
         resolveConflicts()
@@ -82,7 +88,7 @@ class MultipleCandidateModulesConflictResolverTest extends Specification {
             throw new AssertionError("Expected to select version $version but no version was selected")
         }
         String selectedVersion = selected.id.version
-        assert selectedVersion == "$version" : "Expected to select version $version but version $selectedVersion was selected"
+        assert selectedVersion == "$version": "Expected to select version $version but version $selectedVersion was selected"
     }
 
     private ComponentResolutionState range(int from, int to) {
@@ -112,7 +118,7 @@ class MultipleCandidateModulesConflictResolverTest extends Specification {
     }
 
     private void resolveConflicts() {
-        selected = resolver.select(candidates)
+        resolver.select(details)
     }
 
     interface MetadataWithRange extends ComponentResolveMetadata, HasMultipleCandidateVersions {}

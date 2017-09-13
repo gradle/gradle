@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,27 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import java.util.Formatter;
+import javax.annotation.Nullable;
+import java.util.Collection;
 
-class StrictConflictResolver implements ModuleConflictResolver {
-    @Override
-    public <T extends ComponentResolutionState> void select(ConflictResolverDetails<T> details) {
-        Formatter formatter = new Formatter();
-        formatter.format("A conflict was found between the following modules:");
-        for (ComponentResolutionState candidate : details.getCandidates()) {
-            formatter.format("%n - %s", candidate.getId());
-        }
-        details.fail(new RuntimeException(formatter.toString()));
-    }
+public interface ConflictResolverDetails<T extends ComponentResolutionState> {
+    Collection<? extends T> getCandidates();
+
+    void select(T candidate);
+
+    void restart();
+
+    void fail(Throwable error);
+
+    @Nullable
+    T getSelected();
+
+    boolean isRestart();
+
+    @Nullable
+    Throwable getFailure();
+
+    boolean hasFailure();
+
+    boolean hasSelected();
 }
