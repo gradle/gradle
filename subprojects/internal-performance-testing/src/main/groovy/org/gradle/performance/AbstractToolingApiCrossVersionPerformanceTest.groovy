@@ -30,7 +30,7 @@ import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.time.Clock
-import org.gradle.internal.time.TrueClock
+import org.gradle.internal.time.Time
 import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
@@ -151,7 +151,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     }
 
     private class Measurement implements ToolingApiClasspathProvider {
-        private final Clock timeProvider = new TrueClock();
+        private final Clock clock = Time.clock()
 
         private CrossVersionPerformanceResults run() {
             def testId = experimentSpec.displayName
@@ -171,7 +171,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 versionUnderTest: GradleVersion.current().getVersion(),
                 vcsBranch: Git.current().branchName,
                 vcsCommits: [Git.current().commitId],
-                startTime: timeProvider.getCurrentTime(),
+                startTime: clock.getCurrentTime(),
                 tasks: [],
                 cleanTasks: [],
                 args: [],
@@ -209,7 +209,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 resolver.stop()
             }
 
-            results.endTime = timeProvider.getCurrentTime()
+            results.endTime = clock.getCurrentTime()
 
             results.assertEveryBuildSucceeds()
             resultStore.report(results)

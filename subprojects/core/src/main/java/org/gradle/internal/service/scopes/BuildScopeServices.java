@@ -146,7 +146,7 @@ import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.buildevents.BuildExecutionTimer;
+import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.time.Clock;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
@@ -383,7 +383,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected ProfileEventAdapter createProfileEventAdapter() {
-        return new ProfileEventAdapter(get(BuildExecutionTimer.class), get(Clock.class), get(ListenerManager.class).getBroadcaster(ProfileListener.class));
+        return new ProfileEventAdapter(get(BuildStartedTime.class), get(Clock.class), get(ListenerManager.class).getBroadcaster(ProfileListener.class));
     }
 
     protected PluginRegistry createPluginRegistry(ClassLoaderScopeRegistry scopeRegistry, PluginInspector pluginInspector) {

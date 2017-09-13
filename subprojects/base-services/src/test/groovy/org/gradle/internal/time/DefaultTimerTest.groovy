@@ -19,12 +19,15 @@ package org.gradle.internal.time
 
 import spock.lang.Specification
 
+import java.util.concurrent.TimeUnit
+
 class DefaultTimerTest extends Specification {
 
-    def clock = Mock(Clock) {
-        1 * getCurrentTime() >> 0
+    def timeSource = Mock(TimeSource) {
+        1 * nanoTime() >> 0
     }
-    def timer = new DefaultTimer(clock)
+
+    def timer = new DefaultTimer(timeSource)
 
     def testOnlySecondsTwoDigits() throws Exception {
         when:
@@ -70,9 +73,10 @@ class DefaultTimerTest extends Specification {
         when:
         setTime(100)
         timer.reset()
+        setTime(200)
 
         then:
-        timer.startTime == 100
+        timer.elapsedMillis == 100
     }
 
     def testElapsed() throws Exception {
@@ -84,7 +88,7 @@ class DefaultTimerTest extends Specification {
     }
 
     private void setTime(long timestamp) {
-        1 * clock.getCurrentTime() >> timestamp
+        1 * timeSource.nanoTime() >> TimeUnit.MILLISECONDS.toNanos(timestamp)
     }
 
     private void setTime(int hours, int minutes, int seconds, int millis) {

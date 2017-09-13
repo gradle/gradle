@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,31 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.util;
+package org.gradle.internal.time;
 
-import org.gradle.internal.time.Clock;
+import com.google.common.annotations.VisibleForTesting;
 
-public class MockClock implements Clock {
+@VisibleForTesting
+interface TimeSource {
 
-    long current;
+    long currentTimeMillis();
 
-    public MockClock() {
-        this(System.currentTimeMillis());
-    }
+    long nanoTime();
 
-    public MockClock(long startTime) {
-        current = startTime;
-    }
+    TimeSource SYSTEM = new TimeSource() {
+        @Override
+        public long currentTimeMillis() {
+            return System.currentTimeMillis();
+        }
 
-    public void increment(long diff) {
-        current += diff;
-    }
-
-    /** Increments the time by 10ms and returns it. */
-    @Override
-    public long getCurrentTime() {
-        current += 10L;
-        return current;
-    }
+        @Override
+        public long nanoTime() {
+            return System.nanoTime();
+        }
+    };
 
 }

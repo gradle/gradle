@@ -17,7 +17,7 @@
 package org.gradle.internal.logging.slf4j
 
 import org.gradle.api.logging.Logging
-import org.gradle.internal.time.TrueClock
+import org.gradle.internal.time.Time
 import org.gradle.util.TextUtil
 import org.slf4j.Logger
 import spock.lang.Specification
@@ -27,7 +27,7 @@ class OutputEventListenerBackedLoggerDefaultConfigurationTest extends Specificat
     def outStream = new ByteArrayOutputStream()
     def errStream = new ByteArrayOutputStream()
 
-    def context = new OutputEventListenerBackedLoggerContext(new PrintStream(outStream), new PrintStream(errStream), new TrueClock())
+    def context = new OutputEventListenerBackedLoggerContext(new PrintStream(outStream), new PrintStream(errStream), Time.clock())
 
     String getOut() {
         outStream.toString()

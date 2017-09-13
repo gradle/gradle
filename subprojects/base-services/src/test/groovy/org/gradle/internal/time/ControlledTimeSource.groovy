@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.time;
+package org.gradle.internal.time
 
-public interface CountdownTimer extends Timer {
+import java.util.concurrent.TimeUnit
 
-    boolean hasExpired();
+class ControlledTimeSource implements TimeSource {
 
-    long getRemainingMillis();
+    long nanoTime
+    long currentTimeMillis
 
-    long getTimeoutMillis();
+    @Override
+    long currentTimeMillis() {
+        currentTimeMillis
+    }
+
+    @Override
+    long nanoTime() {
+        TimeUnit.MILLISECONDS.toNanos(nanoTime)
+    }
 
 }

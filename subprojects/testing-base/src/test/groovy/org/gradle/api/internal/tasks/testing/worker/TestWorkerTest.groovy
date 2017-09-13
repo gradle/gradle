@@ -24,7 +24,7 @@ import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory
 import org.gradle.internal.remote.ObjectConnection
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.time.Clock
-import org.gradle.internal.time.TrueClock
+import org.gradle.internal.time.Time
 import org.gradle.process.internal.worker.WorkerProcessContext
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.SetSystemProperties
@@ -39,7 +39,7 @@ public class TestWorkerTest extends ConcurrentSpec {
     def test = Mock(TestClassRunInfo)
     def resultProcessor = Mock(TestResultProcessor)
     def worker = new TestWorker(factory)
-    def serviceRegistry = new DefaultServiceRegistry().add(Clock, new TrueClock())
+    def serviceRegistry = new DefaultServiceRegistry().add(Clock, Time.clock())
 
     def setup() {
         workerContext.workerId >> "<worker-id>"

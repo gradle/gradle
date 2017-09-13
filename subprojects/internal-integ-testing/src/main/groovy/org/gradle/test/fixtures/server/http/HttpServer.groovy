@@ -565,9 +565,8 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
             }
 
             void handle(HttpServletRequest request, HttpServletResponse response) {
-                if (request.queryString == query) {
-                    action.handle(request, response)
-                }
+                assert request.queryString == query
+                action.handle(request, response)
             }
         }
     }

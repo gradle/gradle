@@ -21,7 +21,6 @@ import org.gradle.BuildResult
 import org.gradle.api.Action
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.time.Time
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationListener
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult
@@ -85,7 +84,7 @@ class DefaultDaemonScanInfoSpec extends ConcurrentSpec {
 
     def "should not deadlock with deamon scan info"() {
         def manager = new DefaultListenerManager()
-        def daemonScanInfo = new DefaultDaemonScanInfo(new DaemonRunningStats(Time.startTimer()), 1000, Mock(DaemonRegistry), manager)
+        def daemonScanInfo = new DefaultDaemonScanInfo(new DaemonRunningStats(), 1000, Mock(DaemonRegistry), manager)
         daemonScanInfo.notifyOnUnhealthy {
             println "Hello"
             sleep 500

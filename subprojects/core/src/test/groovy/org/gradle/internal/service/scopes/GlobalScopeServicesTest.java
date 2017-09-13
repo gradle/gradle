@@ -55,8 +55,6 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.time.Clock;
-import org.gradle.internal.time.MonotonicClock;
 import org.gradle.process.internal.health.memory.DefaultJvmMemoryInfo;
 import org.gradle.process.internal.health.memory.DefaultMemoryManager;
 import org.gradle.process.internal.health.memory.DefaultOsMemoryInfo;
@@ -188,11 +186,6 @@ public class GlobalScopeServicesTest {
     @Test
     public void providesADocumentationRegistry() throws Exception {
         assertThat(registry().get(DocumentationRegistry.class), instanceOf(DocumentationRegistry.class));
-    }
-
-    @Test
-    public void providesATimeProvider() throws Exception {
-        assertThat(registry().get(Clock.class), instanceOf(MonotonicClock.class));
     }
 
     @Test

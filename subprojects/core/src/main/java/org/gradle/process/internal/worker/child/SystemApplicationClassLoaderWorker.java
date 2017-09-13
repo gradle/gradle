@@ -185,7 +185,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
             });
         }
 
-        Clock createTimeProvider() {
+        Clock createClock() {
             return Time.clock();
         }
 
