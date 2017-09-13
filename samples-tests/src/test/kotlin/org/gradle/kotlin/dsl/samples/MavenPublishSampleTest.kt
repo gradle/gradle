@@ -2,42 +2,43 @@ package org.gradle.kotlin.dsl.samples
 
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.nio.file.Paths
+import java.io.File
 import java.util.jar.JarFile
 
 class MavenPublishSampleTest : AbstractSampleTest("maven-publish") {
+
     @Test
     fun `publish`() {
+
+        // given:
         val projectName = "maven-publish"
         val projectVersion = "1.0.0"
+        val mavenPath = "org/gradle/sample/$projectName/$projectVersion"
 
         // when:
         build("publish")
 
-        // then:
-        val repo = projectRoot.toPath().resolve("build").resolve("repo")
-        val mavenPath = repo.resolve(Paths.get("org", "gradle", "sample", projectName, projectVersion))
+        // then: repository exists
+        val repoDir = existing("build/repo")
 
-        // repo contains default jar file
-        mavenPath.resolve("$projectName-$projectVersion.jar").toFile().let { jarFile ->
-            assertTrue("jar file $jarFile exists", jarFile.exists())
+        // and: repository contains main JAR
+        val mainJar = File(repoDir, "$mavenPath/$projectName-$projectVersion.jar")
+        assertTrue("jar file $mainJar exists", mainJar.exists())
 
-            // jar file contains .class entries
-            JarFile(jarFile).use {
-                val numClassEntries = it.stream().filter { it.name.endsWith(".class") }.count()
-                assertTrue(numClassEntries > 0)
-            }
+        // and: main JAR contains .class entries
+        JarFile(mainJar).use {
+            val numClassEntries = it.stream().filter { it.name.endsWith(".class") }.count()
+            assertTrue(numClassEntries > 0)
         }
 
-        // repo contains source file
-        mavenPath.resolve("$projectName-$projectVersion-sources.jar").toFile().let { sourceFile ->
-            assertTrue("source file $sourceFile exists", sourceFile.exists())
+        // and: repository contains sources JAR
+        val sourcesJar = File(repoDir, "$mavenPath/$projectName-$projectVersion-sources.jar")
+        assertTrue("source file $sourcesJar exists", sourcesJar.exists())
 
-            // source file contains java and kt files
-            JarFile(sourceFile).use {
-                assertTrue(it.stream().anyMatch { it.name.endsWith(".java") })
-                assertTrue(it.stream().anyMatch { it.name.endsWith(".kt") })
-            }
+        // and: sources JAR contains .java and .kt files
+        JarFile(sourcesJar).use {
+            assertTrue(it.stream().anyMatch { it.name.endsWith(".java") })
+            assertTrue(it.stream().anyMatch { it.name.endsWith(".kt") })
         }
     }
 }
