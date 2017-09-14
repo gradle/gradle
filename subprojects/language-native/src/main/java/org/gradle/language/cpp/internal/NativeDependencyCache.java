@@ -18,7 +18,6 @@ package org.gradle.language.cpp.internal;
 
 import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
@@ -45,20 +44,19 @@ public class NativeDependencyCache implements Stoppable {
     private final FileHasher fileHasher;
 
     public NativeDependencyCache(CacheRepository cacheRepository, FileHasher fileHasher) {
-        cache = cacheRepository.cache("native-dependencies").withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.None)).open();
+        cache = cacheRepository.cache("native-dep").withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.None)).open();
         this.fileHasher = fileHasher;
     }
 
     /**
      * Returns the directory containing the unzipped headers from the given zip.
      */
-    public File getUnpackedHeaders(final File headersZip) {
+    public File getUnpackedHeaders(final File headersZip, final String baseName) {
         final HashCode hash = fileHasher.hash(headersZip);
         return cache.useCache(new Factory<File>() {
             @Override
             public File create() {
-                String name = StringUtils.substringBeforeLast(headersZip.getName(), ".");
-                File dir = new File(cache.getBaseDir(), hash + "/" + name);
+                File dir = new File(cache.getBaseDir(), hash + "/" + baseName);
                 if (dir.isDirectory()) {
                     return dir;
                 }

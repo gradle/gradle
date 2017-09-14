@@ -192,9 +192,9 @@ public class DefaultCppBinary implements CppBinary {
                 if (!externalDependencies.isEmpty()) {
                     NativeDependencyCache cache = getNativeDependencyCache();
                     Configuration mappedConfiguration = configurationContainer.detachedConfiguration(externalDependencies.toArray(new Dependency[0]));
-                    Set<File> headerZips = mappedConfiguration.getFiles();
-                    for (File zip : headerZips) {
-                        File headerDir = cache.getUnpackedHeaders(zip);
+                    for (ResolvedArtifactResult artifact : mappedConfiguration.getIncoming().getArtifacts()) {
+                        ModuleComponentIdentifier id = (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
+                        File headerDir = cache.getUnpackedHeaders(artifact.getFile(), id.getModule() + "-" + id.getVersion());
                         files.add(headerDir);
                     }
                 }
@@ -308,8 +308,6 @@ public class DefaultCppBinary implements CppBinary {
             if (result == null) {
                 // All this is intended to go away as more Gradle-specific metadata is included in the publications and the dependency resolution engine can just figure this stuff out for us
 
-                System.out.println("CALCULATE RUNTIME LIBS");
-
                 // Collect up the external components in the result to resolve again to get the link artifact
                 configuration.getResolvedConfiguration().rethrowFailure();
                 Set<ResolvedComponentResult> components = configuration.getIncoming().getResolutionResult().getAllComponents();
@@ -319,7 +317,6 @@ public class DefaultCppBinary implements CppBinary {
                     if (component.getId() instanceof ModuleComponentIdentifier) {
                         ModuleComponentIdentifier id = (ModuleComponentIdentifier) component.getId();
                         externalComponents.add(id);
-                        System.out.println("external dep: " + id);
                         // TODO - use the correct variant
                         String module = id.getModule() + "_debug";
                         // TODO - use naming scheme for target platform

@@ -19,6 +19,6 @@ package org.gradle.nativeplatform.fixtures
 
 class AbstractNativePublishingIntegrationSpec extends AbstractInstalledToolChainIntegrationSpec {
     def setup() {
-//        executer.requireOwnGradleUserHomeDir()
+        executer.requireOwnGradleUserHomeDir()
     }
 }
