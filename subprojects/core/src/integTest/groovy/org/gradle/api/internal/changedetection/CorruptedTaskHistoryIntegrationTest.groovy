@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection
 
+import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
@@ -50,6 +51,43 @@ class CorruptedTaskHistoryIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "createFiles"
+    }
+
+    def "recover from corrupted task history"() {
+        def numberOfFiles = 1
+        def numberOfInputProperties = 1
+        def numberOfTasks = 1
+        setupTestProject(numberOfFiles, numberOfInputProperties, numberOfTasks, 300)
+        buildFile << """
+            task corruptTaskHistory {    
+                doLast {
+                    def previousExecution = gradle.services.get(${TaskHistoryRepository.name}).getHistory(createFiles1).previousExecution
+                    previousExecution.removeUnnecessarySnapshots()
+                }
+            }
+        """
+        def createFilesTask = ":createFiles1"
+
+        when:
+        succeeds(createFilesTask)
+        succeeds("corruptTaskHistory")
+        fails(createFilesTask)
+
+        then:
+        failureDescriptionContains("Cannot find snapshot for id:")
+
+        when:
+        succeeds(createFilesTask)
+
+        then:
+        executedAndNotSkipped(createFilesTask)
+
+        when:
+        succeeds(createFilesTask)
+
+        then:
+        skipped(createFilesTask)
+
     }
 
     /**
@@ -143,7 +181,7 @@ task createFiles
         }
     }
 
-    private String inputProperty(Integer postfix) {
+    private static String inputProperty(Integer postfix) {
         """
             @InputDirectory
             File inputDir${postfix}       

@@ -90,4 +90,6 @@ public interface TaskArtifactState {
      */
     @Nullable
     UniqueId getOriginBuildInvocationId();
+
+    void removeExecutionHistoryIfCorrupted();
 }

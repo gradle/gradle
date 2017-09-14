@@ -141,6 +141,14 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 currentExecution.storeSnapshots();
                 taskHistoryCache.put(task.getPath(), currentExecution.snapshot());
             }
+
+            @Override
+            public void removePreviousExecutionIfCorrupted() {
+                if (previousExecution != null && previousExecution.isCorrupted()) {
+                    LOGGER.warn("Task history for {} has been corrupted - removing", task);
+                    taskHistoryCache.remove(task.getPath());
+                }
+            }
         };
     }
 

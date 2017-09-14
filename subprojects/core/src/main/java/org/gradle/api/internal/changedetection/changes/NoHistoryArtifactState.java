@@ -114,6 +114,10 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
     }
 
     @Override
+    public void removeExecutionHistoryIfCorrupted() {
+    }
+
+    @Override
     public void ensureSnapshotBeforeTask() {
     }
 
