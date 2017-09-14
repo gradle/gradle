@@ -52,6 +52,11 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example deprecation
 -->
 
+### Tooling API deprecation
+
+Running Gradle via Tooling API older than 3.0 and running Gradle older than 2.6 via Tooling API are deprecated now and will be removed in Gradle 5.0. You should avoid using them. 
+Please see [Gradle version and Java version compatibility](userguide/embedding.html#sec:embedding_compatibility) for more details.
+
 ## Potential breaking changes
 
 ### Changes to incubating native compile and link tasks
