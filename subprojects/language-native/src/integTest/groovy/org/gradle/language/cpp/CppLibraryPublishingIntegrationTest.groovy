@@ -155,9 +155,9 @@ class CppLibraryPublishingIntegrationTest extends AbstractNativePublishingIntegr
 
         then:
         noExceptionThrown()
-        installation(consumer.file("build/install/main/debug")).exec().out == app.expectedOutput
         sharedLibrary(consumer.file("build/install/main/debug/lib/deck")).file.assertExists()
         sharedLibrary(consumer.file("build/install/main/debug/lib/card")).file.assertExists()
         sharedLibrary(consumer.file("build/install/main/debug/lib/shuffle")).file.assertExists()
+        installation(consumer.file("build/install/main/debug")).exec().out == app.expectedOutput
     }
 }

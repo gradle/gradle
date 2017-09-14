@@ -204,16 +204,19 @@ public class DefaultCppBinary implements CppBinary {
         }
     }
 
-    private abstract class Libs implements MinimalFileSet, Buildable {
+    private class LinkLibs implements MinimalFileSet, Buildable {
         private final ConfigurationContainer configurations;
         private final Configuration configuration;
-        private final String libExtension;
         private Set<File> result;
 
-        Libs(Configuration configuration, ConfigurationContainer configurations, String libExtension) {
+        LinkLibs(Configuration configuration, ConfigurationContainer configurations) {
             this.configuration = configuration;
             this.configurations = configurations;
-            this.libExtension = libExtension;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "Link libraries of " + DefaultCppBinary.this;
         }
 
         @Override
@@ -231,6 +234,7 @@ public class DefaultCppBinary implements CppBinary {
                 Set<ResolvedComponentResult> components = configuration.getIncoming().getResolutionResult().getAllComponents();
                 Set<ModuleComponentIdentifier> externalComponents = new HashSet<ModuleComponentIdentifier>(components.size());
                 List<Dependency> externalDependencies = new ArrayList<Dependency>(components.size());
+                String libExtension = OperatingSystem.current().getLinkLibrarySuffix().substring(1);
                 for (ResolvedComponentResult component : components) {
                     if (component.getId() instanceof ModuleComponentIdentifier) {
                         ModuleComponentIdentifier id = (ModuleComponentIdentifier) component.getId();
@@ -256,18 +260,9 @@ public class DefaultCppBinary implements CppBinary {
                 // This is intentionally dumb and will improve later
                 // Conflict resolution isn't applied to implementation dependencies
                 // The files of the result are not ordered as they would be if the original configuration is resolved
+                // This is also broken when a runtime dependency is satisfied by an included build
                 if (!externalDependencies.isEmpty()) {
                     Configuration mappedConfiguration = configurations.detachedConfiguration(externalDependencies.toArray(new Dependency[0]));
-                    // Redirect transitive runtime dependencies
-                    mappedConfiguration.getResolutionStrategy().eachDependency(new Action<DependencyResolveDetails>() {
-                        @Override
-                        public void execute(DependencyResolveDetails details) {
-                            ModuleVersionSelector requested = details.getRequested();
-                            if (!requested.getName().endsWith("_debug")) {
-                                details.useTarget(requested.getGroup() + ":" + requested.getName() + "_debug:" + requested.getVersion());
-                            }
-                        }
-                    });
                     // Rename the downloaded file to the expected name for the binary
                     for (ResolvedArtifactResult artifact : mappedConfiguration.getIncoming().getArtifacts().getArtifacts()) {
                         ModuleComponentIdentifier id = (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
@@ -282,40 +277,114 @@ public class DefaultCppBinary implements CppBinary {
             return result;
         }
 
-        protected abstract String getLibraryName(String baseName);
-    }
-
-    private class LinkLibs extends Libs {
-        LinkLibs(Configuration configuration, ConfigurationContainer configurations) {
-            // TODO - use naming scheme for target platform
-            super(configuration, configurations, OperatingSystem.current().getLinkLibrarySuffix().substring(1));
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "Link libraries for " + DefaultCppBinary.this.toString();
-        }
-
-        @Override
-        protected String getLibraryName(String baseName) {
+        private String getLibraryName(String baseName) {
             // TODO - use naming scheme for target platform
             return OperatingSystem.current().getLinkLibraryName(baseName);
         }
     }
 
-    private class RuntimeLibs extends Libs {
+    private class RuntimeLibs implements MinimalFileSet, Buildable {
+        private final ConfigurationContainer configurations;
+        private final Configuration configuration;
+        private Set<File> result;
+
         RuntimeLibs(Configuration configuration, ConfigurationContainer configurations) {
-            // TODO - use naming scheme for target platform
-            super(configuration, configurations, OperatingSystem.current().getSharedLibrarySuffix().substring(1));
+            this.configuration = configuration;
+            this.configurations = configurations;
         }
 
         @Override
         public String getDisplayName() {
-            return "Runtime libraries for " + DefaultCppBinary.this.toString();
+            return "Runtime libraries for " + DefaultCppBinary.this;
         }
 
         @Override
-        protected String getLibraryName(String baseName) {
+        public TaskDependency getBuildDependencies() {
+            return configuration.getBuildDependencies();
+        }
+
+        @Override
+        public Set<File> getFiles() {
+            if (result == null) {
+                // All this is intended to go away as more Gradle-specific metadata is included in the publications and the dependency resolution engine can just figure this stuff out for us
+
+                System.out.println("CALCULATE RUNTIME LIBS");
+
+                // Collect up the external components in the result to resolve again to get the link artifact
+                configuration.getResolvedConfiguration().rethrowFailure();
+                Set<ResolvedComponentResult> components = configuration.getIncoming().getResolutionResult().getAllComponents();
+                Set<ModuleComponentIdentifier> externalComponents = new HashSet<ModuleComponentIdentifier>(components.size());
+                List<Dependency> externalDependencies = new ArrayList<Dependency>(components.size());
+                for (ResolvedComponentResult component : components) {
+                    if (component.getId() instanceof ModuleComponentIdentifier) {
+                        ModuleComponentIdentifier id = (ModuleComponentIdentifier) component.getId();
+                        externalComponents.add(id);
+                        System.out.println("external dep: " + id);
+                        // TODO - use the correct variant
+                        String module = id.getModule() + "_debug";
+                        // TODO - use naming scheme for target platform
+                        DefaultExternalModuleDependency mappedDependency = new DefaultExternalModuleDependency(id.getGroup(), module, id.getVersion());
+                        externalDependencies.add(mappedDependency);
+                    }
+                }
+
+                // Collect the files from anything other than an external component, use these directly in the result
+                ArtifactCollection artifacts = configuration.getIncoming().getArtifacts();
+                Set<File> files = new LinkedHashSet<File>();
+                for (ResolvedArtifactResult artifact : artifacts) {
+                    if (!externalComponents.contains(artifact.getId().getComponentIdentifier())) {
+                        files.add(artifact.getFile());
+                    }
+                }
+
+                // This is intentionally dumb and will improve later
+                // Conflict resolution isn't applied to implementation dependencies
+                // The files of the result are not ordered as they would be if the original configuration is resolved
+                // This is also broken when a runtime dependency is satisfied by an included build
+                if (!externalDependencies.isEmpty()) {
+                    Configuration mappedConfiguration = configurations.detachedConfiguration(externalDependencies.toArray(new Dependency[0]));
+                    // Redirect transitive runtime dependencies
+                    mappedConfiguration.getResolutionStrategy().eachDependency(new Action<DependencyResolveDetails>() {
+                        @Override
+                        public void execute(DependencyResolveDetails details) {
+                            ModuleVersionSelector requested = details.getRequested();
+                            if (!requested.getName().endsWith("_debug")) {
+                                details.useTarget(requested.getGroup() + ":" + requested.getName() + "_debug:" + requested.getVersion());
+                            }
+                        }
+                    });
+
+                    mappedConfiguration.getResolvedConfiguration().rethrowFailure();
+                    Set<ResolvedComponentResult> runtimeComponents = mappedConfiguration.getIncoming().getResolutionResult().getAllComponents();
+                    List<Dependency> artifactDependencies = new ArrayList<Dependency>();
+                    String libExtension = OperatingSystem.current().getSharedLibrarySuffix().substring(1);
+                    for (ResolvedComponentResult component : runtimeComponents) {
+                        if (!(component.getId() instanceof ModuleComponentIdentifier)) {
+                            continue;
+                        }
+                        ModuleComponentIdentifier id = (ModuleComponentIdentifier) component.getId();
+                        DefaultExternalModuleDependency artifactDependency = new DefaultExternalModuleDependency(id.getGroup(), id.getModule(), id.getVersion());
+                        artifactDependency.addArtifact(new DefaultDependencyArtifact(id.getModule(), libExtension, libExtension, null, null));
+                        artifactDependencies.add(artifactDependency);
+                    }
+
+                    mappedConfiguration = configurations.detachedConfiguration(artifactDependencies.toArray(new Dependency[0]));
+
+                    // Rename the downloaded file to the expected name for the binary
+                    for (ResolvedArtifactResult artifact : mappedConfiguration.getIncoming().getArtifacts().getArtifacts()) {
+                        ModuleComponentIdentifier id = (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
+                        String originalModuleName = id.getModule().substring(0, id.getModule().length() - "_debug".length());
+                        String libName = getLibraryName(originalModuleName);
+                        files.add(getNativeDependencyCache().getBinary(artifact.getFile(), libName));
+                    }
+                }
+
+                result = files;
+            }
+            return result;
+        }
+
+        private String getLibraryName(String baseName) {
             // TODO - use naming scheme for target platform
             return OperatingSystem.current().getSharedLibraryName(baseName);
         }
