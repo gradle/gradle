@@ -19,23 +19,45 @@ package org.gradle.internal.logging.console
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ConsoleTypePersistIntegrationTest extends AbstractIntegrationSpec {
-
     def "--console can be persisted in gradle.properties"() {
         given:
-        buildFile << "task hello { print 'hello' }"
+        buildFile << """
+            task assertConsoleType { 
+                doLast {
+                    def consoleOutput = gradle.startParameter.consoleOutput
+                    println "Console is " + consoleOutput
+                    assert consoleOutput.toString() == project.getProperty("expected")
+                } 
+            }
+        """
 
         when:
-        succeeds('hello')
-
+        succeeds('assertConsoleType', "-Pexpected=Auto")
         then:
-        !output.contains('[1m')
-
+        assertDoesNotHaveAnsiEscapeSequence()
 
         when:
         file('gradle.properties') << 'org.gradle.console=rich'
-        succeeds('hello')
-
+        succeeds('assertConsoleType', "-Pexpected=Rich")
         then:
-        output.contains('[1m')
+        assertHasAnsiEscapeSequence()
+
+        when:
+        // command-line wins over gradle.properties
+        succeeds('assertConsoleType', "--console=plain", "-Pexpected=Plain")
+        then:
+        assertDoesNotHaveAnsiEscapeSequence()
+    }
+
+    void assertHasAnsiEscapeSequence() {
+        assert output.contains(ansiEscapeSequence)
+    }
+
+    void assertDoesNotHaveAnsiEscapeSequence() {
+        assert !output.contains(ansiEscapeSequence)
+    }
+
+    String getAnsiEscapeSequence() {
+        '[1m'
     }
 }

@@ -34,6 +34,10 @@ task customTask {
 }
 ```
 
+### Force rich or plain console with `org.gradle.console`
+
+You may now force Gradle to use rich or plain [build output](userguide/console.html#sec:console_build_output) by setting [`org.gradle.console`](userguide/build_environment.html#sec:gradle_configuration_properties) in your `gradle.properties`.
+
 <!--
 ### Example new and noteworthy
 -->
