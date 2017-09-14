@@ -36,12 +36,6 @@ public interface VersionSelector {
     boolean matchesUniqueVersion();
 
     /**
-     * Indicates whether this selector needs to be called fully when multiple candidates are
-     * possible.
-     */
-    boolean requiresAllVersions();
-
-    /**
      * Indicates if the selector matches the given candidate version.
      * Only called if {@link #requiresMetadata()} returned {@code false}.
      *

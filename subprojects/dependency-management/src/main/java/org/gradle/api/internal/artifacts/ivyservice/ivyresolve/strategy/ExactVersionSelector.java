@@ -35,11 +35,6 @@ public class ExactVersionSelector extends AbstractStringVersionSelector {
         return true;
     }
 
-    @Override
-    public boolean requiresAllVersions() {
-        return false;
-    }
-
     public boolean accept(String candidate) {
         return getSelector().equals(candidate);
     }

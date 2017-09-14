@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.hamcrest.Matchers.containsString
@@ -748,7 +747,6 @@ task checkDeps(dependsOn: configurations.compile) {
         failure.assertResolutionFailure(":conf").assertFailedDependencyRequiredBy("project : > org:c:1.0")
     }
 
-    @Ignore
     def "chooses highest version that is included in both ranges"() {
         given:
         (1..10).each {
@@ -782,7 +780,6 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    @Ignore
     def "chooses highest version that is included in both ranges when fail on conflict is set"() {
         given:
         (1..10).each {
@@ -820,7 +817,6 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    @Ignore
     def "chooses highest version that is included in all ranges"() {
         given:
         (1..10).each {
@@ -855,7 +851,6 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    @Ignore
     def "chooses highest version that is included in all ranges, when dependencies are included at different transitivity levels"() {
         given:
         (1..10).each {
@@ -898,7 +893,6 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    @Ignore
     def "upgrades version when ranges are disjoint"() {
         given:
         (1..10).each {
@@ -932,7 +926,6 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    @Ignore
     def "upgrades version when ranges are disjoint unless failOnVersionConflict is set"() {
         given:
         (1..10).each {
@@ -967,7 +960,6 @@ task checkDeps(dependsOn: configurations.compile) {
         failure.assertThatCause(containsString('A conflict was found between the following modules:'))
     }
 
-    @Ignore
     def "upgrades version when one of the ranges is disjoint"() {
         given:
         (1..10).each {
@@ -1002,7 +994,6 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    @Ignore
     def "fails when one of the ranges is disjoint and fail on conflict is set"() {
         given:
         (1..10).each {
@@ -1040,7 +1031,6 @@ task checkDeps(dependsOn: configurations.compile) {
         failure.assertThatCause(containsString('A conflict was found between the following modules:'))
     }
 
-    @Ignore
     def "chooses highest version of all versions fully included within range"() {
         given:
         (1..12).each {
@@ -1077,7 +1067,6 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    @Ignore
     def "selects the minimal version when in there's an open range"() {
         given:
         (1..10).each {
@@ -1111,7 +1100,6 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    @Ignore
     def "range selector should not win over sub-version selector"() {
         given:
         (1..10).each {

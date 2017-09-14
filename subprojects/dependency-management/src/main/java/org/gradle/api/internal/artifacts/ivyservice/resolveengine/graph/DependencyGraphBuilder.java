@@ -37,7 +37,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Modul
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictResolutionResult;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.MultipleCandidateModulesConflictResolver;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.IntersectingVersionRangesConflictResolver;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.IntersectingVersionRangesHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.PotentialConflict;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -94,13 +95,15 @@ public class DependencyGraphBuilder {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final ModuleExclusions moduleExclusions;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final IntersectingVersionRangesHandler intersectingVersionRangesHandler;
 
     public DependencyGraphBuilder(DependencyToComponentIdResolver componentIdResolver, ComponentMetaDataResolver componentMetaDataResolver,
                                   ResolveContextToComponentResolver resolveContextToComponentResolver,
                                   ConflictHandler conflictHandler, Spec<? super DependencyMetadata> edgeFilter,
                                   AttributesSchemaInternal attributesSchema,
                                   ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions,
-                                  BuildOperationExecutor buildOperationExecutor) {
+                                  BuildOperationExecutor buildOperationExecutor,
+                                  IntersectingVersionRangesHandler intersectingVersionRangesHandler) {
         this.idResolver = componentIdResolver;
         this.metaDataResolver = componentMetaDataResolver;
         this.moduleResolver = resolveContextToComponentResolver;
@@ -110,6 +113,7 @@ public class DependencyGraphBuilder {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.moduleExclusions = moduleExclusions;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.intersectingVersionRangesHandler = intersectingVersionRangesHandler;
     }
 
     public void resolve(final ResolveContext resolveContext, final DependencyGraphVisitor modelVisitor) {
@@ -118,8 +122,8 @@ public class DependencyGraphBuilder {
         DefaultBuildableComponentResolveResult rootModule = new DefaultBuildableComponentResolveResult();
         moduleResolver.resolve(resolveContext, rootModule);
 
-        final ResolveState resolveState = new ResolveState(idGenerator, rootModule, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleIdentifierFactory, moduleExclusions);
-        conflictHandler.registerResolver(MultipleCandidateModulesConflictResolver.create());
+        final ResolveState resolveState = new ResolveState(idGenerator, rootModule, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleIdentifierFactory, moduleExclusions, intersectingVersionRangesHandler);
+        conflictHandler.registerResolver(new IntersectingVersionRangesConflictResolver(intersectingVersionRangesHandler));
         conflictHandler.registerResolver(new DirectDependencyForcingResolver(resolveState.root.component));
 
         traverseGraph(resolveState);
@@ -526,11 +530,11 @@ public class DependencyGraphBuilder {
         private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
         private final ModuleExclusions moduleExclusions;
         private final DeselectVersionAction deselectVersionAction = new DeselectVersionAction(this);
-        private final ReplaceSelectionWithConflictResultAction replaceSelectionWithConflictResultAction = new ReplaceSelectionWithConflictResultAction(this);
+        private final ReplaceSelectionWithConflictResultAction replaceSelectionWithConflictResultAction;
 
         public ResolveState(IdGenerator<Long> idGenerator, ComponentResolveResult rootResult, String rootConfigurationName, DependencyToComponentIdResolver idResolver,
                             ComponentMetaDataResolver metaDataResolver, Spec<? super DependencyMetadata> edgeFilter, AttributesSchemaInternal attributesSchema,
-                            ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions) {
+                            ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions, IntersectingVersionRangesHandler intersectingVersionRangesHandler) {
             this.idGenerator = idGenerator;
             this.idResolver = idResolver;
             this.metaDataResolver = metaDataResolver;
@@ -543,6 +547,7 @@ public class DependencyGraphBuilder {
             root = new RootNode(idGenerator.generateId(), rootVersion, new ResolvedConfigurationIdentifier(rootVersion.id, rootConfigurationName), this);
             nodes.put(root.id, root);
             root.component.module.select(root.component);
+            this.replaceSelectionWithConflictResultAction  = new ReplaceSelectionWithConflictResultAction(this);
         }
 
         public Collection<ModuleResolveState> getModules() {
@@ -883,16 +888,23 @@ public class DependencyGraphBuilder {
             module.selected = null;
             for (NodeState node : nodes) {
                 for (EdgeState edge : node.incomingEdges) {
-                    if (edge.selector.selected != null) {
-                       // edge.from.removeOutgoingEdges();
-                        edge.from.previousTraversalExclusions = null;
-                        edge.from.outgoingEdges.clear();
-                        module.resolveState.onMoreSelected(edge.from);
-                    }
+                    resetSelection(edge);
                 }
             }
+            for (EdgeState edge : module.unattachedDependencies) {
+                resetSelection(edge);
+            }
+            module.unattachedDependencies.clear();
             for (SelectorState selector : module.selectors) {
                 selector.reset();
+            }
+        }
+
+        protected void resetSelection(EdgeState edge) {
+            if (edge.selector.selected != null) {
+                edge.from.previousTraversalExclusions = null;
+                edge.from.outgoingEdges.clear();
+                module.resolveState.onMoreSelected(edge.from);
             }
         }
 
@@ -1309,14 +1321,25 @@ public class DependencyGraphBuilder {
         }
 
         public void execute(final ConflictResolutionResult result) {
-            final ComponentState selected = result.getSelected();
-            result.withParticipatingModules(new Action<ModuleIdentifier>() {
-                public void execute(ModuleIdentifier moduleIdentifier) {
-                    // Restart each configuration. For the evicted configuration, this means moving incoming dependencies across to the
-                    // matching selected configuration. For the select configuration, this mean traversing its dependencies.
-                    resolveState.getModule(moduleIdentifier).restart(selected);
+            if (result.isRestart()) {
+                for (ComponentResolutionState candidate : result.getCandidates()) {
+                    candidate.restartSelection();
                 }
-            });
+                result.withParticipatingModules(new Action<ModuleIdentifier>() {
+                    public void execute(ModuleIdentifier moduleIdentifier) {
+                        resolveState.getModule(moduleIdentifier).versions.clear();
+                    }
+                });
+            } else {
+                final ComponentState selected = result.getSelected();
+                result.withParticipatingModules(new Action<ModuleIdentifier>() {
+                    public void execute(ModuleIdentifier moduleIdentifier) {
+                        // Restart each configuration. For the evicted configuration, this means moving incoming dependencies across to the
+                        // matching selected configuration. For the select configuration, this mean traversing its dependencies.
+                        resolveState.getModule(moduleIdentifier).restart(selected);
+                    }
+                });
+            }
         }
     }
 }

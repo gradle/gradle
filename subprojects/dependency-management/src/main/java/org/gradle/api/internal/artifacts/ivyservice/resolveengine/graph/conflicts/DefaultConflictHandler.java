@@ -69,15 +69,9 @@ public class DefaultConflictHandler implements ConflictHandler {
         if (details.hasFailure()) {
             throw UncheckedException.throwAsUncheckedException(details.getFailure());
         }
-        if (details.isRestart()) {
-            for (ComponentResolutionState candidate : conflict.candidates) {
-                candidate.restartSelection();
-            }
-        } else {
-            ConflictResolutionResult result = new DefaultConflictResolutionResult(conflict.participants, details.getSelected());
-            resolutionAction.execute(result);
-            LOGGER.debug("Selected {} from conflicting modules {}.", details.getSelected(), conflict.candidates);
-        }
+        ConflictResolutionResult result = new DefaultConflictResolutionResult(conflict.participants, details.getSelected(), details.isRestart(), conflict.candidates);
+        resolutionAction.execute(result);
+        LOGGER.debug("Selected {} from conflicting modules {}.", details.getSelected(), conflict.candidates);
     }
 
     public void registerResolver(ModuleConflictResolver conflictResolver) {

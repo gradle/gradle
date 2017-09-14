@@ -102,7 +102,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         def selectedComponentResult = Mock(ComponentSelectionContext)
 
         when:
-        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, dependency.getRequested())
+        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, versionSelectorScheme.parseSelector(dependency.requested.version))
 
         then:
         _ * dependency.requested >> selector
@@ -130,7 +130,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         def selectedComponentResult = Mock(ComponentSelectionContext)
 
         when:
-        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, dependency.getRequested())
+        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, versionSelectorScheme.parseSelector(dependency.getRequested().version))
 
         then:
         _ * dependency.requested >> selector
@@ -162,7 +162,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         def selectedComponentResult = Mock(ComponentSelectionContext)
 
         when:
-        chooser.selectNewestMatchingComponent([d, c, a, b], selectedComponentResult, dependency.getRequested())
+        chooser.selectNewestMatchingComponent([d, c, a, b], selectedComponentResult, versionSelectorScheme.parseSelector(dependency.requested.version))
 
         then:
         _ * dependency.getRequested() >> selector
@@ -194,7 +194,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         def selectedComponentResult = Mock(ComponentSelectionContext)
 
         when:
-        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, dependency.getRequested())
+        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, versionSelectorScheme.parseSelector(dependency.requested.version))
 
         then:
         _ * dependency.requested >> selector
@@ -229,7 +229,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         def selectedComponentResult = Mock(ComponentSelectionContext)
 
         when:
-        chooser.selectNewestMatchingComponent([c, b, a], selectedComponentResult, dependency.getRequested())
+        chooser.selectNewestMatchingComponent([c, b, a], selectedComponentResult, versionSelectorScheme.parseSelector(dependency.requested.version))
 
         then:
         _ * dependency.requested >> selector
@@ -255,7 +255,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         def selectedComponentResult = Mock(ComponentSelectionContext)
 
         when:
-        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, dependency.getRequested())
+        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, versionSelectorScheme.parseSelector(dependency.requested.version))
 
         then:
         _ * dependency.getRequested() >> selector
@@ -287,7 +287,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         def selectedComponentResult = Mock(ComponentSelectionContext)
 
         when:
-        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, dependency.getRequested())
+        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, versionSelectorScheme.parseSelector(dependency.requested.version))
 
         then:
         _ * dependency.getRequested() >> selector
@@ -317,7 +317,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         def selectedComponentResult = Mock(ComponentSelectionContext)
 
         when:
-        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, dependency.getRequested())
+        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, versionSelectorScheme.parseSelector(dependency.requested.version))
 
         then:
         _ * dependency.getRequested() >> selector

@@ -98,9 +98,6 @@ class RepositoryChainArtifactResolver implements ArtifactResolver, OriginArtifac
     }
 
     private ComponentResolveMetadata unpackSource(ComponentResolveMetadata component) {
-        if (component instanceof HasMultipleCandidateVersions) {
-            component = ((HasMultipleCandidateVersions) component).getSelected();
-        }
         return component.withSource(repositorySource(component.getSource()).getDelegate());
     }
 }

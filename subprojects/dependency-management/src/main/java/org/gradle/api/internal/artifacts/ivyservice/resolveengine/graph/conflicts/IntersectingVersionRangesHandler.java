@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 
-import java.util.List;
+public interface IntersectingVersionRangesHandler {
+    VersionSelector maybeIntersect(String group, String name, VersionSelector other);
 
-public interface HasMultipleCandidateVersions {
-    List<String> getAllVersions();
+    boolean hasIntersectingRanges(String group, String name);
 
-    ModuleComponentResolveMetadata getSelected();
+    int getVersion();
 }

@@ -92,7 +92,7 @@ class DefaultArtifactResolutionQueryTest extends Specification {
         1 * cacheLockingManager.useCache(_) >> { Factory action ->
             action.create()
         }
-        1 * resolveIvyFactory.create(_, _, _) >> repositoryChain
+        1 * resolveIvyFactory.create(_, _, _, _) >> repositoryChain
         1 * repositoryChain.artifactResolver >> artifactResolver
         1 * repositoryChain.componentResolver >> componentMetaDataResolver
         1 * componentMetaDataResolver.resolve(_, _, _) >> { ComponentIdentifier componentId, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult resolveResult ->

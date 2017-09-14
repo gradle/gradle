@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.ComponentSelection;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ComponentSelectionInternal;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
@@ -26,8 +25,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionC
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.resolve.result.ComponentSelectionContext;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
+import org.gradle.internal.resolve.result.ComponentSelectionContext;
 import org.gradle.internal.rules.SpecRuleAction;
 import org.gradle.util.CollectionUtils;
 
@@ -68,11 +67,8 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         return componentResolveMetadata.isGenerated();
     }
 
-    public void selectNewestMatchingComponent(Collection<? extends ModuleComponentResolveState> versions, ComponentSelectionContext result, ModuleVersionSelector requested) {
-        VersionSelector requestedVersionMatcher = versionSelectorScheme.parseSelector(requested.getVersion());
+    public void selectNewestMatchingComponent(Collection<? extends ModuleComponentResolveState> versions, ComponentSelectionContext result, VersionSelector requestedVersionMatcher) {
         Collection<SpecRuleAction<? super ComponentSelection>> rules = componentSelectionRules.getRules();
-
-        boolean matched = false;
 
         // Loop over all listed versions, sorted by LATEST first
         for (ModuleComponentResolveState candidate : sortLatestFirst(versions)) {
@@ -92,11 +88,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
             ModuleComponentIdentifier candidateIdentifier = candidate.getId();
             if (!isRejectedByRules(candidateIdentifier, rules, metadataProvider)) {
                 result.matches(candidateIdentifier);
-                matched = true;
-                if (!requestedVersionMatcher.requiresAllVersions()) {
-                    return;
-                }
-                continue;
+                return;
             }
 
             // Mark this version as rejected
@@ -106,17 +98,16 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
                 break;
             }
         }
-        if (!matched) {
-            // if we reach this point, no match was found, either because there are no versions matching the selector
-            // or all of them were rejected
-            result.noMatchFound();
-        }
+        // if we reach this point, no match was found, either because there are no versions matching the selector
+        // or all of them were rejected
+        result.noMatchFound();
     }
 
     /**
      * This method checks if the metadata provider already knows that metadata for this version is not usable.
      * If that's the case it means it's not necessary to perform more checks for this version, because we already
      * know it's broken in some way.
+     *
      * @param result where to notify that metadata is broken, if broken
      * @param metadataProvider the metadata provider
      * @return true if metadata is not usable

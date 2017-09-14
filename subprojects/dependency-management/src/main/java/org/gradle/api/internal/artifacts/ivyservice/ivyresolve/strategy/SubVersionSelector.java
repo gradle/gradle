@@ -38,11 +38,6 @@ public class SubVersionSelector extends AbstractStringVersionSelector {
         return false;
     }
 
-    @Override
-    public boolean requiresAllVersions() {
-        return false;
-    }
-
     public boolean accept(String candidate) {
         return candidate.startsWith(prefix);
     }

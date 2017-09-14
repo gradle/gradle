@@ -20,7 +20,9 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.IntersectingVersionRangesHandler;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -31,10 +33,12 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
     private final VersionSelectorScheme versionSelectorScheme;
     private final DynamicVersionResolver dynamicRevisionResolver;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final IntersectingVersionRangesHandler intersectingVersionRangesHandler;
 
-    public RepositoryChainDependencyToComponentIdResolver(VersionSelectorScheme versionSelectorScheme, VersionedComponentChooser componentChooser, Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public RepositoryChainDependencyToComponentIdResolver(VersionSelectorScheme versionSelectorScheme, VersionedComponentChooser componentChooser, Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, IntersectingVersionRangesHandler intersectingVersionRangesHandler) {
         this.versionSelectorScheme = versionSelectorScheme;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.intersectingVersionRangesHandler = intersectingVersionRangesHandler;
         this.dynamicRevisionResolver = new DynamicVersionResolver(componentChooser, metaDataFactory);
     }
 
@@ -44,12 +48,16 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
 
     public void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result) {
         ModuleVersionSelector requested = dependency.getRequested();
-        if (versionSelectorScheme.parseSelector(requested.getVersion()).isDynamic()) {
-            dynamicRevisionResolver.resolve(dependency, result);
+        VersionSelector versionSelector = versionSelectorScheme.parseSelector(requested.getVersion());
+        if (versionSelector.isDynamic()) {
+            VersionSelector mergedSelector = intersectingVersionRangesHandler.maybeIntersect(requested.getGroup(), requested.getName(), versionSelector);
+            dynamicRevisionResolver.resolve(dependency, mergedSelector, result);
         } else {
             DefaultModuleComponentIdentifier id = new DefaultModuleComponentIdentifier(requested.getGroup(), requested.getName(), requested.getVersion());
             ModuleVersionIdentifier mvId = moduleIdentifierFactory.moduleWithVersion(requested.getGroup(), requested.getName(), requested.getVersion());
             result.resolved(id, mvId);
         }
     }
+
+
 }
