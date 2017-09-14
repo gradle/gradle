@@ -18,6 +18,8 @@ package org.gradle.language.cpp
 
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.app.CppApp
+import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.nativeplatform.fixtures.app.IncrementalCppStaleCompileOutputApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalCppStaleCompileOutputLib
 import org.gradle.nativeplatform.fixtures.app.SourceElement
@@ -77,6 +79,53 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
         result.assertTasksNotSkipped(":compileDebugCpp", ":linkDebug", ":assemble")
 
         file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(lib.alternate))
+        sharedLibrary("build/lib/main/debug/hello").assertExists()
+    }
+
+    def "skips compile and link tasks for executable when source doesn't change"() {
+        def app = new CppApp()
+        settingsFile << "rootProject.name = 'app'"
+
+        given:
+        app.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-executable'
+         """
+
+        and:
+        succeeds "assemble"
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":installDebug", ":assemble")
+        result.assertTasksSkipped(":compileDebugCpp", ":linkDebug", ":installDebug", ":assemble")
+
+        executable("build/exe/main/debug/app").assertExists()
+        installation("build/install/main/debug").exec().out == app.expectedOutput
+    }
+
+    def "skips compile and link tasks for library when source doesn't change"() {
+        def lib = new CppLib()
+        settingsFile << "rootProject.name = 'hello'"
+
+        given:
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-library'
+         """
+
+        and:
+        succeeds "assemble"
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":assemble")
+        result.assertTasksSkipped(":compileDebugCpp", ":linkDebug", ":assemble")
+
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 

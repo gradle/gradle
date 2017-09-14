@@ -23,6 +23,8 @@ import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftModifyExpectedOutp
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftStaleCompileOutputApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftStaleCompileOutputLib
 import org.gradle.nativeplatform.fixtures.app.SourceElement
+import org.gradle.nativeplatform.fixtures.app.SwiftApp
+import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -157,6 +159,53 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":assemble")
 
         file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(lib.alternate, lib.moduleName))
+        sharedLibrary("build/lib/main/debug/Hello").assertExists()
+    }
+
+    def "skips compile and link tasks for executable when source doesn't change"() {
+        def app = new SwiftApp()
+        settingsFile << "rootProject.name = 'app'"
+
+        given:
+        app.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-executable'
+         """
+
+        and:
+        succeeds "assemble"
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
+        result.assertTasksSkipped(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
+
+        executable("build/exe/main/debug/App").assertExists()
+        installation("build/install/main/debug").exec().out == app.expectedOutput
+    }
+
+    def "skips compile and link tasks for library when source doesn't change"() {
+        def lib = new SwiftLib()
+        settingsFile << "rootProject.name = 'hello'"
+
+        given:
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-library'
+         """
+
+        and:
+        succeeds "assemble"
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
+        result.assertTasksSkipped(":compileDebugSwift", ":linkDebug", ":assemble")
+
         sharedLibrary("build/lib/main/debug/Hello").assertExists()
     }
 
