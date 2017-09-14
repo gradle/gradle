@@ -17,7 +17,7 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
-import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
+import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -27,15 +27,15 @@ import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 @Requires(TestPrecondition.XCODE)
 class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
     def setup() {
-        settingsFile << """
-            include 'app', 'greeter'
-        """
-
         executer.requireGradleDistribution()
     }
 
     def "create xcode project C++ executable"() {
         given:
+        settingsFile << """
+            include 'app', 'greeter'
+        """
+
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-executable'
@@ -88,32 +88,37 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
     }
 
     def "create xcode project C++ executable with transitive dependencies"() {
-        def app = new CppAppWithLibraries()
+        def app = new CppAppWithLibrariesWithApiDependencies()
 
         given:
         settingsFile.text =  """
-            include 'app', 'log', 'hello'
+            include 'app', 'deck', 'card', 'shuffle'
             rootProject.name = "${rootProjectName}"
         """
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-executable'
                 dependencies {
-                    implementation project(':hello')
+                    implementation project(':deck')
                 }
             }
-            project(':hello') {
+            project(':deck') {
                 apply plugin: 'cpp-library'
                 dependencies {
-                    implementation project(':log')
+                    api project(':card')
+                    implementation project(':shuffle')
                 }
             }
-            project(':log') {
+            project(':card') {
+                apply plugin: 'cpp-library'
+            }
+            project(':shuffle') {
                 apply plugin: 'cpp-library'
             }
         """
-        app.greeterLib.writeToProject(file("hello"))
-        app.loggerLib.writeToProject(file("log"))
+        app.deck.writeToProject(file("deck"))
+        app.card.writeToProject(file("card"))
+        app.shuffle.writeToProject(file("shuffle"))
         app.main.writeToProject(file("app"))
 
         when:
@@ -121,17 +126,18 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
 
         then:
         executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeSchemeAppExecutable", ":app:xcode",
-            ":log:xcodeProject", ":log:xcodeProjectWorkspaceSettings", ":log:xcodeSchemeLogSharedLibrary", ":log:xcode",
-            ":hello:xcodeProject", ":hello:xcodeProjectWorkspaceSettings", ":hello:xcodeSchemeHelloSharedLibrary", ":hello:xcode",
+            ":deck:xcodeProject", ":deck:xcodeProjectWorkspaceSettings", ":deck:xcodeSchemeDeckSharedLibrary", ":deck:xcode",
+            ":card:xcodeProject", ":card:xcodeProjectWorkspaceSettings", ":card:xcodeSchemeCardSharedLibrary", ":card:xcode",
+            ":shuffle:xcodeProject", ":shuffle:xcodeProjectWorkspaceSettings", ":shuffle:xcodeSchemeShuffleSharedLibrary", ":shuffle:xcode",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         rootXcodeWorkspace.contentFile
-            .assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj', 'log/log.xcodeproj', 'hello/hello.xcodeproj')
+            .assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj', 'deck/deck.xcodeproj', 'card/card.xcodeproj', 'shuffle/shuffle.xcodeproj')
 
         def appProject = xcodeProject("app/app.xcodeproj").projectFile
-        appProject.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("app/src/main/headers"), file("hello/src/main/public"))
-        def helloProject = xcodeProject("hello/hello.xcodeproj").projectFile
-        helloProject.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("hello/src/main/public"), file("hello/src/main/headers"), file("log/src/main/public"))
+        appProject.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("app/src/main/headers"), file("deck/src/main/public"), file("card/src/main/public"))
+        def deckProject = xcodeProject("deck/deck.xcodeproj").projectFile
+        deckProject.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("deck/src/main/public"), file("deck/src/main/headers"), file("card/src/main/public"), file("shuffle/src/main/public"))
 
         when:
         def resultDebugApp = xcodebuild
@@ -140,20 +146,22 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             .succeeds()
 
         then:
-        resultDebugApp.assertTasksExecuted(':log:compileDebugCpp', ':log:linkDebug',
-            ':hello:compileDebugCpp', ':hello:linkDebug',
+        resultDebugApp.assertTasksExecuted(':shuffle:compileDebugCpp', ':shuffle:linkDebug',
+            ':card:compileDebugCpp', ':card:linkDebug',
+            ':deck:compileDebugCpp', ':deck:linkDebug',
             ':app:compileDebugCpp', ':app:linkDebug')
 
         when:
         def resultReleaseHello = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
-            .withScheme('Hello SharedLibrary')
+            .withScheme('Deck SharedLibrary')
             .withConfiguration('Release')
             .succeeds()
 
         then:
-        resultReleaseHello.assertTasksExecuted(':hello:compileReleaseCpp', ':hello:linkRelease',
-            ':log:compileReleaseCpp', ':log:linkRelease')
+        resultReleaseHello.assertTasksExecuted(':shuffle:compileReleaseCpp', ':shuffle:linkRelease',
+            ':card:compileReleaseCpp', ':card:linkRelease',
+            ':deck:compileReleaseCpp', ':deck:linkRelease')
     }
 
     def "create xcode project C++ executable inside composite build"() {
