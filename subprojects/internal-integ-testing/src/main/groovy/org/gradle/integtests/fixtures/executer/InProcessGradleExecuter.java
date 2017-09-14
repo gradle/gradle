@@ -130,7 +130,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             throw new UnexpectedBuildFailure(e);
         }
         return assertResult(new InProcessExecutionResult(buildListener.executedTasks, buildListener.skippedTasks,
-                new OutputScrapingExecutionResult(outputListener.toString(), errorListener.toString())));
+            new OutputScrapingExecutionResult(outputListener.toString(), errorListener.toString())));
     }
 
     @Override
@@ -147,7 +147,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             throw new AssertionError("expected build to fail but it did not.");
         } catch (GradleException e) {
             return assertResult(new InProcessExecutionFailure(buildListener.executedTasks, buildListener.skippedTasks,
-                    new OutputScrapingExecutionFailure(outputListener.toString(), errorListener.toString()), e));
+                new OutputScrapingExecutionFailure(outputListener.toString(), errorListener.toString()), e));
         }
     }
 
@@ -244,6 +244,31 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         SetSystemProperties.resetTempDirLocation();
     }
 
+    private LoggingManagerInternal createLoggingManager(StartParameter startParameter, final StandardOutputListener outputListener, final StandardOutputListener errorListener) {
+        LoggingManagerInternal loggingManager =
+            GLOBAL_SERVICES.getFactory(LoggingManagerInternal.class).create();
+
+        if (startParameter.getConsoleOutput() == ConsoleOutput.Rich || startParameter.getConsoleOutput() == ConsoleOutput.Verbose) {
+            // Explicitly enabling rich console forces everything into the stdout listener
+            loggingManager.attachAnsiConsole(new VerboseAwareAnsiOutputStream(new LineBufferingOutputStream(new TextStream() {
+                @Override
+                public void text(String text) {
+                    outputListener.onOutput(text);
+                }
+
+                @Override
+                public void endOfStream(@Nullable Throwable failure) {
+
+                }
+            }), startParameter.getConsoleOutput() == ConsoleOutput.Verbose));
+        } else {
+            loggingManager.addStandardOutputListener(outputListener);
+            loggingManager.addStandardErrorListener(errorListener);
+        }
+
+        return loggingManager;
+    }
+
     private BuildResult executeBuild(GradleInvocation invocation, final StandardOutputListener outputListener, final StandardOutputListener errorListener, BuildListenerImpl listener) {
         // Augment the environment for the execution
         System.setIn(connectStdIn());
@@ -276,27 +301,10 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             BuildAction action = new ExecuteBuildAction(startParameter);
             BuildActionParameters buildActionParameters = createBuildActionParameters(startParameter);
             BuildRequestContext buildRequestContext = createBuildRequestContext();
-            LoggingManagerInternal loggingManager = GLOBAL_SERVICES.getFactory(LoggingManagerInternal.class).create();
 
-            if (startParameter.getConsoleOutput() == ConsoleOutput.Rich || startParameter.getConsoleOutput() == ConsoleOutput.Verbose) {
-                // Explicitly enabling rich console forces everything into the stdout listener
-                loggingManager.attachAnsiConsole(new LineBufferingOutputStream(new TextStream() {
-                    @Override
-                    public void text(String text) {
-                        outputListener.onOutput(text);
-                    }
-
-                    @Override
-                    public void endOfStream(@Nullable Throwable failure) {
-
-                    }
-                }));
-            } else {
-                loggingManager.addStandardOutputListener(outputListener);
-                loggingManager.addStandardErrorListener(errorListener);
-            }
-
+            LoggingManagerInternal loggingManager = createLoggingManager(startParameter, outputListener, errorListener);
             loggingManager.start();
+
             try {
                 startMeasurement();
                 try {

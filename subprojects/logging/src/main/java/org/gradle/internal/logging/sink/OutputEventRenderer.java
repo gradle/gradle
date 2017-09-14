@@ -142,12 +142,17 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         }
     }
 
+    @Override
     public void attachAnsiConsole(OutputStream outputStream) {
+        attachAnsiConsole(outputStream, false);
+    }
+
+    protected void attachAnsiConsole(OutputStream outputStream, boolean verbose) {
         synchronized (lock) {
             ConsoleMetaData consoleMetaData = FallbackConsoleMetaData.INSTANCE;
             OutputStreamWriter writer = new OutputStreamWriter(outputStream);
             Console console = new AnsiConsole(writer, writer, getColourMap(), consoleMetaData, true);
-            addConsole(console, true, true, consoleMetaData);
+            addConsole(console, true, true, consoleMetaData, verbose);
         }
     }
 
