@@ -49,8 +49,8 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
     public void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result) {
         ModuleVersionSelector requested = dependency.getRequested();
         VersionSelector versionSelector = versionSelectorScheme.parseSelector(requested.getVersion());
+        VersionSelector mergedSelector = intersectingVersionRangesHandler.maybeIntersect(requested.getGroup(), requested.getName(), versionSelector);
         if (versionSelector.isDynamic()) {
-            VersionSelector mergedSelector = intersectingVersionRangesHandler.maybeIntersect(requested.getGroup(), requested.getName(), versionSelector);
             dynamicRevisionResolver.resolve(dependency, mergedSelector, result);
         } else {
             DefaultModuleComponentIdentifier id = new DefaultModuleComponentIdentifier(requested.getGroup(), requested.getName(), requested.getVersion());
