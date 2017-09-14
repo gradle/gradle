@@ -33,6 +33,7 @@ import org.gradle.tooling.internal.consumer.connection.ActionAwareConsumerConnec
 import org.gradle.tooling.internal.consumer.connection.BuildActionRunnerBackedConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.CancellableConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
+import org.gradle.tooling.internal.consumer.connection.DeprecatedVersionConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.ModelBuilderBackedConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.NoToolingApiConnection;
 import org.gradle.tooling.internal.consumer.connection.NonCancellableConsumerConnectionAdapter;
@@ -42,6 +43,7 @@ import org.gradle.tooling.internal.consumer.connection.TestExecutionConsumerConn
 import org.gradle.tooling.internal.consumer.connection.UnsupportedOlderVersionConnection;
 import org.gradle.tooling.internal.consumer.converters.ConsumerTargetTypeProvider;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
+import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.BuildActionRunner;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalBuildActionExecutor;
@@ -83,32 +85,37 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
             ModelMapping modelMapping = new ModelMapping();
 
             // Adopting the connection to a refactoring friendly type that the consumer owns
-            AbstractConsumerConnection adaptedConnection;
-            if (connection instanceof InternalTestExecutionConnection){
-                adaptedConnection = new TestExecutionConsumerConnection(connection, modelMapping, adapter);
+            if (connection instanceof InternalTestExecutionConnection) {
+                return createConnection(new TestExecutionConsumerConnection(connection, modelMapping, adapter), connectionParameters);
             } else if (connection instanceof StoppableConnection) {
-                adaptedConnection = new ShutdownAwareConsumerConnection(connection, modelMapping, adapter);
+                return createDeprecatedConnection(new ShutdownAwareConsumerConnection(connection, modelMapping, adapter), connectionParameters);
             } else if (connection instanceof InternalCancellableConnection) {
-                adaptedConnection = new CancellableConsumerConnection(connection, modelMapping, adapter);
+                return createDeprecatedConnection(new CancellableConsumerConnection(connection, modelMapping, adapter), connectionParameters);
             } else if (connection instanceof ModelBuilder && connection instanceof InternalBuildActionExecutor) {
-                adaptedConnection = new ActionAwareConsumerConnection(connection, modelMapping, adapter);
+                return createDeprecatedConnection(new ActionAwareConsumerConnection(connection, modelMapping, adapter), connectionParameters);
             } else if (connection instanceof ModelBuilder) {
-                adaptedConnection = new ModelBuilderBackedConsumerConnection(connection, modelMapping, adapter);
+                return createDeprecatedConnection(new ModelBuilderBackedConsumerConnection(connection, modelMapping, adapter), connectionParameters);
             } else if (connection instanceof BuildActionRunner) {
-                adaptedConnection = new BuildActionRunnerBackedConsumerConnection(connection, modelMapping, adapter);
+                return createDeprecatedConnection(new BuildActionRunnerBackedConsumerConnection(connection, modelMapping, adapter), connectionParameters);
             } else {
                 return new UnsupportedOlderVersionConnection(connection, adapter);
             }
-            adaptedConnection.configure(connectionParameters);
-            if (!adaptedConnection.getVersionDetails().supportsCancellation()) {
-                return new ParameterValidatingConsumerConnection(adaptedConnection.getVersionDetails(), new NonCancellableConsumerConnectionAdapter(adaptedConnection));
-            }
-            return new ParameterValidatingConsumerConnection(adaptedConnection.getVersionDetails(), adaptedConnection);
         } catch (UnsupportedVersionException e) {
             throw e;
         } catch (Throwable t) {
             throw new GradleConnectionException(String.format("Could not create an instance of Tooling API implementation using the specified %s.", distribution.getDisplayName()), t);
         }
+    }
+
+    private ConsumerConnection createConnection(AbstractConsumerConnection adaptedConnection, ConnectionParameters connectionParameters) {
+        adaptedConnection.configure(connectionParameters);
+        VersionDetails versionDetails = adaptedConnection.getVersionDetails();
+        ConsumerConnection delegate = versionDetails.supportsCancellation() ? adaptedConnection : new NonCancellableConsumerConnectionAdapter(adaptedConnection);
+        return new ParameterValidatingConsumerConnection(versionDetails, delegate);
+    }
+
+    private ConsumerConnection createDeprecatedConnection(AbstractConsumerConnection adaptedConnection, ConnectionParameters connectionParameters) {
+        return new DeprecatedVersionConsumerConnection(createConnection(adaptedConnection, connectionParameters), adaptedConnection.getVersionDetails());
     }
 
     private ClassLoader createImplementationClassLoader(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener progressListener, File userHomeDir, BuildCancellationToken cancellationToken) {
