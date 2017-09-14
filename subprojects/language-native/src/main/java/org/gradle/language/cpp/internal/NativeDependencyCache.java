@@ -18,6 +18,7 @@ package org.gradle.language.cpp.internal;
 
 import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
@@ -56,7 +57,8 @@ public class NativeDependencyCache implements Stoppable {
         return cache.useCache(new Factory<File>() {
             @Override
             public File create() {
-                File dir = new File(cache.getBaseDir(), hash + "/" + headersZip.getName());
+                String name = StringUtils.substringBeforeLast(headersZip.getName(), ".");
+                File dir = new File(cache.getBaseDir(), hash + "/" + name);
                 if (dir.isDirectory()) {
                     return dir;
                 }
