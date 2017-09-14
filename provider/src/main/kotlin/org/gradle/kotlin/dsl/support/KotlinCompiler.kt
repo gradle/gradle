@@ -188,6 +188,12 @@ fun compilerConfigurationFor(messageCollector: MessageCollector, sourceFiles: It
     CompilerConfiguration().apply {
         addKotlinSourceRoots(sourceFiles.map { it.canonicalPath })
         addJvmClasspathRoots(PathUtil.getJdkClassesRootsFromCurrentJre())
+        /*
+         * Without this the compiler won't work with JDK 9.
+         * See the discussion here:
+         * https://youtrack.jetbrains.com/issue/KT-20167
+         */
+        put(JVMConfigurationKeys.JDK_HOME, File(System.getProperty("java.home")))
         put<MessageCollector>(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
     }
 
