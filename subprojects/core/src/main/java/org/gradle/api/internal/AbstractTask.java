@@ -34,6 +34,7 @@ import org.gradle.api.file.RegularFileVar;
 import org.gradle.api.internal.file.TaskFileVarFactory;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.taskfactory.TaskClassValidator;
 import org.gradle.api.internal.tasks.ClassLoaderAwareTaskAction;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
@@ -127,6 +128,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private ObservableList observableActionList;
     private boolean impliesSubProjects;
     private boolean hasCustomActions;
+    private boolean taskInputsAndOutputsDiscovered;
 
     private final TaskInputsInternal taskInputs;
     private final TaskOutputsInternal taskOutputs;
@@ -1015,5 +1017,17 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Incubating
     protected DirectoryVar newInputDirectory() {
         return getServices().get(TaskFileVarFactory.class).newInputDirectory(this);
+    }
+
+    @Override
+    public void ensureTaskInputsAndOutputsDiscovered() {
+        if (!taskInputsAndOutputsDiscovered) {
+            if (validators != null) {
+                for (TaskValidator validator : validators) {
+                    ((TaskClassValidator) validator).addInputsAndOutputs(this);
+                }
+            }
+            taskInputsAndOutputsDiscovered = true;
+        }
     }
 }

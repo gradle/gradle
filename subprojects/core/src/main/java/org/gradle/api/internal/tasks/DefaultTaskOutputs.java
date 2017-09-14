@@ -177,6 +177,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     @Override
     public boolean hasDeclaredOutputs() {
+        task.ensureTaskInputsAndOutputsDiscovered();
         return !filePropertiesInternal.isEmpty();
     }
 
@@ -187,6 +188,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     @Override
     public ImmutableSortedSet<TaskOutputFilePropertySpec> getFileProperties() {
+        task.ensureTaskInputsAndOutputsDiscovered();
         if (fileProperties == null) {
             TaskPropertyUtils.ensurePropertiesHaveNames(filePropertiesInternal);
             Iterator<TaskOutputFilePropertySpec> flattenedProperties = Iterators.concat(Iterables.transform(filePropertiesInternal, new Function<TaskPropertySpec, Iterator<? extends TaskOutputFilePropertySpec>>() {

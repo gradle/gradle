@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks;
 
+import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import groovy.lang.GString;
@@ -43,7 +44,15 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     private final TaskInternal task;
     private final TaskMutator taskMutator;
     private final Map<String, Object> properties = new HashMap<String, Object>();
-    private final List<TaskInputPropertySpecAndBuilder> filePropertiesInternal = Lists.newArrayList();
+    private List<TaskInputPropertySpecAndBuilder> filePropertiesInternal = Lists.newArrayList();
+    private final Supplier<List<TaskInputPropertySpecAndBuilder>> filePropertiesInternalSupplier = new Supplier<List<TaskInputPropertySpecAndBuilder>>() {
+
+        @Override
+        public List<TaskInputPropertySpecAndBuilder> get() {
+            task.ensureTaskInputsAndOutputsDiscovered();
+            return filePropertiesInternal;
+        }
+    };
     private ImmutableSortedSet<TaskInputFilePropertySpec> fileProperties;
 
     public DefaultTaskInputs(FileResolver resolver, TaskInternal task, TaskMutator taskMutator) {
@@ -51,12 +60,13 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         this.task = task;
         this.taskMutator = taskMutator;
         String taskName = task.getName();
-        this.allInputFiles = new TaskInputUnionFileCollection(taskName, "input", false, filePropertiesInternal);
-        this.allSourceFiles = new TaskInputUnionFileCollection(taskName, "source", true, filePropertiesInternal);
+        this.allInputFiles = new TaskInputUnionFileCollection(taskName, "input", false, filePropertiesInternalSupplier);
+        this.allSourceFiles = new TaskInputUnionFileCollection(taskName, "source", true, filePropertiesInternalSupplier);
     }
 
     @Override
     public boolean getHasInputs() {
+        task.ensureTaskInputsAndOutputsDiscovered();
         return !filePropertiesInternal.isEmpty() || !properties.isEmpty();
     }
 
@@ -67,6 +77,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public ImmutableSortedSet<TaskInputFilePropertySpec> getFileProperties() {
+        task.ensureTaskInputsAndOutputsDiscovered();
         if (fileProperties == null) {
             ensurePropertiesHaveNames(filePropertiesInternal);
             fileProperties = TaskPropertyUtils.<TaskInputFilePropertySpec>collectFileProperties("input", filePropertiesInternal.iterator());
@@ -106,6 +117,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public boolean getHasSourceFiles() {
+        task.ensureTaskInputsAndOutputsDiscovered();
         for (TaskInputPropertySpecAndBuilder propertySpec : filePropertiesInternal) {
             if (propertySpec.isSkipWhenEmpty()) {
                 return true;
@@ -126,6 +138,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     public Map<String, Object> getProperties() {
+        task.ensureTaskInputsAndOutputsDiscovered();
         Map<String, Object> actualProperties = new HashMap<String, Object>();
         for (Map.Entry<String, Object> entry : properties.entrySet()) {
             String propertyName = entry.getKey();
@@ -179,9 +192,9 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         private final boolean skipWhenEmptyOnly;
         private final String taskName;
         private final String type;
-        private final List<TaskInputPropertySpecAndBuilder> filePropertiesInternal;
+        private final Supplier<List<TaskInputPropertySpecAndBuilder>> filePropertiesInternal;
 
-        public TaskInputUnionFileCollection(String taskName, String type, boolean skipWhenEmptyOnly, List<TaskInputPropertySpecAndBuilder> filePropertiesInternal) {
+        public TaskInputUnionFileCollection(String taskName, String type, boolean skipWhenEmptyOnly, Supplier<List<TaskInputPropertySpecAndBuilder>> filePropertiesInternal) {
             this.taskName = taskName;
             this.type = type;
             this.skipWhenEmptyOnly = skipWhenEmptyOnly;
@@ -195,7 +208,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
         @Override
         public void visitContents(FileCollectionResolveContext context) {
-            for (TaskInputPropertySpecAndBuilder fileProperty : filePropertiesInternal) {
+            for (TaskInputPropertySpecAndBuilder fileProperty : filePropertiesInternal.get()) {
                 if (!skipWhenEmptyOnly || fileProperty.isSkipWhenEmpty()) {
                     context.add(fileProperty.getPropertyFiles());
                 }

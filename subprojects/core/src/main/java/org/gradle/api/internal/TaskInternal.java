@@ -91,4 +91,6 @@ public interface TaskInternal extends Task, Configurable<Task> {
 
     @Internal
     Path getIdentityPath();
+
+    void ensureTaskInputsAndOutputsDiscovered();
 }
