@@ -342,7 +342,7 @@ the credentials the api:org.gradle.caching.http.HttpBuildCache[] uses to access 
 </sample>
 ++++
 
-It is also possible to configure the build cache from an <<sec:using_an_init_script,init script>>, which can be added to your Gradle user home or your custom Gradle distribution.
+It is also possible to configure the build cache from an <<sec:using_an_init_script,init script>>, which can be used from the command line, added to your Gradle user home or be a part of your custom Gradle distribution.
 
 ++++
 <sample id="buildCacheConfigurationInitScript" dir="buildCache/configure-by-init-script" title="Init script to configure the build cache">
