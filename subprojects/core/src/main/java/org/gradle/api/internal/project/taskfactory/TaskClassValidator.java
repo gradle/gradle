@@ -41,8 +41,26 @@ public class TaskClassValidator implements TaskValidator {
     }
 
     public void addInputsAndOutputs(final TaskInternal task) {
+        addInputs(task);
+        addOutputs(task);
+        addDestroyables(task);
+    }
+
+    public void addInputs(final TaskInternal task) {
         for (TaskPropertyInfo property : annotatedProperties) {
-            property.getConfigureAction().update(task, new FutureValue(property, task));
+            property.getConfigureAction().updateInputs(task.getInputs(), new FutureValue(property, task));
+        }
+    }
+
+    public void addOutputs(final TaskInternal task) {
+        for (TaskPropertyInfo property : annotatedProperties) {
+            property.getConfigureAction().updateOutputs(task.getOutputs(), new FutureValue(property, task));
+        }
+    }
+
+    public void addDestroyables(final TaskInternal task) {
+        for (TaskPropertyInfo property : annotatedProperties) {
+            property.getConfigureAction().updateDestroyables(task.getDestroyables(), new FutureValue(property, task));
         }
     }
 

@@ -61,13 +61,14 @@ public class DefaultTaskDestroyables implements TaskDestroyables, TaskDestroyabl
     public DefaultConfigurableFileCollection getFiles() {
         if (destroyFiles == null) {
             destroyFiles = new DefaultConfigurableFileCollection(task + " destroy files", resolver, null);
-
+            task.ensureTaskInputsAndOutputsDiscovered();
         }
         return destroyFiles;
     }
 
     @Override
     public Collection<File> getFilesReadOnly() {
+        task.ensureTaskInputsAndOutputsDiscovered();
         if (destroyFiles != null) {
             return destroyFiles.getFiles();
         }

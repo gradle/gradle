@@ -16,7 +16,7 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.file.FileSystemLocation;
-import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 import org.gradle.util.DeferredUtil;
@@ -53,7 +53,7 @@ public class InputFilePropertyAnnotationHandler extends AbstractInputPropertyAnn
         return (File) unpacked;
     }
 
-    protected TaskInputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, Callable<Object> futureValue) {
-        return task.getInputs().files(futureValue);
+    protected TaskInputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInputsInternal inputs, Callable<Object> futureValue) {
+        return inputs.files(futureValue);
     }
 }

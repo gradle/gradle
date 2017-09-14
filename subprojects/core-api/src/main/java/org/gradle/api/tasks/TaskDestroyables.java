@@ -18,6 +18,7 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * Represents the files or directories that a {@link org.gradle.api.Task} destroys (removes).
@@ -25,6 +26,7 @@ import org.gradle.api.file.FileCollection;
  * @since 4.0
  */
 @Incubating
+@HasInternalProtocol
 public interface TaskDestroyables {
     /**
      * Registers some files that this task destroys.

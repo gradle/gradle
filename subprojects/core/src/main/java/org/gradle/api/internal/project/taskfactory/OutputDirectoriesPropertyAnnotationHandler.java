@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.tasks.OutputDirectories;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 
@@ -35,8 +35,8 @@ public class OutputDirectoriesPropertyAnnotationHandler extends AbstractPluralOu
     }
 
     @Override
-    protected TaskOutputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, Callable<Object> futureValue) {
-        return task.getOutputs().dirs(futureValue);
+    protected TaskOutputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskOutputsInternal outputs, Callable<Object> futureValue) {
+        return outputs.dirs(futureValue);
     }
 
     @Override

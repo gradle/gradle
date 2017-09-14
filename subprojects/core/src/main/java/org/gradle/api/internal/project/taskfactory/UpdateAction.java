@@ -15,10 +15,20 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.TaskInputsInternal;
+import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.api.tasks.TaskDestroyables;
 
 import java.util.concurrent.Callable;
 
-public interface UpdateAction {
-    void update(TaskInternal task, Callable<Object> futureValue);
+public abstract class UpdateAction {
+
+    void updateInputs(TaskInputsInternal inputs, Callable<Object> futureValue) {
+    }
+
+    void updateOutputs(TaskOutputsInternal outputs, Callable<Object> futureValue) {
+    }
+
+    void updateDestroyables(TaskDestroyables destroyables, Callable<Object> futureValue) {
+    }
 }

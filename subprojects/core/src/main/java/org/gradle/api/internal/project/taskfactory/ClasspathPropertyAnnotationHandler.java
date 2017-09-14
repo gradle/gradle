@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal;
@@ -44,8 +44,9 @@ public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnn
     @Override
     public void attachActions(final TaskPropertyActionContext context) {
         context.setConfigureAction(new UpdateAction() {
-            public void update(TaskInternal task, Callable<Object> futureValue) {
-                ((TaskInputFilePropertyBuilderInternal) task.getInputs().files(futureValue))
+            @Override
+            public void updateInputs(TaskInputsInternal inputs, Callable<Object> futureValue) {
+                ((TaskInputFilePropertyBuilderInternal) inputs.files(futureValue))
                     .withPropertyName(context.getName())
                     .withSnapshotter(getSnapshotterType())
                     .optional(context.isOptional());
