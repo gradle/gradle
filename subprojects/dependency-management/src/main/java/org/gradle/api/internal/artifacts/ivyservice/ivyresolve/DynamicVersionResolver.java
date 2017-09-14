@@ -246,20 +246,6 @@ public class DynamicVersionResolver {
         public void matches(ModuleComponentIdentifier moduleComponentIdentifier) {
             String version = moduleComponentIdentifier.getVersion();
             CandidateResult candidateResult = candidateComponents.get(version);
-            // The following code deserves a bit of explanation.
-            // Some selectors (ranges) are allowed to say that multiple versions within the range are compatible.
-            // So this "matches" method will be called several times, once for each version matching within range.
-            // However, we only need metadata for the first (and latest) matching version, which will effectively
-            // be added to the graph.
-            // For the other versions within range, we don't need to check if they _actually_ return metadata, all
-            // we need to know is that they match.
-            // Should a conflict occur, because 2 ranges overlap, we will select the range with the highest matching
-            // upper bound, which happens to be the one with the metadata resolved. However conflict resolution needs
-            // us to "remember" about the ranges, so that we can compute if the intersection is not null.
-            // That's why we add all "matching candidates" to the list, but only try to effectively resolve the upper bound.
-            // It's worth noting that if we have a range [3,8], and that version 8 is matching, but there's no metadata
-            // associated with it, this method will return null, so the _effective_ upper bound will be 7 (again, if
-            // metadata for 7 exists).
             if (selected == null) {
                 selected = candidateResult.tryResolveMetadata(resolvedVersionMetadata);
             }
