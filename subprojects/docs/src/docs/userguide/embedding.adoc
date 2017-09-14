@@ -68,71 +68,10 @@ The main entry point to the Tooling API is the api:org.gradle.tooling.GradleConn
 
 ==== Provider side
 
-The current version of the Tooling API supports running builds using Gradle versions 2.6 and later. Gradle version between 1.2 and 2.6 is still supported but will be removed in Gradle 5.0, which you should avoid using.
-
-.Tooling API provider support
-
-|===
-| Tooling API provider (Gradle runtime) | Current Tooling API | Tooling API 5.0
-
-| version < 1.2
-| Not supported
-| Not supported
-
-| 1.2 <= version < 2.6
-| Deprecated
-| Not supported
-
-| version > 2.6
-| Supported
-| Supported
-|===
+The current version of Tooling API supports running builds using Gradle versions 1.2 and later. However, support for running builds with Gradle versions older than 2.6 is deprecated and will be removed in Tooling API version 5.0.
 
 You should note that not all features of the Tooling API are available for all versions of Gradle. For example, build cancellation is only available when a build uses Gradle 2.1 and later. Refer to the documentation for each class and method for more details.
-
-=== Client side
-
-The current Gradle version can be used from Tooling API versions 3.0 or later. Tooling API version between 2.0 and 3.0 is still supported but will be removed in Gradle 5.0, which you should avoid using.
-
-.Tooling API client support
-
-|===
-| Tooling API client | Current Gradle version | Gradle 5.0
-
-| version < 2.0
-| Not supported
-| Not supported
-
-| 2.0 <= version < 3.0
-| Deprecated
-| Not supported
-
-| version > 3.0
-| Supported
-| Supported
-|===
 
 === Java version
 
 The Tooling API requires Java 8 or later. Java 7 is currently still supported but will be removed in Gradle 5.0. The Gradle version used by builds may have additional Java version requirements.
-
-.Tooling API Java support
-
-|===
-| Java | Current Tooling API | ToolingAPI 5.0
-
-| Java 6 and older
-| Not supported
-| Not supported
-
-| Java 7
-| Deprecated
-| Not supported
-
-| Java 8 and newer
-| Supported
-| Supported
-|===
-
-
-
