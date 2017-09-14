@@ -44,14 +44,6 @@ rootProject.name = "${rootProjectName}"
         file(OperatingSystem.current().getSharedLibraryName(str))
     }
 
-    protected TestFile getRootXcodeProjectFile() {
-        file("${rootProjectName}.xcodeproj")
-    }
-
-    protected TestFile getRootXcodeWorkspaceFile() {
-        file("${rootProjectName}.xcworkspace")
-    }
-
     protected XcodeProjectPackage xcodeProject(String path) {
         xcodeProject(file(path))
     }
@@ -60,8 +52,8 @@ rootProject.name = "${rootProjectName}"
         new XcodeProjectPackage(bundle)
     }
 
-    protected XcodeProjectPackage rootXcodeProject() {
-        xcodeProject(rootXcodeProjectFile)
+    protected XcodeProjectPackage getRootXcodeProject() {
+        xcodeProject("${rootProjectName}.xcodeproj")
     }
 
     protected XcodeWorkspacePackage xcodeWorkspace(String path) {
@@ -72,11 +64,13 @@ rootProject.name = "${rootProjectName}"
         new XcodeWorkspacePackage(bundle)
     }
 
-    protected XcodeWorkspacePackage rootXcodeWorkspace() {
-        xcodeWorkspace(rootXcodeWorkspaceFile)
+    protected XcodeWorkspacePackage getRootXcodeWorkspace() {
+        xcodeWorkspace("${rootProjectName}.xcworkspace")
     }
 
-    protected XcodebuildExecuter xcodebuild() {
-        new XcodebuildExecuter(testDirectory)
+    protected XcodebuildExecuter getXcodebuild() {
+        // Gradle needs to be isolated so the xcodebuild does not leave behind daemons
+        assert executer.isRequiresGradleDistribution()
+        new XcodebuildExecuter(executer.getGradleUserHomeDir(), testDirectory.file(".xcode-derived"))
     }
 }

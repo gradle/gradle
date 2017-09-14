@@ -22,7 +22,7 @@ import org.gradle.util.TestPrecondition
 
 import static org.gradle.util.Matchers.containsText
 
-class XcodeIntegrationTest extends AbstractXcodeIntegrationSpec {
+class XcodeErrorIntegrationTest extends AbstractXcodeIntegrationSpec {
     @Requires(TestPrecondition.XCODE)
     def "fails to build when project code is broken"() {
         executer.requireGradleDistribution()
@@ -39,8 +39,8 @@ class XcodeIntegrationTest extends AbstractXcodeIntegrationSpec {
         succeeds("xcode")
 
         expect:
-        def failure = xcodebuild()
-            .withProject(rootXcodeProjectFile)
+        def failure = xcodebuild
+            .withProject(rootXcodeProject)
             .withScheme("App Executable")
             .fails()
         failure.assertHasDescription("Execution failed for task ':compileDebugSwift'.")

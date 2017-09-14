@@ -16,65 +16,52 @@
 
 package org.gradle.ide.xcode.fixtures;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import org.gradle.api.Transformer;
 import org.gradle.integtests.fixtures.executer.ExecutionFailure;
 import org.gradle.integtests.fixtures.executer.ExecutionResult;
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure;
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult;
 import org.gradle.test.fixtures.file.ExecOutput;
 import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.testng.Assert.assertTrue;
 
 public class XcodebuildExecuter {
-    private final TestFile baseDir;
     private final List<String> args = new ArrayList<String>();
-    public XcodebuildExecuter(TestFile baseDir) {
-        this.baseDir = baseDir;
+    private final File gradleUserHome;
+
+    public XcodebuildExecuter(File gradleUserHome, File derivedData) {
+        this.gradleUserHome = gradleUserHome;
+        addArguments("-derivedDataPath", derivedData.getAbsolutePath());
     }
 
-    public XcodebuildExecuter withProject(String pathToBundle) {
-        return withProject(baseDir.file(pathToBundle));
+    public XcodebuildExecuter withProject(XcodeProjectPackage xcodeProject) {
+        TestFile projectDir = new TestFile(xcodeProject.getDir());
+        projectDir.assertIsDir();
+        return addArguments("-project", projectDir.getAbsolutePath());
     }
 
-    public XcodebuildExecuter withProject(File xcodeProjectBundle) {
-        new TestFile(xcodeProjectBundle).assertIsDir();
-        return withArguments("-project", xcodeProjectBundle.getAbsolutePath());
-    }
-
-    public XcodebuildExecuter withWorkspace(String pathToBundle) {
-        return withWorkspace(baseDir.file(pathToBundle));
-    }
-
-    public XcodebuildExecuter withWorkspace(File bundle) {
-        new TestFile(bundle).assertIsDir();
-        return withArguments("-workspace", bundle.getAbsolutePath());
+    public XcodebuildExecuter withWorkspace(XcodeWorkspacePackage xcodeWorkspace) {
+        TestFile workspaceDir = new TestFile(xcodeWorkspace.getDir());
+        workspaceDir.assertIsDir();
+        return addArguments("-workspace", workspaceDir.getAbsolutePath());
     }
 
     public XcodebuildExecuter withScheme(String schemeName) {
-        withArgument("-scheme");
-        withArgument(schemeName);
-        return this;
+        return addArguments("-scheme", schemeName);
     }
 
     public XcodebuildExecuter withConfiguration(String configurationName) {
-        withArgument("-configuration");
-        withArgument(configurationName);
-        return this;
-    }
-
-    public XcodebuildExecuter withArguments(String... args) {
-        return withArguments(Lists.newArrayList(args));
-    }
-
-    public XcodebuildExecuter withArguments(List<String> args) {
-        this.args.clear();
-        this.args.addAll(args);
-        return this;
+        return addArguments("-configuration", configurationName);
     }
 
     public XcodebuildExecuter withArgument(String arg) {
@@ -82,16 +69,33 @@ public class XcodebuildExecuter {
         return this;
     }
 
+    private XcodebuildExecuter addArguments(String... args) {
+        this.args.addAll(Arrays.asList(args));
+        return this;
+    }
+
     public ExecutionResult succeeds() {
-        ExecOutput result = findXcodeBuild().exec(args.toArray());
+        ExecOutput result = findXcodeBuild().execute(args, buildEnvironment());
         return new OutputScrapingExecutionResult(result.getOut(), result.getError());
     }
 
     public ExecutionFailure fails() {
-        ExecOutput result = findXcodeBuild().execWithFailure(args.toArray());
+        ExecOutput result = findXcodeBuild().execWithFailure(args, buildEnvironment());
         // stderr of Gradle is redirected to stdout of xcodebuild tool. To work around, we consider xcodebuild stdout and stderr as
         // the error output only if xcodebuild failed most likely due to Gradle.
         return new OutputScrapingExecutionFailure(result.getOut(), result.getOut() + "\n" + result.getError());
+    }
+
+    private List<String> buildEnvironment() {
+        Set<String> envvars = Sets.newLinkedHashSet();
+        envvars.add("GRADLE_USER_HOME=" + gradleUserHome);
+        CollectionUtils.collect(System.getenv().entrySet(), envvars, new Transformer<String, Map.Entry<String, String>>() {
+            @Override
+            public String transform(Map.Entry<String, String> envvar) {
+                return envvar.getKey() + "=" + envvar.getValue();
+            }
+        });
+        return CollectionUtils.toList(envvars);
     }
 
     private TestFile findXcodeBuild() {

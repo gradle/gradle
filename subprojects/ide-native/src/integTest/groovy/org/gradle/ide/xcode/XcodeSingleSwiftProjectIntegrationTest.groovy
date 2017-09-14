@@ -41,7 +41,7 @@ apply plugin: 'swift-executable'
         then:
         executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
-        def project = rootXcodeProject().projectFile
+        def project = rootXcodeProject.projectFile
         project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
         project.buildConfigurationList.buildConfigurations.name == ["Debug", "Release"]
         project.targets.size() == 2
@@ -62,8 +62,8 @@ apply plugin: 'swift-executable'
         project.products.children[0].path == exe("build/exe/main/debug/App").absolutePath
 
         when:
-        def resultDebug = xcodebuild()
-            .withProject(rootXcodeProjectFile)
+        def resultDebug = xcodebuild
+            .withProject(rootXcodeProject)
             .withScheme('App Executable')
             .succeeds()
 
@@ -71,8 +71,8 @@ apply plugin: 'swift-executable'
         resultDebug.assertTasksExecuted(':compileDebugSwift', ':linkDebug')
 
         when:
-        def resultRelease = xcodebuild()
-            .withProject(rootXcodeProjectFile)
+        def resultRelease = xcodebuild
+            .withProject(rootXcodeProject)
             .withScheme('App Executable')
             .withConfiguration('Release')
             .succeeds()
@@ -83,7 +83,7 @@ apply plugin: 'swift-executable'
 
     @Requires(TestPrecondition.XCODE)
     def "create xcode project library"() {
-        executer.requireGradleDistribution()
+        executer.requireGradleDistribution().requireOwnGradleUserHomeDir()
 
         given:
         buildFile << """
@@ -98,7 +98,7 @@ apply plugin: 'swift-library'
         then:
         executedAndNotSkipped(":xcodeProject", ":xcodeSchemeAppSharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
 
-        def project = rootXcodeProject().projectFile
+        def project = rootXcodeProject.projectFile
         project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
         project.buildConfigurationList.buildConfigurations.name == ["Debug", "Release"]
         project.targets.size() == 2
@@ -119,8 +119,8 @@ apply plugin: 'swift-library'
         project.products.children[0].path == sharedLib("build/lib/main/debug/App").absolutePath
 
         when:
-        def resultDebug = xcodebuild()
-            .withProject(rootXcodeProjectFile)
+        def resultDebug = xcodebuild
+            .withProject(rootXcodeProject)
             .withScheme('App SharedLibrary')
             .succeeds()
 
@@ -128,8 +128,8 @@ apply plugin: 'swift-library'
         resultDebug.assertTasksExecuted(':compileDebugSwift', ':linkDebug')
 
         when:
-        def resultRelease = xcodebuild()
-            .withProject(rootXcodeProjectFile)
+        def resultRelease = xcodebuild
+            .withProject(rootXcodeProject)
             .withScheme('App SharedLibrary')
             .withConfiguration('Release')
             .succeeds()
@@ -150,7 +150,7 @@ apply plugin: 'swift-executable'
         succeeds("xcode")
 
         then:
-        rootXcodeProject().projectFile.mainGroup
+        rootXcodeProject.projectFile.mainGroup
             .assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
 
         when:
@@ -159,7 +159,7 @@ apply plugin: 'swift-executable'
         succeeds('xcode')
 
         then:
-        rootXcodeProject().projectFile.mainGroup
+        rootXcodeProject.projectFile.mainGroup
             .assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
     }
 
@@ -175,7 +175,7 @@ apply plugin: 'swift-executable'
         succeeds("xcode")
 
         then:
-        rootXcodeProject().projectFile.mainGroup
+        rootXcodeProject.projectFile.mainGroup
             .assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
 
         when:
@@ -185,7 +185,7 @@ apply plugin: 'swift-executable'
         succeeds('xcode')
 
         then:
-        rootXcodeProject().projectFile.mainGroup
+        rootXcodeProject.projectFile.mainGroup
             .assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
     }
 
@@ -206,7 +206,7 @@ executable {
         succeeds("xcode")
 
         then:
-        rootXcodeProject().projectFile.mainGroup
+        rootXcodeProject.projectFile.mainGroup
             .assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
     }
 
@@ -227,7 +227,7 @@ library {
         succeeds("xcode")
 
         then:
-        rootXcodeProject().projectFile.mainGroup
+        rootXcodeProject.projectFile.mainGroup
             .assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
     }
 
@@ -248,7 +248,7 @@ executable.module = 'TestApp'
         then:
         executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
-        def project = rootXcodeProject().projectFile
+        def project = rootXcodeProject.projectFile
         project.targets.size() == 2
         project.targets.every { it.productName == 'App' }
         project.targets[0].name == 'App Executable'
@@ -276,7 +276,7 @@ library.module = 'TestLib'
         then:
         executedAndNotSkipped(":xcodeProject", ":xcodeSchemeAppSharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
 
-        def project = rootXcodeProject().projectFile
+        def project = rootXcodeProject.projectFile
         project.targets.size() == 2
         project.targets.every { it.productName == "App" }
         project.targets[0].name == 'App SharedLibrary'

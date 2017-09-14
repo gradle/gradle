@@ -59,15 +59,15 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             ":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeSchemeGreeterSharedLibrary", ":greeter:xcode",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
-        rootXcodeWorkspace().contentFile
-            .assertHasProjects([rootXcodeProjectFile, file('app/app.xcodeproj'), file('greeter/greeter.xcodeproj')]*.absolutePath)
+        rootXcodeWorkspace.contentFile
+            .assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj', 'greeter/greeter.xcodeproj')
 
         def project = xcodeProject("app/app.xcodeproj").projectFile
         project.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("app/src/main/headers"), file("greeter/src/main/public"))
 
         when:
-        def resultDebugApp = xcodebuild()
-            .withWorkspace(rootXcodeWorkspaceFile)
+        def resultDebugApp = xcodebuild
+            .withWorkspace(rootXcodeWorkspace)
             .withScheme('App Executable')
             .succeeds()
 
@@ -76,8 +76,8 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             ':app:compileDebugCpp', ':app:linkDebug')
 
         when:
-        def resultReleaseApp = xcodebuild()
-            .withWorkspace(rootXcodeWorkspaceFile)
+        def resultReleaseApp = xcodebuild
+            .withWorkspace(rootXcodeWorkspace)
             .withScheme('App Executable')
             .withConfiguration('Release')
             .succeeds()
@@ -125,8 +125,8 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             ":hello:xcodeProject", ":hello:xcodeProjectWorkspaceSettings", ":hello:xcodeSchemeHelloSharedLibrary", ":hello:xcode",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
-        rootXcodeWorkspace().contentFile
-            .assertHasProjects([rootXcodeProjectFile, file('app/app.xcodeproj'), file('log/log.xcodeproj'), file('hello/hello.xcodeproj')]*.absolutePath)
+        rootXcodeWorkspace.contentFile
+            .assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj', 'log/log.xcodeproj', 'hello/hello.xcodeproj')
 
         def appProject = xcodeProject("app/app.xcodeproj").projectFile
         appProject.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("app/src/main/headers"), file("hello/src/main/public"))
@@ -134,8 +134,8 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         helloProject.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("hello/src/main/public"), file("hello/src/main/headers"), file("log/src/main/public"))
 
         when:
-        def resultDebugApp = xcodebuild()
-            .withWorkspace(rootXcodeWorkspaceFile)
+        def resultDebugApp = xcodebuild
+            .withWorkspace(rootXcodeWorkspace)
             .withScheme('App Executable')
             .succeeds()
 
@@ -145,8 +145,8 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             ':app:compileDebugCpp', ':app:linkDebug')
 
         when:
-        def resultReleaseHello = xcodebuild()
-            .withWorkspace(rootXcodeWorkspaceFile)
+        def resultReleaseHello = xcodebuild
+            .withWorkspace(rootXcodeWorkspace)
             .withScheme('Hello SharedLibrary')
             .withConfiguration('Release')
             .succeeds()
@@ -190,15 +190,15 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         executedAndNotSkipped(":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeSchemeGreeterSharedLibrary",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
-        rootXcodeWorkspace().contentFile
-            .assertHasProjects([rootXcodeProjectFile, file('greeter/greeter.xcodeproj')]*.absolutePath)
+        rootXcodeWorkspace.contentFile
+            .assertHasProjects("${rootProjectName}.xcodeproj", 'greeter/greeter.xcodeproj')
 
-        def project = rootXcodeProject().projectFile
+        def project = rootXcodeProject.projectFile
         project.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("src/main/headers"), file("greeter/src/main/public"))
 
         when:
-        def resultDebugApp = xcodebuild()
-            .withWorkspace(rootXcodeWorkspaceFile)
+        def resultDebugApp = xcodebuild
+            .withWorkspace(rootXcodeWorkspace)
             .withScheme('App Executable')
             .succeeds()
 
@@ -206,8 +206,8 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         resultDebugApp.assertTasksExecuted(':greeter:compileDebugCpp', ':greeter:linkDebug', ':compileDebugCpp', ':linkDebug')
 
         when:
-        def resultReleaseGreeter = xcodebuild()
-            .withWorkspace(rootXcodeWorkspaceFile)
+        def resultReleaseGreeter = xcodebuild
+            .withWorkspace(rootXcodeWorkspace)
             .withScheme('Greeter SharedLibrary')
             .withConfiguration('Release')
             .succeeds()
