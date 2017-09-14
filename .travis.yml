@@ -14,7 +14,7 @@ matrix:
       addons:
         apt:
           packages:
-            - oracle-java9-installer
+            - oracle-java9-installer # Forces use of even newer JDK 9 build
 
 script: ./gradlew :provider:check --info --stacktrace --console=plain --max-workers=1 --no-daemon -Dkotlin.compiler.execution.strategy=in-proces -Dkotlin.colors.enabled=false
 
