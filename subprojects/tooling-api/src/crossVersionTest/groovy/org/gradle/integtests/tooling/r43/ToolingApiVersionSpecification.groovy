@@ -44,10 +44,6 @@ abstract class ToolingApiVersionSpecification extends ToolingApiSpecification {
         return "Support for builds using Gradle older than 2.6 was deprecated and will be removed in 5.0. You are currently using Gradle version ${version}. You should upgrade your Gradle build to use Gradle 2.6 or later."
     }
 
-    String getOutput() {
-        output.toString()
-    }
-
     // since 1.0
     def build() {
         withConnection { ProjectConnection connection ->

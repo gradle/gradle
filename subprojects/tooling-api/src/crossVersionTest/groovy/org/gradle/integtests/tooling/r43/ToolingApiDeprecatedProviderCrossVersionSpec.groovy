@@ -27,7 +27,7 @@ class ToolingApiDeprecatedProviderCrossVersionSpec extends ToolingApiVersionSpec
         build()
 
         then:
-        output.count(providerDeprecationMessage(targetDist.version.version)) == 1
+        output.toString().count(providerDeprecationMessage(targetDist.version.version)) == 1
     }
 
     @TargetGradleVersion(">=1.2 <2.6")
@@ -36,7 +36,7 @@ class ToolingApiDeprecatedProviderCrossVersionSpec extends ToolingApiVersionSpec
         getModel()
 
         then:
-        output.count(providerDeprecationMessage(targetDist.version.version)) == 1
+        output.toString().count(providerDeprecationMessage(targetDist.version.version)) == 1
     }
 
     @TargetGradleVersion(">=1.8 <2.6")
@@ -45,7 +45,7 @@ class ToolingApiDeprecatedProviderCrossVersionSpec extends ToolingApiVersionSpec
         buildAction()
 
         then:
-        output.count(providerDeprecationMessage(targetDist.version.version)) == 1
+        output.toString().count(providerDeprecationMessage(targetDist.version.version)) == 1
     }
 
     // No test for test action since it was introduced in 2.6
