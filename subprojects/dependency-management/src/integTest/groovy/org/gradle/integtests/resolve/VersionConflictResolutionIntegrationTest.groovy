@@ -1179,4 +1179,45 @@ task checkDeps(dependsOn: configurations.compile) {
         then:
         noExceptionThrown()
     }
+
+    def "conflict resolution on different dependencies are handled separately"() {
+        given:
+        (1..10).each {
+            mavenRepo.module("org", "leaf", "$it").publish()
+            mavenRepo.module("org", "leaf2", "$it").publish()
+        }
+        mavenRepo.module("org", "a", "1.0").dependsOn("org", "leaf", "[2,6]").publish()
+        mavenRepo.module("org", "b", "1.0").dependsOn("org", "leaf", "[4,8]").publish()
+        mavenRepo.module("org", "c", "1.0").dependsOn("org", "leaf2", "[3,4]").publish()
+        mavenRepo.module("org", "d", "1.0").dependsOn("org", "leaf2", "[1,7]").publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+                conf2
+                conf3
+                conf4
+            }
+            dependencies {
+                conf 'org:a:1.0', 'org:b:1.0', 'org:c:1.0', 'org:d:1.0'
+            }
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'leaf-6.jar', 'leaf2-4.jar']
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        noExceptionThrown()
+    }
+
+
 }
