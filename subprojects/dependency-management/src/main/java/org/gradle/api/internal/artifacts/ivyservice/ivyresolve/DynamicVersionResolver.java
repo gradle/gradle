@@ -199,7 +199,6 @@ public class DynamicVersionResolver {
         private final AttemptCollector attemptCollector;
         private final DependencyMetadata dependency;
         private final VersionSelector versionSelector;
-        private ModuleComponentResolveMetadata selected;
 
         public RepositoryResolveState(VersionedComponentChooser versionedComponentChooser, DependencyMetadata dependency, ModuleComponentRepository repository, VersionSelector versionSelector) {
             this.versionedComponentChooser = versionedComponentChooser;
@@ -233,22 +232,13 @@ public class DynamicVersionResolver {
         private void selectMatchingVersionAndResolve() {
             // TODO - reuse metaData if it was already fetched to select the component from the version list
             versionedComponentChooser.selectNewestMatchingComponent(candidates(), this, versionSelector);
-            applyResolutionResult();
-        }
-
-        private void applyResolutionResult() {
-            if (selected != null) {
-                resolvedVersionMetadata.resolved(selected);
-            }
         }
 
         @Override
         public void matches(ModuleComponentIdentifier moduleComponentIdentifier) {
             String version = moduleComponentIdentifier.getVersion();
             CandidateResult candidateResult = candidateComponents.get(version);
-            if (selected == null) {
-                selected = candidateResult.tryResolveMetadata(resolvedVersionMetadata);
-            }
+            candidateResult.tryResolveMetadata(resolvedVersionMetadata);
         }
 
         @Override
@@ -356,22 +346,22 @@ public class DynamicVersionResolver {
          * will copy the result to the target builder
          *
          * @param target where to put metadata
-         * @return the resolved metadata, if it could be resoved
          */
-        private ModuleComponentResolveMetadata tryResolveMetadata(BuildableModuleComponentMetaDataResolveResult target) {
+        private void tryResolveMetadata(BuildableModuleComponentMetaDataResolveResult target) {
             BuildableModuleComponentMetaDataResolveResult result = resolve();
             switch (result.getState()) {
                 case Resolved:
-                    return result.getMetaData();
+                    target.resolved(result.getMetaData());
+                    return;
                 case Missing:
                     result.applyTo(target);
                     target.missing();
-                    return null;
+                    return;
                 case Failed:
                     target.failed(result.getFailure());
-                    return null;
+                    return;
                 case Unknown:
-                    return null;
+                    return;
                 default:
                     throw new IllegalStateException();
             }
