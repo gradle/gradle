@@ -16,24 +16,14 @@ git config user.email user@example.com
 
 You can generate the IntelliJ project by running
 ```
-./gradlew idea       # *nix-based systems
-gradlew idea         # Windows
+./gradlew idea
 ```
 then "Open" it with IntelliJ.
 
 You can generate the Eclipse projects by running
 ```
-./gradlew eclipse   # *nix-based systems
-gradlew eclipse     # Windows
+./gradlew eclipse
 ```
-
-### Running or debugging gradle under Eclipse
-1. Create a `Java Application Run/Debug configuration as`
-2. Right click on `launcher/src/main/java/org.gradle.launcher.Main` and select `Run as->Run configuration`
-3. In the Arguments tab, enter: `--no-daemon -Dorg.gradle.appname=gradle`
-4. In the Working Directory tab: `enter you project's root directory`
-5. Apply/Run/Close as needed
-
 
 ## Choosing Tasks
 If you'd like to contribute to Gradle but aren't sure where, please look for issues [labelled help-wanted](https://github.com/gradle/gradle/labels/help-wanted). We have designated these issues as good candidates for easy contribution.
@@ -41,7 +31,7 @@ If you'd like to contribute to Gradle but aren't sure where, please look for iss
 ## Making Changes
 
 ### Larger Changes (features or enhancements)
-Before starting to work on a feature or a fix, please open a discussion about your proposed changes on the [Gradle Developer List](https://groups.google.com/forum/#!forum/gradle-dev).
+Before starting to work on a feature or a fix, please open an issue to discuss the use case or bug with us.
 Doing so helps to ensure that:
 * You understand how your proposed changes fit with the strategic goals of the Gradle project.
 * You can get early feedback on your proposed changes, and suggestions as to the best approach to implementation.
@@ -55,12 +45,9 @@ All code contributions should contain the following:
 * Documentation in the User Guide and DSL Reference (under `subprojects/docs/src/docs`). You can generate docs by running `./gradlew :docs:docs`.
 * Javadoc `@author` tags and committer names are not used in the codebase (contributions are recognised in the commit history and release notes)
 
-If you're not sure where to start, ask on the developer list. There's likely a number of existing examples to help get you going.
+Your code needs to run on all supported Java versions and operationg systems. The [Gradle CI](http://builds.gradle.org/) will verify this, but here are some pointers that will avoid surprises:
 
-Try to ensure that your code & tests will run successfully on Java 6, and on both *nix and Windows platforms.
-The [Gradle CI](http://builds.gradle.org/) will verify this, but it helps if things work first time.
-
-* Avoid using features introduced in Java 1.7 or later
+* Avoid using features introduced in Java 1.7 or later. Several parts of Gradle still need to run on Java 6.
 * Be careful to normalise file paths in tests. The `org.gradle.util.TextUtil` class has some useful utility functions for this purpose.
 
 ### Development Workflow
@@ -73,10 +60,7 @@ To try out a change in behavior manually, install Gradle source locally and use 
 /any/path/bin/gradle taskName
 ```
 
-You can debug Gradle by adding `-Dorg.gradle.debug=true` when executing. Gradle will wait for you to attach at debugger at `localhost:5005` by default. We recommend disabling the Gradle Daemon when debugging (`--no-daemon`).
-
-### Getting Help
-If you run into any trouble, please reach out to us on the [help/discuss forum](https://discuss.gradle.org/c/help-discuss) or [tweet @Gradle](https://twitter.com/gradle).
+You can debug Gradle by adding `-Dorg.gradle.debug=true` when executing. Gradle will wait for you to attach at debugger at `localhost:5005` by default.
 
 ### Creating Commits And Writing Commit Messages
 The commit messages that accompany your code changes are an important piece of documentation, and help make your contribution easier to review.
@@ -92,11 +76,10 @@ Before we can accept any code contributions, you must complete and electronicall
 
 All code contributions should be submitted via a [pull request](https://help.github.com/articles/using-pull-requests) from a [forked GitHub repository](https://help.github.com/articles/fork-a-repo).
 
-Once received, the pull request will be reviewed by a Gradle core developer. Your pull request will be given higher priority if you:
-* Have first discussed the change on the Gradle Developer list.
-* Have followed all of the Contribution Guidelines here.
+Once received, the pull request will be reviewed and eventually merged by a Gradle core developer. It is normal that this takes several iterations, so don't get discouraged by change requests. They ensure the high quality that we all enjoy.
 
-After review, and usually after a number of iterations of development, your pull request may be merged into the Gradle distribution.
+### Getting Help
+If you run into any trouble, please reach out to us on the [help/discuss forum](https://discuss.gradle.org/c/help-discuss) or on the issue you are working on.
 
 ## Our Thanks
 We deeply appreciate your effort toward improving Gradle. For any contribution, large or small, you will be immortalized in the release notes for the version you've contributed to. 
