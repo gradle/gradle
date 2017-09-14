@@ -900,7 +900,15 @@ public class DependencyGraphBuilder {
             }
         }
 
-        protected void resetSelection(EdgeState edge) {
+        /**
+         * Resets the state of selection of an edge, making it possible to
+         * re-resolve it, in case the result of selection might be different.
+         * This would happen if new information has been made available to
+         * selectors during the visit of the dependency graph.
+         *
+         * @param edge the edge for which we need to reset state. The origin node of the edge is automatically re-queued for resolution.
+         */
+        private void resetSelection(EdgeState edge) {
             if (edge.selector.selected != null) {
                 edge.from.previousTraversalExclusions = null;
                 edge.from.outgoingEdges.clear();
