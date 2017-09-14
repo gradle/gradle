@@ -1,11 +1,11 @@
 import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
 
 buildscript {
-    repositories {
-        jcenter()
-    }
     dependencies {
         classpath(kotlin("gradle-plugin"))
+    }
+    repositories {
+        jcenter()
     }
 }
 
