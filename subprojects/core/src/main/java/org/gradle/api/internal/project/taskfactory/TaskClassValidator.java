@@ -22,7 +22,6 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -69,15 +68,9 @@ public class TaskClassValidator implements TaskValidator {
 
     @Override
     public void validate(TaskInternal task, Collection<String> messages) {
-        List<TaskPropertyValue> propertyValues = new ArrayList<TaskPropertyValue>();
         for (TaskPropertyInfo property : annotatedProperties) {
-            propertyValues.add(property.getValue(task));
-        }
-        for (TaskPropertyValue propertyValue : propertyValues) {
-            propertyValue.checkNotNull(messages);
-        }
-        for (TaskPropertyValue propertyValue : propertyValues) {
-            propertyValue.checkValid(messages);
+            TaskPropertyValue propertyValue = property.getValue(task);
+            propertyValue.validate(messages);
         }
     }
 

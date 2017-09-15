@@ -38,10 +38,7 @@ public class TaskPropertyInfo implements Comparable<TaskPropertyInfo> {
             return null;
         }
 
-        public void checkNotNull(Collection<String> messages) {
-        }
-
-        public void checkValid(Collection<String> messages) {
+        public void validate(Collection<String> messages) {
         }
     };
 
@@ -111,15 +108,12 @@ public class TaskPropertyInfo implements Comparable<TaskPropertyInfo> {
             }
 
             @Override
-            public void checkNotNull(Collection<String> messages) {
-                if (value == null && !optional) {
-                    messages.add(String.format("No value has been specified for property '%s'.", propertyName));
-                }
-            }
-
-            @Override
-            public void checkValid(Collection<String> messages) {
-                if (value != null) {
+            public void validate(Collection<String> messages) {
+                if (value == null) {
+                    if (!optional) {
+                        messages.add(String.format("No value has been specified for property '%s'.", propertyName));
+                    }
+                } else {
                     validationAction.validate(propertyName, value, messages);
                 }
             }

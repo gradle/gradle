@@ -21,7 +21,5 @@ import java.util.Collection;
 public interface TaskPropertyValue {
     Object getValue();
 
-    void checkNotNull(Collection<String> messages);
-
-    void checkValid(Collection<String> messages);
+    void validate(Collection<String> messages);
 }
