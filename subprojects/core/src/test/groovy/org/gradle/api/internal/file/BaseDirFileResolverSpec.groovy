@@ -223,9 +223,9 @@ The following types/formats are supported:
         def baseDir = tmpDir.testDirectory.file("base")
         def file = tmpDir.testDirectory.file("test")
         def provider1 = Stub(Provider)
-        provider1.get() >> file
+        provider1.getOrNull() >> file
         def provider2 = Stub(Provider)
-        provider2.get() >> "value"
+        provider2.getOrNull() >> "value"
 
         expect:
         normalize(provider1, baseDir) == file

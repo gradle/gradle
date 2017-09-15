@@ -42,4 +42,39 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         where:
         annotation << [ InputFile, InputDirectory, InputFiles ]
     }
+
+    def "allows optional @InputFile to have unset Provider<File> value"() {
+        buildFile << """
+            class CustomTask extends DefaultTask {
+                @Optional @InputFile final RegularFileVar input = newInputFile()
+                @TaskAction void doSomething() {
+                    assert inputs.files.empty
+                }
+            }
+
+            task customTask(type: CustomTask)
+        """
+
+        expect:
+        succeeds "customTask"
+    }
+
+    def "fails with meaningful message when @InputFile have unset Provider<File> value"() {
+        buildFile << """
+            class CustomTask extends DefaultTask {
+                @InputFile final RegularFileVar input = newInputFile()
+                @TaskAction void doSomething() {
+                    throw new GradleException("This task shouldn't execute")
+                }
+            }
+
+            task customTask(type: CustomTask)
+        """
+
+        expect:
+        fails "customTask"
+
+        failure.assertHasDescription("A problem was found with the configuration of task ':customTask'.")
+        failure.assertHasCause("No value has been specified for property 'input'.")
+    }
 }
