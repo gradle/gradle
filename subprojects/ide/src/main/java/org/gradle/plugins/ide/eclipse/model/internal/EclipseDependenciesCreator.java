@@ -19,9 +19,8 @@ package org.gradle.plugins.ide.eclipse.model.internal;
 import com.google.common.base.Joiner;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;/**/
+import com.google.common.collect.Multimap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.SourceSet;
@@ -114,10 +113,11 @@ public class EclipseDependenciesCreator {
         try {
             for (SourceSet sourceSet : sourceSets) {
                 String name = sourceSet.getName().replace(",", "");
-                FileCollection classpath = sourceSet.getRuntimeClasspath();
-                for (File f : classpath) {
-                    String path = f.getAbsolutePath();
-                    pathToSourceSetNames.put(path, name);
+                for (File f : sourceSet.getCompileClasspath()) {
+                    pathToSourceSetNames.put(f.getAbsolutePath(), name);
+                }
+                for (File f : sourceSet.getRuntimeClasspath()) {
+                    pathToSourceSetNames.put(f.getAbsolutePath(), name);
                 }
             }
         } catch (Exception e) {
