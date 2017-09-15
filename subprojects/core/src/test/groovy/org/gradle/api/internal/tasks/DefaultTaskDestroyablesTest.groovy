@@ -43,7 +43,7 @@ class DefaultTaskDestroyablesTest extends Specification {
             }
         }
     }
-    TaskDestroyables taskDestroys = new DefaultTaskDestroyables(resolver, Mock(TaskInternal), taskMutator)
+    TaskDestroyables taskDestroys = new DefaultTaskDestroyables(resolver, Mock(TaskInternal), taskMutator, this)
 
     def "empty destroys by default"() {
         expect:

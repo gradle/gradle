@@ -22,6 +22,7 @@ import groovy.lang.GString;
 import org.gradle.api.Describable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.ChangeDetection;
 import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
@@ -43,22 +44,24 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     private final FileResolver resolver;
     private final TaskInternal task;
     private final TaskMutator taskMutator;
+    private final ChangeDetection changeDetection;
     private final Map<String, Object> properties = new HashMap<String, Object>();
     private List<TaskInputPropertySpecAndBuilder> filePropertiesInternal = Lists.newArrayList();
     private final Supplier<List<TaskInputPropertySpecAndBuilder>> filePropertiesInternalSupplier = new Supplier<List<TaskInputPropertySpecAndBuilder>>() {
 
         @Override
         public List<TaskInputPropertySpecAndBuilder> get() {
-            task.ensureTaskInputsAndOutputsDiscovered();
+            changeDetection.ensureTaskInputsAndOutputsDiscovered();
             return filePropertiesInternal;
         }
     };
     private ImmutableSortedSet<TaskInputFilePropertySpec> fileProperties;
 
-    public DefaultTaskInputs(FileResolver resolver, TaskInternal task, TaskMutator taskMutator) {
+    public DefaultTaskInputs(FileResolver resolver, TaskInternal task, TaskMutator taskMutator, ChangeDetection changeDetection) {
         this.resolver = resolver;
         this.task = task;
         this.taskMutator = taskMutator;
+        this.changeDetection = changeDetection;
         String taskName = task.getName();
         this.allInputFiles = new TaskInputUnionFileCollection(taskName, "input", false, filePropertiesInternalSupplier);
         this.allSourceFiles = new TaskInputUnionFileCollection(taskName, "source", true, filePropertiesInternalSupplier);
@@ -66,7 +69,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public boolean getHasInputs() {
-        task.ensureTaskInputsAndOutputsDiscovered();
+        changeDetection.ensureTaskInputsAndOutputsDiscovered();
         return !filePropertiesInternal.isEmpty() || !properties.isEmpty();
     }
 
@@ -77,7 +80,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public ImmutableSortedSet<TaskInputFilePropertySpec> getFileProperties() {
-        task.ensureTaskInputsAndOutputsDiscovered();
+        changeDetection.ensureTaskInputsAndOutputsDiscovered();
         if (fileProperties == null) {
             ensurePropertiesHaveNames(filePropertiesInternal);
             fileProperties = TaskPropertyUtils.<TaskInputFilePropertySpec>collectFileProperties("input", filePropertiesInternal.iterator());
@@ -117,7 +120,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public boolean getHasSourceFiles() {
-        task.ensureTaskInputsAndOutputsDiscovered();
+        changeDetection.ensureTaskInputsAndOutputsDiscovered();
         for (TaskInputPropertySpecAndBuilder propertySpec : filePropertiesInternal) {
             if (propertySpec.isSkipWhenEmpty()) {
                 return true;
@@ -138,7 +141,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     public Map<String, Object> getProperties() {
-        task.ensureTaskInputsAndOutputsDiscovered();
+        changeDetection.ensureTaskInputsAndOutputsDiscovered();
         Map<String, Object> actualProperties = new HashMap<String, Object>();
         for (Map.Entry<String, Object> entry : properties.entrySet()) {
             String propertyName = entry.getKey();

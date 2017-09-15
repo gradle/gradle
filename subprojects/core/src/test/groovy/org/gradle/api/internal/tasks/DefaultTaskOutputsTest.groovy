@@ -48,7 +48,7 @@ class DefaultTaskOutputsTest extends Specification {
         toString() >> "task 'task'"
         getProject() >> project
     }
-    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs({new File(it)} as FileResolver, task, taskStatusNagger)
+    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs({ new File(it) } as FileResolver, task, taskStatusNagger, this)
 
     void hasNoOutputsByDefault() {
         setup:

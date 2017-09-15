@@ -46,7 +46,7 @@ class DefaultTaskInputsTest extends Specification {
         getName() >> "task"
         toString() >> "task 'task'"
     }
-    private final DefaultTaskInputs inputs = new DefaultTaskInputs(resolver, task, taskStatusNagger)
+    private final DefaultTaskInputs inputs = new DefaultTaskInputs(resolver, task, taskStatusNagger, this)
 
     def "default values"() {
         expect:

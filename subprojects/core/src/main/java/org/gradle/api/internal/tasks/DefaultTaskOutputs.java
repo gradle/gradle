@@ -25,6 +25,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Describable;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.ChangeDetection;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
@@ -54,6 +55,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private static final TaskOutputCachingState NO_OUTPUTS_DECLARED = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.NO_OUTPUTS_DECLARED, "No outputs declared");
 
     private final FileCollection allOutputFiles;
+    private final ChangeDetection changeDetection;
     private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
     private List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
     private List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
@@ -64,11 +66,12 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final TaskInternal task;
     private final TaskMutator taskMutator;
 
-    public DefaultTaskOutputs(FileResolver resolver, final TaskInternal task, TaskMutator taskMutator) {
+    public DefaultTaskOutputs(FileResolver resolver, final TaskInternal task, TaskMutator taskMutator, ChangeDetection changeDetection) {
         this.resolver = resolver;
         this.task = task;
         this.taskMutator = taskMutator;
         this.allOutputFiles = new TaskOutputUnionFileCollection(task);
+        this.changeDetection = changeDetection;
     }
 
     @Override
@@ -177,7 +180,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     @Override
     public boolean hasDeclaredOutputs() {
-        task.ensureTaskInputsAndOutputsDiscovered();
+        changeDetection.ensureTaskInputsAndOutputsDiscovered();
         return !filePropertiesInternal.isEmpty();
     }
 
@@ -188,7 +191,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     @Override
     public ImmutableSortedSet<TaskOutputFilePropertySpec> getFileProperties() {
-        task.ensureTaskInputsAndOutputsDiscovered();
+        changeDetection.ensureTaskInputsAndOutputsDiscovered();
         if (fileProperties == null) {
             TaskPropertyUtils.ensurePropertiesHaveNames(filePropertiesInternal);
             Iterator<TaskOutputFilePropertySpec> flattenedProperties = Iterators.concat(Iterables.transform(filePropertiesInternal, new Function<TaskPropertySpec, Iterator<? extends TaskOutputFilePropertySpec>>() {
