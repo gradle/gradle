@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.eclipse.model.internal;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -110,20 +111,27 @@ public class EclipseDependenciesCreator {
             return pathToSourceSetNames;
         }
 
-        try {
-            for (SourceSet sourceSet : sourceSets) {
-                String name = sourceSet.getName().replace(",", "");
-                for (File f : sourceSet.getCompileClasspath()) {
-                    pathToSourceSetNames.put(f.getAbsolutePath(), name);
-                }
-                for (File f : sourceSet.getRuntimeClasspath()) {
-                    pathToSourceSetNames.put(f.getAbsolutePath(), name);
-                }
+        for (SourceSet sourceSet : sourceSets) {
+            for (File f : collectClasspathFiles(sourceSet)) {
+                pathToSourceSetNames.put(f.getAbsolutePath(), sourceSet.getName().replace(",", ""));
             }
+        }
+        return pathToSourceSetNames;
+    }
+
+    private Collection<File> collectClasspathFiles(SourceSet sourceSet) {
+        // SourceSet has no access to configurations where we could ask for a lenient view. This
+        // means we have to deal with possible dependency resolution issues here. We catch and
+        // log the exceptions here so that the Eclipse model could be generated even if there are
+        // unresolvable dependencies defined in the configuration.
+        ImmutableList.Builder<File> result = ImmutableList.builder();
+        try {
+               result.addAll(sourceSet.getCompileClasspath());
+               result.addAll(sourceSet.getRuntimeClasspath());
         } catch (Exception e) {
             LOGGER.debug("Failed to collect source sets for Eclipse dependencies", e);
         }
-        return pathToSourceSetNames;
+        return result.build();
     }
 
     private static AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, EclipseClasspath classpath, ModuleVersionIdentifier id, Multimap<String, String> pathToSourceSets) {
