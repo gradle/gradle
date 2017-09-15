@@ -323,7 +323,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
 
                 task ${taskName} {
                     def sources = files("src")
-                    inputs.dir sources skipWhenEmpty()
+                    inputs.files sources skipWhenEmpty()
                     outputs.dir "${outputDir}"
                     doLast {
                         file("${outputDir}").mkdirs()

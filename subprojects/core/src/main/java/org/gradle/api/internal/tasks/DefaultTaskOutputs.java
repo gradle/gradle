@@ -329,7 +329,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private static final ValidationAction OUTPUT_FILE_VALIDATOR = new ValidationAction() {
         @Override
         public void validate(String propertyName, Object value, TaskValidationContext context) {
-            File file = (File) value;
+            File file = toFile(context, value);
             if (file.exists()) {
                 if (file.isDirectory()) {
                     context.recordValidationMessage(String.format("Cannot write to file '%s' specified for property '%s' as it is a directory.", file, propertyName));
@@ -358,7 +358,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private static final ValidationAction OUTPUT_DIRECTORY_VALIDATOR = new ValidationAction() {
         @Override
         public void validate(String propertyName, Object value, TaskValidationContext context) {
-            File directory = (File) value;
+            File directory = toFile(context, value);
             if (directory.exists()) {
                 if (!directory.isDirectory()) {
                     context.recordValidationMessage(String.format("Directory '%s' specified for property '%s' is not a directory.", directory, propertyName));
@@ -373,6 +373,13 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             }
         }
     };
+
+    private static File toFile(TaskValidationContext context, Object value) {
+        if (value instanceof File) {
+            return (File) value;
+        }
+        return context.getResolver().resolve(value);
+    }
 
     private static final ValidationAction OUTPUT_DIRECTORIES_VALIDATOR = new ValidationAction() {
         @Override
