@@ -28,6 +28,6 @@ public class InputFilePropertyAnnotationHandler extends AbstractInputPropertyAnn
     }
 
     protected TaskInputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, TaskPropertyValue futureValue) {
-        return task.getInputs().files(futureValue);
+        return task.getInputs().file(futureValue);
     }
 }
