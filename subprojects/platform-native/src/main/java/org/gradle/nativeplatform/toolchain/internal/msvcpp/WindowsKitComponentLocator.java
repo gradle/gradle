@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import org.gradle.api.Named;
-import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
-import org.gradle.util.VersionNumber;
-
 import java.io.File;
+import java.util.List;
 
-public interface WindowsSdk extends Named {
-    VersionNumber getVersion();
+import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 
-    File getResourceCompiler(NativePlatformInternal platform);
+public interface WindowsKitComponentLocator<T extends WindowsKitComponent> {
+    String[] PLATFORMS = new String[] {"x86", "x64"};
 
-    File getBinDir(NativePlatformInternal platform);
+    SearchResult<T> locateComponents(File candidate);
 
-    File[] getIncludeDirs();
+    List<T> locateAllComponents();
 
-    File getLibDir(NativePlatformInternal platform);
-
-    File getBaseDir();
+    interface SearchResult<T> extends ToolSearchResult {
+        T getComponent();
+    }
 }
