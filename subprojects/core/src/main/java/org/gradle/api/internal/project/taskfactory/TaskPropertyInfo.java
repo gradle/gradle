@@ -48,6 +48,7 @@ public class TaskPropertyInfo implements Comparable<TaskPropertyInfo> {
         this.propertyName = propertyName;
         this.propertyType = propertyType;
         this.method = method;
+        method.setAccessible(true);
         this.configureAction = configureAction == null ? NO_OP_CONFIGURATION_ACTION : configureAction;
     }
 
