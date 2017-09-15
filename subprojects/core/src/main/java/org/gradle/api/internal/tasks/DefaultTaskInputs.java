@@ -31,7 +31,6 @@ import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 import org.gradle.api.tasks.TaskInputs;
-import org.gradle.util.DeferredUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -334,11 +333,11 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     private static final ValidationAction INPUT_FILE_VALIDATOR = new ValidationAction() {
         @Override
         public void validate(String propertyName, Object value, TaskValidationContext context) {
-            File fileValue = context.getResolver().resolve(value);
-            if (!fileValue.exists()) {
-                context.recordValidationMessage(String.format("File '%s' specified for property '%s' does not exist.", fileValue, propertyName));
-            } else if (!fileValue.isFile()) {
-                context.recordValidationMessage(String.format("File '%s' specified for property '%s' is not a file.", fileValue, propertyName));
+            File file = toFile(context, value);
+            if (!file.exists()) {
+                context.recordValidationMessage(String.format("File '%s' specified for property '%s' does not exist.", file, propertyName));
+            } else if (!file.isFile()) {
+                context.recordValidationMessage(String.format("File '%s' specified for property '%s' is not a file.", file, propertyName));
             }
         }
     };
@@ -346,23 +345,25 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     private static final ValidationAction INPUT_DIRECTORY_VALIDATOR = new ValidationAction() {
         @Override
         public void validate(String propertyName, Object value, TaskValidationContext context) {
-            File fileValue = toFile(context, value);
-            if (!fileValue.exists()) {
-                context.recordValidationMessage(String.format("Directory '%s' specified for property '%s' does not exist.", fileValue, propertyName));
-            } else if (!fileValue.isDirectory()) {
-                context.recordValidationMessage(String.format("Directory '%s' specified for property '%s' is not a directory.", fileValue, propertyName));
+            File directory = toDirectory(context, value);
+            if (!directory.exists()) {
+                context.recordValidationMessage(String.format("Directory '%s' specified for property '%s' does not exist.", directory, propertyName));
+            } else if (!directory.isDirectory()) {
+                context.recordValidationMessage(String.format("Directory '%s' specified for property '%s' is not a directory.", directory, propertyName));
             }
-        }
-
-        @SuppressWarnings("Since15")
-        private File toFile(TaskValidationContext context, Object value) {
-            Object unpacked = DeferredUtil.unpack(value);
-            if (unpacked instanceof ConfigurableFileTree) {
-                return ((ConfigurableFileTree) unpacked).getDir();
-            }
-            return context.getResolver().resolve(value);
         }
     };
+
+    private static File toFile(TaskValidationContext context, Object value) {
+        return context.getResolver().resolve(value);
+    }
+
+    private static File toDirectory(TaskValidationContext context, Object value) {
+        if (value instanceof ConfigurableFileTree) {
+            return ((ConfigurableFileTree) value).getDir();
+        }
+        return toFile(context, value);
+    }
 
     private static class FileTreeValue implements ValidatingValue {
         private final ValidatingValue delegate;
