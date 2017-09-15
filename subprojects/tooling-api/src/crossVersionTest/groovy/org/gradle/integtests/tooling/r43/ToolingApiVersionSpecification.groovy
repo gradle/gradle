@@ -20,35 +20,27 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.r18.NullAction
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.eclipse.EclipseProject
-import org.gradle.util.GradleVersion
 
 abstract class ToolingApiVersionSpecification extends ToolingApiSpecification {
-    def output = new ByteArrayOutputStream()
-
-    // AbstractConsumerConnection.getVersionDetail was introduced in 1.2
-    def minProviderVersionDetail = GradleVersion.version('1.2')
-
-    def currentVersionMessage(GradleVersion version, GradleVersion lowerBound) {
-        if (version >= lowerBound) {
-            return "You are currently using ${version.version}. "
-        } else {
-            return ''
-        }
-    }
-
-    def currentProviderMessage(String version) {
-        return currentVersionMessage(GradleVersion.version(version), minProviderVersionDetail)
-    }
+    def outputStream = new ByteArrayOutputStream()
 
     String providerDeprecationMessage(String version) {
         return "Support for builds using Gradle older than 2.6 was deprecated and will be removed in 5.0. You are currently using Gradle version ${version}. You should upgrade your Gradle build to use Gradle 2.6 or later."
+    }
+
+    String consumerDeprecationMessage(String version) {
+        return "Support for clients using a tooling API version older than 3.0 was deprecated and will be removed in Gradle 5.0. You are currently using tooling API version ${version}. You should upgrade your tooling API client to version 3.0 or later"
+    }
+
+    def getOutput() {
+        outputStream.toString()
     }
 
     // since 1.0
     def build() {
         withConnection { ProjectConnection connection ->
             def build = connection.newBuild()
-            build.standardOutput = output
+            build.standardOutput = outputStream
             build.run()
         }
     }
@@ -57,7 +49,7 @@ abstract class ToolingApiVersionSpecification extends ToolingApiSpecification {
     def getModel() {
         withConnection { ProjectConnection connection ->
             def model = connection.model(EclipseProject)
-            model.standardOutput = output
+            model.standardOutput = outputStream
             model.get()
         }
     }
@@ -66,16 +58,33 @@ abstract class ToolingApiVersionSpecification extends ToolingApiSpecification {
     def buildAction() {
         withConnection { ProjectConnection connection ->
             def action = connection.action(new NullAction())
-            action.standardOutput = output
+            action.standardOutput = outputStream
             action.run()
         }
     }
 
     // since 2.6
     def testExecution() {
+        buildFile << """ 
+apply plugin: 'java'
+repositories {
+    maven {
+        url '${buildContext.libsRepo.toURI()}'
+    }
+}
+${mavenCentralRepository()}
+dependencies {
+    testCompile 'junit:junit:4.12'
+}
+"""
+        file('src/test/java/TestClientTest.java') << '''
+public class TestClientTest{
+    @org.junit.Test public void test(){
+    }
+}'''
         withConnection { ProjectConnection connection ->
-            def launcher = connection.newTestLauncher().withJvmTestClasses("class")
-            launcher.standardOutput = output
+            def launcher = connection.newTestLauncher().withJvmTestClasses("TestClientTest")
+            launcher.standardOutput = outputStream
             launcher.run()
         }
     }
