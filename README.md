@@ -93,3 +93,11 @@ We recommend using IntelliJ IDEA.
 4. In `Window->Preferences->Groovy->Compiler`, check `Enable Script folder support` and add `**/*.gradle`
 5. Run `./gradlew eclipse` from the root directory
 6. Import all projects using the "Import Existing Projects into Workspace" wizard
+
+## Code of Conduct
+
+In the interest of fostering an open and welcoming environment, we as contributors and maintainers pledge to making participation in our project and our community a harassment-free experience for everyone, regardless of age, body size, disability, ethnicity, gender identity and expression, level of experience, nationality, personal appearance, race, religion, or sexual identity and orientation.
+
+You can read the Gradle Code of Conduct at https://gradle.org/conduct/ and contribute to it at https://github.com/gradle/code-of-conduct/.
+
+This code of conduct applies to all of the projects under the Gradle organization on GitHub and the Gradle community at large (Slack, mailing lists, Twitter, etc.).
