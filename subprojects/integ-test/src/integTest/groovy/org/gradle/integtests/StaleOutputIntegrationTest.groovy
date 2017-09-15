@@ -72,7 +72,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         taskWithSources.removeInputs()
-        succeeds(taskWithSources.taskPath)
+        succeeds(taskWithSources.taskPath, "--info")
 
         then:
         taskWithSources.outputFile.exists()
@@ -322,12 +322,12 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
                 apply plugin: 'base'
 
                 task ${taskName} {
-                    def sources = files("src")
-                    inputs.files sources skipWhenEmpty()
+                    def sources = file("src")
+                    inputs.dir sources skipWhenEmpty()
                     outputs.dir "${outputDir}"
                     doLast {
                         file("${outputDir}").mkdirs()
-                        sources.asFileTree.visit { details ->
+                        files(sources).asFileTree.visit { details ->
                             if (!details.directory) {
                                 def output = file("${outputDir}/\$details.relativePath")
                                 output.parentFile.mkdirs()

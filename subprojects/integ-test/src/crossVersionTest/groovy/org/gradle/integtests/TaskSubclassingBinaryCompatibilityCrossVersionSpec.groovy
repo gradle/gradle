@@ -153,6 +153,11 @@ apply plugin: SomePlugin
         // Don't run these for RC 3, as stuff did change during the RCs
         Assume.assumeFalse(previous.version == GradleVersion.version("2.14-rc-3"))
 
+        file("someFile").touch()
+        file("anotherFile").touch()
+        file("yetAnotherFile").touch()
+        file("someDir").createDir()
+
         when:
         file("producer/build.gradle") << """
             apply plugin: 'groovy'
