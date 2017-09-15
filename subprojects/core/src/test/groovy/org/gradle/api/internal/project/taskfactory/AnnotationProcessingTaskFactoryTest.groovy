@@ -40,6 +40,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
     private Map args = new HashMap()
 
+    @SuppressWarnings("GroovyUnusedDeclaration")
     private String inputValue = "value"
     private File testDir
     private File existingFile

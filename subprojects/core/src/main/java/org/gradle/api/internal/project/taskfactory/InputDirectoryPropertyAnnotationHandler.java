@@ -15,48 +15,19 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.TaskPropertyValue;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
-import org.gradle.util.DeferredUtil;
 
-import java.io.File;
 import java.lang.annotation.Annotation;
-import java.nio.file.Path;
-import java.util.Collection;
-import java.util.concurrent.Callable;
 
 public class InputDirectoryPropertyAnnotationHandler extends AbstractInputPropertyAnnotationHandler {
     public Class<? extends Annotation> getAnnotationType() {
         return InputDirectory.class;
     }
 
-    @Override
-    protected void validate(String propertyName, Object value, Collection<String> messages) {
-        File fileValue = toFile(value);
-        if (!fileValue.exists()) {
-            messages.add(String.format("Directory '%s' specified for property '%s' does not exist.", fileValue, propertyName));
-        } else if (!fileValue.isDirectory()) {
-            messages.add(String.format("Directory '%s' specified for property '%s' is not a directory.", fileValue, propertyName));
-        }
-    }
-
-    private File toFile(Object value) {
-        Object unpacked = DeferredUtil.unpack(value);
-        if (unpacked instanceof ConfigurableFileTree) {
-            return ((ConfigurableFileTree) unpacked).getDir();
-        } else if (unpacked instanceof Path) {
-            return ((Path) unpacked).toFile();
-        } else if (unpacked instanceof FileSystemLocation) {
-            return ((FileSystemLocation) unpacked).getAsFile();
-        } else {
-            return (File) unpacked;
-        }
-    }
-
-    protected TaskInputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, Callable<Object> futureValue) {
+    protected TaskInputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, TaskPropertyValue futureValue) {
         return task.getInputs().dir(futureValue);
     }
 }

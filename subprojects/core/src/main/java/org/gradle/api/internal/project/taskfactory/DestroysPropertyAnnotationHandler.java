@@ -17,10 +17,10 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.TaskPropertyValue;
 import org.gradle.api.tasks.Destroys;
 
 import java.lang.annotation.Annotation;
-import java.util.concurrent.Callable;
 
 public class DestroysPropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override
@@ -32,7 +32,7 @@ public class DestroysPropertyAnnotationHandler implements PropertyAnnotationHand
     public void attachActions(TaskPropertyActionContext context) {
         context.setConfigureAction(new UpdateAction() {
             @Override
-            public void update(TaskInternal task, Callable<Object> futureValue) {
+            public void update(TaskInternal task, TaskPropertyValue futureValue) {
                 task.getDestroyables().files(futureValue);
             }
         });

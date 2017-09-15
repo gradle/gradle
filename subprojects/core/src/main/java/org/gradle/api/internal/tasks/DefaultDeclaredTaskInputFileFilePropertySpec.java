@@ -25,18 +25,24 @@ import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.PathSensitivity;
 
+import java.util.Collection;
+
 import static org.gradle.api.internal.changedetection.state.InputPathNormalizationStrategy.ABSOLUTE;
 
 @NonNullApi
 public class DefaultDeclaredTaskInputFileFilePropertySpec extends AbstractTaskInputsDeprecatingTaskPropertyBuilder implements DeclaredTaskInputFileProperty {
 
+    private final ValidatingValue value;
+    private final ValidationAction validationAction;
     private final TaskPropertyFileCollection files;
     private boolean skipWhenEmpty;
     private boolean optional;
     private PathNormalizationStrategy pathNormalizationStrategy = ABSOLUTE;
     private Class<? extends FileCollectionSnapshotter> snapshotter = GenericFileCollectionSnapshotter.class;
 
-    public DefaultDeclaredTaskInputFileFilePropertySpec(String taskName, FileResolver resolver, Object paths) {
+    public DefaultDeclaredTaskInputFileFilePropertySpec(String taskName, FileResolver resolver, ValidatingValue paths, ValidationAction validationAction) {
+        this.value = paths;
+        this.validationAction = validationAction;
         this.files = new TaskPropertyFileCollection(taskName, "input", this, resolver, paths);
     }
 
@@ -106,6 +112,11 @@ public class DefaultDeclaredTaskInputFileFilePropertySpec extends AbstractTaskIn
     @Override
     public Class<? extends FileCollectionSnapshotter> getSnapshotter() {
         return snapshotter;
+    }
+
+    @Override
+    public void validate(Collection<String> messages) {
+        value.validate(getPropertyName(), optional, validationAction, messages);
     }
 
     @Override

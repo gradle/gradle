@@ -347,7 +347,6 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
         private final boolean cacheable;
         private final ImmutableCollection.Builder<TaskClassValidationMessage> validationMessages;
         private Field instanceVariableField;
-        private ValidationAction validationAction;
         private UpdateAction configureAction;
         private boolean optional;
         private Class<?> nestedType;
@@ -434,11 +433,6 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
         }
 
         @Override
-        public void setValidationAction(ValidationAction action) {
-            this.validationAction = action;
-        }
-
-        @Override
         public void setConfigureAction(UpdateAction action) {
             this.configureAction = action;
         }
@@ -453,10 +447,10 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
         }
 
         public TaskPropertyInfo createProperty() {
-            if (configureAction == null && validationAction == null) {
+            if (configureAction == null) {
                 return null;
             }
-            return new TaskPropertyInfo(parent, name, propertyType, method, validationAction, configureAction, optional);
+            return new TaskPropertyInfo(parent, name, propertyType, method, configureAction);
         }
 
         @Override

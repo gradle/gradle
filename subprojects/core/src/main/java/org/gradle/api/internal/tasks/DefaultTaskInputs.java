@@ -21,16 +21,22 @@ import groovy.lang.GString;
 import org.gradle.api.Describable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 import org.gradle.api.tasks.TaskInputs;
+import org.gradle.util.DeferredUtil;
 
 import javax.annotation.Nullable;
+import java.io.File;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,9 +89,14 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return taskMutator.mutate("TaskInputs.files(Object...)", new Callable<TaskInputFilePropertyBuilderInternal>() {
             @Override
             public TaskInputFilePropertyBuilderInternal call() {
-                return addSpec(paths);
+                return files(new StaticValue(paths));
             }
         });
+    }
+
+    @Override
+    public TaskInputFilePropertyBuilderInternal files(ValidatingValue paths) {
+        return addSpec(paths, ValidationAction.NO_OP);
     }
 
     @Override
@@ -93,9 +104,14 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return taskMutator.mutate("TaskInputs.file(Object)", new Callable<TaskInputFilePropertyBuilderInternal>() {
             @Override
             public TaskInputFilePropertyBuilderInternal call() {
-                return addSpec(path);
+                return file(new StaticValue(path));
             }
         });
+    }
+
+    @Override
+    public TaskInputFilePropertyBuilderInternal file(ValidatingValue value) {
+        return addSpec(value, INPUT_FILE_VALIDATOR);
     }
 
     @Override
@@ -103,9 +119,15 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return taskMutator.mutate("TaskInputs.dir(Object)", new Callable<TaskInputFilePropertyBuilderInternal>() {
             @Override
             public TaskInputFilePropertyBuilderInternal call() {
-                return addSpec(resolver.resolveFilesAsTree(dirPath));
+                return dir(new StaticValue(dirPath));
             }
         });
+    }
+
+    @Override
+    public TaskInputFilePropertyBuilderInternal dir(final ValidatingValue dirPath) {
+        FileTreeInternal fileTree = resolver.resolveFilesAsTree(dirPath);
+        return addSpec(new FileTreeValue(dirPath, fileTree), INPUT_DIRECTORY_VALIDATOR);
     }
 
     @Override
@@ -123,18 +145,29 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return allSourceFiles;
     }
 
-    private TaskInputFilePropertyBuilderInternal addSpec(Object paths) {
-        DefaultDeclaredTaskInputFileFilePropertySpec spec = new DefaultDeclaredTaskInputFileFilePropertySpec(task.getName(), resolver, paths);
+    @Override
+    public void validate(Collection<String> messages) {
+        TaskPropertyUtils.ensurePropertiesHaveNames(declaredFileProperties);
+        for (PropertyValue propertyValue : properties.values()) {
+            propertyValue.getPropertySpec().validate(messages);
+        }
+        for (DeclaredTaskInputFileProperty property : declaredFileProperties) {
+            property.validate(messages);
+        }
+    }
+
+    private TaskInputFilePropertyBuilderInternal addSpec(ValidatingValue paths, ValidationAction validationAction) {
+        DefaultDeclaredTaskInputFileFilePropertySpec spec = new DefaultDeclaredTaskInputFileFilePropertySpec(task.getName(), resolver, paths, validationAction);
         declaredFileProperties.add(spec);
         return spec;
     }
 
     public Map<String, Object> getProperties() {
         Map<String, Object> actualProperties = new HashMap<String, Object>();
-        for (Map.Entry<String, PropertyValue> entry : properties.entrySet()) {
-            String propertyName = entry.getKey();
+        for (PropertyValue property : properties.values()) {
+            String propertyName = property.resolveName();
             try {
-                Object value = prepareValue(entry.getValue().getValue());
+                Object value = prepareValue(property.resolveValue());
                 actualProperties.put(propertyName, value);
             } catch (Exception ex) {
                 throw new InvalidUserDataException(String.format("Error while evaluating property '%s' of %s", propertyName, task), ex);
@@ -163,46 +196,64 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return (value instanceof GString) ? value.toString() : value;
     }
 
+    @Override
     public TaskInputPropertyBuilder property(final String name, @Nullable final Object value) {
         return taskMutator.mutate("TaskInputs.property(String, Object)", new Callable<TaskInputPropertyBuilder>() {
             @Override
             public TaskInputPropertyBuilder call() throws Exception {
-                return setProperty(name, value);
+                return property(name, new StaticValue(value));
             }
         });
     }
 
+    @Override
     public TaskInputs properties(final Map<String, ?> newProps) {
         taskMutator.mutate("TaskInputs.properties(Map)", new Runnable() {
             @Override
             public void run() {
                 for (Map.Entry<String, ?> entry : newProps.entrySet()) {
-                    setProperty(entry.getKey(), entry.getValue());
+                    property(entry.getKey(), new StaticValue(entry.getValue()));
                 }
             }
         });
         return this;
     }
 
-    private TaskInputPropertyBuilder setProperty(String name, @Nullable Object value) {
+    @Override
+    public TaskInputPropertyBuilder property(String name, ValidatingValue value) {
         PropertyValue propertyValue = properties.get(name);
         DeclaredTaskInputProperty spec;
-        if (propertyValue == null) {
-            spec = new DefaultTaskInputPropertySpec(name);
-            propertyValue = new PropertyValue(spec, value);
-            properties.put(name, propertyValue);
-        } else {
+        if (propertyValue instanceof SimplePropertyValue) {
             spec = propertyValue.getPropertySpec();
             propertyValue.setValue(value);
+        } else {
+            spec = new DefaultTaskInputPropertySpec(name, value);
+            propertyValue = new SimplePropertyValue(spec, value);
+            properties.put(name, propertyValue);
         }
         return spec;
     }
 
-    private static class PropertyValue {
-        private final DeclaredTaskInputProperty propertySpec;
-        private Object value;
+    @Override
+    public TaskInputPropertyBuilder nested(String name, ValidatingValue value) {
+        PropertyValue propertyValue = properties.get(name);
+        DeclaredTaskInputProperty spec;
+        if (propertyValue instanceof NestedBeanTypePropertyValue) {
+            spec = propertyValue.getPropertySpec();
+            propertyValue.setValue(value);
+        } else {
+            spec = new DefaultTaskInputPropertySpec(name, value);
+            propertyValue = new NestedBeanTypePropertyValue(spec, value);
+            properties.put(name, propertyValue);
+        }
+        return spec;
+    }
 
-        public PropertyValue(DeclaredTaskInputProperty propertySpec, @Nullable Object value) {
+    private static abstract class PropertyValue {
+        protected final DeclaredTaskInputProperty propertySpec;
+        protected ValidatingValue value;
+
+        public PropertyValue(DeclaredTaskInputProperty propertySpec, ValidatingValue value) {
             this.propertySpec = propertySpec;
             this.value = value;
         }
@@ -211,13 +262,46 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             return propertySpec;
         }
 
+        public abstract String resolveName();
+
         @Nullable
-        public Object getValue() {
-            return value;
+        public abstract Object resolveValue();
+
+        public void setValue(ValidatingValue value) {
+            this.value = value;
+        }
+    }
+
+    private static class SimplePropertyValue extends PropertyValue {
+        public SimplePropertyValue(DeclaredTaskInputProperty propertySpec, ValidatingValue value) {
+            super(propertySpec, value);
         }
 
-        public void setValue(@Nullable Object value) {
-            this.value = value;
+        @Override
+        public String resolveName() {
+            return propertySpec.getPropertyName();
+        }
+
+        @Override
+        public Object resolveValue() {
+            return value.call();
+        }
+    }
+
+    private static class NestedBeanTypePropertyValue extends PropertyValue {
+        public NestedBeanTypePropertyValue(DeclaredTaskInputProperty propertySpec, ValidatingValue value) {
+            super(propertySpec, value);
+        }
+
+        @Override
+        public String resolveName() {
+            return propertySpec.getPropertyName() + ".class";
+        }
+
+        @Override
+        public Object resolveValue() {
+            Object value = this.value.call();
+            return value == null ? null : value.getClass().getName();
         }
     }
 
@@ -246,6 +330,78 @@ public class DefaultTaskInputs implements TaskInputsInternal {
                     context.add(fileProperty.getPropertyFiles());
                 }
             }
+        }
+    }
+
+    private static final ValidationAction INPUT_FILE_VALIDATOR = new ValidationAction() {
+        @Override
+        public void validate(String propertyName, Object value, Collection<String> messages) {
+            File fileValue = toFile(value);
+            if (!fileValue.exists()) {
+                messages.add(String.format("File '%s' specified for property '%s' does not exist.", fileValue, propertyName));
+            } else if (!fileValue.isFile()) {
+                messages.add(String.format("File '%s' specified for property '%s' is not a file.", fileValue, propertyName));
+            }
+        }
+
+        @SuppressWarnings("Since15")
+        private File toFile(Object value) {
+            Object unpacked = DeferredUtil.unpack(value);
+            if (unpacked instanceof java.nio.file.Path) {
+                return ((java.nio.file.Path) unpacked).toFile();
+            }
+            if (unpacked instanceof FileSystemLocation) {
+                return ((FileSystemLocation) unpacked).getAsFile();
+            }
+            assert unpacked instanceof File;
+            return (File) unpacked;
+        }
+    };
+
+    private static final ValidationAction INPUT_DIRECTORY_VALIDATOR = new ValidationAction() {
+        @Override
+        public void validate(String propertyName, Object value, Collection<String> messages) {
+            File fileValue = toFile(value);
+            if (!fileValue.exists()) {
+                messages.add(String.format("Directory '%s' specified for property '%s' does not exist.", fileValue, propertyName));
+            } else if (!fileValue.isDirectory()) {
+                messages.add(String.format("Directory '%s' specified for property '%s' is not a directory.", fileValue, propertyName));
+            }
+        }
+
+        @SuppressWarnings("Since15")
+        private File toFile(Object value) {
+            Object unpacked = DeferredUtil.unpack(value);
+            if (unpacked instanceof ConfigurableFileTree) {
+                return ((ConfigurableFileTree) unpacked).getDir();
+            } else if (unpacked instanceof java.nio.file.Path) {
+                return ((java.nio.file.Path) unpacked).toFile();
+            } else if (unpacked instanceof FileSystemLocation) {
+                return ((FileSystemLocation) unpacked).getAsFile();
+            }
+            assert unpacked instanceof File;
+            return (File) unpacked;
+        }
+    };
+
+    private static class FileTreeValue implements ValidatingValue {
+        private final ValidatingValue delegate;
+        private final FileTreeInternal fileTree;
+
+        public FileTreeValue(ValidatingValue delegate, FileTreeInternal fileTree) {
+            this.delegate = delegate;
+            this.fileTree = fileTree;
+        }
+
+        @Nullable
+        @Override
+        public Object call() {
+            return fileTree;
+        }
+
+        @Override
+        public void validate(String propertyName, boolean optional, ValidationAction valueValidator, Collection<String> messages) {
+            delegate.validate(propertyName, optional, valueValidator, messages);
         }
     }
 }

@@ -22,18 +22,21 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.DeferredUtil;
 
 import java.io.File;
+import java.util.Collection;
 
 @NonNullApi
-public class DefaultCacheableTaskOutputFilePropertySpec extends AbstractTaskOutputPropertySpec implements CacheableTaskOutputFilePropertySpec {
+public class DefaultCacheableTaskOutputFilePropertySpec extends AbstractTaskOutputPropertySpec implements CacheableTaskOutputFilePropertySpec, DeclaredTaskOutputFileProperty {
     private final TaskPropertyFileCollection files;
     private final OutputType outputType;
     private final FileResolver resolver;
-    private final Object path;
+    private final ValidatingValue value;
+    private final ValidationAction validationAction;
 
-    public DefaultCacheableTaskOutputFilePropertySpec(String taskName, FileResolver resolver, OutputType outputType, Object path) {
+    public DefaultCacheableTaskOutputFilePropertySpec(String taskName, FileResolver resolver, OutputType outputType, ValidatingValue path, ValidationAction validationAction) {
         this.resolver = resolver;
         this.outputType = outputType;
-        this.path = path;
+        this.value = path;
+        this.validationAction = validationAction;
         this.files = new TaskPropertyFileCollection(taskName, "output", this, resolver, path);
     }
 
@@ -44,15 +47,20 @@ public class DefaultCacheableTaskOutputFilePropertySpec extends AbstractTaskOutp
 
     @Override
     public File getOutputFile() {
-        Object unpackedOutput = DeferredUtil.unpack(path);
+        Object unpackedOutput = DeferredUtil.unpack(value.call());
         if (unpackedOutput == null && isOptional()) {
             return null;
         }
-        return resolver.resolve(path);
+        return resolver.resolve(unpackedOutput);
     }
 
     @Override
     public OutputType getOutputType() {
         return outputType;
+    }
+
+    @Override
+    public void validate(Collection<String> messages) {
+        value.validate(getPropertyName(), isOptional(), validationAction, messages);
     }
 }

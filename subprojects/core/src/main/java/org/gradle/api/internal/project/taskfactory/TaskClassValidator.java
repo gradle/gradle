@@ -20,15 +20,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.execution.TaskValidator;
+import org.gradle.api.internal.tasks.TaskPropertyValue;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 @NonNullApi
-public class TaskClassValidator implements TaskValidator {
+public class TaskClassValidator {
     private final ImmutableSortedSet<TaskPropertyInfo> annotatedProperties;
     private final ImmutableList<TaskClassValidationMessage> validationMessages;
     private final boolean cacheable;
@@ -40,37 +38,8 @@ public class TaskClassValidator implements TaskValidator {
     }
 
     public void addInputsAndOutputs(final TaskInternal task) {
-        task.addValidator(this);
         for (TaskPropertyInfo property : annotatedProperties) {
-            property.getConfigureAction().update(task, new FutureValue(property, task));
-        }
-    }
-
-    private static class FutureValue implements Callable<Object> {
-        private final TaskPropertyInfo property;
-        private final TaskInternal task;
-
-        private FutureValue(TaskPropertyInfo property, TaskInternal task) {
-            this.property = property;
-            this.task = task;
-        }
-
-        @Override
-        public Object call() throws Exception {
-            return property.getValue(task).getValue();
-        }
-
-        @Override
-        public String toString() {
-            return String.format("property (%s) for task '%s'", property, task.getName());
-        }
-    }
-
-    @Override
-    public void validate(TaskInternal task, Collection<String> messages) {
-        for (TaskPropertyInfo property : annotatedProperties) {
-            TaskPropertyValue propertyValue = property.getValue(task);
-            propertyValue.validate(messages);
+            property.getConfigureAction().update(task, new TaskPropertyValue(property, task));
         }
     }
 

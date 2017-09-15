@@ -19,11 +19,14 @@ package org.gradle.api.internal;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 import org.gradle.api.tasks.TaskOutputs;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Collection;
 import java.util.Set;
 
 @NonNullApi
@@ -32,6 +35,14 @@ public interface TaskOutputsInternal extends TaskOutputs {
     Spec<? super TaskInternal> getUpToDateSpec();
 
     ImmutableSortedSet<TaskOutputFilePropertySpec> getFileProperties();
+
+    TaskOutputFilePropertyBuilder file(ValidatingValue path);
+
+    TaskOutputFilePropertyBuilder dir(ValidatingValue path);
+
+    TaskOutputFilePropertyBuilder files(ValidatingValue paths);
+
+    TaskOutputFilePropertyBuilder dirs(ValidatingValue paths);
 
     /**
      * Returns the output files and directories recorded during the previous execution of the task.
@@ -49,4 +60,6 @@ public interface TaskOutputsInternal extends TaskOutputs {
      * Returns whether the task has declared any outputs.
      */
     boolean hasDeclaredOutputs();
+
+    void validate(Collection<String> messages);
 }

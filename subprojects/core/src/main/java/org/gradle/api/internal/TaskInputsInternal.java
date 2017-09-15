@@ -17,9 +17,26 @@
 package org.gradle.api.internal;
 
 import com.google.common.collect.ImmutableSortedSet;
+import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal;
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
+import org.gradle.api.internal.tasks.ValidatingValue;
+import org.gradle.api.tasks.TaskInputPropertyBuilder;
 import org.gradle.api.tasks.TaskInputs;
+
+import java.util.Collection;
 
 public interface TaskInputsInternal extends TaskInputs {
     ImmutableSortedSet<TaskInputFilePropertySpec> getFileProperties();
+
+    TaskInputFilePropertyBuilderInternal files(ValidatingValue paths);
+
+    TaskInputFilePropertyBuilderInternal file(ValidatingValue value);
+
+    TaskInputFilePropertyBuilderInternal dir(ValidatingValue dirPath);
+
+    TaskInputPropertyBuilder property(String name, ValidatingValue value);
+
+    TaskInputPropertyBuilder nested(String name, ValidatingValue value);
+
+    void validate(Collection<String> messages);
 }

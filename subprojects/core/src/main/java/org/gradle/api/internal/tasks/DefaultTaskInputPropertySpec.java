@@ -19,13 +19,17 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 
+import java.util.Collection;
+
 @NonNullApi
 public class DefaultTaskInputPropertySpec extends AbstractTaskInputsDeprecatingTaskPropertyBuilder implements DeclaredTaskInputProperty {
 
+    private final ValidatingValue value;
     private boolean optional;
 
-    public DefaultTaskInputPropertySpec(String name) {
+    public DefaultTaskInputPropertySpec(String name, ValidatingValue value) {
         setPropertyNameWithoutValidation(name);
+        this.value = value;
         this.optional = true;
     }
 
@@ -37,6 +41,11 @@ public class DefaultTaskInputPropertySpec extends AbstractTaskInputsDeprecatingT
     public TaskInputPropertyBuilder optional(boolean optional) {
         this.optional = optional;
         return this;
+    }
+
+    @Override
+    public void validate(Collection<String> messages) {
+        value.validate(getPropertyName(), optional, ValidationAction.NO_OP, messages);
     }
 
     @Override

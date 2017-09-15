@@ -16,5 +16,5 @@
 
 package org.gradle.api.internal.tasks;
 
-public interface DeclaredTaskInputFileProperty extends TaskInputFilePropertySpec, TaskInputFilePropertyBuilderInternal {
+public interface DeclaredTaskInputFileProperty extends TaskInputFilePropertySpec, TaskInputFilePropertyBuilderInternal, ValidatingTaskPropertySpec {
 }

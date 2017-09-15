@@ -16,9 +16,8 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.internal.TaskInternal;
-
-import java.util.concurrent.Callable;
+import org.gradle.api.internal.tasks.TaskPropertyValue;
 
 public interface UpdateAction {
-    void update(TaskInternal task, Callable<Object> futureValue);
+    void update(TaskInternal task, TaskPropertyValue futureValue);
 }

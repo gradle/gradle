@@ -63,12 +63,14 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
     final outputDirFile2 = outputDir.file("some-file-2")
     final emptyOutputDir = temporaryFolder.file("empty-output-dir")
     final missingOutputFile = temporaryFolder.file("missing-output-file")
+    final missingOutputDir = temporaryFolder.file("missing-output-dir")
     final inputFile = temporaryFolder.createFile("input-file")
     final inputDir = temporaryFolder.createDir("input-dir")
     final inputDirFile = inputDir.file("input-file2").createFile()
     final missingInputFile = temporaryFolder.file("missing-input-file")
     final inputFiles = [file: [inputFile], dir: [inputDir], missingFile: [missingInputFile]]
-    final outputFiles = [file: [outputFile], dir: [outputDir], emptyDir: [emptyOutputDir], missingFile: [missingOutputFile]]
+    final outputFiles = [file: [outputFile], missingFile: [missingOutputFile]]
+    final outputDirs = [emptyDir: [emptyOutputDir], dir: [outputDir], missingDir: [missingOutputDir]]
     final createFiles = [outputFile, outputDirFile, outputDirFile2] as Set
     def buildScopeId = new BuildInvocationScopeId(UniqueId.generate())
 
@@ -452,13 +454,13 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         TaskArtifactState state = repository.getStateFor(task)
 
         then:
-        state.getExecutionHistory().getOutputFiles() == [outputFile, outputDir, outputDirFile, outputDirFile2] as Set
+        state.getExecutionHistory().getOutputFiles() == [outputFile, outputDir, outputDirFile, outputDirFile2, emptyOutputDir, missingOutputDir] as Set
     }
 
     def "multiple tasks can produce files into the same output directory"() {
         when:
         TaskInternal task1 = task
-        TaskInternal task2 = builder.withPath("other").withOutputFiles(outputDir).createsFiles(outputDir.file("output2")).task()
+        TaskInternal task2 = builder.withPath("other").withOutputDirs(outputDir).createsFiles(outputDir.file("output2")).task()
         execute(task1, task2)
 
         then:
@@ -480,7 +482,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
     def "multiple tasks can produce the same empty dir"() {
         when:
         TaskInternal task1 = task
-        TaskInternal task2 = builder.withPath("other").withOutputFiles(outputDir).task()
+        TaskInternal task2 = builder.withPath("other").withOutputDirs(outputDir).task()
         execute(task1, task2)
 
         then:
@@ -557,7 +559,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
 
     def "artifacts are up to date when task has no input files"() {
         when:
-        TaskInternal noInputFilesTask = builder.withInputFiles().task()
+        TaskInternal noInputFilesTask = builder.withInputFiles([:]).task()
         execute(noInputFilesTask)
 
         then:
@@ -566,7 +568,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
 
     def "artifacts are up to date when task has no output files"() {
         when:
-        TaskInternal noOutputsTask = builder.withOutputFiles().task()
+        TaskInternal noOutputsTask = builder.withOutputFiles([:]).task()
         execute(noOutputsTask)
 
         then:
@@ -577,8 +579,8 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         when:
         TestFile outputDir2 = temporaryFolder.createDir("output-dir-2")
         TestFile outputDirFile2 = outputDir2.file("output-file-2")
-        TaskInternal task1 = builder.withOutputFiles(dir: [outputDir]).createsFiles(outputDirFile).withPath('task1').task()
-        TaskInternal task2 = builder.withOutputFiles(dir: [outputDir2]).createsFiles(outputDirFile2).withPath('task2').task()
+        TaskInternal task1 = builder.withOutputDirs(dir: [outputDir]).createsFiles(outputDirFile).withPath('task1').task()
+        TaskInternal task2 = builder.withOutputDirs(dir: [outputDir2]).createsFiles(outputDirFile2).withPath('task2').task()
 
         execute(task1, task2)
 
@@ -700,13 +702,10 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         private String path = "task"
         private Map<String, Object> inputProperties = [prop: "value"]
         private Map<String, ? extends Collection<? extends File>> inputs = inputFiles
-        private Map<String, ? extends Collection<? extends File>> outputs = outputFiles
+        private Map<String, ? extends Collection<? extends File>> outputFiles = DefaultTaskArtifactStateRepositoryTest.this.outputFiles
+        private Map<String, ? extends Collection<? extends File>> outputDirs = DefaultTaskArtifactStateRepositoryTest.this.outputDirs
         private Collection<? extends TestFile> create = createFiles
         private Class<? extends TaskInternal> type = TaskInternal.class
-
-        TaskBuilder withInputFiles(File... inputFiles) {
-            return withInputFiles(default: Arrays.asList(inputFiles))
-        }
 
         TaskBuilder withInputFiles(Map<String, ? extends Collection<? extends File>> files) {
             this.inputs = files
@@ -718,7 +717,16 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         }
 
         TaskBuilder withOutputFiles(Map<String, ? extends Collection<? extends File>> files) {
-            this.outputs = files
+            this.outputFiles = files
+            return this
+        }
+
+        TaskBuilder withOutputDirs(File... outputDirs) {
+            return withOutputDirs(defaultDir: Arrays.asList(outputDirs))
+        }
+
+        TaskBuilder withOutputDirs(Map<String, ? extends Collection<? extends File>> dirs) {
+            this.outputDirs = dirs
             return this
         }
 
@@ -758,14 +766,26 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
             if (inputProperties != null) {
                 task.getInputs().properties(inputProperties)
             }
-            if (outputs != null) {
-                outputs.each { String property, Collection<? extends File> files ->
+            if (outputFiles != null) {
+                outputFiles.each { String property, Collection<? extends File> files ->
                     if (files.size() == 1) {
                         task.getOutputs().file files[0] withPropertyName property
                     } else if (files.size() > 1) {
                         for (int idx = 0; idx < files.size(); idx++) {
                             def file = files[idx]
                             task.getOutputs().file file withPropertyName "$property.\$$idx"
+                        }
+                    }
+                }
+            }
+            if (outputDirs != null) {
+                outputDirs.each { String property, Collection<? extends File> dirs ->
+                    if (dirs.size() == 1) {
+                        task.getOutputs().dir dirs[0] withPropertyName property
+                    } else if (dirs.size() > 1) {
+                        for (int idx = 0; idx < dirs.size(); idx++) {
+                            def dir = dirs[idx]
+                            task.getOutputs().dir dir withPropertyName "$property.\$$idx"
                         }
                     }
                 }

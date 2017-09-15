@@ -15,19 +15,12 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.TaskPropertyValue;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
-import org.gradle.util.DeferredUtil;
 
-import java.io.File;
 import java.lang.annotation.Annotation;
-import java.nio.file.Path;
-import java.util.Collection;
-import java.util.concurrent.Callable;
-
-import static org.gradle.api.internal.tasks.TaskOutputsUtil.validateDirectory;
 
 public class OutputDirectoryPropertyAnnotationHandler extends AbstractOutputPropertyAnnotationHandler {
 
@@ -37,25 +30,7 @@ public class OutputDirectoryPropertyAnnotationHandler extends AbstractOutputProp
     }
 
     @Override
-    protected void validate(String propertyName, Object value, Collection<String> messages) {
-        if (value != null) {
-            validateDirectory(propertyName, toFile(value), messages);
-        }
-    }
-
-    @Override
-    protected TaskOutputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, Callable<Object> futureValue) {
+    protected TaskOutputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, TaskPropertyValue futureValue) {
         return task.getOutputs().dir(futureValue);
-    }
-
-    private File toFile(Object value) {
-        Object unpacked = DeferredUtil.unpack(value);
-        if (unpacked instanceof Path) {
-            return ((Path) unpacked).toFile();
-        }
-        if (unpacked instanceof FileSystemLocation) {
-            return ((FileSystemLocation) unpacked).getAsFile();
-        }
-        return (File) unpacked;
     }
 }
