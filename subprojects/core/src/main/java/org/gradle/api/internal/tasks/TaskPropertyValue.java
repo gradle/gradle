@@ -19,8 +19,6 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.TaskPropertyInfo;
 
-import java.util.Collection;
-
 public class TaskPropertyValue implements ValidatingValue {
     private final TaskPropertyInfo property;
     private final TaskInternal task;
@@ -36,8 +34,8 @@ public class TaskPropertyValue implements ValidatingValue {
     }
 
     @Override
-    public void validate(String propertyName, boolean optional, ValidationAction valueValidator, Collection<String> messages) {
-        property.getValue(task).validate(optional, valueValidator, messages);
+    public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
+        property.getValue(task).validate(optional, valueValidator, context);
     }
 
     @Override

@@ -19,8 +19,6 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 
-import java.util.Collection;
-
 @NonNullApi
 public class DefaultTaskInputPropertySpec extends AbstractTaskInputsDeprecatingTaskPropertyBuilder implements DeclaredTaskInputProperty {
 
@@ -44,8 +42,8 @@ public class DefaultTaskInputPropertySpec extends AbstractTaskInputsDeprecatingT
     }
 
     @Override
-    public void validate(Collection<String> messages) {
-        value.validate(getPropertyName(), optional, ValidationAction.NO_OP, messages);
+    public void validate(TaskValidationContext context) {
+        value.validate(getPropertyName(), optional, ValidationAction.NO_OP, context);
     }
 
     @Override

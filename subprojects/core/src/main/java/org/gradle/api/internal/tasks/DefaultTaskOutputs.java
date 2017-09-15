@@ -26,7 +26,6 @@ import org.gradle.api.Describable;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
@@ -39,11 +38,9 @@ import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
-import org.gradle.util.DeferredUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -297,10 +294,10 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     @Override
-    public void validate(Collection<String> messages) {
+    public void validate(TaskValidationContext context) {
         TaskPropertyUtils.ensurePropertiesHaveNames(declaredFileProperties);
         for (DeclaredTaskOutputFileProperty property : declaredFileProperties) {
-            property.validate(messages);
+            property.validate(context);
         }
     }
 
@@ -332,85 +329,66 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     private static final ValidationAction OUTPUT_FILE_VALIDATOR = new ValidationAction() {
         @Override
-        public void validate(String propertyName, Object value, Collection<String> messages) {
-            validateFile(propertyName, toFile(value), messages);
+        public void validate(String propertyName, Object value, TaskValidationContext context) {
+            File file = context.getResolver().resolve(value);
+            if (file.exists()) {
+                if (file.isDirectory()) {
+                    context.recordValidationMessage(String.format("Cannot write to file '%s' specified for property '%s' as it is a directory.", file, propertyName));
+                }
+                // else, assume we can write to anything that exists and is not a directory
+            } else {
+                for (File candidate = file.getParentFile(); candidate != null && !candidate.isDirectory(); candidate = candidate.getParentFile()) {
+                    if (candidate.exists() && !candidate.isDirectory()) {
+                        context.recordValidationMessage(String.format("Cannot write to file '%s' specified for property '%s', as ancestor '%s' is not a directory.", file, propertyName, candidate));
+                        break;
+                    }
+                }
+            }
         }
     };
 
     private static final ValidationAction OUTPUT_FILES_VALIDATOR = new ValidationAction() {
         @Override
-        public void validate(String propertyName, Object value, Collection<String> messages) {
-            for (File file : toFiles(value)) {
-                OUTPUT_FILE_VALIDATOR.validate(propertyName, file, messages);
+        public void validate(String propertyName, Object values, TaskValidationContext context) {
+            for (Object value : toValues(values)) {
+                OUTPUT_FILE_VALIDATOR.validate(propertyName, value, context);
             }
         }
     };
 
     private static final ValidationAction OUTPUT_DIRECTORY_VALIDATOR = new ValidationAction() {
         @Override
-        public void validate(String propertyName, Object value, Collection<String> messages) {
-            validateDirectory(propertyName, toFile(value), messages);
+        public void validate(String propertyName, Object value, TaskValidationContext context) {
+            File directory = context.getResolver().resolve(value);
+            if (directory.exists()) {
+                if (!directory.isDirectory()) {
+                    context.recordValidationMessage(String.format("Directory '%s' specified for property '%s' is not a directory.", directory, propertyName));
+                }
+            } else {
+                for (File candidate = directory.getParentFile(); candidate != null && !candidate.isDirectory(); candidate = candidate.getParentFile()) {
+                    if (candidate.exists() && !candidate.isDirectory()) {
+                        context.recordValidationMessage(String.format("Cannot write to directory '%s' specified for property '%s', as ancestor '%s' is not a directory.", directory, propertyName, candidate));
+                        return;
+                    }
+                }
+            }
         }
     };
 
     private static final ValidationAction OUTPUT_DIRECTORIES_VALIDATOR = new ValidationAction() {
         @Override
-        public void validate(String propertyName, Object value, Collection<String> messages) {
-            for (File file : toFiles(value)) {
-                OUTPUT_DIRECTORY_VALIDATOR.validate(propertyName, file, messages);
+        public void validate(String propertyName, Object values, TaskValidationContext context) {
+            for (Object value : toValues(values)) {
+                OUTPUT_DIRECTORY_VALIDATOR.validate(propertyName, value, context);
             }
         }
     };
 
-    @SuppressWarnings("Since15")
-    private static File toFile(Object value) {
-        Object unpacked = DeferredUtil.unpack(value);
-        if (unpacked instanceof java.nio.file.Path) {
-            return ((java.nio.file.Path) unpacked).toFile();
-        }
-        if (unpacked instanceof FileSystemLocation) {
-            return ((FileSystemLocation) unpacked).getAsFile();
-        }
-        assert unpacked instanceof File;
-        return (File) unpacked;
-    }
-
-    private static Iterable<File> toFiles(Object value) {
+    private static Iterable<?> toValues(Object value) {
         if (value instanceof Map) {
             return uncheckedCast(((Map) value).values());
         } else {
             return uncheckedCast(value);
-        }
-    }
-
-    private static void validateFile(String propertyName, File file, Collection<String> messages) {
-        if (file.exists()) {
-            if (file.isDirectory()) {
-                messages.add(String.format("Cannot write to file '%s' specified for property '%s' as it is a directory.", file, propertyName));
-            }
-            // else, assume we can write to anything that exists and is not a directory
-        } else {
-            for (File candidate = file.getParentFile(); candidate != null && !candidate.isDirectory(); candidate = candidate.getParentFile()) {
-                if (candidate.exists() && !candidate.isDirectory()) {
-                    messages.add(String.format("Cannot write to file '%s' specified for property '%s', as ancestor '%s' is not a directory.", file, propertyName, candidate));
-                    break;
-                }
-            }
-        }
-    }
-
-    private static void validateDirectory(String propertyName, File directory, Collection<String> messages) {
-        if (directory.exists()) {
-            if (!directory.isDirectory()) {
-                messages.add(String.format("Directory '%s' specified for property '%s' is not a directory.", directory, propertyName));
-            }
-        } else {
-            for (File candidate = directory.getParentFile(); candidate != null && !candidate.isDirectory(); candidate = candidate.getParentFile()) {
-                if (candidate.exists() && !candidate.isDirectory()) {
-                    messages.add(String.format("Cannot write to directory '%s' specified for property '%s', as ancestor '%s' is not a directory.", directory, propertyName, candidate));
-                    return;
-                }
-            }
         }
     }
 }

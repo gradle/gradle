@@ -15,14 +15,12 @@
  */
 package org.gradle.api.internal.tasks;
 
-import java.util.Collection;
-
 public interface ValidationAction {
     ValidationAction NO_OP = new ValidationAction() {
         @Override
-        public void validate(String propertyName, Object value, Collection<String> messages) {
+        public void validate(String propertyName, Object value, TaskValidationContext context) {
         }
     };
 
-    void validate(String propertyName, Object value, Collection<String> messages);
+    void validate(String propertyName, Object value, TaskValidationContext context);
 }

@@ -17,10 +17,13 @@ package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.DefaultTaskValidationContext;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.tasks.TaskValidationException;
+import org.gradle.internal.file.PathToFileResolver;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,9 +40,11 @@ public class ValidatingTaskExecuter implements TaskExecuter {
 
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         List<String> messages = new ArrayList<String>();
+        PathToFileResolver resolver = ((ProjectInternal) task.getProject()).getFileResolver();
+        DefaultTaskValidationContext validationContext = new DefaultTaskValidationContext(resolver, messages);
 
-        task.getInputs().validate(messages);
-        task.getOutputs().validate(messages);
+        task.getInputs().validate(validationContext);
+        task.getOutputs().validate(validationContext);
 
         if (!messages.isEmpty()) {
             List<InvalidUserDataException> causes = new ArrayList<InvalidUserDataException>();

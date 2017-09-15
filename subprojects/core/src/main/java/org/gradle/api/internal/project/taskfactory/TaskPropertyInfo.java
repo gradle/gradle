@@ -19,6 +19,7 @@ package org.gradle.api.internal.project.taskfactory;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskPropertyValue;
+import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
@@ -28,7 +29,6 @@ import javax.annotation.Nonnull;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Collection;
 
 public class TaskPropertyInfo implements Comparable<TaskPropertyInfo> {
     private static final UpdateAction NO_OP_CONFIGURATION_ACTION = new UpdateAction() {
@@ -100,13 +100,13 @@ public class TaskPropertyInfo implements Comparable<TaskPropertyInfo> {
             }
 
             @Override
-            public void validate(boolean optional, ValidationAction valueValidator, Collection<String> messages) {
+            public void validate(boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
                 if (value == null) {
                     if (!optional) {
-                        messages.add(String.format("No value has been specified for property '%s'.", propertyName));
+                        context.recordValidationMessage(String.format("No value has been specified for property '%s'.", propertyName));
                     }
                 } else {
-                    valueValidator.validate(propertyName, value, messages);
+                    valueValidator.validate(propertyName, value, context);
                 }
             }
         };
@@ -125,12 +125,12 @@ public class TaskPropertyInfo implements Comparable<TaskPropertyInfo> {
             }
 
             @Override
-            public void validate(boolean optional, ValidationAction valueValidator, Collection<String> messages) {
+            public void validate(boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
             }
         };
 
         Object getValue();
 
-        void validate(boolean optional, ValidationAction valueValidator, Collection<String> messages);
+        void validate(boolean optional, ValidationAction valueValidator, TaskValidationContext context);
     }
 }

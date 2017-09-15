@@ -25,8 +25,6 @@ import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.PathSensitivity;
 
-import java.util.Collection;
-
 import static org.gradle.api.internal.changedetection.state.InputPathNormalizationStrategy.ABSOLUTE;
 
 @NonNullApi
@@ -115,8 +113,8 @@ public class DefaultDeclaredTaskInputFileFilePropertySpec extends AbstractTaskIn
     }
 
     @Override
-    public void validate(Collection<String> messages) {
-        value.validate(getPropertyName(), optional, validationAction, messages);
+    public void validate(TaskValidationContext context) {
+        value.validate(getPropertyName(), optional, validationAction, context);
     }
 
     @Override

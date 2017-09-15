@@ -19,6 +19,7 @@ package org.gradle.api.internal;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
@@ -26,7 +27,6 @@ import org.gradle.api.tasks.TaskOutputs;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.Collection;
 import java.util.Set;
 
 @NonNullApi
@@ -61,5 +61,5 @@ public interface TaskOutputsInternal extends TaskOutputs {
      */
     boolean hasDeclaredOutputs();
 
-    void validate(Collection<String> messages);
+    void validate(TaskValidationContext context);
 }

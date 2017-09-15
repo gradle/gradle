@@ -23,7 +23,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.DeferredUtil;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -78,7 +77,7 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
     }
 
     @Override
-    public void validate(Collection<String> messages) {
-        paths.validate(getPropertyName(), isOptional(), validationAction, messages);
+    public void validate(TaskValidationContext context) {
+        paths.validate(getPropertyName(), isOptional(), validationAction, context);
     }
 }

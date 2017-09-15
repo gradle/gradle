@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks;
 
-import java.util.Collection;
-
 public class StaticValue implements ValidatingValue {
     private final Object value;
 
@@ -31,13 +29,13 @@ public class StaticValue implements ValidatingValue {
     }
 
     @Override
-    public void validate(String propertyName, boolean optional, ValidationAction valueValidator, Collection<String> messages) {
+    public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
         if (value == null) {
             if (!optional) {
-                messages.add(String.format("No value has been specified for property '%s'.", propertyName));
+                context.recordValidationMessage(String.format("No value has been specified for property '%s'.", propertyName));
             }
         } else {
-            valueValidator.validate(propertyName, value, messages);
+            valueValidator.validate(propertyName, value, context);
         }
     }
 }

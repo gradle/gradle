@@ -16,13 +16,26 @@
 
 package org.gradle.api.internal.tasks;
 
-import javax.annotation.Nullable;
-import java.util.concurrent.Callable;
+import org.gradle.internal.file.PathToFileResolver;
 
-public interface ValidatingValue extends Callable<Object>  {
-    @Nullable
+import java.util.Collection;
+
+public class DefaultTaskValidationContext implements TaskValidationContext {
+    private final PathToFileResolver resolver;
+    private final Collection<String> messages;
+
+    public DefaultTaskValidationContext(PathToFileResolver resolver, Collection<String> messages) {
+        this.resolver = resolver;
+        this.messages = messages;
+    }
+
     @Override
-    Object call();
+    public PathToFileResolver getResolver() {
+        return resolver;
+    }
 
-    void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context);
+    @Override
+    public void recordValidationMessage(String message) {
+        messages.add(message);
+    }
 }

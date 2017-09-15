@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks;
 
-import java.util.Collection;
-
 public interface ValidatingTaskPropertySpec extends TaskPropertySpec {
-    void validate(Collection<String> messages);
+    void validate(TaskValidationContext context);
 }

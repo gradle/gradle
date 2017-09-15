@@ -16,13 +16,10 @@
 
 package org.gradle.api.internal.tasks;
 
-import javax.annotation.Nullable;
-import java.util.concurrent.Callable;
+import org.gradle.internal.file.PathToFileResolver;
 
-public interface ValidatingValue extends Callable<Object>  {
-    @Nullable
-    @Override
-    Object call();
+public interface TaskValidationContext {
+    PathToFileResolver getResolver();
 
-    void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context);
+    void recordValidationMessage(String message);
 }

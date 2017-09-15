@@ -22,7 +22,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.DeferredUtil;
 
 import java.io.File;
-import java.util.Collection;
 
 @NonNullApi
 public class DefaultCacheableTaskOutputFilePropertySpec extends AbstractTaskOutputPropertySpec implements CacheableTaskOutputFilePropertySpec, DeclaredTaskOutputFileProperty {
@@ -60,7 +59,7 @@ public class DefaultCacheableTaskOutputFilePropertySpec extends AbstractTaskOutp
     }
 
     @Override
-    public void validate(Collection<String> messages) {
-        value.validate(getPropertyName(), isOptional(), validationAction, messages);
+    public void validate(TaskValidationContext context) {
+        value.validate(getPropertyName(), isOptional(), validationAction, context);
     }
 }
