@@ -24,7 +24,7 @@ import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 
 @NonNullApi
-abstract class AbstractTaskOutputPropertySpec extends AbstractTaskOutputsDeprecatingTaskPropertyBuilder implements TaskOutputPropertySpecAndBuilder {
+abstract class AbstractTaskOutputPropertySpec extends AbstractTaskOutputsDeprecatingTaskPropertyBuilder implements DeclaredTaskOutputFileProperty {
     private boolean optional;
 
     @Override

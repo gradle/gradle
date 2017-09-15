@@ -61,7 +61,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
     private List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
     private TaskExecutionHistory history;
-    private final List<TaskOutputPropertySpecAndBuilder> filePropertiesInternal = Lists.newArrayList();
+    private final List<DeclaredTaskOutputFileProperty> declaredFileProperties = Lists.newArrayList();
     private ImmutableSortedSet<TaskOutputFilePropertySpec> fileProperties;
     private final FileResolver resolver;
     private final TaskInternal task;
@@ -181,7 +181,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     @Override
     public boolean hasDeclaredOutputs() {
-        return !filePropertiesInternal.isEmpty();
+        return !declaredFileProperties.isEmpty();
     }
 
     @Override
@@ -192,8 +192,8 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     @Override
     public ImmutableSortedSet<TaskOutputFilePropertySpec> getFileProperties() {
         if (fileProperties == null) {
-            TaskPropertyUtils.ensurePropertiesHaveNames(filePropertiesInternal);
-            Iterator<TaskOutputFilePropertySpec> flattenedProperties = Iterators.concat(Iterables.transform(filePropertiesInternal, new Function<TaskPropertySpec, Iterator<? extends TaskOutputFilePropertySpec>>() {
+            TaskPropertyUtils.ensurePropertiesHaveNames(declaredFileProperties);
+            Iterator<TaskOutputFilePropertySpec> flattenedProperties = Iterators.concat(Iterables.transform(declaredFileProperties, new Function<TaskPropertySpec, Iterator<? extends TaskOutputFilePropertySpec>>() {
                 @Override
                 public Iterator<? extends TaskOutputFilePropertySpec> apply(@Nullable TaskPropertySpec propertySpec) {
                     if (propertySpec instanceof CompositeTaskOutputPropertySpec) {
@@ -248,8 +248,8 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         });
     }
 
-    private TaskOutputFilePropertyBuilder addSpec(TaskOutputPropertySpecAndBuilder spec) {
-        filePropertiesInternal.add(spec);
+    private TaskOutputFilePropertyBuilder addSpec(DeclaredTaskOutputFileProperty spec) {
+        declaredFileProperties.add(spec);
         return spec;
     }
 

@@ -16,9 +16,5 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
-
-public interface TaskOutputPropertySpecAndBuilder extends TaskPropertySpec, TaskOutputFilePropertyBuilder {
-
+public interface DeclaredTaskInputFileProperty extends TaskInputFilePropertySpec, TaskInputFilePropertyBuilderInternal {
 }
-

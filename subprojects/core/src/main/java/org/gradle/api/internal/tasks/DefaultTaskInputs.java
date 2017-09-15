@@ -47,7 +47,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     private final TaskInternal task;
     private final TaskMutator taskMutator;
     private final Map<String, PropertyValue> properties = new HashMap<String, PropertyValue>();
-    private final List<TaskInputPropertySpecAndBuilder> filePropertiesInternal = Lists.newArrayList();
+    private final List<DeclaredTaskInputFileProperty> declaredFileProperties = Lists.newArrayList();
     private ImmutableSortedSet<TaskInputFilePropertySpec> fileProperties;
 
     public DefaultTaskInputs(FileResolver resolver, TaskInternal task, TaskMutator taskMutator) {
@@ -55,13 +55,13 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         this.task = task;
         this.taskMutator = taskMutator;
         String taskName = task.getName();
-        this.allInputFiles = new TaskInputUnionFileCollection(taskName, "input", false, filePropertiesInternal);
-        this.allSourceFiles = new TaskInputUnionFileCollection(taskName, "source", true, filePropertiesInternal);
+        this.allInputFiles = new TaskInputUnionFileCollection(taskName, "input", false, declaredFileProperties);
+        this.allSourceFiles = new TaskInputUnionFileCollection(taskName, "source", true, declaredFileProperties);
     }
 
     @Override
     public boolean getHasInputs() {
-        return !filePropertiesInternal.isEmpty() || !properties.isEmpty();
+        return !declaredFileProperties.isEmpty() || !properties.isEmpty();
     }
 
     @Override
@@ -72,8 +72,8 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     @Override
     public ImmutableSortedSet<TaskInputFilePropertySpec> getFileProperties() {
         if (fileProperties == null) {
-            ensurePropertiesHaveNames(filePropertiesInternal);
-            fileProperties = TaskPropertyUtils.<TaskInputFilePropertySpec>collectFileProperties("input", filePropertiesInternal.iterator());
+            ensurePropertiesHaveNames(declaredFileProperties);
+            fileProperties = TaskPropertyUtils.<TaskInputFilePropertySpec>collectFileProperties("input", declaredFileProperties.iterator());
         }
         return fileProperties;
     }
@@ -110,7 +110,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public boolean getHasSourceFiles() {
-        for (TaskInputPropertySpecAndBuilder propertySpec : filePropertiesInternal) {
+        for (DeclaredTaskInputFileProperty propertySpec : declaredFileProperties) {
             if (propertySpec.isSkipWhenEmpty()) {
                 return true;
             }
@@ -124,8 +124,8 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     private TaskInputFilePropertyBuilderInternal addSpec(Object paths) {
-        DefaultTaskInputFilePropertySpec spec = new DefaultTaskInputFilePropertySpec(task.getName(), resolver, paths);
-        filePropertiesInternal.add(spec);
+        DefaultDeclaredTaskInputFileFilePropertySpec spec = new DefaultDeclaredTaskInputFileFilePropertySpec(task.getName(), resolver, paths);
+        declaredFileProperties.add(spec);
         return spec;
     }
 
@@ -225,9 +225,9 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         private final boolean skipWhenEmptyOnly;
         private final String taskName;
         private final String type;
-        private final List<TaskInputPropertySpecAndBuilder> filePropertiesInternal;
+        private final List<DeclaredTaskInputFileProperty> filePropertiesInternal;
 
-        public TaskInputUnionFileCollection(String taskName, String type, boolean skipWhenEmptyOnly, List<TaskInputPropertySpecAndBuilder> filePropertiesInternal) {
+        public TaskInputUnionFileCollection(String taskName, String type, boolean skipWhenEmptyOnly, List<DeclaredTaskInputFileProperty> filePropertiesInternal) {
             this.taskName = taskName;
             this.type = type;
             this.skipWhenEmptyOnly = skipWhenEmptyOnly;
@@ -241,7 +241,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
         @Override
         public void visitContents(FileCollectionResolveContext context) {
-            for (TaskInputPropertySpecAndBuilder fileProperty : filePropertiesInternal) {
+            for (DeclaredTaskInputFileProperty fileProperty : filePropertiesInternal) {
                 if (!skipWhenEmptyOnly || fileProperty.isSkipWhenEmpty()) {
                     context.add(fileProperty.getPropertyFiles());
                 }
