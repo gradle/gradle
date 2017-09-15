@@ -184,7 +184,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return this;
     }
 
-    private TaskInputPropertyBuilder setProperty(String name, Object value) {
+    private TaskInputPropertyBuilder setProperty(String name, @Nullable Object value) {
         PropertyValue propertyValue = properties.get(name);
         DeclaredTaskInputProperty spec;
         if (propertyValue == null) {

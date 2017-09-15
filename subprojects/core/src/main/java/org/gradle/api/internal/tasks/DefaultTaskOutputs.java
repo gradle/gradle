@@ -262,7 +262,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     @Override
-    public void setHistory(TaskExecutionHistory history) {
+    public void setHistory(@Nullable TaskExecutionHistory history) {
         this.history = history;
     }
 
