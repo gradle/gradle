@@ -19,16 +19,18 @@ private class PrivateComponentType
 class ProjectSchemaTest : TestWithClassPath() {
 
     @Test
-    fun `#isLegalExtensionName rejects illegal Kotlin extension names`() {
+    fun `#isLegalAccessorName rejects illegal Kotlin extension names`() {
 
-        assert(isLegalExtensionName("foo_bar"))
-        assert(isLegalExtensionName("foo-bar"))
-        assert(isLegalExtensionName("foo bar"))
+        assert(isLegalAccessorName("foo_bar"))
+        assert(isLegalAccessorName("foo-bar"))
+        assert(isLegalAccessorName("foo bar"))
+        assert(isLegalAccessorName("'foo'bar'"))
+        assert(isLegalAccessorName("foo${'$'}${'$'}bar"))
 
-        assertFalse(isLegalExtensionName("foo`bar"))
-        assertFalse(isLegalExtensionName("foo.bar"))
-        assertFalse(isLegalExtensionName("foo/bar"))
-        assertFalse(isLegalExtensionName("foo\\bar"))
+        assertFalse(isLegalAccessorName("foo`bar"))
+        assertFalse(isLegalAccessorName("foo.bar"))
+        assertFalse(isLegalAccessorName("foo/bar"))
+        assertFalse(isLegalAccessorName("foo\\bar"))
     }
 
     @Test

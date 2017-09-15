@@ -144,7 +144,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
             repositories { jcenter() }
         """)
 
-        withFile("c/build.gradle.kts","""
+        withFile("c/build.gradle.kts", """
             plugins { `java-library` }
 
             dependencies {
@@ -281,6 +281,62 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
         val result = build("help", "-I", "init.gradle")
         assertThat(result.output, containsString("Type of `buildScan` receiver is Any"))
     }
+
+    @Test
+    fun `given configuration and extension with string template dollar sign in name, accessors are usable`() {
+
+        withKotlinBuildSrc()
+
+        // Plugin that creates a configuration named $$my$$config$$ and an extension named $$my$$ext$$
+        withFile("buildSrc/src/main/kotlin/my/MyPlugin.kt", """
+            package my
+
+            import org.gradle.api.*
+
+            class MyPlugin : Plugin<Project> {
+
+                override fun apply(project: Project) {
+                    val configName = "${'$'}{'${'$'}'}${'$'}{'${'$'}'}my${'$'}{'${'$'}'}${'$'}{'${'$'}'}config${'$'}{'${'$'}'}${'$'}{'${'$'}'}"
+                    project.configurations.create(configName)
+
+                    val extName = "${'$'}{'${'$'}'}${'$'}{'${'$'}'}my${'$'}{'${'$'}'}${'$'}{'${'$'}'}ext${'$'}{'${'$'}'}${'$'}{'${'$'}'}"
+                    val container = project.container(MyType::class.java, ::MyType)
+                    container.create(extName)
+                    project.extensions.add(extName, container)
+                }
+            }
+
+            data class MyType(val name: String)
+        """)
+
+        val buildFile = withBuildScript("""
+
+            apply<my.MyPlugin>()
+        """)
+
+        println(
+            build("kotlinDslAccessorsSnapshot").output)
+
+        buildFile.appendText("""
+            tasks {
+                "showme" {
+                    doLast {
+                        println("**" + configurations.`${'$'}${'$'}my${'$'}${'$'}config${'$'}${'$'}`.name + "**")
+                        println("**" + `${'$'}${'$'}my${'$'}${'$'}ext${'$'}${'$'}`.names.first() + "**")
+                    }
+                }
+            }
+        """)
+
+        val result = build("showme")
+        assertThat(
+            result.output,
+            containsString("**${'$'}${'$'}my${'$'}${'$'}config${'$'}${'$'}**"))
+        assertThat(
+            result.output,
+            containsString("**${'$'}${'$'}my${'$'}${'$'}ext${'$'}${'$'}**"))
+    }
+
 
     private
     fun setOfAutomaticAccessorsFor(plugins: Set<String>): File {
