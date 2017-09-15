@@ -17,8 +17,9 @@
 package org.gradle.plugin.use.resolve.service.internal
 
 import org.gradle.groovy.scripts.StringScriptSource
-import org.gradle.plugin.management.internal.DefaultPluginRequest
+import org.gradle.plugin.management.internal.BinaryPluginRequest
 import org.gradle.plugin.management.internal.PluginRequestInternal
+import org.gradle.plugin.use.internal.DefaultPluginId
 import spock.lang.Specification
 
 class InMemoryCachingPluginResolutionServiceClientTest extends Specification {
@@ -128,8 +129,7 @@ class InMemoryCachingPluginResolutionServiceClientTest extends Specification {
         1 * delegate.queryClientStatus(PORTAL_URL_1, false, null) >> response
     }
 
-    static PluginRequestInternal request(String id, String version = "1", String script = null) {
-        new DefaultPluginRequest(new StringScriptSource("test", "test").displayName, 1, id, version, script, true)
+    static PluginRequestInternal request(String id) {
+        new BinaryPluginRequest(new StringScriptSource("test", "test"), 1, DefaultPluginId.of(id), "1", true, null)
     }
-
 }

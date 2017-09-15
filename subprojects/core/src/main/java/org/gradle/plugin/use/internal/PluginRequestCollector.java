@@ -20,11 +20,12 @@ import org.gradle.api.Transformer;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Pair;
 import org.gradle.internal.exceptions.LocationAwareException;
-import org.gradle.plugin.management.internal.DefaultPluginRequest;
+import org.gradle.plugin.management.internal.BinaryPluginRequest;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
+import org.gradle.plugin.management.internal.ScriptPluginRequest;
 import org.gradle.plugin.use.PluginDependency;
 import org.gradle.plugin.use.PluginDependencySpec;
 import org.gradle.plugin.use.PluginDependenciesSpec;
@@ -134,23 +135,20 @@ public class PluginRequestCollector {
     }
 
     private PluginRequestInternal pluginRequestFor(BinaryDependencySpecImpl binaryPluginDependency) {
-        return new DefaultPluginRequest(
+        return new BinaryPluginRequest(
             scriptSource,
             binaryPluginDependency.lineNumber,
             binaryPluginDependency.id,
             binaryPluginDependency.version,
-            null,
-            binaryPluginDependency.apply);
+            binaryPluginDependency.apply,
+            null);
     }
 
     private PluginRequestInternal pluginRequestFor(ScriptDependencySpecImpl scriptPluginDependency) {
-        return new DefaultPluginRequest(
+        return new ScriptPluginRequest(
             scriptSource,
             scriptPluginDependency.lineNumber,
-            null,
-            null,
-            URI.create(scriptPluginDependency.script),
-            true);
+            URI.create(scriptPluginDependency.script));
     }
 
     private void checkForDuplicates(List<PluginRequestInternal> pluginRequests) {

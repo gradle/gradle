@@ -27,41 +27,88 @@ import java.net.URI;
 import java.util.List;
 
 public class PluginRequestsSerializer extends AbstractSerializer<PluginRequests> {
+
+    private static final int BINARY_PLUGIN_REQUEST_TYPE_TAG = 1;
+    private static final int SCRIPT_PLUGIN_REQUEST_TYPE_TAG = 2;
+
     @Override
     public PluginRequests read(Decoder decoder) throws Exception {
+
         int requestCount = decoder.readSmallInt();
         List<PluginRequestInternal> requests = Lists.newArrayListWithCapacity(requestCount);
         for (int i = 0; i < requestCount; i++) {
-
-            String requestingScriptDisplayName = decoder.readString();
-            int requestingScriptLineNumber = decoder.readSmallInt();
-
-            String pluginIdString = decoder.readNullableString();
-            PluginId pluginId = pluginIdString == null ? null : DefaultPluginId.unvalidated(pluginIdString);
-            String version = decoder.readNullableString();
-            String scriptString = decoder.readNullableString();
-            URI script = scriptString == null ? null : URI.create(scriptString);
-            boolean apply = decoder.readBoolean();
-
-            requests.add(i, new DefaultPluginRequest(
-                requestingScriptDisplayName, requestingScriptLineNumber,
-                pluginId, version, script, apply, null));
+            int typeTag = decoder.readSmallInt();
+            switch (typeTag) {
+                case BINARY_PLUGIN_REQUEST_TYPE_TAG:
+                    requests.add(i, readBinaryPluginRequest(decoder));
+                    break;
+                case SCRIPT_PLUGIN_REQUEST_TYPE_TAG:
+                    requests.add(i, readScriptPluginRequest(decoder));
+                    break;
+                default:
+                    throw new IllegalStateException("Unknown plugin request type tag " + typeTag);
+            }
         }
         return new DefaultPluginRequests(requests);
+    }
+
+    private BinaryPluginRequest readBinaryPluginRequest(Decoder decoder) throws Exception {
+
+        String requestingScriptDisplayName = decoder.readString();
+        int requestingScriptLineNumber = decoder.readSmallInt();
+
+        String pluginIdString = decoder.readNullableString();
+        PluginId pluginId = pluginIdString == null ? null : DefaultPluginId.unvalidated(pluginIdString);
+        String version = decoder.readNullableString();
+        boolean apply = decoder.readBoolean();
+
+        return new BinaryPluginRequest(requestingScriptDisplayName, requestingScriptLineNumber, pluginId, version, apply, null);
+    }
+
+    private ScriptPluginRequest readScriptPluginRequest(Decoder decoder) throws Exception {
+
+        String requestingScriptDisplayName = decoder.readString();
+        int requestingScriptLineNumber = decoder.readSmallInt();
+
+        String scriptString = decoder.readNullableString();
+        URI script = scriptString == null ? null : URI.create(scriptString);
+
+        return new ScriptPluginRequest(requestingScriptDisplayName, requestingScriptLineNumber, script);
     }
 
     @Override
     public void write(Encoder encoder, PluginRequests requests) throws Exception {
         encoder.writeSmallInt(requests.size());
         for (PluginRequestInternal request : requests) {
-
-            encoder.writeString(request.getRequestingScriptDisplayName());
-            encoder.writeSmallInt(request.getRequestingScriptLineNumber());
-
-            encoder.writeNullableString(request.getId() == null ? null : request.getId().getId());
-            encoder.writeNullableString(request.getVersion());
-            encoder.writeNullableString(request.getScript() == null ? null : request.getScript().toString());
-            encoder.writeBoolean(request.isApply());
+            if (request instanceof BinaryPluginRequest) {
+                writeBinaryPluginRequest(encoder, (BinaryPluginRequest) request);
+            } else if (request instanceof ScriptPluginRequest) {
+                writeScriptPluginRequest(encoder, (ScriptPluginRequest) request);
+            } else {
+                throw new IllegalStateException("Unknown plugin request type " + request);
+            }
         }
+    }
+
+    private void writeBinaryPluginRequest(Encoder encoder, BinaryPluginRequest request) throws Exception {
+
+        encoder.writeSmallInt(BINARY_PLUGIN_REQUEST_TYPE_TAG);
+
+        encoder.writeString(request.getRequestingScriptDisplayName());
+        encoder.writeSmallInt(request.getRequestingScriptLineNumber());
+
+        encoder.writeNullableString(request.getId() == null ? null : request.getId().getId());
+        encoder.writeNullableString(request.getVersion());
+        encoder.writeBoolean(request.isApply());
+    }
+
+    private void writeScriptPluginRequest(Encoder encoder, ScriptPluginRequest request) throws Exception {
+
+        encoder.writeSmallInt(SCRIPT_PLUGIN_REQUEST_TYPE_TAG);
+
+        encoder.writeString(request.getRequestingScriptDisplayName());
+        encoder.writeSmallInt(request.getRequestingScriptLineNumber());
+
+        encoder.writeNullableString(request.getScript() == null ? null : request.getScript().toString());
     }
 }

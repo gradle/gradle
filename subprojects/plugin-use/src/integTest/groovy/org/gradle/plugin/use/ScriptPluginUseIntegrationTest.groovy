@@ -379,8 +379,7 @@ class ScriptPluginUseIntegrationTest extends AbstractIntegrationSpec {
         fails "help"
 
         then:
-        failureDescriptionStartsWith("Error resolving plugin [script 'other.gradle' version '1.0']")
-        failureHasCause("explicit version is not supported for script plugins applied using the plugins block")
+        failureHasCause("Substituting a script plugin is not supported")
     }
 
     def "plugin resolution strategy cannot change `artifact` on a script plugin request"() {
@@ -414,8 +413,7 @@ class ScriptPluginUseIntegrationTest extends AbstractIntegrationSpec {
         fails "help"
 
         then:
-        failureDescriptionStartsWith("Error resolving plugin [script 'other.gradle' artifact 'foo:bar:1.0']")
-        failureHasCause("explicit artifact coordinates are not supported for script plugins applied using the plugins block")
+        failureHasCause("Substituting a script plugin is not supported")
     }
 
     def "build operations for the application of script plugins requested from files display canonicalized paths relative to build root dir"() {

@@ -17,9 +17,10 @@
 package org.gradle.plugin.use.internal
 
 import org.gradle.internal.serialize.SerializerSpec
-import org.gradle.plugin.management.internal.DefaultPluginRequest
+import org.gradle.plugin.management.internal.BinaryPluginRequest
 import org.gradle.plugin.management.internal.DefaultPluginRequests
 import org.gradle.plugin.management.internal.PluginRequestsSerializer
+import org.gradle.plugin.management.internal.ScriptPluginRequest
 
 class PluginRequestsSerializerTest extends SerializerSpec {
 
@@ -36,10 +37,10 @@ class PluginRequestsSerializerTest extends SerializerSpec {
     def "non empty"() {
         when:
         def serialized = serialize(new DefaultPluginRequests([
-            new DefaultPluginRequest("buildscript", 1, "java", null, null, true),
-            new DefaultPluginRequest("buildscript", 2, "groovy", null, null, false),
-            new DefaultPluginRequest("initscript", 3, "custom", "1.0", null, false),
-            new DefaultPluginRequest("buildscript", 4, "other", null, URI.create("other.gradle"), true)
+            new BinaryPluginRequest("buildscript", 1, DefaultPluginId.of("java"), null, true, null),
+            new BinaryPluginRequest("buildscript", 2, DefaultPluginId.of("groovy"), null, false, null),
+            new BinaryPluginRequest("initscript", 3, DefaultPluginId.of("custom"), "1.0", false, null),
+            new ScriptPluginRequest("buildscript", 4, URI.create("other.gradle"))
         ]), serializer)
 
         then:
@@ -47,7 +48,7 @@ class PluginRequestsSerializerTest extends SerializerSpec {
         serialized*.requestingScriptDisplayName == ["buildscript", "buildscript", "initscript", "buildscript"]
 
         and:
-        serialized*.id == ["java", "groovy", "custom", "other"].collect { DefaultPluginId.of(it) }
+        serialized*.id == ["java", "groovy", "custom", null].collect { it == null ? null : DefaultPluginId.of(it) }
         serialized*.version == [null, null, "1.0", null]
         serialized*.script == [null, null, null, URI.create("other.gradle")]
         serialized*.apply == [true, false, false, true]

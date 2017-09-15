@@ -17,13 +17,14 @@ package org.gradle.plugin.use.resolve.internal;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
+import org.gradle.plugin.management.internal.ScriptPluginRequest;
 import org.gradle.plugin.use.PluginId;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URI;
 
-import static org.gradle.plugin.management.internal.DefaultPluginRequest.*;
+import static org.gradle.plugin.management.internal.ScriptPluginRequest.buildDisplayName;
 
 public class ContextAwarePluginRequest implements PluginRequestInternal {
 
@@ -38,13 +39,13 @@ public class ContextAwarePluginRequest implements PluginRequestInternal {
     @Nullable
     public URI getScriptUri() {
         if (isScriptRequest()) {
-            return null;
+            return getRequestingScriptUri().resolve(getScript());
         }
-        return getRequestingScriptUri().resolve(getScript());
+        return null;
     }
 
     private boolean isScriptRequest() {
-        return getScript() == null;
+        return delegate instanceof ScriptPluginRequest;
     }
 
     private URI getRequestingScriptUri() {
@@ -63,13 +64,9 @@ public class ContextAwarePluginRequest implements PluginRequestInternal {
     @Override
     public String getDisplayName() {
         if (isScriptRequest()) {
-            return scriptRequestDisplayName();
+            return buildDisplayName(getRelativeScriptUri());
         }
         return delegate.getDisplayName();
-    }
-
-    private String scriptRequestDisplayName() {
-        return buildDisplayName(getId(), getRelativeScriptUri(), getVersion(), getModule(), isApply());
     }
 
     @Nullable

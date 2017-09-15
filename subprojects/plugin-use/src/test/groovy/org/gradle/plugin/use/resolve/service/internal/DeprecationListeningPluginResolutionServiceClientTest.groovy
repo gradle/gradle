@@ -17,8 +17,9 @@
 package org.gradle.plugin.use.resolve.service.internal
 
 import org.gradle.groovy.scripts.StringScriptSource
-import org.gradle.plugin.management.internal.DefaultPluginRequest
+import org.gradle.plugin.management.internal.BinaryPluginRequest
 import org.gradle.plugin.management.internal.PluginRequestInternal
+import org.gradle.plugin.use.internal.DefaultPluginId
 import spock.lang.Specification
 
 import static org.gradle.plugin.use.resolve.service.internal.DeprecationListeningPluginResolutionServiceClient.toMessage
@@ -91,7 +92,7 @@ class DeprecationListeningPluginResolutionServiceClientTest extends Specificatio
         msgs.isEmpty()
     }
 
-    static PluginRequestInternal request(String id, String version = null, String script = null) {
-        new DefaultPluginRequest(new StringScriptSource("test", "test").displayName, 1, id, version, script, true)
+    static PluginRequestInternal request(String id) {
+        new BinaryPluginRequest(new StringScriptSource("test", "test"), 1, DefaultPluginId.of(id), null, true, null)
     }
 }

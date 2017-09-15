@@ -22,7 +22,7 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.plugins.PluginImplementation
 import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.groovy.scripts.StringScriptSource
-import org.gradle.plugin.management.internal.DefaultPluginRequest
+import org.gradle.plugin.management.internal.BinaryPluginRequest
 import org.gradle.plugin.management.internal.InvalidPluginRequestException
 import org.gradle.plugin.use.internal.DefaultPluginId
 import spock.lang.Specification
@@ -41,9 +41,9 @@ class CorePluginResolverTest extends Specification {
 
     def resolver = new CorePluginResolver(docRegistry, pluginRegistry)
 
-    ContextAwarePluginRequest request(String id, String version = null, String script = null, ModuleVersionSelector artifact = null) {
+    ContextAwarePluginRequest request(String id, String version = null, ModuleVersionSelector artifact = null) {
         new ContextAwarePluginRequest(
-            new DefaultPluginRequest(new StringScriptSource("test", "test").displayName, 1, DefaultPluginId.of(id), version, script, true, artifact),
+            new BinaryPluginRequest(new StringScriptSource("test", "test"), 1, DefaultPluginId.of(id), version, true, artifact),
             Mock(PluginRequestResolutionContext))
     }
 
@@ -86,7 +86,7 @@ class CorePluginResolverTest extends Specification {
 
     def "cannot have custom artifact"() {
         when:
-        resolver.resolve(request("foo", null, null, Mock(ModuleVersionSelector)), result)
+        resolver.resolve(request("foo", null, Mock(ModuleVersionSelector)), result)
 
         then:
         1 * pluginRegistry.lookup(DefaultPluginId.of("foo")) >> Mock(PluginImplementation) { asClass() >> MyPlugin }

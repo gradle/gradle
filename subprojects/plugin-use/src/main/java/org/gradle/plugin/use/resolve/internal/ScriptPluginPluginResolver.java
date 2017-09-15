@@ -15,7 +15,6 @@
  */
 package org.gradle.plugin.use.resolve.internal;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.plugins.PluginImplementation;
 import org.gradle.plugin.use.PluginId;
 
@@ -40,15 +39,6 @@ public class ScriptPluginPluginResolver implements PluginResolver {
     public void resolve(ContextAwarePluginRequest pluginRequest, PluginResolutionResult result) {
         if (pluginRequest.getScript() == null) {
             return;
-        }
-        if (pluginRequest.getModule() != null) {
-            throw new InvalidUserDataException("explicit artifact coordinates are not supported for script plugins applied using the plugins block");
-        }
-        if (pluginRequest.getVersion() != null) {
-            throw new InvalidUserDataException("explicit version is not supported for script plugins applied using the plugins block");
-        }
-        if (!pluginRequest.isApply()) {
-            throw new InvalidUserDataException("apply false is not supported for script plugins applied using the plugins block");
         }
 
         ScriptPluginImplementation scriptPluginImplementation = new ScriptPluginImplementation(pluginRequest, scriptPluginLoaderCache);
