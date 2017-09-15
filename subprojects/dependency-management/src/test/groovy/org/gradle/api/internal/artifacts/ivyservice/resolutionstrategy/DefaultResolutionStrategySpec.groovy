@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
+import org.gradle.vcs.internal.VcsMappingsInternal
 import org.gradle.internal.Actions
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.rules.NoInputsRuleAction
@@ -36,17 +37,19 @@ import java.util.concurrent.TimeUnit
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY
 
-public class DefaultResolutionStrategySpec extends Specification {
+class DefaultResolutionStrategySpec extends Specification {
 
     def cachePolicy = Mock(DefaultCachePolicy)
     def dependencySubstitutions = Mock(DependencySubstitutionsInternal)
     def globalDependencySubstitutions = Mock(DependencySubstitutionRules)
+    def vcsMappingsInternal = Mock(VcsMappingsInternal)
+
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock() {
         module(_, _) >> { args ->
             DefaultModuleIdentifier.newId(*args)
         }
     }
-    def strategy = new DefaultResolutionStrategy(cachePolicy, dependencySubstitutions, globalDependencySubstitutions, moduleIdentifierFactory)
+    def strategy = new DefaultResolutionStrategy(cachePolicy, dependencySubstitutions, globalDependencySubstitutions, vcsMappingsInternal, moduleIdentifierFactory)
 
     def "allows setting forced modules"() {
         expect:

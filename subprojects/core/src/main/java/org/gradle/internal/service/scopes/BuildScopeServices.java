@@ -328,8 +328,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                     PluginsProjectConfigureActions.of(
                         BuildSrcProjectConfigurationAction.class,
                         cachingServiceLocator))),
-            compositeContextBuilder, includedBuildFactory
-        );
+            compositeContextBuilder,
+            includedBuildFactory);
     }
 
     protected InitScriptHandler createInitScriptHandler(ScriptApplicator scriptApplicator, BuildOperationExecutor buildOperationExecutor) {

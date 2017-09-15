@@ -296,7 +296,7 @@ class UserGuideSamplesRunner extends Runner {
         samplesByDir.get('userguide/multiproject/dependencies/messagesHack/messages')*.brokenForParallel = true
         samplesByDir.get('userguide/tutorial/helloShortcut')*.allowDeprecation = true
         samplesByDir.values().findAll() { it.subDir.startsWith('buildCache/') }.each {
-            it.args = ['--build-cache', 'help']
+            it.args += ['--build-cache', 'help']
         }
 
         configureJava6CrossCompilationForGroovyAndScala(samplesByDir)

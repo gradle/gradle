@@ -14,6 +14,7 @@ repositories {
 dependencies {
     compile project(":core")
     compile project(":resources")
+    compile project(":versionControl")
 
     compile libraries.asm
     compile libraries.commons_lang

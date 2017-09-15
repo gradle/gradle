@@ -149,18 +149,7 @@ public class DependencyGraphBuilder {
 
             } else {
                 // We have some batched up conflicts. Resolve the first, and continue traversing the graph
-                conflictHandler.resolveNextConflict(new Action<ConflictResolutionResult>() {
-                    public void execute(final ConflictResolutionResult result) {
-                        result.getConflict().withParticipatingModules(new Action<ModuleIdentifier>() {
-                            public void execute(ModuleIdentifier moduleIdentifier) {
-                                ComponentState selected = result.getSelected();
-                                // Restart each configuration. For the evicted configuration, this means moving incoming dependencies across to the
-                                // matching selected configuration. For the select configuration, this mean traversing its dependencies.
-                                resolveState.getModule(moduleIdentifier).restart(selected);
-                            }
-                        });
-                    }
-                });
+                conflictHandler.resolveNextConflict(resolveState.replaceSelectionWithConflictResultAction);
             }
 
         }
@@ -185,16 +174,7 @@ public class DependencyGraphBuilder {
                 // Deselect the currently selected version, and remove all outgoing edges from the version
                 // This will propagate through the graph and prune configurations that are no longer required
                 // For each module participating in the conflict (many times there is only one participating module that has multiple versions)
-                c.withParticipatingModules(new Action<ModuleIdentifier>() {
-                    public void execute(ModuleIdentifier module) {
-                        ComponentState previouslySelected = resolveState.getModule(module).clearSelection();
-                        if (previouslySelected != null) {
-                            for (NodeState configuration : previouslySelected.nodes) {
-                                configuration.deselect();
-                            }
-                        }
-                    }
-                });
+                c.withParticipatingModules(resolveState.deselectVersionAction);
             }
         }
     }
@@ -541,6 +521,8 @@ public class DependencyGraphBuilder {
         private final AttributesSchemaInternal attributesSchema;
         private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
         private final ModuleExclusions moduleExclusions;
+        private final DeselectVersionAction deselectVersionAction = new DeselectVersionAction(this);
+        private final ReplaceSelectionWithConflictResultAction replaceSelectionWithConflictResultAction = new ReplaceSelectionWithConflictResultAction(this);
 
         public ResolveState(IdGenerator<Long> idGenerator, ComponentResolveResult rootResult, String rootConfigurationName, DependencyToComponentIdResolver idResolver,
                             ComponentMetaDataResolver metaDataResolver, Spec<? super DependencyMetadata> edgeFilter, AttributesSchemaInternal attributesSchema,
@@ -1262,6 +1244,42 @@ public class DependencyGraphBuilder {
         @Override
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor.displayName("Resolve " + state);
+        }
+    }
+
+    private static class DeselectVersionAction implements Action<ModuleIdentifier> {
+        private final ResolveState resolveState;
+
+        public DeselectVersionAction(ResolveState resolveState) {
+            this.resolveState = resolveState;
+        }
+
+        public void execute(ModuleIdentifier module) {
+            ComponentState previouslySelected = resolveState.getModule(module).clearSelection();
+            if (previouslySelected != null) {
+                for (NodeState configuration : previouslySelected.nodes) {
+                    configuration.deselect();
+                }
+            }
+        }
+    }
+
+    private static class ReplaceSelectionWithConflictResultAction implements Action<ConflictResolutionResult> {
+        private final ResolveState resolveState;
+
+        public ReplaceSelectionWithConflictResultAction(ResolveState resolveState) {
+            this.resolveState = resolveState;
+        }
+
+        public void execute(final ConflictResolutionResult result) {
+            final ComponentState selected = result.getSelected();
+            result.withParticipatingModules(new Action<ModuleIdentifier>() {
+                public void execute(ModuleIdentifier moduleIdentifier) {
+                    // Restart each configuration. For the evicted configuration, this means moving incoming dependencies across to the
+                    // matching selected configuration. For the select configuration, this mean traversing its dependencies.
+                    resolveState.getModule(moduleIdentifier).restart(selected);
+                }
+            });
         }
     }
 }

@@ -149,9 +149,10 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
 
     public static class ConsoleOption extends StringBuildOption<LoggingConfiguration> {
         public static final String LONG_OPTION = "console";
+        public static final String GRADLE_PROPERTY = "org.gradle.console";
 
         public ConsoleOption() {
-            super(null, CommandLineOptionConfiguration.create("console", "Specifies which type of console output to generate. Values are 'plain', 'auto' (default) or 'rich'."));
+            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create("console", "Specifies which type of console output to generate. Values are 'plain', 'auto' (default) or 'rich'."));
         }
 
         @Override

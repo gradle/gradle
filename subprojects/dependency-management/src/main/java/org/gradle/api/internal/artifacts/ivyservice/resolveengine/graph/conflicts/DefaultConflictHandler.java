@@ -54,7 +54,7 @@ public class DefaultConflictHandler implements ConflictHandler {
      * Informs if there are any batched up conflicts.
      */
     public boolean hasConflicts() {
-        return conflicts.getSize() > 0;
+        return !conflicts.isEmpty();
     }
 
     /**
@@ -64,7 +64,7 @@ public class DefaultConflictHandler implements ConflictHandler {
         assert hasConflicts();
         ConflictContainer.Conflict conflict = conflicts.popConflict();
         ComponentResolutionState selected = compositeResolver.select(conflict.candidates);
-        ConflictResolutionResult result = new DefaultConflictResolutionResult(potentialConflict(conflict), selected);
+        ConflictResolutionResult result = new DefaultConflictResolutionResult(conflict.participants, selected);
         resolutionAction.execute(result);
         LOGGER.debug("Selected {} from conflicting modules {}.", selected, conflict.candidates);
     }

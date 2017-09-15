@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.util
+
 import org.gradle.api.JavaVersion
 import org.gradle.internal.os.OperatingSystem
 
@@ -154,6 +155,10 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     }),
     KOTLIN_SCRIPT({
         JDK8_OR_LATER.fulfilled && FIX_TO_WORK_ON_JAVA9.fulfilled && NOT_JDK_IBM.fulfilled
+    }),
+    XCODE({
+        // Simplistic approach at detecting Xcode by assuming macOS imply Xcode is present
+        MAC_OS_X.fulfilled
     })
 
     /**

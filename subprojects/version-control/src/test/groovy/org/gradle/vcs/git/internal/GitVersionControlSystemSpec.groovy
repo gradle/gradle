@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.vcs.git
+package org.gradle.vcs.git.internal
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.vcs.fixtures.TemporaryGitRepository
+import org.gradle.vcs.git.GitVersionControlSpec
 import org.junit.Rule
 import spock.lang.Specification
 

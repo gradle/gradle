@@ -19,9 +19,14 @@ package org.gradle.ide.xcode
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
+    @Requires(TestPrecondition.XCODE)
     def "create xcode project executable"() {
+        executer.requireGradleDistribution()
+
         given:
         buildFile << """
 apply plugin: 'swift-executable'
@@ -36,7 +41,7 @@ apply plugin: 'swift-executable'
         then:
         executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
-        def project = xcodeProject("app.xcodeproj").projectFile
+        def project = rootXcodeProject.projectFile
         project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
         project.buildConfigurationList.buildConfigurations.name == ["Debug", "Release"]
         project.targets.size() == 2
@@ -55,9 +60,31 @@ apply plugin: 'swift-executable'
 
         project.products.children.size() == 1
         project.products.children[0].path == exe("build/exe/main/debug/App").absolutePath
+
+        when:
+        def resultDebug = xcodebuild
+            .withProject(rootXcodeProject)
+            .withScheme('App Executable')
+            .succeeds()
+
+        then:
+        resultDebug.assertTasksExecuted(':compileDebugSwift', ':linkDebug')
+
+        when:
+        def resultRelease = xcodebuild
+            .withProject(rootXcodeProject)
+            .withScheme('App Executable')
+            .withConfiguration('Release')
+            .succeeds()
+
+        then:
+        resultRelease.assertTasksExecuted(':compileReleaseSwift', ':linkRelease')
     }
 
+    @Requires(TestPrecondition.XCODE)
     def "create xcode project library"() {
+        executer.requireGradleDistribution().requireOwnGradleUserHomeDir()
+
         given:
         buildFile << """
 apply plugin: 'swift-library'
@@ -71,7 +98,7 @@ apply plugin: 'swift-library'
         then:
         executedAndNotSkipped(":xcodeProject", ":xcodeSchemeAppSharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
 
-        def project = xcodeProject("app.xcodeproj").projectFile
+        def project = rootXcodeProject.projectFile
         project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
         project.buildConfigurationList.buildConfigurations.name == ["Debug", "Release"]
         project.targets.size() == 2
@@ -90,6 +117,25 @@ apply plugin: 'swift-library'
 
         project.products.children.size() == 1
         project.products.children[0].path == sharedLib("build/lib/main/debug/App").absolutePath
+
+        when:
+        def resultDebug = xcodebuild
+            .withProject(rootXcodeProject)
+            .withScheme('App SharedLibrary')
+            .succeeds()
+
+        then:
+        resultDebug.assertTasksExecuted(':compileDebugSwift', ':linkDebug')
+
+        when:
+        def resultRelease = xcodebuild
+            .withProject(rootXcodeProject)
+            .withScheme('App SharedLibrary')
+            .withConfiguration('Release')
+            .succeeds()
+
+        then:
+        resultRelease.assertTasksExecuted(':compileReleaseSwift', ':linkRelease')
     }
 
     def "new source files are included in the project"() {
@@ -104,8 +150,8 @@ apply plugin: 'swift-executable'
         succeeds("xcode")
 
         then:
-        xcodeProject("${rootProjectName}.xcodeproj").projectFile
-            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
+        rootXcodeProject.projectFile.mainGroup
+            .assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
 
         when:
         def app = new SwiftApp()
@@ -113,8 +159,8 @@ apply plugin: 'swift-executable'
         succeeds('xcode')
 
         then:
-        xcodeProject("${rootProjectName}.xcodeproj").projectFile
-            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
+        rootXcodeProject.projectFile.mainGroup
+            .assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
     }
 
     def "deleted source files are not included in the project"() {
@@ -129,8 +175,8 @@ apply plugin: 'swift-executable'
         succeeds("xcode")
 
         then:
-        xcodeProject("${rootProjectName}.xcodeproj").projectFile
-            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
+        rootXcodeProject.projectFile.mainGroup
+            .assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
 
         when:
         file('src/main').deleteDir()
@@ -139,8 +185,8 @@ apply plugin: 'swift-executable'
         succeeds('xcode')
 
         then:
-        xcodeProject("${rootProjectName}.xcodeproj").projectFile
-            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
+        rootXcodeProject.projectFile.mainGroup
+            .assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
     }
 
     def "executable source files in a non-default location are included in the project"() {
@@ -160,8 +206,8 @@ executable {
         succeeds("xcode")
 
         then:
-        xcodeProject("${rootProjectName}.xcodeproj").projectFile
-            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
+        rootXcodeProject.projectFile.mainGroup
+            .assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
     }
 
     def "library source files in a non-default location are included in the project"() {
@@ -181,8 +227,8 @@ library {
         succeeds("xcode")
 
         then:
-        xcodeProject("${rootProjectName}.xcodeproj").projectFile
-            .mainGroup.assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
+        rootXcodeProject.projectFile.mainGroup
+            .assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
     }
 
     def "honors changes to executable output file locations"() {
@@ -202,7 +248,7 @@ executable.module = 'TestApp'
         then:
         executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
-        def project = xcodeProject("app.xcodeproj").projectFile
+        def project = rootXcodeProject.projectFile
         project.targets.size() == 2
         project.targets.every { it.productName == 'App' }
         project.targets[0].name == 'App Executable'
@@ -230,7 +276,7 @@ library.module = 'TestLib'
         then:
         executedAndNotSkipped(":xcodeProject", ":xcodeSchemeAppSharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
 
-        def project = xcodeProject("app.xcodeproj").projectFile
+        def project = rootXcodeProject.projectFile
         project.targets.size() == 2
         project.targets.every { it.productName == "App" }
         project.targets[0].name == 'App SharedLibrary'

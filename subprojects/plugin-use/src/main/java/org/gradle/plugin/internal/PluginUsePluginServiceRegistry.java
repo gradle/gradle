@@ -92,7 +92,6 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
         protected PluginManagementSpec createPluginManagementSpec(Instantiator instantiator, PluginRepositoriesSpec pluginRepositoriesSpec, PluginResolutionStrategyInternal internalPluginResolutionStrategy) {
             return instantiator.newInstance(DefaultPluginManagementSpec.class, pluginRepositoriesSpec, internalPluginResolutionStrategy);
         }
-
     }
 
     private static class BuildScopeServices {

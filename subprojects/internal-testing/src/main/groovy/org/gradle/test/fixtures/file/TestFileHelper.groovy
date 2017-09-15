@@ -184,12 +184,26 @@ class TestFileHelper {
 
     ExecOutput execute(List args, List env) {
         def process = ([file.absolutePath] + args).execute(env, null)
+        int exitCode = process.waitFor()
         String output = process.inputStream.text
         String error = process.errorStream.text
-        if (process.waitFor() != 0) {
-            throw new RuntimeException("Could not execute $file. Error: $error, Output: $output")
+        return new ExecOutput(exitCode, output, error)
+    }
+
+    ExecOutput executeSuccess(List args, List env) {
+        def result = execute(args, env)
+        if (result.exitCode != 0) {
+            throw new RuntimeException("Could not execute $file. Error: ${result.error}, Output: ${result.out}")
         }
-        return new ExecOutput(output, error)
+        return result
+    }
+
+    ExecOutput executeFailure(List args, List env) {
+        def result = execute(args, env)
+        if (result.exitCode == 0) {
+            throw new RuntimeException("Unexpected success, executing $file. Error: ${result.error}, Output: ${result.out}")
+        }
+        return result
     }
 
     public void zipTo(TestFile zipFile, boolean nativeTools, boolean readOnly) {

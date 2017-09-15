@@ -35,6 +35,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultRe
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskResolver;
+import org.gradle.vcs.internal.VcsMappingsInternal;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerManager;
@@ -69,8 +70,11 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
                                          final Instantiator instantiator, DomainObjectContext context, ListenerManager listenerManager,
                                          DependencyMetaDataProvider dependencyMetaDataProvider, ProjectAccessListener projectAccessListener,
                                          ProjectFinder projectFinder, ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder,
-                                         FileCollectionFactory fileCollectionFactory, final DependencySubstitutionRules globalDependencySubstitutionRules,
-                                         final ComponentIdentifierFactory componentIdentifierFactory, BuildOperationExecutor buildOperationExecutor,
+                                         FileCollectionFactory fileCollectionFactory,
+                                         final DependencySubstitutionRules globalDependencySubstitutionRules,
+                                         final VcsMappingsInternal vcsMappingsInternal,
+                                         final ComponentIdentifierFactory componentIdentifierFactory,
+                                         BuildOperationExecutor buildOperationExecutor,
                                          TaskResolver taskResolver,
                                          ImmutableAttributesFactory attributesFactory,
                                          final ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
@@ -89,7 +93,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         resolutionStrategyFactory = new Factory<ResolutionStrategyInternal>() {
             @Override
             public ResolutionStrategyInternal create() {
-                return instantiator.newInstance(DefaultResolutionStrategy.class, globalDependencySubstitutionRules, componentIdentifierFactory, moduleIdentifierFactory);
+                return instantiator.newInstance(DefaultResolutionStrategy.class, globalDependencySubstitutionRules, vcsMappingsInternal, componentIdentifierFactory, moduleIdentifierFactory);
             }
         };
         this.rootComponentMetadataBuilder = new DefaultRootComponentMetadataBuilder(dependencyMetaDataProvider, componentIdentifierFactory, moduleIdentifierFactory, projectFinder, configurationComponentMetaDataBuilder, this);

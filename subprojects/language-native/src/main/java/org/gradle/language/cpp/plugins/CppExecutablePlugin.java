@@ -117,7 +117,7 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
                         extension.getPublications().create("main", MavenPublication.class, new Action<MavenPublication>() {
                             @Override
                             public void execute(MavenPublication publication) {
-                                // TODO - should track changes to properties
+                                // TODO - should track changes to these properties
                                 publication.setGroupId(project.getGroup().toString());
                                 publication.setArtifactId(application.getBaseName().get());
                                 publication.setVersion(project.getVersion().toString());
@@ -126,21 +126,21 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
                         extension.getPublications().create("debug", MavenPublication.class, new Action<MavenPublication>() {
                             @Override
                             public void execute(MavenPublication publication) {
-                                // TODO - should track changes to properties
+                                // TODO - should track changes to these properties
                                 publication.setGroupId(project.getGroup().toString());
                                 publication.setArtifactId(application.getBaseName().get() + "_debug");
                                 publication.setVersion(project.getVersion().toString());
-                                publication.from(new NativeVariant("debug", null, null, runtimeUsage, debugRuntimeElements));
+                                publication.from(new NativeVariant("debug", runtimeUsage, debugRuntimeElements.getAllArtifacts(), debugRuntimeElements));
                             }
                         });
                         extension.getPublications().create("release", MavenPublication.class, new Action<MavenPublication>() {
                             @Override
                             public void execute(MavenPublication publication) {
-                                // TODO - should track changes to properties
+                                // TODO - should track changes to these properties
                                 publication.setGroupId(project.getGroup().toString());
                                 publication.setArtifactId(application.getBaseName().get() + "_release");
                                 publication.setVersion(project.getVersion().toString());
-                                publication.from(new NativeVariant("release", null, null, runtimeUsage, releaseRuntimeElements));
+                                publication.from(new NativeVariant("release", runtimeUsage, releaseRuntimeElements.getAllArtifacts(), releaseRuntimeElements));
                             }
                         });
                     }

@@ -38,7 +38,7 @@ class DefaultCppBinaryTest extends Specification {
         _ * configurations.create("cppCompileDebug") >> compile
         _ * configurations.create("nativeLinkDebug") >> link
         _ * configurations.create("nativeRuntimeDebug") >> runtime
-        _ * componentHeaders.plus(compile) >> headerDirs
+        _ * componentHeaders.plus(_) >> headerDirs
 
         binary = new DefaultCppBinary("mainDebug", TestUtil.objectFactory(), Stub(Provider), true, Stub(FileCollection), componentHeaders, configurations, implementation)
     }
@@ -46,7 +46,7 @@ class DefaultCppBinaryTest extends Specification {
     def "creates configurations for the binary"() {
         expect:
         binary.compileIncludePath == headerDirs
-        binary.linkLibraries == link
-        binary.runtimeLibraries == runtime
+        binary.linkLibraries
+        binary.runtimeLibraries
     }
 }

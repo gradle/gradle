@@ -31,6 +31,7 @@ import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.BasicDomainObjectContext
 import org.gradle.api.internal.tasks.TaskResolver
+import org.gradle.vcs.internal.VcsMappingsInternal
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -48,6 +49,7 @@ class DefaultConfigurationContainerTest extends Specification {
     private ConfigurationComponentMetaDataBuilder metaDataBuilder = Mock(ConfigurationComponentMetaDataBuilder)
     private ComponentIdentifierFactory componentIdentifierFactory = Mock(ComponentIdentifierFactory)
     private DependencySubstitutionRules globalSubstitutionRules = Mock(DependencySubstitutionRules)
+    private VcsMappingsInternal vcsMappingsInternal = Mock(VcsMappingsInternal)
     private BuildOperationExecutor buildOperationExecutor = Mock(BuildOperationExecutor)
     private TaskResolver taskResolver = Mock(TaskResolver)
 
@@ -61,7 +63,7 @@ class DefaultConfigurationContainerTest extends Specification {
     private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
             resolver, instantiator, new BasicDomainObjectContext(),
             listenerManager, metaDataProvider, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(),
-            globalSubstitutionRules, componentIdentifierFactory, buildOperationExecutor, taskResolver, immutableAttributesFactory, moduleIdentifierFactory)
+            globalSubstitutionRules, vcsMappingsInternal, componentIdentifierFactory, buildOperationExecutor, taskResolver, immutableAttributesFactory, moduleIdentifierFactory)
 
     def addsNewConfigurationWhenConfiguringSelf() {
         when:

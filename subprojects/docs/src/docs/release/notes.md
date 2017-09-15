@@ -34,6 +34,10 @@ task customTask {
 }
 ```
 
+### Force rich or plain console with `org.gradle.console`
+
+You may now force Gradle to use rich or plain [build output](userguide/console.html#sec:console_build_output) by setting [`org.gradle.console`](userguide/build_environment.html#sec:gradle_configuration_properties) in your `gradle.properties`.
+
 <!--
 ### Example new and noteworthy
 -->
@@ -66,6 +70,14 @@ The following are the newly deprecated items in this Gradle release. If you have
 <!--
 ### Example deprecation
 -->
+
+### Deprecation of old Tooling API version 
+
+The following supports are deprecated now and will be removed in Gradle 5.0. You should avoid using them:
+
+- Running Gradle older than 2.6 via Tooling API 
+
+Please see [Gradle version and Java version compatibility](userguide/embedding.html#sec:embedding_compatibility) for more details.
 
 ## Potential breaking changes
 

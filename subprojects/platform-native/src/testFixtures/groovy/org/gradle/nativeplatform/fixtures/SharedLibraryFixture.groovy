@@ -23,7 +23,7 @@ class SharedLibraryFixture extends NativeBinaryFixture {
         super(file, toolChain)
     }
 
-    File getLinkFile() {
+    TestFile getLinkFile() {
         if (toolChain.visualCpp) {
             return file.withExtension("lib")
         }
