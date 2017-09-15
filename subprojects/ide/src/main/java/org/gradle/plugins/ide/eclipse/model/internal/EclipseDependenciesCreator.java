@@ -17,9 +17,9 @@
 package org.gradle.plugins.ide.eclipse.model.internal;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Multimap;/**/
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
@@ -44,8 +44,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class EclipseDependenciesCreator {
 
@@ -90,7 +88,7 @@ public class EclipseDependenciesCreator {
         boolean downloadSources = classpath.isDownloadSources();
         boolean downloadJavadoc = classpath.isDownloadJavadoc();
 
-        Map<String, Set<String>> pathToSourceSets = collectRuntimeClasspathPathSourceSets();
+        Multimap<String, String> pathToSourceSets = collectRuntimeClasspathPathSourceSets();
 
         Collection<IdeExtendedRepoFileDependency> repoFileDependencies = dependenciesExtractor.extractRepoFileDependencies(classpath.getProject().getDependencies(), classpath.getPlusConfigurations(), classpath.getMinusConfigurations(), downloadSources, downloadJavadoc);
         for (IdeExtendedRepoFileDependency dependency : repoFileDependencies) {
@@ -104,8 +102,8 @@ public class EclipseDependenciesCreator {
         return libraries;
     }
 
-    private Map<String, Set<String>> collectRuntimeClasspathPathSourceSets() {
-        Map<String, Set<String>> pathToSourceSetNames = Maps.newHashMap();
+    private Multimap<String, String> collectRuntimeClasspathPathSourceSets() {
+        Multimap<String, String> pathToSourceSetNames = LinkedHashMultimap.create();
         Iterable<SourceSet> sourceSets = classpath.getSourceSets();
 
         // for non-java projects there are no source sets configured
@@ -119,12 +117,7 @@ public class EclipseDependenciesCreator {
                 FileCollection classpath = sourceSet.getRuntimeClasspath();
                 for (File f : classpath) {
                     String path = f.getAbsolutePath();
-                    Set<String> names = pathToSourceSetNames.get(path);
-                    if (names == null) {
-                        names = Sets.newLinkedHashSet();
-                    }
-                    names.add(name);
-                    pathToSourceSetNames.put(path, names);
+                    pathToSourceSetNames.put(path, name);
                 }
             }
         } catch (Exception e) {
@@ -133,7 +126,7 @@ public class EclipseDependenciesCreator {
         return pathToSourceSetNames;
     }
 
-    private static AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, EclipseClasspath classpath, ModuleVersionIdentifier id, Map<String, Set<String>> pathToSourceSets) {
+    private static AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, EclipseClasspath classpath, ModuleVersionIdentifier id, Multimap<String, String> pathToSourceSets) {
         FileReferenceFactory referenceFactory = classpath.getFileReferenceFactory();
 
         FileReference binaryRef = referenceFactory.fromFile(binary);
@@ -147,7 +140,7 @@ public class EclipseDependenciesCreator {
         out.setExported(false);
         out.setModuleVersion(id);
 
-        Set<String> sourceSets = pathToSourceSets.get(binary.getAbsolutePath());
+        Collection<String> sourceSets = pathToSourceSets.get(binary.getAbsolutePath());
         if (sourceSets != null) {
             out.getEntryAttributes().put("gradle_source_sets", Joiner.on(',').join(sourceSets));
         }
