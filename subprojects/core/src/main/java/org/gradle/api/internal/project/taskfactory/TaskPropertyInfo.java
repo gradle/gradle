@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.util.DeferredUtil;
 import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nonnull;
@@ -101,12 +102,13 @@ public class TaskPropertyInfo implements Comparable<TaskPropertyInfo> {
 
             @Override
             public void validate(boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
-                if (value == null) {
+                Object unpacked = DeferredUtil.unpack(value);
+                if (unpacked == null) {
                     if (!optional) {
                         context.recordValidationMessage(String.format("No value has been specified for property '%s'.", propertyName));
                     }
                 } else {
-                    valueValidator.validate(propertyName, value, context);
+                    valueValidator.validate(propertyName, unpacked, context);
                 }
             }
         };

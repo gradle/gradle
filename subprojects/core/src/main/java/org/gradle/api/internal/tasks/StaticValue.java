@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.util.DeferredUtil;
+
 public class StaticValue implements ValidatingValue {
     private final Object value;
 
@@ -30,12 +32,13 @@ public class StaticValue implements ValidatingValue {
 
     @Override
     public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
-        if (value == null) {
+        Object unpacked = DeferredUtil.unpack(value);
+        if (unpacked == null) {
             if (!optional) {
                 context.recordValidationMessage(String.format("No value has been specified for property '%s'.", propertyName));
             }
         } else {
-            valueValidator.validate(propertyName, value, context);
+            valueValidator.validate(propertyName, unpacked, context);
         }
     }
 }
