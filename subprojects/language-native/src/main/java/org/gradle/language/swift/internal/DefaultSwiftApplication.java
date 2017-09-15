@@ -32,8 +32,8 @@ public class DefaultSwiftApplication extends DefaultSwiftComponent implements Sw
     @Inject
     public DefaultSwiftApplication(String name, ObjectFactory objectFactory, FileOperations fileOperations, ProviderFactory providerFactory, ConfigurationContainer configurations) {
         super(name, fileOperations, providerFactory, configurations);
-        debug = new DefaultSwiftExecutable(name + "Debug", objectFactory, getModule(), true, getSwiftSource(), configurations, getImplementationDependencies());
-        release = new DefaultSwiftExecutable(name + "Release", objectFactory, getModule(), false, getSwiftSource(), configurations, getImplementationDependencies());
+        debug = objectFactory.newInstance(DefaultSwiftExecutable.class, name + "Debug", objectFactory, getModule(), true, getSwiftSource(), configurations, getImplementationDependencies());
+        release = objectFactory.newInstance(DefaultSwiftExecutable.class, name + "Release", objectFactory, getModule(), false, getSwiftSource(), configurations, getImplementationDependencies());
     }
 
     @Override

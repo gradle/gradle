@@ -39,7 +39,7 @@ public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements Sw
 
         resourceDirectory = projectLayout.newDirectoryVar();
         resourceDirectory.set(projectLayout.getProjectDirectory().dir("src/" + name + "/resources"));
-        bundle = new DefaultSwiftBundle(name + "Bundle", objectFactory, getModule(), true, getSwiftSource(), configurations, getImplementationDependencies(), getResourceDir());
+        bundle = objectFactory.newInstance(DefaultSwiftBundle.class, name + "Bundle", objectFactory, getModule(), true, getSwiftSource(), configurations, getImplementationDependencies(), getResourceDir());
     }
 
     @Override

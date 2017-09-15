@@ -25,9 +25,12 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.swift.SwiftBundle;
 
+import javax.inject.Inject;
+
 public class DefaultSwiftBundle extends DefaultSwiftBinary implements SwiftBundle {
     private final Provider<RegularFile> informationPropertyList;
 
+    @Inject
     public DefaultSwiftBundle(String name, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, DirectoryVar resourceDirectory) {
         super(name, objectFactory, module, debuggable, source, configurations, implementation);
 
