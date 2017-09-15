@@ -238,7 +238,7 @@ fun configurationAccessorFor(name: AccessorNameSpec): String? = name.run {
 }
 
 
-private
+internal
 data class AccessorNameSpec(val original: String) {
 
     val kotlinIdentifier get() = original

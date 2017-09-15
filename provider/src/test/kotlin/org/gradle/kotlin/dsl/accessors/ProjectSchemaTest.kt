@@ -34,6 +34,16 @@ class ProjectSchemaTest : TestWithClassPath() {
     }
 
     @Test
+    fun `accessor name spec escapes string template dollar signs`() {
+        val original = "foo${'$'}${'$'}bar"
+        val spec = AccessorNameSpec(original)
+
+        assertThat(spec.original, equalTo(original))
+        assertThat(spec.kotlinIdentifier, equalTo(original))
+        assertThat(spec.stringLiteral, equalTo("foo${'$'}{'${'$'}'}${'$'}{'${'$'}'}bar"))
+    }
+
+    @Test
     fun `non existing type is represented as Inaccessible because NonAvailable`() {
 
         val typeString = "non.existing.Type"
