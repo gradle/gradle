@@ -48,10 +48,10 @@ abstract class AbstractInputPropertyAnnotationHandler implements PropertyAnnotat
 
         context.setConfigureAction(new UpdateAction() {
             @Override
-            public void updateInputs(TaskInputsInternal inputs, Callable<Object> futureValue) {
+            public void updateInputs(TaskInputsInternal inputs, String propertyName, Callable<Object> futureValue) {
                 final TaskInputFilePropertyBuilder propertyBuilder = createPropertyBuilder(context, inputs, futureValue);
                 propertyBuilder
-                    .withPropertyName(context.getName())
+                    .withPropertyName(propertyName)
                     .withPathSensitivity(pathSensitivity)
                     .skipWhenEmpty(context.isAnnotationPresent(SkipWhenEmpty.class))
                     .optional(context.isOptional());

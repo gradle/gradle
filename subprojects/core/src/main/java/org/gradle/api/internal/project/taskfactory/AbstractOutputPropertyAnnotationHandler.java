@@ -33,15 +33,15 @@ public abstract class AbstractOutputPropertyAnnotationHandler implements Propert
         });
         context.setConfigureAction(new UpdateAction() {
             @Override
-            public void updateOutputs(TaskOutputsInternal outputs, final Callable<Object> futureValue) {
-                createPropertyBuilder(context, outputs, futureValue)
-                    .withPropertyName(context.getName())
+            public void updateOutputs(TaskOutputsInternal outputs, String propertyName, final Callable<Object> futureValue) {
+                createPropertyBuilder(outputs, futureValue)
+                    .withPropertyName(propertyName)
                     .optional(context.isOptional());
             }
         });
     }
 
-    protected abstract TaskOutputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskOutputsInternal outputs, Callable<Object> futureValue);
+    protected abstract TaskOutputFilePropertyBuilder createPropertyBuilder(TaskOutputsInternal outputs, Callable<Object> futureValue);
 
     protected abstract void validate(String propertyName, Object value, Collection<String> messages);
 }

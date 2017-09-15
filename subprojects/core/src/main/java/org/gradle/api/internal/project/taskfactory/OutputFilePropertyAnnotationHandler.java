@@ -42,7 +42,7 @@ public class OutputFilePropertyAnnotationHandler extends AbstractOutputPropertyA
     }
 
     @Override
-    protected TaskOutputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskOutputsInternal outputs, Callable<Object> futureValue) {
+    protected TaskOutputFilePropertyBuilder createPropertyBuilder(TaskOutputsInternal outputs, Callable<Object> futureValue) {
         return outputs.file(futureValue);
     }
 

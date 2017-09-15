@@ -45,9 +45,9 @@ public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnn
     public void attachActions(final TaskPropertyActionContext context) {
         context.setConfigureAction(new UpdateAction() {
             @Override
-            public void updateInputs(TaskInputsInternal inputs, Callable<Object> futureValue) {
+            public void updateInputs(TaskInputsInternal inputs, String propertyName, Callable<Object> futureValue) {
                 ((TaskInputFilePropertyBuilderInternal) inputs.files(futureValue))
-                    .withPropertyName(context.getName())
+                    .withPropertyName(propertyName)
                     .withSnapshotter(getSnapshotterType())
                     .optional(context.isOptional());
             }

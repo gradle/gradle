@@ -23,12 +23,12 @@ import java.util.concurrent.Callable;
 
 public abstract class UpdateAction {
 
-    void updateInputs(TaskInputsInternal inputs, Callable<Object> futureValue) {
+    void updateInputs(TaskInputsInternal inputs, String propertyName, Callable<Object> futureValue) {
     }
 
-    void updateOutputs(TaskOutputsInternal outputs, Callable<Object> futureValue) {
+    void updateOutputs(TaskOutputsInternal outputs, String propertyName, Callable<Object> futureValue) {
     }
 
-    void updateDestroyables(TaskDestroyables destroyables, Callable<Object> futureValue) {
+    void updateDestroyables(TaskDestroyables destroyables, String propertyName, Callable<Object> futureValue) {
     }
 }

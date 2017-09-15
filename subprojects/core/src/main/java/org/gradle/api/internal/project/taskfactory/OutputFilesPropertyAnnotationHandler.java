@@ -34,7 +34,7 @@ public class OutputFilesPropertyAnnotationHandler extends AbstractPluralOutputPr
     }
 
     @Override
-    protected TaskOutputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskOutputsInternal outputs, Callable<Object> futureValue) {
+    protected TaskOutputFilePropertyBuilder createPropertyBuilder(TaskOutputsInternal outputs, Callable<Object> futureValue) {
         return outputs.files(futureValue);
     }
 

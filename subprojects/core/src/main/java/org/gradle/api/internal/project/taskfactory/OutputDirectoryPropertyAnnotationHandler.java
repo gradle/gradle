@@ -44,7 +44,7 @@ public class OutputDirectoryPropertyAnnotationHandler extends AbstractOutputProp
     }
 
     @Override
-    protected TaskOutputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskOutputsInternal outputs, Callable<Object> futureValue) {
+    protected TaskOutputFilePropertyBuilder createPropertyBuilder(TaskOutputsInternal outputs, Callable<Object> futureValue) {
         return outputs.dir(futureValue);
     }
 

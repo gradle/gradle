@@ -35,7 +35,7 @@ public class OutputDirectoriesPropertyAnnotationHandler extends AbstractPluralOu
     }
 
     @Override
-    protected TaskOutputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskOutputsInternal outputs, Callable<Object> futureValue) {
+    protected TaskOutputFilePropertyBuilder createPropertyBuilder(TaskOutputsInternal outputs, Callable<Object> futureValue) {
         return outputs.dirs(futureValue);
     }
 
