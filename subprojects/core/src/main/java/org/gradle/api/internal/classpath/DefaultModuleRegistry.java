@@ -222,7 +222,7 @@ public class DefaultModuleRegistry implements ModuleRegistry {
                 zipFile.close();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException(String.format("Could not load properties for module '%s' from %s", name, jarFile), e);
         }
     }
 
