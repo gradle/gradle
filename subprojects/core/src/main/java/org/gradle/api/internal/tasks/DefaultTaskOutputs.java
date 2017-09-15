@@ -49,7 +49,6 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.*;
-import static org.gradle.internal.Cast.uncheckedCast;
 
 @NonNullApi
 public class DefaultTaskOutputs implements TaskOutputsInternal {
@@ -330,7 +329,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private static final ValidationAction OUTPUT_FILE_VALIDATOR = new ValidationAction() {
         @Override
         public void validate(String propertyName, Object value, TaskValidationContext context) {
-            File file = context.getResolver().resolve(value);
+            File file = (File) value;
             if (file.exists()) {
                 if (file.isDirectory()) {
                     context.recordValidationMessage(String.format("Cannot write to file '%s' specified for property '%s' as it is a directory.", file, propertyName));
@@ -350,8 +349,8 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private static final ValidationAction OUTPUT_FILES_VALIDATOR = new ValidationAction() {
         @Override
         public void validate(String propertyName, Object values, TaskValidationContext context) {
-            for (Object value : toValues(values)) {
-                OUTPUT_FILE_VALIDATOR.validate(propertyName, value, context);
+            for (File file : toFiles(context, values)) {
+                OUTPUT_FILE_VALIDATOR.validate(propertyName, file, context);
             }
         }
     };
@@ -359,7 +358,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private static final ValidationAction OUTPUT_DIRECTORY_VALIDATOR = new ValidationAction() {
         @Override
         public void validate(String propertyName, Object value, TaskValidationContext context) {
-            File directory = context.getResolver().resolve(value);
+            File directory = (File) value;
             if (directory.exists()) {
                 if (!directory.isDirectory()) {
                     context.recordValidationMessage(String.format("Directory '%s' specified for property '%s' is not a directory.", directory, propertyName));
@@ -378,17 +377,19 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private static final ValidationAction OUTPUT_DIRECTORIES_VALIDATOR = new ValidationAction() {
         @Override
         public void validate(String propertyName, Object values, TaskValidationContext context) {
-            for (Object value : toValues(values)) {
-                OUTPUT_DIRECTORY_VALIDATOR.validate(propertyName, value, context);
+            for (File directory : toFiles(context, values)) {
+                OUTPUT_DIRECTORY_VALIDATOR.validate(propertyName, directory, context);
             }
         }
     };
 
-    private static Iterable<?> toValues(Object value) {
+    private static Iterable<? extends File> toFiles(TaskValidationContext context, Object value) {
         if (value instanceof Map) {
-            return uncheckedCast(((Map) value).values());
+            return toFiles(context, ((Map) value).values());
+        } else if (value instanceof FileCollection) {
+            return ((FileCollection) value).getFiles();
         } else {
-            return uncheckedCast(value);
+            return context.getResolver().resolveFiles(value);
         }
     }
 }

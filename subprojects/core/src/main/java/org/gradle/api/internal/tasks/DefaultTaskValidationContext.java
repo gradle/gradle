@@ -16,21 +16,21 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.api.internal.file.FileResolver;
 
 import java.util.Collection;
 
 public class DefaultTaskValidationContext implements TaskValidationContext {
-    private final PathToFileResolver resolver;
+    private final FileResolver resolver;
     private final Collection<String> messages;
 
-    public DefaultTaskValidationContext(PathToFileResolver resolver, Collection<String> messages) {
+    public DefaultTaskValidationContext(FileResolver resolver, Collection<String> messages) {
         this.resolver = resolver;
         this.messages = messages;
     }
 
     @Override
-    public PathToFileResolver getResolver() {
+    public FileResolver getResolver() {
         return resolver;
     }
 

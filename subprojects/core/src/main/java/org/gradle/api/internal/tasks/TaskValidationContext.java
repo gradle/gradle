@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.api.internal.file.FileResolver;
 
 public interface TaskValidationContext {
-    PathToFileResolver getResolver();
+    FileResolver getResolver();
 
     void recordValidationMessage(String message);
 }
