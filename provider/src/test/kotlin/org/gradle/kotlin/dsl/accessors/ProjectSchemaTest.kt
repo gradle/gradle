@@ -19,16 +19,28 @@ private class PrivateComponentType
 class ProjectSchemaTest : TestWithClassPath() {
 
     @Test
-    fun `#isLegalExtensionName rejects illegal Kotlin extension names`() {
+    fun `#isLegalAccessorName rejects illegal Kotlin extension names`() {
 
-        assert(isLegalExtensionName("foo_bar"))
-        assert(isLegalExtensionName("foo-bar"))
-        assert(isLegalExtensionName("foo bar"))
+        assert(isLegalAccessorName("foo_bar"))
+        assert(isLegalAccessorName("foo-bar"))
+        assert(isLegalAccessorName("foo bar"))
+        assert(isLegalAccessorName("'foo'bar'"))
+        assert(isLegalAccessorName("foo${'$'}${'$'}bar"))
 
-        assertFalse(isLegalExtensionName("foo`bar"))
-        assertFalse(isLegalExtensionName("foo.bar"))
-        assertFalse(isLegalExtensionName("foo/bar"))
-        assertFalse(isLegalExtensionName("foo\\bar"))
+        assertFalse(isLegalAccessorName("foo`bar"))
+        assertFalse(isLegalAccessorName("foo.bar"))
+        assertFalse(isLegalAccessorName("foo/bar"))
+        assertFalse(isLegalAccessorName("foo\\bar"))
+    }
+
+    @Test
+    fun `accessor name spec escapes string template dollar signs`() {
+        val original = "foo${'$'}${'$'}bar"
+        val spec = AccessorNameSpec(original)
+
+        assertThat(spec.original, equalTo(original))
+        assertThat(spec.kotlinIdentifier, equalTo(original))
+        assertThat(spec.stringLiteral, equalTo("foo${'$'}{'${'$'}'}${'$'}{'${'$'}'}bar"))
     }
 
     @Test
