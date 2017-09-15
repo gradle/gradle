@@ -48,7 +48,7 @@ public class PublishToIvyRepository extends DefaultTask {
     public PublishToIvyRepository() {
 
         // Allow the publication to participate in incremental build
-        getInputs().file(new Callable<FileCollection>() {
+        getInputs().files(new Callable<FileCollection>() {
             public FileCollection call() throws Exception {
                 IvyPublicationInternal publicationInternal = getPublicationInternal();
                 return publicationInternal == null ? null : publicationInternal.getPublishableFiles();
