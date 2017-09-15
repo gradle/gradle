@@ -293,7 +293,7 @@ These plugins provide help with your software development process.
 
 | <<javaGradle_plugin, `java-gradle-plugin` >>
 | java
-| 
+|
 | Assists with development of Gradle plugins by providing standard plugin build configuration and validation.
 |===
 
@@ -310,12 +310,12 @@ These plugins form the basic building blocks which the other plugins are assembl
 | Description
 
 | base
-| Adds the standard lifecycle tasks and configures reasonable defaults for the archive tasks: 
+| Adds the standard lifecycle tasks and configures reasonable defaults for the archive tasks:
 
 * adds build __ConfigurationName__ tasks. Those tasks assemble the artifacts belonging to the specified configuration.
 * adds upload __ConfigurationName__ tasks. Those tasks assemble and upload the artifacts belonging to the specified configuration.
 * configures reasonable default values for all archive tasks (e.g. tasks that inherit from api:org.gradle.api.tasks.bundling.AbstractArchiveTask[]). For example, the archive tasks are tasks of types: api:org.gradle.api.tasks.bundling.Jar[], api:org.gradle.api.tasks.bundling.Tar[], api:org.gradle.api.tasks.bundling.Zip[]. Specifically, `destinationDir`, `baseName` and `version` properties of the archive tasks are preconfigured with defaults. This is extremely useful because it drives consistency across projects; the consistency regarding naming conventions of archives and their location after the build completed.
- 
+
 
 | java-base
 | Adds the source sets concept to the project. Does not add any particular source sets.

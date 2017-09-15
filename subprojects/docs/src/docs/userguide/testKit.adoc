@@ -15,16 +15,12 @@
 [[test_kit]]
 == The Gradle TestKit
 
-
 [NOTE]
 ====
- 
 The Gradle TestKit is currently <<feature_lifecycle,incubating>>. Please be aware that its API and other characteristics may change in later Gradle versions.
- 
 ====
 
 The Gradle TestKit (a.k.a. just TestKit) is a library that aids in testing Gradle plugins and build logic generally. At this time, it is focused on _functional_ testing. That is, testing build logic by exercising it as part of a programmatically executed build. Over time, the TestKit will likely expand to facilitate other kinds of tests.
-
 
 [[sec:testkit_usage]]
 === Usage
@@ -33,16 +29,16 @@ To use the TestKit, include the following in your plugin's build:
 
 ++++
 <sample id="testKitDependency" dir="testKit/gradleRunner/junitQuickstart" title="Declaring the TestKit dependency">
-            <sourcefile file="build.gradle" snippet="declare-gradle-testkit-dependency"/>
-        </sample>
+    <sourcefile file="build.gradle" snippet="declare-gradle-testkit-dependency"/>
+</sample>
 ++++
 
 The `gradleTestKit()` encompasses the classes of the TestKit, as well as the <<embedding,Gradle Tooling API client>>. It does not include a version of http://junit.org[JUnit], http://testng.org[TestNG], or any other test execution framework. Such a dependency must be explicitly declared.
 
 ++++
 <sample id="junitDependency" dir="testKit/gradleRunner/junitQuickstart" title="Declaring the JUnit dependency">
-            <sourcefile file="build.gradle" snippet="declare-junit-dependency"/>
-        </sample>
+    <sourcefile file="build.gradle" snippet="declare-junit-dependency"/>
+</sample>
 ++++
 
 
@@ -51,19 +47,20 @@ The `gradleTestKit()` encompasses the classes of the TestKit, as well as the <<e
 
 The api:org.gradle.testkit.runner.GradleRunner[] facilitates programmatically executing Gradle builds, and inspecting the result.
 
-A contrived build can be created (e.g. programmatically, or from a template) that exercises the “logic under test”. The build can then be executed, potentially in a variety of ways (e.g. different combinations of tasks and arguments). The correctness of the logic can then be verified by asserting the following, potentially in combination: 
+A contrived build can be created (e.g. programmatically, or from a template) that exercises the “logic under test”. The build can then be executed, potentially in a variety of ways (e.g. different combinations of tasks and arguments). The correctness of the logic can then be verified by asserting the following, potentially in combination:
 
 * The build's output;
 * The build's logging (i.e. console output);
 * The set of tasks executed by the build and their results (e.g. FAILED, UP-TO-DATE etc.).
- After creating and configuring a runner instance, the build can be executed via the api:org.gradle.testkit.runner.GradleRunner#build[] or api:org.gradle.testkit.runner.GradleRunner#buildAndFail[] methods depending on the anticipated outcome.
+
+After creating and configuring a runner instance, the build can be executed via the api:org.gradle.testkit.runner.GradleRunner#build[] or api:org.gradle.testkit.runner.GradleRunner#buildAndFail[] methods depending on the anticipated outcome.
 
 The following demonstrates the usage of Gradle runner in a Java JUnit test:
 
 ++++
 <sample id="testKitFunctionalTestJunit" dir="testKit/gradleRunner/junitQuickstart/src/test/java/org/gradle/sample" title="Using GradleRunner with JUnit">
-            <sourcefile file="BuildLogicFunctionalTest.java" snippet="functional-test-junit"/>
-        </sample>
+    <sourcefile file="BuildLogicFunctionalTest.java" snippet="functional-test-junit"/>
+</sample>
 ++++
 
 Any test execution framework can be used.
@@ -74,8 +71,8 @@ The following demonstrates the usage of Gradle runner in a Groovy Spock test:
 
 ++++
 <sample id="testKitFunctionalTestSpock" dir="testKit/gradleRunner/spockQuickstart/src/test/groovy/org/gradle/sample" title="Using GradleRunner with Spock">
-            <sourcefile file="BuildLogicFunctionalTest.groovy" snippet="functional-test-spock"/>
-        </sample>
+    <sourcefile file="BuildLogicFunctionalTest.groovy" snippet="functional-test-spock"/>
+</sample>
 ++++
 
 It is a common practice to implement any custom build logic (like plugins and task types) that is more complex in nature as external classes in a standalone project. The main driver behind this approach is bundle the compiled code into a JAR file, publish it to a binary repository and reuse it across various projects.
@@ -91,16 +88,16 @@ For earlier versions of Gradle (before 2.13), it is possible to manually make th
 
 ++++
 <sample id="testKitFunctionalTestSpockClassesBuildConfig" dir="testKit/gradleRunner/manualClasspathInjection" includeLocation="true" title="Making the code under test classpath available to the tests">
-            <sourcefile file="build.gradle" snippet="test-logic-classpath"/>
-        </sample>
+    <sourcefile file="build.gradle" snippet="test-logic-classpath"/>
+</sample>
 ++++
 
 The tests can then read this value, and inject the classpath into the test build by using the methodapi:org.gradle.testkit.runner.GradleRunner#withPluginClasspath(java.lang.Iterable)[]. This classpath is then available to use to locate plugins in a test build via the plugins DSL (see<<plugins>>). Applying plugins with the plugins DSL requires the definition of a plugin identifier. The following is an example (in Groovy) of doing this from within a Spock Framework `setup()` method, which is analogous to a JUnit `@Before` method.
 
 ++++
 <sample id="testKitFunctionalTestSpockClassesTestConfig" dir="testKit/gradleRunner/manualClasspathInjection" includeLocation="true" title="Injecting the code under test classes into test builds">
-            <sourcefile file="src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy" snippet="functional-test-classpath-setup"/>
-        </sample>
+    <sourcefile file="src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy" snippet="functional-test-classpath-setup"/>
+</sample>
 ++++
 
 This approach works well when executing the functional tests as part of the Gradle build. When executing the functional tests from an IDE, there are extra considerations. Namely, the classpath manifest file points to the class files etc. generated by Gradle and not the IDE. This means that after making a change to the source of the code under test, the source must be recompiled by Gradle. Similarly, if the effective classpath of the code under test changes, the manifest must be regenerated. In either case, executing the `testClasses` task of the build will ensure that things are up to date.
@@ -115,8 +112,8 @@ Instead, the code must be injected via the build script itself. The following sa
 
 ++++
 <sample id="testKitFunctionalTestSpockClassesTestConfigGradleVersionPrior2Dot8" dir="testKit/gradleRunner/manualClasspathInjection" includeLocation="true" title="Injecting the code under test classes into test builds for Gradle versions prior to 2.8">
-                <sourcefile file="src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy" snippet="functional-test-classpath-setup-older-gradle"/>
-            </sample>
+    <sourcefile file="src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy" snippet="functional-test-classpath-setup-older-gradle"/>
+</sample>
 ++++
 
 
@@ -136,22 +133,22 @@ The following Groovy-based sample demonstrates how to automatically inject the p
 
 ++++
 <sample id="testKitFunctionalTestSpockAutomaticClasspath" dir="testKit/gradleRunner/automaticClasspathInjectionQuickstart" includeLocation="true" title="Using the Java Gradle Development plugin for generating the plugin metadata">
-                <sourcefile file="build.gradle" snippet="automatic-classpath"/>
-            </sample>
+    <sourcefile file="build.gradle" snippet="automatic-classpath"/>
+</sample>
 ++++
 
 ++++
 <sample id="testKitFunctionalTestSpockAutomaticClassesTestConfig" dir="testKit/gradleRunner/automaticClasspathInjectionQuickstart" includeLocation="true" title="Automatically injecting the code under test classes into test builds">
-                <sourcefile file="src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy" snippet="functional-test-classpath-setup-automatic"/>
-            </sample>
+    <sourcefile file="src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy" snippet="functional-test-classpath-setup-automatic"/>
+</sample>
 ++++
 
 The following build script demonstrates how to reconfigure the conventions provided by the Java Gradle Plugin Development plugin for a project that uses a custom `Test` source set.
 
 ++++
 <sample id="testKitFunctionalTestSpockAutomaticClasspath" dir="testKit/gradleRunner/automaticClasspathInjectionCustomTestSourceSet" includeLocation="true" title="Reconfiguring the classpath generation conventions of the Java Gradle Development plugin">
-                <sourcefile file="build.gradle" snippet="custom-test-source-set"/>
-            </sample>
+    <sourcefile file="build.gradle" snippet="custom-test-source-set"/>
+</sample>
 ++++
 
 
@@ -181,10 +178,9 @@ This can potentially be used to test build logic across Gradle versions. The fol
 
 ++++
 <sample id="testKitFunctionalTestSpockGradleDistribution" dir="testKit/gradleRunner/gradleVersion/src/test/groovy/org/gradle/sample" title="Specifying a Gradle version for test execution">
-            <sourcefile file="BuildLogicFunctionalTest.groovy" snippet="functional-test-spock-gradle-version"/>
-        </sample>
+    <sourcefile file="BuildLogicFunctionalTest.groovy" snippet="functional-test-spock-gradle-version"/>
+</sample>
 ++++
-
 
 [[sub:test-kit-compatibility]]
 ==== Feature support when testing with different Gradle versions
@@ -223,11 +219,10 @@ The following table lists the features that are sensitive to the Gradle version 
 
 The runner uses the <<embedding,Tooling API>> to execute builds. An implication of this is that the builds are executed in a separate process (i.e. not the same process executing the tests). Therefore, executing your _tests_ in debug mode does not allow you to debug your build logic as you may expect. Any breakpoints set in your IDE will be not be tripped by the code being exercised by the test build.
 
-The TestKit provides two different ways to enable the debug mode: 
+The TestKit provides two different ways to enable the debug mode:
 
 * Setting “`org.gradle.testkit.debug`” system property to `true` for the JVM _using_ the `GradleRunner` (i.e. not the build being executed with the runner);
 * Calling the api:org.gradle.testkit.runner.GradleRunner#withDebug[] method.
- 
 
 The system property approach can be used when it is desirable to enable debugging support without making an adhoc change to the runner configuration. Most IDEs offer the capability to set JVM system properties for test execution, and such a feature can be used to set this system property.
 
@@ -238,6 +233,6 @@ To enable the <<build_cache,Build Cache>> in your tests, you can pass the `--bui
 
 ++++
 <sample id="testKitFunctionalTestSpockBuildCache" dir="testKit/gradleRunner/testKitFunctionalTestSpockBuildCache/src/test/groovy/org/gradle/sample" title="Testing cacheable tasks">
-            <sourcefile file="BuildLogicFunctionalTest.groovy" snippet="functional-test-build-cache"/>
-        </sample>
+    <sourcefile file="BuildLogicFunctionalTest.groovy" snippet="functional-test-build-cache"/>
+</sample>
 ++++
