@@ -107,6 +107,11 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     }
 
     @Override
+    public boolean isOptional() {
+        return delegate.isOptional();
+    }
+
+    @Override
     public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata fromConfiguration, ConfigurationMetadata toConfiguration) {
         return delegate.getArtifacts(fromConfiguration, toConfiguration);
     }

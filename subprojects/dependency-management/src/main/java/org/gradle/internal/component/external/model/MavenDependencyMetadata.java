@@ -37,16 +37,14 @@ import java.util.Set;
 
 public class MavenDependencyMetadata extends DefaultDependencyMetadata {
     private final MavenScope scope;
-    private final boolean optional;
     private final Set<String> moduleConfigurations;
     private final List<Exclude> excludes;
 
     public MavenDependencyMetadata(MavenScope scope, boolean optional, ModuleVersionSelector requested, List<Artifact> artifacts, List<Exclude> excludes) {
-        super(requested, artifacts);
+        super(requested, artifacts, optional);
         this.scope = scope;
-        this.optional = optional;
-        if (optional && scope != MavenScope.Test && scope != MavenScope.System) {
-            moduleConfigurations = ImmutableSet.of("optional");
+        if (isOptional() && scope != MavenScope.Test && scope != MavenScope.System) {
+            moduleConfigurations = ImmutableSet.of("optional", scope.name().toLowerCase());
         } else {
             moduleConfigurations = ImmutableSet.of(scope.name().toLowerCase());
         }
@@ -55,7 +53,7 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
 
     @Override
     public String toString() {
-        return "dependency: " + getRequested() + ", scope: " + scope + ", optional: " + optional;
+        return "dependency: " + getRequested() + ", scope: " + scope + ", optional: " + isOptional();
     }
 
     public MavenScope getScope() {
@@ -65,10 +63,6 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
     @Override
     public Set<String> getModuleConfigurations() {
         return moduleConfigurations;
-    }
-
-    public boolean isOptional() {
-        return optional;
     }
 
     @Override
@@ -134,7 +128,7 @@ public class MavenDependencyMetadata extends DefaultDependencyMetadata {
 
     @Override
     protected DependencyMetadata withRequested(ModuleVersionSelector newRequested) {
-        return new MavenDependencyMetadata(scope, optional, newRequested, getDependencyArtifacts(), getExcludes());
+        return new MavenDependencyMetadata(scope, isOptional(), newRequested, getDependencyArtifacts(), getExcludes());
     }
 
     public List<Exclude> getExcludes() {

@@ -40,6 +40,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     @Nullable
     private String configuration;
     private boolean transitive = true;
+    private boolean optional;
 
     protected AbstractModuleDependency(@Nullable String configuration) {
         this.configuration = configuration;
@@ -52,6 +53,17 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     public ModuleDependency setTransitive(boolean transitive) {
         validateMutation(this.transitive, transitive);
         this.transitive = transitive;
+        return this;
+    }
+
+    @Override
+    public boolean isOptional() {
+        return optional;
+    }
+
+    @Override
+    public ModuleDependency setOptional(boolean optional) {
+        this.optional = optional;
         return this;
     }
 
@@ -110,6 +122,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         target.setArtifacts(new HashSet<DependencyArtifact>(getArtifacts()));
         target.setExcludeRuleContainer(new DefaultExcludeRuleContainer(getExcludeRules()));
         target.setTransitive(isTransitive());
+        target.setOptional(isOptional());
     }
 
     protected boolean isKeyEquals(ModuleDependency dependencyRhs) {

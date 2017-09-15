@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -59,6 +60,7 @@ class ResolveState {
     private final DeselectVersionAction deselectVersionAction = new DeselectVersionAction(this);
     private final ReplaceSelectionWithConflictResultAction replaceSelectionWithConflictResultAction;
     private final ModuleReplacementsData moduleReplacementsData;
+    private final Map<ModuleIdentifier, PendingOptionalDependencies> optionalDependencies = Maps.newHashMap();
 
     public ResolveState(IdGenerator<Long> idGenerator, ComponentResolveResult rootResult, String rootConfigurationName, DependencyToComponentIdResolver idResolver,
                         ComponentMetaDataResolver metaDataResolver, Spec<? super DependencyMetadata> edgeFilter, AttributesSchemaInternal attributesSchema,
@@ -186,5 +188,9 @@ class ResolveState {
 
     public ModuleReplacementsData getModuleReplacementsData() {
         return moduleReplacementsData;
+    }
+
+    public Map<ModuleIdentifier, PendingOptionalDependencies> getOptionalDependencies() {
+        return optionalDependencies;
     }
 }

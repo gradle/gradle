@@ -308,6 +308,7 @@ dependencies {
     }
 
     // This test is documenting behaviour for backwards compatibility purposes
+//    @Ignore // todo: what should we do wrt backwards compatibility now that it fails?
     def "can reference 'optional' configuration to include optional dependencies of module"() {
         def notRequired = mavenRepo.module('test', 'dont-include-me', '1.0')
         def m1 = mavenRepo.module('test', 'test1', '1.0').publish()

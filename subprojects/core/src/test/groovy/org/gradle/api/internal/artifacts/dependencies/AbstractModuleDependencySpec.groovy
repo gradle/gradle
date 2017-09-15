@@ -25,13 +25,13 @@ import spock.lang.Specification
 
 abstract class AbstractModuleDependencySpec extends Specification {
 
-    private dependency = createDependency("org.gradle", "gradle-core", "4.4-beta2")
+    private ExternalModuleDependency dependency
 
-    def init() {
+    def setup() {
         dependency = createDependency("org.gradle", "gradle-core", "4.4-beta2")
     }
 
-    protected createDependency(String group, String name, String version) {
+    protected ExternalModuleDependency createDependency(String group, String name, String version) {
         createDependency(group, name, version, null)
     }
 
@@ -43,6 +43,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         dependency.name == "gradle-core"
         dependency.version == "4.4-beta2"
         dependency.transitive
+        !dependency.optional
         dependency.artifacts.isEmpty()
         dependency.excludeRules.isEmpty()
         dependency.targetConfiguration == null
@@ -102,6 +103,14 @@ abstract class AbstractModuleDependencySpec extends Specification {
 
         then:
         assertDeepCopy(dependency, copy)
+
+        when:
+        dependency.transitive = false
+        dependency.optional = true
+        copy = dependency.copy()
+
+        then:
+        assertDeepCopy(dependency, copy)
     }
 
     public static void assertDeepCopy(ModuleDependency dependency, ModuleDependency copiedDependency) {
@@ -110,6 +119,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         assert copiedDependency.version == dependency.version
         assert copiedDependency.targetConfiguration == dependency.targetConfiguration
         assert copiedDependency.transitive == dependency.transitive
+        assert copiedDependency.optional == dependency.optional
         assert copiedDependency.artifacts == dependency.artifacts
         assert copiedDependency.excludeRules == dependency.excludeRules
 

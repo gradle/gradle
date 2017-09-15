@@ -55,7 +55,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
     }
 
     def "returns this when same version requested"() {
-        def dep = new LocalComponentDependencyMetadata(DefaultModuleComponentSelector.newSelector("a", "b", "12"), DefaultModuleVersionSelector.newSelector("a", "b", "12"), "from", null, "to", [] as Set, [], false, false, true)
+        def dep = new LocalComponentDependencyMetadata(DefaultModuleComponentSelector.newSelector("a", "b", "12"), DefaultModuleVersionSelector.newSelector("a", "b", "12"), "from", null, "to", [] as Set, [], false, false, true, false)
 
         expect:
         dep.withRequestedVersion("12").is(dep)
@@ -64,14 +64,14 @@ class LocalComponentDependencyMetadataTest extends Specification {
 
     def "returns this when same target requested"() {
         def selector = Stub(ProjectComponentSelector)
-        def dep = new LocalComponentDependencyMetadata(selector, Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [], false, false, true)
+        def dep = new LocalComponentDependencyMetadata(selector, Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [], false, false, true, false)
 
         expect:
         dep.withTarget(selector).is(dep)
     }
 
     def "selects the target configuration from target component"() {
-        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [], false, false, true)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [], false, false, true, false)
         def fromComponent = Stub(ComponentResolveMetadata)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(LocalConfigurationMetadata)
@@ -89,7 +89,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
 
     @Unroll("selects configuration '#expected' from target component (#scenario)")
     def "selects the target configuration from target component which matches the attributes"() {
-        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true, false)
         def fromComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(LocalConfigurationMetadata)
         def defaultConfig = defaultConfiguration()
@@ -126,7 +126,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
     }
 
     def "revalidates default configuration if it has attributes"() {
-        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, Dependency.DEFAULT_CONFIGURATION, [] as Set, [], false, false, true)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, Dependency.DEFAULT_CONFIGURATION, [] as Set, [], false, false, true, false)
         def fromComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(LocalConfigurationMetadata)
         def defaultConfig = Stub(LocalConfigurationMetadata) {
@@ -157,7 +157,7 @@ Configuration 'default': Required key 'other' and found incompatible value 'noth
     }
 
     def "revalidates explicit configuration selection if it has attributes"() {
-        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, 'bar', [] as Set, [], false, false, true)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, 'bar', [] as Set, [], false, false, true, false)
         def fromComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(LocalConfigurationMetadata)
         def defaultConfig = defaultConfiguration()
@@ -197,7 +197,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
 
     @Unroll("selects configuration '#expected' from target component with Java proximity matching strategy (#scenario)")
     def "selects the target configuration from target component with Java proximity matching strategy"() {
-        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true, false)
         def fromComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(LocalConfigurationMetadata)
         def defaultConfig = defaultConfiguration()
@@ -269,7 +269,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
 
     @Unroll("selects configuration '#expected' from target component with Java proximity matching strategy using short-hand notation (#scenario)")
     def "selects the target configuration from target component with Java proximity matching strategy using short-hand notation"() {
-        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true, false)
         def fromComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(LocalConfigurationMetadata)
         def defaultConfig = defaultConfiguration()
@@ -340,7 +340,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
     }
 
     def "fails to select target configuration when not present in the target component"() {
-        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [], false, false, true)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [], false, false, true, false)
         def fromComponent = Stub(ComponentResolveMetadata)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(ConfigurationMetadata)
@@ -360,7 +360,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
 
     def "excludes nothing when no exclude rules provided"() {
         def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
-        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [], false, false, true)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [], false, false, true, false)
 
         expect:
         def exclusions = moduleExclusions.excludeAny(dep.excludes)
@@ -372,7 +372,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
         def exclude1 = new DefaultExclude(DefaultModuleIdentifier.newId("group1", "*"))
         def exclude2 = new DefaultExclude(DefaultModuleIdentifier.newId("group2", "*"))
         def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
-        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [exclude1, exclude2], false, false, true)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [exclude1, exclude2], false, false, true, false)
 
         expect:
         def exclusions = moduleExclusions.excludeAny(dep.excludes)
@@ -403,7 +403,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
 
     @Unroll("can select a compatible attribute value (#scenario)")
     def "can select a compatible attribute value"() {
-        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true)
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, null, [] as Set, [], false, false, true, false)
         def fromComponent = Stub(ComponentResolveMetadata)
         def fromConfig = Stub(LocalConfigurationMetadata)
         def defaultConfig = defaultConfiguration()

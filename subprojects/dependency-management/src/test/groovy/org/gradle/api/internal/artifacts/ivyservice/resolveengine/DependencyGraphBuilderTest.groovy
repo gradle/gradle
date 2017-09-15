@@ -1062,6 +1062,7 @@ class DependencyGraphBuilderTest extends Specification {
         ModuleVersionIdentifier dependencyId = args.revision ? newId(to.group, to.name, args.revision) : to
         boolean transitive = args.transitive == null || args.transitive
         boolean force = args.force
+        boolean optional = args.optional ?: false
         ModuleVersionSelector selector = newSelector(dependencyId.group, dependencyId.name, dependencyId.version)
         ComponentSelector componentSelector = DefaultModuleComponentSelector.newSelector(selector)
         def excludeRules = []
@@ -1070,7 +1071,7 @@ class DependencyGraphBuilderTest extends Specification {
             excludeRules << new DefaultExclude(moduleIdentifierFactory.module(excluded.id.group, excluded.id.name))
         }
         def dependencyMetaData = new LocalComponentDependencyMetadata(componentSelector, selector, "default", null, "default", [] as Set<IvyArtifactName>,
-            excludeRules, force, false, transitive)
+            excludeRules, force, false, transitive, optional)
         dependencyMetaData = new DslOriginDependencyMetadataWrapper(dependencyMetaData, Stub(ModuleDependency))
         from.getDependencies().add(dependencyMetaData)
         return dependencyMetaData
