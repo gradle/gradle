@@ -165,14 +165,22 @@ class NodeState implements DependencyGraphNode {
             removeOutgoingEdges();
         }
 
+        boolean isOptionalConfiguration = "optional".equals(metaData.getName());
+        OptionalDependenciesHandler optionalDependenciesHandler = new OptionalDependenciesHandler(resolveState.getOptionalDependencies(), isOptionalConfiguration);
         for (DependencyMetadata dependency : metaData.getDependencies()) {
             if (isExcluded(resolutionFilter, dependency)) {
                 continue;
             }
-            EdgeState dependencyEdge = new EdgeState(this, dependency, resolutionFilter, resolveState);
-            outgoingEdges.add(dependencyEdge);
-            target.add(dependencyEdge);
+            if (!optionalDependenciesHandler.maybeAddAsOptionalDependency(this, dependency)) {
+                EdgeState dependencyEdge = new EdgeState(this, dependency, resolutionFilter, resolveState);
+                outgoingEdges.add(dependencyEdge);
+                target.add(dependencyEdge);
+            }
         }
+        previousTraversalExclusions = resolutionFilter;
+        // we must do this after `previousTraversalExclusions` has been written, or state won't be reset properly
+        optionalDependenciesHandler.complete();
+
         previousTraversalExclusions = resolutionFilter;
     }
 
@@ -286,5 +294,11 @@ class NodeState implements DependencyGraphNode {
 
     public void deselect() {
         removeOutgoingEdges();
+    }
+
+    void resetSelectionState() {
+        previousTraversalExclusions = null;
+        outgoingEdges.clear();
+        resolveState.onMoreSelected(this);
     }
 }

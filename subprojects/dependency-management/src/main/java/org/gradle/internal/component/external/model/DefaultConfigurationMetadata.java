@@ -18,7 +18,6 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
@@ -177,7 +176,7 @@ class DefaultConfigurationMetadata implements ConfigurationMetadata {
 
     private ModuleExclusion filterExcludes(ModuleExclusions exclusions, Iterable<Exclude> excludes) {
         Collection<String> hierarchy = getHierarchy();
-        List<Exclude> filtered = Lists.newArrayList();
+        ImmutableList.Builder<Exclude> filtered = ImmutableList.builder();
         for (Exclude exclude : excludes) {
             for (String config : exclude.getConfigurations()) {
                 if (hierarchy.contains(config)) {
@@ -186,7 +185,7 @@ class DefaultConfigurationMetadata implements ConfigurationMetadata {
                 }
             }
         }
-        return exclusions.excludeAny(filtered);
+        return exclusions.excludeAny(filtered.build());
     }
 
     @Override

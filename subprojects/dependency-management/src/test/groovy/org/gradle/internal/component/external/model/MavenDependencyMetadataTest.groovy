@@ -72,20 +72,20 @@ class MavenDependencyMetadataTest extends DefaultDependencyMetadataTest {
         def dep = new MavenDependencyMetadata(scope, optional, Stub(ModuleVersionSelector), [], [])
 
         expect:
-        dep.moduleConfigurations == [moduleConfig] as Set
+        dep.moduleConfigurations == moduleConfig as Set
 
         where:
         scope               | optional | moduleConfig
-        MavenScope.Compile  | false    | "compile"
-        MavenScope.Runtime  | false    | "runtime"
-        MavenScope.Provided | false    | "provided"
-        MavenScope.Test     | false    | "test"
-        MavenScope.System   | false    | "system"
-        MavenScope.Compile  | true     | "optional"
-        MavenScope.Runtime  | true     | "optional"
-        MavenScope.Provided | true     | "optional"
-        MavenScope.Test     | true     | "test"
-        MavenScope.System   | true     | "system"
+        MavenScope.Compile  | false    | ["compile"]
+        MavenScope.Runtime  | false    | ["runtime"]
+        MavenScope.Provided | false    | ["provided"]
+        MavenScope.Test     | false    | ["test"]
+        MavenScope.System   | false    | ["system"]
+        MavenScope.Compile  | true     | ["optional", "compile"] // optional is there for backwards compatibility
+        MavenScope.Runtime  | true     | ["optional", "runtime"] // optional is there for backwards compatibility
+        MavenScope.Provided | true     | ["optional", "provided"] // optional is there for backwards compatibility
+        MavenScope.Test     | true     | ["test"]
+        MavenScope.System   | true     | ["system"]
     }
 
     def "excludes nothing when no exclude rules provided"() {

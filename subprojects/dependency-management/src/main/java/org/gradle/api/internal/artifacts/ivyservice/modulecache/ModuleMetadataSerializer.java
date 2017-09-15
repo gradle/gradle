@@ -224,6 +224,7 @@ public class ModuleMetadataSerializer {
                 writeBoolean(ivyDependency.isForce());
                 writeBoolean(ivyDependency.isChanging());
                 writeBoolean(ivyDependency.isTransitive());
+                writeBoolean(ivyDependency.isOptional());
             } else if (dep instanceof MavenDependencyMetadata) {
                 MavenDependencyMetadata mavenDependency = (MavenDependencyMetadata) dep;
                 encoder.writeByte(TYPE_MAVEN);
@@ -456,12 +457,13 @@ public class ModuleMetadataSerializer {
                     boolean force = readBoolean();
                     boolean changing = readBoolean();
                     boolean transitive = readBoolean();
-                    return new IvyDependencyMetadata(requested, dynamicConstraintVersion, force, changing, transitive, configMappings, artifacts, excludes);
+                    boolean optional = readBoolean();
+                    return new IvyDependencyMetadata(requested, dynamicConstraintVersion, force, changing, transitive,  optional, configMappings, artifacts, excludes);
                 case TYPE_MAVEN:
                     artifacts = readDependencyArtifactDescriptors();
                     excludes = readExcludeRules();
                     MavenScope scope = MavenScope.values()[decoder.readSmallInt()];
-                    boolean optional = decoder.readBoolean();
+                    optional = decoder.readBoolean();
                     return new MavenDependencyMetadata(scope, optional, requested, artifacts, excludes);
                 default:
                     throw new IllegalArgumentException("Unexpected dependency type found.");

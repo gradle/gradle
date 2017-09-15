@@ -155,4 +155,27 @@ public interface ModuleDependency extends Dependency {
      * {@inheritDoc}
      */
     ModuleDependency copy();
+
+    /**
+     * Returns whether this dependency is optional.
+     *
+     * @see #setOptional(boolean)
+     * @since 4.4
+     */
+    @Incubating
+    boolean isOptional();
+
+    /**
+     * Sets whether this dependency is optional. Optional dependencies are not included in the result of dependency resolution, unless
+     * a hard (non optional) dependency for the same module is also included, in which case this dependency would participate in
+     * conflict resolution.
+     *
+     * @param optional Whether this dependency is optional.
+     * @return this
+     *
+     * @since 4.4
+     */
+    @Incubating
+    ModuleDependency setOptional(boolean optional);
+
 }

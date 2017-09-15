@@ -38,10 +38,12 @@ public abstract class DefaultDependencyMetadata extends AbstractDependencyMetada
     private final Set<IvyArtifactName> artifacts;
     private final List<Artifact> dependencyArtifacts;
     private final ModuleComponentSelector selector;
+    private final boolean optional;
 
-    protected DefaultDependencyMetadata(ModuleVersionSelector requested, List<Artifact> artifacts) {
+    protected DefaultDependencyMetadata(ModuleVersionSelector requested, List<Artifact> artifacts, boolean optional) {
         this.requested = requested;
         dependencyArtifacts = ImmutableList.copyOf(artifacts);
+        this.optional = optional;
         this.artifacts = map(dependencyArtifacts);
         selector = DefaultModuleComponentSelector.newSelector(requested.getGroup(), requested.getName(), requested.getVersion());
     }
@@ -134,5 +136,10 @@ public abstract class DefaultDependencyMetadata extends AbstractDependencyMetada
 
     public List<Artifact> getDependencyArtifacts() {
         return dependencyArtifacts;
+    }
+
+    @Override
+    public boolean isOptional() {
+        return optional;
     }
 }
