@@ -176,7 +176,7 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
 
         executable("app/build/exe/main/debug/app").assertDoesNotExist()
         file("app/build/exe/main/debug").assertHasDescendants()
-        file("app/build/obj/main/debug").assertDoesNotExist()
+        file("app/build/obj/main/debug").assertHasDescendants()
         installation("app/build/install/main/debug").assertNotInstalled()
 
         sharedLibrary("greeter/build/lib/main/debug/greeter").assertExists()
@@ -213,7 +213,7 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
 
         executable("build/exe/main/debug/app").assertDoesNotExist()
         file("build/exe/main/debug").assertHasDescendants()
-        file("build/obj/main/debug").assertDoesNotExist()
+        file("build/obj/main/debug").assertHasDescendants()
         installation("build/install/main/debug").assertNotInstalled()
     }
 
@@ -246,7 +246,7 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
 
         sharedLibrary("build/lib/main/debug/hello").assertDoesNotExist()
         file("build/lib/main/debug").assertHasDescendants()
-        file("build/obj/main/debug").assertDoesNotExist()
+        file("build/obj/main/debug").assertHasDescendants()
     }
 
     private List<String> expectIntermediateDescendants(SourceElement sourceElement) {

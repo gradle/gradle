@@ -27,7 +27,6 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
@@ -235,7 +234,6 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     /**
      * Returns the source files to be compiled.
      */
-    @SkipWhenEmpty
     @InputFiles
     public ConfigurableFileCollection getSource() {
         return source;
