@@ -45,7 +45,7 @@ All code contributions should contain the following:
 * Documentation in the User Guide and DSL Reference (under `subprojects/docs/src/docs`). You can generate docs by running `./gradlew :docs:docs`.
 * Javadoc `@author` tags and committer names are not used in the codebase (contributions are recognised in the commit history and release notes)
 
-Your code needs to run on all supported Java versions and operationg systems. The [Gradle CI](http://builds.gradle.org/) will verify this, but here are some pointers that will avoid surprises:
+Your code needs to run on all supported Java versions and operating systems. The [Gradle CI](http://builds.gradle.org/) will verify this, but here are some pointers that will avoid surprises:
 
 * Avoid using features introduced in Java 1.7 or later. Several parts of Gradle still need to run on Java 6.
 * Be careful to normalise file paths in tests. The `org.gradle.util.TextUtil` class has some useful utility functions for this purpose.
