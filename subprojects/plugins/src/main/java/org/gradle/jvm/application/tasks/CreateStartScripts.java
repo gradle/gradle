@@ -84,6 +84,7 @@ import java.io.File;
  * <li>{@code optsEnvironmentVar}</li>
  * <li>{@code exitEnvironmentVar}</li>
  * <li>{@code mainClassName}</li>
+ * <li>{@code executableDir}</li>
  * <li>{@code defaultJvmOpts}</li>
  * <li>{@code appNameSystemProperty}</li>
  * <li>{@code appHomeRelativePath}</li>
@@ -101,6 +102,7 @@ import java.io.File;
 public class CreateStartScripts extends ConventionTask {
 
     private File outputDir;
+    private String executableDir = "bin";
     private String mainClassName;
     private Iterable<String> defaultJvmOpts = Lists.newLinkedList();
     private String applicationName;
@@ -170,6 +172,25 @@ public class CreateStartScripts extends ConventionTask {
 
     public void setOutputDir(File outputDir) {
         this.outputDir = outputDir;
+    }
+
+    /**
+     * The directory to write the scripts into in the distribution.
+     * @since 4.5
+     */
+    @Incubating
+    @Input
+    public String getExecutableDir() {
+        return executableDir;
+    }
+
+    /**
+     * The directory to write the scripts into in the distribution.
+     * @since 4.5
+     */
+    @Incubating
+    public void setExecutableDir(String executableDir) {
+        this.executableDir = executableDir;
     }
 
     /**
@@ -268,7 +289,7 @@ public class CreateStartScripts extends ConventionTask {
         generator.setOptsEnvironmentVar(getOptsEnvironmentVar());
         generator.setExitEnvironmentVar(getExitEnvironmentVar());
         generator.setClasspath(getRelativeClasspath());
-        generator.setScriptRelPath("bin/" + getUnixScript().getName());
+        generator.setScriptRelPath(getExecutableDir() + "/" + getUnixScript().getName());
         generator.generateUnixScript(getUnixScript());
         generator.generateWindowsScript(getWindowsScript());
     }
