@@ -17,10 +17,10 @@ package org.gradle.api.plugins.quality
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Matchers
+import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
 
-import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
 
@@ -44,6 +44,7 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractIntegrationSpe
         !file("build/pmd-cache").exists()
     }
 
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "incremental analysis can be enabled"() {
         given:
         goodCode()
@@ -65,6 +66,7 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractIntegrationSpe
         !output.contains('Analysis cache invalidated, rulesets changed')
     }
 
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def 'incremental analysis is transparent'() {
         given:
         buildFile << 'pmd { incrementalAnalysis = true }'
@@ -82,8 +84,7 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractIntegrationSpe
         succeeds('pmdMain')
 
         then:
-        file("build/reports/pmd/main.xml").
-            assertContents(not(containsLine(containsString('BadClass'))))
+        file("build/reports/pmd/main.xml").assertContents(not(containsString('BadClass')))
     }
 
     def 'incremental analysis invalidated when #reason'() {
