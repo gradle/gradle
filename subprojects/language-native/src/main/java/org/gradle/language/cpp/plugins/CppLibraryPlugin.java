@@ -40,7 +40,8 @@ import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.internal.DefaultCppLibrary;
-import org.gradle.language.cpp.internal.NativeVariant;
+import org.gradle.language.cpp.internal.MainLibraryVariant;
+import org.gradle.language.cpp.internal.NativeRuntimeVariant;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
@@ -196,6 +197,8 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                 headersZip.setClassifier("cpp-api-headers");
                 headersZip.setArchiveName("cpp-api-headers.zip");
 
+                final MainLibraryVariant mainVariant = new MainLibraryVariant("api", apiUsage, ImmutableSet.of(new ArchivePublishArtifact(headersZip)), apiElements);
+
                 project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
                     @Override
                     public void execute(PublishingExtension extension) {
@@ -207,7 +210,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                                 publication.setArtifactId(library.getBaseName().get());
                                 publication.setVersion(project.getVersion().toString());
                                 // TODO - don't use internal types
-                                publication.from(new NativeVariant("api", apiUsage, ImmutableSet.of(new ArchivePublishArtifact(headersZip)), apiElements));
+                                publication.from(mainVariant);
                             }
                         });
                         extension.getPublications().create("debug", MavenPublication.class, new Action<MavenPublication>() {
@@ -217,7 +220,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                                 publication.setGroupId(project.getGroup().toString());
                                 publication.setArtifactId(library.getBaseName().get() + "_debug");
                                 publication.setVersion(project.getVersion().toString());
-                                publication.from(new NativeVariant("debug", linkUsage, debugLinkElements, runtimeUsage, debugRuntimeElements));
+                                publication.from(new NativeRuntimeVariant("debug", mainVariant, linkUsage, debugLinkElements, runtimeUsage, debugRuntimeElements));
                             }
                         });
                         extension.getPublications().create("release", MavenPublication.class, new Action<MavenPublication>() {
@@ -227,7 +230,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                                 publication.setGroupId(project.getGroup().toString());
                                 publication.setArtifactId(library.getBaseName().get() + "_release");
                                 publication.setVersion(project.getVersion().toString());
-                                publication.from(new NativeVariant("release", linkUsage, releaseLinkElements, runtimeUsage, releaseRuntimeElements));
+                                publication.from(new NativeRuntimeVariant("release", mainVariant, linkUsage, releaseLinkElements, runtimeUsage, releaseRuntimeElements));
                             }
                         });
                     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.component;
+package org.gradle.language.cpp.internal;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.Named;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.attributes.Usage;
 
-/**
- * A software component produced by a Gradle software project.
- *
- * <p>An implementation of this interface may also implement {@link ChildComponent}.</p>
- */
-@Incubating @HasInternalProtocol
-public interface SoftwareComponent extends Named {
+import java.util.Set;
+
+public class MainLibraryVariant extends NativeVariant {
+    public MainLibraryVariant(String name, Usage usage, Set<? extends PublishArtifact> artifacts, Configuration dependencies) {
+        super(name, usage, artifacts, dependencies);
+    }
 }

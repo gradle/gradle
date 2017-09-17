@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.component;
+package org.gradle.language.cpp.internal;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.Named;
-import org.gradle.internal.HasInternalProtocol;
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.api.internal.component.UsageContext;
 
-/**
- * A software component produced by a Gradle software project.
- *
- * <p>An implementation of this interface may also implement {@link ChildComponent}.</p>
- */
-@Incubating @HasInternalProtocol
-public interface SoftwareComponent extends Named {
+import java.util.Set;
+
+public class MainExecutableVariant implements SoftwareComponentInternal {
+    @Override
+    public String getName() {
+        return "main";
+    }
+
+    @Override
+    public Set<? extends UsageContext> getUsages() {
+        return ImmutableSet.of();
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,16 @@
 package org.gradle.api.component;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Named;
-import org.gradle.internal.HasInternalProtocol;
 
 /**
- * A software component produced by a Gradle software project.
+ * A {@link SoftwareComponent} that is part of some larger component.
  *
- * <p>An implementation of this interface may also implement {@link ChildComponent}.</p>
+ * @since 4.3
  */
-@Incubating @HasInternalProtocol
-public interface SoftwareComponent extends Named {
+@Incubating
+public interface ChildComponent {
+    /**
+     * Returns the component that owns this component.
+     */
+    SoftwareComponent getOwner();
 }
