@@ -27,7 +27,7 @@ We would like to introduce Gradle to you, a build system that we think is a quan
 *  _Groovy_ build scripts.
 * A rich domain model for describing your build.
 
-In <<overview>> you will find a detailed overview of Gradle. Otherwise, the <<tutorials,tutorials>> are waiting, have fun :)
+In <<overview>> you will find a detailed overview of Gradle. Otherwise, the https://guides.gradle.org[guides] are waiting, have fun :)
 
 
 [[sec:about_this_user_guide]]
