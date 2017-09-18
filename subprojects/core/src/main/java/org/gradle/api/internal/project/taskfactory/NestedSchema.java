@@ -51,9 +51,10 @@ public class NestedSchema implements SchemaNode {
     }
 
     private void checkIfConsistent() {
-        TaskPropertyValue currentValue = property.getValue(parent);
-        if (currentValue.getValue() != scannedValue.getValue()) {
-            throw new GradleException("Nested property '" + property.getName() + "' changed after first scanning from " + scannedValue.getValue() + " to " + currentValue.getValue() +"!");
+        Class<?> typeUsedForSchema = scannedValue.getValue().getClass();
+        Object currentValue = property.getValue(parent).getValue();
+        if (currentValue == null || !typeUsedForSchema.equals(currentValue.getClass())) {
+            throw new GradleException("Nested property '" + property.getName() + "' changed after first scanning from " + typeUsedForSchema + " to " + currentValue +"!");
         }
     }
 }
