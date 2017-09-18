@@ -17,7 +17,6 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 
 import javax.annotation.Nullable;
 
@@ -27,12 +26,12 @@ public class SchemaProperty implements SchemaNode {
 
     private final DefaultSchemaExtractor.ChangeDetectionProperty property;
     private final Object parentValue;
-    private final Supplier<TaskPropertyValue> valueSupplier = Suppliers.memoize(new Supplier<TaskPropertyValue>() {
+    private final Supplier<TaskPropertyValue> valueSupplier = new Supplier<TaskPropertyValue>() {
         @Override
         public TaskPropertyValue get() {
             return property.getValue(parentValue);
         }
-    });
+    };
     private final UpdateAction configureAction;
 
     SchemaProperty(DefaultSchemaExtractor.ChangeDetectionProperty property, Object parentValue, @Nullable UpdateAction configureAction) {
