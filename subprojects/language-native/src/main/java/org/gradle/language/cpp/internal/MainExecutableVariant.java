@@ -17,15 +17,22 @@
 package org.gradle.language.cpp.internal;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.component.ComponentWithVariants;
+import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 
 import java.util.Set;
 
-public class MainExecutableVariant implements SoftwareComponentInternal {
+public class MainExecutableVariant implements SoftwareComponentInternal, ComponentWithVariants {
     @Override
     public String getName() {
         return "main";
+    }
+
+    @Override
+    public Set<SoftwareComponent> getVariants() {
+        throw new UnsupportedOperationException();
     }
 
     @Override

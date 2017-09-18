@@ -51,22 +51,22 @@ class CppExecutablePublishingIntegrationTest extends AbstractNativePublishingInt
         run('publish')
 
         then:
-        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":generatePomFileForDebugPublication", ":publishDebugPublicationToMavenRepository", ":generatePomFileForMainPublication", ":publishMainPublicationToMavenRepository", ":compileReleaseCpp", ":linkRelease", ":generatePomFileForReleasePublication", ":publishReleasePublicationToMavenRepository", ":publish")
+        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":generatePomFileForDebugPublication", ":generateMetadataFileForDebugPublication", ":publishDebugPublicationToMavenRepository", ":generatePomFileForMainPublication", ":generateMetadataFileForMainPublication", ":publishMainPublicationToMavenRepository", ":compileReleaseCpp", ":linkRelease", ":generatePomFileForReleasePublication", ":generateMetadataFileForReleasePublication", ":publishReleasePublicationToMavenRepository", ":publish")
 
         def repo = new MavenFileRepository(file("repo"))
 
         def main = repo.module('some.group', 'test', '1.2')
         main.assertPublished()
-        main.assertArtifactsPublished("test-1.2.pom")
+        main.assertArtifactsPublished("test-1.2.pom", "test-1.2-module.json")
 
         def debug = repo.module('some.group', 'test_debug', '1.2')
         debug.assertPublished()
-        debug.assertArtifactsPublished(withExecutableSuffix("test_debug-1.2"), "test_debug-1.2.pom")
+        debug.assertArtifactsPublished(withExecutableSuffix("test_debug-1.2"), "test_debug-1.2.pom", "test_debug-1.2-module.json")
         debug.artifactFile(type: executableExtension).assertIsCopyOf(executable("build/exe/main/debug/test").file)
 
         def release = repo.module('some.group', 'test_release', '1.2')
         release.assertPublished()
-        release.assertArtifactsPublished(withExecutableSuffix("test_release-1.2"), "test_release-1.2.pom")
+        release.assertArtifactsPublished(withExecutableSuffix("test_release-1.2"), "test_release-1.2.pom", "test_release-1.2-module.json")
         release.artifactFile(type: executableExtension).assertIsCopyOf(executable("build/exe/main/release/test").file)
     }
 
