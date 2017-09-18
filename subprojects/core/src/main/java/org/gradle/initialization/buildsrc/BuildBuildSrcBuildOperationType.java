@@ -27,11 +27,11 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 public final class BuildBuildSrcBuildOperationType implements BuildOperationType<BuildBuildSrcBuildOperationType.Details, BuildBuildSrcBuildOperationType.Result> {
 
     @UsedByScanPlugin
-    public interface Result {
+    public interface Details {
     }
 
     @UsedByScanPlugin
-    public interface Details {
+    public interface Result {
     }
 
     private BuildBuildSrcBuildOperationType(){

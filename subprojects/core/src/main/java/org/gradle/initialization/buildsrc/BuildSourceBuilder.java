@@ -45,6 +45,10 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class BuildSourceBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildSourceBuilder.class);
+    public static final BuildBuildSrcBuildOperationType.Details BUILD_BUILDSRC_DETAILS = new BuildBuildSrcBuildOperationType.Details() {
+    };
+    public static final BuildBuildSrcBuildOperationType.Result BUILD_BUILDSRC_RESULT = new BuildBuildSrcBuildOperationType.Result() {
+    };
 
     private final NestedBuildFactory nestedBuildFactory;
     private final ClassLoaderScope classLoaderScope;
@@ -82,8 +86,7 @@ public class BuildSourceBuilder {
             @Override
             public ClassPath call(BuildOperationContext context) {
                 ClassPath classPath = buildBuildSrc(startParameter);
-                context.setResult(new BuildBuildSrcBuildOperationType.Result() {
-                });
+                context.setResult(BUILD_BUILDSRC_RESULT);
                 return classPath;
             }
 
@@ -91,8 +94,7 @@ public class BuildSourceBuilder {
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName("Build buildSrc").
                     progressDisplayName("buildSrc").
-                    details(new BuildBuildSrcBuildOperationType.Details() {
-                    });
+                    details(BUILD_BUILDSRC_DETAILS);
             }
         });
     }
