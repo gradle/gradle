@@ -85,7 +85,8 @@ class MonotonicClock implements Clock {
     }
 
     private long issue(long timestamp) {
-        long prev, next;
+        long prev;
+        long next;
         do {
             prev = max.get();
             next = Math.max(prev, timestamp);
