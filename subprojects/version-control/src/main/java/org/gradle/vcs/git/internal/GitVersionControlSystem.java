@@ -71,7 +71,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
         Git git = null;
         try {
             git = Git.open(workingDir);
-            git.pull().call();
+            git.pull().setRemote(gitSpec.getUrl().toString()).call();
         } catch (IOException e) {
             throw wrapGitCommandException("update", gitSpec.getUrl(), workingDir, e);
         } catch (GitAPIException e) {

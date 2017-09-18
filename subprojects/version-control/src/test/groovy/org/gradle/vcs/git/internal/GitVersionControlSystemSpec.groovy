@@ -32,6 +32,9 @@ class GitVersionControlSystemSpec extends Specification {
     @Rule
     TemporaryGitRepository repo = new TemporaryGitRepository(tmpDir)
 
+    @Rule
+    TemporaryGitRepository repo2 = new TemporaryGitRepository("otherRepo", tmpDir)
+
     def setup() {
         gitVcs = new GitVersionControlSystem()
 
@@ -47,7 +50,7 @@ class GitVersionControlSystemSpec extends Specification {
         given:
         def target = tmpDir.file("workingDir")
         GitVersionControlSpec spec = new GitVersionControlSpec()
-        spec.url = repo.getUrl()
+        spec.url = repo.url
 
         when:
         gitVcs.populate(target, spec)
@@ -63,7 +66,7 @@ class GitVersionControlSystemSpec extends Specification {
         def target = tmpDir.file("workingDir")
         target.mkdir()
         GitVersionControlSpec spec = new GitVersionControlSpec()
-        spec.url = repo.getUrl()
+        spec.url = repo.url
 
         when:
         gitVcs.populate(target, spec)
@@ -78,7 +81,7 @@ class GitVersionControlSystemSpec extends Specification {
         given:
         def target = tmpDir.file("workingDir")
         GitVersionControlSpec spec = new GitVersionControlSpec()
-        spec.url = repo.getUrl()
+        spec.url = repo.url
         gitVcs.populate(target, spec)
         def newFile = repo.workTree.file("newFile.txt")
         newFile << "I'm new!"
@@ -98,7 +101,7 @@ class GitVersionControlSystemSpec extends Specification {
         given:
         def target = tmpDir.file("workingdir")
         GitVersionControlSpec spec = new GitVersionControlSpec()
-        spec.url = repo.getUrl()
+        spec.url = repo.url
         target.mkdirs()
         target.file("child.txt").createNewFile()
 
@@ -110,6 +113,26 @@ class GitVersionControlSystemSpec extends Specification {
 
         when:
         target.file(".git").mkdir()
+        gitVcs.populate(target, spec)
+
+        then:
+        thrown GradleException
+    }
+
+    def "error if working dir repo is missing the remote"() {
+        given:
+        def target = tmpDir.file("workingDir")
+        GitVersionControlSpec spec = new GitVersionControlSpec()
+        spec.url = repo.url
+        gitVcs.populate(target, spec)
+
+        // Commit a file to the repository
+        def textFile = repo2.workTree.file("other.txt")
+        textFile << "Hello world!"
+        repo2.commit("Initial Commit", textFile)
+        spec.url = repo2.url
+
+        when:
         gitVcs.populate(target, spec)
 
         then:
