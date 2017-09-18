@@ -28,6 +28,9 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
     @org.junit.Rule HttpServer server = new HttpServer()
     @org.junit.Rule TestResources resources = new TestResources(temporaryFolder)
 
+    // flaky test https://github.com/gradle/gradle-private/issues/948
+    String scriptFileName = "${UUID.randomUUID()}-script.gradle"
+
     def setup() {
         settingsFile << "rootProject.name = 'project'"
         server.expectUserAgent(UserAgentMatcher.matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
@@ -43,17 +46,17 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
             keyStore.configureServerCert(executer)
         }
 
-        def script = file('external.gradle')
-        server.expectGet('/external.gradle', script)
+        def script = file(scriptFileName)
+        server.expectGet("/${scriptFileName}", script)
 
         script << """
             task doStuff
             assert buildscript.sourceFile == null
-            assert "${server.uri}/external.gradle" == buildscript.sourceURI as String
+            assert "${server.uri}/${scriptFileName}" == buildscript.sourceURI as String
 """
 
         buildFile << """
-            apply from: '$server.uri/external.gradle'
+            apply from: '${server.uri}/${scriptFileName}'
             defaultTasks 'doStuff'
 """
 
@@ -70,17 +73,17 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
     def "can apply script with URI containing a query string"() {
         when:
         def queryString = 'p=foo;a=blob_plain;f=bar;hb=foo/bar/foo'
-        def script = file('external.gradle')
-        server.expectGetWithQueryString('/external.gradle', queryString, script)
+        def script = file(scriptFileName)
+        server.expectGetWithQueryString("/${scriptFileName}", queryString, script)
 
         script << """
             task doStuff
             assert buildscript.sourceFile == null
-            assert "${server.uri}/external.gradle?$queryString" == buildscript.sourceURI as String
+            assert "${server.uri}/${scriptFileName}?$queryString" == buildscript.sourceURI as String
 """
 
         buildFile << """
-            apply from: '$server.uri/external.gradle?$queryString'
+            apply from: '$server.uri/${scriptFileName}?$queryString'
             defaultTasks 'doStuff'
 """
 
@@ -93,19 +96,19 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         def first = file('first.gradle') << """
             task first
             assert buildscript.sourceFile == null
-            assert "${server.uri}/external.gradle?first" == buildscript.sourceURI as String
+            assert "${server.uri}/${scriptFileName}?first" == buildscript.sourceURI as String
         """
         def second = file('second.gradle') << """
             task second
             assert buildscript.sourceFile == null
-            assert "${server.uri}/external.gradle?second" == buildscript.sourceURI as String
+            assert "${server.uri}/${scriptFileName}?second" == buildscript.sourceURI as String
         """
-        server.expectGetWithQueryString('/external.gradle', "first", first)
-        server.expectGetWithQueryString('/external.gradle', "second", second)
+        server.expectGetWithQueryString("/${scriptFileName}", "first", first)
+        server.expectGetWithQueryString("/${scriptFileName}", "second", second)
 
         buildFile << """
-            apply from: '$server.uri/external.gradle?first'
-            apply from: '$server.uri/external.gradle?second'
+            apply from: '$server.uri/${scriptFileName}?first'
+            apply from: '$server.uri/${scriptFileName}?second'
             defaultTasks 'first', 'second'
 """
 
@@ -116,17 +119,17 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
     def "does not cache URIs with query parts"() {
         when:
         def queryString = 'p=foo;a=blob_plain;f=bar;hb=foo/bar/foo'
-        def script = file('external.gradle')
-        server.expectGetWithQueryString('/external.gradle', queryString, script)
+        def script = file(scriptFileName)
+        server.expectGetWithQueryString("/${scriptFileName}", queryString, script)
 
         script << """
             task doStuff
             assert buildscript.sourceFile == null
-            assert "${server.uri}/external.gradle?$queryString" == buildscript.sourceURI as String
+            assert "${server.uri}/${scriptFileName}?$queryString" == buildscript.sourceURI as String
 """
 
         buildFile << """
-            apply from: '$server.uri/external.gradle?$queryString'
+            apply from: '$server.uri/${scriptFileName}?$queryString'
             defaultTasks 'doStuff'
 """
 
@@ -134,7 +137,7 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         succeeds()
 
         when:
-        server.expectGetWithQueryString('/external.gradle', queryString, script)
+        server.expectGetWithQueryString("/${scriptFileName}", queryString, script)
         then:
         succeeds()
 
@@ -145,7 +148,7 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def "reasonable error message while --offline when applying a script with a query part"() {
-        def url = "$server.uri/external.gradle?query"
+        def url = "$server.uri/${scriptFileName}?query"
         buildFile << """
             apply from: '$url'
             defaultTasks 'doStuff'
@@ -172,10 +175,10 @@ task check {
 }
 """, "ISO-8859-15")
         assert scriptFile.getText("ISO-8859-15") != scriptFile.getText("UTF-8")
-        server.expectGet('/script.gradle', scriptFile).contentType("text/plain; charset=ISO-8859-15")
+        server.expectGet("/${scriptFileName}", scriptFile).contentType("text/plain; charset=ISO-8859-15")
 
         and:
-        buildFile << "apply from: '${server.uri}/script.gradle'"
+        buildFile << "apply from: '${server.uri}/${scriptFileName}'"
 
         expect:
         succeeds 'check'
@@ -197,10 +200,10 @@ task check {
 }
 """, "UTF-8")
         assert scriptFile.getText("ISO-8859-15") != scriptFile.getText("UTF-8")
-        server.expectGet('/script.gradle', scriptFile).contentType("text/plain")
+        server.expectGet("/${scriptFileName}", scriptFile).contentType("text/plain")
 
         and:
-        buildFile << "apply from: '${server.uri}/script.gradle'"
+        buildFile << "apply from: '${server.uri}/${scriptFileName}'"
 
         expect:
         succeeds 'check'
@@ -209,10 +212,9 @@ task check {
     @Unroll
     def "will not download cached #source resource when run with --offline"() {
         given:
-        def scriptName = "script-offline.gradle"
         def scriptFile = file("script.gradle")
         scriptFile.setText("""println 'loaded external script'""", "UTF-8")
-        server.expectGet('/' + scriptName, scriptFile)
+        server.expectGet('/' + scriptFileName, scriptFile)
 
         and:
         file("init.gradle").createFile()
@@ -221,7 +223,7 @@ task check {
         """
 
         when:
-        def scriptUri = "${server.uri}/${scriptName}"
+        def scriptUri = "${server.uri}/${scriptFileName}"
         file(sourceFile) << """
             apply from: '${scriptUri}'
         """
@@ -285,14 +287,13 @@ task check {
 
         where:
         source        | sourceFile        | scriptName
-        "buildscript" | "build.gradle"    | "build-script-plugin.gradle"
-        "settings"    | "settings.gradle" | "settings-script-plugin.gradle"
-        "initscript"  | "init.gradle"     | "init-script-plugin.gradle"
+        "buildscript" | "build.gradle"    | "${UUID.randomUUID()}-build-script-plugin.gradle"
+        "settings"    | "settings.gradle" | "${UUID.randomUUID()}-settings-script-plugin.gradle"
+        "initscript"  | "init.gradle"     | "${UUID.randomUUID()}-init-script-plugin.gradle"
     }
 
     def "will only request resource once for build invocation"() {
         given:
-        def scriptName = "script-once.gradle"
         def scriptFile = file("script.gradle")
         scriptFile.setText("""println 'loaded external script'""", "UTF-8")
 
@@ -304,11 +305,11 @@ task check {
 
         and:
         [file('settings.gradle'), file('init.gradle'), file("projA/build.gradle"), file("projB/build.gradle")].each {
-            it << "apply from: '${server.uri}/${scriptName}'"
+            it << "apply from: '${server.uri}/${scriptFileName}'"
         }
 
         when:
-        server.expectGet('/' + scriptName, scriptFile)
+        server.expectGet('/' + scriptFileName, scriptFile)
         args('-I', 'init.gradle')
 
         then:
@@ -317,7 +318,7 @@ task check {
 
         when:
         server.resetExpectations()
-        server.expectHead('/' + scriptName, scriptFile)
+        server.expectHead('/' + scriptFileName, scriptFile)
         args('-I', 'init.gradle')
 
         then:
@@ -327,16 +328,15 @@ task check {
 
     def "will refresh cached value on subsequent build invocation"() {
         given:
-        def scriptName = "script-cached.gradle"
         def scriptFile = file("script.gradle")
         scriptFile.setText("""println 'loaded external script 1'""", "UTF-8")
         scriptFile.makeOlder()
 
         and:
-        buildFile << "apply from: '${server.uri}/${scriptName}'"
+        buildFile << "apply from: '${server.uri}/${scriptFileName}'"
 
         when:
-        server.expectGet('/' + scriptName, scriptFile)
+        server.expectGet('/' + scriptFileName, scriptFile)
 
         then:
         succeeds 'tasks'
@@ -344,8 +344,8 @@ task check {
 
         when:
         scriptFile.setText("""println 'loaded external script 2'""", "UTF-8")
-        server.expectHead('/' + scriptName, scriptFile)
-        server.expectGet('/' + scriptName, scriptFile)
+        server.expectHead('/' + scriptFileName, scriptFile)
+        server.expectGet('/' + scriptFileName, scriptFile)
 
         then:
         succeeds 'tasks'
@@ -361,8 +361,7 @@ task check {
     }
 
     def "reports and recovers from missing remote script"() {
-        String scriptName = "script-missing.gradle"
-        String scriptUrl = "${server.uri}/${scriptName}"
+        String scriptUrl = "${server.uri}/${scriptFileName}"
         def scriptFile = file("script.gradle") << """
             println 'loaded remote script'
         """
@@ -372,7 +371,7 @@ task check {
         """
 
         when:
-        server.expectGetMissing("/" + scriptName)
+        server.expectGetMissing("/" + scriptFileName)
 
         then:
         fails()
@@ -385,7 +384,7 @@ task check {
 
         when:
         server.resetExpectations()
-        server.expectGet("/" + scriptName, scriptFile)
+        server.expectGet("/" + scriptFileName, scriptFile)
 
         then:
         succeeds()
