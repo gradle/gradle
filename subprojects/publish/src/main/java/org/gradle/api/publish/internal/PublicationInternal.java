@@ -16,8 +16,14 @@
 package org.gradle.api.publish.internal;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.publish.Publication;
 
+import javax.annotation.Nullable;
+
 public interface PublicationInternal extends Publication {
+    @Nullable
+    SoftwareComponentInternal getComponent();
+
     ModuleVersionIdentifier getCoordinates();
 }

@@ -50,6 +50,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.Comparator;
@@ -103,6 +104,12 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     public String getName() {
         return name;
+    }
+
+    @Nullable
+    @Override
+    public SoftwareComponentInternal getComponent() {
+        return component;
     }
 
     public MavenPomInternal getPom() {

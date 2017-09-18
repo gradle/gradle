@@ -16,14 +16,16 @@
 package org.gradle.api.publish.internal
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.component.ChildComponent
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
 
-public class ProjectDependencyPublicationResolverTest extends Specification {
+class ProjectDependencyPublicationResolverTest extends Specification {
     def projectDependency = Mock(ProjectDependency)
     def project = Mock(ProjectInternal)
     def extensions = Mock(ExtensionContainerInternal)
@@ -97,7 +99,43 @@ public class ProjectDependencyPublicationResolverTest extends Specification {
         }
     }
 
-    def "fails if cannot resolve single publication"() {
+    def "uses coordinates from root component publication"() {
+        given:
+        def root = Stub(SoftwareComponentInternal)
+        def child1 = Stub(TestComponent)
+        child1.owner >> root
+        def child2 = Stub(TestComponent)
+        child2.owner >> child1
+        def child3 = Stub(TestComponent)
+        child3.owner >> root
+
+        def publication = pub('mock', "pub-group", "pub-name", "pub-version")
+        publication.component >> root
+
+        def publication2 = pub('pub2', "pub-group", "pub-name-child1", "pub-version")
+        publication2.component >> child1
+
+        def publication3 = pub('pub3', "pub-group", "pub-name-child2", "pub-version")
+        publication3.component >> child2
+
+        def publication4 = pub('pub4', "pub-group", "pub-name-child3", "pub-version")
+        publication4.component >> child3
+
+        when:
+        dependentProjectHasPublications(publication, publication2, publication3, publication4)
+
+        then:
+        with (resolve()) {
+            group == "pub-group"
+            name == "pub-name"
+            version == "pub-version"
+        }
+    }
+
+    def "resolve fails when target project has multiple publications with different coordinates"() {
+        given:
+        project.displayName >> "<project>"
+
         when:
         def publication = pub('mock', "pub-group", "pub-name", "pub-version")
         def publication2 = pub('pub2', "other-group", "other-name", "other-version")
@@ -109,7 +147,39 @@ public class ProjectDependencyPublicationResolverTest extends Specification {
 
         then:
         def e = thrown(UnsupportedOperationException)
-        e.message == "Publishing is not yet able to resolve a dependency on a project with multiple different publications."
+        e.message == """Publishing is not yet able to resolve a dependency on a project with multiple publications that have different coordinates.
+Found the following publications in <project>:
+  - Publication 'mock' with coordinates pub-group:pub-name:pub-version
+  - Publication 'pub2' with coordinates other-group:other-name:other-version"""
+    }
+
+    def "resolve fails when target project has multiple component publications with different coordinates"() {
+        given:
+        def component1 = Stub(SoftwareComponentInternal)
+        def component2 = Stub(SoftwareComponentInternal)
+        def component3 = Stub(TestComponent)
+        project.displayName >> "<project>"
+
+        when:
+        def publication = pub('mock', "pub-group", "pub-name", "pub-version")
+        publication.component >> component1
+        def publication2 = pub('pub2', "other-group", "other-name1", "other-version")
+        publication2.component >> component2
+        def publication3 = pub('pub3', "other-group", "other-name2", "other-version")
+        publication3.component >> component3
+
+        dependentProjectHasPublications(publication, publication2, publication3)
+
+        and:
+        resolve()
+
+        then:
+        def e = thrown(UnsupportedOperationException)
+        e.message == """Publishing is not yet able to resolve a dependency on a project with multiple publications that have different coordinates.
+Found the following publications in <project>:
+  - Publication 'mock' with coordinates pub-group:pub-name:pub-version
+  - Publication 'pub2' with coordinates other-group:other-name1:other-version
+  - Publication 'pub3' with coordinates other-group:other-name2:other-version"""
     }
 
     private ModuleVersionIdentifier resolve() {
@@ -130,5 +200,8 @@ public class ProjectDependencyPublicationResolverTest extends Specification {
         publication.name >> name
         publication.coordinates >> new DefaultModuleVersionIdentifier(group, module, version)
         return publication
+    }
+
+    interface TestComponent extends SoftwareComponentInternal, ChildComponent {
     }
 }

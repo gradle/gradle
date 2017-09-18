@@ -19,14 +19,11 @@ package org.gradle.language.cpp.internal;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class NativeVariant implements SoftwareComponentInternal {
@@ -77,20 +74,7 @@ public class NativeVariant implements SoftwareComponentInternal {
         SimpleUsage(Usage usage, Set<? extends PublishArtifact> artifacts, Configuration configuration) {
             this.usage = usage;
             this.artifacts = artifacts;
-            Set<ModuleDependency> dependencies = configuration.getAllDependencies().withType(ModuleDependency.class);
-            // Need to map project dependencies to external dependencies
-            // TODO - let the publishing infrastructure do this
-            // TODO - should deal with changes to target library's baseName
-            Set<ModuleDependency> mapped = new LinkedHashSet<ModuleDependency>(dependencies.size());
-            for (ModuleDependency dependency : dependencies) {
-                if (dependency instanceof ProjectDependency) {
-                    ProjectDependency projectDependency = (ProjectDependency) dependency;
-                    mapped.add(new DefaultExternalModuleDependency(projectDependency.getGroup(), projectDependency.getName(), projectDependency.getVersion()));
-                } else {
-                    mapped.add(dependency);
-                }
-            }
-            this.dependencies = mapped;
+            this.dependencies = configuration.getAllDependencies().withType(ModuleDependency.class);
         }
 
         @Override

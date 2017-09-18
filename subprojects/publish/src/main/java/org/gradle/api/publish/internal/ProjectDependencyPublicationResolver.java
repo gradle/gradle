@@ -18,11 +18,16 @@ package org.gradle.api.publish.internal;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.component.ChildComponent;
+import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publish.PublishingExtension;
+import org.gradle.internal.text.TreeFormatter;
 
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -41,14 +46,41 @@ public class ProjectDependencyPublicationResolver {
             return new DefaultModuleVersionIdentifier(dependency.getGroup(), dependencyProject.getName(), dependency.getVersion());
         }
 
-        // See if all publications have the same identifier
+        // Select all entry points. An entry point is a publication that does not contain a component whose parent is also published
         Set<? extends PublicationInternal> publications = publishing.getPublications().withType(PublicationInternal.class);
-        Iterator<? extends PublicationInternal> iterator = publications.iterator();
+        Set<SoftwareComponent> components = new HashSet<SoftwareComponent>(publications.size());
+        for (PublicationInternal publication : publications) {
+            if (publication.getComponent() != null) {
+                components.add(publication.getComponent());
+            }
+        }
+        Set<PublicationInternal> topLevel = new LinkedHashSet<PublicationInternal>();
+        for (PublicationInternal publication : publications) {
+            if (publication.getComponent() == null || !(publication.getComponent() instanceof ChildComponent)) {
+                topLevel.add(publication);
+                continue;
+            }
+            ChildComponent childComponent = (ChildComponent) publication.getComponent();
+            if (!components.contains(childComponent.getOwner())) {
+                topLevel.add(publication);
+            }
+        }
+
+        // See if all entry points have the same identifier
+        Iterator<? extends PublicationInternal> iterator = topLevel.iterator();
         ModuleVersionIdentifier candidate = iterator.next().getCoordinates();
         while (iterator.hasNext()) {
             ModuleVersionIdentifier alternative = iterator.next().getCoordinates();
             if (!candidate.equals(alternative)) {
-                throw new UnsupportedOperationException("Publishing is not yet able to resolve a dependency on a project with multiple different publications.");
+                TreeFormatter formatter = new TreeFormatter();
+                formatter.node("Publishing is not yet able to resolve a dependency on a project with multiple publications that have different coordinates.");
+                formatter.node("Found the following publications in " + dependencyProject.getDisplayName());
+                formatter.startChildren();
+                for (PublicationInternal publication : publications) {
+                    formatter.node("Publication '" + publication.getName() + "' with coordinates " + publication.getCoordinates());
+                }
+                formatter.endChildren();
+                throw new UnsupportedOperationException(formatter.toString());
             }
         }
         return candidate;
