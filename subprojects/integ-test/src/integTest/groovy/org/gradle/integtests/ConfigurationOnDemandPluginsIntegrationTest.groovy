@@ -43,6 +43,7 @@ class ConfigurationOnDemandPluginsIntegrationTest extends AbstractIntegrationSpe
         }
 
         when:
+        executer.expectDeprecationWarning()
         run ':a:build'
 
         then:

@@ -210,7 +210,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     @Issue("https://github.com/gradle/gradle/issues/821")
-    def "production class files are removed in a multi-project build executed #description"(String[] arguments, String description) {
+    def "production class files are removed in a multi-project build executed #description"(String[] arguments, String description, boolean expectDeprecationWarning) {
         given:
         def projectCount = 3
         def javaProjects = (1..projectCount).collect {
@@ -235,6 +235,9 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         javaProjects.each {
             forceDelete(it.redundantSourceFile)
         }
+        if (expectDeprecationWarning) {
+            executer.expectDeprecationWarning()
+        }
         succeeds arguments
 
         then:
@@ -245,18 +248,21 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         }
 
         and:
+        if (expectDeprecationWarning) {
+            executer.expectDeprecationWarning()
+        }
         succeeds arguments
 
         where:
-        arguments                                              | description
-        [JAR_TASK_NAME]                                        | 'without additional argument'
-        [JAR_TASK_NAME, '--parallel']                          | 'in parallel'
-        [JAR_TASK_NAME, '--parallel', '--configure-on-demand'] | 'in parallel and configure on demand enabled'
+        arguments                                              | description                                    | expectDeprecationWarning
+        [JAR_TASK_NAME]                                        | 'without additional argument'                  | false
+        [JAR_TASK_NAME, '--parallel']                          | 'in parallel'                                  | false
+        [JAR_TASK_NAME, '--parallel', '--configure-on-demand'] | 'in parallel and configure on demand enabled'  | true
     }
 
     @Unroll
     @Issue("https://github.com/gradle/gradle/issues/821")
-    def "production class files are removed in a multi-project build executed when a single project is built #description"(String singleTask, List arguments, String description) {
+    def "production class files are removed in a multi-project build executed when a single project is built #description"(String singleTask, List arguments, String description, boolean expectDeprecationWarning) {
         given:
         def projectCount = 3
         def javaProjects = (1..projectCount).collect {
@@ -285,6 +291,9 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
             forceDelete(it.redundantSourceFile)
         }
         executer.withArguments(arguments)
+        if (expectDeprecationWarning) {
+            executer.expectDeprecationWarning()
+        }
         succeeds(singleTask)
 
         then:
@@ -297,6 +306,9 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         when:
         // Build everything
         executer.withArguments(arguments)
+        if (expectDeprecationWarning) {
+            executer.expectDeprecationWarning()
+        }
         succeeds JAR_TASK_NAME
 
         then:
@@ -305,10 +317,10 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         }
 
         where:
-        singleTask      | arguments                               | description
-        ":project1:jar" | []                                      | 'without additional argument'
-        ":project1:jar" | ['--parallel']                          | 'in parallel'
-        ":project1:jar" | ['--parallel', '--configure-on-demand'] | 'in parallel and configure on demand enabled'
+        singleTask      | arguments                               | description                                     | expectDeprecationWarning
+        ":project1:jar" | []                                      | 'without additional argument'                   | false
+        ":project1:jar" | ['--parallel']                          | 'in parallel'                                   | false
+        ":project1:jar" | ['--parallel', '--configure-on-demand'] | 'in parallel and configure on demand enabled'   | true
     }
 
     @Issue("https://github.com/gradle/gradle/issues/821")

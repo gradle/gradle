@@ -28,7 +28,7 @@ A Gradle build has three distinct phases.
 Initialization::
 Gradle supports single and multi-project builds. During the initialization phase, Gradle determines which projects are going to take part in the build, and creates a api:org.gradle.api.Project[] instance for each of these projects.
 Configuration::
-During this phase the project objects are configured. The build scripts of _all_ projects which are part of the build are executed. Gradle 1.4 introduced an <<feature_lifecycle,incubating>> opt-in feature called _configuration on demand_. In this mode, Gradle configures only relevant projects (see <<sec:configuration_on_demand>>).
+During this phase the project objects are configured. The build scripts of _all_ projects which are part of the build are executed.
 Execution::
 Gradle determines the subset of the tasks, created and configured during the configuration phase, to be executed. The subset is determined by the task name arguments passed to the `gradle` command and the current directory. Gradle then executes each of the selected tasks.
 

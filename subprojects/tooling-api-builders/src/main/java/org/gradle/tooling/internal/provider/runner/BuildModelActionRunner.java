@@ -37,6 +37,7 @@ import org.gradle.tooling.provider.model.UnknownModelException;
 
 public class BuildModelActionRunner implements BuildActionRunner {
     @Override
+    @SuppressWarnings("deprecation")
     public void run(BuildAction action, final BuildController buildController) {
         if (!(action instanceof BuildModelAction)) {
             return;

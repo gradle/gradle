@@ -719,7 +719,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     /**
      * If the configure-on-demand mode is active
      */
-    @Incubating
+    @Deprecated
     public boolean isConfigureOnDemand() {
         return configureOnDemand;
     }
@@ -758,7 +758,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         this.gradleHomeDir = gradleHomeDir;
     }
 
-    @Incubating
+    @Deprecated
     public void setConfigureOnDemand(boolean configureOnDemand) {
         this.configureOnDemand = configureOnDemand;
     }

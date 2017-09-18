@@ -248,7 +248,7 @@ project(":lib") {
 """
 
         when:
-        executer.withArgument('--configure-on-demand')
+        executer.withArgument('--configure-on-demand').expectDeprecationWarning()
         succeeds ":exe:installMainExecutable"
 
         then:

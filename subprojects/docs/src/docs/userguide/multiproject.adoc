@@ -37,9 +37,14 @@ Let's start with a very simple multi-project build. Gradle is a general purpose 
 [[sec:configuration_on_demand]]
 ===== Configuration on demand
 
-The _Configuration injection_ feature and access to the complete project model are possible because every project is configured before the execution phase. Yet, this approach may not be the most efficient in a very large multi-project build. There are Gradle builds with a hierarchy of hundreds of subprojects. The configuration time of huge multi-project builds may become noticeable. Scalability is an important requirement for Gradle. Hence, starting from version 1.4 a new incubating 'configuration on demand' mode is introduced.
+[NOTE]
+====
 
-Configuration on demand mode attempts to configure only projects that are relevant for requested tasks, i.e. it only executes the `build.gradle` file of projects that are participating in the build. This way, the configuration time of a large multi-project build can be reduced. In the long term, this mode will become the default mode, possibly the only mode for Gradle build execution. The configuration on demand feature is incubating so not every build is guaranteed to work correctly. The feature should work very well for multi-project builds that have decoupled projects (<<sec:decoupled_projects>>). In “configuration on demand” mode, projects are configured as follows:
+This functionality is deprecated and will be removed in Gradle 5.0. We believe that the performance improvements over the last releases have made configuration on demand unnecessary. If your build still benefits from configuration on demand, please let us know, so we can do further improvements.
+
+====
+
+Configuration on demand mode attempts to configure only projects that are relevant for requested tasks, i.e. it only executes the `build.gradle` file of projects that are participating in the build. In “configuration on demand” mode, projects are configured as follows:
 
 * The root project is always configured. This way the typical common configuration is supported (allprojects or subprojects script blocks).
 * The project in the directory where the build is executed is also configured, but only when Gradle is executed without any tasks. This way the default tasks behave correctly when projects are configured on demand.
@@ -47,8 +52,7 @@ Configuration on demand mode attempts to configure only projects that are releva
 * The task dependencies declared via task path are supported and cause relevant projects to be configured. Example: someTask.dependsOn(":someOtherProject:someOtherTask")
 * A task requested via task path from the command line (or Tooling API) causes the relevant project to be configured. For example, building 'projectA:projectB:someTask' causes configuration of projectB.
 
-
-Eager to try out this new feature? To configure on demand with every build run see <<sec:gradle_configuration_properties>>. To configure on demand just for a given build please see <<gradle_command_line>>.
+To configure on demand with every build run see <<sec:gradle_configuration_properties>>. To configure on demand just for a given build please see <<gradle_command_line>>.
 
 [[sec:defining_common_behavior]]
 ==== Defining common behavior

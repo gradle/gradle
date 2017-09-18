@@ -26,30 +26,30 @@ class PropertiesLoaderIntegrationTest extends AbstractIntegrationSpec {
     def "build property set on command line takes precedence over properties file"() {
         when:
         file('gradle.properties') << """
-org.gradle.configureondemand=true
+org.gradle.parallel=true
 """
         buildFile << """
-task assertCodEnabled {
+task assertParallelEnabled {
     doLast {
-        assert gradle.startParameter.configureOnDemand
+        assert gradle.startParameter.parallelProjectExecutionEnabled
     }
 }
 
-task assertCodDisabled {
+task assertParallelDisabled {
     doLast {
-        assert !gradle.startParameter.configureOnDemand
+        assert !gradle.startParameter.parallelProjectExecutionEnabled
     }
 }
 """
 
         then:
-        succeeds ':assertCodEnabled'
+        succeeds ':assertParallelEnabled'
 
         when:
-        args '-Dorg.gradle.configureondemand=false'
+        args '-Dorg.gradle.parallel=false'
 
         then:
-        succeeds ':assertCodDisabled'
+        succeeds ':assertParallelDisabled'
     }
 
     def "system property set on command line takes precedence over properties file"() {
@@ -81,30 +81,30 @@ task printSystemProp {
     def "build property set on command line takes precedence over jvm args"() {
         when:
         executer.requireGradleDistribution()
-        executer.withEnvironmentVars 'GRADLE_OPTS': '-Dorg.gradle.configureondemand=true'
+        executer.withEnvironmentVars 'GRADLE_OPTS': '-Dorg.gradle.parallel=true'
 
         buildFile << """
-task assertCodEnabled {
+task assertParallelEnabled {
     doLast {
-        assert gradle.startParameter.configureOnDemand
+        assert gradle.startParameter.parallelProjectExecutionEnabled
     }
 }
 
-task assertCodDisabled {
+task assertParallelDisabled {
     doLast {
-        assert !gradle.startParameter.configureOnDemand
+        assert !gradle.startParameter.parallelProjectExecutionEnabled
     }
 }
 """
 
         then:
-        succeeds ':assertCodEnabled'
+        succeeds ':assertParallelEnabled'
 
         when:
-        args '-Dorg.gradle.configureondemand=false'
+        args '-Dorg.gradle.parallel=false'
 
         then:
-        succeeds ':assertCodDisabled'
+        succeeds ':assertParallelDisabled'
     }
 
     def "system property set on command line takes precedence over jvm args"() {
