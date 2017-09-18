@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks
 
+import org.gradle.api.internal.ChangeDetection
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileResolver
@@ -43,7 +44,8 @@ class DefaultTaskDestroyablesTest extends Specification {
             }
         }
     }
-    TaskDestroyables taskDestroys = new DefaultTaskDestroyables(resolver, Mock(TaskInternal), taskMutator, this)
+    def changeDetection = Mock(ChangeDetection)
+    TaskDestroyables taskDestroys = new DefaultTaskDestroyables(resolver, Mock(TaskInternal), taskMutator, changeDetection)
 
     def "empty destroys by default"() {
         expect:

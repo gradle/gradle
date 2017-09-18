@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks
 
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.ChangeDetection
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.FileTreeInternal
@@ -46,7 +47,8 @@ class DefaultTaskInputsTest extends Specification {
         getName() >> "task"
         toString() >> "task 'task'"
     }
-    private final DefaultTaskInputs inputs = new DefaultTaskInputs(resolver, task, taskStatusNagger, this)
+    def changeDetection = Mock(ChangeDetection)
+    private final DefaultTaskInputs inputs = new DefaultTaskInputs(resolver, task, taskStatusNagger, changeDetection)
 
     def "default values"() {
         expect:
