@@ -56,4 +56,24 @@ class GitVersionControlSystemSpec extends Specification {
         target.file( "source.txt").text == "Hello world!"
         target.file( "dir/another.txt").text == "Goodbye world!"
     }
+
+    def "update a cloned repository"() {
+        given:
+        def target = tmpDir.file("workingDir")
+        GitVersionControlSpec spec = new GitVersionControlSpec()
+        spec.url = repo.getUrl()
+        gitVcs.populate(target, spec)
+        def newFile = repo.workTree.file("newFile.txt")
+        newFile << "I'm new!"
+        repo.commit("Add newFile.txt", newFile)
+
+        expect:
+        !target.file("newFile.txt").exists()
+
+        when:
+        gitVcs.populate(target, spec)
+
+        then:
+        target.file("newFile.txt").exists()
+    }
 }
