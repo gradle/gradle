@@ -18,7 +18,10 @@ package org.gradle.api.internal.artifacts.mvnsettings
 import org.apache.maven.settings.io.SettingsParseException
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -206,10 +209,18 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         'env.unknown.ENV_VAR' |   "environment variable"
     }
 
+    @Requires(TestPrecondition.WINDOWS)
+    @Issue('https://github.com/gradle/gradle/issues/2843')
+    def "handle the case of absolute path on Windows"() {
+        when:
+        writeSettingsFile(locations.globalSettingsFile, "<localRepository>/absolute</localRepository>")
+        then:
+        locator.localMavenRepository == new File('/absolute').absoluteFile
+    }
+
     private static void writeSettingsFile(File settings, File repo) {
         writeSettingsFile(settings, "<localRepository>${repo.absolutePath}</localRepository>")
     }
-
 
     private static void writeSettingsFile(File settings, String localRepositoryElement) {
         settings.text = """
