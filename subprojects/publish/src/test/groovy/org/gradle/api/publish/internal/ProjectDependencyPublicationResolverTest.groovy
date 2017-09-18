@@ -23,6 +23,7 @@ import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.util.TextUtil
 import spock.lang.Specification
 
 class ProjectDependencyPublicationResolverTest extends Specification {
@@ -147,10 +148,10 @@ class ProjectDependencyPublicationResolverTest extends Specification {
 
         then:
         def e = thrown(UnsupportedOperationException)
-        e.message == """Publishing is not yet able to resolve a dependency on a project with multiple publications that have different coordinates.
+        e.message == TextUtil.toPlatformLineSeparators("""Publishing is not yet able to resolve a dependency on a project with multiple publications that have different coordinates.
 Found the following publications in <project>:
   - Publication 'mock' with coordinates pub-group:pub-name:pub-version
-  - Publication 'pub2' with coordinates other-group:other-name:other-version"""
+  - Publication 'pub2' with coordinates other-group:other-name:other-version""")
     }
 
     def "resolve fails when target project has multiple component publications with different coordinates"() {
@@ -175,11 +176,11 @@ Found the following publications in <project>:
 
         then:
         def e = thrown(UnsupportedOperationException)
-        e.message == """Publishing is not yet able to resolve a dependency on a project with multiple publications that have different coordinates.
+        e.message == TextUtil.toPlatformLineSeparators("""Publishing is not yet able to resolve a dependency on a project with multiple publications that have different coordinates.
 Found the following publications in <project>:
   - Publication 'mock' with coordinates pub-group:pub-name:pub-version
   - Publication 'pub2' with coordinates other-group:other-name1:other-version
-  - Publication 'pub3' with coordinates other-group:other-name2:other-version"""
+  - Publication 'pub3' with coordinates other-group:other-name2:other-version""")
     }
 
     private ModuleVersionIdentifier resolve() {
