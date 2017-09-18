@@ -19,8 +19,6 @@ package org.gradle.api.internal.project.taskfactory;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -64,7 +62,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 @NonNullApi
 public class DefaultSchemaExtractor implements SchemaExtractor {
@@ -149,7 +146,7 @@ public class DefaultSchemaExtractor implements SchemaExtractor {
                 if (value.getValue() == null) {
                     children.put(propertyName, new SchemaProperty(changeDetectionProperty, instance, configureAction));
                 } else {
-                    children.put(propertyName, new NestedSchema(extractSchema(value.getValue()).getChildren(), value, configureAction));
+                    children.put(propertyName, new NestedSchema(extractSchema(value.getValue()).getChildren(), changeDetectionProperty, instance, value));
                 }
             } else {
                 children.put(propertyName, new SchemaProperty(changeDetectionProperty, instance, configureAction));
@@ -215,7 +212,7 @@ public class DefaultSchemaExtractor implements SchemaExtractor {
         }
     }
 
-    private Iterable<Annotation> mergeDeclaredAnnotations(TaskPropertyActionContext propertyContext, Method method, Field field) {
+    private Iterable<Annotation> mergeDeclaredAnnotations(TaskPropertyActionContext propertyContext, Method method, @Nullable Field field) {
         Collection<Annotation> methodAnnotations = collectRelevantAnnotations(method.getDeclaredAnnotations());
         if (field == null) {
             return methodAnnotations;
@@ -574,88 +571,4 @@ public class DefaultSchemaExtractor implements SchemaExtractor {
         }
     }
 
-    public interface SchemaNode extends Callable<Object> {
-        UpdateAction getConfigureAction();
-    }
-
-    private static final UpdateAction NO_OP_CONFIGURATION_ACTION = new UpdateAction() {};
-
-    public static class SchemaProperty implements SchemaNode {
-
-        private final ChangeDetectionProperty property;
-        private final Object parentValue;
-        private final Supplier<TaskPropertyValue> valueSupplier = Suppliers.memoize(new Supplier<TaskPropertyValue>() {
-            @Override
-            public TaskPropertyValue get() {
-                return property.getValue(parentValue);
-            }
-        });
-        private final UpdateAction configureAction;
-
-        SchemaProperty(ChangeDetectionProperty property, Object parentValue, @Nullable UpdateAction configureAction) {
-            this.property = property;
-            this.parentValue = parentValue;
-            this.configureAction = configureAction == null ? NO_OP_CONFIGURATION_ACTION : configureAction;
-        }
-
-        @Override
-        public UpdateAction getConfigureAction() {
-            return configureAction;
-        }
-
-        @Override
-        public Object call() throws Exception {
-            return valueSupplier.get().getValue();
-        }
-    }
-
-    public static class SchemaRoot implements SchemaNode {
-        private final Map<String, SchemaNode> children;
-        private final Object instance;
-
-        SchemaRoot(Map<String, SchemaNode> children, Object instance) {
-            this.children = children;
-            this.instance = instance;
-        }
-
-        public Map<String, SchemaNode> getChildren() {
-            return children;
-        }
-
-        @Override
-        public UpdateAction getConfigureAction() {
-            return NO_OP_CONFIGURATION_ACTION;
-        }
-
-        @Override
-        public Object call() throws Exception {
-            return instance;
-        }
-    }
-
-    public static class NestedSchema implements SchemaNode {
-        private final Map<String, SchemaNode> children;
-        private final TaskPropertyValue value;
-        private final UpdateAction configureAction;
-
-        NestedSchema(Map<String, SchemaNode> children, TaskPropertyValue value, @Nullable UpdateAction configureAction) {
-            this.children = children;
-            this.value = value;
-            this.configureAction = configureAction == null ? NO_OP_CONFIGURATION_ACTION : configureAction;
-        }
-
-        public Map<String, SchemaNode> getChildren() {
-            return children;
-        }
-
-        @Override
-        public UpdateAction getConfigureAction() {
-            return configureAction;
-        }
-
-        @Override
-        public Object call() throws Exception {
-            return value.getValue();
-        }
-    }
 }

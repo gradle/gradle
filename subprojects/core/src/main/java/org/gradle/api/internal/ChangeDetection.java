@@ -17,8 +17,10 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.project.taskfactory.DefaultSchemaExtractor;
+import org.gradle.api.internal.project.taskfactory.NestedSchema;
 import org.gradle.api.internal.project.taskfactory.SchemaExtractor;
+import org.gradle.api.internal.project.taskfactory.SchemaNode;
+import org.gradle.api.internal.project.taskfactory.SchemaRoot;
 import org.gradle.api.internal.tasks.DefaultTaskDestroyables;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
@@ -35,7 +37,7 @@ public class ChangeDetection {
     private final TaskInputsInternal taskInputs;
     private final TaskOutputsInternal taskOutputs;
     private final TaskDestroyables taskDestroyables;
-    private DefaultSchemaExtractor.SchemaRoot schemaRoot;
+    private SchemaRoot schemaRoot;
 
     public ChangeDetection(TaskInternal task, SchemaExtractor schemaExtractor, FileResolver fileResolver, TaskMutator taskMutator) {
         this.task = task;
@@ -65,22 +67,22 @@ public class ChangeDetection {
         }
     }
 
-    private void registerInputsAndOutputs(DefaultSchemaExtractor.SchemaRoot schemaRoot) {
+    private void registerInputsAndOutputs(SchemaRoot schemaRoot) {
         registerInputsAndOutputs(null, schemaRoot.getChildren());
     }
 
-    private void registerInputsAndOutputs(@Nullable String parentPropertyName, Map<String, DefaultSchemaExtractor.SchemaNode> children) {
-        for (Map.Entry<String, DefaultSchemaExtractor.SchemaNode> entry : children.entrySet()) {
+    private void registerInputsAndOutputs(@Nullable String parentPropertyName, Map<String, SchemaNode> children) {
+        for (Map.Entry<String, SchemaNode> entry : children.entrySet()) {
             String propertyName = parentPropertyName == null ? entry.getKey() : parentPropertyName + "." + entry.getKey();
-            DefaultSchemaExtractor.SchemaNode node = entry.getValue();
+            SchemaNode node = entry.getValue();
             updateInputsAndOutputs(node, propertyName);
-            if (node instanceof DefaultSchemaExtractor.NestedSchema) {
-                registerInputsAndOutputs(propertyName, ((DefaultSchemaExtractor.NestedSchema) node).getChildren());
+            if (node instanceof NestedSchema) {
+                registerInputsAndOutputs(propertyName, ((NestedSchema) node).getChildren());
             }
         }
     }
 
-    private void updateInputsAndOutputs(DefaultSchemaExtractor.SchemaNode value, String propertyName) {
+    private void updateInputsAndOutputs(SchemaNode value, String propertyName) {
         value.getConfigureAction().updateInputs(taskInputs, propertyName, value);
         value.getConfigureAction().updateOutputs(taskOutputs, propertyName, value);
         value.getConfigureAction().updateDestroyables(taskDestroyables, propertyName, value);

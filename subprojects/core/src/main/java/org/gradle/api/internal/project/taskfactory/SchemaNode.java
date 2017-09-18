@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-public interface SchemaExtractor {
-    SchemaRoot extractSchema(Object instance);
+import java.util.concurrent.Callable;
+
+public interface SchemaNode extends Callable<Object> {
+    UpdateAction getConfigureAction();
 }

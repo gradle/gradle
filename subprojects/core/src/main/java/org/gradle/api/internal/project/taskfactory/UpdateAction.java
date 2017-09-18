@@ -22,6 +22,8 @@ import org.gradle.api.tasks.TaskDestroyables;
 import java.util.concurrent.Callable;
 
 public abstract class UpdateAction {
+    public static final UpdateAction NO_OP_CONFIGURATION_ACTION = new UpdateAction() {};
+
 
     public void updateInputs(TaskInputsInternal inputs, String propertyName, Callable<Object> futureValue) {
     }
