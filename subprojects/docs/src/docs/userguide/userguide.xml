@@ -63,7 +63,7 @@
         <xi:include href='../../../build/asciidoc/userguide/depMngmt.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/multiproject.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/plugins.xml'/>
-        <xi:include href='standardPlugins.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/standardPlugins.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/projectReports.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/buildDashboardPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/comparingBuilds.xml'/>
@@ -83,7 +83,7 @@
         <xi:include href='../../../build/asciidoc/userguide/javaGradlePlugin.xml' />
         <xi:include href='../../../build/asciidoc/userguide/organizeBuildLogic.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/initscripts.xml'/>
-        <xi:include href='testKit.xml' />
+        <xi:include href='../../../build/asciidoc/userguide/testKit.xml' />
     </part>
     <part>
         <title>Building JVM projects</title>
@@ -112,7 +112,7 @@
     </part>
     <part>
         <title>The Software model</title>
-        <xi:include href='softwareModel.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/softwareModel.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/softwareModelConcepts.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/ruleSource.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/buildingJavaLibraries.xml'/>

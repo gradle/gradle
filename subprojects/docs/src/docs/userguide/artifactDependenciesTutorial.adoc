@@ -51,7 +51,7 @@ What's going on here? This build script says a few things about the project. Fir
 [[configurations]]
 === Dependency configurations
 
-A Configuration is a named set of dependencies and artifacts. There are three main purposes for a Configuration: 
+A Configuration is a named set of dependencies and artifacts. There are three main purposes for a Configuration:
 
 Declaring Dependencies::
 The plugin uses configurations to make it easy for build authors to declare what other subprojects or external artifacts are needed for various purposes during the execution of tasks defined by the plugin.
@@ -60,7 +60,7 @@ The plugin uses configurations to find (and possibly download) inputs to the tas
 Exposing Artifacts for Consumption::
 The plugin uses configurations to define what _artifacts_ it generates for other projects to consume.
 
- 
+
 
 With those three purposes in mind, let's take a look at a few of the standard configurations defined by the Java Library Plugin. You can find more details in <<sec:java_library_configurations_graph>>.
 
@@ -180,4 +180,4 @@ For all the details of dependency resolution, see <<dependency_management>>, and
 
 If you are interested in the DSL elements mentioned here, have a look at api:org.gradle.api.Project#configurations[], api:org.gradle.api.Project#repositories[] and api:org.gradle.api.Project#dependencies[].
 
-Otherwise, continue on to some of the other <<tutorials,tutorials>>.
+Otherwise, continue on to some https://guides.gradle.org[guides].
