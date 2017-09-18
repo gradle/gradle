@@ -16,8 +16,14 @@
 
 package org.gradle.api.publish.maven.plugins;
 
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -36,6 +42,7 @@ import org.gradle.api.publish.maven.tasks.GenerateMavenPom;
 import org.gradle.api.publish.maven.tasks.PublishToMavenLocal;
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository;
 import org.gradle.api.publish.plugins.PublishingPlugin;
+import org.gradle.api.publish.tasks.GenerateModuleMetadata;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -104,14 +111,15 @@ public class MavenPublishPlugin implements Plugin<Project> {
             for (final MavenPublicationInternal publication : publications.withType(MavenPublicationInternal.class)) {
                 String publicationName = publication.getName();
 
-                createGeneratePomTask(tasks, publication, publicationName, buildDir);
-                createLocalInstallTask(tasks, publishLocalLifecycleTask, publication, publicationName);
-                createPublishTasksForEachMavenRepo(tasks, extension, publishLifecycleTask, publication, publicationName);
+                createGenerateMetadataTask(tasks, publication, buildDir);
+                createGeneratePomTask(tasks, publication, buildDir);
+                createLocalInstallTask(tasks, publishLocalLifecycleTask, publication);
+                createPublishTasksForEachMavenRepo(tasks, extension, publishLifecycleTask, publication);
             }
         }
 
-        private void createPublishTasksForEachMavenRepo(ModelMap<Task> tasks, PublishingExtension extension, final Task publishLifecycleTask, final MavenPublicationInternal publication,
-                                                        final String publicationName) {
+        private void createPublishTasksForEachMavenRepo(ModelMap<Task> tasks, PublishingExtension extension, final Task publishLifecycleTask, final MavenPublicationInternal publication) {
+            final String publicationName = publication.getName();
             for (final MavenArtifactRepository repository : extension.getRepositories().withType(MavenArtifactRepository.class)) {
                 final String repositoryName = repository.getName();
 
@@ -130,7 +138,8 @@ public class MavenPublishPlugin implements Plugin<Project> {
             }
         }
 
-        private void createLocalInstallTask(ModelMap<Task> tasks, final Task publishLocalLifecycleTask, final MavenPublicationInternal publication, final String publicationName) {
+        private void createLocalInstallTask(ModelMap<Task> tasks, final Task publishLocalLifecycleTask, final MavenPublicationInternal publication) {
+            final String publicationName = publication.getName();
             final String installTaskName = "publish" + capitalize(publicationName) + "PublicationToMavenLocal";
 
             tasks.create(installTaskName, PublishToMavenLocal.class, new Action<PublishToMavenLocal>() {
@@ -143,7 +152,8 @@ public class MavenPublishPlugin implements Plugin<Project> {
             publishLocalLifecycleTask.dependsOn(installTaskName);
         }
 
-        private void createGeneratePomTask(ModelMap<Task> tasks, final MavenPublicationInternal publication, final String publicationName, final File buildDir) {
+        private void createGeneratePomTask(ModelMap<Task> tasks, final MavenPublicationInternal publication, final File buildDir) {
+            final String publicationName = publication.getName();
             String descriptorTaskName = "generatePomFileFor" + capitalize(publicationName) + "Publication";
             tasks.create(descriptorTaskName, GenerateMavenPom.class, new Action<GenerateMavenPom>() {
                 public void execute(final GenerateMavenPom generatePomTask) {
@@ -155,6 +165,30 @@ public class MavenPublishPlugin implements Plugin<Project> {
             });
             // Wire the generated pom into the publication.
             publication.setPomFile(tasks.get(descriptorTaskName).getOutputs().getFiles());
+        }
+
+        private void createGenerateMetadataTask(ModelMap<Task> tasks, final MavenPublicationInternal publication, final File buildDir) {
+            if (publication.getComponent() == null || !(publication.getComponent() instanceof ComponentWithVariants)) {
+                return;
+            }
+
+            final String publicationName = publication.getName();
+            String descriptorTaskName = "generateMetadataFileFor" + capitalize(publicationName) + "Publication";
+            tasks.create(descriptorTaskName, GenerateModuleMetadata.class, new Action<GenerateModuleMetadata>() {
+                public void execute(final GenerateModuleMetadata generateTask) {
+                    generateTask.setDescription("Generates the Gradle metadata file for publication '" + publicationName + "'.");
+                    generateTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
+                    generateTask.getComponent().set((ComponentWithVariants) publication.getComponent());
+                    // TODO - should deal with build dir changes
+                    generateTask.getOutputFile().set(new File(buildDir, "publications/" + publication.getName() + "/module.json"));
+                }
+            });
+            GenerateModuleMetadata generatorTask = (GenerateModuleMetadata) tasks.get(descriptorTaskName);
+            MavenArtifact metadataFile = publication.artifact(generatorTask.getOutputFile());
+            // TODO - revisit this
+            metadataFile.setClassifier("module");
+            // TODO - this should be inferred
+            metadataFile.builtBy(generatorTask);
         }
     }
 

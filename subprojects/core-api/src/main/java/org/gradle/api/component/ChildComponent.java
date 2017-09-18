@@ -19,7 +19,7 @@ package org.gradle.api.component;
 import org.gradle.api.Incubating;
 
 /**
- * A {@link SoftwareComponent} that is part of some larger component.
+ * Represents a {@link SoftwareComponent} that is part of some larger component.
  *
  * @since 4.3
  */

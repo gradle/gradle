@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,15 @@
 package org.gradle.api.component;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Named;
-import org.gradle.internal.HasInternalProtocol;
+
+import java.util.Set;
 
 /**
- * A software component produced by a Gradle software project.
+ * Represents a {@link SoftwareComponent} that provides one or more mutually exclusive children, or variants.
  *
- * <p>An implementation of this interface may also implement:</p>
- *
- * <ul>
- *
- * <li>{@link ChildComponent} to provide information about the hierarchy of components it belongs to.</li>
- *
- * <li>{@link ComponentWithVariants} to provide information about the variants that the component provides.</li>
- *
- * </ul>
+ * @since 4.3
  */
-@Incubating @HasInternalProtocol
-public interface SoftwareComponent extends Named {
+@Incubating
+public interface ComponentWithVariants {
+    Set<SoftwareComponent> getVariants();
 }
