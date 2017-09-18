@@ -23,7 +23,6 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.BuildResult;
-import org.gradle.tooling.internal.protocol.InternalCancellableConnection;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.internal.Exceptions;
@@ -32,10 +31,10 @@ public class CancellableModelBuilderBackedModelProducer extends HasCompatibility
     protected final ProtocolToModelAdapter adapter;
     protected final VersionDetails versionDetails;
     protected final ModelMapping modelMapping;
-    private final InternalCancellableConnection builder;
+    private final CancellableConsumerConnection.InternalCancellableConnectionWrapper builder;
     protected final Transformer<RuntimeException, RuntimeException> exceptionTransformer;
 
-    public CancellableModelBuilderBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, InternalCancellableConnection builder, Transformer<RuntimeException, RuntimeException> exceptionTransformer) {
+    public CancellableModelBuilderBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, CancellableConsumerConnection.InternalCancellableConnectionWrapper builder, Transformer<RuntimeException, RuntimeException> exceptionTransformer) {
         this.adapter = adapter;
         this.versionDetails = versionDetails;
         this.modelMapping = modelMapping;

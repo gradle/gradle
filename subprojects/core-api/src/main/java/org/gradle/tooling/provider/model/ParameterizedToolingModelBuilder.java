@@ -50,7 +50,7 @@ import org.gradle.api.Project;
  * @see ToolingModelBuilder
  */
 @Incubating
-public interface ToolingParameterizedModelBuilder<T> extends ToolingModelBuilder {
+public interface ParameterizedToolingModelBuilder<T> extends ToolingModelBuilder {
     /**
      * Returns the expected type of the parameter.
      * It should be an interface only with getters and setters.

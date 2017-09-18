@@ -18,7 +18,7 @@ package org.gradle.tooling.provider.model.internal
 
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.tooling.provider.model.ToolingModelBuilder
-import org.gradle.tooling.provider.model.ToolingParameterizedModelBuilder
+import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
 import org.gradle.tooling.provider.model.UnknownModelException
 import spock.lang.Specification
 
@@ -76,7 +76,7 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
     }
 
     def "can register parameterized model builder"() {
-        def builder = Mock(ToolingParameterizedModelBuilder)
+        def builder = Mock(ParameterizedToolingModelBuilder)
 
         given:
         registy.register(builder)
@@ -90,6 +90,6 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
         then:
         def foundBuilder = registy.getBuilder("model")
         foundBuilder == builder
-        foundBuilder instanceof ToolingParameterizedModelBuilder
+        foundBuilder instanceof ParameterizedToolingModelBuilder
     }
 }

@@ -19,13 +19,13 @@ package org.gradle.tooling.internal.consumer.connection;
 import org.gradle.api.Action;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.UnknownModelException;
+import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ObjectGraphAdapter;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.ViewBuilder;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.protocol.BuildResult;
-import org.gradle.tooling.internal.protocol.InternalBuildController;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.Model;
@@ -33,15 +33,16 @@ import org.gradle.tooling.model.ProjectModel;
 import org.gradle.tooling.model.internal.Exceptions;
 
 import java.io.File;
+import java.lang.reflect.Proxy;
 
 class BuildControllerAdapter extends AbstractBuildController implements BuildController {
-    private final InternalBuildController buildController;
+    private final InternalBuildControllerWrapper buildController;
     private final ProtocolToModelAdapter adapter;
     private final ObjectGraphAdapter resultAdapter;
     private final ModelMapping modelMapping;
     private final File rootDir;
 
-    public BuildControllerAdapter(ProtocolToModelAdapter adapter, InternalBuildController buildController, ModelMapping modelMapping, File rootDir) {
+    public BuildControllerAdapter(ProtocolToModelAdapter adapter, InternalBuildControllerWrapper buildController, ModelMapping modelMapping, File rootDir) {
         this.adapter = adapter;
         this.buildController = buildController;
         this.modelMapping = modelMapping;
@@ -50,13 +51,25 @@ class BuildControllerAdapter extends AbstractBuildController implements BuildCon
         resultAdapter = adapter.newGraph();
     }
 
-    public <T, P> T getModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnknownModelException {
+    @Override
+    public <T, P> T getModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnsupportedVersionException {
         ModelIdentifier modelIdentifier = modelMapping.getModelIdentifierFromModelType(modelType);
         Object originalTarget = target == null ? null : adapter.unpack(target);
 
+        if ((parameterType == null && parameterInitializer != null) || (parameterType != null && parameterInitializer == null) || (parameterType != null && !ParameterInstantiatorBeanProxy.isValid(parameterType))) {
+            throw new UnknownModelException("Invalid parameter.");
+        }
+
+        P parameter = null;
+        if (parameterType != null) {
+            // TODO: use Gradle proxy instead of a common java proxy
+            parameter = parameterType.cast(Proxy.newProxyInstance(parameterType.getClassLoader(), new Class[]{parameterType}, new ParameterInstantiatorBeanProxy()));
+            parameterInitializer.execute(parameter);
+        }
+
         BuildResult<?> result;
         try {
-            result = buildController.getModel(originalTarget, modelIdentifier);
+            result = buildController.getModel(originalTarget, modelIdentifier, parameter);
         } catch (InternalUnsupportedModelException e) {
             throw Exceptions.unknownModel(modelType, e);
         }
@@ -72,5 +85,13 @@ class BuildControllerAdapter extends AbstractBuildController implements BuildCon
         } else {
             return ":";
         }
+    }
+
+    /**
+     * Interface representing either an {@link org.gradle.tooling.internal.protocol.InternalBuildController}
+     * or an {@link org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2}.
+     */
+    public interface InternalBuildControllerWrapper {
+        BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier, Object parameter);
     }
 }

@@ -34,7 +34,7 @@ import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
-import org.gradle.tooling.provider.model.ToolingParameterizedModelBuilder;
+import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder;
 import org.gradle.tooling.provider.model.UnknownModelException;
 
 @SuppressWarnings("deprecation")
@@ -77,8 +77,8 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         Object model;
         if (parameter == null) {
             model = builder.buildAll(modelName, project);
-        } else if (builder instanceof ToolingParameterizedModelBuilder<?>) {
-            model = getParameterizedModel(project, modelName, (ToolingParameterizedModelBuilder<?>) builder, parameter);
+        } else if (builder instanceof ParameterizedToolingModelBuilder<?>) {
+            model = getParameterizedModel(project, modelName, (ParameterizedToolingModelBuilder<?>) builder, parameter);
         } else {
             throw (InternalUnsupportedModelException) (new InternalUnsupportedModelException()).initCause(
                 new UnknownModelException(String.format("No parameterized builders are available to build a model of type '%s'.", modelName)));
@@ -89,12 +89,12 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
 
     private <T> Object getParameterizedModel(ProjectInternal project,
                                              String modelName,
-                                             ToolingParameterizedModelBuilder<T> builder,
+                                             ParameterizedToolingModelBuilder<T> builder,
                                              Object parameter)
         throws InternalUnsupportedModelException {
         Class<T> expectedParameterType = builder.getParameterType();
 
-        ViewBuilder<T> viewBuilder = gradle.getServices().get(ProtocolToModelAdapter.class).builder(expectedParameterType);
+        ViewBuilder<T> viewBuilder = new ProtocolToModelAdapter().builder(expectedParameterType);
         T internalParameter = viewBuilder.build(parameter);
         return builder.buildAll(modelName, internalParameter, project);
     }

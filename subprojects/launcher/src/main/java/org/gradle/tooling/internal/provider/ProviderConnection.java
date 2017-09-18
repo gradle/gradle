@@ -123,16 +123,14 @@ public class ProviderConnection {
     }
 
     public Object run(InternalBuildAction<?> clientAction, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
-        List<String> tasks = providerParameters.getTasks();
-        SerializedPayload serializedAction = payloadSerializer.serialize(clientAction);
-        Parameters params = initParams(providerParameters);
-        StartParameter startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
-        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
-        BuildAction action = new ClientProvidedBuildAction(startParameter, serializedAction, tasks != null, listenerConfig.clientSubscriptions);
-        return run(action, cancellationToken, listenerConfig, providerParameters, params);
+        return runClientAction(clientAction, cancellationToken, providerParameters);
     }
 
     public Object run(InternalBuildActionVersion2<?> clientAction, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
+        return runClientAction(clientAction, cancellationToken, providerParameters);
+    }
+
+    public Object runClientAction(Object clientAction, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
         List<String> tasks = providerParameters.getTasks();
         SerializedPayload serializedAction = payloadSerializer.serialize(clientAction);
         Parameters params = initParams(providerParameters);
@@ -140,6 +138,7 @@ public class ProviderConnection {
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
         BuildAction action = new ClientProvidedBuildAction(startParameter, serializedAction, tasks != null, listenerConfig.clientSubscriptions);
         return run(action, cancellationToken, listenerConfig, providerParameters, params);
+
     }
 
     public Object runTests(ProviderInternalTestExecutionRequest testExecutionRequest, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {

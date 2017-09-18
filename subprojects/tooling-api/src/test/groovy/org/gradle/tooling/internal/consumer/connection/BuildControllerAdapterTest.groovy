@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.connection
 
+import org.gradle.api.Action
 import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.internal.adapter.ObjectGraphAdapter
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
@@ -27,7 +28,7 @@ import org.gradle.tooling.model.gradle.GradleBuild
 import spock.lang.Specification
 
 class BuildControllerAdapterTest extends Specification {
-    def internalController = Mock(InternalBuildController)
+    def internalController = Mock(BuildControllerAdapter.InternalBuildControllerWrapper)
     def graphAdapter = Mock(ObjectGraphAdapter)
     def adapter = Mock(ProtocolToModelAdapter) {
         newGraph() >> graphAdapter
@@ -45,7 +46,7 @@ class BuildControllerAdapterTest extends Specification {
         def failure = new RuntimeException()
 
         given:
-        _ * internalController.getModel(null, _) >> { throw new InternalUnsupportedModelException().initCause(failure) }
+        _ * internalController.getModel(null, _, null) >> { throw new InternalUnsupportedModelException().initCause(failure) }
 
         when:
         controller.getModel(String)
@@ -56,22 +57,58 @@ class BuildControllerAdapterTest extends Specification {
         e.cause == failure
     }
 
-    def "fetches model for target object"() {
+    def "fetches model for target object without parameter"() {
         def model = new Object()
         def targetElement = new Object()
         def modelElement = Stub(Element)
         def modelView = Stub(GradleBuild)
 
         when:
-        def result = controller.getModel(modelElement, GradleBuild)
+        def result = controller.getModel(modelElement, GradleBuild, null, null)
 
         then:
         result == modelView
 
         and:
         1 * adapter.unpack(modelElement) >> targetElement
-        1 * internalController.getModel(targetElement, _) >> { def target, ModelIdentifier identifier ->
+        1 * internalController.getModel(targetElement, _, null) >> { def target, ModelIdentifier identifier, parameter ->
             assert identifier.name == 'GradleBuild'
+            assert parameter == null
+            return Stub(BuildResult) {
+                getModel() >> model
+            }
+        }
+        1 * graphAdapter.builder(GradleBuild) >> Stub(ViewBuilder) {
+            build(model) >> modelView
+        }
+    }
+
+    def "fetches model for target object with parameter"() {
+        def model = new Object()
+        def targetElement = new Object()
+        def modelElement = Stub(Element)
+        def modelView = Stub(GradleBuild)
+        def parameterType = ValidParameter
+        def parameterInitializer = new Action<ValidParameter>() {
+            @Override
+            void execute(ValidParameter parameter) {
+                parameter.setValue("myValue")
+                parameter.setBooleanValue(true)
+            }
+        }
+
+        when:
+        def result = controller.getModel(modelElement, GradleBuild, parameterType, parameterInitializer)
+
+        then:
+        result == modelView
+
+        and:
+        1 * adapter.unpack(modelElement) >> targetElement
+        1 * internalController.getModel(targetElement, _, _) >> { def target, ModelIdentifier identifier, ValidParameter parameter ->
+            assert identifier.name == 'GradleBuild'
+            assert parameter.getValue() == "myValue"
+            assert parameter.isBooleanValue()
             return Stub(BuildResult) {
                 getModel() >> model
             }
@@ -86,14 +123,14 @@ class BuildControllerAdapterTest extends Specification {
         def modelElement = Stub(Element)
 
         when:
-        def result = controller.findModel(modelElement, GradleBuild)
+        def result = controller.findModel(modelElement, GradleBuild, null, null)
 
         then:
         result == null
 
         and:
         1 * adapter.unpack(modelElement) >> targetElement
-        1 * internalController.getModel(targetElement, _) >> { throw new InternalUnsupportedModelException() }
+        1 * internalController.getModel(targetElement, _, _) >> { throw new InternalUnsupportedModelException() }
     }
 
     def "fetches build model"() {
@@ -107,8 +144,9 @@ class BuildControllerAdapterTest extends Specification {
         result == modelView
 
         and:
-        1 * internalController.getModel(null, _) >> { def target, ModelIdentifier identifier ->
+        1 * internalController.getModel(null, _, _) >> { def target, ModelIdentifier identifier, parameter ->
             assert identifier.name == 'GradleBuild'
+            assert parameter == null
             return Stub(BuildResult) {
                 getModel() >> model
             }
@@ -126,6 +164,32 @@ class BuildControllerAdapterTest extends Specification {
         result == null
 
         and:
-        1 * internalController.getModel(null, _) >> { throw new InternalUnsupportedModelException() }
+        1 * internalController.getModel(null, _, _) >> { throw new InternalUnsupportedModelException() }
+    }
+
+    def "error when parameterType or parameterInitializer null"() {
+        when:
+        controller.getModel(GradleBuild, null, new Action() {
+            @Override
+            void execute(Object o) {}
+        })
+
+        then:
+        UnknownModelException e1 = thrown()
+        e1.message == "Invalid parameter."
+
+        when:
+        controller.getModel(GradleBuild, ValidParameter, null)
+
+        then:
+        UnknownModelException e2 = thrown()
+        e2.message == "Invalid parameter."
+    }
+
+    interface ValidParameter {
+        void setValue(String value)
+        String getValue()
+        void setBooleanValue(boolean booleanValue)
+        boolean isBooleanValue()
     }
 }

@@ -22,10 +22,12 @@ import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.converters.ConsumerTargetTypeProvider;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
+import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.InternalBuildAction;
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
 import org.gradle.tooling.internal.protocol.InternalBuildController;
 import org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2;
+import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.gradle.BuildInvocations;
 
 import java.io.File;
@@ -51,7 +53,13 @@ public class InternalBuildActionAdapter<T> implements InternalBuildAction<T>, In
      */
     public T execute(final InternalBuildController buildController) {
         ProtocolToModelAdapter protocolToModelAdapter = new ProtocolToModelAdapter(new ConsumerTargetTypeProvider());
-        BuildController buildControllerAdapter  = new BuildParameterCheckerController(versionDetails, new BuildControllerAdapter(protocolToModelAdapter, buildController, new ModelMapping(), rootDir));
+        BuildController buildControllerAdapter = new BuildControllerAdapter(protocolToModelAdapter, new BuildControllerAdapter.InternalBuildControllerWrapper() {
+            @Override
+            public BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier, Object parameter) {
+                return buildController.getModel(target, modelIdentifier);
+            }
+        }, new ModelMapping(), rootDir);
+        buildControllerAdapter  = new ParameterValidatingController(versionDetails, buildControllerAdapter);
         if (!versionDetails.maySupportModel(BuildInvocations.class)) {
             buildControllerAdapter= new BuildInvocationsAdapterController(protocolToModelAdapter, buildControllerAdapter);
         }
@@ -61,9 +69,14 @@ public class InternalBuildActionAdapter<T> implements InternalBuildAction<T>, In
     /**
      * This is used by providers 4.2 and later
      */
-    public T execute(InternalBuildControllerVersion2 buildController) {
+    public T execute(final InternalBuildControllerVersion2 buildController) {
         ProtocolToModelAdapter protocolToModelAdapter = new ProtocolToModelAdapter(new ConsumerTargetTypeProvider());
-        BuildController buildControllerAdapter = new ParameterBuildControllerAdapter(protocolToModelAdapter, buildController, new ModelMapping(), rootDir);
+        BuildController buildControllerAdapter = new BuildControllerAdapter(protocolToModelAdapter, new BuildControllerAdapter.InternalBuildControllerWrapper() {
+            @Override
+            public BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier, Object parameter) {
+                return buildController.getModel(target, modelIdentifier, parameter);
+            }
+        }, new ModelMapping(), rootDir);
         if (!versionDetails.maySupportModel(BuildInvocations.class)) {
             buildControllerAdapter= new BuildInvocationsAdapterController(protocolToModelAdapter, buildControllerAdapter);
         }

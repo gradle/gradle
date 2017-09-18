@@ -152,9 +152,9 @@ public interface BuildController {
     /**
      * Fetches a snapshot of the model of the given type for the given element using the given parameter.
      *
-     * <p>The parameter type must be an interface only with getters and setters. The Tooling API will create a proxy
-     * instance of this interface and use the initializer to run against that instance to configure it and then pass
-     * to the model builder.
+     * <p>The parameter type must be an interface only with getters and setters and no nesting is supported.
+     * The Tooling API will create a proxy instance of this interface and use the initializer to run against
+     * that instance to configure it and then pass to the model builder.
      * </p>
      *
      * <p>See {@link #getModel(Class)} for more details.

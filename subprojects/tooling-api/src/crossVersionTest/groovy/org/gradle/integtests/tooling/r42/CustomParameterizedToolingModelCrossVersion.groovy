@@ -26,7 +26,7 @@ import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.util.GradleVersion
 
-class CustomToolingParameterizedModelCrossVersion extends ToolingApiSpecification {
+class CustomParameterizedToolingModelCrossVersion extends ToolingApiSpecification {
     def setup() {
         buildFile << """
             import org.gradle.tooling.provider.model.ToolingModelBuilder
@@ -42,16 +42,7 @@ class CustomToolingParameterizedModelCrossVersion extends ToolingApiSpecificatio
                 String getValue();
             }
             
-            interface CustomModel {
-                boolean isBuiltWithParameter();
-                String getParameterValue();
-            }
-            
-            interface CustomModel2 {
-                String getValue();
-            }
-            
-            class DefaultCustomModel implements CustomModel, Serializable {
+            class DefaultCustomModel implements Serializable {
                 private final boolean builtWithParameter;
                 private final String parameterValue;
                 DefaultCustomModel(CustomParameter parameter) {
@@ -74,7 +65,7 @@ class CustomToolingParameterizedModelCrossVersion extends ToolingApiSpecificatio
                 }
             }
             
-            class DefaultCustomModel2 implements CustomModel2, Serializable {
+            class DefaultCustomModel2 implements Serializable {
                 String getValue() {
                     return "myValue";
                 }
@@ -114,9 +105,9 @@ class CustomToolingParameterizedModelCrossVersion extends ToolingApiSpecificatio
             """
         } else {
             buildFile << """
-                import org.gradle.tooling.provider.model.ToolingParameterizedModelBuilder
+                import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
                 
-                class CustomBuilder implements ToolingParameterizedModelBuilder<CustomParameter> {
+                class CustomBuilder implements ParameterizedToolingModelBuilder<CustomParameter> {
                     boolean canBuild(String modelName) {
                         return modelName == '${CustomModel.name}'
                     }
@@ -179,48 +170,6 @@ class CustomToolingParameterizedModelCrossVersion extends ToolingApiSpecificatio
             GradleConnectionException cause = failure.cause
             assert cause instanceof UnsupportedVersionException
             assert cause.message == "Gradle version ${version} used does not support parameterized tooling models."
-        }
-    }
-
-    @TargetGradleVersion(">=4.2")
-    @ToolingApiVersion(">=4.2")
-    def "error when parameterType null and parameterInitializer not null"() {
-        def handler = Mock(ResultHandler)
-
-        when:
-        withConnection { connection ->
-            connection.action(new NullParameterAction(true, false)).run(handler)
-        }
-
-        then:
-        0 * handler.onComplete(_)
-        1 * handler.onFailure(_) >> { args ->
-            GradleConnectionException failure = args[0]
-            assert failure instanceof BuildActionFailureException
-            GradleConnectionException cause = failure.cause
-            assert cause instanceof UnknownModelException
-            assert cause.message == "Invalid parameter."
-        }
-    }
-
-    @TargetGradleVersion(">=4.2")
-    @ToolingApiVersion(">=4.2")
-    def "error when parameterType not null and parameterInitializer null"() {
-        def handler = Mock(ResultHandler)
-
-        when:
-        withConnection { connection ->
-            connection.action(new NullParameterAction(true, false)).run(handler)
-        }
-
-        then:
-        0 * handler.onComplete(_)
-        1 * handler.onFailure(_) >> { args ->
-            GradleConnectionException failure = args[0]
-            assert failure instanceof BuildActionFailureException
-            GradleConnectionException cause = failure.cause
-            assert cause instanceof UnknownModelException
-            assert cause.message == "Invalid parameter."
         }
     }
 

@@ -22,12 +22,12 @@ import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.model.Model;
 
-public class BuildParameterCheckerController extends AbstractBuildController {
+public class ParameterValidatingController extends AbstractBuildController {
 
     private final VersionDetails gradleVersion;
     private final BuildController delegate;
 
-    public BuildParameterCheckerController(VersionDetails gradleVersion, BuildController delegate) {
+    public ParameterValidatingController(VersionDetails gradleVersion, BuildController delegate) {
         this.gradleVersion = gradleVersion;
         this.delegate = delegate;
     }

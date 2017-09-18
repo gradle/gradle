@@ -22,10 +22,10 @@ import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails
 import spock.lang.Specification
 
-class BuildParameterCheckerControllerTest extends Specification {
+class ParameterValidatingControllerTest extends Specification {
     def version = Mock(VersionDetails)
     def delegate = Mock(BuildController)
-    def controller = new BuildParameterCheckerController(version, delegate)
+    def controller = new ParameterValidatingController(version, delegate)
 
     def "simply delegates for versions supporting parameterized models for parameter not null"() {
         def model = new Object()

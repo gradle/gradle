@@ -55,7 +55,7 @@ public interface InternalBuildController {
      * @throws BuildExceptionVersion1 On build failure.
      * @throws InternalUnsupportedModelException When the requested model is not supported.
      * @since 1.8-rc-1
-     * @deprecated 4.2. Use {@link InternalBuildControllerVersion2#getModel(Object, ModelIdentifier, ModelIdentifier, Object)} instead.
+     * @deprecated 4.2. Use {@link InternalBuildControllerVersion2#getModel(Object, ModelIdentifier, Object)} instead.
      */
     @Deprecated
     BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier) throws BuildExceptionVersion1,
