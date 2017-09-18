@@ -16,6 +16,7 @@
 
 package org.gradle.vcs.git.internal
 
+import org.gradle.api.GradleException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.vcs.fixtures.TemporaryGitRepository
 import org.gradle.vcs.git.GitVersionControlSpec
@@ -57,6 +58,22 @@ class GitVersionControlSystemSpec extends Specification {
         target.file( "dir/another.txt").text == "Goodbye world!"
     }
 
+    def "clone a repository into empty extant workingDir"() {
+        given:
+        def target = tmpDir.file("workingDir")
+        target.mkdir()
+        GitVersionControlSpec spec = new GitVersionControlSpec()
+        spec.url = repo.getUrl()
+
+        when:
+        gitVcs.populate(target, spec)
+
+        then:
+        target.file( ".git").assertIsDir()
+        target.file( "source.txt").text == "Hello world!"
+        target.file( "dir/another.txt").text == "Goodbye world!"
+    }
+
     def "update a cloned repository"() {
         given:
         def target = tmpDir.file("workingDir")
@@ -75,5 +92,27 @@ class GitVersionControlSystemSpec extends Specification {
 
         then:
         target.file("newFile.txt").exists()
+    }
+
+    def "error if working dir is not a repository"() {
+        given:
+        def target = tmpDir.file("workingdir")
+        GitVersionControlSpec spec = new GitVersionControlSpec()
+        spec.url = repo.getUrl()
+        target.mkdirs()
+        target.file("child.txt").createNewFile()
+
+        when:
+        gitVcs.populate(target, spec)
+
+        then:
+        thrown GradleException
+
+        when:
+        target.file(".git").mkdir()
+        gitVcs.populate(target, spec)
+
+        then:
+        thrown GradleException
     }
 }
