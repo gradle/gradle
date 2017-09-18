@@ -14,8 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r42;
+package org.gradle.integtests.tooling.r43;
 
-public interface CustomModel2 {
-    String getValue();
+import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.BuildController;
+
+public class NoParameterAction implements BuildAction<CustomModel> {
+    @Override
+    public CustomModel execute(BuildController controller) {
+        return controller.getModel(CustomModel.class);
+    }
 }

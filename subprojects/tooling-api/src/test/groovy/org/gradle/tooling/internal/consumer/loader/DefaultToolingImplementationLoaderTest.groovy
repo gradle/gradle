@@ -185,7 +185,7 @@ class TestConnection extends TestR26Connection implements InternalCancellableCon
     }
 
     ConnectionMetaDataVersion1 getMetaData() {
-        return new TestMetaData('4.2')
+        return new TestMetaData('4.3')
     }
 }
 

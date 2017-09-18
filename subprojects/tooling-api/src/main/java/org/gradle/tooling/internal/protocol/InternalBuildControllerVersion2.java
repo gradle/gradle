@@ -19,24 +19,24 @@ package org.gradle.tooling.internal.protocol;
 /**
  * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
  *
- * <p>Consumer compatibility: This interface is used by all consumer versions from 4.2.</p>
- * <p>Provider compatibility: This interface is implemented by all provider versions from 4.2.</p>
+ * <p>Consumer compatibility: This interface is used by all consumer versions from 4.3.</p>
+ * <p>Provider compatibility: This interface is implemented by all provider versions from 4.3.</p>
  *
- * @since 4.2
+ * @since 4.3
  */
 public interface InternalBuildControllerVersion2 {
     /**
      * Returns the requested model for a target object.
      *
-     * <p>Consumer compatibility: This method is used by all consumer versions from 4.2.</p>
-     * <p>Provider compatibility: This method is implemented by all provider versions from 4.2.</p>
+     * <p>Consumer compatibility: This method is used by all consumer versions from 4.3.</p>
+     * <p>Provider compatibility: This method is implemented by all provider versions from 4.3.</p>
      *
      * @param target The target object. May be null, in which case a default target is used.
      * @param modelIdentifier The identifier of the model to build.
      * @param parameter The parameter to be passed to the parameterized model builder. May be null, in which case the non parameterized model builder methods are used.
      * @throws BuildExceptionVersion1 On build failure.
      * @throws InternalUnsupportedModelException When the requested model is not supported.
-     * @since 4.2
+     * @since 4.3
      */
     BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier, Object parameter) throws BuildExceptionVersion1,
         InternalUnsupportedModelException;

@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r42;
+package org.gradle.integtests.tooling.r43;
 
-import org.gradle.api.Action;
-import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.BuildController;
+public interface CustomModel {
 
-public class InvalidModel2Action implements BuildAction<CustomModel2> {
-    @Override
-    public CustomModel2 execute(BuildController controller) {
-        return controller.getModel(CustomModel2.class, CustomParameter.class, new Action<CustomParameter>() {
-            @Override
-            public void execute(CustomParameter customParameter) {}
-        });
-    }
+    boolean isBuiltWithParameter();
+
+    String getParameterValue();
 }

@@ -29,7 +29,7 @@ import org.gradle.tooling.internal.protocol.ModelIdentifier;
 /**
  * An adapter for {@link InternalCancellableConnectionVersion2}.
  *
- * <p>Used for providers >= 4.2.</p>
+ * <p>Used for providers >= 4.3.</p>
  */
 public class ParameterCancellableConsumerConnection extends TestExecutionConsumerConnection {
     private final ActionRunner actionRunner;

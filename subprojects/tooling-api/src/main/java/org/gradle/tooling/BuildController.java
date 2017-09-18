@@ -128,7 +128,7 @@ public interface BuildController {
      * @throws UnknownModelException When the target project does not support the requested model.
      * @throws UnsupportedVersionException When the target project does not support the requested model or Gradle version does not support parameterized models.
      *
-     * @since 4.2
+     * @since 4.3
      */
     <T, P> T getModel(Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnsupportedVersionException, UnknownModelException;
 
@@ -144,7 +144,7 @@ public interface BuildController {
      * @param parameterInitializer Action to be run against parameter to created parameter to configure it.
      * @return The model.
      *
-     * @since 4.2
+     * @since 4.3
      */
     @Nullable
     <T, P> T findModel(Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer);
@@ -169,7 +169,7 @@ public interface BuildController {
      * @throws UnknownModelException When the target project does not support the requested model.
      * @throws UnsupportedVersionException When the target project does not support the requested model or Gradle version does not support parameterized models.
      *
-     * @since 4.2
+     * @since 4.3
      */
     <T, P> T getModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnsupportedVersionException, UnknownModelException;
 
@@ -186,7 +186,7 @@ public interface BuildController {
      * @param parameterInitializer Action to be run against parameter to created parameter to configure it.
      * @return The model.
      *
-     * @since 4.2
+     * @since 4.3
      */
     @Nullable
     <T, P> T findModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer);

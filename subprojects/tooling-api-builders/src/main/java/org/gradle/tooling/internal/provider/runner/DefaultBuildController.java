@@ -46,7 +46,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     }
 
     /**
-     * This is used by consumers 1.8-rc-1 to 4.1
+     * This is used by consumers 1.8-rc-1 to 4.2
      */
     @Deprecated
     public BuildResult<?> getBuildModel() throws BuildExceptionVersion1 {
@@ -54,7 +54,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     }
 
     /**
-     * This is used by consumers 1.8-rc-1 to 4.1
+     * This is used by consumers 1.8-rc-1 to 4.2
      */
     @Deprecated
     public BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier) throws BuildExceptionVersion1, InternalUnsupportedModelException {
@@ -62,7 +62,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     }
 
     /**
-     * This is used by consumers 4.2 and later
+     * This is used by consumers 4.3 and later
      */
     public BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier, Object parameter)
         throws BuildExceptionVersion1, InternalUnsupportedModelException {

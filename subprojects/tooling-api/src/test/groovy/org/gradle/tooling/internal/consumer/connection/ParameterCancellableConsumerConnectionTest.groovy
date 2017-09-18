@@ -53,7 +53,7 @@ class ParameterCancellableConsumerConnectionTest extends Specification {
 
     final target = Mock(TestModelBuilder) {
         getMetaData() >> Stub(ConnectionMetaDataVersion1) {
-            getVersion() >> "4.2"
+            getVersion() >> "4.3"
         }
     }
     final adapter = Mock(ProtocolToModelAdapter)

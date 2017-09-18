@@ -205,7 +205,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
     }
 
     /**
-     * This is used by consumers 2.1-rc-1 to 4.1
+     * This is used by consumers 2.1-rc-1 to 4.2
      */
     public <T> BuildResult<T> run(InternalBuildAction<T> action, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
         throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
@@ -216,7 +216,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
     }
 
     /**
-     * This is used by consumers 4.2 and later
+     * This is used by consumers 4.3 and later
      */
     public <T> BuildResult<T> run(InternalBuildActionVersion2<T> action, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
         throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {

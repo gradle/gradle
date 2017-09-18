@@ -24,18 +24,18 @@ import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildA
  *
  * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
  *
- * <p>Consumer compatibility: This interface is used by all consumer versions from 4.2.</p>
- * <p>Provider compatibility: This interface is implemented by all provider versions from 4.2.</p>
+ * <p>Consumer compatibility: This interface is used by all consumer versions from 4.3.</p>
+ * <p>Provider compatibility: This interface is implemented by all provider versions from 4.3.</p>
  *
- * @since 4.2
+ * @since 4.3
  * @see org.gradle.tooling.internal.protocol.ConnectionVersion4
  */
 public interface InternalCancellableConnectionVersion2 extends InternalProtocolInterface {
     /**
      * Performs some action against a build and returns the requested model.
      *
-     * <p>Consumer compatibility: This method is used by all consumer versions from 4.2.</p>
-     * <p>Provider compatibility: This method is implemented by all provider versions from 4.2.</p>
+     * <p>Consumer compatibility: This method is used by all consumer versions from 4.3.</p>
+     * <p>Provider compatibility: This method is implemented by all provider versions from 4.3.</p>
      *
      * @param modelIdentifier The identifier of the model to build.
      * @param cancellationToken The token to propagate cancellation.
@@ -44,7 +44,7 @@ public interface InternalCancellableConnectionVersion2 extends InternalProtocolI
      * @throws InternalUnsupportedBuildArgumentException When the specified command-line options are not supported.
      * @throws InternalBuildCancelledException When the operation was cancelled before it could complete.
      * @throws IllegalStateException When this connection has been stopped.
-     * @since 4.2
+     * @since 4.3
      */
     BuildResult<?> getModel(ModelIdentifier modelIdentifier, InternalCancellationToken cancellationToken,
                             BuildParameters operationParameters) throws
@@ -57,15 +57,15 @@ public interface InternalCancellableConnectionVersion2 extends InternalProtocolI
     /**
      * Performs some action against a build and returns the result.
      *
-     * <p>Consumer compatibility: This method is used by all consumer versions from 4.2.</p>
-     * <p>Provider compatibility: This method is implemented by all provider versions from 4.2.</p>
+     * <p>Consumer compatibility: This method is used by all consumer versions from 4.3.</p>
+     * <p>Provider compatibility: This method is implemented by all provider versions from 4.3.</p>
      *
      * @throws BuildExceptionVersion1 On build failure.
      * @throws InternalUnsupportedBuildArgumentException When the specified command-line options are not supported.
      * @throws InternalBuildActionFailureException When the action fails with an exception.
      * @throws InternalBuildCancelledException When the operation was cancelled before it could complete.
      * @throws IllegalStateException When this connection has been stopped.
-     * @since 4.2
+     * @since 4.3
      */
     <T> BuildResult<T> run(InternalBuildActionVersion2<T> action,
                            InternalCancellationToken cancellationToken,
