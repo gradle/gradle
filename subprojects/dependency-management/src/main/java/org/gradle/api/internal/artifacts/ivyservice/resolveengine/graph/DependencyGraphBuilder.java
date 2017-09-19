@@ -1314,6 +1314,8 @@ public class DependencyGraphBuilder {
                     resolveState.getModule(moduleIdentifier).restart(selected);
                 }
             });
+        }
+    }
 
     private static class ResolveComponentIdOperation implements RunnableBuildOperation {
         private final SelectorState selector;
