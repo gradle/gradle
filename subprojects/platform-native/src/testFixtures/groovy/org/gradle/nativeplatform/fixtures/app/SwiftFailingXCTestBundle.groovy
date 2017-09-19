@@ -14,8 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.fixtures.app;
+package org.gradle.nativeplatform.fixtures.app
 
-public interface TestSuiteRenderer {
-    String render(TestElement.TestSuite testSuite);
+import org.gradle.integtests.fixtures.SourceFile
+
+class SwiftFailingXCTestBundle extends XCTestSourceElement {
+    List<XCTestSourceFileElement> testSuites = [new XCTestSourceFileElement() {
+        String testSuiteName = "FailingTestSuite"
+        List<XCTestCaseElement> testCases = [testCase("testCanFailTestCaseWithAssertion", "XCTAssert(false)", true)]
+    }]
+
+    @Override
+    List<SourceFile> getFiles() {
+        super.files + [emptyInfoPlist()]
+    }
 }

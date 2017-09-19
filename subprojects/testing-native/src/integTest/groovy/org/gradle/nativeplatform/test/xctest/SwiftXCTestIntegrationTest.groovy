@@ -17,15 +17,10 @@
 package org.gradle.nativeplatform.test.xctest
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.app.SwiftApp
-import org.gradle.nativeplatform.fixtures.app.SwiftLib
-import org.gradle.nativeplatform.fixtures.app.SwiftXcTestTestApp
-import org.gradle.nativeplatform.fixtures.app.TestElement
+import org.gradle.nativeplatform.fixtures.app.SwiftAppWithXCTest
+import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-
-import static org.gradle.nativeplatform.fixtures.app.SourceTestElement.newTestCase
-import static org.gradle.nativeplatform.fixtures.app.SourceTestElement.newTestSuite
 
 @Requires([TestPrecondition.SWIFT_SUPPORT, TestPrecondition.MAC_OS_X])
 class SwiftXCTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -35,7 +30,7 @@ apply plugin: 'xctest'
 """
     }
 
-    def "swift-library and xctest plugins behave well together"() {
+    def "can apply swift-library and xctest plugins together"() {
         given:
         buildFile << """
 apply plugin: 'swift-library'
@@ -49,36 +44,25 @@ apply plugin: 'swift-library'
         result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
     }
 
-    def "xctest plugin can test public and internal feature of a Swift library"() {
-        def lib = new SwiftLib()
-        def test = new SwiftXcTestTestApp([
-                newTestSuite("FooTestSuite", [
-                        newTestCase("testInternalMultiply", TestElement.TestCase.Result.PASS,
-                            "XCTAssert(multiply(a: 21, b: 2) == ${lib.multiply(21, 2)})"),
-                        newTestCase("testPublicSum", TestElement.TestCase.Result.PASS,
-                            "XCTAssert(sum(a: 40, b: 2) == ${lib.sum(40, 2)})"),
-                ], ["Greeter"])
-        ])
+    def "can test public and internal features of a Swift library"() {
+        def lib = new SwiftLibWithXCTest()
 
         given:
-        settingsFile << """
-rootProject.name = 'greeter'
-"""
+        settingsFile << "rootProject.name = 'greeter'"
         buildFile << """
 apply plugin: 'swift-library'
 """
         lib.writeToProject(testDirectory)
-        test.writeToProject(testDirectory)
 
         when:
         succeeds("test")
 
         then:
         result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
-        test.expectedSummaryOutputPattern.matcher(output).find()
+        lib.expectedSummaryOutputPattern.matcher(output).find()
     }
 
-    def "swift-executable and xctest plugins behave well together"() {
+    def "can apply swift-executable and xctest plugins together"() {
         given:
         buildFile << """
 apply plugin: 'swift-executable'
@@ -92,26 +76,17 @@ apply plugin: 'swift-executable'
         result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
     }
 
-    def "xctest plugin can test public and internal feature of a Swift executable"() {
-        def app = new SwiftApp()
-        def test = new SwiftXcTestTestApp([
-            newTestSuite("FooTestSuite", [
-                newTestCase("testInternalMultiply", TestElement.TestCase.Result.PASS,
-                    "XCTAssert(multiply(a: 21, b: 2) == ${app.multiply.multiply(21, 2)})"),
-                newTestCase("testPublicSum", TestElement.TestCase.Result.PASS,
-                    "XCTAssert(sum(a: 40, b: 2) == ${app.sum.sum(40, 2)})"),
-            ], ["App"])
-        ])
+    def "can test public and internal features of a Swift executable"() {
+        def app = new SwiftAppWithXCTest()
 
         given:
-        settingsFile << "rootProject.name = 'App'"
+        settingsFile << "rootProject.name = 'app'"
         buildFile << """
 apply plugin: 'swift-executable'
 
 linkTest.source = project.files(new HashSet(linkTest.source.from)).filter { !it.name.equals("main.o") }
 """
         app.writeToProject(testDirectory)
-        test.writeToProject(testDirectory)
 
         when:
         succeeds("test")
