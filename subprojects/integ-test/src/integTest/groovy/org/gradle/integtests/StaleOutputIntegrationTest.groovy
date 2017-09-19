@@ -72,7 +72,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         taskWithSources.removeInputs()
-        succeeds(taskWithSources.taskPath, "--info")
+        succeeds(taskWithSources.taskPath)
 
         then:
         taskWithSources.outputFile.exists()
