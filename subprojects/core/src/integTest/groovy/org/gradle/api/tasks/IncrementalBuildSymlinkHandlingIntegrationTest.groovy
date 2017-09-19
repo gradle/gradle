@@ -123,13 +123,16 @@ task work {
     }
 
     def "symlink may reference missing input file"() {
+        file("in-dir").createDir()
         def link = file("in.txt")
         link.createLink("other")
         assert !link.exists()
 
-        given:
-        fails("work")
-        failure.assertHasCause "File '$link' specified for property '\$1' does not exist."
+        expect:
+        executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
+        succeeds("work")
+        output.contains """A problem was found with the configuration of task ':work'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated and is scheduled to be removed in Gradle 5.0.
+ - File '$link' specified for property '\$1' does not exist."""
     }
 
     def "can replace input file with symlink to file with same content"() {
