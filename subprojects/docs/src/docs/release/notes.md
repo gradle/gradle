@@ -19,7 +19,9 @@ TBD: `ListProperty<T>`
 TBD: `Provider.map()`
 TBD: `PropertyState<Directory>` and `PropertyState<RegularFile>` can be set using `File` in DSL.
 
-### Directories are created for task outputs declared via the runtime API
+### Task input/output annotations and runtime API
+
+Gradle 4.3 introduces some changes that bring task inputs and outputs registered via task annotations (e.g. `@InputFile` and `@OutputDirectory` etc.) and the runtime API (think `task.inputs.file(...)` and `task.outputs.dir(...)` etc.) closer to each other.
 
 For task outputs declared via annotations like `@OutputDirectory` and `@OutputFile`, Gradle always ensured that the necessary directory exists before executing the task. Starting with version 4.3 Gradle will also create directories for outputs that were registered via the runtime API (e.g. by calling methods like `task.outputs.file()` and `dir()`).
 
@@ -32,6 +34,23 @@ task customTask {
         file("output-dir/output.txt") << file("input.txt")
     }
 }
+```
+
+Task inputs and outputs declared via task property annotations have always been validated by Gradle. If a task declared a non-optional (`@Optional`) input that was `null`, Gradle would fail the build with the message:
+
+```text
+* What went wrong:
+Some problems were found with the configuration of task ':test'.
+> No value has been specified for property 'inputDirectory'.
+```
+
+Gradle would also fail the build if an input file or directory did not exist, and also if it expected an output directory, but found a file (or vice versa).
+
+Starting with Gradle 4.3, these validations also happen for properties registered via the runtime API. For backwards compatibility, Gradle will not fail the build if the new validation fails, but produce a warning similar to this:
+
+```text
+A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated and is scheduled to be removed in Gradle 5.0.
+ - No value has been specified for property 'inputDirectory'.
 ```
 
 ### Force rich or plain console with `org.gradle.console`
