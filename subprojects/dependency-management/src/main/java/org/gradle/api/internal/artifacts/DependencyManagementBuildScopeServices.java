@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
@@ -132,13 +133,13 @@ class DependencyManagementBuildScopeServices {
     }
 
     DependencyFactory createDependencyFactory(
-            Instantiator instantiator,
-            ProjectAccessListener projectAccessListener,
-            StartParameter startParameter,
-            ClassPathRegistry classPathRegistry,
-            CurrentGradleInstallation currentGradleInstallation,
-            FileLookup fileLookup,
-            RuntimeShadedJarFactory runtimeShadedJarFactory
+        Instantiator instantiator,
+        ProjectAccessListener projectAccessListener,
+        StartParameter startParameter,
+        ClassPathRegistry classPathRegistry,
+        CurrentGradleInstallation currentGradleInstallation,
+        FileLookup fileLookup,
+        RuntimeShadedJarFactory runtimeShadedJarFactory
     ) {
         DefaultProjectDependencyFactory factory = new DefaultProjectDependencyFactory(
             projectAccessListener, instantiator, startParameter.isBuildProjectDependencies());
@@ -278,7 +279,9 @@ class DependencyManagementBuildScopeServices {
             buildCommencedTimeProvider,
             inMemoryCachedRepositoryFactory,
             versionSelectorScheme,
-            versionComparator, moduleIdentifierFactory);
+            versionComparator,
+            moduleIdentifierFactory,
+            ProducerGuard.<ModuleIdentifier>adaptive());
     }
 
     ArtifactDependencyResolver createArtifactDependencyResolver(ResolveIvyFactory resolveIvyFactory,

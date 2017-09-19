@@ -31,15 +31,16 @@ import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 
 public class RepositoryChainDependencyToComponentIdResolver implements DependencyToComponentIdResolver {
-    private final ProducerGuard<ModuleIdentifier> producerGuard = ProducerGuard.adaptive();
     private final VersionSelectorScheme versionSelectorScheme;
     private final DynamicVersionResolver dynamicRevisionResolver;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final ProducerGuard<ModuleIdentifier> producerGuard;
 
-    public RepositoryChainDependencyToComponentIdResolver(VersionSelectorScheme versionSelectorScheme, VersionedComponentChooser componentChooser, Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public RepositoryChainDependencyToComponentIdResolver(VersionSelectorScheme versionSelectorScheme, VersionedComponentChooser componentChooser, Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ProducerGuard<ModuleIdentifier> producerGuard) {
         this.versionSelectorScheme = versionSelectorScheme;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.dynamicRevisionResolver = new DynamicVersionResolver(componentChooser, metaDataFactory);
+        this.producerGuard = producerGuard;
     }
 
     public void add(ModuleComponentRepository repository) {

@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
@@ -31,6 +33,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCo
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -60,12 +63,14 @@ public class ResolveIvyFactory {
     private final VersionSelectorScheme versionSelectorScheme;
     private final VersionComparator versionComparator;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final ProducerGuard<ModuleIdentifier> producerGuard;
 
     public ResolveIvyFactory(ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache, ModuleArtifactsCache moduleArtifactsCache,
                              CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex,
                              StartParameterResolutionOverride startParameterResolutionOverride,
                              BuildCommencedTimeProvider timeProvider, InMemoryCachedRepositoryFactory inMemoryCache, VersionSelectorScheme versionSelectorScheme,
-                             VersionComparator versionComparator, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+                             VersionComparator versionComparator, ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                             ProducerGuard<ModuleIdentifier> producerGuard) {
         this.moduleVersionsCache = moduleVersionsCache;
         this.moduleMetaDataCache = moduleMetaDataCache;
         this.moduleArtifactsCache = moduleArtifactsCache;
@@ -76,6 +81,7 @@ public class ResolveIvyFactory {
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.producerGuard = producerGuard;
     }
 
     public ComponentResolvers create(ResolutionStrategyInternal resolutionStrategy,
@@ -90,9 +96,9 @@ public class ResolveIvyFactory {
 
         startParameterResolutionOverride.addResolutionRules(resolutionRules);
 
-        UserResolverChain moduleResolver = new UserResolverChain(versionSelectorScheme, versionComparator, resolutionStrategy.getComponentSelection(), moduleIdentifierFactory);
+        UserResolverChain moduleResolver = new UserResolverChain(versionSelectorScheme, versionComparator, resolutionStrategy.getComponentSelection(), moduleIdentifierFactory, producerGuard);
 
-        ParentModuleLookupResolver parentModuleResolver = new ParentModuleLookupResolver(versionSelectorScheme, versionComparator, moduleIdentifierFactory);
+        ParentModuleLookupResolver parentModuleResolver = new ParentModuleLookupResolver(versionSelectorScheme, versionComparator, moduleIdentifierFactory, producerGuard);
 
         for (ResolutionAwareRepository repository : repositories) {
             ConfiguredModuleComponentRepository baseRepository = repository.createResolver();
@@ -129,8 +135,8 @@ public class ResolveIvyFactory {
     private static class ParentModuleLookupResolver implements ComponentResolvers, DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
         private final UserResolverChain delegate;
 
-        public ParentModuleLookupResolver(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-            this.delegate = new UserResolverChain(versionSelectorScheme, versionComparator, new DefaultComponentSelectionRules(moduleIdentifierFactory), moduleIdentifierFactory);
+        public ParentModuleLookupResolver(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ProducerGuard<ModuleIdentifier> producerGuard) {
+            this.delegate = new UserResolverChain(versionSelectorScheme, versionComparator, new DefaultComponentSelectionRules(moduleIdentifierFactory), moduleIdentifierFactory, producerGuard);
         }
 
         public void add(ModuleComponentRepository moduleComponentRepository) {

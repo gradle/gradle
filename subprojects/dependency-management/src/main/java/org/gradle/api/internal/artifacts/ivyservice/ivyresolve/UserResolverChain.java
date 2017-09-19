@@ -17,10 +17,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -33,11 +35,11 @@ public class UserResolverChain implements ComponentResolvers {
     private final RepositoryChainArtifactResolver artifactResolver;
     private final ComponentSelectionRulesInternal componentSelectionRules;
 
-    public UserResolverChain(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, ComponentSelectionRulesInternal componentSelectionRules, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public UserResolverChain(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, ComponentSelectionRulesInternal componentSelectionRules, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ProducerGuard<ModuleIdentifier> producerGuard) {
         this.componentSelectionRules = componentSelectionRules;
         VersionedComponentChooser componentChooser = new DefaultVersionedComponentChooser(versionComparator, versionSelectorScheme, componentSelectionRules);
         ModuleTransformer metaDataFactory = new ModuleTransformer();
-        componentIdResolver = new RepositoryChainDependencyToComponentIdResolver(versionSelectorScheme, componentChooser, metaDataFactory, moduleIdentifierFactory);
+        componentIdResolver = new RepositoryChainDependencyToComponentIdResolver(versionSelectorScheme, componentChooser, metaDataFactory, moduleIdentifierFactory, producerGuard);
         componentResolver = new RepositoryChainComponentMetaDataResolver(componentChooser, metaDataFactory);
         artifactResolver = new RepositoryChainArtifactResolver();
     }
