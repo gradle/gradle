@@ -17,6 +17,7 @@
 package org.gradle.caching.internal.tasks;
 
 import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMultimap;
@@ -43,6 +44,7 @@ import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
@@ -55,7 +57,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URI;
 import java.util.Collection;
 import java.util.Map;
 import java.util.SortedSet;
@@ -169,7 +170,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         entries++;
 
         String rootAbsolutePath = directory.getAbsolutePath();
-        URI rootUri = directory.toURI();
+        String rootPath = slashify(rootAbsolutePath, true);
 
         for (Map.Entry<String, FileContentSnapshot> entry : outputSnapshots.entrySet()) {
             String absolutePath = entry.getKey();
@@ -177,9 +178,11 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             if (absolutePath.equals(rootAbsolutePath)) {
                 continue;
             }
-            File file = new File(absolutePath);
-            String relativePath = rootUri.relativize(file.toURI()).toString();
+            String entryPath = slashify(absolutePath, entry.getValue().getType() == FileType.Directory);
+            Preconditions.checkState(entryPath.startsWith(rootPath));
+            String relativePath = entryPath.substring(rootPath.length());
             String targetPath = propertyRoot + relativePath;
+            File file = new File(absolutePath);
             int mode = fileSystem.getUnixMode(file);
             switch (entry.getValue().getType()) {
                 case RegularFile:
@@ -196,6 +199,20 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             entries++;
         }
         return entries;
+    }
+
+    private static String slashify(String absolutePath, boolean isDirectory) {
+        String p = absolutePath;
+        if (File.separatorChar != '/') {
+            p = p.replace(File.separatorChar, '/');
+        }
+        if (!p.startsWith("/")) {
+            p = "/" + p;
+        }
+        if (!p.endsWith("/") && isDirectory) {
+            p = p + "/";
+        }
+        return p;
     }
 
     private void storeFileProperty(String propertyPath, File file, TarArchiveOutputStream tarOutput) throws IOException {
