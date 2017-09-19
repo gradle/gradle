@@ -357,10 +357,10 @@ task someTask {
     }
 
     @Unroll
-    def "task is out of date when property type changes"() {
+    def "task is out of date when property type changes #oldValue -> #newValue"() {
         buildFile << """
 task someTask {
-    inputs.property("a", $oldValue)
+    inputs.property("a", $oldValue).optional(true)
     outputs.file "out"
     doLast ${Actions.name}.doNothing() // attach an action that is not defined by the build script
 }
@@ -483,5 +483,77 @@ task someTask(type: SomeTask) {
         FileCollection.name              | "files('1', '2')"               | "configurations.create('empty')"
         "java.util.Map<String, Boolean>" | "[a: true, b: false]"           | "[a: true, b: true]"
         "${Provider.name}<String>"       | "providers.provider { 'a' }"    | "providers.provider { 'b' }"
+    }
+
+    def "null input properties registered via TaskInputs.property are reported"() {
+        buildFile << """
+            task test {
+                inputs.property("input", { null })
+                doLast {}
+            }
+        """
+        expect:
+        fails "test"
+        failure.assertHasCause "No value has been specified for property 'input'."
+    }
+
+    def "optional null input properties registered via TaskInputs.property are reported"() {
+        buildFile << """
+            task test {
+                inputs.property("input", { null }).optional(true)
+                doLast {}
+            }
+        """
+        expect:
+        succeeds "test"
+    }
+
+    @Unroll
+    def "null input files registered via TaskInputs.#method are reported"() {
+        buildFile << """
+            task test {
+                inputs.${method}({ null }) withPropertyName "input"
+                doLast {}
+            }
+        """
+        expect:
+        fails "test"
+        failure.assertHasCause "No value has been specified for property 'input'."
+
+        where:
+        method << ["file", "files", "dir"]
+    }
+
+    @Unroll
+    def "optional null input files registered via TaskInputs.#method are allowed"() {
+        buildFile << """
+            task test {
+                inputs.${method}({ null }) withPropertyName "input" optional(true)
+                doLast {}
+            }
+        """
+        expect:
+        succeeds "test"
+
+        where:
+        method << ["file", "files", "dir"]
+    }
+
+    @Unroll
+    def "missing input files registered via TaskInputs.#method are reported"() {
+        buildFile << """
+            task test {
+                inputs.${method}({ "missing" }) withPropertyName "input"
+                doLast {}
+            }
+        """
+        expect:
+        fails "test"
+        failure.assertHasCause "$type '${file("missing")}' specified for property 'input' does not exist."
+
+        where:
+        method | type
+        "file" | "File"
+        "dir"  | "Directory"
     }
 }

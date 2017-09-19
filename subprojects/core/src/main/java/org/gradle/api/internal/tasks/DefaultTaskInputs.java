@@ -86,9 +86,16 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return taskMutator.mutate("TaskInputs.files(Object...)", new Callable<TaskInputFilePropertyBuilderInternal>() {
             @Override
             public TaskInputFilePropertyBuilderInternal call() {
-                return files(new StaticValue(paths));
+                return files(new StaticValue(unpackVarargs(paths)));
             }
         });
+    }
+
+    private static Object unpackVarargs(Object[] args) {
+        if (args.length == 1) {
+            return args[0];
+        }
+        return args;
     }
 
     @Override

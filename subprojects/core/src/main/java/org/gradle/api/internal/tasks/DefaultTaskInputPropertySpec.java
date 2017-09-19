@@ -32,7 +32,6 @@ public class DefaultTaskInputPropertySpec extends AbstractTaskInputsDeprecatingT
         this.taskInputs = taskInputs;
         setPropertyNameWithoutValidation(name);
         this.value = value;
-        this.optional = true;
     }
 
     public boolean isOptional() {
