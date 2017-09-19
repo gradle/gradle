@@ -29,6 +29,7 @@ import org.gradle.launcher.cli.converter.DaemonCommandLineConverter;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
+import org.gradle.launcher.daemon.configuration.DaemonBuildOptionFactory;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
 import java.util.HashMap;
@@ -63,14 +64,14 @@ public class ParametersConverter extends AbstractCommandLineConverter<Parameters
         this.propertiesToDaemonParametersConverter = propertiesToDaemonParametersConverter;
     }
 
-    public ParametersConverter(StartParameterBuildOptionFactory startParameterBuildOptionFactory, ParallelismBuildOptionFactory parallelismBuildOptionFactory) {
+    public ParametersConverter(StartParameterBuildOptionFactory startParameterBuildOptionFactory, ParallelismBuildOptionFactory parallelismBuildOptionFactory, DaemonBuildOptionFactory daemonBuildOptionFactory) {
         this(new LayoutCommandLineConverter(),
             new SystemPropertiesCommandLineConverter(),
-            new LayoutToPropertiesConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory),
+            new LayoutToPropertiesConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory, daemonBuildOptionFactory),
             new PropertiesToStartParameterConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory),
             new DefaultCommandLineConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory),
-            new DaemonCommandLineConverter(),
-            new PropertiesToDaemonParametersConverter());
+            new DaemonCommandLineConverter(daemonBuildOptionFactory),
+            new PropertiesToDaemonParametersConverter(daemonBuildOptionFactory));
     }
 
     @Override

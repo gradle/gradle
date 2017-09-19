@@ -28,7 +28,11 @@ import java.util.List;
 
 public class DaemonCommandLineConverter extends AbstractCommandLineConverter<DaemonParameters> {
 
-    private List<BuildOption<DaemonParameters>> buildOptions = new DaemonBuildOptionFactory().create();
+    private List<BuildOption<DaemonParameters>> buildOptions;
+
+    public DaemonCommandLineConverter(DaemonBuildOptionFactory daemonBuildOptionFactory) {
+        buildOptions = daemonBuildOptionFactory.create();
+    }
 
     public DaemonParameters convert(ParsedCommandLine args, DaemonParameters target) throws CommandLineArgumentException {
         for (BuildOption<DaemonParameters> option : buildOptions) {

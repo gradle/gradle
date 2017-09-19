@@ -28,7 +28,7 @@ import spock.lang.Subject
 class ProviderStartParameterConverterTest extends Specification {
     @Rule TestNameTestDirectoryProvider temp
     def params = Stub(ProviderOperationParameters)
-    @Subject def providerStartParameterConverter = new ProviderStartParameterConverter(new ParallelismBuildOptionFactory())
+    @Subject def providerStartParameterConverter = new ProviderStartParameterConverter(new StartParameterBuildOptionFactory(), new ParallelismBuildOptionFactory())
 
     def "allows configuring the start parameter with build arguments"() {
         params.getArguments() >> ['-PextraProperty=foo', '-m']

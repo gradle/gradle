@@ -55,6 +55,7 @@ import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.ExecuteBuildAction;
 import org.gradle.launcher.cli.Parameters;
 import org.gradle.launcher.cli.ParametersConverter;
+import org.gradle.launcher.daemon.configuration.DaemonBuildOptionFactory;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
@@ -265,7 +266,8 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         CommandLineParser parser = new CommandLineParser();
         StartParameterBuildOptionFactory startParameterBuildOptionFactory = GLOBAL_SERVICES.get(StartParameterBuildOptionFactory.class);
         ParallelismBuildOptionFactory parallelismBuildOptionFactory = GLOBAL_SERVICES.get(ParallelismBuildOptionFactory.class);
-        ParametersConverter parametersConverter = new ParametersConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory);
+        DaemonBuildOptionFactory daemonBuildOptionFactory = GLOBAL_SERVICES.get(DaemonBuildOptionFactory.class);
+        ParametersConverter parametersConverter = new ParametersConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory, daemonBuildOptionFactory);
         parametersConverter.configure(parser);
         final Parameters parameters = new Parameters(startParameter);
         parametersConverter.convert(parser.parse(getAllArgs()), parameters);

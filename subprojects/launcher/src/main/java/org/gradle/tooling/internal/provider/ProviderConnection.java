@@ -38,6 +38,7 @@ import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
+import org.gradle.launcher.daemon.configuration.DaemonBuildOptionFactory;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
@@ -186,10 +187,11 @@ public class ProviderConnection {
         Map<String, String> properties = new HashMap<String, String>();
         StartParameterBuildOptionFactory startParameterBuildOptionFactory = sharedServices.get(StartParameterBuildOptionFactory.class);
         ParallelismBuildOptionFactory parallelismBuildOptionFactory = sharedServices.get(ParallelismBuildOptionFactory.class);
-        new LayoutToPropertiesConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory).convert(layout, properties);
+        DaemonBuildOptionFactory daemonBuildOptionFactory = sharedServices.get(DaemonBuildOptionFactory.class);
+        new LayoutToPropertiesConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory, daemonBuildOptionFactory).convert(layout, properties);
 
         DaemonParameters daemonParams = new DaemonParameters(layout);
-        new PropertiesToDaemonParametersConverter().convert(properties, daemonParams);
+        new PropertiesToDaemonParametersConverter(daemonBuildOptionFactory).convert(properties, daemonParams);
         if (operationParameters.getDaemonBaseDir(null) != null) {
             daemonParams.setBaseDir(operationParameters.getDaemonBaseDir(null));
         }

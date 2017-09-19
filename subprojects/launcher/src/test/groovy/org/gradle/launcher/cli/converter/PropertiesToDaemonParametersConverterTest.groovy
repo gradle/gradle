@@ -32,7 +32,7 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
 
-    def converter = new PropertiesToDaemonParametersConverter()
+    def converter = new PropertiesToDaemonParametersConverter(new DaemonBuildOptionFactory())
     def params = new DaemonParameters(new BuildLayoutParameters())
 
     def "allows whitespace around boolean properties"() {

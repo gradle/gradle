@@ -20,6 +20,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.bootstrap.DaemonGreeter;
+import org.gradle.launcher.daemon.configuration.DaemonBuildOptionFactory;
 
 /**
  * Global services shared by all Gradle daemon clients in a given process.
@@ -35,5 +36,9 @@ public class DaemonClientGlobalServices {
 
     DaemonClientFactory createClientFactory(ServiceRegistry sharedServices) {
         return new DaemonClientFactory(sharedServices);
+    }
+
+    DaemonBuildOptionFactory createDaemonBuildOptionFactory() {
+        return new DaemonBuildOptionFactory();
     }
 }

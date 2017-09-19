@@ -24,7 +24,11 @@ import java.util.List;
 import java.util.Map;
 
 public class PropertiesToDaemonParametersConverter {
-    private List<BuildOption<DaemonParameters>> buildOptions = new DaemonBuildOptionFactory().create();
+    private List<BuildOption<DaemonParameters>> buildOptions;
+
+    public PropertiesToDaemonParametersConverter(DaemonBuildOptionFactory daemonBuildOptionFactory) {
+        buildOptions = daemonBuildOptionFactory.create();
+    }
 
     public void convert(Map<String, String> properties, DaemonParameters target) {
         for (BuildOption<DaemonParameters> option : buildOptions) {
