@@ -50,7 +50,12 @@ class DefaultTaskOutputsTest extends Specification {
         getProject() >> project
     }
     def changeDetection = Mock(ChangeDetection)
-    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs({ new File(it) } as FileResolver, task, taskStatusNagger, changeDetection)
+    private FileResolver resolver = { new File(it) } as FileResolver
+    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs(resolver, task, taskStatusNagger, changeDetection)
+
+    def setup() {
+        outputs.discoveredProperties = new DefaultOutputPropertyRegistration("task", taskStatusNagger, resolver)
+    }
 
     void hasNoOutputsByDefault() {
         setup:

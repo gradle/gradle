@@ -50,6 +50,10 @@ class DefaultTaskInputsTest extends Specification {
     def changeDetection = Mock(ChangeDetection)
     private final DefaultTaskInputs inputs = new DefaultTaskInputs(resolver, task, taskStatusNagger, changeDetection)
 
+    def setup() {
+        inputs.discoveredProperties = new DefaultInputPropertyRegistration("task", taskStatusNagger, resolver)
+    }
+
     def "default values"() {
         expect:
         inputs.files.empty
