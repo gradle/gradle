@@ -39,6 +39,9 @@ public class ChangesOnlyIncrementalTaskInputs extends StatefulIncrementalTaskInp
     @Override
     protected void doOutOfDate(final Action<? super InputFileDetails> outOfDateAction) {
         for (TaskStateChange change : inputFilesState) {
+            if (!(change instanceof InputFileDetails)) {
+                continue;
+            }
             InputFileDetails fileChange = (InputFileDetails) change;
             if (fileChange.isRemoved()) {
                 removedFiles.add(fileChange);
