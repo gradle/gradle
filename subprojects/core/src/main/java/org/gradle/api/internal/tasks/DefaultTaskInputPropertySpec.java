@@ -18,14 +18,18 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
+import org.gradle.api.tasks.TaskInputs;
+import org.gradle.util.DeprecationLogger;
 
 @NonNullApi
 public class DefaultTaskInputPropertySpec extends AbstractTaskInputsDeprecatingTaskPropertyBuilder implements DeclaredTaskInputProperty {
 
+    private final TaskInputs taskInputs;
     private final ValidatingValue value;
     private boolean optional;
 
-    public DefaultTaskInputPropertySpec(String name, ValidatingValue value) {
+    public DefaultTaskInputPropertySpec(TaskInputs taskInputs, String name, ValidatingValue value) {
+        this.taskInputs = taskInputs;
         setPropertyNameWithoutValidation(name);
         this.value = value;
         this.optional = true;
@@ -44,6 +48,12 @@ public class DefaultTaskInputPropertySpec extends AbstractTaskInputsDeprecatingT
     @Override
     public void validate(TaskValidationContext context) {
         value.validate(getPropertyName(), optional, ValidationAction.NO_OP, context);
+    }
+
+    @Override
+    protected TaskInputs getTaskInputs(String method) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("chaining of the " + method, String.format("Use '%s' on TaskInputs directly instead.", method));
+        return taskInputs;
     }
 
     @Override

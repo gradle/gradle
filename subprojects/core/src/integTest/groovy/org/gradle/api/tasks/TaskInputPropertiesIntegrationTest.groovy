@@ -209,7 +209,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "fails when inputs calls are chained (#method)"() {
+    def "fails when input file calls are chained (#method)"() {
         buildFile << """
             task test {
                 inputs.${call}.${call}
@@ -225,6 +225,19 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         "file(Object)"     | 'file("a")'
         "dir(Object)"      | 'dir("a")'
         "files(Object...)" | 'files("a", "b")'
+    }
+
+    def "shows deprecation warning when input property calls are chained"() {
+        buildFile << """
+            task test {
+                inputs.property("alma", 1).property("bela", 2)
+            }
+        """
+
+        expect:
+        executer.expectDeprecationWarning()
+        succeeds "test"
+        output.contains "The chaining of the property(String, Object) method has been deprecated and is scheduled to be removed in Gradle 5.0. Use 'property(String, Object)' on TaskInputs directly instead."
     }
 
     @Unroll

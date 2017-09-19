@@ -154,7 +154,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     private TaskInputFilePropertyBuilderInternal addSpec(ValidatingValue paths, ValidationAction validationAction) {
-        DefaultDeclaredTaskInputFilePropertySpec spec = new DefaultDeclaredTaskInputFilePropertySpec(task.getName(), resolver, paths, validationAction);
+        DefaultTaskInputFilePropertySpec spec = new DefaultTaskInputFilePropertySpec(task.getName(), resolver, paths, validationAction);
         declaredFileProperties.add(spec);
         return spec;
     }
@@ -224,7 +224,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             spec = propertyValue.getPropertySpec();
             propertyValue.setValue(value);
         } else {
-            spec = new DefaultTaskInputPropertySpec(name, value);
+            spec = new DefaultTaskInputPropertySpec(this, name, value);
             propertyValue = new SimplePropertyValue(spec, value);
             properties.put(name, propertyValue);
         }
@@ -239,7 +239,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             spec = propertyValue.getPropertySpec();
             propertyValue.setValue(value);
         } else {
-            spec = new DefaultTaskInputPropertySpec(name, value);
+            spec = new DefaultTaskInputPropertySpec(this, name, value);
             propertyValue = new NestedBeanTypePropertyValue(spec, value);
             properties.put(name, propertyValue);
         }

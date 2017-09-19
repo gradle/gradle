@@ -24,11 +24,12 @@ import org.gradle.api.internal.changedetection.state.InputPathNormalizationStrat
 import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.TaskInputs;
 
 import static org.gradle.api.internal.changedetection.state.InputPathNormalizationStrategy.ABSOLUTE;
 
 @NonNullApi
-public class DefaultDeclaredTaskInputFilePropertySpec extends AbstractTaskInputsDeprecatingTaskPropertyBuilder implements DeclaredTaskInputFileProperty {
+public class DefaultTaskInputFilePropertySpec extends AbstractTaskInputsDeprecatingTaskPropertyBuilder implements DeclaredTaskInputFileProperty {
 
     private final ValidatingValue value;
     private final ValidationAction validationAction;
@@ -38,7 +39,7 @@ public class DefaultDeclaredTaskInputFilePropertySpec extends AbstractTaskInputs
     private PathNormalizationStrategy pathNormalizationStrategy = ABSOLUTE;
     private Class<? extends FileCollectionSnapshotter> snapshotter = GenericFileCollectionSnapshotter.class;
 
-    public DefaultDeclaredTaskInputFilePropertySpec(String taskName, FileResolver resolver, ValidatingValue paths, ValidationAction validationAction) {
+    public DefaultTaskInputFilePropertySpec(String taskName, FileResolver resolver, ValidatingValue paths, ValidationAction validationAction) {
         this.value = paths;
         this.validationAction = validationAction;
         this.files = new TaskPropertyFileCollection(taskName, "input", this, resolver, paths);
@@ -115,6 +116,11 @@ public class DefaultDeclaredTaskInputFilePropertySpec extends AbstractTaskInputs
     @Override
     public void validate(TaskValidationContext context) {
         value.validate(getPropertyName(), optional, validationAction, context);
+    }
+
+    @Override
+    protected TaskInputs getTaskInputs(String method) {
+        throw new UnsupportedOperationException(String.format("Chaining of the TaskInputs.%s method is not supported since Gradle 4.0.", method));
     }
 
     @Override
