@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -62,8 +61,8 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
             });
         }
 
-        for (Action<? super Task> taskAction : taskClassInfo.getTaskActions()) {
-            task.prependParallelSafeAction(taskAction);
+        for (TaskActionFactory actionFactory : taskClassInfo.getTaskActionFactories()) {
+            task.prependParallelSafeAction(actionFactory.create());
         }
 
         TaskClassValidator validator = taskClassInfo.getValidator();

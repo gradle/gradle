@@ -17,19 +17,15 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Action;
-import org.gradle.api.Task;
-
-import java.util.List;
 
 public class TaskClassInfo {
     private final boolean incremental;
-    private final List<Action<? super Task>> taskActions;
+    private final ImmutableList<TaskActionFactory> taskActionFactories;
     private final TaskClassValidator validator;
 
-    public TaskClassInfo(boolean incremental, ImmutableList<Action<? super Task>> taskActions, TaskClassValidator validator) {
+    public TaskClassInfo(boolean incremental, ImmutableList<TaskActionFactory> taskActionFactories, TaskClassValidator validator) {
         this.incremental = incremental;
-        this.taskActions = taskActions;
+        this.taskActionFactories = taskActionFactories;
         this.validator = validator;
     }
 
@@ -37,8 +33,8 @@ public class TaskClassInfo {
         return validator;
     }
 
-    public List<Action<? super Task>> getTaskActions() {
-        return taskActions;
+    public ImmutableList<TaskActionFactory> getTaskActionFactories() {
+        return taskActionFactories;
     }
 
     public boolean isIncremental() {

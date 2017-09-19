@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
@@ -33,6 +34,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Map;
 
+@NonNullApi
 public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
     private final TaskClassValidatorExtractor validatorExtractor;
 
@@ -57,30 +59,30 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
     private TaskClassInfo createTaskClassInfo(Class<? extends Task> type) {
         boolean incremental = false;
         Map<String, Class<?>> processedMethods = Maps.newHashMap();
-        ImmutableList.Builder<Action<? super Task>> taskActionsBuilder = ImmutableList.builder();
+        ImmutableList.Builder<TaskActionFactory> taskActionFactoriesBuilder = ImmutableList.builder();
         for (Class current = type; current != null; current = current.getSuperclass()) {
             for (Method method : current.getDeclaredMethods()) {
-                Action<? super Task> taskAction = createTaskAction(type, method, processedMethods);
-                if (taskAction == null) {
+                TaskActionFactory taskActionFactory = createTaskAction(type, method, processedMethods);
+                if (taskActionFactory == null) {
                     continue;
                 }
-                if (taskAction instanceof IncrementalTaskAction) {
+                if (taskActionFactory instanceof IncrementalTaskActionFactory) {
                     if (incremental) {
                         throw new GradleException(String.format("Cannot have multiple @TaskAction methods accepting an %s parameter.", IncrementalTaskInputs.class.getSimpleName()));
                     }
                     incremental = true;
                 }
-                taskActionsBuilder.add(taskAction);
+                taskActionFactoriesBuilder.add(taskActionFactory);
             }
         }
 
         TaskClassValidator validator = validatorExtractor.extractValidator(type);
 
-        return new TaskClassInfo(incremental, taskActionsBuilder.build(), validator);
+        return new TaskClassInfo(incremental, taskActionFactoriesBuilder.build(), validator);
     }
 
     @Nullable
-    private static Action<? super Task> createTaskAction(Class<? extends Task> taskType, final Method method, Map<String, Class<?>> processedMethods) {
+    private static TaskActionFactory createTaskAction(Class<? extends Task> taskType, final Method method, Map<String, Class<?>> processedMethods) {
         if (method.getAnnotation(TaskAction.class) == null) {
             return null;
         }
@@ -96,16 +98,16 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
                 declaringClass.getSimpleName(), method.getName()));
         }
 
-        Action<? super Task> taskAction;
+        TaskActionFactory taskActionFactory;
         if (parameterTypes.length == 1) {
             if (!parameterTypes[0].equals(IncrementalTaskInputs.class)) {
                 throw new GradleException(String.format(
                     "Cannot use @TaskAction annotation on method %s.%s() because %s is not a valid parameter to an action method.",
                     declaringClass.getSimpleName(), method.getName(), parameterTypes[0]));
             }
-            taskAction = new IncrementalTaskAction(taskType, method);
+            taskActionFactory = new IncrementalTaskActionFactory(taskType, method);
         } else {
-            taskAction = new StandardTaskAction(taskType, method);
+            taskActionFactory = new StandardTaskActionFactory(taskType, method);
         }
 
         Class<?> previousDeclaringClass = processedMethods.put(method.getName(), declaringClass);
@@ -117,6 +119,36 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
         } else if (previousDeclaringClass != null) {
             return null;
         }
-        return taskAction;
+        return taskActionFactory;
+    }
+
+    private static class StandardTaskActionFactory implements TaskActionFactory {
+        private final Class<? extends Task> taskType;
+        private final Method method;
+
+        public StandardTaskActionFactory(Class<? extends Task> taskType, Method method) {
+            this.taskType = taskType;
+            this.method = method;
+        }
+
+        @Override
+        public Action<? super Task> create() {
+            return new StandardTaskAction(taskType, method);
+        }
+    }
+
+    private static class IncrementalTaskActionFactory implements TaskActionFactory {
+        private final Class<? extends Task> taskType;
+        private final Method method;
+
+        public IncrementalTaskActionFactory(Class<? extends Task> taskType, Method method) {
+            this.taskType = taskType;
+            this.method = method;
+        }
+
+        @Override
+        public Action<? super Task> create() {
+            return new IncrementalTaskAction(taskType, method);
+        }
     }
 }
