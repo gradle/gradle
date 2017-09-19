@@ -22,11 +22,12 @@ import org.gradle.initialization.ParallelismBuildOptionFactory
 import org.gradle.initialization.StartParameterBuildOptionFactory
 import org.gradle.internal.logging.LoggingConfigurationBuildOptionFactory
 import spock.lang.Specification
+import spock.lang.Subject
 import spock.lang.Unroll
 
 class PropertiesToStartParameterConverterTest extends Specification {
 
-    def converter = new PropertiesToStartParameterConverter()
+    @Subject def converter = new PropertiesToStartParameterConverter(new ParallelismBuildOptionFactory())
 
     def "converts"() {
         expect:

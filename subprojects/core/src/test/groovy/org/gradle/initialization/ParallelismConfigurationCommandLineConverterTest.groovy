@@ -20,10 +20,11 @@ import org.gradle.concurrent.ParallelismConfiguration
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.util.ToBeImplemented
 import spock.lang.Specification
+import spock.lang.Subject
 import spock.lang.Unroll
 
 class ParallelismConfigurationCommandLineConverterTest extends Specification {
-    final def converter = new ParallelismConfigurationCommandLineConverter()
+    @Subject def converter = new ParallelismConfigurationCommandLineConverter(new ParallelismBuildOptionFactory())
 
     def "converts parallel executor"() {
         when:

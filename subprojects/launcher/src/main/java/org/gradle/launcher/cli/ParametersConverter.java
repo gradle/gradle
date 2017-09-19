@@ -16,9 +16,14 @@
 
 package org.gradle.launcher.cli;
 
-import org.gradle.cli.*;
+import org.gradle.cli.AbstractCommandLineConverter;
+import org.gradle.cli.CommandLineArgumentException;
+import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.ParsedCommandLine;
+import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.LayoutCommandLineConverter;
+import org.gradle.initialization.ParallelismBuildOptionFactory;
 import org.gradle.launcher.cli.converter.DaemonCommandLineConverter;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
@@ -57,12 +62,12 @@ public class ParametersConverter extends AbstractCommandLineConverter<Parameters
         this.propertiesToDaemonParametersConverter = propertiesToDaemonParametersConverter;
     }
 
-    public ParametersConverter() {
+    public ParametersConverter(ParallelismBuildOptionFactory parallelismBuildOptionFactory) {
         this(new LayoutCommandLineConverter(),
             new SystemPropertiesCommandLineConverter(),
-            new LayoutToPropertiesConverter(),
-            new PropertiesToStartParameterConverter(),
-            new DefaultCommandLineConverter(),
+            new LayoutToPropertiesConverter(parallelismBuildOptionFactory),
+            new PropertiesToStartParameterConverter(parallelismBuildOptionFactory),
+            new DefaultCommandLineConverter(parallelismBuildOptionFactory),
             new DaemonCommandLineConverter(),
             new PropertiesToDaemonParametersConverter());
     }

@@ -16,22 +16,25 @@
 package org.gradle.tooling.internal.provider
 
 import org.gradle.TaskExecutionRequest
+import org.gradle.initialization.ParallelismBuildOptionFactory
 import org.gradle.initialization.StartParameterBuildOptionFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.internal.protocol.InternalLaunchable
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Subject
 
 class ProviderStartParameterConverterTest extends Specification {
     @Rule TestNameTestDirectoryProvider temp
     def params = Stub(ProviderOperationParameters)
+    @Subject def providerStartParameterConverter = new ProviderStartParameterConverter(new ParallelismBuildOptionFactory())
 
     def "allows configuring the start parameter with build arguments"() {
         params.getArguments() >> ['-PextraProperty=foo', '-m']
 
         when:
-        def start = new ProviderStartParameterConverter().toStartParameter(params, [:])
+        def start = providerStartParameterConverter.toStartParameter(params, [:])
 
         then:
         start.projectProperties['extraProperty'] == 'foo'
@@ -45,7 +48,7 @@ class ProviderStartParameterConverterTest extends Specification {
         params.getArguments() >> ['-p', 'otherDir']
 
         when:
-        def start = new ProviderStartParameterConverter().toStartParameter(params, [:])
+        def start = providerStartParameterConverter.toStartParameter(params, [:])
 
         then:
         start.projectDir == new File(projectDir, "otherDir")
@@ -60,7 +63,7 @@ class ProviderStartParameterConverterTest extends Specification {
         params.getArguments() >> ['-g', 'otherDir']
 
         when:
-        def start = new ProviderStartParameterConverter().toStartParameter(params, [:])
+        def start = providerStartParameterConverter.toStartParameter(params, [:])
 
         then:
         start.gradleUserHomeDir == new File(projectDir, "otherDir")
@@ -71,7 +74,7 @@ class ProviderStartParameterConverterTest extends Specification {
         params.getArguments() >> ['-u']
 
         when:
-        def start = new ProviderStartParameterConverter().toStartParameter(params, [:])
+        def start = providerStartParameterConverter.toStartParameter(params, [:])
 
         then:
         !start.searchUpwards
@@ -83,7 +86,7 @@ class ProviderStartParameterConverterTest extends Specification {
         params.isSearchUpwards() >> true
 
         when:
-        def start = new ProviderStartParameterConverter().toStartParameter(params, [:])
+        def start = providerStartParameterConverter.toStartParameter(params, [:])
 
         then:
         start.searchUpwards
@@ -95,7 +98,7 @@ class ProviderStartParameterConverterTest extends Specification {
             (StartParameterBuildOptionFactory.ConfigureOnDemandOption.GRADLE_PROPERTY): "true",
         ]
 
-        def start = new ProviderStartParameterConverter().toStartParameter(params, properties)
+        def start = providerStartParameterConverter.toStartParameter(params, properties)
 
         then:
         start.configureOnDemand
@@ -112,7 +115,7 @@ class ProviderStartParameterConverterTest extends Specification {
         params.getLaunchables(_) >> [selector]
 
         when:
-        def start = new ProviderStartParameterConverter().toStartParameter(params, [:])
+        def start = providerStartParameterConverter.toStartParameter(params, [:])
 
         then:
         start.taskRequests.size() == 1

@@ -39,13 +39,14 @@ import static org.gradle.StartParameter.GRADLE_USER_HOME_PROPERTY_KEY;
 
 public class DefaultCommandLineConverter extends AbstractCommandLineConverter<StartParameter> {
     private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new LoggingCommandLineConverter();
-    private final CommandLineConverter<ParallelismConfiguration> parallelConfigurationCommandLineConverter = new ParallelismConfigurationCommandLineConverter();
+    private final CommandLineConverter<ParallelismConfiguration> parallelConfigurationCommandLineConverter;
     private final SystemPropertiesCommandLineConverter systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
     private final ProjectPropertiesCommandLineConverter projectPropertiesCommandLineConverter = new ProjectPropertiesCommandLineConverter();
     private final List<BuildOption<StartParameter>> buildOptions = new StartParameterBuildOptionFactory().create();
     private final LayoutCommandLineConverter layoutCommandLineConverter;
 
-    public DefaultCommandLineConverter() {
+    public DefaultCommandLineConverter(ParallelismBuildOptionFactory parallelismBuildOptionFactory) {
+        parallelConfigurationCommandLineConverter = new ParallelismConfigurationCommandLineConverter(parallelismBuildOptionFactory);
         layoutCommandLineConverter = new LayoutCommandLineConverter();
     }
 

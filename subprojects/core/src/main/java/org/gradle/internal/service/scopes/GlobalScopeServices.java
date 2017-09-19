@@ -66,6 +66,7 @@ import org.gradle.initialization.FlatClassLoaderRegistry;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.initialization.LegacyTypesSupport;
+import org.gradle.initialization.ParallelismBuildOptionFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
@@ -170,8 +171,12 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return environment;
     }
 
-    CommandLineConverter<StartParameter> createCommandLine2StartParameterConverter() {
-        return new DefaultCommandLineConverter();
+    ParallelismBuildOptionFactory createParallelismBuildOptionFactory() {
+        return new ParallelismBuildOptionFactory();
+    }
+
+    CommandLineConverter<StartParameter> createCommandLine2StartParameterConverter(ParallelismBuildOptionFactory parallelismBuildOptionFactory) {
+        return new DefaultCommandLineConverter(parallelismBuildOptionFactory);
     }
 
     ClassPathRegistry createClassPathRegistry(ModuleRegistry moduleRegistry, PluginModuleRegistry pluginModuleRegistry) {

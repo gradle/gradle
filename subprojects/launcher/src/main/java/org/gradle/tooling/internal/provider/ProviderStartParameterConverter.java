@@ -19,6 +19,7 @@ import org.gradle.StartParameter;
 import org.gradle.TaskExecutionRequest;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.initialization.ParallelismBuildOptionFactory;
 import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
 import org.gradle.tooling.internal.protocol.InternalLaunchable;
@@ -31,6 +32,12 @@ import java.util.List;
 import java.util.Map;
 
 class ProviderStartParameterConverter {
+
+    private final ParallelismBuildOptionFactory parallelismBuildOptionFactory;
+
+    public ProviderStartParameterConverter(ParallelismBuildOptionFactory parallelismBuildOptionFactory) {
+        this.parallelismBuildOptionFactory = parallelismBuildOptionFactory;
+    }
 
     private List<TaskExecutionRequest> unpack(final List<InternalLaunchable> launchables, File projectDir) {
         // Important that the launchables are unpacked on the client side, to avoid sending back any additional internal state that
@@ -68,11 +75,11 @@ class ProviderStartParameterConverter {
             startParameter.setTaskNames(parameters.getTasks());
         }
 
-        new PropertiesToStartParameterConverter().convert(properties, startParameter);
+        new PropertiesToStartParameterConverter(parallelismBuildOptionFactory).convert(properties, startParameter);
 
         List<String> arguments = parameters.getArguments();
         if (arguments != null) {
-            DefaultCommandLineConverter converter = new DefaultCommandLineConverter();
+            DefaultCommandLineConverter converter = new DefaultCommandLineConverter(parallelismBuildOptionFactory);
             try {
                 converter.convert(arguments, startParameter);
             } catch (CommandLineArgumentException e) {
