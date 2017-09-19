@@ -52,10 +52,15 @@ class MonotonicClock implements Clock {
 
     private static final long SYNC_INTERVAL_MILLIS = TimeUnit.SECONDS.toMillis(3);
 
-    private final TimeSource timeSource;
+    /**
+     * This determines the minimum elapsed time between syncs.
+     * The coordination strategy between different book keeping variables
+     * relies on this being greater than
+     */
     private final long syncIntervalMillis;
+    private final TimeSource timeSource;
 
-    private volatile long syncMillis;
+    private final AtomicLong syncMillisRef;
     private final AtomicLong syncNanosRef;
     private final AtomicLong max = new AtomicLong(0);
 
@@ -65,32 +70,49 @@ class MonotonicClock implements Clock {
 
     @VisibleForTesting
     MonotonicClock(TimeSource timeSource, long syncIntervalMillis) {
+        long nanoTime = timeSource.nanoTime();
+        long currentTimeMillis = timeSource.currentTimeMillis();
+
         this.timeSource = timeSource;
         this.syncIntervalMillis = syncIntervalMillis;
-        this.syncNanosRef = new AtomicLong(timeSource.nanoTime());
-        this.max.set(this.syncMillis = timeSource.currentTimeMillis());
+        this.syncNanosRef = new AtomicLong(nanoTime);
+        this.syncMillisRef = new AtomicLong(currentTimeMillis);
+        this.max.set(currentTimeMillis);
     }
 
     public long getCurrentTime() {
         long nowNanos = timeSource.nanoTime();
         long syncNanos = syncNanosRef.get();
+        long syncMillis = syncMillisRef.get();
         long sinceSyncNanos = nowNanos - syncNanos;
         long sinceSyncMillis = TimeUnit.NANOSECONDS.toMillis(sinceSyncNanos);
 
-        if (sinceSyncMillis >= syncIntervalMillis && syncNanosRef.compareAndSet(syncNanos, nowNanos)) {
-            return syncMillis = issue(timeSource.currentTimeMillis());
+        if (syncIsDue(nowNanos, syncNanos, sinceSyncMillis)) {
+            return sync(syncMillis);
         } else {
-            return issue(syncMillis + sinceSyncMillis);
+            return advance(syncMillis + sinceSyncMillis);
         }
     }
 
-    private long issue(long timestamp) {
+    private boolean syncIsDue(long nowNanos, long syncNanos, long sinceSyncMillis) {
+        return sinceSyncMillis >= syncIntervalMillis && syncNanosRef.compareAndSet(syncNanos, nowNanos);
+    }
+
+    private long sync(long syncMillis) {
+        long newSyncMillis = advance(timeSource.currentTimeMillis());
+        // CAS due to potentially a later, but overlapping, sync having already completed
+        syncMillisRef.compareAndSet(syncMillis, newSyncMillis);
+        return newSyncMillis;
+    }
+
+    private long advance(long timestamp) {
         long prev;
         long next;
         do {
             prev = max.get();
             next = Math.max(prev, timestamp);
         } while (!max.compareAndSet(prev, next));
+
         return next;
     }
 
