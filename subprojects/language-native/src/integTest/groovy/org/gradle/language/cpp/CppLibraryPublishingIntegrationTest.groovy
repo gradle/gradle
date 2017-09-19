@@ -19,6 +19,7 @@ package org.gradle.language.cpp
 import org.gradle.nativeplatform.fixtures.AbstractNativePublishingIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
 import org.gradle.nativeplatform.fixtures.app.CppLib
+import org.gradle.test.fixtures.GradleModuleMetadata
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.junit.Assume
@@ -29,7 +30,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractNativePublishingIntegr
         Assume.assumeTrue(toolChain.id != "mingw" && toolChain.id != "gcccygwin")
     }
 
-    def "can publish binaries and headers of a library to a maven repository"() {
+    def "can publish the binaries and headers of a library to a Maven repository"() {
         def lib = new CppLib()
         assert !lib.publicHeaders.files.empty
 
@@ -63,22 +64,26 @@ class CppLibraryPublishingIntegrationTest extends AbstractNativePublishingIntegr
         def main = repo.module('some.group', 'test', '1.2')
         main.assertPublished()
         main.assertArtifactsPublished("test-1.2-cpp-api-headers.zip", "test-1.2.pom", "test-1.2-module.json")
+        main.parsedPom.scopes.isEmpty()
+        new GradleModuleMetadata(main.artifactFile(classifier: 'module', type: 'json'))
         main.artifactFile(classifier: 'cpp-api-headers', type: 'zip').assertIsCopyOf(headersZip)
 
         def debug = repo.module('some.group', 'test_debug', '1.2')
         debug.assertPublished()
+        debug.parsedPom.scopes.isEmpty()
         debug.assertArtifactsPublished(withSharedLibrarySuffix("test_debug-1.2"), withLinkLibrarySuffix("test_debug-1.2"), "test_debug-1.2.pom", "test_debug-1.2-module.json")
         debug.artifactFile(type: sharedLibraryExtension).assertIsCopyOf(sharedLibrary("build/lib/main/debug/test").file)
         debug.artifactFile(type: linkLibrarySuffix).assertIsCopyOf(sharedLibrary("build/lib/main/debug/test").linkFile)
 
         def release = repo.module('some.group', 'test_release', '1.2')
         release.assertPublished()
+        release.parsedPom.scopes.isEmpty()
         release.assertArtifactsPublished(withSharedLibrarySuffix("test_release-1.2"), withLinkLibrarySuffix("test_release-1.2"), "test_release-1.2.pom", "test_release-1.2-module.json")
         release.artifactFile(type: sharedLibraryExtension).assertIsCopyOf(sharedLibrary("build/lib/main/release/test").file)
         release.artifactFile(type: linkLibrarySuffix).assertIsCopyOf(sharedLibrary("build/lib/main/release/test").linkFile)
     }
 
-    def "can publish library and its dependencies to a maven repository"() {
+    def "can publish a library and its dependencies to a Maven repository"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
 
         given:

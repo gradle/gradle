@@ -16,17 +16,19 @@
 
 package org.gradle.api.publish.tasks;
 
-import com.google.gson.GsonBuilder;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
+import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.file.RegularFileVar;
 import org.gradle.api.provider.PropertyState;
+import org.gradle.api.publish.internal.MetadataFileGenerator;
+import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.util.GradleVersion;
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -34,11 +36,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.util.Map;
-import java.util.TreeMap;
 
 /**
- * Generates a Gradle metadata file to represent a {@link org.gradle.api.component.SoftwareComponent} instance.
+ * Generates a Gradle metadata file to represent a published {@link org.gradle.api.component.SoftwareComponent} instance.
  *
  * @since 4.3
  */
@@ -50,6 +50,8 @@ public class GenerateModuleMetadata extends DefaultTask {
     public GenerateModuleMetadata() {
         component = getProject().getProviders().property(ComponentWithVariants.class);
         outputFile = newOutputFile();
+        // TODO - should be incremental
+        getOutputs().upToDateWhen(Specs.<Task>satisfyNone());
     }
 
     // TODO - this should be an input
@@ -71,27 +73,16 @@ public class GenerateModuleMetadata extends DefaultTask {
 
     @TaskAction
     void run() {
-        ComponentMetadata metadata = new ComponentMetadata();
         File file = outputFile.get().getAsFile();
         try {
             Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "utf8"));
             try {
-                new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(metadata, writer);
+                new MetadataFileGenerator(getServices().get(BuildInvocationScopeId.class)).generateTo(component.get(), writer);
             } finally {
                 writer.close();
             }
         } catch (IOException e) {
             throw new UncheckedIOException("Could not generate metadata file " + outputFile.getAsFile(), e);
         }
-    }
-
-    private static class ComponentMetadata {
-        private String formatVersion = "0.1";
-        private Generator createdBy = new Generator();
-        private final Map<String, Object> variants = new TreeMap<String, Object>();
-    }
-
-    private static class Generator {
-        private String gradleVersion = GradleVersion.current().getVersion();
     }
 }

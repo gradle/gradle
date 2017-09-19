@@ -16,15 +16,17 @@
 
 package org.gradle.language.cpp.internal;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.ChildComponent;
+import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 
 import java.util.Set;
 
-public class NativeRuntimeVariant extends NativeVariant implements ChildComponent {
+public class NativeRuntimeVariant extends NativeVariant implements ChildComponent, ComponentWithVariants {
     private final SoftwareComponent parent;
 
     public NativeRuntimeVariant(String name, SoftwareComponent parent, Usage usage, Set<? extends PublishArtifact> artifacts, Configuration dependencies) {
@@ -40,5 +42,10 @@ public class NativeRuntimeVariant extends NativeVariant implements ChildComponen
     @Override
     public SoftwareComponent getOwner() {
         return parent;
+    }
+
+    @Override
+    public Set<? extends ChildComponent> getVariants() {
+        return ImmutableSet.of();
     }
 }

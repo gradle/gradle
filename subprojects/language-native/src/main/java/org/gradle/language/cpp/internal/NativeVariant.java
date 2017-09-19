@@ -21,14 +21,12 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.component.ComponentWithVariants;
-import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 
 import java.util.Set;
 
-public class NativeVariant implements SoftwareComponentInternal, ComponentWithVariants {
+public class NativeVariant implements SoftwareComponentInternal {
     private final String name;
     private final Usage linkUsage;
     private final Configuration linkElements;
@@ -57,11 +55,6 @@ public class NativeVariant implements SoftwareComponentInternal, ComponentWithVa
     @Override
     public String getName() {
         return name;
-    }
-
-    @Override
-    public Set<SoftwareComponent> getVariants() {
-        throw new UnsupportedOperationException();
     }
 
     @Override

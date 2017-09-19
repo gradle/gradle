@@ -19,11 +19,25 @@ package org.gradle.language.cpp.internal;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.component.ChildComponent;
+import org.gradle.api.component.ComponentWithVariants;
 
+import java.util.HashSet;
 import java.util.Set;
 
-public class MainLibraryVariant extends NativeVariant {
+public class MainLibraryVariant extends NativeVariant implements ComponentWithVariants {
+    private final Set<ChildComponent> variants = new HashSet<ChildComponent>();
+
     public MainLibraryVariant(String name, Usage usage, Set<? extends PublishArtifact> artifacts, Configuration dependencies) {
         super(name, usage, artifacts, dependencies);
+    }
+
+    @Override
+    public Set<? extends ChildComponent> getVariants() {
+        return variants;
+    }
+
+    public void addVariant(ChildComponent variant) {
+        variants.add(variant);
     }
 }

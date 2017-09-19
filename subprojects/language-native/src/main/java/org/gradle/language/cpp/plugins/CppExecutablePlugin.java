@@ -133,7 +133,9 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
                                 publication.setGroupId(project.getGroup().toString());
                                 publication.setArtifactId(application.getBaseName().get() + "_debug");
                                 publication.setVersion(project.getVersion().toString());
-                                publication.from(new NativeRuntimeVariant("debug", mainVariant, runtimeUsage, debugRuntimeElements.getAllArtifacts(), debugRuntimeElements));
+                                NativeRuntimeVariant debugVariant = new NativeRuntimeVariant("debug", mainVariant, runtimeUsage, debugRuntimeElements.getAllArtifacts(), debugRuntimeElements);
+                                mainVariant.addVariant(debugVariant);
+                                publication.from(debugVariant);
                             }
                         });
                         extension.getPublications().create("release", MavenPublication.class, new Action<MavenPublication>() {
@@ -143,7 +145,9 @@ public class CppExecutablePlugin implements Plugin<ProjectInternal> {
                                 publication.setGroupId(project.getGroup().toString());
                                 publication.setArtifactId(application.getBaseName().get() + "_release");
                                 publication.setVersion(project.getVersion().toString());
-                                publication.from(new NativeRuntimeVariant("release", mainVariant, runtimeUsage, releaseRuntimeElements.getAllArtifacts(), releaseRuntimeElements));
+                                NativeRuntimeVariant releaseVariant = new NativeRuntimeVariant("release", mainVariant, runtimeUsage, releaseRuntimeElements.getAllArtifacts(), releaseRuntimeElements);
+                                mainVariant.addVariant(releaseVariant);
+                                publication.from(releaseVariant);
                             }
                         });
                     }

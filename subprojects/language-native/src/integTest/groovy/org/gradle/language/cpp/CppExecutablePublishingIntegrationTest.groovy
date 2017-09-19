@@ -19,6 +19,7 @@ package org.gradle.language.cpp
 import org.gradle.nativeplatform.fixtures.AbstractNativePublishingIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
+import org.gradle.test.fixtures.GradleModuleMetadata
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.junit.Assume
 
@@ -28,7 +29,7 @@ class CppExecutablePublishingIntegrationTest extends AbstractNativePublishingInt
         Assume.assumeTrue(toolChain.id != "mingw" && toolChain.id != "gcccygwin")
     }
 
-    def "can publish binaries an application to a maven repository"() {
+    def "can publish the binaries of an application to a Maven repository"() {
         def app = new CppApp()
 
         given:
@@ -57,20 +58,24 @@ class CppExecutablePublishingIntegrationTest extends AbstractNativePublishingInt
 
         def main = repo.module('some.group', 'test', '1.2')
         main.assertPublished()
+        main.parsedPom.scopes.isEmpty()
+        new GradleModuleMetadata(main.artifactFile(classifier: 'module', type: 'json'))
         main.assertArtifactsPublished("test-1.2.pom", "test-1.2-module.json")
 
         def debug = repo.module('some.group', 'test_debug', '1.2')
         debug.assertPublished()
+        debug.parsedPom.scopes.isEmpty()
         debug.assertArtifactsPublished(withExecutableSuffix("test_debug-1.2"), "test_debug-1.2.pom", "test_debug-1.2-module.json")
         debug.artifactFile(type: executableExtension).assertIsCopyOf(executable("build/exe/main/debug/test").file)
 
         def release = repo.module('some.group', 'test_release', '1.2')
         release.assertPublished()
+        release.parsedPom.scopes.isEmpty()
         release.assertArtifactsPublished(withExecutableSuffix("test_release-1.2"), "test_release-1.2.pom", "test_release-1.2-module.json")
         release.artifactFile(type: executableExtension).assertIsCopyOf(executable("build/exe/main/release/test").file)
     }
 
-    def "can publish executable and library to Maven repository"() {
+    def "can publish an executable and library to a Maven repository"() {
         def app = new CppAppWithLibrary()
 
         given:
