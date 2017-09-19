@@ -35,7 +35,7 @@ public class TaskPropertyValue implements ValidatingValue {
 
     @Override
     public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
-        property.getValue(task).validate(optional, valueValidator, context);
+        property.getValue(task).validate(optional, valueValidator, context, TaskValidationContext.Severity.ERROR);
     }
 
     @Override

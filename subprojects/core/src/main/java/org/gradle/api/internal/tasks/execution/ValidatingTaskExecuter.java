@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.tasks.execution;
 
-import org.gradle.api.InvalidUserDataException;
+import com.google.common.collect.Lists;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -23,10 +23,9 @@ import org.gradle.api.internal.tasks.DefaultTaskValidationContext;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.tasks.TaskExecutionException;
-import org.gradle.api.tasks.TaskValidationException;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -40,9 +39,9 @@ public class ValidatingTaskExecuter implements TaskExecuter {
     }
 
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        List<String> messages = new ArrayList<String>();
+        List<String> messages = Lists.newArrayList();
         FileResolver resolver = ((ProjectInternal) task.getProject()).getFileResolver();
-        DefaultTaskValidationContext validationContext = new DefaultTaskValidationContext(resolver, messages);
+        TaskValidationContext validationContext = new DefaultTaskValidationContext(resolver, messages);
 
         try {
             task.getInputs().validate(validationContext);
@@ -52,20 +51,12 @@ public class ValidatingTaskExecuter implements TaskExecuter {
         }
 
         if (!messages.isEmpty()) {
-            List<InvalidUserDataException> causes = new ArrayList<InvalidUserDataException>();
-            messages = messages.subList(0, Math.min(5, messages.size()));
-            for (String message : messages) {
-                causes.add(new InvalidUserDataException(message));
+            List<String> firstMessages = messages.subList(0, Math.min(5, messages.size()));
+            if (!validationContext.getHighestSeverity().report(task, firstMessages, state)) {
+                return;
             }
-            String errorMessage;
-            if (messages.size() == 1) {
-                errorMessage = String.format("A problem was found with the configuration of %s.", task);
-            } else {
-                errorMessage = String.format("Some problems were found with the configuration of %s.", task);
-            }
-            state.setOutcome(new TaskValidationException(errorMessage, causes));
-            return;
         }
+
         executer.execute(task, state, context);
     }
 }

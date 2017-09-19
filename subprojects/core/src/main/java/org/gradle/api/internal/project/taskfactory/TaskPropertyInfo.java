@@ -101,14 +101,14 @@ public class TaskPropertyInfo implements Comparable<TaskPropertyInfo> {
             }
 
             @Override
-            public void validate(boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
+            public void validate(boolean optional, ValidationAction valueValidator, TaskValidationContext context, TaskValidationContext.Severity severity) {
                 Object unpacked = DeferredUtil.unpack(value);
                 if (unpacked == null) {
                     if (!optional) {
-                        context.recordValidationMessage(String.format("No value has been specified for property '%s'.", propertyName));
+                        context.recordValidationMessage(severity, String.format("No value has been specified for property '%s'.", propertyName));
                     }
                 } else {
-                    valueValidator.validate(propertyName, unpacked, context);
+                    valueValidator.validate(propertyName, unpacked, context, severity);
                 }
             }
         };
@@ -127,12 +127,12 @@ public class TaskPropertyInfo implements Comparable<TaskPropertyInfo> {
             }
 
             @Override
-            public void validate(boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
+            public void validate(boolean optional, ValidationAction valueValidator, TaskValidationContext context, TaskValidationContext.Severity severity) {
             }
         };
 
         Object getValue();
 
-        void validate(boolean optional, ValidationAction valueValidator, TaskValidationContext context);
+        void validate(boolean optional, ValidationAction valueValidator, TaskValidationContext context, TaskValidationContext.Severity severity);
     }
 }

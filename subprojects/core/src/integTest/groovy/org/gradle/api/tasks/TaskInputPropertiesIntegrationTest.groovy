@@ -493,8 +493,10 @@ task someTask(type: SomeTask) {
             }
         """
         expect:
-        fails "test"
-        failure.assertHasCause "No value has been specified for property 'input'."
+        executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
+        succeeds "test"
+        output.contains """A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated and is scheduled to be removed in Gradle 5.0.
+ - No value has been specified for property 'input'."""
     }
 
     def "optional null input properties registered via TaskInputs.property are reported"() {
@@ -517,8 +519,10 @@ task someTask(type: SomeTask) {
             }
         """
         expect:
-        fails "test"
-        failure.assertHasCause "No value has been specified for property 'input'."
+        executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
+        succeeds "test"
+        output.contains """A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated and is scheduled to be removed in Gradle 5.0.
+ - No value has been specified for property 'input'."""
 
         where:
         method << ["file", "files", "dir"]
@@ -540,6 +544,48 @@ task someTask(type: SomeTask) {
     }
 
     @Unroll
+    def "null output files registered via TaskOutputs.#method are reported"() {
+        buildFile << """
+            task test {
+                outputs.${method}({ null }) withPropertyName "output"
+                doLast {}
+            }
+        """
+        expect:
+        executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
+        if (expectToFail) {
+            // Singular null outputs will cause build to fail, but message should still be printed
+            fails "test"
+        } else {
+            succeeds "test"
+        }
+        output.contains """A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated and is scheduled to be removed in Gradle 5.0.
+ - No value has been specified for property 'output'."""
+
+        where:
+        method  | expectToFail
+        "file"  | true
+        "files" | false
+        "dir"   | true
+        "dirs"  | false
+    }
+
+    @Unroll
+    def "optional null output files registered via TaskOutputs.#method are reported"() {
+        buildFile << """
+            task test {
+                outputs.${method}({ null }) withPropertyName "output" optional(true)
+                doLast {}
+            }
+        """
+        expect:
+        succeeds "test"
+
+        where:
+        method << ["file", "files", "dir", "dirs"]
+    }
+
+    @Unroll
     def "missing input files registered via TaskInputs.#method are reported"() {
         buildFile << """
             task test {
@@ -547,9 +593,12 @@ task someTask(type: SomeTask) {
                 doLast {}
             }
         """
+
         expect:
-        fails "test"
-        failure.assertHasCause "$type '${file("missing")}' specified for property 'input' does not exist."
+        executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
+        succeeds "test"
+        output.contains """A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated and is scheduled to be removed in Gradle 5.0.
+ - $type '${file("missing")}' specified for property 'input' does not exist."""
 
         where:
         method | type

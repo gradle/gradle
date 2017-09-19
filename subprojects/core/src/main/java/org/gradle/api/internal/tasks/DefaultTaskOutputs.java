@@ -328,17 +328,17 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     private static final ValidationAction OUTPUT_FILE_VALIDATOR = new ValidationAction() {
         @Override
-        public void validate(String propertyName, Object value, TaskValidationContext context) {
+        public void validate(String propertyName, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
             File file = toFile(context, value);
             if (file.exists()) {
                 if (file.isDirectory()) {
-                    context.recordValidationMessage(String.format("Cannot write to file '%s' specified for property '%s' as it is a directory.", file, propertyName));
+                    context.recordValidationMessage(severity, String.format("Cannot write to file '%s' specified for property '%s' as it is a directory.", file, propertyName));
                 }
                 // else, assume we can write to anything that exists and is not a directory
             } else {
                 for (File candidate = file.getParentFile(); candidate != null && !candidate.isDirectory(); candidate = candidate.getParentFile()) {
                     if (candidate.exists() && !candidate.isDirectory()) {
-                        context.recordValidationMessage(String.format("Cannot write to file '%s' specified for property '%s', as ancestor '%s' is not a directory.", file, propertyName, candidate));
+                        context.recordValidationMessage(severity, String.format("Cannot write to file '%s' specified for property '%s', as ancestor '%s' is not a directory.", file, propertyName, candidate));
                         break;
                     }
                 }
@@ -348,25 +348,25 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     private static final ValidationAction OUTPUT_FILES_VALIDATOR = new ValidationAction() {
         @Override
-        public void validate(String propertyName, Object values, TaskValidationContext context) {
+        public void validate(String propertyName, Object values, TaskValidationContext context, TaskValidationContext.Severity severity) {
             for (File file : toFiles(context, values)) {
-                OUTPUT_FILE_VALIDATOR.validate(propertyName, file, context);
+                OUTPUT_FILE_VALIDATOR.validate(propertyName, file, context, severity);
             }
         }
     };
 
     private static final ValidationAction OUTPUT_DIRECTORY_VALIDATOR = new ValidationAction() {
         @Override
-        public void validate(String propertyName, Object value, TaskValidationContext context) {
+        public void validate(String propertyName, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
             File directory = toFile(context, value);
             if (directory.exists()) {
                 if (!directory.isDirectory()) {
-                    context.recordValidationMessage(String.format("Directory '%s' specified for property '%s' is not a directory.", directory, propertyName));
+                    context.recordValidationMessage(severity, String.format("Directory '%s' specified for property '%s' is not a directory.", directory, propertyName));
                 }
             } else {
                 for (File candidate = directory.getParentFile(); candidate != null && !candidate.isDirectory(); candidate = candidate.getParentFile()) {
                     if (candidate.exists() && !candidate.isDirectory()) {
-                        context.recordValidationMessage(String.format("Cannot write to directory '%s' specified for property '%s', as ancestor '%s' is not a directory.", directory, propertyName, candidate));
+                        context.recordValidationMessage(severity, String.format("Cannot write to directory '%s' specified for property '%s', as ancestor '%s' is not a directory.", directory, propertyName, candidate));
                         return;
                     }
                 }
@@ -383,9 +383,9 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     private static final ValidationAction OUTPUT_DIRECTORIES_VALIDATOR = new ValidationAction() {
         @Override
-        public void validate(String propertyName, Object values, TaskValidationContext context) {
+        public void validate(String propertyName, Object values, TaskValidationContext context, TaskValidationContext.Severity severity) {
             for (File directory : toFiles(context, values)) {
-                OUTPUT_DIRECTORY_VALIDATOR.validate(propertyName, directory, context);
+                OUTPUT_DIRECTORY_VALIDATOR.validate(propertyName, directory, context, severity);
             }
         }
     };

@@ -18,9 +18,9 @@ package org.gradle.api.internal.tasks;
 public interface ValidationAction {
     ValidationAction NO_OP = new ValidationAction() {
         @Override
-        public void validate(String propertyName, Object value, TaskValidationContext context) {
+        public void validate(String propertyName, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
         }
     };
 
-    void validate(String propertyName, Object value, TaskValidationContext context);
+    void validate(String propertyName, Object value, TaskValidationContext context, TaskValidationContext.Severity severity);
 }

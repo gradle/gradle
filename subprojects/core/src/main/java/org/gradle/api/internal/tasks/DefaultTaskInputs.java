@@ -339,24 +339,24 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     private static final ValidationAction INPUT_FILE_VALIDATOR = new ValidationAction() {
         @Override
-        public void validate(String propertyName, Object value, TaskValidationContext context) {
+        public void validate(String propertyName, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
             File file = toFile(context, value);
             if (!file.exists()) {
-                context.recordValidationMessage(String.format("File '%s' specified for property '%s' does not exist.", file, propertyName));
+                context.recordValidationMessage(severity, String.format("File '%s' specified for property '%s' does not exist.", file, propertyName));
             } else if (!file.isFile()) {
-                context.recordValidationMessage(String.format("File '%s' specified for property '%s' is not a file.", file, propertyName));
+                context.recordValidationMessage(severity, String.format("File '%s' specified for property '%s' is not a file.", file, propertyName));
             }
         }
     };
 
     private static final ValidationAction INPUT_DIRECTORY_VALIDATOR = new ValidationAction() {
         @Override
-        public void validate(String propertyName, Object value, TaskValidationContext context) {
+        public void validate(String propertyName, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
             File directory = toDirectory(context, value);
             if (!directory.exists()) {
-                context.recordValidationMessage(String.format("Directory '%s' specified for property '%s' does not exist.", directory, propertyName));
+                context.recordValidationMessage(severity, String.format("Directory '%s' specified for property '%s' does not exist.", directory, propertyName));
             } else if (!directory.isDirectory()) {
-                context.recordValidationMessage(String.format("Directory '%s' specified for property '%s' is not a directory.", directory, propertyName));
+                context.recordValidationMessage(severity, String.format("Directory '%s' specified for property '%s' is not a directory.", directory, propertyName));
             }
         }
     };
