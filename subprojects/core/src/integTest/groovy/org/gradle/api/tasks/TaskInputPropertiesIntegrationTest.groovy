@@ -605,4 +605,55 @@ task someTask(type: SomeTask) {
         "file" | "File"
         "dir"  | "Directory"
     }
+
+    @Unroll
+    def "wrong input file type registered via TaskInputs.#method is reported"() {
+        file("input-file.txt").touch()
+        file("input-dir").createDir()
+        buildFile << """
+            task test {
+                inputs.${method}({ "$path" }) withPropertyName "input"
+                doLast {}
+            }
+        """
+
+        expect:
+        executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
+        succeeds "test"
+        output.contains """A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated and is scheduled to be removed in Gradle 5.0.
+ - ${type.capitalize()} '${file(path)}' specified for property 'input' is not a $type."""
+
+        where:
+        method | path             | type
+        "file" | "input-dir"      | "file"
+        "dir"  | "input-file.txt" | "directory"
+    }
+
+    @Unroll
+    def "wrong output file type registered via TaskOutputs.#method is reported"() {
+        file("input-file.txt").touch()
+        file("input-dir").createDir()
+        buildFile << """
+            task test {
+                outputs.${method}({ "$path" }) withPropertyName "output"
+                doLast {}
+            }
+        """
+
+        expect:
+        executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
+        if (expectToFail) {
+            fails "test"
+        } else {
+            succeeds "test"
+        }
+        output.contains message.replace("<PATH>", file(path).absolutePath)
+
+        where:
+        method  | path             | expectToFail | message
+        "file"  | "input-dir"      | false        | "Cannot write to file '<PATH>' specified for property 'output' as it is a directory."
+        "files" | "input-dir"      | false        | "Cannot write to file '<PATH>' specified for property 'output' as it is a directory."
+        "dir"   | "input-file.txt" | true         | "Directory '<PATH>' specified for property 'output' is not a directory."
+        "dirs"  | "input-file.txt" | true         | "Directory '<PATH>' specified for property 'output' is not a directory."
+    }
 }
