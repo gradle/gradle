@@ -21,6 +21,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildLayoutParameters;
+import org.gradle.initialization.BuildLayoutParametersBuildOptionFactory;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
@@ -115,9 +116,10 @@ public class ProviderConnection {
                     params.daemonParams.getEffectiveJvmArgs());
         }
 
+        BuildLayoutParametersBuildOptionFactory buildLayoutParametersBuildOptionFactory = sharedServices.get(BuildLayoutParametersBuildOptionFactory.class);
         StartParameterBuildOptionFactory startParameterBuildOptionFactory = sharedServices.get(StartParameterBuildOptionFactory.class);
         ParallelismBuildOptionFactory parallelismBuildOptionFactory = sharedServices.get(ParallelismBuildOptionFactory.class);
-        StartParameter startParameter = new ProviderStartParameterConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory).toStartParameter(providerParameters, params.properties);
+        StartParameter startParameter = new ProviderStartParameterConverter(buildLayoutParametersBuildOptionFactory, startParameterBuildOptionFactory, parallelismBuildOptionFactory).toStartParameter(providerParameters, params.properties);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
         BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenerConfig.clientSubscriptions);
         return run(action, cancellationToken, listenerConfig, providerParameters, params);
@@ -127,9 +129,10 @@ public class ProviderConnection {
         List<String> tasks = providerParameters.getTasks();
         SerializedPayload serializedAction = payloadSerializer.serialize(clientAction);
         Parameters params = initParams(providerParameters);
+        BuildLayoutParametersBuildOptionFactory buildLayoutParametersBuildOptionFactory = sharedServices.get(BuildLayoutParametersBuildOptionFactory.class);
         StartParameterBuildOptionFactory startParameterBuildOptionFactory = sharedServices.get(StartParameterBuildOptionFactory.class);
         ParallelismBuildOptionFactory parallelismBuildOptionFactory = sharedServices.get(ParallelismBuildOptionFactory.class);
-        StartParameter startParameter = new ProviderStartParameterConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory).toStartParameter(providerParameters, params.properties);
+        StartParameter startParameter = new ProviderStartParameterConverter(buildLayoutParametersBuildOptionFactory, startParameterBuildOptionFactory, parallelismBuildOptionFactory).toStartParameter(providerParameters, params.properties);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
         BuildAction action = new ClientProvidedBuildAction(startParameter, serializedAction, tasks != null, listenerConfig.clientSubscriptions);
         return run(action, cancellationToken, listenerConfig, providerParameters, params);
@@ -137,9 +140,10 @@ public class ProviderConnection {
 
     public Object runTests(ProviderInternalTestExecutionRequest testExecutionRequest, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
         Parameters params = initParams(providerParameters);
+        BuildLayoutParametersBuildOptionFactory buildLayoutParametersBuildOptionFactory = sharedServices.get(BuildLayoutParametersBuildOptionFactory.class);
         StartParameterBuildOptionFactory startParameterBuildOptionFactory = sharedServices.get(StartParameterBuildOptionFactory.class);
         ParallelismBuildOptionFactory parallelismBuildOptionFactory = sharedServices.get(ParallelismBuildOptionFactory.class);
-        StartParameter startParameter = new ProviderStartParameterConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory).toStartParameter(providerParameters, params.properties);
+        StartParameter startParameter = new ProviderStartParameterConverter(buildLayoutParametersBuildOptionFactory, startParameterBuildOptionFactory, parallelismBuildOptionFactory).toStartParameter(providerParameters, params.properties);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
         TestExecutionRequestAction action = TestExecutionRequestAction.create(listenerConfig.clientSubscriptions, startParameter, testExecutionRequest);
         return run(action, cancellationToken, listenerConfig, providerParameters, params);
@@ -185,10 +189,11 @@ public class ProviderConnection {
         layout.setProjectDir(operationParameters.getProjectDir());
 
         Map<String, String> properties = new HashMap<String, String>();
+        BuildLayoutParametersBuildOptionFactory buildLayoutParametersBuildOptionFactory = sharedServices.get(BuildLayoutParametersBuildOptionFactory.class);
         StartParameterBuildOptionFactory startParameterBuildOptionFactory = sharedServices.get(StartParameterBuildOptionFactory.class);
         ParallelismBuildOptionFactory parallelismBuildOptionFactory = sharedServices.get(ParallelismBuildOptionFactory.class);
         DaemonBuildOptionFactory daemonBuildOptionFactory = sharedServices.get(DaemonBuildOptionFactory.class);
-        new LayoutToPropertiesConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory, daemonBuildOptionFactory).convert(layout, properties);
+        new LayoutToPropertiesConverter(buildLayoutParametersBuildOptionFactory, startParameterBuildOptionFactory, parallelismBuildOptionFactory, daemonBuildOptionFactory).convert(layout, properties);
 
         DaemonParameters daemonParams = new DaemonParameters(layout);
         new PropertiesToDaemonParametersConverter(daemonBuildOptionFactory).convert(properties, daemonParams);

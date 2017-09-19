@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.StartParameter;
 import org.gradle.TaskExecutionRequest;
 import org.gradle.cli.CommandLineArgumentException;
+import org.gradle.initialization.BuildLayoutParametersBuildOptionFactory;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.ParallelismBuildOptionFactory;
 import org.gradle.initialization.StartParameterBuildOptionFactory;
@@ -34,10 +35,12 @@ import java.util.Map;
 
 class ProviderStartParameterConverter {
 
+    private final BuildLayoutParametersBuildOptionFactory buildLayoutParametersBuildOptionFactory;
     private final StartParameterBuildOptionFactory startParameterBuildOptionFactory;
     private final ParallelismBuildOptionFactory parallelismBuildOptionFactory;
 
-    public ProviderStartParameterConverter(StartParameterBuildOptionFactory startParameterBuildOptionFactory, ParallelismBuildOptionFactory parallelismBuildOptionFactory) {
+    public ProviderStartParameterConverter(BuildLayoutParametersBuildOptionFactory buildLayoutParametersBuildOptionFactory, StartParameterBuildOptionFactory startParameterBuildOptionFactory, ParallelismBuildOptionFactory parallelismBuildOptionFactory) {
+        this.buildLayoutParametersBuildOptionFactory = buildLayoutParametersBuildOptionFactory;
         this.startParameterBuildOptionFactory = startParameterBuildOptionFactory;
         this.parallelismBuildOptionFactory = parallelismBuildOptionFactory;
     }
@@ -82,7 +85,7 @@ class ProviderStartParameterConverter {
 
         List<String> arguments = parameters.getArguments();
         if (arguments != null) {
-            DefaultCommandLineConverter converter = new DefaultCommandLineConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory);
+            DefaultCommandLineConverter converter = new DefaultCommandLineConverter(buildLayoutParametersBuildOptionFactory, startParameterBuildOptionFactory, parallelismBuildOptionFactory);
             try {
                 converter.convert(arguments, startParameter);
             } catch (CommandLineArgumentException e) {

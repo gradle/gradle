@@ -45,9 +45,9 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private final List<BuildOption<StartParameter>> buildOptions;
     private final LayoutCommandLineConverter layoutCommandLineConverter;
 
-    public DefaultCommandLineConverter(StartParameterBuildOptionFactory startParameterBuildOptionFactory, ParallelismBuildOptionFactory parallelismBuildOptionFactory) {
+    public DefaultCommandLineConverter(BuildLayoutParametersBuildOptionFactory buildLayoutParametersBuildOptionFactory, StartParameterBuildOptionFactory startParameterBuildOptionFactory, ParallelismBuildOptionFactory parallelismBuildOptionFactory) {
         parallelConfigurationCommandLineConverter = new ParallelismConfigurationCommandLineConverter(parallelismBuildOptionFactory);
-        layoutCommandLineConverter = new LayoutCommandLineConverter();
+        layoutCommandLineConverter = new LayoutCommandLineConverter(buildLayoutParametersBuildOptionFactory);
         buildOptions = startParameterBuildOptionFactory.create();
     }
 

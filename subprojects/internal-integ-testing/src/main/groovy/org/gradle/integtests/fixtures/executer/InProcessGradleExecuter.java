@@ -31,6 +31,7 @@ import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.execution.MultipleBuildFailures;
+import org.gradle.initialization.BuildLayoutParametersBuildOptionFactory;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.initialization.DefaultBuildRequestContext;
@@ -264,10 +265,11 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
         // TODO: Reuse more of CommandlineActionFactory
         CommandLineParser parser = new CommandLineParser();
+        BuildLayoutParametersBuildOptionFactory buildLayoutParametersBuildOptionFactory = GLOBAL_SERVICES.get(BuildLayoutParametersBuildOptionFactory.class);
         StartParameterBuildOptionFactory startParameterBuildOptionFactory = GLOBAL_SERVICES.get(StartParameterBuildOptionFactory.class);
         ParallelismBuildOptionFactory parallelismBuildOptionFactory = GLOBAL_SERVICES.get(ParallelismBuildOptionFactory.class);
-        DaemonBuildOptionFactory daemonBuildOptionFactory = GLOBAL_SERVICES.get(DaemonBuildOptionFactory.class);
-        ParametersConverter parametersConverter = new ParametersConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory, daemonBuildOptionFactory);
+        DaemonBuildOptionFactory daemonBuildOptionFactory = new DaemonBuildOptionFactory();
+        ParametersConverter parametersConverter = new ParametersConverter(buildLayoutParametersBuildOptionFactory, startParameterBuildOptionFactory, parallelismBuildOptionFactory, daemonBuildOptionFactory);
         parametersConverter.configure(parser);
         final Parameters parameters = new Parameters(startParameter);
         parametersConverter.convert(parser.parse(getAllArgs()), parameters);

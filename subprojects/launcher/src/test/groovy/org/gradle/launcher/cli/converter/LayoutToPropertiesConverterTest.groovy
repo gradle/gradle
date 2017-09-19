@@ -17,6 +17,7 @@
 package org.gradle.launcher.cli.converter
 
 import org.gradle.initialization.BuildLayoutParameters
+import org.gradle.initialization.BuildLayoutParametersBuildOptionFactory
 import org.gradle.initialization.ParallelismBuildOptionFactory
 import org.gradle.initialization.StartParameterBuildOptionFactory
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptionFactory
@@ -30,7 +31,7 @@ class LayoutToPropertiesConverterTest extends Specification {
 
     @Rule SetSystemProperties sysProperties = new SetSystemProperties()
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
-    @Subject def converter = new LayoutToPropertiesConverter(new StartParameterBuildOptionFactory(), new ParallelismBuildOptionFactory(), new DaemonBuildOptionFactory())
+    @Subject def converter = new LayoutToPropertiesConverter(new BuildLayoutParametersBuildOptionFactory(), new StartParameterBuildOptionFactory(), new ParallelismBuildOptionFactory(), new DaemonBuildOptionFactory())
     BuildLayoutParameters layout
     Map<String, String> props = new HashMap<String, String>()
 

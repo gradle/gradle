@@ -55,6 +55,7 @@ import org.gradle.cache.internal.DefaultCacheFactory;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.configuration.DefaultImportsReader;
 import org.gradle.configuration.ImportsReader;
+import org.gradle.initialization.BuildLayoutParametersBuildOptionFactory;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.DefaultClassLoaderRegistry;
 import org.gradle.initialization.DefaultCommandLineConverter;
@@ -172,6 +173,10 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return environment;
     }
 
+    BuildLayoutParametersBuildOptionFactory createBuildLayoutParametersBuildOptionFactory() {
+        return new BuildLayoutParametersBuildOptionFactory();
+    }
+
     StartParameterBuildOptionFactory createStartParameterBuildOptionFactory() {
         return new StartParameterBuildOptionFactory();
     }
@@ -180,8 +185,8 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return new ParallelismBuildOptionFactory();
     }
 
-    CommandLineConverter<StartParameter> createCommandLine2StartParameterConverter(StartParameterBuildOptionFactory startParameterBuildOptionFactory, ParallelismBuildOptionFactory parallelismBuildOptionFactory) {
-        return new DefaultCommandLineConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory);
+    CommandLineConverter<StartParameter> createCommandLine2StartParameterConverter(BuildLayoutParametersBuildOptionFactory buildLayoutParametersBuildOptionFactory, StartParameterBuildOptionFactory startParameterBuildOptionFactory, ParallelismBuildOptionFactory parallelismBuildOptionFactory) {
+        return new DefaultCommandLineConverter(buildLayoutParametersBuildOptionFactory, startParameterBuildOptionFactory, parallelismBuildOptionFactory);
     }
 
     ClassPathRegistry createClassPathRegistry(ModuleRegistry moduleRegistry, PluginModuleRegistry pluginModuleRegistry) {

@@ -18,6 +18,7 @@ package org.gradle.launcher.cli
 import org.gradle.StartParameter
 import org.gradle.cli.CommandLineParser
 import org.gradle.cli.SystemPropertiesCommandLineConverter
+import org.gradle.initialization.BuildLayoutParametersBuildOptionFactory
 import org.gradle.initialization.DefaultCommandLineConverter
 import org.gradle.initialization.LayoutCommandLineConverter
 import org.gradle.initialization.ParallelismBuildOptionFactory
@@ -55,6 +56,7 @@ class BuildActionsFactoryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     ServiceRegistry loggingServices = Mock()
+    BuildLayoutParametersBuildOptionFactory buildLayoutParametersBuildOptionFactory = new BuildLayoutParametersBuildOptionFactory()
     StartParameterBuildOptionFactory startParameterBuildOptionFactory = new StartParameterBuildOptionFactory()
     ParallelismBuildOptionFactory parallelismBuildOptionFactory = new ParallelismBuildOptionFactory()
     PropertiesToDaemonParametersConverter propertiesToDaemonParametersConverter = Stub()
@@ -63,7 +65,7 @@ class BuildActionsFactoryTest extends Specification {
     ParametersConverter parametersConverter = new ParametersConverter(
             Stub(LayoutCommandLineConverter), Stub(SystemPropertiesCommandLineConverter),
             Stub(LayoutToPropertiesConverter), propertiesToStartParameterConverter,
-            new DefaultCommandLineConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory), new DaemonCommandLineConverter(),
+            new DefaultCommandLineConverter(buildLayoutParametersBuildOptionFactory, startParameterBuildOptionFactory, parallelismBuildOptionFactory), new DaemonCommandLineConverter(),
             propertiesToDaemonParametersConverter)
 
     BuildActionsFactory factory = new BuildActionsFactory(loggingServices, parametersConverter, jvmVersionDetector)

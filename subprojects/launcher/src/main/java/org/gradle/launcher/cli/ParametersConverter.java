@@ -21,6 +21,7 @@ import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
+import org.gradle.initialization.BuildLayoutParametersBuildOptionFactory;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.LayoutCommandLineConverter;
 import org.gradle.initialization.ParallelismBuildOptionFactory;
@@ -64,12 +65,12 @@ public class ParametersConverter extends AbstractCommandLineConverter<Parameters
         this.propertiesToDaemonParametersConverter = propertiesToDaemonParametersConverter;
     }
 
-    public ParametersConverter(StartParameterBuildOptionFactory startParameterBuildOptionFactory, ParallelismBuildOptionFactory parallelismBuildOptionFactory, DaemonBuildOptionFactory daemonBuildOptionFactory) {
-        this(new LayoutCommandLineConverter(),
+    public ParametersConverter(BuildLayoutParametersBuildOptionFactory buildLayoutParametersBuildOptionFactory, StartParameterBuildOptionFactory startParameterBuildOptionFactory, ParallelismBuildOptionFactory parallelismBuildOptionFactory, DaemonBuildOptionFactory daemonBuildOptionFactory) {
+        this(new LayoutCommandLineConverter(buildLayoutParametersBuildOptionFactory),
             new SystemPropertiesCommandLineConverter(),
-            new LayoutToPropertiesConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory, daemonBuildOptionFactory),
+            new LayoutToPropertiesConverter(buildLayoutParametersBuildOptionFactory, startParameterBuildOptionFactory, parallelismBuildOptionFactory, daemonBuildOptionFactory),
             new PropertiesToStartParameterConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory),
-            new DefaultCommandLineConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory),
+            new DefaultCommandLineConverter(buildLayoutParametersBuildOptionFactory, startParameterBuildOptionFactory, parallelismBuildOptionFactory),
             new DaemonCommandLineConverter(daemonBuildOptionFactory),
             new PropertiesToDaemonParametersConverter(daemonBuildOptionFactory));
     }
