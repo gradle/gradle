@@ -21,6 +21,9 @@ import org.gradle.api.NonNullApi;
 import javax.annotation.Nullable;
 import java.util.Map;
 
+/**
+ * Allows to register inputs.
+ */
 @NonNullApi
 public interface InputPropertyRegistration {
     /**

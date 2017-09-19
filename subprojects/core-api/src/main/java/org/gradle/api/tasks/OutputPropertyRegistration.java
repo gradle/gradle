@@ -20,6 +20,9 @@ import org.gradle.api.NonNullApi;
 
 import javax.annotation.Nullable;
 
+/**
+ * Allows to register outputs.
+ */
 @NonNullApi
 public interface OutputPropertyRegistration {
 
