@@ -39,5 +39,4 @@ public interface ComponentResolutionState extends StringVersioned {
 
     void setSelectionReason(ComponentSelectionReason componentSelectionReason);
 
-    void restartSelection();
 }

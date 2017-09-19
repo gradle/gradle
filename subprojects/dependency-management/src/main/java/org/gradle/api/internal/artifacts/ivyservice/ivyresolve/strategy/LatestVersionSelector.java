@@ -46,4 +46,9 @@ public class LatestVersionSelector extends AbstractStringVersionSelector {
         int candidateStatusIndex = candidate.getStatusScheme().indexOf(candidate.getStatus());
         return selectorStatusIndex >=0 && selectorStatusIndex <= candidateStatusIndex;
     }
+
+    @Override
+    public boolean canShortCircuitWhenVersionAlreadyPreselected() {
+        return false;
+    }
 }

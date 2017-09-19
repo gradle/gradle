@@ -35,7 +35,5 @@ public interface ConflictResolutionResult {
      */
     <T extends ComponentResolutionState> T getSelected();
 
-    boolean isRestart();
-
     Collection<? extends ComponentResolutionState> getCandidates();
 }

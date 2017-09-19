@@ -19,6 +19,7 @@ package org.gradle.internal.resolve.result;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -29,6 +30,7 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
     private ComponentIdentifier id;
     private ModuleVersionIdentifier moduleVersionId;
     private ComponentSelectionReason selectionReason;
+    private VersionSelector versionSelector;
 
     public boolean hasResult() {
         return id != null || failure != null;
@@ -92,5 +94,16 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
         id = null;
         moduleVersionId = null;
         selectionReason = VersionSelectionReasons.REQUESTED;
+        versionSelector = null;
+    }
+
+    @Override
+    public VersionSelector getVersionSelector() {
+        return versionSelector;
+    }
+
+    @Override
+    public void setVersionSelector(VersionSelector versionSelector) {
+        this.versionSelector = versionSelector;
     }
 }

@@ -32,4 +32,9 @@ abstract class AbstractVersionSelector implements VersionSelector {
     public boolean accept(ComponentMetadata candidate) {
         return accept(candidate.getId().getVersion());
     }
+
+    @Override
+    public boolean canShortCircuitWhenVersionAlreadyPreselected() {
+        return true;
+    }
 }
