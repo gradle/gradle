@@ -15,9 +15,9 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.tasks.TaskOutputsUtil;
 import org.gradle.api.tasks.OutputFiles;
+import org.gradle.api.tasks.OutputPropertyRegistration;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 
 import java.io.File;
@@ -34,7 +34,7 @@ public class OutputFilesPropertyAnnotationHandler extends AbstractPluralOutputPr
     }
 
     @Override
-    protected TaskOutputFilePropertyBuilder createPropertyBuilder(TaskOutputsInternal outputs, Callable<Object> futureValue) {
+    protected TaskOutputFilePropertyBuilder createPropertyBuilder(OutputPropertyRegistration outputs, Callable<Object> futureValue) {
         return outputs.files(futureValue);
     }
 

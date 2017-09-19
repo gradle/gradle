@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.taskfactory.SchemaExtractor;
 import org.gradle.api.internal.project.taskfactory.SchemaNode;
 import org.gradle.api.internal.project.taskfactory.SchemaRoot;
 import org.gradle.api.internal.tasks.DefaultInputPropertyRegistration;
+import org.gradle.api.internal.tasks.DefaultOutputPropertyRegistration;
 import org.gradle.api.internal.tasks.DefaultTaskDestroyables;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
@@ -36,7 +37,7 @@ public class ChangeDetection {
     private final TaskInternal task;
     private final SchemaExtractor schemaExtractor;
     private final DefaultTaskInputs taskInputs;
-    private final TaskOutputsInternal taskOutputs;
+    private final DefaultTaskOutputs taskOutputs;
     private final TaskDestroyables taskDestroyables;
     private final TaskMutator taskMutator;
     private final FileResolver resolver;
@@ -68,30 +69,33 @@ public class ChangeDetection {
     public void ensureTaskInputsAndOutputsDiscovered() {
         if (schemaRoot == null) {
             schemaRoot = schemaExtractor.extractSchema(task);
-            DefaultInputPropertyRegistration inputPropertyRegistration = new DefaultInputPropertyRegistration(task.getName(), taskMutator, resolver);
-            registerInputsAndOutputs(inputPropertyRegistration, schemaRoot);
+            String taskName = task.getName();
+            DefaultInputPropertyRegistration inputPropertyRegistration = new DefaultInputPropertyRegistration(taskName, taskMutator, resolver);
+            DefaultOutputPropertyRegistration outputPropertyRegistration = new DefaultOutputPropertyRegistration(taskName, taskMutator, resolver);
+            registerInputsAndOutputs(inputPropertyRegistration, outputPropertyRegistration, schemaRoot);
             taskInputs.setDiscoveredProperties(inputPropertyRegistration);
+            taskOutputs.setDiscoveredProperties(outputPropertyRegistration);
         }
     }
 
-    private void registerInputsAndOutputs(DefaultInputPropertyRegistration inputPropertyRegistration, SchemaRoot schemaRoot) {
-        registerInputsAndOutputs(inputPropertyRegistration, null, schemaRoot.getChildren());
+    private void registerInputsAndOutputs(DefaultInputPropertyRegistration inputPropertyRegistration, DefaultOutputPropertyRegistration outputPropertyRegistration, SchemaRoot schemaRoot) {
+        registerInputsAndOutputs(inputPropertyRegistration, outputPropertyRegistration, null, schemaRoot.getChildren());
     }
 
-    private void registerInputsAndOutputs(DefaultInputPropertyRegistration inputPropertyRegistration, @Nullable String parentPropertyName, Map<String, SchemaNode> children) {
+    private void registerInputsAndOutputs(DefaultInputPropertyRegistration inputPropertyRegistration, DefaultOutputPropertyRegistration outputPropertyRegistration, @Nullable String parentPropertyName, Map<String, SchemaNode> children) {
         for (Map.Entry<String, SchemaNode> entry : children.entrySet()) {
             String propertyName = parentPropertyName == null ? entry.getKey() : parentPropertyName + "." + entry.getKey();
             SchemaNode node = entry.getValue();
-            updateInputsAndOutputs(inputPropertyRegistration, node, propertyName);
+            updateInputsAndOutputs(inputPropertyRegistration, outputPropertyRegistration, node, propertyName);
             if (node instanceof NestedSchema) {
-                registerInputsAndOutputs(inputPropertyRegistration, propertyName, ((NestedSchema) node).getChildren());
+                registerInputsAndOutputs(inputPropertyRegistration, outputPropertyRegistration, propertyName, ((NestedSchema) node).getChildren());
             }
         }
     }
 
-    private void updateInputsAndOutputs(DefaultInputPropertyRegistration inputPropertyRegistration, SchemaNode value, String propertyName) {
+    private void updateInputsAndOutputs(DefaultInputPropertyRegistration inputPropertyRegistration, DefaultOutputPropertyRegistration outputPropertyRegistration, SchemaNode value, String propertyName) {
         value.getConfigureAction().updateInputs(inputPropertyRegistration, propertyName, value);
-        value.getConfigureAction().updateOutputs(taskOutputs, propertyName, value);
+        value.getConfigureAction().updateOutputs(outputPropertyRegistration, propertyName, value);
         value.getConfigureAction().updateDestroyables(taskDestroyables, propertyName, value);
     }
 

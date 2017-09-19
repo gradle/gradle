@@ -29,7 +29,8 @@ import org.gradle.internal.HasInternalProtocol;
  * <p>You can obtain a {@code TaskOutputs} instance using {@link org.gradle.api.Task#getOutputs()}.</p>
  */
 @HasInternalProtocol
-public interface TaskOutputs extends CompatibilityAdapterForTaskOutputs {
+public interface TaskOutputs extends OutputPropertyRegistration, CompatibilityAdapterForTaskOutputs {
+
     /**
      * <p>Adds a predicate to determine whether the outputs of this task are up-to-date. The given closure is executed
      * at task execution time. The closure is passed the task as a parameter. If the closure returns false, the task
@@ -103,71 +104,10 @@ public interface TaskOutputs extends CompatibilityAdapterForTaskOutputs {
     void doNotCacheIf(String cachingDisabledReason, Spec<? super Task> spec);
 
     /**
-     * Returns true if this task has declared any outputs. Note that a task may be able to produce output files and
-     * still have an empty set of output files.
-     *
-     * @return true if this task has declared any outputs, otherwise false.
-     */
-    boolean getHasOutput();
-
-    /**
      * Returns the output files of this task.
      *
      * @return The output files. Returns an empty collection if this task has no output files.
      */
     FileCollection getFiles();
 
-    /**
-     * Registers some output files for this task.
-     *
-     * <p>When the given {@code paths} is a {@link java.util.Map}, then each output file
-     * will be associated with an identity. For cacheable tasks this is a requirement.
-     * The keys of the map must be <a href="http://docs.oracle.com/javase/specs/jls/se7/html/jls-3.html#jls-3.8">valid Java identifiers</a>.
-     * The values of the map will be evaluated to individual files as per
-     * {@link org.gradle.api.Project#file(Object)}.</p>
-     *
-     * <p>Otherwise the given files will be evaluated as per {@link org.gradle.api.Project#files(Object...)},
-     * and task output caching will be disabled for the task.</p>
-     *
-     * @param paths The output files.
-     *
-     * @see CacheableTask
-     */
-    TaskOutputFilePropertyBuilder files(Object... paths);
-
-    /**
-     * Registers some output directories for this task.
-     *
-     * <p>When the given {@code paths} is a {@link java.util.Map}, then each output directory
-     * will be associated with an identity. For cacheable tasks this is a requirement.
-     * The keys of the map must be <a href="http://docs.oracle.com/javase/specs/jls/se7/html/jls-3.html#jls-3.8">valid Java identifiers</a>.
-     * The values of the map will be evaluated to individual directories as per
-     * {@link org.gradle.api.Project#file(Object)}.</p>
-     *
-     * <p>Otherwise the given directories will be evaluated as per {@link org.gradle.api.Project#files(Object...)},
-     * and task output caching will be disabled for the task.</p>
-     *
-     * @param paths The output files.
-     *
-     * @see CacheableTask
-     *
-     * @since 3.3
-     */
-    TaskOutputFilePropertyBuilder dirs(Object... paths);
-
-    /**
-     * Registers some output file for this task.
-     *
-     * @param path The output file. The given path is evaluated as per {@link org.gradle.api.Project#file(Object)}.
-     * @return a property builder to further configure this property.
-     */
-    TaskOutputFilePropertyBuilder file(Object path);
-
-    /**
-     * Registers an output directory for this task.
-     *
-     * @param path The output directory. The given path is evaluated as per {@link org.gradle.api.Project#file(Object)}.
-     * @return a property builder to further configure this property.
-     */
-    TaskOutputFilePropertyBuilder dir(Object path);
 }
