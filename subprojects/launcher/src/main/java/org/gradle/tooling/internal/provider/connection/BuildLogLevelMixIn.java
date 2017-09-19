@@ -29,15 +29,13 @@ import java.util.List;
 
 public class BuildLogLevelMixIn {
     private final ProviderOperationParameters parameters;
-    private final LoggingConfigurationBuildOptionFactory loggingConfigurationBuildOptionFactory;
 
-    public BuildLogLevelMixIn(ProviderOperationParameters parameters, LoggingConfigurationBuildOptionFactory loggingConfigurationBuildOptionFactory) {
+    public BuildLogLevelMixIn(ProviderOperationParameters parameters) {
         this.parameters = parameters;
-        this.loggingConfigurationBuildOptionFactory = loggingConfigurationBuildOptionFactory;
     }
 
     public LogLevel getBuildLogLevel() {
-        LoggingCommandLineConverter converter = new LoggingCommandLineConverter(loggingConfigurationBuildOptionFactory);
+        LoggingCommandLineConverter converter = new LoggingCommandLineConverter(new LoggingConfigurationBuildOptionFactory());
         CommandLineParser parser = new CommandLineParser().allowUnknownOptions().allowMixedSubcommandsAndOptions();
         converter.configure(parser);
         List<String> arguments = parameters.getArguments();
