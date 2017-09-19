@@ -23,6 +23,8 @@ import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutionApplicator;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
@@ -86,13 +88,14 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
 
     private DependencyGraphBuilder createDependencyGraphBuilder(ComponentResolversChain componentSource, ResolutionStrategyInternal resolutionStrategy, GlobalDependencyResolutionRules globalRules, Spec<? super DependencyMetadata> edgeFilter, AttributesSchemaInternal attributesSchema, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions, BuildOperationExecutor buildOperationExecutor) {
 
-        DependencyToComponentIdResolver componentIdResolver = new DependencySubstitutionResolver(componentSource.getComponentIdResolver(), resolutionStrategy.getDependencySubstitutionRule());
+        DependencySubstitutionApplicator applicator = new DefaultDependencySubstitutionApplicator(resolutionStrategy.getDependencySubstitutionRule());
+        DependencyToComponentIdResolver componentIdResolver = new DependencySubstitutionResolver(componentSource.getComponentIdResolver(), applicator);
         ComponentMetaDataResolver componentMetaDataResolver = new ClientModuleResolver(componentSource.getComponentResolver(), dependencyDescriptorFactory);
 
         ResolveContextToComponentResolver requestResolver = createResolveContextConverter();
         ConflictHandler conflictHandler = createConflictHandler(resolutionStrategy, globalRules);
 
-        return new DependencyGraphBuilder(componentIdResolver, componentMetaDataResolver, requestResolver, conflictHandler, edgeFilter, attributesSchema, moduleIdentifierFactory, moduleExclusions, buildOperationExecutor, globalRules.getModuleMetadataProcessor().getModuleReplacements());
+        return new DependencyGraphBuilder(componentIdResolver, componentMetaDataResolver, requestResolver, conflictHandler, edgeFilter, attributesSchema, moduleIdentifierFactory, moduleExclusions, buildOperationExecutor, globalRules.getModuleMetadataProcessor().getModuleReplacements(), applicator);
     }
 
     private ComponentResolversChain createResolvers(ResolveContext resolveContext, List<? extends ResolutionAwareRepository> repositories, GlobalDependencyResolutionRules metadataHandler, ArtifactTypeRegistry artifactTypeRegistry) {

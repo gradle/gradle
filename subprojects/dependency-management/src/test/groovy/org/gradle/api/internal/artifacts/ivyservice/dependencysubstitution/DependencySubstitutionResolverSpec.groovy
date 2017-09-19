@@ -36,7 +36,7 @@ class DependencySubstitutionResolverSpec extends Specification {
     def result = Mock(BuildableComponentIdResolveResult)
     def target = Mock(DependencyToComponentIdResolver)
     def rule = Mock(Action)
-    def resolver = new DependencySubstitutionResolver(target, rule)
+    def resolver = new DependencySubstitutionResolver(target, new DefaultDependencySubstitutionApplicator(rule))
 
     def "passes through dependency when it does not match any rule"() {
         given:

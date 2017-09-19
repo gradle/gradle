@@ -166,7 +166,7 @@ class NodeState implements DependencyGraphNode {
         }
 
         boolean isOptionalConfiguration = "optional".equals(metaData.getName());
-        OptionalDependenciesHandler optionalDependenciesHandler = new OptionalDependenciesHandler(resolveState.getOptionalDependencies(), isOptionalConfiguration);
+        OptionalDependenciesHandler optionalDependenciesHandler = new OptionalDependenciesHandler(resolveState.getOptionalDependencies(), resolveState.getDependencySubstitutionApplicator(), isOptionalConfiguration);
         for (DependencyMetadata dependency : metaData.getDependencies()) {
             if (isExcluded(resolutionFilter, dependency)) {
                 continue;
@@ -178,10 +178,9 @@ class NodeState implements DependencyGraphNode {
             }
         }
         previousTraversalExclusions = resolutionFilter;
+
         // we must do this after `previousTraversalExclusions` has been written, or state won't be reset properly
         optionalDependenciesHandler.complete();
-
-        previousTraversalExclusions = resolutionFilter;
     }
 
     private List<EdgeState> findTransitiveIncomingEdges(boolean hasIncomingEdges) {
