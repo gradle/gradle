@@ -32,11 +32,9 @@ class PmdPluginBuildCacheIntegrationTest extends AbstractIntegrationSpec impleme
             apply plugin: "pmd"
             pmd {
                 incrementalAnalysis = true
+                ignoreFailures = true
             }
-
             ${mavenCentralRepository()}
-
-            ${!TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled ? "sourceCompatibility = 1.6" : ""}
         """.stripIndent()
     }
 
@@ -45,12 +43,12 @@ class PmdPluginBuildCacheIntegrationTest extends AbstractIntegrationSpec impleme
         given:
         // put into cache
         goodCode()
-        succeeds('pmdMain')
+        withBuildCache().succeeds('pmdMain')
 
         when:
         // cache miss
         badCode()
-        fails('pmdMain')
+        withBuildCache().succeeds('pmdMain')
 
         then:
         file("build/reports/pmd/main.xml").assertContents(containsString('BadClass'))
@@ -58,7 +56,14 @@ class PmdPluginBuildCacheIntegrationTest extends AbstractIntegrationSpec impleme
         when:
         // cache hit
         removeBadCode()
-        succeeds('pmdMain')
+        withBuildCache().succeeds('pmdMain')
+
+        then:
+        file("build/reports/pmd/main.xml").assertContents(not(containsString('BadClass')))
+
+        when:
+        fixBadCode()
+        withBuildCache().succeeds('pmdMain')
 
         then:
         file("build/reports/pmd/main.xml").assertContents(not(containsString('BadClass')))
@@ -74,6 +79,11 @@ class PmdPluginBuildCacheIntegrationTest extends AbstractIntegrationSpec impleme
         // PMD Lvl 3 Warning OverrideBothEqualsAndHashcode
         file("src/main/java/org/gradle/BadClass.java") <<
             "package org.gradle; class BadClass { public boolean equals(Object arg) { return java.lang.Boolean.valueOf(true); } }"
+    }
+
+    private fixBadCode() {
+        file("src/main/java/org/gradle/BadClass.java") <<
+            "package org.gradle; class BadClass { public boolean isFoo(Object arg) { return true; } }"
     }
 
     private removeBadCode() {
