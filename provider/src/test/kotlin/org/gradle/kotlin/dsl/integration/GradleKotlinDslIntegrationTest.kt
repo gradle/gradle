@@ -1,5 +1,6 @@
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.api.JavaVersion
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
@@ -8,6 +9,7 @@ import org.gradle.kotlin.dsl.fixtures.rootProjectDir
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 
+import org.junit.Assume.assumeTrue
 import org.junit.Assert.assertNotEquals
 import org.junit.Test
 
@@ -124,6 +126,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
 
     @Test
     fun `given a plugin compiled against Kotlin one dot zero, it will run against the embedded Kotlin version`() {
+        assumeTrue("Test disabled under JDK 9 and higher", JavaVersion.current() < JavaVersion.VERSION_1_9)
 
         withBuildScript("""
             buildscript {
