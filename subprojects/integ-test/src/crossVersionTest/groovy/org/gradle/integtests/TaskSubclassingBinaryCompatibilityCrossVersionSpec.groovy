@@ -180,6 +180,7 @@ apply plugin: SomePlugin
                     ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.file("someFile");
                     ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.files("anotherFile", "yetAnotherFile");
                     ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.dir("someDir");
+                    ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.property("input", "value");
                 }
                 
                 @TaskAction
