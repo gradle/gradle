@@ -19,7 +19,6 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
-import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
@@ -37,7 +36,7 @@ public class DependencySubstitutionResolver implements DependencyToComponentIdRe
     public void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result) {
         ComponentSelector selector = dependency.getSelector();
         DependencySubstitutionInternal details = new DefaultDependencySubstitution(selector, dependency.getRequested());
-        synchronized (DependencySubstitutionResolver.class) {
+        synchronized (result) {
             try {
                 rule.execute(details);
             } catch (Throwable e) {
