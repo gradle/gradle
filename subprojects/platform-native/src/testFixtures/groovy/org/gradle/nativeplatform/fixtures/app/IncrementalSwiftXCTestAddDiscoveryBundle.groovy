@@ -20,12 +20,18 @@ import org.gradle.integtests.fixtures.SourceFile
 
 class IncrementalSwiftXCTestAddDiscoveryBundle extends IncrementalSwiftXCTestElement  {
     private static final String PASSING_ASSERTION = "XCTAssert(true)"
+    String moduleName = "AddDiscovery"
 
     final XCTestSourceFileElement fooTestSuite = new XCTestSourceFileElement() {
         String testSuiteName = "FooTestSuite"
         List<XCTestCaseElement> testCases = [
             testCase("testA", PASSING_ASSERTION),
         ]
+
+        @Override
+        String getModuleName() {
+            moduleName
+        }
     }
 
     final XCTestSourceFileElement alternateFooTestSuite = new XCTestSourceFileElement() {
@@ -34,6 +40,11 @@ class IncrementalSwiftXCTestAddDiscoveryBundle extends IncrementalSwiftXCTestEle
             testCase("testA", PASSING_ASSERTION),
             testCase("testB", PASSING_ASSERTION)
         ]
+
+        @Override
+        String getModuleName() {
+            moduleName
+        }
     }
 
     final XCTestSourceFileElement barTestSuite = new XCTestSourceFileElement() {
@@ -41,12 +52,15 @@ class IncrementalSwiftXCTestAddDiscoveryBundle extends IncrementalSwiftXCTestEle
         List<XCTestCaseElement> testCases = [
             testCase("testA", PASSING_ASSERTION),
         ]
+
+        @Override
+        String getModuleName() {
+            moduleName
+        }
     }
 
     List<XCTestSourceFileElement> testSuites = [fooTestSuite]
     List<XCTestSourceFileElement> alternateTestSuites = [alternateFooTestSuite, barTestSuite]
-
-    String moduleName = "AddDiscovery"
 
     List<IncrementalElement.Transform> incrementalChanges = [
         modify(fooTestSuite, alternateFooTestSuite),

@@ -24,9 +24,9 @@ class SwiftAppTest extends XCTestSourceElement {
     final multiplyTest
 
     SwiftAppTest(GreeterElement greeter, SumElement sum, MultiplyElement multiply) {
-        greeterTest = new SwiftGreeterTest(greeter).withImport("App")
-        sumTest = new SwiftSumTest(sum).withImport("App")
-        multiplyTest = new SwiftMultiplyTest(multiply).withTestableImport("App")
+        greeterTest = new SwiftGreeterTest("AppTest", greeter).withImport("App")
+        sumTest = new SwiftSumTest("AppTest", sum).withImport("App")
+        multiplyTest = new SwiftMultiplyTest("AppTest", multiply).withTestableImport("App")
     }
 
     final List<XCTestSourceFileElement> getTestSuites() {

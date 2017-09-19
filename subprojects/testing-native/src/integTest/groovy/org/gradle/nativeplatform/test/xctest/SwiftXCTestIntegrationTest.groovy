@@ -59,7 +59,7 @@ apply plugin: 'swift-library'
 
         then:
         result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
-        lib.expectedSummaryOutputPattern.matcher(output).find()
+        lib.assertTestCasesRan(output)
     }
 
     def "can apply swift-executable and xctest plugins together"() {

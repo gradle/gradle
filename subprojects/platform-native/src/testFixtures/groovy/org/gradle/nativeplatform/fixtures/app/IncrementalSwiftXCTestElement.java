@@ -21,11 +21,11 @@ import java.util.regex.Pattern;
 
 public abstract class IncrementalSwiftXCTestElement extends IncrementalSwiftElement implements XCTestElement {
     public Pattern getExpectedSummaryOutputPattern() {
-        return XCTestSourceElement.toExpectedSummaryOutputPattern(getTestCount(), getFailureCount());
+        return XCTestSourceElement.toExpectedSummaryOutputPattern("All tests", getTestCount(), getFailureCount());
     }
 
     public Pattern getExpectedAlternateSummaryOutputPattern() {
-        return XCTestSourceElement.toExpectedSummaryOutputPattern(getAlternateTestCount(), getAlternateFailureCount());
+        return XCTestSourceElement.toExpectedSummaryOutputPattern("All tests", getAlternateTestCount(), getAlternateFailureCount());
     }
 
     public abstract List<XCTestSourceFileElement> getTestSuites();

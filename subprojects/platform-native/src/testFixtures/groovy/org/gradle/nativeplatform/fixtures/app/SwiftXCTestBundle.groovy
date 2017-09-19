@@ -22,6 +22,7 @@ class SwiftXCTestBundle extends XCTestSourceElement {
     List<XCTestSourceFileElement> testSuites = [new XCTestSourceFileElement() {
         String testSuiteName = "PassingTestSuite"
         List<XCTestCaseElement> testCases = [testCase("testCanPassTestCaseWithAssertion", "XCTAssert(true)")]
+        String moduleName = "AppTest"
     }]
 
     @Override

@@ -68,20 +68,30 @@ public abstract class XCTestSourceElement extends SourceElement implements XCTes
 
     public abstract List<XCTestSourceFileElement> getTestSuites();
 
-    public Pattern getExpectedSummaryOutputPattern() {
-        return toExpectedSummaryOutputPattern(getTestCount(), getFailureCount());
+    public void assertTestCasesRan(String output) {
+        for (XCTestSourceFileElement element : getTestSuites()) {
+            element.assertTestCasesRan(output);
+        }
+
+        if (!getExpectedSummaryOutputPattern().matcher(output).find()) {
+            throw new RuntimeException(String.format("Couldn't find test summary with %d failed and %d passing test(s)", getFailureCount(), getPassCount()));
+        }
     }
 
-    static Pattern toExpectedSummaryOutputPattern(int testCount, int failureCount) {
+    public Pattern getExpectedSummaryOutputPattern() {
+        return toExpectedSummaryOutputPattern("All tests", getTestCount(), getFailureCount());
+    }
+
+    static Pattern toExpectedSummaryOutputPattern(String testSuiteName, int testCount, int failureCount) {
         return Pattern.compile(
-            "Test Suite 'All tests' " + toResult(failureCount) + " at .+\n" +
+            "Test Suite '" + testSuiteName + "' " + toResult(failureCount) + " at .+\n" +
                 "\\s+Executed " + testCount + " " + plurializeIf("test", testCount) +
                 ", with " + failureCount + " " + plurializeIf("failure", failureCount) +
                 " \\(0 unexpected\\)",
             Pattern.MULTILINE | Pattern.DOTALL);
     }
 
-    private static String toResult(int failureCount) {
+    public static String toResult(int failureCount) {
         if (failureCount > 0) {
             return "failed";
         }

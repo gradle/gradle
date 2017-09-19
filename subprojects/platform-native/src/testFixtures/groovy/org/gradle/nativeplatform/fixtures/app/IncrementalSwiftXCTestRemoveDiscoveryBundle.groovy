@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.SourceFile
 
 class IncrementalSwiftXCTestRemoveDiscoveryBundle extends IncrementalSwiftXCTestElement  {
     private static final String PASSING_ASSERTION = "XCTAssert(true)"
+    String moduleName = "RemoveDiscovery"
 
     final XCTestSourceFileElement fooTestSuite = new XCTestSourceFileElement() {
         String testSuiteName = "FooTestSuite"
@@ -27,6 +28,11 @@ class IncrementalSwiftXCTestRemoveDiscoveryBundle extends IncrementalSwiftXCTest
             testCase("testA", PASSING_ASSERTION),
             testCase("testB", PASSING_ASSERTION)
         ]
+
+        @Override
+        String getModuleName() {
+            moduleName
+        }
     }
 
     final XCTestSourceFileElement alternateFooTestSuite = new XCTestSourceFileElement() {
@@ -34,6 +40,11 @@ class IncrementalSwiftXCTestRemoveDiscoveryBundle extends IncrementalSwiftXCTest
         List<XCTestCaseElement> testCases = [
             testCase("testA", PASSING_ASSERTION),
         ]
+
+        @Override
+        String getModuleName() {
+            moduleName
+        }
     }
 
     final XCTestSourceFileElement barTestSuite = new XCTestSourceFileElement() {
@@ -41,12 +52,15 @@ class IncrementalSwiftXCTestRemoveDiscoveryBundle extends IncrementalSwiftXCTest
         List<XCTestCaseElement> testCases = [
             testCase("testA", PASSING_ASSERTION),
         ]
+
+        @Override
+        String getModuleName() {
+            moduleName
+        }
     }
 
     List<XCTestSourceFileElement> testSuites = [fooTestSuite, barTestSuite]
     List<XCTestSourceFileElement> alternateTestSuites = [alternateFooTestSuite]
-
-    String moduleName = "RemoveDiscovery"
 
     List<IncrementalElement.Transform> incrementalChanges = [
         modify(fooTestSuite, alternateFooTestSuite),

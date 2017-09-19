@@ -56,7 +56,7 @@ apply plugin: 'xctest'
 
         then:
         result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest")
-        testBundle.expectedSummaryOutputPattern.matcher(output).find()
+        testBundle.assertTestCasesRan(output)
     }
 
     def "succeeds when test cases pass"() {
@@ -70,7 +70,7 @@ apply plugin: 'xctest'
 
         then:
         result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
-        testBundle.expectedSummaryOutputPattern.matcher(output).find()
+        testBundle.assertTestCasesRan(output)
     }
 
     @Unroll
@@ -85,7 +85,7 @@ apply plugin: 'xctest'
 
         then:
         executed(":xcTest")
-        testBundle.expectedSummaryOutputPattern.matcher(output).find()
+        testBundle.assertTestCasesRan(output)
 
         where:
         task << ["test", "check", "build"]
@@ -211,6 +211,6 @@ dependencies {
 
         file("build/obj/test").assertIsDir()
         executable("build/exe/test/AppTest").assertExists()
-        testBundle.expectedSummaryOutputPattern.matcher(output).find()
+        testBundle.assertTestCasesRan(output)
     }
 }
