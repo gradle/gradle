@@ -16,8 +16,8 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputPropertyRegistration;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
@@ -32,7 +32,7 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
     public void attachActions(final TaskPropertyActionContext context) {
         context.setConfigureAction(new UpdateAction() {
             @Override
-            public void updateInputs(TaskInputsInternal inputs, String propertyName, Callable<Object> futureValue) {
+            public void updateInputs(InputPropertyRegistration inputs, String propertyName, Callable<Object> futureValue) {
                 inputs.property(propertyName, futureValue);
             }
         });

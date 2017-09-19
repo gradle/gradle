@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.internal.TaskInputsInternal;
+import org.gradle.api.tasks.InputPropertyRegistration;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
@@ -48,7 +48,7 @@ abstract class AbstractInputPropertyAnnotationHandler implements PropertyAnnotat
 
         context.setConfigureAction(new UpdateAction() {
             @Override
-            public void updateInputs(TaskInputsInternal inputs, String propertyName, Callable<Object> futureValue) {
+            public void updateInputs(InputPropertyRegistration inputs, String propertyName, Callable<Object> futureValue) {
                 final TaskInputFilePropertyBuilder propertyBuilder = createPropertyBuilder(context, inputs, futureValue);
                 propertyBuilder
                     .withPropertyName(propertyName)
@@ -59,6 +59,6 @@ abstract class AbstractInputPropertyAnnotationHandler implements PropertyAnnotat
         });
     }
 
-    protected abstract TaskInputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInputsInternal inputs, Callable<Object> futureValue);
+    protected abstract TaskInputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, InputPropertyRegistration inputs, Callable<Object> futureValue);
     protected abstract void validate(String propertyName, Object value, Collection<String> messages);
 }

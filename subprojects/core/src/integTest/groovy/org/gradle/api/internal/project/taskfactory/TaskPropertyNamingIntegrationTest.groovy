@@ -176,8 +176,8 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         succeeds "test", "printMetadata"
 
         then:
-        output =~ /Input property 'input' : 'someString'/ // FIXME: That should be 'someOtherString'
-        output =~ /Input property 'bean.input' : 'someString'/ // FIXME: That should be 'otherNestedString'
+        output =~ /Input property 'input' : 'someOtherString'/
+        output =~ /Input property 'bean.input' : 'otherNestedString'/
 
     }
 

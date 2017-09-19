@@ -21,6 +21,7 @@ import org.gradle.api.internal.project.taskfactory.NestedSchema;
 import org.gradle.api.internal.project.taskfactory.SchemaExtractor;
 import org.gradle.api.internal.project.taskfactory.SchemaNode;
 import org.gradle.api.internal.project.taskfactory.SchemaRoot;
+import org.gradle.api.internal.tasks.DefaultInputPropertyRegistration;
 import org.gradle.api.internal.tasks.DefaultTaskDestroyables;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
@@ -34,14 +35,18 @@ public class ChangeDetection {
 
     private final TaskInternal task;
     private final SchemaExtractor schemaExtractor;
-    private final TaskInputsInternal taskInputs;
+    private final DefaultTaskInputs taskInputs;
     private final TaskOutputsInternal taskOutputs;
     private final TaskDestroyables taskDestroyables;
+    private final TaskMutator taskMutator;
+    private final FileResolver resolver;
     private SchemaRoot schemaRoot;
 
     public ChangeDetection(TaskInternal task, SchemaExtractor schemaExtractor, FileResolver fileResolver, TaskMutator taskMutator) {
         this.task = task;
+        this.taskMutator = taskMutator;
         this.schemaExtractor = schemaExtractor;
+        this.resolver = fileResolver;
         this.taskInputs = new DefaultTaskInputs(fileResolver, task, taskMutator, this);
         this.taskOutputs = new DefaultTaskOutputs(fileResolver, task, taskMutator, this);
         this.taskDestroyables = new DefaultTaskDestroyables(fileResolver, task, taskMutator, this);
@@ -63,27 +68,29 @@ public class ChangeDetection {
     public void ensureTaskInputsAndOutputsDiscovered() {
         if (schemaRoot == null) {
             schemaRoot = schemaExtractor.extractSchema(task);
-            registerInputsAndOutputs(schemaRoot);
+            DefaultInputPropertyRegistration inputPropertyRegistration = new DefaultInputPropertyRegistration(task.getName(), taskMutator, resolver);
+            registerInputsAndOutputs(inputPropertyRegistration, schemaRoot);
+            taskInputs.setDiscoveredProperties(inputPropertyRegistration);
         }
     }
 
-    private void registerInputsAndOutputs(SchemaRoot schemaRoot) {
-        registerInputsAndOutputs(null, schemaRoot.getChildren());
+    private void registerInputsAndOutputs(DefaultInputPropertyRegistration inputPropertyRegistration, SchemaRoot schemaRoot) {
+        registerInputsAndOutputs(inputPropertyRegistration, null, schemaRoot.getChildren());
     }
 
-    private void registerInputsAndOutputs(@Nullable String parentPropertyName, Map<String, SchemaNode> children) {
+    private void registerInputsAndOutputs(DefaultInputPropertyRegistration inputPropertyRegistration, @Nullable String parentPropertyName, Map<String, SchemaNode> children) {
         for (Map.Entry<String, SchemaNode> entry : children.entrySet()) {
             String propertyName = parentPropertyName == null ? entry.getKey() : parentPropertyName + "." + entry.getKey();
             SchemaNode node = entry.getValue();
-            updateInputsAndOutputs(node, propertyName);
+            updateInputsAndOutputs(inputPropertyRegistration, node, propertyName);
             if (node instanceof NestedSchema) {
-                registerInputsAndOutputs(propertyName, ((NestedSchema) node).getChildren());
+                registerInputsAndOutputs(inputPropertyRegistration, propertyName, ((NestedSchema) node).getChildren());
             }
         }
     }
 
-    private void updateInputsAndOutputs(SchemaNode value, String propertyName) {
-        value.getConfigureAction().updateInputs(taskInputs, propertyName, value);
+    private void updateInputsAndOutputs(DefaultInputPropertyRegistration inputPropertyRegistration, SchemaNode value, String propertyName) {
+        value.getConfigureAction().updateInputs(inputPropertyRegistration, propertyName, value);
         value.getConfigureAction().updateOutputs(taskOutputs, propertyName, value);
         value.getConfigureAction().updateDestroyables(taskDestroyables, propertyName, value);
     }

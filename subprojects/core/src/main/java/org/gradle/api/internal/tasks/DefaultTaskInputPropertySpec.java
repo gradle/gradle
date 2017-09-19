@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
@@ -26,10 +27,12 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 import org.gradle.api.tasks.TaskInputs;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 import static org.gradle.api.internal.changedetection.state.InputPathNormalizationStrategy.ABSOLUTE;
 
+@NonNullApi
 public class DefaultTaskInputPropertySpec extends AbstractTaskPropertyBuilder implements TaskInputPropertySpecAndBuilder {
 
     private final TaskPropertyFileCollection files;
@@ -48,7 +51,7 @@ public class DefaultTaskInputPropertySpec extends AbstractTaskPropertyBuilder im
     }
 
     @Override
-    public TaskInputFilePropertyBuilderInternal withPropertyName(String propertyName) {
+    public TaskInputFilePropertyBuilderInternal withPropertyName(@Nullable String propertyName) {
         setPropertyName(propertyName);
         return this;
     }
