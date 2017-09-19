@@ -23,14 +23,23 @@ import org.gradle.api.internal.changedetection.state.OutputPathNormalizationStra
 import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 
+import static org.gradle.api.internal.tasks.TaskPropertyUtils.checkPropertyName;
+
 @NonNullApi
-abstract class AbstractTaskOutputPropertySpec extends AbstractTaskOutputsDeprecatingTaskPropertyBuilder implements TaskPropertySpec, TaskOutputFilePropertyBuilder {
+abstract class AbstractTaskOutputPropertySpec extends TaskOutputsDeprecationSupport implements TaskPropertySpec, TaskOutputFilePropertyBuilder {
+
+    private String propertyName;
     private boolean optional;
 
     @Override
     public TaskOutputFilePropertyBuilder withPropertyName(String propertyName) {
-        setPropertyName(propertyName);
+        this.propertyName = checkPropertyName(propertyName);
         return this;
+    }
+
+    @Override
+    public String getPropertyName() {
+        return propertyName;
     }
 
     protected boolean isOptional() {

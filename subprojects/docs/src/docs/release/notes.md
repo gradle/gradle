@@ -99,6 +99,28 @@ The following supports are deprecated now and will be removed in Gradle 5.0. You
 
 Please see [Gradle version and Java version compatibility](userguide/embedding.html#sec:embedding_compatibility) for more details.
 
+### Chaining calls on `TaskInputs`
+
+Chaining calls to `TaskInputs.property()` and `TaskInputs.properties()` is now deprecated, similar to how calls to `TaskInputs.file()` and `TaskOutputs.dir()` should not be chained since Gradle 3.0.
+
+Don't do this:
+
+```
+task myTask {
+    // Chaining all calls on `TaskInputs` is now deprecated
+    inputs.property("title", title).property("version", "1.0")
+}
+```
+
+Do this instead:
+
+```
+task myTask {
+    inputs.property("title", title)
+    inputs.property("version", "1.0")
+}
+```
+
 ## Potential breaking changes
 
 ### Changes to incubating native compile and link tasks

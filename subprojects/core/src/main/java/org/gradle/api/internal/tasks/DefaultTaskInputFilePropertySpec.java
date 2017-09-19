@@ -27,13 +27,15 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskInputs;
 
 import static org.gradle.api.internal.changedetection.state.InputPathNormalizationStrategy.ABSOLUTE;
+import static org.gradle.api.internal.tasks.TaskPropertyUtils.checkPropertyName;
 
 @NonNullApi
-public class DefaultTaskInputFilePropertySpec extends AbstractTaskInputsDeprecatingTaskPropertyBuilder implements DeclaredTaskInputFileProperty {
+public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSupport implements DeclaredTaskInputFileProperty {
 
     private final ValidatingValue value;
     private final ValidationAction validationAction;
     private final TaskPropertyFileCollection files;
+    private String propertyName;
     private boolean skipWhenEmpty;
     private boolean optional;
     private PathNormalizationStrategy pathNormalizationStrategy = ABSOLUTE;
@@ -46,13 +48,18 @@ public class DefaultTaskInputFilePropertySpec extends AbstractTaskInputsDeprecat
     }
 
     @Override
+    public String getPropertyName() {
+        return propertyName;
+    }
+
+    @Override
     public FileCollection getPropertyFiles() {
         return files;
     }
 
     @Override
     public TaskInputFilePropertyBuilderInternal withPropertyName(String propertyName) {
-        setPropertyName(propertyName);
+        this.propertyName = checkPropertyName(propertyName);
         return this;
     }
 

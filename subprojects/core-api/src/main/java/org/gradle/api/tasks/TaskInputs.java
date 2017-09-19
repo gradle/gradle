@@ -93,6 +93,9 @@ public interface TaskInputs extends CompatibilityAdapterForTaskInputs {
     /**
      * Registers a set of input properties for this task. See {@link #property(String, Object)} for details.
      *
+     * <p><strong>Note:</strong> do not use the return value to chain calls.
+     * Instead always use call via {@link org.gradle.api.Task#getInputs()}.</p>
+     *
      * @param properties The properties.
      */
     TaskInputs properties(Map<String, ?> properties);

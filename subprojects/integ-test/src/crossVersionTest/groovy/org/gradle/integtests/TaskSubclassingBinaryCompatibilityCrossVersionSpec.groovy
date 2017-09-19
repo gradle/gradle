@@ -174,6 +174,7 @@ apply plugin: SomePlugin
             import org.gradle.api.DefaultTask;
             import org.gradle.api.tasks.*;
             import org.gradle.api.logging.LogLevel;
+            import java.util.*;
 
             public class SubclassTask extends DefaultTask {
                 public SubclassTask() {
@@ -181,6 +182,9 @@ apply plugin: SomePlugin
                     ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.files("anotherFile", "yetAnotherFile");
                     ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.dir("someDir");
                     ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.property("input", "value");
+                    Map<String, Object> mapValues = new HashMap<String, Object>();
+                    mapValues.put("mapInput", "mapValue");
+                    ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.properties(mapValues);
                 }
                 
                 @TaskAction

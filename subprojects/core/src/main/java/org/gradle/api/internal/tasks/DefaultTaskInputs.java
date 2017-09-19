@@ -51,6 +51,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     private final TaskMutator taskMutator;
     private final Map<String, PropertyValue> properties = new HashMap<String, PropertyValue>();
     private final List<DeclaredTaskInputFileProperty> declaredFileProperties = Lists.newArrayList();
+    private final TaskInputs deprecatedThis;
     private ImmutableSortedSet<TaskInputFilePropertySpec> fileProperties;
 
     public DefaultTaskInputs(FileResolver resolver, TaskInternal task, TaskMutator taskMutator) {
@@ -60,6 +61,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         String taskName = task.getName();
         this.allInputFiles = new TaskInputUnionFileCollection(taskName, "input", false, declaredFileProperties);
         this.allSourceFiles = new TaskInputUnionFileCollection(taskName, "source", true, declaredFileProperties);
+        this.deprecatedThis = new LenientTaskInputsDeprecationSupport(this);
     }
 
     @Override
@@ -220,7 +222,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
                 }
             }
         });
-        return this;
+        return deprecatedThis;
     }
 
     @Override

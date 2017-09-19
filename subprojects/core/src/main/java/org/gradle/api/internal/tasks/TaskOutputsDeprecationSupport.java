@@ -25,7 +25,7 @@ import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 import org.gradle.api.tasks.TaskOutputs;
 
 @NonNullApi
-abstract class AbstractTaskOutputsDeprecatingTaskPropertyBuilder extends AbstractTaskPropertyBuilder implements TaskOutputs {
+abstract class TaskOutputsDeprecationSupport implements TaskOutputs {
     // --- See CompatibilityAdapterForTaskOutputs for an explanation for why these methods are here
 
     private UnsupportedOperationException failWithUnsupportedMethod(String method) {

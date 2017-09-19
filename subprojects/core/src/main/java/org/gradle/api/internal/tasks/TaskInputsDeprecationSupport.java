@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
 import java.util.Map;
 
 @NonNullApi
-abstract class AbstractTaskInputsDeprecatingTaskPropertyBuilder extends AbstractTaskPropertyBuilder implements TaskInputs {
+abstract class TaskInputsDeprecationSupport implements TaskInputs {
     // --- See CompatibilityAdapterForTaskInputs for an explanation for why these methods are here
 
     protected abstract TaskInputs getTaskInputs(String method);

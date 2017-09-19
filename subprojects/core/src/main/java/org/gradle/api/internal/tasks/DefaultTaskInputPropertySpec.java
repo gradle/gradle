@@ -19,19 +19,23 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 import org.gradle.api.tasks.TaskInputs;
-import org.gradle.util.DeprecationLogger;
 
 @NonNullApi
-public class DefaultTaskInputPropertySpec extends AbstractTaskInputsDeprecatingTaskPropertyBuilder implements DeclaredTaskInputProperty {
+public class DefaultTaskInputPropertySpec extends LenientTaskInputsDeprecationSupport implements DeclaredTaskInputProperty {
 
-    private final TaskInputs taskInputs;
+    private final String propertyName;
     private final ValidatingValue value;
     private boolean optional;
 
-    public DefaultTaskInputPropertySpec(TaskInputs taskInputs, String name, ValidatingValue value) {
-        this.taskInputs = taskInputs;
-        setPropertyNameWithoutValidation(name);
+    public DefaultTaskInputPropertySpec(TaskInputs taskInputs, String propertyName, ValidatingValue value) {
+        super(taskInputs);
+        this.propertyName = propertyName;
         this.value = value;
+    }
+
+    @Override
+    public String getPropertyName() {
+        return propertyName;
     }
 
     public boolean isOptional() {
@@ -50,13 +54,12 @@ public class DefaultTaskInputPropertySpec extends AbstractTaskInputsDeprecatingT
     }
 
     @Override
-    protected TaskInputs getTaskInputs(String method) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("chaining of the " + method, String.format("Use '%s' on TaskInputs directly instead.", method));
-        return taskInputs;
+    public int compareTo(TaskPropertySpec o) {
+        return getPropertyName().compareTo(o.getPropertyName());
     }
 
     @Override
-    public int compareTo(TaskPropertySpec o) {
-        return getPropertyName().compareTo(o.getPropertyName());
+    public String toString() {
+        return propertyName;
     }
 }
