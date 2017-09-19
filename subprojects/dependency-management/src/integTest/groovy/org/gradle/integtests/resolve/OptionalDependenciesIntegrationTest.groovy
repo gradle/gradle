@@ -280,4 +280,45 @@ class OptionalDependenciesIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
+    void "optional dependency on substituted module is recognized properly"() {
+        given:
+        mavenRepo.module("org", "foo", '1.0').publish()
+        mavenRepo.module("org", "foo", '1.1').publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf {
+                   resolutionStrategy.dependencySubstitution {
+                      all { DependencySubstitution dependency ->
+                         if (dependency.requested.module == 'bar') {
+                            dependency.useTarget dependency.requested.group + ':foo:' + dependency.requested.version
+                         }
+                      }
+                   }
+                }
+            }
+            dependencies {
+                conf('org:bar:1.1') {
+                   optional = true
+                }
+                conf 'org:foo:1.0'
+            }
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                    assert files == ['foo-1.1.jar']
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        noExceptionThrown()
+    }
+
 }

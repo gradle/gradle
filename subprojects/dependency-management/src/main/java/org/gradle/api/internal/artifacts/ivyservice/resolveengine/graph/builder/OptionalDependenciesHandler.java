@@ -18,7 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.internal.component.model.DependencyMetadata;
 
 import java.util.List;
@@ -37,23 +41,43 @@ import java.util.Map;
  */
 public class OptionalDependenciesHandler {
     private final Map<ModuleIdentifier, PendingOptionalDependencies> optionalDependencies;
+    private final DependencySubstitutionApplicator dependencySubstitutionApplicator;
     private final boolean isOptionalConfiguration;
-    List<PendingOptionalDependencies> noLongerOptional;
+    private List<PendingOptionalDependencies> noLongerOptional;
 
-    public OptionalDependenciesHandler(Map<ModuleIdentifier, PendingOptionalDependencies> optionalDependencies, boolean isOptionalConfiguration) {
+    public OptionalDependenciesHandler(Map<ModuleIdentifier, PendingOptionalDependencies> optionalDependencies,
+                                       DependencySubstitutionApplicator dependencySubstitutionApplicator,
+                                       boolean isOptionalConfiguration) {
 
         this.optionalDependencies = optionalDependencies;
+        this.dependencySubstitutionApplicator = dependencySubstitutionApplicator;
         this.isOptionalConfiguration = isOptionalConfiguration;
     }
 
-    boolean maybeAddAsOptionalDependency(NodeState node, DependencyMetadata dependency) {
+    private ModuleIdentifier toKey(DependencyMetadata dependency) {
+        DependencySubstitutionApplicator.Application application = dependencySubstitutionApplicator.apply(dependency);
+        DependencySubstitutionInternal details = application.getResult();
+        if (details != null && details.isUpdated()) {
+            ComponentSelector target = details.getTarget();
+            if (target instanceof ModuleComponentSelector) {
+                ModuleComponentSelector selector = (ModuleComponentSelector) target;
+                return DefaultModuleIdentifier.newId(selector.getGroup(), selector.getModule());
+            }
+        }
+        return dependencyMetadataToModuleIdentifier(dependency);
+    }
+
+    private static ModuleIdentifier dependencyMetadataToModuleIdentifier(DependencyMetadata dependency) {
         ModuleVersionSelector requested = dependency.getRequested();
-        ModuleIdentifier key = DefaultModuleIdentifier.newId(
-            requested.getGroup(),
-            requested.getName()
-        );
-        PendingOptionalDependencies pendingOptionalDependencies = optionalDependencies.get(key);
+        return DefaultModuleIdentifier.newId(requested.getGroup(), requested.getName());
+    }
+
+    boolean maybeAddAsOptionalDependency(NodeState node, DependencyMetadata dependency) {
+        PendingOptionalDependencies pendingOptionalDependencies;
+        ModuleIdentifier key;
         if (dependency.isOptional() && !isOptionalConfiguration) {
+            key = toKey(dependency);
+            pendingOptionalDependencies = optionalDependencies.get(key);
             if (pendingOptionalDependencies == null || pendingOptionalDependencies.isPending()) {
                 if (pendingOptionalDependencies == null) {
                     pendingOptionalDependencies = new PendingOptionalDependencies();
@@ -62,11 +86,15 @@ public class OptionalDependenciesHandler {
                 pendingOptionalDependencies.addNode(node);
                 return true;
             }
-        } else if (pendingOptionalDependencies != null && pendingOptionalDependencies.isPending()) {
-            if (noLongerOptional == null) {
-                noLongerOptional = Lists.newLinkedList();
+        } else {
+            key = dependencyMetadataToModuleIdentifier(dependency);
+            pendingOptionalDependencies = optionalDependencies.get(key);
+            if (pendingOptionalDependencies != null && pendingOptionalDependencies.isPending()) {
+                if (noLongerOptional == null) {
+                    noLongerOptional = Lists.newLinkedList();
+                }
+                noLongerOptional.add(pendingOptionalDependencies);
             }
-            noLongerOptional.add(pendingOptionalDependencies);
         }
         optionalDependencies.put(key, PendingOptionalDependencies.NOT_OPTIONAL);
         return false;

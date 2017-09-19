@@ -15,9 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
-import org.gradle.api.Action;
-import org.gradle.api.artifacts.DependencySubstitution;
-import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -26,22 +23,20 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 
 public class DependencySubstitutionResolver implements DependencyToComponentIdResolver {
     private final DependencyToComponentIdResolver resolver;
-    private final Action<DependencySubstitution> rule;
+    private final DependencySubstitutionApplicator applicator;
 
-    public DependencySubstitutionResolver(DependencyToComponentIdResolver resolver, Action<DependencySubstitution> rule) {
+    public DependencySubstitutionResolver(DependencyToComponentIdResolver resolver, DependencySubstitutionApplicator applicator) {
         this.resolver = resolver;
-        this.rule = rule;
+        this.applicator = applicator;
     }
 
     public void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result) {
-        ComponentSelector selector = dependency.getSelector();
-        DependencySubstitutionInternal details = new DefaultDependencySubstitution(selector, dependency.getRequested());
-        try {
-            rule.execute(details);
-        } catch (Throwable e) {
-            result.failed(new ModuleVersionResolveException(selector, e));
+        DefaultDependencySubstitutionApplicator.Application application = applicator.apply(dependency);
+        if (application.getFailure() != null) {
+            result.failed(new ModuleVersionResolveException(dependency.getSelector(), application.getFailure()));
             return;
         }
+        DependencySubstitutionInternal details = application.getResult();
         if (details.isUpdated()) {
             resolver.resolve(dependency.withTarget(details.getTarget()), result);
             result.setSelectionReason(details.getSelectionReason());

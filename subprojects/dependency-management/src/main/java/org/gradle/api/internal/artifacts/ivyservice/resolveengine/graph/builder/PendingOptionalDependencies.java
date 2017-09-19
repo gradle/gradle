@@ -22,7 +22,7 @@ import java.util.Set;
 public class PendingOptionalDependencies {
     static final PendingOptionalDependencies NOT_OPTIONAL = new PendingOptionalDependencies(null);
 
-    boolean noLongerOptional;
+    private boolean noLongerOptional;
     private final Set<NodeState> affectedComponents;
 
     public PendingOptionalDependencies() {
