@@ -28,7 +28,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import static org.gradle.api.internal.changedetection.state.InputPathNormalizationStrategy.ABSOLUTE;
 
 @NonNullApi
-public class DefaultDeclaredTaskInputFileFilePropertySpec extends AbstractTaskInputsDeprecatingTaskPropertyBuilder implements DeclaredTaskInputFileProperty {
+public class DefaultDeclaredTaskInputFilePropertySpec extends AbstractTaskInputsDeprecatingTaskPropertyBuilder implements DeclaredTaskInputFileProperty {
 
     private final ValidatingValue value;
     private final ValidationAction validationAction;
@@ -38,7 +38,7 @@ public class DefaultDeclaredTaskInputFileFilePropertySpec extends AbstractTaskIn
     private PathNormalizationStrategy pathNormalizationStrategy = ABSOLUTE;
     private Class<? extends FileCollectionSnapshotter> snapshotter = GenericFileCollectionSnapshotter.class;
 
-    public DefaultDeclaredTaskInputFileFilePropertySpec(String taskName, FileResolver resolver, ValidatingValue paths, ValidationAction validationAction) {
+    public DefaultDeclaredTaskInputFilePropertySpec(String taskName, FileResolver resolver, ValidatingValue paths, ValidationAction validationAction) {
         this.value = paths;
         this.validationAction = validationAction;
         this.files = new TaskPropertyFileCollection(taskName, "input", this, resolver, paths);

@@ -154,7 +154,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     private TaskInputFilePropertyBuilderInternal addSpec(ValidatingValue paths, ValidationAction validationAction) {
-        DefaultDeclaredTaskInputFileFilePropertySpec spec = new DefaultDeclaredTaskInputFileFilePropertySpec(task.getName(), resolver, paths, validationAction);
+        DefaultDeclaredTaskInputFilePropertySpec spec = new DefaultDeclaredTaskInputFilePropertySpec(task.getName(), resolver, paths, validationAction);
         declaredFileProperties.add(spec);
         return spec;
     }
