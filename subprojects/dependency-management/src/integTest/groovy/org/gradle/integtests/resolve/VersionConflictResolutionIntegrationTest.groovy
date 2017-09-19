@@ -1161,12 +1161,12 @@ task checkDeps(dependsOn: configurations.compile) {
             }
             task checkDeps {
                 doLast {
-                    def files/* = configurations.conf*.name.sort()
+                    def files = configurations.conf*.name.sort()
                     assert files == ['a-1.0.jar', 'b-1.0.jar', 'leaf-6.jar']
                     files = configurations.conf2*.name.sort()
                     assert files == ['a-1.0.jar', 'c-1.0.jar', 'leaf-5.jar']
                     files = configurations.conf3*.name.sort()
-                    assert files == ['b-1.0.jar', 'c-1.0.jar', 'leaf-5.jar']*/
+                    assert files == ['b-1.0.jar', 'c-1.0.jar', 'leaf-5.jar']
                     files = configurations.conf4*.name.sort()
                     assert files == ['b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'leaf-8.jar']
                 }
@@ -1197,9 +1197,6 @@ task checkDeps(dependsOn: configurations.compile) {
             }
             configurations {
                 conf
-                conf2
-                conf3
-                conf4
             }
             dependencies {
                 conf 'org:a:1.0', 'org:b:1.0', 'org:c:1.0', 'org:d:1.0'
