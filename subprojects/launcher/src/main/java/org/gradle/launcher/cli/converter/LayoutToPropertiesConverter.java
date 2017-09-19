@@ -43,12 +43,12 @@ public class LayoutToPropertiesConverter {
 
     private final List<BuildOption<?>> allBuildOptions = new ArrayList<BuildOption<?>>();
 
-    public LayoutToPropertiesConverter(BuildLayoutParametersBuildOptionFactory buildLayoutParametersBuildOptionFactory, StartParameterBuildOptionFactory startParameterBuildOptionFactory, ParallelismBuildOptionFactory parallelismBuildOptionFactory, DaemonBuildOptionFactory daemonBuildOptionFactory) {
+    public LayoutToPropertiesConverter(BuildLayoutParametersBuildOptionFactory buildLayoutParametersBuildOptionFactory, StartParameterBuildOptionFactory startParameterBuildOptionFactory, ParallelismBuildOptionFactory parallelismBuildOptionFactory, DaemonBuildOptionFactory daemonBuildOptionFactory, LoggingConfigurationBuildOptionFactory loggingConfigurationBuildOptionFactory) {
         allBuildOptions.addAll(buildLayoutParametersBuildOptionFactory.create());
         allBuildOptions.addAll(startParameterBuildOptionFactory.create());
-        allBuildOptions.addAll(new LoggingConfigurationBuildOptionFactory().create());
         allBuildOptions.addAll(daemonBuildOptionFactory.create());
         allBuildOptions.addAll(parallelismBuildOptionFactory.create());
+        allBuildOptions.addAll(loggingConfigurationBuildOptionFactory.create());
     }
 
     public Map<String, String> convert(BuildLayoutParameters layout, Map<String, String> properties) {

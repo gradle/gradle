@@ -17,12 +17,13 @@
 package org.gradle.tooling.internal.provider.connection
 
 import org.gradle.api.logging.LogLevel
+import org.gradle.internal.logging.LoggingConfigurationBuildOptionFactory
 import spock.lang.Specification
 
 class BuildLogLevelMixInTest extends Specification {
 
     final parameters = Mock(ProviderOperationParameters)
-    final mixin = new BuildLogLevelMixIn(parameters)
+    final mixin = new BuildLogLevelMixIn(parameters, new LoggingConfigurationBuildOptionFactory())
 
     def "knows build log level for mixed set of arguments"() {
         when:

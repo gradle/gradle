@@ -19,6 +19,7 @@ import org.gradle.TaskExecutionRequest
 import org.gradle.initialization.BuildLayoutParametersBuildOptionFactory
 import org.gradle.initialization.ParallelismBuildOptionFactory
 import org.gradle.initialization.StartParameterBuildOptionFactory
+import org.gradle.internal.logging.LoggingConfigurationBuildOptionFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.internal.protocol.InternalLaunchable
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters
@@ -29,7 +30,7 @@ import spock.lang.Subject
 class ProviderStartParameterConverterTest extends Specification {
     @Rule TestNameTestDirectoryProvider temp
     def params = Stub(ProviderOperationParameters)
-    @Subject def providerStartParameterConverter = new ProviderStartParameterConverter(new BuildLayoutParametersBuildOptionFactory(), new StartParameterBuildOptionFactory(), new ParallelismBuildOptionFactory())
+    @Subject def providerStartParameterConverter = new ProviderStartParameterConverter(new BuildLayoutParametersBuildOptionFactory(), new StartParameterBuildOptionFactory(), new ParallelismBuildOptionFactory(), new LoggingConfigurationBuildOptionFactory())
 
     def "allows configuring the start parameter with build arguments"() {
         params.getArguments() >> ['-PextraProperty=foo', '-m']

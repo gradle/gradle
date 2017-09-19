@@ -41,6 +41,7 @@ import org.gradle.internal.jvm.inspection.CachingJvmVersionDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
 import org.gradle.internal.logging.LoggingCommandLineConverter;
+import org.gradle.internal.logging.LoggingConfigurationBuildOptionFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -72,6 +73,7 @@ public class CommandLineActionFactory {
     private final StartParameterBuildOptionFactory startParameterBuildOptionFactory = new StartParameterBuildOptionFactory();
     private final ParallelismBuildOptionFactory parallelismBuildOptionFactory = new ParallelismBuildOptionFactory();
     private final DaemonBuildOptionFactory daemonBuildOptionFactory = new DaemonBuildOptionFactory();
+    private final LoggingConfigurationBuildOptionFactory loggingConfigurationBuildOptionFactory = new LoggingConfigurationBuildOptionFactory();
 
     /**
      * <p>Converts the given command-line arguments to an {@link Action} which performs the action requested by the
@@ -92,11 +94,11 @@ public class CommandLineActionFactory {
                 new JavaRuntimeValidationAction(
                     new ParseAndBuildAction(loggingServices, args)),
                 new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData())),
-            buildLayoutParametersBuildOptionFactory, startParameterBuildOptionFactory, parallelismBuildOptionFactory, daemonBuildOptionFactory);
+            buildLayoutParametersBuildOptionFactory, startParameterBuildOptionFactory, parallelismBuildOptionFactory, daemonBuildOptionFactory, loggingConfigurationBuildOptionFactory);
     }
 
     protected void createActionFactories(ServiceRegistry loggingServices, Collection<CommandLineAction> actions) {
-        actions.add(new BuildActionsFactory(loggingServices, new ParametersConverter(buildLayoutParametersBuildOptionFactory, startParameterBuildOptionFactory, parallelismBuildOptionFactory, daemonBuildOptionFactory), new CachingJvmVersionDetector(new DefaultJvmVersionDetector(new DefaultExecActionFactory(new IdentityFileResolver())))));
+        actions.add(new BuildActionsFactory(loggingServices, new ParametersConverter(buildLayoutParametersBuildOptionFactory, startParameterBuildOptionFactory, parallelismBuildOptionFactory, daemonBuildOptionFactory, loggingConfigurationBuildOptionFactory), new CachingJvmVersionDetector(new DefaultJvmVersionDetector(new DefaultExecActionFactory(new IdentityFileResolver())))));
     }
 
     private static GradleLauncherMetaData clientMetaData() {
@@ -197,8 +199,9 @@ public class CommandLineActionFactory {
         private final StartParameterBuildOptionFactory startParameterBuildOptionFactory;
         private final ParallelismBuildOptionFactory parallelismBuildOptionFactory;
         private final DaemonBuildOptionFactory daemonBuildOptionFactory;
+        private final LoggingConfigurationBuildOptionFactory loggingConfigurationBuildOptionFactory;
 
-        WithLogging(ServiceRegistry loggingServices, List<String> args, LoggingConfiguration loggingConfiguration, Action<ExecutionListener> action, BuildLayoutParametersBuildOptionFactory buildLayoutParametersBuildOptionFactory, StartParameterBuildOptionFactory startParameterBuildOptionFactory, ParallelismBuildOptionFactory parallelismBuildOptionFactory, DaemonBuildOptionFactory daemonBuildOptionFactory) {
+        WithLogging(ServiceRegistry loggingServices, List<String> args, LoggingConfiguration loggingConfiguration, Action<ExecutionListener> action, BuildLayoutParametersBuildOptionFactory buildLayoutParametersBuildOptionFactory, StartParameterBuildOptionFactory startParameterBuildOptionFactory, ParallelismBuildOptionFactory parallelismBuildOptionFactory, DaemonBuildOptionFactory daemonBuildOptionFactory, LoggingConfigurationBuildOptionFactory loggingConfigurationBuildOptionFactory) {
             this.loggingServices = loggingServices;
             this.args = args;
             this.loggingConfiguration = loggingConfiguration;
@@ -207,14 +210,15 @@ public class CommandLineActionFactory {
             this.startParameterBuildOptionFactory = startParameterBuildOptionFactory;
             this.parallelismBuildOptionFactory = parallelismBuildOptionFactory;
             this.daemonBuildOptionFactory = daemonBuildOptionFactory;
+            this.loggingConfigurationBuildOptionFactory = loggingConfigurationBuildOptionFactory;
         }
 
         public void execute(ExecutionListener executionListener) {
-            CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter = new LoggingCommandLineConverter();
+            CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter = new LoggingCommandLineConverter(loggingConfigurationBuildOptionFactory);
             CommandLineConverter<BuildLayoutParameters> buildLayoutConverter = new LayoutCommandLineConverter(buildLayoutParametersBuildOptionFactory);
             CommandLineConverter<ParallelismConfiguration> parallelConverter = new ParallelismConfigurationCommandLineConverter(parallelismBuildOptionFactory);
             CommandLineConverter<Map<String, String>> systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
-            LayoutToPropertiesConverter layoutToPropertiesConverter = new LayoutToPropertiesConverter(buildLayoutParametersBuildOptionFactory, startParameterBuildOptionFactory, parallelismBuildOptionFactory, daemonBuildOptionFactory);
+            LayoutToPropertiesConverter layoutToPropertiesConverter = new LayoutToPropertiesConverter(buildLayoutParametersBuildOptionFactory, startParameterBuildOptionFactory, parallelismBuildOptionFactory, daemonBuildOptionFactory, loggingConfigurationBuildOptionFactory);
 
             BuildLayoutParameters buildLayout = new BuildLayoutParameters();
             ParallelismConfiguration parallelismConfiguration = new DefaultParallelismConfiguration();
@@ -241,7 +245,7 @@ public class CommandLineActionFactory {
                 systemPropertiesCommandLineConverter.convert(parsedCommandLine, properties);
 
                 // Convert properties for logging  object
-                PropertiesToLogLevelConfigurationConverter propertiesToLogLevelConfigurationConverter = new PropertiesToLogLevelConfigurationConverter();
+                PropertiesToLogLevelConfigurationConverter propertiesToLogLevelConfigurationConverter = new PropertiesToLogLevelConfigurationConverter(loggingConfigurationBuildOptionFactory);
                 propertiesToLogLevelConfigurationConverter.convert(properties, loggingConfiguration);
                 loggingConfigurationConverter.convert(parsedCommandLine, loggingConfiguration);
 

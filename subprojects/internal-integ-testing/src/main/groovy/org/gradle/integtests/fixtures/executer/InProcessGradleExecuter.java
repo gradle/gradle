@@ -50,6 +50,7 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.io.LineBufferingOutputStream;
 import org.gradle.internal.io.TextStream;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.logging.LoggingConfigurationBuildOptionFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.launcher.Main;
@@ -268,8 +269,9 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         BuildLayoutParametersBuildOptionFactory buildLayoutParametersBuildOptionFactory = GLOBAL_SERVICES.get(BuildLayoutParametersBuildOptionFactory.class);
         StartParameterBuildOptionFactory startParameterBuildOptionFactory = GLOBAL_SERVICES.get(StartParameterBuildOptionFactory.class);
         ParallelismBuildOptionFactory parallelismBuildOptionFactory = GLOBAL_SERVICES.get(ParallelismBuildOptionFactory.class);
+        LoggingConfigurationBuildOptionFactory loggingConfigurationBuildOptionFactory = GLOBAL_SERVICES.get(LoggingConfigurationBuildOptionFactory.class);
         DaemonBuildOptionFactory daemonBuildOptionFactory = new DaemonBuildOptionFactory();
-        ParametersConverter parametersConverter = new ParametersConverter(buildLayoutParametersBuildOptionFactory, startParameterBuildOptionFactory, parallelismBuildOptionFactory, daemonBuildOptionFactory);
+        ParametersConverter parametersConverter = new ParametersConverter(buildLayoutParametersBuildOptionFactory, startParameterBuildOptionFactory, parallelismBuildOptionFactory, daemonBuildOptionFactory, loggingConfigurationBuildOptionFactory);
         parametersConverter.configure(parser);
         final Parameters parameters = new Parameters(startParameter);
         parametersConverter.convert(parser.parse(getAllArgs()), parameters);

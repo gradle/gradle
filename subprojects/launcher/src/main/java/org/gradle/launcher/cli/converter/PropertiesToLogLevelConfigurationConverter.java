@@ -24,7 +24,11 @@ import java.util.List;
 import java.util.Map;
 
 public class PropertiesToLogLevelConfigurationConverter {
-    private final List<BuildOption<LoggingConfiguration>> buildOptions = new LoggingConfigurationBuildOptionFactory().create();
+    private final List<BuildOption<LoggingConfiguration>> buildOptions;
+
+    public PropertiesToLogLevelConfigurationConverter(LoggingConfigurationBuildOptionFactory loggingConfigurationBuildOptionFactory) {
+        buildOptions = loggingConfigurationBuildOptionFactory.create();
+    }
 
     public LoggingConfiguration convert(Map<String, String> properties, LoggingConfiguration loggingConfiguration) {
         for (BuildOption<LoggingConfiguration> option : buildOptions) {

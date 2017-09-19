@@ -20,6 +20,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.internal.logging.LoggingCommandLineConverter;
+import org.gradle.internal.logging.LoggingConfigurationBuildOptionFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.config.LoggingSourceSystem;
 import org.gradle.internal.logging.config.LoggingSystemAdapter;
@@ -105,8 +106,8 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
         return new NestedLogging();
     }
 
-    protected CommandLineConverter<LoggingConfiguration> createCommandLineConverter() {
-        return new LoggingCommandLineConverter();
+    protected CommandLineConverter<LoggingConfiguration> createCommandLineConverter(LoggingConfigurationBuildOptionFactory loggingConfigurationBuildOptionFactory) {
+        return new LoggingCommandLineConverter(loggingConfigurationBuildOptionFactory);
     }
 
     protected Clock createTimeProvider() {

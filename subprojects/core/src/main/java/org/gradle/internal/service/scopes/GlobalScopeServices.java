@@ -84,6 +84,7 @@ import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
+import org.gradle.internal.logging.LoggingConfigurationBuildOptionFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -185,8 +186,12 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return new ParallelismBuildOptionFactory();
     }
 
-    CommandLineConverter<StartParameter> createCommandLine2StartParameterConverter(BuildLayoutParametersBuildOptionFactory buildLayoutParametersBuildOptionFactory, StartParameterBuildOptionFactory startParameterBuildOptionFactory, ParallelismBuildOptionFactory parallelismBuildOptionFactory) {
-        return new DefaultCommandLineConverter(buildLayoutParametersBuildOptionFactory, startParameterBuildOptionFactory, parallelismBuildOptionFactory);
+    LoggingConfigurationBuildOptionFactory createLoggingConfigurationBuildOptionFactory() {
+        return new LoggingConfigurationBuildOptionFactory();
+    }
+
+    CommandLineConverter<StartParameter> createCommandLine2StartParameterConverter(BuildLayoutParametersBuildOptionFactory buildLayoutParametersBuildOptionFactory, StartParameterBuildOptionFactory startParameterBuildOptionFactory, ParallelismBuildOptionFactory parallelismBuildOptionFactory, LoggingConfigurationBuildOptionFactory loggingConfigurationBuildOptionFactory) {
+        return new DefaultCommandLineConverter(buildLayoutParametersBuildOptionFactory, startParameterBuildOptionFactory, parallelismBuildOptionFactory, loggingConfigurationBuildOptionFactory);
     }
 
     ClassPathRegistry createClassPathRegistry(ModuleRegistry moduleRegistry, PluginModuleRegistry pluginModuleRegistry) {

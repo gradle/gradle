@@ -27,7 +27,7 @@ import spock.lang.Unroll
 
 class PropertiesToStartParameterConverterTest extends Specification {
 
-    @Subject def converter = new PropertiesToStartParameterConverter(new StartParameterBuildOptionFactory(), new ParallelismBuildOptionFactory())
+    @Subject def converter = new PropertiesToStartParameterConverter(new StartParameterBuildOptionFactory(), new ParallelismBuildOptionFactory(), new LoggingConfigurationBuildOptionFactory())
 
     def "converts"() {
         expect:

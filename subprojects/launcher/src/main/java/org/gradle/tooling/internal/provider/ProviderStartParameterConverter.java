@@ -23,6 +23,7 @@ import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.ParallelismBuildOptionFactory;
 import org.gradle.initialization.StartParameterBuildOptionFactory;
 import org.gradle.internal.DefaultTaskExecutionRequest;
+import org.gradle.internal.logging.LoggingConfigurationBuildOptionFactory;
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
 import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
@@ -38,11 +39,13 @@ class ProviderStartParameterConverter {
     private final BuildLayoutParametersBuildOptionFactory buildLayoutParametersBuildOptionFactory;
     private final StartParameterBuildOptionFactory startParameterBuildOptionFactory;
     private final ParallelismBuildOptionFactory parallelismBuildOptionFactory;
+    private final LoggingConfigurationBuildOptionFactory loggingConfigurationBuildOptionFactory;
 
-    public ProviderStartParameterConverter(BuildLayoutParametersBuildOptionFactory buildLayoutParametersBuildOptionFactory, StartParameterBuildOptionFactory startParameterBuildOptionFactory, ParallelismBuildOptionFactory parallelismBuildOptionFactory) {
+    public ProviderStartParameterConverter(BuildLayoutParametersBuildOptionFactory buildLayoutParametersBuildOptionFactory, StartParameterBuildOptionFactory startParameterBuildOptionFactory, ParallelismBuildOptionFactory parallelismBuildOptionFactory, LoggingConfigurationBuildOptionFactory loggingConfigurationBuildOptionFactory) {
         this.buildLayoutParametersBuildOptionFactory = buildLayoutParametersBuildOptionFactory;
         this.startParameterBuildOptionFactory = startParameterBuildOptionFactory;
         this.parallelismBuildOptionFactory = parallelismBuildOptionFactory;
+        this.loggingConfigurationBuildOptionFactory = loggingConfigurationBuildOptionFactory;
     }
 
     private List<TaskExecutionRequest> unpack(final List<InternalLaunchable> launchables, File projectDir) {
@@ -81,11 +84,11 @@ class ProviderStartParameterConverter {
             startParameter.setTaskNames(parameters.getTasks());
         }
 
-        new PropertiesToStartParameterConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory).convert(properties, startParameter);
+        new PropertiesToStartParameterConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory, loggingConfigurationBuildOptionFactory).convert(properties, startParameter);
 
         List<String> arguments = parameters.getArguments();
         if (arguments != null) {
-            DefaultCommandLineConverter converter = new DefaultCommandLineConverter(buildLayoutParametersBuildOptionFactory, startParameterBuildOptionFactory, parallelismBuildOptionFactory);
+            DefaultCommandLineConverter converter = new DefaultCommandLineConverter(buildLayoutParametersBuildOptionFactory, startParameterBuildOptionFactory, parallelismBuildOptionFactory, loggingConfigurationBuildOptionFactory);
             try {
                 converter.convert(arguments, startParameter);
             } catch (CommandLineArgumentException e) {

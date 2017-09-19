@@ -20,18 +20,20 @@ import org.gradle.StartParameter;
 import org.gradle.initialization.ParallelismBuildOptionFactory;
 import org.gradle.initialization.StartParameterBuildOptionFactory;
 import org.gradle.internal.buildoption.BuildOption;
+import org.gradle.internal.logging.LoggingConfigurationBuildOptionFactory;
 
 import java.util.List;
 import java.util.Map;
 
 public class PropertiesToStartParameterConverter {
     private final PropertiesToParallelismConfigurationConverter propertiesToParallelismConfigurationConverter;
-    private final PropertiesToLogLevelConfigurationConverter propertiesToLogLevelConfigurationConverter = new PropertiesToLogLevelConfigurationConverter();
+    private final PropertiesToLogLevelConfigurationConverter propertiesToLogLevelConfigurationConverter;
     private final List<BuildOption<StartParameter>> buildOptions;
 
-    public PropertiesToStartParameterConverter(StartParameterBuildOptionFactory startParameterBuildOptionFactory, ParallelismBuildOptionFactory parallelismBuildOptionFactory) {
+    public PropertiesToStartParameterConverter(StartParameterBuildOptionFactory startParameterBuildOptionFactory, ParallelismBuildOptionFactory parallelismBuildOptionFactory, LoggingConfigurationBuildOptionFactory loggingConfigurationBuildOptionFactory) {
         buildOptions = startParameterBuildOptionFactory.create();
         propertiesToParallelismConfigurationConverter = new PropertiesToParallelismConfigurationConverter(parallelismBuildOptionFactory);
+        propertiesToLogLevelConfigurationConverter = new PropertiesToLogLevelConfigurationConverter(loggingConfigurationBuildOptionFactory);
     }
 
     public StartParameter convert(Map<String, String> properties, StartParameter startParameter) {
