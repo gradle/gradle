@@ -56,7 +56,7 @@ public class CommandLineConverterTestSupport {
     protected File expectedProjectCacheDir;
     protected boolean expectedRefreshDependencies;
     protected boolean expectedRerunTasks;
-    protected final DefaultCommandLineConverter commandLineConverter = new DefaultCommandLineConverter(new ParallelismBuildOptionFactory());
+    protected final DefaultCommandLineConverter commandLineConverter = new DefaultCommandLineConverter(new StartParameterBuildOptionFactory(), new ParallelismBuildOptionFactory());
     protected boolean expectedContinue;
     protected boolean expectedOffline;
     protected boolean expectedRecompileScripts;

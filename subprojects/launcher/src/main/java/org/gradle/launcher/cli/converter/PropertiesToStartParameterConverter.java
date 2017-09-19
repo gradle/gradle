@@ -27,9 +27,10 @@ import java.util.Map;
 public class PropertiesToStartParameterConverter {
     private final PropertiesToParallelismConfigurationConverter propertiesToParallelismConfigurationConverter;
     private final PropertiesToLogLevelConfigurationConverter propertiesToLogLevelConfigurationConverter = new PropertiesToLogLevelConfigurationConverter();
-    private final List<BuildOption<StartParameter>> buildOptions = new StartParameterBuildOptionFactory().create();
+    private final List<BuildOption<StartParameter>> buildOptions;
 
-    public PropertiesToStartParameterConverter(ParallelismBuildOptionFactory parallelismBuildOptionFactory) {
+    public PropertiesToStartParameterConverter(StartParameterBuildOptionFactory startParameterBuildOptionFactory, ParallelismBuildOptionFactory parallelismBuildOptionFactory) {
+        buildOptions = startParameterBuildOptionFactory.create();
         propertiesToParallelismConfigurationConverter = new PropertiesToParallelismConfigurationConverter(parallelismBuildOptionFactory);
     }
 

@@ -38,6 +38,7 @@ import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.ParallelismBuildOptionFactory;
 import org.gradle.initialization.ReportedException;
+import org.gradle.initialization.StartParameterBuildOptionFactory;
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
 import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
@@ -262,7 +263,9 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
         // TODO: Reuse more of CommandlineActionFactory
         CommandLineParser parser = new CommandLineParser();
-        ParametersConverter parametersConverter = new ParametersConverter(GLOBAL_SERVICES.get(ParallelismBuildOptionFactory.class));
+        StartParameterBuildOptionFactory startParameterBuildOptionFactory = GLOBAL_SERVICES.get(StartParameterBuildOptionFactory.class);
+        ParallelismBuildOptionFactory parallelismBuildOptionFactory = GLOBAL_SERVICES.get(ParallelismBuildOptionFactory.class);
+        ParametersConverter parametersConverter = new ParametersConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory);
         parametersConverter.configure(parser);
         final Parameters parameters = new Parameters(startParameter);
         parametersConverter.convert(parser.parse(getAllArgs()), parameters);

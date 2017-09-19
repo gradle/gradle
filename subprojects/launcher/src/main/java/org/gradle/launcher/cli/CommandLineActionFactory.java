@@ -25,15 +25,16 @@ import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
+import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildLayoutParameters;
-import org.gradle.initialization.ParallelismBuildOptionFactory;
-import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.initialization.LayoutCommandLineConverter;
-import org.gradle.concurrent.ParallelismConfiguration;
+import org.gradle.initialization.ParallelismBuildOptionFactory;
 import org.gradle.initialization.ParallelismConfigurationCommandLineConverter;
+import org.gradle.initialization.StartParameterBuildOptionFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.buildevents.BuildExceptionReporter;
+import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.CachingJvmVersionDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
@@ -65,6 +66,7 @@ import java.util.Map;
 public class CommandLineActionFactory {
     private static final String HELP = "h";
     private static final String VERSION = "v";
+    private final StartParameterBuildOptionFactory startParameterBuildOptionFactory = new StartParameterBuildOptionFactory();
     private final ParallelismBuildOptionFactory parallelismBuildOptionFactory = new ParallelismBuildOptionFactory();
 
     /**
@@ -85,11 +87,11 @@ public class CommandLineActionFactory {
             new ExceptionReportingAction(
                 new JavaRuntimeValidationAction(
                     new ParseAndBuildAction(loggingServices, args)),
-                new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData())), parallelismBuildOptionFactory);
+                new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData())), startParameterBuildOptionFactory, parallelismBuildOptionFactory);
     }
 
     protected void createActionFactories(ServiceRegistry loggingServices, Collection<CommandLineAction> actions) {
-        actions.add(new BuildActionsFactory(loggingServices, new ParametersConverter(parallelismBuildOptionFactory), new CachingJvmVersionDetector(new DefaultJvmVersionDetector(new DefaultExecActionFactory(new IdentityFileResolver())))));
+        actions.add(new BuildActionsFactory(loggingServices, new ParametersConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory), new CachingJvmVersionDetector(new DefaultJvmVersionDetector(new DefaultExecActionFactory(new IdentityFileResolver())))));
     }
 
     private static GradleLauncherMetaData clientMetaData() {
@@ -186,13 +188,15 @@ public class CommandLineActionFactory {
         private final List<String> args;
         private final LoggingConfiguration loggingConfiguration;
         private final Action<ExecutionListener> action;
+        private final StartParameterBuildOptionFactory startParameterBuildOptionFactory;
         private final ParallelismBuildOptionFactory parallelismBuildOptionFactory;
 
-        WithLogging(ServiceRegistry loggingServices, List<String> args, LoggingConfiguration loggingConfiguration, Action<ExecutionListener> action, ParallelismBuildOptionFactory parallelismBuildOptionFactory) {
+        WithLogging(ServiceRegistry loggingServices, List<String> args, LoggingConfiguration loggingConfiguration, Action<ExecutionListener> action, StartParameterBuildOptionFactory startParameterBuildOptionFactory, ParallelismBuildOptionFactory parallelismBuildOptionFactory) {
             this.loggingServices = loggingServices;
             this.args = args;
             this.loggingConfiguration = loggingConfiguration;
             this.action = action;
+            this.startParameterBuildOptionFactory = startParameterBuildOptionFactory;
             this.parallelismBuildOptionFactory = parallelismBuildOptionFactory;
         }
 
@@ -201,7 +205,7 @@ public class CommandLineActionFactory {
             CommandLineConverter<BuildLayoutParameters> buildLayoutConverter = new LayoutCommandLineConverter();
             CommandLineConverter<ParallelismConfiguration> parallelConverter = new ParallelismConfigurationCommandLineConverter(parallelismBuildOptionFactory);
             CommandLineConverter<Map<String, String>> systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
-            LayoutToPropertiesConverter layoutToPropertiesConverter = new LayoutToPropertiesConverter(parallelismBuildOptionFactory);
+            LayoutToPropertiesConverter layoutToPropertiesConverter = new LayoutToPropertiesConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory);
 
             BuildLayoutParameters buildLayout = new BuildLayoutParameters();
             ParallelismConfiguration parallelismConfiguration = new DefaultParallelismConfiguration();

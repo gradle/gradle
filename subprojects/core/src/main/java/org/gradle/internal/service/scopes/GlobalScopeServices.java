@@ -67,6 +67,7 @@ import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.initialization.ParallelismBuildOptionFactory;
+import org.gradle.initialization.StartParameterBuildOptionFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
@@ -171,12 +172,16 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return environment;
     }
 
+    StartParameterBuildOptionFactory createStartParameterBuildOptionFactory() {
+        return new StartParameterBuildOptionFactory();
+    }
+
     ParallelismBuildOptionFactory createParallelismBuildOptionFactory() {
         return new ParallelismBuildOptionFactory();
     }
 
-    CommandLineConverter<StartParameter> createCommandLine2StartParameterConverter(ParallelismBuildOptionFactory parallelismBuildOptionFactory) {
-        return new DefaultCommandLineConverter(parallelismBuildOptionFactory);
+    CommandLineConverter<StartParameter> createCommandLine2StartParameterConverter(StartParameterBuildOptionFactory startParameterBuildOptionFactory, ParallelismBuildOptionFactory parallelismBuildOptionFactory) {
+        return new DefaultCommandLineConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory);
     }
 
     ClassPathRegistry createClassPathRegistry(ModuleRegistry moduleRegistry, PluginModuleRegistry pluginModuleRegistry) {

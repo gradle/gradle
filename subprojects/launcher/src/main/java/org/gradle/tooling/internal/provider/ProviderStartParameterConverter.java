@@ -20,6 +20,7 @@ import org.gradle.TaskExecutionRequest;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.ParallelismBuildOptionFactory;
+import org.gradle.initialization.StartParameterBuildOptionFactory;
 import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
 import org.gradle.tooling.internal.protocol.InternalLaunchable;
@@ -33,9 +34,11 @@ import java.util.Map;
 
 class ProviderStartParameterConverter {
 
+    private final StartParameterBuildOptionFactory startParameterBuildOptionFactory;
     private final ParallelismBuildOptionFactory parallelismBuildOptionFactory;
 
-    public ProviderStartParameterConverter(ParallelismBuildOptionFactory parallelismBuildOptionFactory) {
+    public ProviderStartParameterConverter(StartParameterBuildOptionFactory startParameterBuildOptionFactory, ParallelismBuildOptionFactory parallelismBuildOptionFactory) {
+        this.startParameterBuildOptionFactory = startParameterBuildOptionFactory;
         this.parallelismBuildOptionFactory = parallelismBuildOptionFactory;
     }
 
@@ -75,11 +78,11 @@ class ProviderStartParameterConverter {
             startParameter.setTaskNames(parameters.getTasks());
         }
 
-        new PropertiesToStartParameterConverter(parallelismBuildOptionFactory).convert(properties, startParameter);
+        new PropertiesToStartParameterConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory).convert(properties, startParameter);
 
         List<String> arguments = parameters.getArguments();
         if (arguments != null) {
-            DefaultCommandLineConverter converter = new DefaultCommandLineConverter(parallelismBuildOptionFactory);
+            DefaultCommandLineConverter converter = new DefaultCommandLineConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory);
             try {
                 converter.convert(arguments, startParameter);
             } catch (CommandLineArgumentException e) {
