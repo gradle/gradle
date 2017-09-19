@@ -117,7 +117,7 @@ public class JacocoPluginExtension {
             public String call() throws Exception {
                 return extension.isEnabled() ? extension.getAsJvmArg() : null;
             }
-        });
+        }).optional(true);
         task.getOutputs().file(new Callable<File>() {
             @Override
             public File call() throws Exception {
