@@ -27,6 +27,7 @@ import org.gradle.internal.Factory
 import org.gradle.internal.invocation.BuildActionRunner
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmVersionDetector
+import org.gradle.internal.logging.LoggingConfigurationBuildOptionFactory
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
@@ -61,13 +62,14 @@ class BuildActionsFactoryTest extends Specification {
     StartParameterBuildOptionFactory startParameterBuildOptionFactory = new StartParameterBuildOptionFactory()
     ParallelismBuildOptionFactory parallelismBuildOptionFactory = new ParallelismBuildOptionFactory()
     DaemonBuildOptionFactory daemonBuildOptionFactory = new DaemonBuildOptionFactory()
+    LoggingConfigurationBuildOptionFactory loggingConfigurationBuildOptionFactory = new LoggingConfigurationBuildOptionFactory()
     PropertiesToDaemonParametersConverter propertiesToDaemonParametersConverter = Stub()
-    PropertiesToStartParameterConverter propertiesToStartParameterConverter = new PropertiesToStartParameterConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory)
+    PropertiesToStartParameterConverter propertiesToStartParameterConverter = new PropertiesToStartParameterConverter(startParameterBuildOptionFactory, parallelismBuildOptionFactory, loggingConfigurationBuildOptionFactory)
     JvmVersionDetector jvmVersionDetector = Stub()
     ParametersConverter parametersConverter = new ParametersConverter(
             Stub(LayoutCommandLineConverter), Stub(SystemPropertiesCommandLineConverter),
             Stub(LayoutToPropertiesConverter), propertiesToStartParameterConverter,
-            new DefaultCommandLineConverter(buildLayoutParametersBuildOptionFactory, startParameterBuildOptionFactory, parallelismBuildOptionFactory), new DaemonCommandLineConverter(daemonBuildOptionFactory),
+            new DefaultCommandLineConverter(buildLayoutParametersBuildOptionFactory, startParameterBuildOptionFactory, parallelismBuildOptionFactory, loggingConfigurationBuildOptionFactory), new DaemonCommandLineConverter(daemonBuildOptionFactory),
             propertiesToDaemonParametersConverter)
 
     BuildActionsFactory factory = new BuildActionsFactory(loggingServices, parametersConverter, jvmVersionDetector)
