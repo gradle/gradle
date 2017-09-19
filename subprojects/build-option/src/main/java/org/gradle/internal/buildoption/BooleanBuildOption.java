@@ -43,7 +43,7 @@ public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T> {
         String value = properties.get(gradleProperty);
 
         if (value != null) {
-            applyTo(isTrue(properties.get(gradleProperty)), settings, Origin.GRADLE_PROPERTY);
+            applyTo(isTrue(properties.get(gradleProperty)), settings, Origin.withGradleProperty(gradleProperty));
         }
     }
 
@@ -61,11 +61,11 @@ public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T> {
     public void applyFromCommandLine(ParsedCommandLine options, T settings) {
         for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
             if (options.hasOption(config.getLongOption())) {
-                applyTo(true, settings, Origin.COMMAND_LINE);
+                applyTo(true, settings, Origin.withCommandLine(config.getLongOption()));
             }
 
             if (options.hasOption(getDisabledCommandLineOption(config))) {
-                applyTo(false, settings, Origin.COMMAND_LINE);
+                applyTo(false, settings, Origin.withCommandLine(getDisabledCommandLineOption(config)));
             }
         }
     }

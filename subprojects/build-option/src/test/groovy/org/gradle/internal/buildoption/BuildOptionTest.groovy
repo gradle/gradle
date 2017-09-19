@@ -18,23 +18,42 @@ package org.gradle.internal.buildoption
 
 import org.gradle.cli.CommandLineArgumentException
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class BuildOptionTest extends Specification {
-    def "can handle invalid value for Gradle property"() {
+    private static final String VALUE = '0'
+    private static final String HINT = 'must be positive'
+    private static final String GRADLE_PROPERTY = 'org.gradle.property'
+    private static final String OPTION = 'option'
+
+    @Unroll
+    def "can handle invalid value for Gradle property with empty #hint"() {
         when:
-        BuildOption.Origin.GRADLE_PROPERTY.handleInvalidValue('property', 'option', 'value', 'hint')
+        Origin.withGradleProperty(GRADLE_PROPERTY).handleInvalidValue(VALUE, hint)
 
         then:
         Throwable t = thrown(IllegalArgumentException)
-        t.message == "Value 'value' given for property Gradle property is invalid (hint)"
+        t.message == "Value '0' given for org.gradle.property Gradle property is invalid"
+
+        where:
+        hint << ['', ' ', null]
     }
 
-    def "can handle invalid value for command line option"() {
+    def "can handle invalid value for Gradle property with concrete hint"() {
         when:
-        BuildOption.Origin.COMMAND_LINE.handleInvalidValue('property', 'option', 'value', 'hint')
+        Origin.withGradleProperty(GRADLE_PROPERTY).handleInvalidValue(VALUE, HINT)
+
+        then:
+        Throwable t = thrown(IllegalArgumentException)
+        t.message == "Value '0' given for org.gradle.property Gradle property is invalid (must be positive)"
+    }
+
+    def "can handle invalid value for command line option with concrete hint"() {
+        when:
+        Origin.withCommandLine(OPTION).handleInvalidValue(VALUE, HINT)
 
         then:
         Throwable t = thrown(CommandLineArgumentException)
-        t.message == "Argument value 'value' given for --option option is invalid (hint)"
+        t.message == "Argument value '0' given for --option option is invalid (must be positive)"
     }
 }

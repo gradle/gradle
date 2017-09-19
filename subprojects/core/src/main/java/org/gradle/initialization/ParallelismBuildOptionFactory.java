@@ -21,6 +21,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
+import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 
 import java.util.ArrayList;
@@ -67,11 +68,11 @@ public class ParallelismBuildOptionFactory implements Factory<List<BuildOption<P
             try {
                 int workerCount = Integer.parseInt(value);
                 if (workerCount < 1) {
-                    origin.handleInvalidValue(GRADLE_PROPERTY, LONG_OPTION, value, HINT);
+                    origin.handleInvalidValue(value, HINT);
                 }
                 settings.setMaxWorkerCount(workerCount);
             } catch (NumberFormatException e) {
-                origin.handleInvalidValue(GRADLE_PROPERTY, LONG_OPTION, value, HINT);
+                origin.handleInvalidValue(value, HINT);
             }
         }
     }
