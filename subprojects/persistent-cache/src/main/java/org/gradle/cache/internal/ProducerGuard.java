@@ -15,12 +15,17 @@
  */
 package org.gradle.cache.internal;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Striped;
+import org.gradle.api.GradleException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -65,6 +70,18 @@ public abstract class ProducerGuard<T> {
         return new SerialProducerGuard<T>();
     }
 
+    /**
+     * Creates a {@link ProducerGuard} which guarantees that different keys will block on different locks,
+     * ensuring maximum concurrency, but will also timeout when the lock cannot be acquired.
+     * This can be used typically when debugging deadlocks. Please notice however that this kind of guard
+     * consumes significantly more resources than the {@link #striped() striped} and {@link #adaptive() adaptive}
+     * versions.
+     * If the timeout is reached, a timeout exception will be thrown.
+     */
+    public static <T> ProducerGuard<T> timingOut(int value, TimeUnit timeUnit) {
+        return new TimingOutAdaptiveProducerGuard<T>(value, timeUnit);
+    }
+
     private ProducerGuard() {
 
     }
@@ -102,6 +119,75 @@ public abstract class ProducerGuard<T> {
                 }
             }
         }
+    }
+
+    private static class TimingOutAdaptiveProducerGuard<T> extends ProducerGuard<T> {
+        private final Map<T, CountingLock> producing = Maps.newHashMap();
+        private final int timeout;
+        private final TimeUnit timeUnit;
+
+        private TimingOutAdaptiveProducerGuard(int timeout, TimeUnit timeUnit) {
+            this.timeout = timeout;
+            this.timeUnit = timeUnit;
+        }
+
+        private CountingLock getLock(T key) {
+            synchronized (producing) {
+                CountingLock lock = producing.get(key);
+                if (lock == null) {
+                    lock = new CountingLock();
+                    producing.put(key, lock);
+                }
+                lock.borrow();
+                return lock;
+            }
+        }
+
+        @Override
+        public <V> V guardByKey(T key, Factory<V> factory) {
+            CountingLock lock = getLock(key);
+            boolean locked = false;
+            try {
+                locked = lock.tryLock(timeout, timeUnit);
+                if (!locked) {
+                    throw new GradleException("Timed out while trying to acquire a lock on: " + key);
+                }
+                return factory.create();
+            } catch (InterruptedException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            } finally {
+                releaseLock(key, lock, locked);
+            }
+        }
+
+        private void releaseLock(T key, CountingLock lock, boolean locked) {
+            synchronized (producing) {
+                if (lock.release(locked)) {
+                    producing.remove(key);
+                }
+            }
+        }
+
+        private static class CountingLock {
+            private final Lock lock = new ReentrantLock();
+            private final AtomicInteger lockCount = new AtomicInteger();
+
+            public boolean tryLock(int value, TimeUnit timeUnit) throws InterruptedException {
+                return lock.tryLock(value, timeUnit);
+            }
+
+            public void borrow() {
+                lockCount.incrementAndGet();
+            }
+
+            public boolean release(boolean locked) {
+                if (locked) {
+                    lock.unlock();
+                }
+                return lockCount.decrementAndGet() == 0;
+            }
+        }
+
     }
 
     private static class StripedProducerGuard<T> extends ProducerGuard<T> {

@@ -53,6 +53,10 @@ class DefaultClasspathSnapshotterTest extends Specification {
         fileSystemSnapshotter,
         stringInterner)
 
+    def tearDown() {
+        fileSystemSnapshotter.close()
+    }
+
     def "directories and missing files are ignored"() {
         def emptyDir = file('root/emptyDir').createDir()
         def missingFile = file('some').createDir().file('does-not-exist')

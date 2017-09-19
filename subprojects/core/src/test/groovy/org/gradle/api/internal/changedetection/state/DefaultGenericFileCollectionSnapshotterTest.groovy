@@ -35,11 +35,17 @@ import static InputPathNormalizationStrategy.ABSOLUTE
 class DefaultGenericFileCollectionSnapshotterTest extends Specification {
     def stringInterner = new StringInterner()
     def fileSystemMirror = new DefaultFileSystemMirror([])
-    def snapshotter = new DefaultGenericFileCollectionSnapshotter(stringInterner, TestFiles.directoryFileTreeFactory(), new DefaultFileSystemSnapshotter(new TestFileHasher(), stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror))
     def listener = Mock(ChangeListener)
     def normalizationStrategy = InputNormalizationStrategy.NOT_CONFIGURED
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    private DefaultFileSystemSnapshotter fileSystemSnapshotter = new DefaultFileSystemSnapshotter(new TestFileHasher(), stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror)
+    def snapshotter = new DefaultGenericFileCollectionSnapshotter(stringInterner, TestFiles.directoryFileTreeFactory(), fileSystemSnapshotter)
+
+
+    def tearDown() {
+        fileSystemSnapshotter.close()
+    }
 
     def getFilesReturnsOnlyTheFilesWhichExisted() {
         given:
