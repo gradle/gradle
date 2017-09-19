@@ -11,9 +11,9 @@ val subProjectTasks = rootDir
     .filter { isProjectDir(it) }
     .filter { isCompatibleWithJDK(it) }
     .map { subProjectDir ->
-    task<GradleBuild>("prepare-${subProjectDir.name}") {
-        setDir(subProjectDir)
+        task<GradleBuild>("prepare-${subProjectDir.name}") {
+            setDir(subProjectDir)
+        }
     }
-}
 
 setDefaultTasks(subProjectTasks.map { it.name })
