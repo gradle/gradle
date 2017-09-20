@@ -370,12 +370,20 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public final void execute() {
-        getExecuter().execute(this, state, new DefaultTaskExecutionContext());
+        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskInternal.execute", "Execute the task by requesting it from the command line instead.");
+        TaskExecuter executer = DeprecationLogger.whileDisabled(new Factory<TaskExecuter>() {
+            @Override
+            public TaskExecuter create() {
+                return getExecuter();
+            }
+        });
+        executer.execute(this, state, new DefaultTaskExecutionContext());
         state.rethrowFailure();
     }
 
     @Override
     public TaskExecuter getExecuter() {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("TaskInternal.executer", "Execute the task by requesting it from the command line instead.");
         if (executer == null) {
             executer = services.get(TaskExecuter.class);
         }
@@ -384,6 +392,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public void setExecuter(TaskExecuter executer) {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("TaskInternal.executer", "Execute the task by requesting it from the command line instead.");
         this.executer = executer;
     }
 
