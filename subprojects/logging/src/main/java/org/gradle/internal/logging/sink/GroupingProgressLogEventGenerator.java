@@ -47,7 +47,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
-    private static final long LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(5);
+    private static final long LONG_RUNNING_TASK_OUTPUT_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(2);
     private final OutputEventListener listener;
     private final Clock clock;
     private final LogHeaderFormatter headerFormatter;
