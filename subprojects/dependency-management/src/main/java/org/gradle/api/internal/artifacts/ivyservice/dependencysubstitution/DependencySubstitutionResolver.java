@@ -36,7 +36,7 @@ public class DependencySubstitutionResolver implements DependencyToComponentIdRe
     public void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result) {
         ComponentSelector selector = dependency.getSelector();
         DependencySubstitutionInternal details = new DefaultDependencySubstitution(selector, dependency.getRequested());
-        synchronized (DependencySubstitutionResolver.class) {
+        synchronized (resolver) {
             try {
                 rule.execute(details);
             } catch (Throwable e) {
