@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.resolve
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
@@ -1216,5 +1217,80 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
+    def "previously selected transitive dependency is not used when it becomes orphaned because of selection of a different version of its dependent module"() {
+        given:
+        (1..10).each {
+            def dep = mavenRepo.module('org', 'zdep', "$it").publish()
+            mavenRepo.module("org", "leaf", "$it").dependsOn(dep).publish()
+        }
+        mavenRepo.module("org", "a", "1.0")
+            .dependsOn("org", "c", "1.0")
+            .dependsOn('org', 'leaf', '[1,8]')
+            .publish()
+        mavenRepo.module("org", "b", "1.0").dependsOn("org", "c", "1.1").publish()
+        mavenRepo.module("org", "c", "1.0").dependsOn("org", "leaf", "[3,4]").publish()
+        mavenRepo.module("org", "c", "1.1").dependsOn("org", "leaf", "[4,6]").publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:a:1.0', 'org:b:1.0'
+            }
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'c-1.1.jar', 'leaf-6.jar', 'zdep-6.jar']
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        noExceptionThrown()
+    }
+
+    @NotYetImplemented
+    def "evicted version removes range constraint from transitive dependency"() {
+        given:
+        (1..10).each {
+            mavenRepo.module("org", "e", "$it").publish()
+        }
+        mavenRepo.module("org", "a", "1.0").dependsOn("org", "e", "[3,6]").publish()
+        mavenRepo.module("org", "b", "1.0").dependsOn("org", "e", "[1,10]").publish()
+        mavenRepo.module("org", "c", "1.0").dependsOn("org", "a", "2.0").publish()
+        mavenRepo.module("org", "a", "2.0").dependsOn("org", "e", "[4,8]").publish()
+
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:a:1.0', 'org:b:1.0', 'org:c:1.0'
+            }
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                    assert files == ['a-2.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-8.jar']
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        noExceptionThrown()
+    }
 
 }

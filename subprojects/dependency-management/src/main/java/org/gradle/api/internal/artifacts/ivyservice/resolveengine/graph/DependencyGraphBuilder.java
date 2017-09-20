@@ -143,13 +143,14 @@ public class DependencyGraphBuilder {
                 final NodeState node = resolveState.pop();
                 LOGGER.debug("Visiting configuration {}.", node);
 
-                // Calculate the outgoing edges of this configuration
-                dependencies.clear();
-                dependenciesMissingLocalMetadata.clear();
-                node.visitOutgoingDependencies(dependencies);
+                if (!tryMakeOrphan(resolveState, node)) {
+                    // Calculate the outgoing edges of this configuration
+                    dependencies.clear();
+                    dependenciesMissingLocalMetadata.clear();
+                    node.visitOutgoingDependencies(dependencies);
 
-                resolveEdges(node, dependencies, dependenciesMissingLocalMetadata, resolveState, componentIdentifierCache);
-
+                    resolveEdges(node, dependencies, dependenciesMissingLocalMetadata, resolveState, componentIdentifierCache);
+                }
             } else {
                 // We have some batched up conflicts. Resolve the first, and continue traversing the graph
                 conflictHandler.resolveNextConflict(resolveState.replaceSelectionWithConflictResultAction);
@@ -158,17 +159,35 @@ public class DependencyGraphBuilder {
         }
     }
 
+    private static boolean tryMakeOrphan(ResolveState resolveState, NodeState node) {
+        ComponentState componentState = node.component;
+        if (node != resolveState.root && node.incomingEdges.isEmpty()) {
+            // this node was selected, but it doesn't have any incoming edge anymore, it's orphan
+            if (node.component.module.selected == componentState) {
+                // and it was selected, clear selection
+                componentState.module.clearSelection();
+                componentState.module.selectors.remove(componentState.selectedBy);
+            }
+            componentState.allResolvers.remove(componentState.selectedBy);
+            componentState.selectedBy = null;
+            componentState.state = ModuleState.Orphan;
+            return true;
+        }
+        return false;
+    }
+
     private void performSelection(final ResolveState resolveState, ComponentState moduleRevision) {
         ModuleIdentifier moduleId = moduleRevision.id.getModule();
         String version = moduleRevision.id.getVersion();
 
+        ModuleResolveState module = resolveState.getModule(moduleId);
         // Check for a new conflict
-        if (moduleRevision.state == ModuleState.New) {
-            ModuleResolveState module = resolveState.getModule(moduleId);
+        if (moduleRevision.state.isSelectable()) {
 
             if (tryCompatibleSelection(resolveState, moduleRevision, moduleId, version, module)) {
                 return;
             }
+
             // A new module revision. Check for conflict
             PotentialConflict c = conflictHandler.registerModule(module);
             if (!c.conflictExists()) {
@@ -187,11 +206,17 @@ public class DependencyGraphBuilder {
         }
     }
 
-    private boolean tryCompatibleSelection(ResolveState resolveState, ComponentState moduleRevision, ModuleIdentifier moduleId, String version, ModuleResolveState module) {
+    private static boolean tryCompatibleSelection(final ResolveState resolveState, final ComponentState moduleRevision, final ModuleIdentifier moduleId, String version, final ModuleResolveState module) {
         ComponentState selected = module.selected;
+        // TODO: CC. This fixes "evicted version removes range constraint from transitive dependency" but completely breaks component replacement integration tests
+        // because replacements are handled... at conflict resolution time!
+        //if (selected == null && allSelectorsAgreeWith(module.selectors, version)) {
+         //   module.select(moduleRevision);
+        //    return true;
+        //}
         Set<SelectorState> selectedBy = moduleRevision.allResolvers;
         if (selected != null && selected != moduleRevision) {
-            if (moduleRevision.allSelectorsAgreeWith(selected.getVersion())) {
+            if (allSelectorsAgreeWith(moduleRevision.allResolvers, selected.getVersion())) {
                 // if this selector agrees with the already selected version, don't bother and pick it
                 return true;
             }
@@ -213,7 +238,8 @@ public class DependencyGraphBuilder {
             // all selectors agree, let's pick it
             if (atLeastOne && allAccept) {
                 resolveState.deselectVersionAction.execute(moduleId);
-                module.softRestart(moduleRevision);
+                module.softSelect(moduleRevision);
+//                module.softRestart(moduleRevision);
                 return true;
             }
         }
@@ -665,12 +691,67 @@ public class DependencyGraphBuilder {
         }
     }
 
+    /**
+     * Describes the possible states of a module.
+     */
     enum ModuleState {
-        New,
-        Selected,
-        Conflict,
-        Evicted
+        /**
+         * A selectable module is a module which is either new to the graph, or has
+         * been visited before, but wasn't selected because another compatible version was
+         * used.
+         */
+        Selectable(true, true),
+
+        /**
+         * A selected module is a module which has been chosen, at some point, as the version
+         * to use. This is not for a lifetime: a module can be evicted through conflict resolution,
+         * or another compatible module can be chosen instead if more constraints arise.
+         */
+        Selected(true, false),
+
+        /**
+         * An evicted module is a module which has been evicted and will never, ever be chosen starting
+         * from the moment it is evicted. Either because it has been excluded, or because conflict resolution
+         * selected a different version.
+         */
+        Evicted(false, false),
+
+        /**
+         * An orphan module is a module which, at some point, had been selected (probably transitively),
+         * but doesn't participate in the graph anymore (because the dependency which brought it in has either
+         * been evicted, or another compatible version with a different dependency set has been selected).
+         * An orphaned module _may_ reappear in the graph later, so is still selectable. It is therefore NOT
+         * evicted.
+         */
+        Orphan(false, true);
+
+        private final boolean candidateForConflictResolution;
+        private final boolean canSelect;
+
+        ModuleState(boolean candidateForConflictResolution, boolean canSelect) {
+            this.candidateForConflictResolution = candidateForConflictResolution;
+            this.canSelect = canSelect;
+        }
+
+        boolean isCandidateForConflictResolution() {
+            return candidateForConflictResolution;
+        }
+
+        public boolean isSelectable() {
+            return canSelect;
+        }
     }
+
+    public static boolean allSelectorsAgreeWith(Collection<SelectorState> allSelectors, String version) {
+        for (SelectorState allResolver : allSelectors) {
+            VersionSelector candidateSelector = allResolver.versionSelector;
+            if (candidateSelector == null || !candidateSelector.canShortCircuitWhenVersionAlreadyPreselected() || !candidateSelector.accept(version)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 
     /**
      * Resolution state for a given module.
@@ -704,7 +785,15 @@ public class DependencyGraphBuilder {
 
         @Override
         public Collection<ComponentState> getVersions() {
-            return versions.values();
+            // todo: maybe we could avoid allocation here if we do a pre-check to see if all versions are selectable
+            // in which case we could return the list directly
+            List<ComponentState> versions = Lists.newArrayListWithCapacity(this.versions.size());
+            for (ComponentState state : this.versions.values()) {
+                if (state.state.isCandidateForConflictResolution()) {
+                    versions.add(state);
+                }
+            }
+            return versions;
         }
 
         public ComponentState getSelected() {
@@ -724,7 +813,9 @@ public class DependencyGraphBuilder {
             ComponentState previousSelection = selected;
             selected = null;
             for (ComponentState version : versions.values()) {
-                version.state = ModuleState.Conflict;
+                if (version.state == ModuleState.Selected) {
+                    version.state = ModuleState.Selectable;
+                }
             }
             return previousSelection;
         }
@@ -739,15 +830,16 @@ public class DependencyGraphBuilder {
             doRestart(selected);
         }
 
-        protected void softSelect(ComponentState selected) {
+        private void softSelect(ComponentState selected) {
+            assert this.selected == null;
             this.selected = selected;
             for (ComponentState version : versions.values()) {
-                version.state = ModuleState.New;
+                version.state = version.state == ModuleState.Evicted ? ModuleState.Evicted : ModuleState.Selectable;
             }
             selected.state = ModuleState.Selected;
         }
 
-        protected void doRestart(ComponentState selected) {
+        private void doRestart(ComponentState selected) {
             for (ComponentState version : versions.values()) {
                 version.restart(selected);
             }
@@ -792,7 +884,7 @@ public class DependencyGraphBuilder {
         private final Long resultId;
         private final ModuleResolveState module;
         private volatile ComponentResolveMetadata metaData;
-        private ModuleState state = ModuleState.New;
+        private ModuleState state = ModuleState.Selectable;
         private ComponentSelectionReason selectionReason = VersionSelectionReasons.REQUESTED;
         private ModuleVersionResolveException failure;
         private SelectorState selectedBy;
@@ -864,16 +956,6 @@ public class DependencyGraphBuilder {
                 allResolvers = Sets.newLinkedHashSet();
             }
             allResolvers.add(resolver);
-        }
-
-        public boolean allSelectorsAgreeWith(String version) {
-            for (SelectorState allResolver : allResolvers) {
-                VersionSelector candidateSelector = allResolver.versionSelector;
-                if (candidateSelector == null || !candidateSelector.canShortCircuitWhenVersionAlreadyPreselected() || !candidateSelector.accept(version)) {
-                    return false;
-                }
-            }
-            return true;
         }
 
         /**

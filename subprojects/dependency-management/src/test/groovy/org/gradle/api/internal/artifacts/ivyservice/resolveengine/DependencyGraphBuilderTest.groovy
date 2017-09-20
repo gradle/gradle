@@ -467,7 +467,7 @@ class DependencyGraphBuilderTest extends Specification {
         1 * conflictResolver.select(_) >> { args ->
             def details = args[0]
             Collection<ComponentResolutionState> candidates = details.candidates
-            assert candidates*.version == ['1.1', '1.2', '1.0']
+            assert candidates*.version == ['1.2', '1.0'] // 1.1 is no longer a candidate since it has been rejected already
             details.select(candidates.find { it.version == '1.2' })
         }
         0 * conflictResolver._
