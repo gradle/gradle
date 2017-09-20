@@ -43,7 +43,7 @@ import static org.gradle.util.CollectionUtils.collect;
 /**
  * The real delegate of the plugins {} block.
  *
- * The {@link PluginUseScriptBlockMetadataExtractor} interacts with this type.
+ * The {@link PluginUseScriptBlockMetadataExtractor} interacts with this type for the Groovy DSL. The Kotlin DSL also interacts with this type.
  */
 public class PluginRequestCollector {
 
