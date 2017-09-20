@@ -61,11 +61,11 @@ public abstract class XCTestSourceFileElement extends SourceFileElement implemen
 
     public SourceFile getSourceFile() {
         return sourceFile("swift", getTestSuiteName() + ".swift",
-            "import XCTest\n" +
-                "\n" +
-                "class " + getTestSuiteName() + ": XCTestCase {\n" +
-                "    " + renderTestCases() + "\n" +
-                "}");
+            "import XCTest\n"
+                + "\n"
+                + "class " + getTestSuiteName() + ": XCTestCase {\n"
+                + "    " + renderTestCases() + "\n"
+                + "}");
     }
 
     private String renderTestCases() {
@@ -87,9 +87,9 @@ public abstract class XCTestSourceFileElement extends SourceFileElement implemen
         return new XCTestCaseElement() {
             @Override
             public String getContent() {
-                return "func " + methodName + "() {\n" +
-                    "    " + assertion + "\n" +
-                    "}";
+                return "func " + methodName + "() {\n"
+                    + "    " + assertion + "\n"
+                    + "}";
             }
 
             @Override
@@ -188,11 +188,11 @@ public abstract class XCTestSourceFileElement extends SourceFileElement implemen
 
     public SourceFile emptyInfoPlist() {
         return sourceFile("resources", "Info.plist",
-            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n" +
-                "<plist version=\"1.0\">\n" +
-                "<dict>\n" +
-                "</dict>\n" +
-                "</plist>");
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
+                + "<plist version=\"1.0\">\n"
+                + "<dict>\n"
+                + "</dict>\n"
+                + "</plist>");
     }
 }
