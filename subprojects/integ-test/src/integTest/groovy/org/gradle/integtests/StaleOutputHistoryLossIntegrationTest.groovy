@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.StaleOutputJavaProject
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
-import org.gradle.util.GradleVersion
 import spock.lang.Issue
 import spock.lang.Timeout
 import spock.lang.Unroll
@@ -34,8 +33,7 @@ import static org.gradle.util.GFileUtils.forceDelete
 class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
     private final ReleasedVersionDistributions releasedVersionDistributions = new ReleasedVersionDistributions()
-    // TODO: Convert this to .mostRecentFinalRelease once 4.2 is released.
-    private final GradleExecuter mostRecentFinalReleaseExecuter = releasedVersionDistributions.getMostRecentSnapshot().executer(temporaryFolder, getBuildContext())
+    private final GradleExecuter mostRecentFinalReleaseExecuter = releasedVersionDistributions.mostRecentFinalRelease.executer(temporaryFolder, buildContext)
 
     def cleanup() {
         mostRecentFinalReleaseExecuter.cleanup()
@@ -43,8 +41,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         buildFile << "apply plugin: 'base'\n"
-        // Update mostRecentFinalReleaseExecuter as soon as 4.2 is released
-        assert releasedVersionDistributions.mostRecentFinalRelease.version < GradleVersion.version("4.2")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/821")
