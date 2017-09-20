@@ -64,10 +64,12 @@ internal
 typealias JarsProvider = () -> Collection<File>
 
 
-var extensionsJarCacheVersion = 2
+private
+val extensionsJarCacheVersion = 2
 
 
-var extensionsJarCacheId = "kotlin-dsl-extensions-$extensionsJarCacheVersion"
+internal
+val extensionsJarCacheId = "kotlin-dsl-extensions-$extensionsJarCacheVersion"
 
 
 class KotlinScriptClassPathProvider(
