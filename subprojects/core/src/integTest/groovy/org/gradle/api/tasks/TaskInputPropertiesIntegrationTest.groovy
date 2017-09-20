@@ -505,7 +505,7 @@ task someTask(type: SomeTask) {
  - No value has been specified for property 'input'."""
     }
 
-    def "optional null input properties registered via TaskInputs.property are reported"() {
+    def "optional null input properties registered via TaskInputs.property are allowed"() {
         buildFile << """
             task test {
                 inputs.property("input", { null }).optional(true)
@@ -577,7 +577,7 @@ task someTask(type: SomeTask) {
     }
 
     @Unroll
-    def "optional null output files registered via TaskOutputs.#method are reported"() {
+    def "optional null output files registered via TaskOutputs.#method are allowed"() {
         buildFile << """
             task test {
                 outputs.${method}({ null }) withPropertyName "output" optional(true)
