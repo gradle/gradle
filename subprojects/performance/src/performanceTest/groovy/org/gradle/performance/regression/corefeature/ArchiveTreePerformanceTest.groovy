@@ -24,7 +24,7 @@ class ArchiveTreePerformanceTest extends AbstractCrossVersionPerformanceTest {
         given:
         runner.testProject = "archivePerformanceProject"
         runner.tasksToRun = ['visitZip']
-        runner.targetVersions = ["4.2-rc-2"]
+        runner.targetVersions = ["4.3-20170920000028+0000"]
 
         when:
         def result = runner.run()
@@ -36,7 +36,7 @@ class ArchiveTreePerformanceTest extends AbstractCrossVersionPerformanceTest {
         given:
         runner.testProject = "archivePerformanceProject"
         runner.tasksToRun = ['visitTar']
-        runner.targetVersions = ["4.2-rc-2"]
+        runner.targetVersions = ["4.3-20170920000028+0000"]
 
         when:
         def result = runner.run()
@@ -49,7 +49,7 @@ class ArchiveTreePerformanceTest extends AbstractCrossVersionPerformanceTest {
         given:
         runner.testProject = "archivePerformanceProject"
         runner.tasksToRun = ['visitTarGz']
-        runner.targetVersions = ["4.2-rc-2"]
+        runner.targetVersions = ["4.3-20170920000028+0000"]
 
         when:
         def result = runner.run()
