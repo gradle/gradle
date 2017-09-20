@@ -15,6 +15,7 @@
  */
 
 package org.gradle.language.cpp.tasks
+
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.WorkResult
 import org.gradle.language.base.internal.compile.Compiler
@@ -25,34 +26,33 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import org.junit.Rule
-import spock.lang.Specification
 
-class CppCompileTest extends Specification {
-    @Rule
-    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
-
-    CppCompile cppCompile = TestUtil.create(testDir).task(CppCompile)
+class CppCompileTest extends AbstractProjectBuilderSpec {
+    CppCompile cppCompile
     def toolChain = Mock(NativeToolChainInternal)
     def platform = Mock(NativePlatformInternal)
     def platformToolChain = Mock(PlatformToolProvider)
     Compiler<CppCompileSpec> cppCompiler = Mock(Compiler)
     def pch = Mock(PreCompiledHeader)
 
+    def setup() {
+        cppCompile = TestUtil.createTask(CppCompile, project)
+    }
+
     def "executes using the CppCompiler"() {
-        def sourceFile = testDir.createFile("sourceFile")
+        def sourceFile = temporaryFolder.createFile("sourceFile")
         def result = Mock(WorkResult)
         when:
         cppCompile.toolChain = toolChain
         cppCompile.targetPlatform = platform
         cppCompile.compilerArgs = ["arg"]
         cppCompile.macros = [def: "value"]
-        cppCompile.objectFileDir = testDir.file("outputFile")
+        cppCompile.objectFileDir = temporaryFolder.file("outputFile")
         cppCompile.source sourceFile
         cppCompile.setPreCompiledHeader pch
-        cppCompile.execute()
+        execute(cppCompile)
 
         then:
         _ * toolChain.outputType >> "cpp"
@@ -62,8 +62,8 @@ class CppCompileTest extends Specification {
         1 * toolChain.select(platform) >> platformToolChain
         1 * platformToolChain.newCompiler({ CppCompileSpec.class.isAssignableFrom(it) }) >> cppCompiler
         pch.includeString >> "header"
-        pch.prefixHeaderFile >> testDir.file("prefixHeader").createFile()
-        pch.objectFile >> testDir.file("pchObjectFile").createFile()
+        pch.prefixHeaderFile >> temporaryFolder.file("prefixHeader").createFile()
+        pch.objectFile >> temporaryFolder.file("pchObjectFile").createFile()
         pch.pchObjects >> new SimpleFileCollection()
         1 * cppCompiler.execute({ CppCompileSpec spec ->
             assert spec.sourceFiles*.name == ["sourceFile"]

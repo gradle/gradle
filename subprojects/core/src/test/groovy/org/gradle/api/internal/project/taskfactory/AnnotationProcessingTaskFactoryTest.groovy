@@ -91,7 +91,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = expectTaskCreated(TaskWithIncrementalAction, action)
 
         when:
-        task.execute()
+        execute(task)
 
         then:
         1 * action.execute(_ as IncrementalTaskInputs)
@@ -105,7 +105,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = expectTaskCreated(TaskWithOverriddenIncrementalAction, action, superAction)
 
         when:
-        task.execute()
+        execute(task)
 
         then:
         1 * action.execute(_ as IncrementalTaskInputs)
@@ -147,7 +147,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = expectTaskCreated(type, action)
 
         when:
-        task.execute()
+        execute(task)
 
         then:
         times * action.run()
@@ -167,7 +167,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = expectTaskCreated(type, this[value])
 
         expect:
-        task.execute()
+        execute(task)
 
         where:
         type                | property       | value
@@ -184,7 +184,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = expectTaskCreated(type, [this[value]] as List)
 
         expect:
-        task.execute()
+        execute(task)
 
         where:
         type                | property       | value
@@ -199,7 +199,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = expectTaskCreated(type)
 
         expect:
-        task.execute()
+        execute(task)
 
         where:
         type                                      | property
@@ -217,7 +217,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = expectTaskCreated(TaskWithOutputFile, new File(testDir, "subdir/output.txt"))
 
         when:
-        task.execute()
+        execute(task)
 
         then:
         new File(testDir, "subdir").isDirectory()
@@ -228,7 +228,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = expectTaskCreated(TaskWithOutputFiles, [new File(testDir, "subdir/output.txt"), new File(testDir, "subdir2/output.txt")] as List)
 
         when:
-        task.execute()
+        execute(task)
 
         then:
         new File(testDir, "subdir").isDirectory()
@@ -240,7 +240,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = expectTaskCreated(TaskWithOutputDir, missingDir)
 
         when:
-        task.execute()
+        execute(task)
 
         then:
         task.outputDir.isDirectory()
@@ -251,7 +251,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = expectTaskCreated(TaskWithOutputDirs, [missingDir] as List)
 
         when:
-        task.execute()
+        execute(task)
 
         then:
         task.outputDirs.get(0).isDirectory()
@@ -263,7 +263,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = expectTaskCreated(type, [null] as Object[])
 
         when:
-        task.execute()
+        execute(task)
 
         then:
         TaskValidationException e = thrown()
@@ -287,7 +287,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = expectTaskCreated(TaskWithOutputFile, existingDir)
 
         when:
-        task.execute()
+        execute(task)
 
         then:
         TaskValidationException e = thrown()
@@ -299,7 +299,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = expectTaskCreated(TaskWithOutputFiles, [existingDir] as List)
 
         when:
-        task.execute()
+        execute(task)
 
         then:
         TaskValidationException e = thrown()
@@ -312,7 +312,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         GFileUtils.touch(task.outputFile.getParentFile())
 
         when:
-        task.execute()
+        execute(task)
 
         then:
         TaskValidationException e = thrown()
@@ -325,7 +325,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         GFileUtils.touch(task.outputFiles.get(0).getParentFile())
 
         when:
-        task.execute()
+        execute(task)
 
         then:
         TaskValidationException e = thrown()
@@ -337,7 +337,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = expectTaskCreated(TaskWithOutputDir, existingFile)
 
         when:
-        task.execute()
+        execute(task)
 
         then:
         TaskValidationException e = thrown()
@@ -349,7 +349,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = expectTaskCreated(TaskWithOutputDirs, [existingFile] as List)
 
         when:
-        task.execute()
+        execute(task)
 
         then:
         TaskValidationException e = thrown()
@@ -362,7 +362,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         GFileUtils.touch(task.outputDir.getParentFile())
 
         when:
-        task.execute()
+        execute(task)
 
         then:
         TaskValidationException e = thrown()
@@ -375,7 +375,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         GFileUtils.touch(task.outputDirs.get(0).getParentFile())
 
         when:
-        task.execute()
+        execute(task)
 
         then:
         TaskValidationException e = thrown()
@@ -387,7 +387,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = expectTaskCreated(TaskWithInputDir, missingDir)
 
         when:
-        task.execute()
+        execute(task)
 
         then:
         TaskValidationException e = thrown()
@@ -400,7 +400,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         GFileUtils.touch(task.inputDir)
 
         when:
-        task.execute()
+        execute(task)
 
         then:
         TaskValidationException e = thrown()
@@ -412,7 +412,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = expectTaskCreated(TaskWithNestedBeanWithPrivateClass, [existingFile, null] as Object[])
 
         when:
-        task.execute()
+        execute(task)
 
         then:
         TaskValidationException e = thrown()
@@ -425,7 +425,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         task.clearBean()
 
         when:
-        task.execute()
+        execute(task)
 
         then:
         TaskValidationException e = thrown()
@@ -438,7 +438,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         task.clearBean()
 
         when:
-        task.execute()
+        execute(task)
 
         then:
         TaskValidationException e = thrown()
@@ -450,7 +450,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = expectTaskCreated(InputFileTask)
 
         when:
-        task.execute()
+        execute(task)
 
         then:
         TaskValidationException e = thrown()
@@ -462,7 +462,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = expectTaskCreated(TaskWithMultipleProperties, [null] as Object[])
 
         when:
-        task.execute()
+        execute(task)
 
         then:
         TaskValidationException e = thrown()
@@ -476,7 +476,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = expectTaskCreated(TaskWithJavaBeanCornerCaseProperties, [null, null, null, null, "a", "b"] as Object[])
 
         when:
-        task.execute()
+        execute(task)
 
         then:
         TaskValidationException e = thrown()
@@ -492,7 +492,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = expectTaskCreated(TaskWithJavaBeanCornerCaseProperties, ["c", "C", "d", "U", null, null] as Object[])
 
         when:
-        task.execute()
+        execute(task)
 
         then:
         TaskValidationException e = thrown()
@@ -593,7 +593,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = expectTaskCreated(BrokenTaskWithInputDir, existingDir)
 
         expect:
-        task.execute()
+        execute(task)
     }
 
     def skipsTaskWhenInputFileCollectionIsEmpty() {
@@ -602,7 +602,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         BrokenTaskWithInputFiles task = expectTaskCreated(BrokenTaskWithInputFiles, inputFiles)
 
         expect:
-        task.execute()
+        execute(task)
     }
 
     @Unroll
@@ -648,7 +648,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     private TaskInternal expectTaskCreated(final Class type, final Object... params) {
         final Class decorated = project.getServices().get(ClassGenerator).generate(type)
         TaskInternal task = (TaskInternal) AbstractTask.injectIntoNewInstance(project, "task", type, new Callable<TaskInternal>() {
-            public TaskInternal call() throws Exception {
+            TaskInternal call() throws Exception {
                 if (params.length > 0) {
                     return type.cast(decorated.constructors[0].newInstance(params))
                 } else {

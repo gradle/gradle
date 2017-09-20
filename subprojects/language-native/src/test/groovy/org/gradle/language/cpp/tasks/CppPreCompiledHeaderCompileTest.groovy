@@ -15,6 +15,7 @@
  */
 
 package org.gradle.language.cpp.tasks
+
 import org.gradle.api.tasks.WorkResult
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
@@ -23,32 +24,36 @@ import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppPCHCompileSpec
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
-import spock.lang.Specification
 
-class CppPreCompiledHeaderCompileTest extends Specification {
+class CppPreCompiledHeaderCompileTest extends AbstractProjectBuilderSpec {
     @Rule
-    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    CppPreCompiledHeaderCompile cppPCHCompile = TestUtil.create(testDir).task(CppPreCompiledHeaderCompile)
+    CppPreCompiledHeaderCompile cppPCHCompile
     def toolChain = Mock(NativeToolChainInternal)
     def platform = Mock(NativePlatformInternal)
     def platformToolChain = Mock(PlatformToolProvider)
     Compiler<CppPCHCompileSpec> cppPCHCompiler = Mock(Compiler)
 
+    def setup() {
+        cppPCHCompile = TestUtil.createTask(CppPreCompiledHeaderCompile, project)
+    }
+
     def "executes using the Cpp PCH Compiler"() {
-        def sourceFile = testDir.createFile("sourceFile")
+        def sourceFile = temporaryFolder.createFile("sourceFile")
         def result = Mock(WorkResult)
         when:
         cppPCHCompile.toolChain = toolChain
         cppPCHCompile.targetPlatform = platform
         cppPCHCompile.compilerArgs = ["arg"]
         cppPCHCompile.macros = [def: "value"]
-        cppPCHCompile.objectFileDir = testDir.file("outputFile")
+        cppPCHCompile.objectFileDir = temporaryFolder.file("outputFile")
         cppPCHCompile.source sourceFile
-        cppPCHCompile.execute()
+        execute(cppPCHCompile)
 
         then:
         _ * toolChain.outputType >> "cpp"

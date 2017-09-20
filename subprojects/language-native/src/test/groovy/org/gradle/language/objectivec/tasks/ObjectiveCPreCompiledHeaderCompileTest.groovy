@@ -15,6 +15,7 @@
  */
 
 package org.gradle.language.objectivec.tasks
+
 import org.gradle.api.tasks.WorkResult
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
@@ -23,32 +24,32 @@ import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCPCHCompileSpec
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import org.junit.Rule
-import spock.lang.Specification
 
-class ObjectiveCPreCompiledHeaderCompileTest extends Specification {
-    @Rule
-    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+class ObjectiveCPreCompiledHeaderCompileTest extends AbstractProjectBuilderSpec {
 
-    ObjectiveCPreCompiledHeaderCompile objCPCHCompile = TestUtil.create(testDir).task(ObjectiveCPreCompiledHeaderCompile)
+    ObjectiveCPreCompiledHeaderCompile objCPCHCompile
     def toolChain = Mock(NativeToolChainInternal)
     def platform = Mock(NativePlatformInternal)
     def platformToolChain = Mock(PlatformToolProvider)
     Compiler<ObjectiveCPCHCompileSpec> objCPCHCompiler = Mock(Compiler)
 
+    def setup() {
+        objCPCHCompile = TestUtil.createTask(ObjectiveCPreCompiledHeaderCompile, project)
+    }
+
     def "executes using the C PCH Compiler"() {
-        def sourceFile = testDir.createFile("sourceFile")
+        def sourceFile = temporaryFolder.createFile("sourceFile")
         def result = Mock(WorkResult)
         when:
         objCPCHCompile.toolChain = toolChain
         objCPCHCompile.targetPlatform = platform
         objCPCHCompile.compilerArgs = ["arg"]
         objCPCHCompile.macros = [def: "value"]
-        objCPCHCompile.objectFileDir = testDir.file("outputFile")
+        objCPCHCompile.objectFileDir = temporaryFolder.file("outputFile")
         objCPCHCompile.source sourceFile
-        objCPCHCompile.execute()
+        execute(objCPCHCompile)
 
         then:
         _ * toolChain.outputType >> "c"

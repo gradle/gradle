@@ -20,7 +20,7 @@ import org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet
 import org.gradle.plugins.ide.eclipse.model.Facet
 import org.gradle.plugins.ide.eclipse.model.Facet.FacetType
 
-public class GenerateEclipseWtpFacetTest extends AbstractSpockTaskTest {
+class GenerateEclipseWtpFacetTest extends AbstractSpockTaskTest {
     private eclipseFacet
 
     def setup() {
