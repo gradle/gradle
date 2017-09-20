@@ -38,7 +38,7 @@ public class LatestVersionSelector extends AbstractStringVersionSelector {
     }
 
     public boolean accept(String candidate) {
-        throw new UnsupportedOperationException("accept(String, String)");
+        throw new UnsupportedOperationException("accept(String)");
     }
 
     public boolean accept(ComponentMetadata candidate) {

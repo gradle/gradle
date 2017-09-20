@@ -205,7 +205,7 @@ public class DependencyGraphBuilder {
                 }
                 atLeastOne = true;
                 VersionSelector previousVersionSelector = selector.versionSelector;
-                if (previousVersionSelector == null || !previousVersionSelector.accept(version)) {
+                if (previousVersionSelector == null || !previousVersionSelector.canShortCircuitWhenVersionAlreadyPreselected() || !previousVersionSelector.accept(version)) {
                     allAccept = false;
                     break;
                 }
