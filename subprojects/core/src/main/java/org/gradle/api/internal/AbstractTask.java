@@ -327,6 +327,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
+    public ChangeDetection getChangeDetection() {
+        return changeDetection;
+    }
+
+    @Override
     public boolean getImpliesSubProjects() {
         return impliesSubProjects;
     }

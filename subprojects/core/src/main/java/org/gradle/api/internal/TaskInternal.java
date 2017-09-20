@@ -69,6 +69,8 @@ public interface TaskInternal extends Task, Configurable<Task> {
     @Override
     TaskStateInternal getState();
 
+    ChangeDetection getChangeDetection();
+
     @Internal
     boolean getImpliesSubProjects();
 

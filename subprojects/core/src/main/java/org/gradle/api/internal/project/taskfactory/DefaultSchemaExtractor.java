@@ -146,7 +146,7 @@ public class DefaultSchemaExtractor implements SchemaExtractor {
                 if (value.getValue() == null) {
                     children.put(propertyName, new SchemaProperty(changeDetectionProperty, instance, configureAction));
                 } else {
-                    children.put(propertyName, new NestedSchema(extractSchema(value.getValue()).getChildren(), changeDetectionProperty, instance, value));
+                    children.put(propertyName, new NestedSchema(extractSchema(value.getValue()).getChildren(), changeDetectionProperty, value));
                 }
             } else {
                 children.put(propertyName, new SchemaProperty(changeDetectionProperty, instance, configureAction));

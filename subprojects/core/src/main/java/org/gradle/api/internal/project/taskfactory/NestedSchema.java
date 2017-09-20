@@ -16,23 +16,17 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.GradleException;
-
 import java.util.Map;
 
 public class NestedSchema implements SchemaNode {
     private final Map<String, SchemaNode> children;
-    private final DefaultSchemaExtractor.ChangeDetectionProperty property;
-    private final Object parent;
     private final UpdateAction configureAction;
-    private final TaskPropertyValue scannedValue;
+    private final Object value;
 
-    NestedSchema(Map<String, SchemaNode> children, DefaultSchemaExtractor.ChangeDetectionProperty property, Object parent, TaskPropertyValue taskPropertyValue) {
+    NestedSchema(Map<String, SchemaNode> children, DefaultSchemaExtractor.ChangeDetectionProperty property, TaskPropertyValue taskPropertyValue) {
         this.children = children;
-        this.property = property;
-        this.parent = parent;
         this.configureAction = property.getConfigureAction();
-        this.scannedValue = taskPropertyValue;
+        this.value = taskPropertyValue.getValue();
     }
 
     public Map<String, SchemaNode> getChildren() {
@@ -46,15 +40,6 @@ public class NestedSchema implements SchemaNode {
 
     @Override
     public Object call() throws Exception {
-        checkIfConsistent();
-        return property.getValue(parent).getValue();
-    }
-
-    private void checkIfConsistent() {
-        Class<?> typeUsedForSchema = scannedValue.getValue().getClass();
-        Object currentValue = property.getValue(parent).getValue();
-        if (currentValue == null || !typeUsedForSchema.equals(currentValue.getClass())) {
-            throw new GradleException("Nested property '" + property.getName() + "' changed after first scanning from " + typeUsedForSchema + " to " + currentValue +"!");
-        }
+        return value;
     }
 }

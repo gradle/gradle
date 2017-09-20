@@ -68,14 +68,18 @@ public class ChangeDetection {
 
     public void ensureTaskInputsAndOutputsDiscovered() {
         if (schemaRoot == null) {
-            schemaRoot = schemaExtractor.extractSchema(task);
-            String taskName = task.getName();
-            DefaultInputPropertyRegistration inputPropertyRegistration = new DefaultInputPropertyRegistration(taskName, taskMutator, resolver);
-            DefaultOutputPropertyRegistration outputPropertyRegistration = new DefaultOutputPropertyRegistration(taskName, taskMutator, resolver);
-            registerInputsAndOutputs(inputPropertyRegistration, outputPropertyRegistration, schemaRoot);
-            taskInputs.setDiscoveredProperties(inputPropertyRegistration);
-            taskOutputs.setDiscoveredProperties(outputPropertyRegistration);
+            discoverTaskInputsAndOutputs();
         }
+    }
+
+    public void discoverTaskInputsAndOutputs() {
+        schemaRoot = schemaExtractor.extractSchema(task);
+        String taskName = task.getName();
+        DefaultInputPropertyRegistration inputPropertyRegistration = new DefaultInputPropertyRegistration(taskName, taskMutator, resolver);
+        DefaultOutputPropertyRegistration outputPropertyRegistration = new DefaultOutputPropertyRegistration(taskName, taskMutator, resolver);
+        registerInputsAndOutputs(inputPropertyRegistration, outputPropertyRegistration, schemaRoot);
+        taskInputs.setDiscoveredProperties(inputPropertyRegistration);
+        taskOutputs.setDiscoveredProperties(outputPropertyRegistration);
     }
 
     private void registerInputsAndOutputs(DefaultInputPropertyRegistration inputPropertyRegistration, DefaultOutputPropertyRegistration outputPropertyRegistration, SchemaRoot schemaRoot) {
