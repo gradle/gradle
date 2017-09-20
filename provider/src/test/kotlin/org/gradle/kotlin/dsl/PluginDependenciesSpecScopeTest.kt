@@ -2,7 +2,7 @@ package org.gradle.kotlin.dsl
 
 import org.gradle.groovy.scripts.StringScriptSource
 
-import org.gradle.plugin.use.PluginDependenciesSpec
+import org.gradle.plugin.dsl.PluginDependenciesSpec
 import org.gradle.plugin.use.internal.PluginRequestCollector
 
 import org.hamcrest.CoreMatchers.equalTo
@@ -67,7 +67,7 @@ fun expecting(vararg expected: Plugin, block: PluginDependenciesSpec.() -> Unit)
 
 fun plugins(block: PluginDependenciesSpecScope.() -> Unit) =
     PluginRequestCollector(StringScriptSource("script", "")).run {
-        PluginDependenciesSpecScope(createSpec(1)).block()
+        PluginDependenciesSpecScope(createPluginDependencySpec(1)).block()
         listPluginRequests()
     }
 

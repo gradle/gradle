@@ -197,7 +197,7 @@ class KotlinBuildScriptCompiler(
 
         val (lineNumber, compiledScript) = compiledPluginsBlock
         val pluginsBlockClass = classFrom(compiledScript, baseScope.createChild("plugins"))
-        val pluginDependenciesSpec = pluginRequestCollector.createSpec(lineNumber)
+        val pluginDependenciesSpec = pluginRequestCollector.createPluginDependencySpec(lineNumber)
         withContextClassLoader(pluginsBlockClass.classLoader) {
             try {
                 instantiate(pluginsBlockClass, pluginDependenciesSpec)

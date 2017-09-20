@@ -64,6 +64,12 @@ internal
 typealias JarsProvider = () -> Collection<File>
 
 
+var extensionsJarCacheVersion = 2
+
+
+var extensionsJarCacheId = "kotlin-dsl-extensions-$extensionsJarCacheVersion"
+
+
 class KotlinScriptClassPathProvider(
     val classPathRegistry: ClassPathRegistry,
     val gradleApiJarsProvider: JarsProvider,
@@ -100,7 +106,7 @@ class KotlinScriptClassPathProvider(
 
     private
     fun gradleKotlinDslExtensions(): File =
-        produceFrom("kotlin-dsl-extensions") { outputFile, onProgress ->
+        produceFrom(extensionsJarCacheId) { outputFile, onProgress ->
             generateApiExtensionsJar(outputFile, gradleJars, onProgress)
         }
 
