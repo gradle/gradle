@@ -30,6 +30,7 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
 class CppCompileTest extends AbstractProjectBuilderSpec {
+
     CppCompile cppCompile
     def toolChain = Mock(NativeToolChainInternal)
     def platform = Mock(NativePlatformInternal)

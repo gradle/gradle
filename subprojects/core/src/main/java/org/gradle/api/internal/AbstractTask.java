@@ -370,7 +370,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public final void execute() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskInternal.execute", "Execute the task by requesting it from the command line instead.");
+        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskInternal.execute()", "Execute the task by requesting it from the command line instead.");
         TaskExecuter executer = DeprecationLogger.whileDisabled(new Factory<TaskExecuter>() {
             @Override
             public TaskExecuter create() {

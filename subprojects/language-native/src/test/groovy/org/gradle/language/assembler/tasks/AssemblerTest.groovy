@@ -25,13 +25,9 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
-import org.junit.Rule
 
 class AssemblerTest extends AbstractProjectBuilderSpec {
-    @Rule
-    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     Assemble assembleTask
     def toolChain = Mock(NativeToolChainInternal)

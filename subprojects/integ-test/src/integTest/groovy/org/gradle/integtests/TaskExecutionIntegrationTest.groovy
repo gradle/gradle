@@ -21,10 +21,13 @@ import org.gradle.api.CircularReferenceException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
 import spock.lang.Issue
+import spock.lang.Unroll
 
-import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.*
+import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
+import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.exact
 import static org.hamcrest.Matchers.startsWith
 
+@Unroll
 class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     def taskCanAccessTaskGraph() {
@@ -57,7 +60,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         succeeds "a"
 
         then:
-        result.assertTasksExecuted(":b", ":a");
+        result.assertTasksExecuted(":b", ":a")
     }
 
     def executesAllTasksInASingleBuildAndEachTaskAtMostOnce() {
@@ -79,10 +82,10 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     task e(dependsOn: [a, d]);
 """
         expect:
-        run("a", "b").assertTasksExecuted(":a", ":b");
-        run("a", "a").assertTasksExecuted(":a");
-        run("c", "a").assertTasksExecuted(":a", ":c");
-        run("c", "e").assertTasksExecuted(":a", ":c", ":d", ":e");
+        run("a", "b").assertTasksExecuted(":a", ":b")
+        run("a", "a").assertTasksExecuted(":a")
+        run("c", "a").assertTasksExecuted(":a", ":c")
+        run("c", "e").assertTasksExecuted(":a", ":c", ":d", ":e")
     }
 
     def executesMultiProjectsTasksInASingleBuildAndEachTaskAtMostOnce() {
@@ -96,8 +99,8 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 """
 
         expect:
-        run("a", "c").assertTasksExecuted(":a", ":b", ":c", ":child1:b", ":child1:c", ":child1-2:b", ":child1-2:c", ":child1-2-2:b", ":child1-2-2:c", ":child2:b", ":child2:c");
-        run("b", ":child2:c").assertTasksExecuted(":b", ":child1:b", ":child1-2:b", ":child1-2-2:b", ":child2:b", ":a", ":child2:c");
+        run("a", "c").assertTasksExecuted(":a", ":b", ":c", ":child1:b", ":child1:c", ":child1-2:b", ":child1-2:c", ":child1-2-2:b", ":child1-2-2:c", ":child2:b", ":child2:c")
+        run("b", ":child2:c").assertTasksExecuted(":b", ":child1:b", ":child1-2:b", ":child1-2-2:b", ":child2:b", ":a", ":child2:c")
     }
 
     def executesMultiProjectDefaultTasksInASingleBuildAndEachTaskAtMostOnce() {
@@ -112,7 +115,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 """
 
         expect:
-        run().assertTasksExecuted(":a", ":child1:a", ":child2:a", ":child1:b", ":child2:b");
+        run().assertTasksExecuted(":a", ":child1:a", ":child2:a", ":child1:b", ":child2:b")
     }
 
     def doesNotExecuteTaskActionsWhenDryRunSpecified() {
@@ -170,18 +173,18 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         // Exclude entire branch
-        executer.withTasks(":d").withArguments("-x", "c").run().assertTasksExecuted(":d");
+        executer.withTasks(":d").withArguments("-x", "c").run().assertTasksExecuted(":d")
         // Exclude direct dependency
-        executer.withTasks(":d").withArguments("-x", "b").run().assertTasksExecuted(":a", ":c", ":d");
+        executer.withTasks(":d").withArguments("-x", "b").run().assertTasksExecuted(":a", ":c", ":d")
         // Exclude using paths and multi-project
-        executer.withTasks("d").withArguments("-x", "c").run().assertTasksExecuted(":d", ":sub:d");
-        executer.withTasks("d").withArguments("-x", "sub:c").run().assertTasksExecuted(":a", ":b", ":c", ":d", ":sub:d");
-        executer.withTasks("d").withArguments("-x", ":sub:c").run().assertTasksExecuted(":a", ":b", ":c", ":d", ":sub:d");
-        executer.withTasks("d").withArguments("-x", "d").run().assertTasksExecuted();
+        executer.withTasks("d").withArguments("-x", "c").run().assertTasksExecuted(":d", ":sub:d")
+        executer.withTasks("d").withArguments("-x", "sub:c").run().assertTasksExecuted(":a", ":b", ":c", ":d", ":sub:d")
+        executer.withTasks("d").withArguments("-x", ":sub:c").run().assertTasksExecuted(":a", ":b", ":c", ":d", ":sub:d")
+        executer.withTasks("d").withArguments("-x", "d").run().assertTasksExecuted()
         // Project defaults
-        executer.withArguments("-x", "b").run().assertTasksExecuted(":a", ":c", ":d", ":sub:c", ":sub:d");
+        executer.withArguments("-x", "b").run().assertTasksExecuted(":a", ":c", ":d", ":sub:c", ":sub:d")
         // Unknown task
-        executer.withTasks("d").withArguments("-x", "unknown").runWithFailure().assertThatDescription(startsWith("Task 'unknown' not found in root project"));
+        executer.withTasks("d").withArguments("-x", "unknown").runWithFailure().assertThatDescription(startsWith("Task 'unknown' not found in root project"))
     }
 
     def "unqualified exclude task name does not exclude tasks from parent projects"() {
@@ -238,8 +241,8 @@ task someTask(dependsOn: [someDep, someOtherDep])
 """
 
         expect:
-        executer.withTasks("d").withArguments("-x", "a").run().assertTasksExecuted(":b", ":c", ":d");
-        executer.withTasks("b", "a").withArguments("-x", ":a").run().assertTasksExecuted(":b", ":sub:a");
+        executer.withTasks("d").withArguments("-x", "a").run().assertTasksExecuted(":b", ":c", ":d")
+        executer.withTasks("b", "a").withArguments("-x", ":a").run().assertTasksExecuted(":b", ":sub:a")
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2022")
@@ -710,4 +713,44 @@ task someTask(dependsOn: [someDep, someOtherDep])
         expect:
         succeeds "custom", "--rerun-tasks"
     }
+
+    def "calling `Task.execute()` is deprecated"() {
+        buildFile << """
+            task myTask
+            
+            task executer {
+                doLast {
+                    myTask.execute()
+                }
+            }
+        """
+
+        when:
+        executer.expectDeprecationWarning()
+        succeeds "executer"
+
+        then:
+        output.contains("The TaskInternal.execute() method has been deprecated and is scheduled to be removed in Gradle 5.0. Execute the task by requesting it from the command line instead.")
+    }
+
+    def "#description `Task.executer` is deprecated"() {
+        buildFile << """
+            task myTask
+
+            myTask${scriptSnippet}            
+        """
+
+        when:
+        executer.expectDeprecationWarning()
+        succeeds "myTask"
+
+        then:
+        output.contains("The TaskInternal.executer property has been deprecated and is scheduled to be removed in Gradle 5.0. Execute the task by requesting it from the command line instead.")
+
+        where:
+        description | scriptSnippet
+        "getting" | ".executer"
+        "setting" | ".executer = null"
+    }
+
 }

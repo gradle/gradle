@@ -25,13 +25,9 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppPCHCompileSpec
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
-import org.junit.Rule
 
 class CppPreCompiledHeaderCompileTest extends AbstractProjectBuilderSpec {
-    @Rule
-    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     CppPreCompiledHeaderCompile cppPCHCompile
     def toolChain = Mock(NativeToolChainInternal)
