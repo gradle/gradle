@@ -23,7 +23,9 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.file.RegularFileVar;
 import org.gradle.api.provider.PropertyState;
+import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.internal.MetadataFileGenerator;
+import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
@@ -44,11 +46,11 @@ import java.io.Writer;
  */
 @Incubating
 public class GenerateModuleMetadata extends DefaultTask {
-    private final PropertyState<ComponentWithVariants> component;
+    private final PropertyState<Publication> publication;
     private final RegularFileVar outputFile;
 
     public GenerateModuleMetadata() {
-        component = getProject().getProviders().property(ComponentWithVariants.class);
+        publication = getProject().getProviders().property(Publication.class);
         outputFile = newOutputFile();
         // TODO - should be incremental
         getOutputs().upToDateWhen(Specs.<Task>satisfyNone());
@@ -56,11 +58,11 @@ public class GenerateModuleMetadata extends DefaultTask {
 
     // TODO - this should be an input
     /**
-     * Returns the component to generate the metadata file for.
+     * Returns the module to generate the metadata file for.
      */
     @Internal
-    public PropertyState<ComponentWithVariants> getComponent() {
-        return component;
+    public PropertyState<Publication> getPublication() {
+        return publication;
     }
 
     /**
@@ -74,10 +76,12 @@ public class GenerateModuleMetadata extends DefaultTask {
     @TaskAction
     void run() {
         File file = outputFile.get().getAsFile();
+        PublicationInternal publication = (PublicationInternal) this.publication.get();
+        ComponentWithVariants component = (ComponentWithVariants) publication.getComponent();
         try {
             Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "utf8"));
             try {
-                new MetadataFileGenerator(getServices().get(BuildInvocationScopeId.class)).generateTo(component.get(), writer);
+                new MetadataFileGenerator(getServices().get(BuildInvocationScopeId.class)).generateTo(publication.getCoordinates(), component, writer);
             } finally {
                 writer.close();
             }

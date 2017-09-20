@@ -16,7 +16,12 @@
 
 package org.gradle.api.publish.internal
 
+import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.attributes.Usage
 import org.gradle.api.component.ComponentWithVariants
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.component.SoftwareComponentInternal
+import org.gradle.api.internal.component.UsageContext
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.util.GradleVersion
@@ -25,6 +30,7 @@ import spock.lang.Specification
 
 class MetadataFileGeneratorTest extends Specification {
     def buildId = UniqueId.generate()
+    def id = DefaultModuleVersionIdentifier.newId("group", "module", "1.2")
     def generator = new MetadataFileGenerator(new BuildInvocationScopeId(buildId))
 
     def "writes file for component with no variants"() {
@@ -32,7 +38,7 @@ class MetadataFileGeneratorTest extends Specification {
         def component = Stub(ComponentWithVariants)
 
         when:
-        generator.generateTo(component, writer)
+        generator.generateTo(id, component, writer)
 
         then:
         writer.toString() == """{
@@ -44,5 +50,76 @@ class MetadataFileGeneratorTest extends Specification {
     }
   }
 }"""
+    }
+
+    def "writes file for component with variants"() {
+        def writer = new StringWriter()
+        def component = Stub(TestComponent)
+        def usage1 = Stub(Usage)
+        usage1.name >> "api"
+        def usage2 = Stub(Usage)
+        usage2.name >> "runtime"
+
+        def a1 = Stub(PublishArtifact)
+        a1.file >> new File("artifact-1")
+        a1.extension >> "zip"
+        a1.classifier >> ""
+        def a2 = Stub(PublishArtifact)
+        a2.file >> new File("thing.dll")
+        a2.extension >> "dll"
+        a2.classifier >> "windows"
+
+        def v1 = Stub(UsageContext)
+        v1.usage >> usage1
+        v1.artifacts >> [a1]
+        def v2 = Stub(UsageContext)
+        v2.usage >> usage2
+        v2.artifacts >> [a2]
+
+        component.usages >> [v1, v2]
+
+        when:
+        generator.generateTo(id, component, writer)
+
+        then:
+        writer.toString() == """{
+  "formatVersion": "0.1",
+  "createdBy": {
+    "gradle": {
+      "version": "${GradleVersion.current().version}",
+      "buildId": "${buildId}"
+    }
+  },
+  "variants": [
+    {
+      "name": "api",
+      "attributes": {
+        "usage": "api"
+      },
+      "files": [
+        {
+          "name": "artifact-1",
+          "url": "module-1.2.zip"
+        }
+      ]
+    },
+    {
+      "name": "runtime",
+      "attributes": {
+        "usage": "runtime"
+      },
+      "files": [
+        {
+          "name": "thing.dll",
+          "url": "module-1.2-windows.dll"
+        }
+      ]
+    }
+  ]
+}"""
+    }
+
+    interface TestComponent extends ComponentWithVariants, SoftwareComponentInternal {
+
     }
 }

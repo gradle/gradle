@@ -23,6 +23,7 @@ import org.gradle.util.GradleVersion
 
 class GradleModuleMetadata {
     private Map<String, Object> values
+    private List<Variant> variants
 
     GradleModuleMetadata(TestFile file) {
         file.withReader { r ->
@@ -31,6 +32,18 @@ class GradleModuleMetadata {
         }
         assert values.formatVersion == '0.1'
         assert values.createdBy.gradle.version == GradleVersion.current().version
+        assert values.createdBy.gradle.buildId
+        variants = (values.variants ?: []).collect { new Variant(it.name, it) }
+    }
+
+    List<Variant> getVariants() {
+        return variants
+    }
+
+    Variant variant(String name) {
+        def matches = variants.findAll { it.name == name }
+        assert matches.size() == 1
+        return matches.first()
     }
 
     private Map<String, Object> readObject(JsonReader reader) {
@@ -70,5 +83,29 @@ class GradleModuleMetadata {
         }
         reader.endArray()
         return values
+    }
+
+    static class Variant {
+        final String name
+        private final Map<String, Object> values
+
+        Variant(String name, Map<String, Object> values) {
+            this.name = name
+            this.values = values
+        }
+
+        List<?> getFiles() {
+            return (values.files ?: []).collect { new File(it.name, it.url) }
+        }
+    }
+
+    static class File {
+        final String name
+        final String url
+
+        File(String name, String url) {
+            this.name = name
+            this.url = url
+        }
     }
 }

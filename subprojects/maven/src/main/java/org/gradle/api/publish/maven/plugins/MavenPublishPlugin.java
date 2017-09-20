@@ -178,7 +178,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
                 public void execute(final GenerateModuleMetadata generateTask) {
                     generateTask.setDescription("Generates the Gradle metadata file for publication '" + publicationName + "'.");
                     generateTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
-                    generateTask.getComponent().set((ComponentWithVariants) publication.getComponent());
+                    generateTask.getPublication().set(publication);
                     // TODO - should deal with build dir changes
                     generateTask.getOutputFile().set(new File(buildDir, "publications/" + publication.getName() + "/module.json"));
                 }

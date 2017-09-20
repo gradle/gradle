@@ -19,7 +19,6 @@ package org.gradle.language.cpp
 import org.gradle.nativeplatform.fixtures.AbstractNativePublishingIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
-import org.gradle.test.fixtures.GradleModuleMetadata
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.junit.Assume
 
@@ -58,21 +57,35 @@ class CppExecutablePublishingIntegrationTest extends AbstractNativePublishingInt
 
         def main = repo.module('some.group', 'test', '1.2')
         main.assertPublished()
-        main.parsedPom.scopes.isEmpty()
-        new GradleModuleMetadata(main.artifactFile(classifier: 'module', type: 'json'))
         main.assertArtifactsPublished("test-1.2.pom", "test-1.2-module.json")
+        main.parsedPom.scopes.isEmpty()
+        main.parsedModuleMetadata.variants.empty
 
         def debug = repo.module('some.group', 'test_debug', '1.2')
         debug.assertPublished()
-        debug.parsedPom.scopes.isEmpty()
-        debug.assertArtifactsPublished(withExecutableSuffix("test_debug-1.2"), "test_debug-1.2.pom", "test_debug-1.2-module.json")
+        debug.assertArtifactsPublished(executableName("test_debug-1.2"), "test_debug-1.2.pom", "test_debug-1.2-module.json")
         debug.artifactFile(type: executableExtension).assertIsCopyOf(executable("build/exe/main/debug/test").file)
+
+        debug.parsedPom.scopes.isEmpty()
+
+        def debugMetadata = debug.parsedModuleMetadata
+        debugMetadata.variants.size() == 1
+        debugMetadata.variant("native-runtime").files.size() == 1
+        debugMetadata.variant("native-runtime").files[0].name == executableName('test')
+        debugMetadata.variant("native-runtime").files[0].url == executableName("test_debug-1.2")
 
         def release = repo.module('some.group', 'test_release', '1.2')
         release.assertPublished()
-        release.parsedPom.scopes.isEmpty()
-        release.assertArtifactsPublished(withExecutableSuffix("test_release-1.2"), "test_release-1.2.pom", "test_release-1.2-module.json")
+        release.assertArtifactsPublished(executableName("test_release-1.2"), "test_release-1.2.pom", "test_release-1.2-module.json")
         release.artifactFile(type: executableExtension).assertIsCopyOf(executable("build/exe/main/release/test").file)
+
+        release.parsedPom.scopes.isEmpty()
+
+        def releaseMetadata = release.parsedModuleMetadata
+        releaseMetadata.variants.size() == 1
+        releaseMetadata.variant("native-runtime").files.size() == 1
+        releaseMetadata.variant("native-runtime").files[0].name == executableName('test')
+        releaseMetadata.variant("native-runtime").files[0].url == executableName("test_release-1.2")
     }
 
     def "can publish an executable and library to a Maven repository"() {

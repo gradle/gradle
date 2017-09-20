@@ -18,6 +18,7 @@ package org.gradle.test.fixtures.maven
 
 import groovy.xml.MarkupBuilder
 import org.gradle.test.fixtures.AbstractModule
+import org.gradle.test.fixtures.GradleModuleMetadata
 import org.gradle.test.fixtures.Module
 import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.file.TestFile
@@ -213,6 +214,10 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     MavenPom getParsedPom() {
         return new MavenPom(pomFile)
+    }
+
+    GradleModuleMetadata getParsedModuleMetadata() {
+        return new GradleModuleMetadata(artifactFile(classifier: 'module', type: 'json'))
     }
 
     DefaultMavenMetaData getRootMetaData() {

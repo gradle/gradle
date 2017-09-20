@@ -17,14 +17,19 @@
 package org.gradle.api.publish.internal;
 
 import com.google.gson.stream.JsonWriter;
-import org.gradle.api.component.ChildComponent;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.ComponentWithVariants;
-import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.api.internal.component.UsageContext;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
+import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class MetadataFileGenerator {
     private final BuildInvocationScopeId buildInvocationScopeId;
@@ -33,7 +38,7 @@ public class MetadataFileGenerator {
         this.buildInvocationScopeId = buildInvocationScopeId;
     }
 
-    public void generateTo(ComponentWithVariants component, Writer writer) throws IOException {
+    public void generateTo(ModuleVersionIdentifier coordinates, ComponentWithVariants component, Writer writer) throws IOException {
         JsonWriter jsonWriter = new JsonWriter(writer);
         jsonWriter.setHtmlSafe(false);
         jsonWriter.setIndent("  ");
@@ -50,18 +55,61 @@ public class MetadataFileGenerator {
         jsonWriter.value(buildInvocationScopeId.getId().asString());
         jsonWriter.endObject();
         jsonWriter.endObject();
-        if (!component.getVariants().isEmpty()) {
+        Set<UsageContext> variants = new LinkedHashSet<UsageContext>();
+        collectVariants(component, variants);
+        if (!variants.isEmpty()) {
             jsonWriter.name("variants");
             jsonWriter.beginArray();
-            for (ChildComponent child : component.getVariants()) {
+            for (UsageContext variant : variants) {
                 jsonWriter.beginObject();
                 jsonWriter.name("name");
-                jsonWriter.value(((SoftwareComponent)child).getName());
+                // TODO - give the variant a name
+                jsonWriter.value(variant.getUsage().getName());
+                jsonWriter.name("attributes");
+                jsonWriter.beginObject();
+                jsonWriter.name("usage");
+                jsonWriter.value(variant.getUsage().getName());
+                jsonWriter.endObject();
+                if (!variant.getArtifacts().isEmpty()) {
+                    jsonWriter.name("files");
+                    jsonWriter.beginArray();
+                    for (PublishArtifact artifact : variant.getArtifacts()) {
+                        jsonWriter.beginObject();
+                        jsonWriter.name("name");
+                        jsonWriter.value(artifact.getFile().getName());
+
+                        jsonWriter.name("url");
+                        // TODO - do not assume Maven layout
+                        StringBuilder artifactPath = new StringBuilder();
+                        artifactPath.append(coordinates.getName());
+                        artifactPath.append('-');
+                        artifactPath.append(coordinates.getVersion());
+                        if (GUtil.isTrue(artifact.getClassifier())) {
+                            artifactPath.append('-');
+                            artifactPath.append(artifact.getClassifier());
+                        }
+                        if (GUtil.isTrue(artifact.getExtension())) {
+                            artifactPath.append('.');
+                            artifactPath.append(artifact.getExtension());
+                        }
+                        jsonWriter.value(artifactPath.toString());
+
+                        jsonWriter.endObject();
+                    }
+                    jsonWriter.endArray();
+                }
                 jsonWriter.endObject();
             }
             jsonWriter.endArray();
         }
         jsonWriter.endObject();
         jsonWriter.flush();
+    }
+
+    private void collectVariants(ComponentWithVariants component, Set<UsageContext> dest) {
+        if (component instanceof SoftwareComponentInternal) {
+            SoftwareComponentInternal softwareComponentInternal = (SoftwareComponentInternal) component;
+            dest.addAll(softwareComponentInternal.getUsages());
+        }
     }
 }
