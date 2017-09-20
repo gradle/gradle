@@ -95,7 +95,7 @@ The plugins DSL is currently <<feature_lifecycle,incubating>>. Please be aware t
 
 ====
 
-The new plugins DSL provides a succinct and convenient way to declare plugin dependencies. It works with the http://plugins.gradle.org[Gradle plugin portal] to provide easy access to both core and community plugins. The plugins DSL block configures an instance of api:org.gradle.plugin.use.PluginDependenciesSpec[].
+The new plugins DSL provides a succinct and convenient way to declare plugin dependencies. It works with the http://plugins.gradle.org[Gradle plugin portal] to provide easy access to both core and community plugins. The plugins DSL block configures an instance of api:org.gradle.plugin.dsl.PluginDependenciesSpec[].
 
 To apply a core plugin, the short name can be used:
 
@@ -113,7 +113,7 @@ To apply a community plugin from the portal, the fully qualified plugin id must 
 </sample>
 ++++
 
-See api:org.gradle.plugin.use.PluginDependenciesSpec[] for more information on using the Plugin DSL.
+See api:org.gradle.plugin.dsl.PluginDependenciesSpec[] for more information on using the Plugin DSL.
 
 
 [[plugins_dsl_limitations]]
