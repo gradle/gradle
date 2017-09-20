@@ -52,6 +52,7 @@ class ToolingApiEclipseModelSourceFolderClasspathAttributesCrossVersionSpec exte
         thrown UnsupportedMethodException
     }
 
+    @TargetGradleVersion(">=1.2 <4.3")
     def "Source folder doesn't define classpath attributes"() {
         setup:
         settingsFile << 'rootProject.name = "root"'
@@ -65,6 +66,7 @@ class ToolingApiEclipseModelSourceFolderClasspathAttributesCrossVersionSpec exte
         project.sourceDirectories.find {it.path == 'src/main/java' }.classpathAttributes.isEmpty()
     }
 
+    @TargetGradleVersion(">=1.2 <4.3")
     def "Source folder defines one classpath attribute"() {
         settingsFile << 'rootProject.name = "root"'
         buildFile <<
@@ -92,6 +94,7 @@ class ToolingApiEclipseModelSourceFolderClasspathAttributesCrossVersionSpec exte
         project.sourceDirectories[0].classpathAttributes[0].value == 'customValue'
     }
 
+    @TargetGradleVersion(">=1.2 <4.3")
     def "Source folder defines multiple classpath attributes"() {
         settingsFile << 'rootProject.name = "root"'
         buildFile <<

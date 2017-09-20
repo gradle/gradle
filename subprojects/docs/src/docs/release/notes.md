@@ -76,6 +76,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 The following supports are deprecated now and will be removed in Gradle 5.0. You should avoid using them:
 
 - Running Gradle older than 2.6 via Tooling API 
+- Running Gradle via Tooling API older than 3.0
 
 Please see [Gradle version and Java version compatibility](userguide/embedding.html#sec:embedding_compatibility) for more details.
 

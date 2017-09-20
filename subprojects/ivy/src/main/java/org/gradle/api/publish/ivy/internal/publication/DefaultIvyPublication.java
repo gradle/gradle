@@ -17,7 +17,6 @@
 package org.gradle.api.publish.ivy.internal.publication;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
@@ -56,11 +55,17 @@ import java.util.Set;
 
 public class DefaultIvyPublication implements IvyPublicationInternal {
 
-    private static final Comparator<? super UsageContext> COMPILE_BEFORE_RUNTIME = new Comparator<UsageContext>() {
-        private final Comparator<String> compileBeforeRuntime = Ordering.explicit(Usage.JAVA_API, Usage.JAVA_RUNTIME);
+    private static final Comparator<? super UsageContext> USAGE_ORDERING = new Comparator<UsageContext>() {
         @Override
         public int compare(UsageContext left, UsageContext right) {
-            return compileBeforeRuntime.compare(left.getUsage().getName(), right.getUsage().getName());
+            // API first
+            if (left.getUsage().getName().equals(Usage.JAVA_API)) {
+                return -1;
+            }
+            if (right.getUsage().getName().equals(Usage.JAVA_API)) {
+                return 1;
+            }
+            return left.getUsage().getName().compareTo(right.getUsage().getName());
         }
     };
 
@@ -142,7 +147,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     private List<UsageContext> getSortedUsageContexts() {
         List<UsageContext> usageContexts = Lists.newArrayList(this.component.getUsages());
-        Collections.sort(usageContexts, COMPILE_BEFORE_RUNTIME);
+        Collections.sort(usageContexts, USAGE_ORDERING);
         return usageContexts;
     }
 

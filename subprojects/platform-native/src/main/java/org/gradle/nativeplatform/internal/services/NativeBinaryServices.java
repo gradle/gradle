@@ -16,7 +16,9 @@
 
 package org.gradle.nativeplatform.internal.services;
 
+import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.internal.file.RelativeFilePathResolver;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
@@ -31,6 +33,7 @@ import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaData
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultUcrtLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultVisualStudioLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultWindowsSdkLocator;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdkLocator;
 
 public class NativeBinaryServices extends AbstractPluginServiceRegistry {
     @Override
@@ -45,9 +48,9 @@ public class NativeBinaryServices extends AbstractPluginServiceRegistry {
 
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
+        registration.addProvider(new BuildScopeServices());
         registration.addProvider(new NativeDependencyResolverServices());
         registration.add(DefaultVisualStudioLocator.class);
-        registration.add(DefaultWindowsSdkLocator.class);
         registration.add(DefaultUcrtLocator.class);
         registration.add(CompilerMetaDataProviderFactory.class);
     }
@@ -55,6 +58,12 @@ public class NativeBinaryServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
         registration.addProvider(new ProjectCompilerServices());
+    }
+
+    private static final class BuildScopeServices {
+        WindowsSdkLocator createWindowsSdkLocator(OperatingSystem os, WindowsRegistry windowsRegistry) {
+            return new DefaultWindowsSdkLocator(os, windowsRegistry);
+        }
     }
 
     private static final class ProjectCompilerServices {
