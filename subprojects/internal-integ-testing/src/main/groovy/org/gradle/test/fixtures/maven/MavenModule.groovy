@@ -15,6 +15,7 @@
  */
 package org.gradle.test.fixtures.maven
 
+import org.gradle.test.fixtures.GradleModuleMetadata
 import org.gradle.test.fixtures.Module
 import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.file.TestFile
@@ -38,6 +39,14 @@ interface MavenModule extends Module {
     MavenModule publishWithChangedContent()
 
     MavenModule withNonUniqueSnapshots()
+
+    MavenModule withNoPom()
+
+    /**
+     * Include the Gradle module metadata file in the published module.
+     * @return this
+     */
+    MavenModule withModuleMetadata()
 
     MavenModule parent(String group, String artifactId, String version)
 
@@ -76,17 +85,21 @@ interface MavenModule extends Module {
      */
     String getPath()
 
-    ModuleArtifact getPom();
+    ModuleArtifact getPom()
+
+    ModuleArtifact getModuleMetadata()
 
     TestFile getPomFile()
 
-    ModuleArtifact getArtifact();
+    ModuleArtifact getArtifact()
 
     TestFile getArtifactFile()
 
     TestFile getMetaDataFile()
 
     MavenPom getParsedPom()
+
+    GradleModuleMetadata getParsedModuleMetadata()
 
     MavenMetaData getRootMetaData()
 

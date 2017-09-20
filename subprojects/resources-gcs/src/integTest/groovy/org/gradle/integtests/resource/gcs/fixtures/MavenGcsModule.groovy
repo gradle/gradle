@@ -38,6 +38,10 @@ class MavenGcsModule extends DelegatingMavenModule<MavenGcsModule> implements Ma
         return new GcsArtifact(server, pomFile, repositoryPath, bucket)
     }
 
+    GcsArtifact getModuleMetadata() {
+        throw new UnsupportedOperationException()
+    }
+
     GcsArtifact getArtifact() {
         return new GcsArtifact(server, artifactFile, repositoryPath, bucket)
     }

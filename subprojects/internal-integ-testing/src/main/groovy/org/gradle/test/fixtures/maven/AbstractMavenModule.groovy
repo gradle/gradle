@@ -35,7 +35,8 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     String type = 'jar'
     String packaging
     int publishCount = 1
-    boolean noMetaData
+    private boolean noMetaData
+    private boolean moduleMetadata
     private final List dependencies = []
     private final List artifacts = []
     final updateFormat = new SimpleDateFormat("yyyyMMddHHmmss")
@@ -74,6 +75,12 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     TestFile getArtifactFile(Map options = [:]) {
         return getModuleArtifact(options).file
+    }
+
+    @Override
+    MavenModule withModuleMetadata() {
+        moduleMetadata = true
+        return this
     }
 
     abstract boolean getUniqueSnapshots()
@@ -234,6 +241,11 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         return getModuleArtifact(type: 'pom')
     }
 
+    @Override
+    ModuleArtifact getModuleMetadata() {
+        return getModuleArtifact(classifier: 'module', type: 'json')
+    }
+
     TestFile getPomFile() {
         return getPom().file
     }
@@ -292,6 +304,16 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     Date getPublishTimestamp() {
         return new Date(updateFormat.parse("20100101120000").time + publishCount * 1000)
+    }
+
+    private void publishModuleMetadata() {
+        moduleDir.createDir()
+        def file = moduleDir.file("$artifactId-${publishArtifactVersion}-module.json")
+        file.text = '''
+            { 
+            "formatVersion": "0.1" 
+            }
+        '''
     }
 
     MavenModule publishPom() {
@@ -385,8 +407,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     abstract String getMetaDataFileContent()
 
-
-    MavenModule withNoMetaData() {
+    MavenModule withNoPom() {
         noMetaData = true
         return this
     }
@@ -394,6 +415,9 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     MavenModule publish() {
         if(!noMetaData) {
             publishPom()
+        }
+        if (moduleMetadata) {
+            publishModuleMetadata()
         }
 
         artifacts.each { artifact ->
