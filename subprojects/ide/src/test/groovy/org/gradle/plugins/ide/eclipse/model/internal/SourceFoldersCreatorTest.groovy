@@ -44,6 +44,7 @@ class SourceFoldersCreatorTest extends Specification {
         java = Mock()
         resources = Mock()
         allSource = Mock()
+        _ * sourceSet.name >> 'source_set'
         _ * sourceSet.allSource >> allSource
         _ * sourceSet.allJava >> java
         _ * sourceSet.resources >> resources
