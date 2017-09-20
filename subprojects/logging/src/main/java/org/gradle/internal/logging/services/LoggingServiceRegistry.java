@@ -106,8 +106,8 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
         return new NestedLogging();
     }
 
-    protected CommandLineConverter<LoggingConfiguration> createCommandLineConverter(LoggingConfigurationBuildOptionFactory loggingConfigurationBuildOptionFactory) {
-        return new LoggingCommandLineConverter(loggingConfigurationBuildOptionFactory);
+    protected CommandLineConverter<LoggingConfiguration> createCommandLineConverter() {
+        return new LoggingCommandLineConverter(new LoggingConfigurationBuildOptionFactory());
     }
 
     protected Clock createTimeProvider() {
