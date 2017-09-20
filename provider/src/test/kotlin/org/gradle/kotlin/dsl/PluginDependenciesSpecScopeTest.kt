@@ -61,7 +61,7 @@ class PluginDependenciesSpecScopeTest {
 
 fun expecting(vararg expected: Plugin, block: PluginDependenciesSpec.() -> Unit) {
     assertThat(
-        plugins(block).map { Plugin(it.id.id, it.version, it.isApply) },
+        plugins(block).map { Plugin(it.id?.id, it.version, it.isApply) },
         equalTo(expected.asList()))
 }
 
@@ -71,7 +71,7 @@ fun plugins(block: PluginDependenciesSpecScope.() -> Unit) =
         listPluginRequests()
     }
 
-fun plugin(id: String, version: String? = null, isApply: Boolean = true) = Plugin(id, version, isApply)
+fun plugin(id: String? = null, version: String? = null, isApply: Boolean = true) = Plugin(id, version, isApply)
 
-data class Plugin(val id: String, val version: String?, val isApply: Boolean)
+data class Plugin(val id: String?, val version: String?, val isApply: Boolean)
 
