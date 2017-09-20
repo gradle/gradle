@@ -16,7 +16,6 @@
 
 package org.gradle.internal.logging.sink;
 
-import com.google.common.collect.Lists;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
@@ -55,6 +54,7 @@ import org.gradle.internal.time.Clock;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -355,7 +355,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private class UserInputConsoleRenderer implements OutputEventListener {
         private final OutputEventListener delegate;
         private final Console console;
-        private final List<OutputEvent> eventQueue = Lists.newArrayList();
+        private final List<OutputEvent> eventQueue = new ArrayList<OutputEvent>();
         private boolean paused;
 
         public UserInputConsoleRenderer(OutputEventListener delegate, Console console) {
@@ -405,7 +405,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
 
     private class UserInputStandardOutputRenderer implements OutputEventListener {
         private final OutputEventListener delegate;
-        private final List<OutputEvent> eventQueue = Lists.newArrayList();
+        private final List<OutputEvent> eventQueue = new ArrayList<OutputEvent>();
         private boolean paused;
 
         public UserInputStandardOutputRenderer(OutputEventListener delegate) {
