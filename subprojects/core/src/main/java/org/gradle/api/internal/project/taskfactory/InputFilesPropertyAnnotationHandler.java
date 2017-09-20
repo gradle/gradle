@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.InputPropertyRegistration;
 import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 
 import java.lang.annotation.Annotation;
@@ -33,7 +33,7 @@ public class InputFilesPropertyAnnotationHandler extends AbstractInputPropertyAn
         // no-op
     }
 
-    protected TaskInputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, Callable<Object> futureValue) {
-        return task.getInputs().files(futureValue);
+    protected TaskInputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, InputPropertyRegistration inputs, Callable<Object> futureValue) {
+        return inputs.files(futureValue);
     }
 }

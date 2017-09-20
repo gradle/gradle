@@ -16,8 +16,8 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.file.FileSystemLocation;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.OutputPropertyRegistration;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 import org.gradle.util.DeferredUtil;
 
@@ -42,8 +42,8 @@ public class OutputFilePropertyAnnotationHandler extends AbstractOutputPropertyA
     }
 
     @Override
-    protected TaskOutputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, Callable<Object> futureValue) {
-        return task.getOutputs().file(futureValue);
+    protected TaskOutputFilePropertyBuilder createPropertyBuilder(OutputPropertyRegistration outputs, Callable<Object> futureValue) {
+        return outputs.file(futureValue);
     }
 
     private File toFile(Object value) {

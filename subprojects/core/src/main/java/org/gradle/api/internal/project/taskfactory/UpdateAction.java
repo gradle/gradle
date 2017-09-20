@@ -15,10 +15,22 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.tasks.InputPropertyRegistration;
+import org.gradle.api.tasks.OutputPropertyRegistration;
+import org.gradle.api.tasks.TaskDestroyables;
 
 import java.util.concurrent.Callable;
 
-public interface UpdateAction {
-    void update(TaskInternal task, Callable<Object> futureValue);
+public abstract class UpdateAction {
+    public static final UpdateAction NO_OP_CONFIGURATION_ACTION = new UpdateAction() {};
+
+
+    public void updateInputs(InputPropertyRegistration inputs, String propertyName, Callable<Object> futureValue) {
+    }
+
+    public void updateOutputs(OutputPropertyRegistration outputs, String propertyName, Callable<Object> futureValue) {
+    }
+
+    public void updateDestroyables(TaskDestroyables destroyables, String propertyName, Callable<Object> futureValue) {
+    }
 }

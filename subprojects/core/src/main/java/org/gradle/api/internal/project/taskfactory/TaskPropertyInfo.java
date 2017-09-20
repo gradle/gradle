@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.DeprecationLogger;
@@ -24,7 +23,6 @@ import org.gradle.util.DeprecationLogger;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.concurrent.Callable;
 
 public class TaskPropertyInfo implements Comparable<TaskPropertyInfo> {
     private static final ValidationAction NO_OP_VALIDATION_ACTION = new ValidationAction() {
@@ -42,10 +40,7 @@ public class TaskPropertyInfo implements Comparable<TaskPropertyInfo> {
         public void checkValid(Collection<String> messages) {
         }
     };
-    private static final UpdateAction NO_OP_CONFIGURATION_ACTION = new UpdateAction() {
-        public void update(TaskInternal task, Callable<Object> futureValue) {
-        }
-    };
+    private static final UpdateAction NO_OP_CONFIGURATION_ACTION = new UpdateAction() {};
 
     private final TaskPropertyInfo parent;
     private final String propertyName;

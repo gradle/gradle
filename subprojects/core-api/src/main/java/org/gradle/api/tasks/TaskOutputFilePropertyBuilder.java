@@ -23,6 +23,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.HasInternalProtocol;
 
+import javax.annotation.Nullable;
+
 /**
  * Describes an output property of a task that contains zero or more files.
  *
@@ -35,7 +37,7 @@ public interface TaskOutputFilePropertyBuilder extends TaskFilePropertyBuilder, 
      * {@inheritDoc}
      */
     @Override
-    TaskOutputFilePropertyBuilder withPropertyName(String propertyName);
+    TaskOutputFilePropertyBuilder withPropertyName(@Nullable String propertyName);
 
     /**
      * Marks a task property as optional. This means that a value does not have to be specified for the property, but any
@@ -92,7 +94,7 @@ public interface TaskOutputFilePropertyBuilder extends TaskFilePropertyBuilder, 
      */
     @Deprecated
     @Override
-    TaskOutputFilePropertyBuilder files(Object... paths);
+    TaskOutputFilePropertyBuilder files(@Nullable Object... paths);
 
     /**
      * Throws {@link UnsupportedOperationException}.

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.project.taskfactory
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
 
 class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
@@ -99,5 +100,151 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         output.contains "Output: outputDirectory [outputs]"
         output.contains "Output: outputFile [output.txt]"
         output.contains "Output: outputFiles [output1.txt, output2.txt]"
+    }
+
+    def "nested input and output properties are discovered"() {
+        buildFile << classesForNestedProperties()
+        buildFile << """
+            task test(type: MyTask) {           
+                input = "someString"
+                bean = new NestedProperty(
+                    inputDir: file('input'),
+                    input: 'someString',
+                    outputDir: file("\$buildDir/output"),  
+                    nestedBean: new AnotherNestedProperty(inputFile: file('inputFile'))
+                )
+            }        
+
+            task printMetadata(type: PrintInputsAndOutputs) {
+                task = test
+            }
+        """
+
+        expect:
+        succeeds "test", "printMetadata"
+        output =~ /Input property 'input' : 'someString'/
+        output =~ /Input property 'bean\.class' : 'NestedProperty'/
+        output =~ /Input property 'bean\.input' : 'someString'/
+        output =~ /Input property 'bean\.nestedBean.class' : 'AnotherNestedProperty'/
+        output =~ /Input file property 'bean\.inputDir'/
+        output =~ /Input file property 'bean\.nestedBean.inputFile'/
+        output =~ /Output file property 'bean\.outputDir'/
+    }
+
+    def "nested destroyables are discovered"() {
+        buildFile << classesForNestedProperties()
+        buildFile << """
+            task destroy(type: MyDestroyer) {
+                bean = new DestroyerBean(
+                    destroyedFile: file("\$buildDir/destroyed")
+                )
+            }               
+            task printMetadata(type: PrintInputsAndOutputs) {
+                task = destroy
+            }
+        """
+
+        when:
+        succeeds "destroy", "printMetadata"
+
+        then:
+        output =~ /Destroys: '.*destroyed'/
+        output =~ /Input property 'bean\.class' : 'DestroyerBean'/
+    }
+
+    @ToBeImplemented
+    def "input properties can be overridden"() {
+        buildFile << classesForNestedProperties()
+        buildFile << """
+            task test(type: MyTask) { 
+                input = "someString"
+                bean = new NestedProperty(
+                    inputDir: file('input'),
+                    input: 'someString',
+                    outputDir: file("\$buildDir/output"),  
+                    nestedBean: new AnotherNestedProperty(inputFile: file('inputFile'))
+                )                    
+                inputs.property("input", "someOtherString") 
+                inputs.property("bean.input", "otherNestedString")
+            }                        
+            task printMetadata(type: PrintInputsAndOutputs) {
+                task = test
+            }
+        """
+
+        when:
+        succeeds "test", "printMetadata"
+
+        then:
+        output =~ /Input property 'input' : 'someOtherString'/
+        output =~ /Input property 'bean.input' : 'otherNestedString'/
+
+    }
+
+    String classesForNestedProperties() {
+        """
+            class MyTask extends DefaultTask {
+                @Nested
+                Object bean
+
+                @Input
+                String input
+                
+                @TaskAction
+                void doStuff() {}
+            }
+            
+            class NestedProperty {
+                @InputDirectory
+                File inputDir
+                
+                @OutputDirectory
+                File outputDir      
+                        
+                @Input
+                String input
+
+                @Nested
+                Object nestedBean
+
+                @Destroys File destroyedFile
+            }                    
+
+            class AnotherNestedProperty {
+                @InputFile
+                File inputFile
+            }     
+
+            class PrintInputsAndOutputs extends DefaultTask {
+                Task task
+
+                @TaskAction
+                void printInputsAndOutputs() {
+                    task.inputs.properties.entrySet().each {
+                        println "Input property '\${it.key}' : '\${it.value}'"
+                    }        
+                    task.inputs.fileProperties.each {
+                        println "Input file property '\${it.propertyName}'"
+                    }
+                    task.outputs.fileProperties.each {
+                        println "Output file property '\${it.propertyName}'"
+                    }
+                    task.destroyables.files.files.each {
+                        println "Destroys: '\${it}'"
+                    }
+                }
+            }      
+            
+            class MyDestroyer extends DefaultTask {
+                @TaskAction void doStuff() {}
+
+                @Nested
+                Object bean
+            }              
+
+            class DestroyerBean {
+                @Destroys File destroyedFile
+            }            
+        """
     }
 }

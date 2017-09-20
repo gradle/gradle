@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.internal.ChangeDetection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
@@ -29,12 +30,14 @@ public class DefaultTaskDestroyables implements TaskDestroyables, TaskDestroyabl
     private final FileResolver resolver;
     private final TaskInternal task;
     private final TaskMutator taskMutator;
+    private final ChangeDetection changeDetection;
     private DefaultConfigurableFileCollection destroyFiles;
 
-    public DefaultTaskDestroyables(FileResolver resolver, TaskInternal task, TaskMutator taskMutator) {
+    public DefaultTaskDestroyables(FileResolver resolver, TaskInternal task, TaskMutator taskMutator, ChangeDetection changeDetection) {
         this.resolver = resolver;
         this.task = task;
         this.taskMutator = taskMutator;
+        this.changeDetection = changeDetection;
     }
 
     @Override
@@ -61,13 +64,14 @@ public class DefaultTaskDestroyables implements TaskDestroyables, TaskDestroyabl
     public DefaultConfigurableFileCollection getFiles() {
         if (destroyFiles == null) {
             destroyFiles = new DefaultConfigurableFileCollection(task + " destroy files", resolver, null);
-
+            changeDetection.ensureTaskInputsAndOutputsDiscovered();
         }
         return destroyFiles;
     }
 
     @Override
     public Collection<File> getFilesReadOnly() {
+        changeDetection.ensureTaskInputsAndOutputsDiscovered();
         if (destroyFiles != null) {
             return destroyFiles.getFiles();
         }

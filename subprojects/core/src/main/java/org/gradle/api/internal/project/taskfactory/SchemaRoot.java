@@ -16,25 +16,30 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.tasks.Destroys;
-import org.gradle.api.tasks.TaskDestroyables;
+import java.util.Map;
 
-import java.lang.annotation.Annotation;
-import java.util.concurrent.Callable;
+import static org.gradle.api.internal.project.taskfactory.UpdateAction.NO_OP_CONFIGURATION_ACTION;
 
-public class DestroysPropertyAnnotationHandler implements PropertyAnnotationHandler {
-    @Override
-    public Class<? extends Annotation> getAnnotationType() {
-        return Destroys.class;
+public class SchemaRoot implements SchemaNode {
+    private final Map<String, SchemaNode> children;
+    private final Object instance;
+
+    SchemaRoot(Map<String, SchemaNode> children, Object instance) {
+        this.children = children;
+        this.instance = instance;
+    }
+
+    public Map<String, SchemaNode> getChildren() {
+        return children;
     }
 
     @Override
-    public void attachActions(TaskPropertyActionContext context) {
-        context.setConfigureAction(new UpdateAction() {
-            @Override
-            public void updateDestroyables(TaskDestroyables destroyables, String propertyName, Callable<Object> futureValue) {
-                destroyables.files(futureValue);
-            }
-        });
+    public UpdateAction getConfigureAction() {
+        return NO_OP_CONFIGURATION_ACTION;
+    }
+
+    @Override
+    public Object call() throws Exception {
+        return instance;
     }
 }

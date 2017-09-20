@@ -215,7 +215,7 @@ These issues may affect the correctness of your build when using the build cache
 
 | Environment variables are not tracked as inputs.
 | For tasks that fork processes (like `Test`), Gradle does not track any of the environment variables visible to the process. This can allow undeclared inputs to affect the outputs of the task.
-| Declare environment variables as inputs to the task with api:org.gradle.api.tasks.TaskInputs#property(java.lang.String,java.lang.Object)[].
+| Declare environment variables as inputs to the task with api:org.gradle.api.tasks.InputPropertyRegistration#property(java.lang.String,java.lang.Object)[].
 
 | Changes in Gradle's file encoding that affect the build script
 | Gradle can produce different task output based on the file encoding used by the JVM. Gradle will use a default file encoding based on the operating system if `file.encoding` is not explicitly set.

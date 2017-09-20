@@ -106,7 +106,61 @@
             "changes": [
                 "Interface has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.InputPropertyRegistration",
+            "member": "Method org.gradle.api.tasks.InputPropertyRegistration.dir(java.lang.Object)",
+            "acceptation": "Existing method was extracted into new interface -> No incubating"
+        },
+        {
+            "type": "org.gradle.api.tasks.InputPropertyRegistration",
+            "member": "Method org.gradle.api.tasks.InputPropertyRegistration.file(java.lang.Object)",
+            "acceptation": "Existing method was extracted into new interface -> No incubating"
+        },
+        {
+            "type": "org.gradle.api.tasks.InputPropertyRegistration",
+            "member": "Method org.gradle.api.tasks.InputPropertyRegistration.files(java.lang.Object[])",
+            "acceptation": "Existing method was extracted into new interface -> No incubating"
+        },
+        {
+            "type": "org.gradle.api.tasks.InputPropertyRegistration",
+            "member": "Method org.gradle.api.tasks.InputPropertyRegistration.getHasInputs()",
+            "acceptation": "Existing method was extracted into new interface -> No incubating"
+        },
+        {
+            "type": "org.gradle.api.tasks.InputPropertyRegistration",
+            "member": "Method org.gradle.api.tasks.InputPropertyRegistration.properties(java.util.Map)",
+            "acceptation": "Existing method was extracted into new interface -> No incubating"
+        },
+        {
+            "type": "org.gradle.api.tasks.InputPropertyRegistration",
+            "member": "Method org.gradle.api.tasks.InputPropertyRegistration.property(java.lang.String,java.lang.Object)",
+            "acceptation": "Existing method was extracted into new interface -> No incubating"
+        },
+        {
+            "type": "org.gradle.api.tasks.OutputPropertyRegistration",
+            "member": "Method org.gradle.api.tasks.OutputPropertyRegistration.dir(java.lang.Object)",
+            "acceptation": "Existing method was extracted into new interface -> No incubating"
+        },
+        {
+            "type": "org.gradle.api.tasks.OutputPropertyRegistration",
+            "member": "Method org.gradle.api.tasks.OutputPropertyRegistration.dirs(java.lang.Object[])",
+            "acceptation": "Existing method was extracted into new interface -> No incubating"
+        },
+        {
+            "type": "org.gradle.api.tasks.OutputPropertyRegistration",
+            "member": "Method org.gradle.api.tasks.OutputPropertyRegistration.file(java.lang.Object)",
+            "acceptation": "Existing method was extracted into new interface -> No incubating"
+        },
+        {
+            "type": "org.gradle.api.tasks.OutputPropertyRegistration",
+            "member": "Method org.gradle.api.tasks.OutputPropertyRegistration.files(java.lang.Object[])",
+            "acceptation": "Existing method was extracted into new interface -> No incubating"
+        },
+        {
+            "type": "org.gradle.api.tasks.OutputPropertyRegistration",
+            "member": "Method org.gradle.api.tasks.OutputPropertyRegistration.getHasOutput()",
+            "acceptation": "Existing method was extracted into new interface -> No incubating"
         }
-
     ]
 }

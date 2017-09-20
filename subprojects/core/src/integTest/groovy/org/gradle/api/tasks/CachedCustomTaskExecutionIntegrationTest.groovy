@@ -72,6 +72,25 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         skippedTasks.contains ":customTask"
     }
 
+    def "don't evalute output properties too often"() {
+        buildFile << """
+            class TestTask extends DefaultTask {
+                int count = 0
+                @OutputFile
+                File getOutputFile() {
+                    count++
+                    println "Evaluating outputFile \$count"
+                    return project.file("foo.bar")
+                }
+            }
+            
+            task test(type: TestTask)
+        """
+
+        expect:
+        succeeds "test"
+    }
+
     def "changing custom Groovy task implementation in buildSrc doesn't invalidate built-in task"() {
         def taskSourceFile = file("buildSrc/src/main/groovy/CustomTask.groovy")
         taskSourceFile << customGroovyTask()

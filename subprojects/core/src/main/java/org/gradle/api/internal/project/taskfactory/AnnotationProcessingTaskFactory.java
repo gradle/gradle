@@ -69,7 +69,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
 
         TaskClassValidator validator = taskClassInfo.getValidator();
         if (validator.hasAnythingToValidate()) {
-            validator.addInputsAndOutputs(task);
+            task.addValidator(validator);
         }
 
         // Enabled caching if task type is annotated with @CacheableTask

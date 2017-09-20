@@ -19,6 +19,7 @@ package org.gradle.api.internal.project.taskfactory;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.ChangeDetection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
 
@@ -40,30 +41,47 @@ public class TaskClassValidator implements TaskValidator {
         this.cacheable = cacheable;
     }
 
-    public void addInputsAndOutputs(final TaskInternal task) {
-        task.addValidator(this);
+    public void registerInputsAndOutputs(ChangeDetection changeDetection, Object instance) {
+        addInputs(changeDetection, instance);
+        addOutputs(changeDetection, instance);
+        addDestroyables(changeDetection, instance);
+    }
+
+    public void addInputs(ChangeDetection changeDetection, Object instance) {
         for (TaskPropertyInfo property : annotatedProperties) {
-            property.getConfigureAction().update(task, new FutureValue(property, task));
+            property.getConfigureAction().updateInputs(changeDetection.getInputs(), property.getName(), new FutureValue(property, instance));
+        }
+    }
+
+    public void addOutputs(ChangeDetection changeDetection, Object instance) {
+        for (TaskPropertyInfo property : annotatedProperties) {
+            property.getConfigureAction().updateOutputs(changeDetection.getOutputs(), property.getName(), new FutureValue(property, instance));
+        }
+    }
+
+    public void addDestroyables(ChangeDetection changeDetection, Object instance) {
+        for (TaskPropertyInfo property : annotatedProperties) {
+            property.getConfigureAction().updateDestroyables(changeDetection.getDestroyables(), property.getName(), new FutureValue(property, instance));
         }
     }
 
     private static class FutureValue implements Callable<Object> {
         private final TaskPropertyInfo property;
-        private final TaskInternal task;
+        private final Object instance;
 
-        private FutureValue(TaskPropertyInfo property, TaskInternal task) {
+        private FutureValue(TaskPropertyInfo property, Object instance) {
             this.property = property;
-            this.task = task;
+            this.instance = instance;
         }
 
         @Override
         public Object call() throws Exception {
-            return property.getValue(task).getValue();
+            return property.getValue(instance).getValue();
         }
 
         @Override
         public String toString() {
-            return String.format("property (%s) for task '%s'", property, task.getName());
+            return String.format("property (%s) for task '%s'", property, instance);
         }
     }
 

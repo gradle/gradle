@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks
 
 import org.gradle.api.GradleException
+import org.gradle.api.internal.ChangeDetection
 import org.gradle.api.internal.OverlappingOutputs
 import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.TaskInternal
@@ -48,7 +49,13 @@ class DefaultTaskOutputsTest extends Specification {
         toString() >> "task 'task'"
         getProject() >> project
     }
-    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs({new File(it)} as FileResolver, task, taskStatusNagger)
+    def changeDetection = Mock(ChangeDetection)
+    private FileResolver resolver = { new File(it) } as FileResolver
+    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs(resolver, task, taskStatusNagger, changeDetection)
+
+    def setup() {
+        outputs.discoveredProperties = new DefaultOutputPropertyRegistration("task", taskStatusNagger, resolver)
+    }
 
     void hasNoOutputsByDefault() {
         setup:

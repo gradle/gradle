@@ -16,25 +16,8 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.tasks.Destroys;
-import org.gradle.api.tasks.TaskDestroyables;
-
-import java.lang.annotation.Annotation;
 import java.util.concurrent.Callable;
 
-public class DestroysPropertyAnnotationHandler implements PropertyAnnotationHandler {
-    @Override
-    public Class<? extends Annotation> getAnnotationType() {
-        return Destroys.class;
-    }
-
-    @Override
-    public void attachActions(TaskPropertyActionContext context) {
-        context.setConfigureAction(new UpdateAction() {
-            @Override
-            public void updateDestroyables(TaskDestroyables destroyables, String propertyName, Callable<Object> futureValue) {
-                destroyables.files(futureValue);
-            }
-        });
-    }
+public interface SchemaNode extends Callable<Object> {
+    UpdateAction getConfigureAction();
 }

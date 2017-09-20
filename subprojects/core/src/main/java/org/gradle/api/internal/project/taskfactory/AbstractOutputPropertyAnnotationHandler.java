@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.tasks.OutputPropertyRegistration;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 
 import java.util.Collection;
@@ -33,15 +33,15 @@ public abstract class AbstractOutputPropertyAnnotationHandler implements Propert
         });
         context.setConfigureAction(new UpdateAction() {
             @Override
-            public void update(TaskInternal task, final Callable<Object> futureValue) {
-                createPropertyBuilder(context, task, futureValue)
-                    .withPropertyName(context.getName())
+            public void updateOutputs(OutputPropertyRegistration outputs, String propertyName, final Callable<Object> futureValue) {
+                createPropertyBuilder(outputs, futureValue)
+                    .withPropertyName(propertyName)
                     .optional(context.isOptional());
             }
         });
     }
 
-    protected abstract TaskOutputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, Callable<Object> futureValue);
+    protected abstract TaskOutputFilePropertyBuilder createPropertyBuilder(OutputPropertyRegistration outputs, Callable<Object> futureValue);
 
     protected abstract void validate(String propertyName, Object value, Collection<String> messages);
 }
