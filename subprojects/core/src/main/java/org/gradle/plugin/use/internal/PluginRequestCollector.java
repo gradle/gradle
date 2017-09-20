@@ -20,18 +20,18 @@ import org.gradle.api.Transformer;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Pair;
 import org.gradle.internal.exceptions.LocationAwareException;
+import org.gradle.plugin.dsl.BinaryPluginDependencySpec;
+import org.gradle.plugin.dsl.PluginDependenciesSpec;
+import org.gradle.plugin.dsl.ScriptPluginDependencySpec;
 import org.gradle.plugin.management.internal.BinaryPluginRequest;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.management.internal.ScriptPluginRequest;
-import org.gradle.plugin.use.PluginDependency;
-import org.gradle.plugin.use.PluginDependencySpec;
-import org.gradle.plugin.use.PluginDependenciesSpec;
 import org.gradle.plugin.use.PluginId;
-import org.gradle.plugin.use.ScriptPluginDependencySpec;
 
+import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -53,7 +53,7 @@ public class PluginRequestCollector {
         this.scriptSource = scriptSource;
     }
 
-    private static class BinaryDependencySpecImpl implements PluginDependencySpec {
+    private static class BinaryDependencySpecImpl implements org.gradle.plugin.use.PluginDependencySpec {
         private final int lineNumber;
         private final PluginId id;
         private String version;
@@ -65,19 +65,19 @@ public class PluginRequestCollector {
         }
 
         @Override
-        public PluginDependencySpec version(String version) {
+        public org.gradle.plugin.use.PluginDependencySpec version(String version) {
             this.version = version;
             return this;
         }
 
         @Override
-        public PluginDependencySpec apply(boolean apply) {
+        public org.gradle.plugin.use.PluginDependencySpec apply(boolean apply) {
             this.apply = apply;
             return this;
         }
     }
 
-    private static class ScriptDependencySpecImpl implements ScriptPluginDependencySpec {
+    private static class ScriptDependencySpecImpl implements org.gradle.plugin.use.ScriptPluginDependencySpec {
         private final int lineNumber;
         private String script;
 
@@ -87,19 +87,72 @@ public class PluginRequestCollector {
         }
     }
 
-    private final List<PluginDependency> specs = new LinkedList<PluginDependency>();
+    private static class BinaryPluginDependencySpecImpl implements BinaryPluginDependencySpec {
+        private final int lineNumber;
+        private final PluginId id;
+        private String version;
+        private boolean apply = true;
 
-    public PluginDependenciesSpec createSpec(final int lineNumber) {
+        private BinaryPluginDependencySpecImpl(int lineNumber, String id) {
+            this.lineNumber = lineNumber;
+            this.id = id == null ? null : DefaultPluginId.of(id);
+        }
+
+        @Override
+        public BinaryPluginDependencySpec version(@Nullable String version) {
+            this.version = version;
+            return this;
+        }
+
+        @Override
+        public BinaryPluginDependencySpec apply(boolean apply) {
+            this.apply = apply;
+            return this;
+        }
+    }
+
+    private static class ScriptPluginDependencySpecImpl implements ScriptPluginDependencySpec {
+        private final int lineNumber;
+        private String script;
+
+        private ScriptPluginDependencySpecImpl(int lineNumber, String script) {
+            this.lineNumber = lineNumber;
+            this.script = script;
+        }
+    }
+
+    private final List<Object> specs = new LinkedList<Object>();
+
+    @Deprecated
+    public org.gradle.plugin.use.PluginDependenciesSpec createSpec(final int lineNumber) {
+        return new org.gradle.plugin.use.PluginDependenciesSpec() {
+            public org.gradle.plugin.use.PluginDependencySpec id(String id) {
+                org.gradle.plugin.use.PluginDependencySpec pluginDependency = new BinaryDependencySpecImpl(lineNumber, id);
+                specs.add(pluginDependency);
+                return pluginDependency;
+            }
+
+            @Override
+            public org.gradle.plugin.use.ScriptPluginDependencySpec script(String script) {
+                org.gradle.plugin.use.ScriptPluginDependencySpec pluginDependency = new ScriptDependencySpecImpl(lineNumber, script);
+                specs.add(pluginDependency);
+                return pluginDependency;
+            }
+        };
+    }
+
+    public PluginDependenciesSpec createPluginDependencySpec(final int lineNumber) {
         return new PluginDependenciesSpec() {
-            public PluginDependencySpec id(String id) {
-                PluginDependencySpec pluginDependency = new BinaryDependencySpecImpl(lineNumber, id);
+            @Override
+            public BinaryPluginDependencySpec id(String id) {
+                BinaryPluginDependencySpec pluginDependency = new BinaryPluginDependencySpecImpl(lineNumber, id);
                 specs.add(pluginDependency);
                 return pluginDependency;
             }
 
             @Override
             public ScriptPluginDependencySpec script(String script) {
-                ScriptPluginDependencySpec pluginDependency = new ScriptDependencySpecImpl(lineNumber, script);
+                ScriptPluginDependencySpec pluginDependency = new ScriptPluginDependencySpecImpl(lineNumber, script);
                 specs.add(pluginDependency);
                 return pluginDependency;
             }
@@ -117,21 +170,42 @@ public class PluginRequestCollector {
     }
 
     private List<PluginRequestInternal> collectPluginRequests() {
-        return collect(specs, new Transformer<PluginRequestInternal, PluginDependency>() {
-            public PluginRequestInternal transform(PluginDependency original) {
+        return collect(specs, new Transformer<PluginRequestInternal, Object>() {
+            public PluginRequestInternal transform(Object original) {
                 return pluginRequestFor(original);
             }
         });
     }
 
-    private PluginRequestInternal pluginRequestFor(PluginDependency pluginDependency) {
-        if (pluginDependency instanceof BinaryDependencySpecImpl) {
+    private PluginRequestInternal pluginRequestFor(Object pluginDependency) {
+        if (pluginDependency instanceof BinaryPluginDependencySpecImpl) {
+            return pluginRequestFor((BinaryPluginDependencySpecImpl) pluginDependency);
+        } else if (pluginDependency instanceof ScriptPluginDependencySpecImpl) {
+            return pluginRequestFor((ScriptPluginDependencySpecImpl) pluginDependency);
+        } else if (pluginDependency instanceof BinaryDependencySpecImpl) {
             return pluginRequestFor((BinaryDependencySpecImpl) pluginDependency);
         } else if (pluginDependency instanceof ScriptDependencySpecImpl) {
             return pluginRequestFor((ScriptDependencySpecImpl) pluginDependency);
         } else {
-            throw new IllegalStateException("Unknown PluginDependency implementation: " + pluginDependency);
+            throw new IllegalStateException("Unknown PluginDependencySpec: " + pluginDependency);
         }
+    }
+
+    private PluginRequestInternal pluginRequestFor(BinaryPluginDependencySpecImpl binaryPluginDependency) {
+        return new BinaryPluginRequest(
+            scriptSource,
+            binaryPluginDependency.lineNumber,
+            binaryPluginDependency.id,
+            binaryPluginDependency.version,
+            binaryPluginDependency.apply,
+            null);
+    }
+
+    private PluginRequestInternal pluginRequestFor(ScriptPluginDependencySpecImpl scriptPluginDependency) {
+        return new ScriptPluginRequest(
+            scriptSource,
+            scriptPluginDependency.lineNumber,
+            URI.create(scriptPluginDependency.script));
     }
 
     private PluginRequestInternal pluginRequestFor(BinaryDependencySpecImpl binaryPluginDependency) {
