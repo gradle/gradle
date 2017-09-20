@@ -24,6 +24,7 @@ import org.gradle.internal.featurelifecycle.UsageLocationReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -217,6 +218,7 @@ public class SingleMessageLogger {
         }
     }
 
+    @Nullable
     public static <T> T whileDisabled(Factory<T> factory) {
         ENABLED.set(false);
         try {

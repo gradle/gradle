@@ -15,13 +15,11 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.util.Map;
@@ -63,7 +61,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
             });
         }
 
-        for (Factory<Action<Task>> actionFactory : taskClassInfo.getTaskActions()) {
+        for (TaskActionFactory actionFactory : taskClassInfo.getTaskActionFactories()) {
             task.prependParallelSafeAction(actionFactory.create());
         }
 

@@ -23,6 +23,7 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Describable;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.OverlappingOutputs;
@@ -38,15 +39,18 @@ import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.*;
 
+@NonNullApi
 public class DefaultTaskOutputs implements TaskOutputsInternal {
     private static final TaskOutputCachingState ENABLED = DefaultTaskOutputCachingState.enabled();
     public static final TaskOutputCachingState DISABLED = DefaultTaskOutputCachingState.disabled(BUILD_CACHE_DISABLED, "Task output caching is disabled");
@@ -58,7 +62,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
     private List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
     private TaskExecutionHistory history;
-    private final List<TaskOutputPropertySpecAndBuilder> filePropertiesInternal = Lists.newArrayList();
+    private final List<DeclaredTaskOutputFileProperty> declaredFileProperties = Lists.newArrayList();
     private ImmutableSortedSet<TaskOutputFilePropertySpec> fileProperties;
     private final FileResolver resolver;
     private final TaskInternal task;
@@ -143,6 +147,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return ENABLED;
     }
 
+    @Nullable
     private OverlappingOutputs getOverlappingOutputs() {
         return history != null ? history.getOverlappingOutputs() : null;
     }
@@ -177,7 +182,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     @Override
     public boolean hasDeclaredOutputs() {
-        return !filePropertiesInternal.isEmpty();
+        return !declaredFileProperties.isEmpty();
     }
 
     @Override
@@ -188,10 +193,10 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     @Override
     public ImmutableSortedSet<TaskOutputFilePropertySpec> getFileProperties() {
         if (fileProperties == null) {
-            TaskPropertyUtils.ensurePropertiesHaveNames(filePropertiesInternal);
-            Iterator<TaskOutputFilePropertySpec> flattenedProperties = Iterators.concat(Iterables.transform(filePropertiesInternal, new Function<TaskPropertySpec, Iterator<? extends TaskOutputFilePropertySpec>>() {
+            TaskPropertyUtils.ensurePropertiesHaveNames(declaredFileProperties);
+            Iterator<TaskOutputFilePropertySpec> flattenedProperties = Iterators.concat(Iterables.transform(declaredFileProperties, new Function<TaskPropertySpec, Iterator<? extends TaskOutputFilePropertySpec>>() {
                 @Override
-                public Iterator<? extends TaskOutputFilePropertySpec> apply(TaskPropertySpec propertySpec) {
+                public Iterator<? extends TaskOutputFilePropertySpec> apply(@Nullable TaskPropertySpec propertySpec) {
                     if (propertySpec instanceof CompositeTaskOutputPropertySpec) {
                         return ((CompositeTaskOutputPropertySpec) propertySpec).resolveToOutputProperties();
                     } else {
@@ -209,9 +214,14 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return taskMutator.mutate("TaskOutputs.file(Object)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
-                return addSpec(new DefaultCacheableTaskOutputFilePropertySpec(task.getName(), resolver, OutputType.FILE, path));
+                return file(new StaticValue(path));
             }
         });
+    }
+
+    @Override
+    public TaskOutputFilePropertyBuilder file(ValidatingValue path) {
+        return addSpec(new DefaultCacheableTaskOutputFilePropertySpec(task.getName(), resolver, OutputType.FILE, path, OUTPUT_FILE_VALIDATOR));
     }
 
     @Override
@@ -219,19 +229,29 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return taskMutator.mutate("TaskOutputs.dir(Object)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
-                return addSpec(new DefaultCacheableTaskOutputFilePropertySpec(task.getName(), resolver, OutputType.DIRECTORY, path));
+                return dir(new StaticValue(path));
             }
         });
     }
 
     @Override
-    public TaskOutputFilePropertyBuilder files(final Object... paths) {
+    public TaskOutputFilePropertyBuilder dir(ValidatingValue path) {
+        return addSpec(new DefaultCacheableTaskOutputFilePropertySpec(task.getName(), resolver, OutputType.DIRECTORY, path, OUTPUT_DIRECTORY_VALIDATOR));
+    }
+
+    @Override
+    public TaskOutputFilePropertyBuilder files(final @Nullable Object... paths) {
         return taskMutator.mutate("TaskOutputs.files(Object...)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
-                return addSpec(new CompositeTaskOutputPropertySpec(task.getName(), resolver, OutputType.FILE, paths));
+                return files(new StaticValue(resolveSingleArray(paths)));
             }
         });
+    }
+
+    @Override
+    public TaskOutputFilePropertyBuilder files(ValidatingValue paths) {
+        return addSpec(new CompositeTaskOutputPropertySpec(task.getName(), resolver, OutputType.FILE, paths, OUTPUT_FILES_VALIDATOR));
     }
 
     @Override
@@ -239,13 +259,23 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return taskMutator.mutate("TaskOutputs.dirs(Object...)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
-                return addSpec(new CompositeTaskOutputPropertySpec(task.getName(), resolver, OutputType.DIRECTORY, paths));
+                return dirs(new StaticValue(resolveSingleArray(paths)));
             }
         });
     }
 
-    private TaskOutputFilePropertyBuilder addSpec(TaskOutputPropertySpecAndBuilder spec) {
-        filePropertiesInternal.add(spec);
+    @Override
+    public TaskOutputFilePropertyBuilder dirs(ValidatingValue paths) {
+        return addSpec(new CompositeTaskOutputPropertySpec(task.getName(), resolver, OutputType.DIRECTORY, paths, OUTPUT_DIRECTORIES_VALIDATOR));
+    }
+
+    @Nullable
+    private static Object resolveSingleArray(@Nullable Object[] paths) {
+        return (paths != null && paths.length == 1) ? paths[0] : paths;
+    }
+
+    private TaskOutputFilePropertyBuilder addSpec(DeclaredTaskOutputFileProperty spec) {
+        declaredFileProperties.add(spec);
         return spec;
     }
 
@@ -258,8 +288,16 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     @Override
-    public void setHistory(TaskExecutionHistory history) {
+    public void setHistory(@Nullable TaskExecutionHistory history) {
         this.history = history;
+    }
+
+    @Override
+    public void validate(TaskValidationContext context) {
+        TaskPropertyUtils.ensurePropertiesHaveNames(declaredFileProperties);
+        for (DeclaredTaskOutputFileProperty property : declaredFileProperties) {
+            property.validate(context);
+        }
     }
 
     private class TaskOutputUnionFileCollection extends CompositeFileCollection implements Describable {
@@ -285,6 +323,80 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         public void visitDependencies(TaskDependencyResolveContext context) {
             context.add(buildDependencies);
             super.visitDependencies(context);
+        }
+    }
+
+    private static final ValidationAction OUTPUT_FILE_VALIDATOR = new ValidationAction() {
+        @Override
+        public void validate(String propertyName, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
+            File file = toFile(context, value);
+            if (file.exists()) {
+                if (file.isDirectory()) {
+                    context.recordValidationMessage(severity, String.format("Cannot write to file '%s' specified for property '%s' as it is a directory.", file, propertyName));
+                }
+                // else, assume we can write to anything that exists and is not a directory
+            } else {
+                for (File candidate = file.getParentFile(); candidate != null && !candidate.isDirectory(); candidate = candidate.getParentFile()) {
+                    if (candidate.exists() && !candidate.isDirectory()) {
+                        context.recordValidationMessage(severity, String.format("Cannot write to file '%s' specified for property '%s', as ancestor '%s' is not a directory.", file, propertyName, candidate));
+                        break;
+                    }
+                }
+            }
+        }
+    };
+
+    private static final ValidationAction OUTPUT_FILES_VALIDATOR = new ValidationAction() {
+        @Override
+        public void validate(String propertyName, Object values, TaskValidationContext context, TaskValidationContext.Severity severity) {
+            for (File file : toFiles(context, values)) {
+                OUTPUT_FILE_VALIDATOR.validate(propertyName, file, context, severity);
+            }
+        }
+    };
+
+    private static final ValidationAction OUTPUT_DIRECTORY_VALIDATOR = new ValidationAction() {
+        @Override
+        public void validate(String propertyName, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
+            File directory = toFile(context, value);
+            if (directory.exists()) {
+                if (!directory.isDirectory()) {
+                    context.recordValidationMessage(severity, String.format("Directory '%s' specified for property '%s' is not a directory.", directory, propertyName));
+                }
+            } else {
+                for (File candidate = directory.getParentFile(); candidate != null && !candidate.isDirectory(); candidate = candidate.getParentFile()) {
+                    if (candidate.exists() && !candidate.isDirectory()) {
+                        context.recordValidationMessage(severity, String.format("Cannot write to directory '%s' specified for property '%s', as ancestor '%s' is not a directory.", directory, propertyName, candidate));
+                        return;
+                    }
+                }
+            }
+        }
+    };
+
+    private static File toFile(TaskValidationContext context, Object value) {
+        if (value instanceof File) {
+            return (File) value;
+        }
+        return context.getResolver().resolve(value);
+    }
+
+    private static final ValidationAction OUTPUT_DIRECTORIES_VALIDATOR = new ValidationAction() {
+        @Override
+        public void validate(String propertyName, Object values, TaskValidationContext context, TaskValidationContext.Severity severity) {
+            for (File directory : toFiles(context, values)) {
+                OUTPUT_DIRECTORY_VALIDATOR.validate(propertyName, directory, context, severity);
+            }
+        }
+    };
+
+    private static Iterable<? extends File> toFiles(TaskValidationContext context, Object value) {
+        if (value instanceof Map) {
+            return toFiles(context, ((Map) value).values());
+        } else if (value instanceof FileCollection) {
+            return ((FileCollection) value).getFiles();
+        } else {
+            return context.getResolver().resolveFiles(value);
         }
     }
 }

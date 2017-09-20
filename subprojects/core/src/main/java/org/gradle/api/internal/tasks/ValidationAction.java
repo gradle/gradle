@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal;
+package org.gradle.api.internal.tasks;
 
-import javax.annotation.Nullable;
+public interface ValidationAction {
+    ValidationAction NO_OP = new ValidationAction() {
+        @Override
+        public void validate(String propertyName, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
+        }
+    };
 
-/**
- * A generic factory which creates instances of type T.
- *
- * @param <T> The type of object created.
- */
-public interface Factory<T> {
-    /**
-     * Creates a new instance of type T.
-     * @return The instance.
-     */
-    @Nullable
-    T create();
+    void validate(String propertyName, Object value, TaskValidationContext context, TaskValidationContext.Severity severity);
 }

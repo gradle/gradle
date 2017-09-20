@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal;
 
-import javax.annotation.Nullable;
+package org.gradle.api.internal.project.taskfactory;
 
-/**
- * A generic factory which creates instances of type T.
- *
- * @param <T> The type of object created.
- */
-public interface Factory<T> {
-    /**
-     * Creates a new instance of type T.
-     * @return The instance.
-     */
-    @Nullable
-    T create();
+import org.gradle.api.Action;
+import org.gradle.api.NonNullApi;
+import org.gradle.api.Task;
+import org.gradle.internal.Factory;
+
+import javax.annotation.Nonnull;
+
+@NonNullApi
+public interface TaskActionFactory extends Factory<Action<? super Task>> {
+    @Override
+    @Nonnull
+    Action<? super Task> create();
 }

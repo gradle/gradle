@@ -18,13 +18,16 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
-import org.gradle.api.tasks.TaskPropertyBuilder;
+import org.gradle.api.NonNullApi;
+import org.gradle.api.tasks.TaskFilePropertyBuilder;
 import org.gradle.internal.Cast;
 
+import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.SortedSet;
 
+@NonNullApi
 public class TaskPropertyUtils {
 
     // Note: sorted set used to keep order of properties consistent
@@ -42,7 +45,7 @@ public class TaskPropertyUtils {
         return builder.build();
     }
 
-    public static <T extends TaskPropertySpec & TaskPropertyBuilder> void ensurePropertiesHaveNames(Iterable<T> properties) {
+    public static <T extends TaskPropertySpec & TaskFilePropertyBuilder> void ensurePropertiesHaveNames(Iterable<T> properties) {
         int unnamedPropertyCounter = 0;
         for (T propertySpec : properties) {
             String propertyName = propertySpec.getPropertyName();
@@ -60,5 +63,31 @@ public class TaskPropertyUtils {
             builder.add(new ResolvedTaskOutputFilePropertySpec(cacheableProperty.getPropertyName(), cacheableProperty.getOutputType(), cacheableProperty.getOutputFile()));
         }
         return builder.build();
+    }
+
+    @Nullable
+    public static String checkPropertyName(@Nullable String propertyName) {
+        if (propertyName != null) {
+            if (propertyName.length() == 0) {
+                throw new IllegalArgumentException("Property name must not be empty string");
+            }
+            if (!Character.isJavaIdentifierStart(propertyName.codePointAt(0))) {
+                throw new IllegalArgumentException(String.format("Property name '%s' must be a valid Java identifier", propertyName));
+            }
+            boolean previousCharWasADot = false;
+            for (int idx = 1; idx < propertyName.length(); idx++) {
+                int chr = propertyName.codePointAt(idx);
+                // Allow single dots except as the last element of the name
+                if (chr == '.' && !previousCharWasADot && idx < propertyName.length() - 1) {
+                    previousCharWasADot = true;
+                    continue;
+                }
+                if (!Character.isJavaIdentifierPart(chr)) {
+                    throw new IllegalArgumentException(String.format("Property name '%s' must be a valid Java identifier", propertyName));
+                }
+                previousCharWasADot = false;
+            }
+        }
+        return propertyName;
     }
 }

@@ -19,8 +19,6 @@ package org.gradle.api.tasks;
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
-import javax.annotation.Nullable;
-
 /**
  * Describes a property of a task.
  *
@@ -29,12 +27,4 @@ import javax.annotation.Nullable;
 @Incubating
 @HasInternalProtocol
 public interface TaskPropertyBuilder {
-    /**
-     * Sets the name for this property. The name must be a valid Java identifier,
-     * or a series of valid Java identifiers separated with dots ('.').
-     *
-     * <p>If the method is not called, or if it is called with {@code null}, a name
-     * will be assigned to the property automatically.</p>
-     */
-    TaskPropertyBuilder withPropertyName(@Nullable String propertyName);
 }

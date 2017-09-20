@@ -133,7 +133,8 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
 
     def "does not trigger when changes is made to task that is not required"() {
         given:
-        def aFile = file("a")
+        def aFile = file("a").touch()
+        def bFile = file("b").touch()
 
         when:
         buildFile << """
@@ -410,6 +411,7 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "exit hint does not mention enter when not on windows"() {
         when:
+        file("a").touch()
         buildScript "task a { inputs.file 'a'; doLast {} }"
 
         then:
@@ -420,6 +422,7 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
     @Requires(TestPrecondition.WINDOWS)
     def "exit hint mentions enter when on windows"() {
         when:
+        file("a").touch()
         buildScript "task a { inputs.file 'a'; doLast {} }"
 
         then:

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.project.taskfactory;
+package org.gradle.api.internal.tasks;
 
-import java.util.Collection;
-
-public interface TaskPropertyValue {
-    Object getValue();
-
-    void checkNotNull(Collection<String> messages);
-
-    void checkValid(Collection<String> messages);
+public interface ValidatingTaskPropertySpec extends TaskPropertySpec {
+    void validate(TaskValidationContext context);
 }

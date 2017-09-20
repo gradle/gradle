@@ -48,6 +48,7 @@ public interface TaskInternal extends Task, Configurable<Task> {
     void execute();
 
     @Internal
+    @SuppressWarnings("deprecation")
     StandardOutputCapture getStandardOutputCapture();
 
     @Internal
@@ -61,9 +62,11 @@ public interface TaskInternal extends Task, Configurable<Task> {
     @Override
     TaskOutputsInternal getOutputs();
 
+    @Deprecated
     @Internal
     List<TaskValidator> getValidators();
 
+    @Deprecated
     void addValidator(TaskValidator validator);
 
     @Override

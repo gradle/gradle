@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,21 @@
 
 package org.gradle.api.internal.tasks
 
-import org.gradle.api.internal.file.FileResolver
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class AbstractTaskPropertyBuilderTest extends Specification {
-
-    def resolver = Mock(FileResolver)
-    def spec = Spy(AbstractTaskPropertyBuilder)
-
+class TaskPropertyUtilsTest extends Specification {
     def "can register nested property name"() {
         when:
-        spec.propertyName = "parent.child"
+        def name = TaskPropertyUtils.checkPropertyName"parent.child"
         then:
-        spec.propertyName == "parent.child"
+        name == "parent.child"
     }
 
     @Unroll
     def "cannot register property with invalid name '#invalidName'"() {
         when:
-        spec.propertyName = invalidName
+        TaskPropertyUtils.checkPropertyName invalidName
         then:
         def ex = thrown IllegalArgumentException
         ex.message == message

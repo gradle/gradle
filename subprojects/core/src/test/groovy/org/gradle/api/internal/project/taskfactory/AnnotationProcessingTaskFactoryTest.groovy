@@ -40,6 +40,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
     private Map args = new HashMap()
 
+    @SuppressWarnings("GroovyUnusedDeclaration")
     private String inputValue = "value"
     private File testDir
     private File existingFile
@@ -84,9 +85,9 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         thrown(RuntimeException)
     }
 
-    def createsContextualActionFoIncrementalTaskAction() {
+    def createsContextualActionForIncrementalTaskAction() {
         given:
-        def Action<IncrementalTaskInputs> action = Mock(Action)
+        def action = Mock(Action)
         def task = expectTaskCreated(TaskWithIncrementalAction, action)
 
         when:
@@ -94,6 +95,21 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
         then:
         1 * action.execute(_ as IncrementalTaskInputs)
+        0 * _
+    }
+
+    def createsContextualActionForOverriddenIncrementalTaskAction() {
+        given:
+        def action = Mock(Action)
+        def superAction = Mock(Action)
+        def task = expectTaskCreated(TaskWithOverriddenIncrementalAction, action, superAction)
+
+        when:
+        task.execute()
+
+        then:
+        1 * action.execute(_ as IncrementalTaskInputs)
+        0 * _
     }
 
     def cachesClassMetaInfo() {
@@ -121,6 +137,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         TaskWithStaticMethod               | "Cannot use @TaskAction annotation on static method TaskWithStaticMethod.doStuff()."
         TaskWithMultiParamAction           | "Cannot use @TaskAction annotation on method TaskWithMultiParamAction.doStuff() as this method takes multiple parameters."
         TaskWithSingleParamAction          | "Cannot use @TaskAction annotation on method TaskWithSingleParamAction.doStuff() because int is not a valid parameter to an action method."
+        TaskWithOverloadedActions          | "Cannot use @TaskAction annotation on multiple overloads of method TaskWithOverloadedActions.doStuff()"
     }
 
     @Unroll
@@ -649,8 +666,9 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         return task
     }
 
-    private static validateException(TaskInternal task, TaskValidationException exception, String... causes) {
+    private static void validateException(TaskInternal task, TaskValidationException exception, String... causes) {
         def expectedMessage = causes.length > 1 ? "Some problems were found with the configuration of $task" : "A problem was found with the configuration of $task"
-        exception.message.contains(expectedMessage) && exception.causes.collect({ it.message }) as Set == causes as Set
+        assert exception.message.contains(expectedMessage)
+        assert exception.causes.collect({ it.message }) as Set == causes as Set
     }
 }
