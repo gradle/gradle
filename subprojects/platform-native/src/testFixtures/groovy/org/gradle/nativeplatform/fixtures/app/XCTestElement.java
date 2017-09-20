@@ -16,29 +16,8 @@
 
 package org.gradle.nativeplatform.fixtures.app;
 
-import org.gradle.api.Named;
-
-import java.util.List;
-
-public interface TestElement {
+public interface XCTestElement {
     int getFailureCount();
     int getPassCount();
     int getTestCount();
-
-    List<TestSuite> getTestSuites();
-
-    interface TestSuite extends Named {
-        List<TestCase> getTestCases();
-        List<String> getTestableImports();
-        List<String> getStandardImports();
-    }
-
-    interface TestCase extends Named {
-        enum Result {
-            PASS, FAIL
-        }
-
-        Result getExpectedResult();
-        String getContent();
-    }
 }

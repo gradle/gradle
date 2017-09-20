@@ -14,8 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.fixtures.app;
+package org.gradle.nativeplatform.fixtures.app
 
-public interface TestSuiteRenderer {
-    String render(TestElement.TestSuite testSuite);
+class SwiftMultiplyTest extends XCTestSourceFileElement {
+    final MultiplyElement testedElement
+    final String moduleName
+
+    SwiftMultiplyTest(String moduleName, MultiplyElement testedElement) {
+        this.testedElement = testedElement
+        this.moduleName = moduleName
+    }
+
+    String testSuiteName = "MultiplyTestSuite"
+
+    @Override
+    List<XCTestCaseElement> getTestCases() {
+        return [testCase("testCanMultiplyTotalOf42",
+            "XCTAssert(multiply(a: 21, b: 2) == ${testedElement.multiply(21, 2)})")]
+    }
 }

@@ -96,7 +96,6 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         SwiftCompile compile = (SwiftCompile) tasks.getByName("compileTestSwift");
         File frameworkDir = new File(sdkPlatformPathLocator.find(), "Developer/Library/Frameworks");
         compile.getCompilerArgs().set(Lists.newArrayList("-g", "-F" + frameworkDir.getAbsolutePath()));
-        compile.setModuleName(project.getName() + "Test");
 
         // Add a link task
         LinkMachOBundle link = (LinkMachOBundle) tasks.getByName("linkTest");
