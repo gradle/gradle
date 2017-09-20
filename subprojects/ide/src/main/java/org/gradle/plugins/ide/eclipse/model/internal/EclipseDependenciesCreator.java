@@ -88,7 +88,7 @@ public class EclipseDependenciesCreator {
         boolean downloadSources = classpath.isDownloadSources();
         boolean downloadJavadoc = classpath.isDownloadJavadoc();
 
-        Multimap<String, String> pathToSourceSets = collectRuntimeClasspathPathSourceSets();
+        Multimap<String, String> pathToSourceSets = collectLibraryToSourceSetMapping();
 
         Collection<IdeExtendedRepoFileDependency> repoFileDependencies = dependenciesExtractor.extractRepoFileDependencies(classpath.getProject().getDependencies(), classpath.getPlusConfigurations(), classpath.getMinusConfigurations(), downloadSources, downloadJavadoc);
         for (IdeExtendedRepoFileDependency dependency : repoFileDependencies) {
@@ -102,7 +102,7 @@ public class EclipseDependenciesCreator {
         return libraries;
     }
 
-    private Multimap<String, String> collectRuntimeClasspathPathSourceSets() {
+    private Multimap<String, String> collectLibraryToSourceSetMapping() {
         Multimap<String, String> pathToSourceSetNames = LinkedHashMultimap.create();
         Iterable<SourceSet> sourceSets = classpath.getSourceSets();
 
