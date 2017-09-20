@@ -16,6 +16,8 @@
 package org.gradle.api.internal.tasks;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.internal.logging.events.UserInputRequestEvent;
+import org.gradle.internal.logging.events.UserInputResumeEvent;
 import org.gradle.internal.logging.sink.OutputEventRenderer;
 
 import java.util.Scanner;
@@ -32,11 +34,11 @@ public class UserInputHandler {
     }
 
     public String getUserResponse(String prompt) {
-        outputEventRenderer.onOutput(new org.gradle.internal.logging.events.UserInputRequestEvent(prompt));
+        outputEventRenderer.onOutput(new UserInputRequestEvent(prompt));
         try {
             return StringUtils.trim(readInput());
         } finally {
-            outputEventRenderer.onOutput(new org.gradle.internal.logging.events.UserInputResumeEvent());
+            outputEventRenderer.onOutput(new UserInputResumeEvent());
         }
     }
 
