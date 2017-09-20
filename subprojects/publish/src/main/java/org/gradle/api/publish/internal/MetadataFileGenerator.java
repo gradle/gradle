@@ -104,6 +104,7 @@ public class MetadataFileGenerator {
         }
         jsonWriter.endObject();
         jsonWriter.flush();
+        writer.append('\n');
     }
 
     private void collectVariants(ComponentWithVariants component, Set<UsageContext> dest) {

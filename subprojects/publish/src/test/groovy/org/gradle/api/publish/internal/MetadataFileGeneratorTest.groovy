@@ -49,7 +49,8 @@ class MetadataFileGeneratorTest extends Specification {
       "buildId": "${buildId}"
     }
   }
-}"""
+}
+"""
     }
 
     def "writes file for component with variants"() {
@@ -116,7 +117,8 @@ class MetadataFileGeneratorTest extends Specification {
       ]
     }
   ]
-}"""
+}
+"""
     }
 
     interface TestComponent extends ComponentWithVariants, SoftwareComponentInternal {

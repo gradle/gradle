@@ -31,7 +31,7 @@ import spock.lang.Specification
 class MavenResolverTest extends Specification {
     def module = Mock(MavenModuleResolveMetadata)
     def result = Mock(BuildableComponentArtifactsResolveResult)
-    def resolver = new MavenResolver("repo", new URI("http://localhost"), Stub(RepositoryTransport), Stub(LocallyAvailableResourceFinder), Stub(FileStore), Stub(MetaDataParser), Stub(ImmutableModuleIdentifierFactory), Stub(CacheAwareExternalResourceAccessor), Stub(FileStore), Stub(FileResourceRepository))
+    def resolver = new MavenResolver("repo", new URI("http://localhost"), Stub(RepositoryTransport), Stub(LocallyAvailableResourceFinder), Stub(FileStore), Stub(MetaDataParser), Stub(ImmutableModuleIdentifierFactory), Stub(CacheAwareExternalResourceAccessor), Stub(FileStore), Stub(FileResourceRepository), false)
 
     def "has useful string representation"() {
         expect:

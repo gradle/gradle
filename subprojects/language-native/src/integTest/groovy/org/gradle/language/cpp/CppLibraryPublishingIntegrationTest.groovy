@@ -112,6 +112,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractNativePublishingIntegr
         def app = new CppAppWithLibrariesWithApiDependencies()
 
         given:
+        def repoDir = file("repo")
         settingsFile << "include 'deck', 'card', 'shuffle'"
         buildFile << """
             subprojects {
@@ -121,7 +122,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractNativePublishingIntegr
                 group = 'some.group'
                 version = '1.2'
                 publishing {
-                    repositories { maven { url '../repo' } }
+                    repositories { maven { url '${repoDir.toURI()}' } }
                 }
             }
             project(':deck') { 
@@ -139,7 +140,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractNativePublishingIntegr
         run('publish')
 
         then:
-        def repo = new MavenFileRepository(file("repo"))
+        def repo = new MavenFileRepository(repoDir)
 
         def deckModule = repo.module('some.group', 'deck', '1.2')
         deckModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2")
@@ -175,7 +176,89 @@ class CppLibraryPublishingIntegrationTest extends AbstractNativePublishingIntegr
         def consumer = file("consumer").createDir()
         consumer.file("build.gradle") << """
             apply plugin: 'cpp-executable'
-            repositories { maven { url '../repo' } }
+            repositories { maven { url '${repoDir.toURI()}' } }
+            dependencies { implementation 'some.group:deck:1.2' }
+"""
+        app.main.writeToProject(consumer)
+
+        executer.inDirectory(consumer)
+        run("assemble")
+
+        then:
+        noExceptionThrown()
+        sharedLibrary(consumer.file("build/install/main/debug/lib/deck")).file.assertExists()
+        sharedLibrary(consumer.file("build/install/main/debug/lib/card")).file.assertExists()
+        sharedLibrary(consumer.file("build/install/main/debug/lib/shuffle")).file.assertExists()
+        installation(consumer.file("build/install/main/debug")).exec().out == app.expectedOutput
+    }
+
+    def "can publish a library with external dependencies to a Maven repository"() {
+        def app = new CppAppWithLibrariesWithApiDependencies()
+
+        given:
+        def repoDir = file("repo")
+        def producer = file("producer")
+        producer.file("settings.gradle") << "include 'card', 'shuffle'"
+        producer.file("build.gradle") << """
+            subprojects {
+                apply plugin: 'cpp-library'
+                apply plugin: 'maven-publish'
+                
+                group = 'some.group'
+                version = '1.2'
+                publishing {
+                    repositories { maven { url '${repoDir.toURI()}' } }
+                }
+            }
+"""
+        app.card.writeToProject(producer.file('card'))
+        app.shuffle.writeToProject(producer.file('shuffle'))
+        executer.inDirectory(producer)
+        run('publish')
+
+        settingsFile << "rootProject.name = 'deck'"
+        buildFile << """
+            apply plugin: 'cpp-library'
+            apply plugin: 'maven-publish'
+
+            repositories { maven { url '${repoDir.toURI()}' } }
+            
+            group = 'some.group'
+            version = '1.2'
+            publishing {
+                repositories { maven { url '${repoDir.toURI()}' } }
+            }
+            
+            dependencies {
+                api 'some.group:card:1.2'
+                implementation 'some.group:shuffle:1.2'
+            }
+"""
+        app.deck.writeToProject(testDirectory)
+
+        when:
+        run("publish")
+
+        then:
+        def repo = new MavenFileRepository(repoDir)
+
+        def deckModule = repo.module('some.group', 'deck', '1.2')
+        deckModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2")
+        deckModule.assertPublished()
+
+        def deckDebugModule = repo.module('some.group', 'deck_debug', '1.2')
+        deckDebugModule.assertPublished()
+        deckDebugModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2", "some.group:shuffle:1.2")
+
+        def deckReleaseModule = repo.module('some.group', 'deck_release', '1.2')
+        deckReleaseModule.assertPublished()
+        deckReleaseModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2", "some.group:shuffle:1.2")
+
+        when:
+        def consumer = file("consumer").createDir()
+        consumer.file("build.gradle") << """
+            apply plugin: 'cpp-executable'
+            repositories { maven { url '${repoDir.toURI()}' } }
             dependencies { implementation 'some.group:deck:1.2' }
 """
         app.main.writeToProject(consumer)

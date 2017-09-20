@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyModuleD
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.IvyModuleResolveMetadata;
@@ -78,6 +79,11 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
     }
 
     @Override
+    protected void appendId(BuildCacheHasher hasher) {
+        hasher.putBoolean(isM2compatible());
+    }
+
+    @Override
     protected Class<IvyModuleResolveMetadata> getSupportedMetadataType() {
         return IvyModuleResolveMetadata.class;
     }
@@ -96,7 +102,6 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
         return new DefaultIvyArtifactName("ivy", "ivy", "xml");
     }
 
-    @Override
     public boolean isM2compatible() {
         return m2Compatible;
     }

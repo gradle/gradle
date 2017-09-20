@@ -43,8 +43,9 @@ public class MavenLocalResolver extends MavenResolver {
                               MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
                               ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                               CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor,
-                              FileResourceRepository fileResourceRepository) {
-        super(name, rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, pomParser, moduleIdentifierFactory, cacheAwareExternalResourceAccessor, null, fileResourceRepository);
+                              FileResourceRepository fileResourceRepository,
+                              boolean preferGradleMetadata) {
+        super(name, rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, pomParser, moduleIdentifierFactory, cacheAwareExternalResourceAccessor, null, fileResourceRepository, preferGradleMetadata);
     }
 
     @Override

@@ -58,7 +58,7 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
         }
 
         RepositoryTransport transport = getTransport(rootUri.getScheme());
-        MavenResolver resolver = new MavenLocalResolver(getName(), rootUri, transport, getLocallyAvailableResourceFinder(), getArtifactFileStore(), getPomParser(), moduleIdentifierFactory, transport.getResourceAccessor(), fileResourceRepository);
+        MavenResolver resolver = new MavenLocalResolver(getName(), rootUri, transport, getLocallyAvailableResourceFinder(), getArtifactFileStore(), getPomParser(), moduleIdentifierFactory, transport.getResourceAccessor(), fileResourceRepository, isPreferGradleMetadata());
         for (URI repoUrl : getArtifactUrls()) {
             resolver.addArtifactLocation(repoUrl);
         }
