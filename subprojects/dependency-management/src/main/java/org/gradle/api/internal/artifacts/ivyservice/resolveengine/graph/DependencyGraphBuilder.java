@@ -146,14 +146,12 @@ public class DependencyGraphBuilder {
                 final NodeState node = resolveState.pop();
                 LOGGER.debug("Visiting configuration {}.", node);
 
-                if (!tryMakeOrphan(resolveState, node)) {
-                    // Calculate the outgoing edges of this configuration
-                    dependencies.clear();
-                    dependenciesMissingLocalMetadata.clear();
-                    node.visitOutgoingDependencies(dependencies);
+                // Calculate the outgoing edges of this configuration
+                dependencies.clear();
+                dependenciesMissingLocalMetadata.clear();
+                node.visitOutgoingDependencies(dependencies);
 
-                    resolveEdges(node, dependencies, dependenciesMissingLocalMetadata, resolveState, componentIdentifierCache);
-                }
+                resolveEdges(node, dependencies, dependenciesMissingLocalMetadata, resolveState, componentIdentifierCache);
             } else {
                 // We have some batched up conflicts. Resolve the first, and continue traversing the graph
                 conflictHandler.resolveNextConflict(resolveState.replaceSelectionWithConflictResultAction);
@@ -215,7 +213,7 @@ public class DependencyGraphBuilder {
                                                   final ModuleResolveState module) {
         ComponentState selected = module.selected;
         if (selected == null && !resolveState.moduleReplacementsData.participatesInReplacements(moduleId)) {
-            if (allSelectorsAgreeWith(module.selectors, version)){
+            if (allSelectorsAgreeWith(module.selectors, version)) {
                 module.select(moduleRevision);
                 return true;
             }
@@ -751,6 +749,9 @@ public class DependencyGraphBuilder {
     }
 
     public static boolean allSelectorsAgreeWith(Collection<SelectorState> allSelectors, String version) {
+        if (allSelectors.isEmpty()) {
+            return false;
+        }
         for (SelectorState allResolver : allSelectors) {
             VersionSelector candidateSelector = allResolver.versionSelector;
             if (candidateSelector == null || !candidateSelector.canShortCircuitWhenVersionAlreadyPreselected() || !candidateSelector.accept(version)) {
@@ -1222,7 +1223,9 @@ public class DependencyGraphBuilder {
 
         public void removeIncomingEdge(EdgeState dependencyEdge) {
             incomingEdges.remove(dependencyEdge);
-            resolveState.onFewerSelected(this);
+            if (!tryMakeOrphan(resolveState, this)) {
+                resolveState.onFewerSelected(this);
+            }
         }
 
         public boolean isSelected() {

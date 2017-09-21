@@ -53,6 +53,9 @@ class ConflictContainer<K, T> {
      * @param replacedBy optional element that replaces the target
      */
     public Conflict newElement(K target, Collection<? extends T> candidates, @Nullable K replacedBy) {
+        if (candidates.isEmpty()) {
+            return null;
+        }
         elements.put(target, candidates);
         if (replacedBy != null) {
             targetToSource.put(replacedBy, target);

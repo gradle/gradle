@@ -1291,4 +1291,41 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
+    def "orphan node can be re-selected later with a non short-circuiting selector"() {
+        given:
+        (1..10).each {
+            mavenRepo.module("org", "e", "$it").publish()
+        }
+        mavenRepo.module("org", "a", "1.0").dependsOn("org", "e", "10").publish()
+        mavenRepo.module("org", "b", "1.0").dependsOn("org", "a", "2.0").publish()
+        mavenRepo.module("org", "a", "2.0").publish()
+        mavenRepo.module("org", "c", "1.0").dependsOn("org", "d", "1.0").publish()
+        mavenRepo.module("org", "d", "1.0").dependsOn("org", "e", "latest.release").publish()
+
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:a:1.0', 'org:b:1.0', 'org:c:1.0'
+            }
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                    assert files == ['a-2.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'e-10.jar']
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        noExceptionThrown()
+    }
+
 }
