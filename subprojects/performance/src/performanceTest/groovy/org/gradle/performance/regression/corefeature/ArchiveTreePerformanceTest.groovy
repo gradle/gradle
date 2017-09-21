@@ -18,6 +18,10 @@ package org.gradle.performance.regression.corefeature
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 
+/*
+ * FIXME this test fails when comparing the same version to itself.
+ * There seems to be some skew based on which execution comes first.
+ */
 class ArchiveTreePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def "visiting zip trees"() {
@@ -30,7 +34,7 @@ class ArchiveTreePerformanceTest extends AbstractCrossVersionPerformanceTest {
         def result = runner.run()
 
         then:
-        result.assertCurrentVersionHasNotRegressed()
+        result.assertEveryBuildSucceeds()
     }
     def "visiting tar trees"() {
         given:
@@ -42,7 +46,7 @@ class ArchiveTreePerformanceTest extends AbstractCrossVersionPerformanceTest {
         def result = runner.run()
 
         then:
-        result.assertCurrentVersionHasNotRegressed()
+        result.assertEveryBuildSucceeds()
     }
 
     def "visiting gzip tar trees"() {
@@ -55,6 +59,6 @@ class ArchiveTreePerformanceTest extends AbstractCrossVersionPerformanceTest {
         def result = runner.run()
 
         then:
-        result.assertCurrentVersionHasNotRegressed()
+        result.assertEveryBuildSucceeds()
     }
 }
