@@ -17,7 +17,6 @@
 
 The War plugin extends the Java plugin to add support for assembling web application WAR files. It disables the default JAR archive generation of the Java plugin and adds a default WAR archive task.
 
-
 [[sec:war_usage]]
 === Usage
 
@@ -25,10 +24,9 @@ To use the War plugin, include the following in your build script:
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="useWarPlugin" dir="webApplication/quickstart" title="Using the War plugin">
-            <sourcefile file="build.gradle" snippet="use-war-plugin"/>
-        </sample>
+    <sourcefile file="build.gradle" snippet="use-war-plugin"/>
+</sample>
 ++++
-
 
 [[sec:war_tasks]]
 === Tasks
@@ -62,17 +60,16 @@ The War plugin adds the following dependencies to tasks added by the Java plugin
 
 ++++
 <figure xmlns:xi="http://www.w3.org/2001/XInclude">
-            <title>War plugin - tasks</title>
-            <imageobject>
-                <imagedata fileref="img/warPluginTasks.png"/>
-            </imageobject>
-        </figure>
+    <title>War plugin - tasks</title>
+    <imageobject>
+        <imagedata fileref="img/warPluginTasks.png"/>
+    </imageobject>
+</figure>
 ++++
 
 
 [[sec:war_project_layout]]
 === Project layout
-
 
 .War plugin - project layout
 [cols="a,a", options="header"]
@@ -92,7 +89,6 @@ The War plugin adds two dependency configurations named `providedCompile` and `p
 
 [[sec:war_convention_properties]]
 === Convention properties
-
 
 .War plugin - directory properties
 [cols="a,a,a,a", options="header"]
@@ -129,8 +125,8 @@ Here is an example with the most important customization options:
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="webproject" dir="webApplication/customized" title="Customization of war plugin">
-            <sourcefile file="build.gradle" snippet="customization"/>
-        </sample>
+    <sourcefile file="build.gradle" snippet="customization"/>
+</sample>
 ++++
 
 Of course one can configure the different file-sets with a closure to define excludes and includes.
