@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
-import org.gradle.api.file.DirectoryVar;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileVar;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.OutputDirectory;
@@ -29,6 +29,7 @@ import org.gradle.language.swift.internal.SwiftStdlibToolLocator;
 import org.gradle.process.ExecSpec;
 
 import javax.inject.Inject;
+import java.io.File;
 
 /**
  * Creates Apple bundle from compiled Swift code.
@@ -39,14 +40,14 @@ import javax.inject.Inject;
 public class CreateSwiftBundle extends DefaultTask {
     private final RegularFileVar informationFile;
     private final RegularFileVar executableFile;
-    private final DirectoryVar outputDir;
+    private final RegularFileVar outputDir;
     private final SwiftStdlibToolLocator swiftStdlibToolLocator;
 
     @Inject
     public CreateSwiftBundle(SwiftStdlibToolLocator swiftStdlibToolLocator) {
         this.informationFile = newInputFile();
         this.executableFile = newInputFile();
-        this.outputDir = newOutputDirectory();
+        this.outputDir = newOutputFile();
         this.swiftStdlibToolLocator = swiftStdlibToolLocator;
 
     }
@@ -78,20 +79,21 @@ public class CreateSwiftBundle extends DefaultTask {
             @Override
             public void execute(ExecSpec execSpec) {
                 execSpec.executable(swiftStdlibToolLocator.find());
+                File bundleDir = outputDir.getAsFile().get();
                 execSpec.args(
                     "--copy",
                     "--scan-executable", executableFile.getAsFile().get().getAbsolutePath(),
-                    "--destination", outputDir.dir("Contents/Frameworks").get().getAsFile().getAbsolutePath(),
+                    "--destination", new File(bundleDir, "Contents/Frameworks").getAbsolutePath(),
                     "--platform", "macosx",
-                    "--resource-destination", outputDir.dir("Contents/Resources").get().getAsFile().getAbsolutePath(),
-                    "--scan-folder", outputDir.dir("Contents/Frameworks").get().getAsFile().getAbsolutePath()
+                    "--resource-destination", new File(bundleDir, "Contents/Resources").getAbsolutePath(),
+                    "--scan-folder", new File(bundleDir, "Contents/Frameworks").getAbsolutePath()
                 );
             }
         }).assertNormalExitValue();
     }
 
     @OutputDirectory
-    public DirectoryVar getOutputDir() {
+    public RegularFileVar getOutputDir() {
         return outputDir;
     }
 
