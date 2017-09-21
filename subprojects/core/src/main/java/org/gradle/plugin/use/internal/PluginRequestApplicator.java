@@ -25,8 +25,5 @@ import org.gradle.plugin.management.internal.PluginRequests;
 // Implementation is provided by 'plugin-use' module
 public interface PluginRequestApplicator {
 
-    @Deprecated
-    void applyPlugins(PluginRequests requests, ScriptHandlerInternal scriptHandler, PluginManagerInternal target, ClassLoaderScope classLoaderScope);
-
     void applyPlugins(ScriptSource requestingScriptSource, PluginRequests requests, ScriptHandlerInternal scriptHandler, PluginManagerInternal target, ClassLoaderScope classLoaderScope);
 }
