@@ -36,6 +36,15 @@ import java.util.Set;
 import static org.testng.Assert.assertTrue;
 
 public class XcodebuildExecuter {
+    public enum XcodeAction {
+        BUILD,
+        TEST;
+
+        @Override
+        public String toString() {
+            return this.name().toLowerCase();
+        }
+    }
     private final List<String> args = new ArrayList<String>();
     private final File gradleUserHome;
 
@@ -75,14 +84,27 @@ public class XcodebuildExecuter {
     }
 
     public ExecutionResult succeeds() {
+        return succeeds(XcodeAction.BUILD);
+    }
+
+    public ExecutionResult succeeds(XcodeAction action) {
+        withArgument(action.toString());
         ExecOutput result = findXcodeBuild().execute(args, buildEnvironment());
+        System.out.println(result.getOut());
         return new OutputScrapingExecutionResult(result.getOut(), result.getError());
     }
 
     public ExecutionFailure fails() {
+        return fails(XcodeAction.BUILD);
+    }
+
+    public ExecutionFailure fails(XcodeAction action) {
+        withArgument(action.toString());
         ExecOutput result = findXcodeBuild().execWithFailure(args, buildEnvironment());
         // stderr of Gradle is redirected to stdout of xcodebuild tool. To work around, we consider xcodebuild stdout and stderr as
         // the error output only if xcodebuild failed most likely due to Gradle.
+        System.out.println(result.getOut());
+        System.out.println(result.getError());
         return new OutputScrapingExecutionFailure(result.getOut(), result.getOut() + "\n" + result.getError());
     }
 
