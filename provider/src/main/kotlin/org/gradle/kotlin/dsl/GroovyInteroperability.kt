@@ -168,7 +168,12 @@ interface GroovyBuilderScope : GroovyObject {
             }
     }
 
+    val delegate: Any
+
     operator fun String.invoke(vararg arguments: Any?): Any?
+
+    operator fun String.invoke(): Any? =
+        invoke(*emptyArray<Any>())
 
     operator fun <T> String.invoke(vararg arguments: Any?, builder: GroovyBuilderScope.() -> T): Any? =
         invoke(*arguments, closureFor(builder))
@@ -192,29 +197,29 @@ interface GroovyBuilderScope : GroovyObject {
 
 
 private
-class GroovyBuilderScopeForGroovyObject(private val receiver: GroovyObject) : GroovyBuilderScope, GroovyObject by receiver {
+class GroovyBuilderScopeForGroovyObject(override val delegate: GroovyObject) : GroovyBuilderScope, GroovyObject by delegate {
 
     override fun String.invoke(vararg arguments: Any?): Any? =
-        receiver.invokeMethod(this, arguments)
+        delegate.invokeMethod(this, arguments)
 }
 
 
 private
-class GroovyBuilderScopeForRegularObject(private val receiver: Any) : GroovyBuilderScope {
+class GroovyBuilderScopeForRegularObject(override val delegate: Any) : GroovyBuilderScope {
 
     private
     val groovyMetaClass: MetaClass by lazy {
-        getMetaClass(receiver)
+        getMetaClass(delegate)
     }
 
     override fun invokeMethod(name: String, args: Any?): Any? =
-        groovyMetaClass.invokeMethod(receiver, name, args)
+        groovyMetaClass.invokeMethod(delegate, name, args)
 
     override fun setProperty(propertyName: String, newValue: Any?) =
-        groovyMetaClass.setProperty(receiver, propertyName, newValue)
+        groovyMetaClass.setProperty(delegate, propertyName, newValue)
 
     override fun getProperty(propertyName: String): Any =
-        groovyMetaClass.getProperty(receiver, propertyName)
+        groovyMetaClass.getProperty(delegate, propertyName)
 
     override fun setMetaClass(metaClass: MetaClass?) =
         throw IllegalStateException()
@@ -223,5 +228,5 @@ class GroovyBuilderScopeForRegularObject(private val receiver: Any) : GroovyBuil
         groovyMetaClass
 
     override fun String.invoke(vararg arguments: Any?): Any? =
-        groovyMetaClass.invokeMethod(receiver, this, arguments)
+        groovyMetaClass.invokeMethod(delegate, this, arguments)
 }
