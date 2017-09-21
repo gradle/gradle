@@ -2,10 +2,15 @@ package org.gradle.kotlin.dsl
 
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
+
 import groovy.lang.Closure
 import groovy.lang.GroovyObject
+
+import org.gradle.internal.Cast
+import org.gradle.util.ConfigureUtil
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
@@ -107,12 +112,50 @@ class GroovyInteroperabilityTest {
         val builderResult = delegate.withGroovyBuilder {
             val invokeResult = "withKeywordArguments"("string" to "42", "int" to 42)
             assertThat(invokeResult, sameInstance(expectedInvokeResult))
+            assertThat(this.delegate, sameInstance<Any>(delegate))
             expectedBuilderResult
         }
         assertThat(builderResult, sameInstance(expectedBuilderResult))
 
         val expectedKeywordArguments = mapOf("string" to "42", "int" to 42)
         verify(delegate).invokeMethod("withKeywordArguments", arrayOf(expectedKeywordArguments))
+    }
+
+    @Test
+    fun `#configureWithGroovy allow nested invocations against GroovyObject`() {
+
+        val expectedNestedInvokeResult = Any()
+        val nestedDelegate = mock<GroovyObject> {
+            on { invokeMethod(any(), any()) } doReturn expectedNestedInvokeResult
+        }
+
+        val expectedInvokeResult = Any()
+        val delegate = mock<GroovyObject> {
+            on { invokeMethod(eq("nest"), any()) }.thenAnswer {
+                val varargs = Cast.uncheckedCast<Array<Any?>>(it.getArgument(1))
+                val closure = Cast.uncheckedCast<Closure<Any>?>(varargs[0])
+                ConfigureUtil
+                    .configureUsing<Any>(closure)
+                    .execute(nestedDelegate)
+                expectedInvokeResult
+            }
+        }
+
+        val expectedBuilderResult = Any()
+        val builderResult = delegate.withGroovyBuilder {
+            val invokeResult = "nest" {
+                assertThat(this.delegate, sameInstance<Any>(nestedDelegate))
+                val nestedInvokeResult = "nestedInvocation"()
+                assertThat(nestedInvokeResult, sameInstance(expectedNestedInvokeResult))
+            }
+            assertThat(invokeResult, sameInstance(expectedInvokeResult))
+            assertThat(this.delegate, sameInstance<Any>(delegate))
+            expectedBuilderResult
+        }
+        assertThat(builderResult, sameInstance(expectedBuilderResult))
+
+        verify(delegate).invokeMethod(eq("nest"), any())
+        verify(nestedDelegate).invokeMethod("nestedInvocation", emptyArray<Any>())
     }
 
     interface NonGroovyObject {
@@ -131,6 +174,7 @@ class GroovyInteroperabilityTest {
         val builderResult = delegate.withGroovyBuilder {
             val invokeResult = "withKeywordArguments"("string" to "42", "int" to 42)
             assertThat(invokeResult, sameInstance(expectedInvokeResult))
+            assertThat(this.delegate, sameInstance<Any>(delegate))
             expectedBuilderResult
         }
         assertThat(builderResult, sameInstance(expectedBuilderResult))
