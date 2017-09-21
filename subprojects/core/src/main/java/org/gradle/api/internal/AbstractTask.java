@@ -370,12 +370,20 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public final void execute() {
-        getExecuter().execute(this, state, new DefaultTaskExecutionContext());
+        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskInternal.execute()", getReuseTaskLogicAdvice());
+        TaskExecuter executer = DeprecationLogger.whileDisabled(new Factory<TaskExecuter>() {
+            @Override
+            public TaskExecuter create() {
+                return getExecuter();
+            }
+        });
+        executer.execute(this, state, new DefaultTaskExecutionContext());
         state.rethrowFailure();
     }
 
     @Override
     public TaskExecuter getExecuter() {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("TaskInternal.executer", getReuseTaskLogicAdvice());
         if (executer == null) {
             executer = services.get(TaskExecuter.class);
         }
@@ -384,7 +392,13 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public void setExecuter(TaskExecuter executer) {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("TaskInternal.executer", getReuseTaskLogicAdvice());
         this.executer = executer;
+    }
+
+    private String getReuseTaskLogicAdvice() {
+        String reuseTaskLogicUrl = services.get(DocumentationRegistry.class).getDocumentationFor("custom_tasks", "sec:reusing_task_logic");
+        return "There are better ways to re-use task logic, see " + reuseTaskLogicUrl + ".";
     }
 
     @Override

@@ -80,7 +80,7 @@ class EarTest extends AbstractArchiveTaskTest {
         } as Action<CopySpec>)
 
         when:
-        ear.execute()
+        execute(ear)
 
         then:
         ear.archivePath.isFile()

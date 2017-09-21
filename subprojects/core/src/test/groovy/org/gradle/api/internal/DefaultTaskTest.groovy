@@ -353,7 +353,7 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     def "add null to actions throws"() {
         when:
-        defaultTask.actions.add(null);
+        defaultTask.actions.add(null)
 
         then:
         thrown(InvalidUserDataException)
@@ -361,7 +361,7 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     def "add null to actions with index throws"() {
         when:
-        defaultTask.actions.add(0, null);
+        defaultTask.actions.add(0, null)
 
         then:
         thrown(InvalidUserDataException)
@@ -369,7 +369,7 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     def "addAll null to actions throws"() {
         when:
-        defaultTask.actions.addAll((Collection) null);
+        defaultTask.actions.addAll((Collection) null)
 
         then:
         thrown(InvalidUserDataException)
@@ -377,7 +377,7 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     def "addAll null to actions with index throws"() {
         when:
-        defaultTask.actions.addAll(0, null);
+        defaultTask.actions.addAll(0, null)
 
         then:
         thrown(InvalidUserDataException)
@@ -387,7 +387,7 @@ class DefaultTaskTest extends AbstractTaskTest {
         when:
         def failure = new RuntimeException()
         defaultTask.doFirst { throw failure }
-        defaultTask.execute()
+        execute(defaultTask)
 
         then:
         RuntimeException actual = thrown()
