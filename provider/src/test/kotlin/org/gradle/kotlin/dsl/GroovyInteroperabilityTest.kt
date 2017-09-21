@@ -108,11 +108,13 @@ class GroovyInteroperabilityTest {
             on { invokeMethod(any(), any()) } doReturn expectedInvokeResult
         }
 
+        @Suppress("UnnecessaryVariable")
+        val expectedDelegate = delegate
         val expectedBuilderResult = Any()
         val builderResult = delegate.withGroovyBuilder {
             val invokeResult = "withKeywordArguments"("string" to "42", "int" to 42)
             assertThat(invokeResult, sameInstance(expectedInvokeResult))
-            assertThat(this.delegate, sameInstance<Any>(delegate))
+            assertThat(this.delegate, sameInstance<Any>(expectedDelegate))
             expectedBuilderResult
         }
         assertThat(builderResult, sameInstance(expectedBuilderResult))
@@ -141,6 +143,8 @@ class GroovyInteroperabilityTest {
             }
         }
 
+        @Suppress("UnnecessaryVariable")
+        val expectedDelegate = delegate
         val expectedBuilderResult = Any()
         val builderResult = delegate.withGroovyBuilder {
             val invokeResult = "nest" {
@@ -149,7 +153,7 @@ class GroovyInteroperabilityTest {
                 assertThat(nestedInvokeResult, sameInstance(expectedNestedInvokeResult))
             }
             assertThat(invokeResult, sameInstance(expectedInvokeResult))
-            assertThat(this.delegate, sameInstance<Any>(delegate))
+            assertThat(this.delegate, sameInstance<Any>(expectedDelegate))
             expectedBuilderResult
         }
         assertThat(builderResult, sameInstance(expectedBuilderResult))
@@ -170,11 +174,13 @@ class GroovyInteroperabilityTest {
             on { withKeywordArguments(any()) } doReturn expectedInvokeResult
         }
 
+        @Suppress("UnnecessaryVariable")
+        val expectedDelegate = delegate
         val expectedBuilderResult = Any()
         val builderResult = delegate.withGroovyBuilder {
             val invokeResult = "withKeywordArguments"("string" to "42", "int" to 42)
             assertThat(invokeResult, sameInstance(expectedInvokeResult))
-            assertThat(this.delegate, sameInstance<Any>(delegate))
+            assertThat(this.delegate, sameInstance<Any>(expectedDelegate))
             expectedBuilderResult
         }
         assertThat(builderResult, sameInstance(expectedBuilderResult))
