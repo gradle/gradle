@@ -30,7 +30,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         executer.requireGradleDistribution()
     }
 
-    def "create xcode project C++ executable"() {
+    def "can create xcode project for C++ executable"() {
         given:
         settingsFile << """
             include 'app', 'greeter'
@@ -87,7 +87,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             ':app:compileReleaseCpp', ':app:linkRelease')
     }
 
-    def "create xcode project C++ executable with transitive dependencies"() {
+    def "can create xcode project for C++ executable with transitive dependencies"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
 
         given:
@@ -164,7 +164,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             ':deck:compileReleaseCpp', ':deck:linkRelease')
     }
 
-    def "create xcode project C++ executable inside composite build"() {
+    def "can create xcode project for C++ executable inside composite build"() {
         given:
         settingsFile.text = """
             includeBuild 'greeter'

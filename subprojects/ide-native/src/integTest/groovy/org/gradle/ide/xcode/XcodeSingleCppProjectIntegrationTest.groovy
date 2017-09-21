@@ -26,7 +26,7 @@ import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 
 class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
     @Requires(TestPrecondition.XCODE)
-    def "create xcode project C++ executable"() {
+    def "can create xcode project for C++ executable"() {
         executer.requireGradleDistribution()
 
         given:
@@ -87,7 +87,7 @@ apply plugin: 'cpp-executable'
     }
 
     @Requires(TestPrecondition.XCODE)
-    def "create xcode project C++ library"() {
+    def "returns meaningful errors from xcode when C++ library doesn't have test configured"() {
         executer.requireGradleDistribution().requireOwnGradleUserHomeDir()
 
         given:
@@ -148,7 +148,7 @@ apply plugin: 'cpp-library'
         resultRelease.assertTasksExecuted(':compileReleaseCpp', ':linkRelease')
     }
 
-    def "new source files are included in the project"() {
+    def "adds new source files in the project"() {
         given:
         buildFile << """
 apply plugin: 'cpp-executable'
@@ -172,7 +172,7 @@ apply plugin: 'cpp-executable'
             .assertHasChildren(['Products', 'build.gradle', 'new.cpp'] + app.files*.name)
     }
 
-    def "deleted source files are not included in the project"() {
+    def "removes deleted source files from the project"() {
         given:
         buildFile << """
 apply plugin: 'cpp-executable'
@@ -197,7 +197,7 @@ apply plugin: 'cpp-executable'
             .assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
     }
 
-    def "executable source files in a non-default location are included in the project"() {
+    def "includes source files in a non-default location in C++ executable project"() {
         given:
         buildFile << """
 apply plugin: 'cpp-executable'
@@ -221,7 +221,7 @@ executable {
             .assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
     }
 
-    def "library source files in a non-default location are included in the project"() {
+    def "includes source files in a non-default location in C++ library project"() {
         given:
         buildFile << """
 apply plugin: 'cpp-library'

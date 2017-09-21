@@ -31,10 +31,10 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             include 'app', 'greeter'
         """
 
-        executer.requireGradleDistribution()
+        executer.requireGradleDistribution().requireOwnGradleUserHomeDir()
     }
 
-    def "create xcode project Swift executable"() {
+    def "can create xcode project for Swift executable"() {
         given:
         buildFile << """
             project(':app') {
@@ -87,7 +87,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             ':app:compileReleaseSwift', ':app:linkRelease')
     }
 
-    def "create xcode project Swift executable with transitive dependencies"() {
+    def "can create xcode project for Swift executable with transitive dependencies"() {
         def app = new SwiftAppWithLibraries()
 
         given:
@@ -155,7 +155,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             ':log:compileReleaseSwift', ':log:linkRelease')
     }
 
-    def "create xcode project Swift executable inside composite build"() {
+    def "can create xcode project for Swift executable inside composite build"() {
         given:
         settingsFile.text = """
             includeBuild 'greeter'
