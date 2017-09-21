@@ -16,7 +16,22 @@
 
 package org.gradle.api.internal.tasks.userinput;
 
-public interface UserInputHandler {
+import org.apache.commons.lang.StringUtils;
 
-    String getInput(InputRequest inputRequest);
+public class DefaultInputRequest implements InputRequest {
+
+    private final String prompt;
+
+    public DefaultInputRequest(String prompt) {
+        if (StringUtils.isBlank(prompt)) {
+            throw new IllegalArgumentException("Prompt maybe not be null, empty or whitespace");
+        }
+
+        this.prompt = prompt;
+    }
+
+    @Override
+    public String getPrompt() {
+        return prompt;
+    }
 }

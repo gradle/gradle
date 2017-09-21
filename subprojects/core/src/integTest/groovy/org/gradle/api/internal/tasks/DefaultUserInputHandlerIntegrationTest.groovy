@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks
 
+import org.gradle.api.internal.tasks.userinput.DefaultInputRequest
 import org.gradle.api.internal.tasks.userinput.DefaultUserInputHandler
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleHandle
@@ -26,7 +27,7 @@ import spock.lang.Unroll
 
 import static org.gradle.util.TextUtil.getPlatformLineSeparator
 
-class UserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
+class DefaultUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String USER_INPUT_SUPPORT_TASK_NAME = 'userInputSupport'
     private static final String USER_INPUT_REQUEST_TASK_NAME = 'userInputRequest'
@@ -147,7 +148,8 @@ class UserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
     static String verifyUserInput(String prompt, String expectedInput) {
         """
             ${createUserInputHandler()}
-            def response = userInputHandler.getInput('$prompt:')
+            def inputRequest = new ${DefaultInputRequest.class.getName()}('$prompt:')
+            def response = userInputHandler.getInput(inputRequest)
             assert response == '$expectedInput'
         """
     }

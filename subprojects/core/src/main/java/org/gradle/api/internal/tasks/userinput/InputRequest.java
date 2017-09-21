@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.userinput;
 
-public interface UserInputHandler {
+public interface InputRequest {
 
-    String getInput(InputRequest inputRequest);
+    String getPrompt();
 }

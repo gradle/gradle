@@ -39,7 +39,7 @@ class DefaultUserInputHandlerTest extends Specification {
 
     def "can read user input"() {
         when:
-        def input = userInputHandler.getUserResponse('Username')
+        def input = userInputHandler.getInput(new DefaultInputRequest('Enter username:'))
 
         then:
         1 * outputEventRenderer.onOutput(_ as UserInputRequestEvent)

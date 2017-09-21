@@ -14,9 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.userinput;
+package org.gradle.api.internal.tasks.userinput
 
-public interface UserInputHandler {
+import spock.lang.Specification
 
-    String getInput(InputRequest inputRequest);
+class DefaultInputRequestTest extends Specification {
+
+    def "throws exception if no valid prompt is provided"() {
+        when:
+        new DefaultInputRequest(prompt)
+
+        then:
+        def t = thrown(IllegalArgumentException)
+        t.message == 'Prompt maybe not be null, empty or whitespace'
+
+        where:
+        prompt << [null, '', ' ']
+    }
+
+    def "can create instance"() {
+        expect:
+        new DefaultInputRequest('Please provide information:')
+    }
 }

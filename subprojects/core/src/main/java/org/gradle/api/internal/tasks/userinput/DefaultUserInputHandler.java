@@ -32,8 +32,8 @@ public class DefaultUserInputHandler implements UserInputHandler {
     }
 
     @Override
-    public String getInput(String prompt) {
-        outputEventRenderer.onOutput(new UserInputRequestEvent(prompt));
+    public String getInput(InputRequest inputRequest) {
+        outputEventRenderer.onOutput(new UserInputRequestEvent(inputRequest.getPrompt()));
 
         try {
             return sanitizeInput(userInputReader.readInput());
