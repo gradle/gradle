@@ -312,8 +312,8 @@ project(":") {
                 pkill(pid)
                 didKill = true
             }
-            if (didKill && org.gradle.internal.os.OperatingSystem.current().windows) {
-                //it might take a moment until file handles are released on Windows
+            if (didKill) {
+                //it might take a moment until file handles are released
                 Thread.sleep(5000)
             }
         }
