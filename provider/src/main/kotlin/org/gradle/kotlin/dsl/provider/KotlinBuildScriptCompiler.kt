@@ -214,7 +214,7 @@ class KotlinBuildScriptCompiler(
     private
     fun applyPluginsTo(target: Project, pluginRequests: PluginRequests) {
         pluginRequestApplicator.applyPlugins(
-            pluginRequests, scriptHandler, pluginManagerOf(target), targetScope)
+            scriptSource, pluginRequests, scriptHandler, pluginManagerOf(target), targetScope)
     }
 
     private
