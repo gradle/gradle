@@ -23,6 +23,7 @@ import org.gradle.internal.logging.events.UserInputResumeEvent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 
 public class UserInputConsoleRenderer implements OutputEventListener {
     private final OutputEventListener delegate;
@@ -71,11 +72,12 @@ public class UserInputConsoleRenderer implements OutputEventListener {
     }
 
     private void replayEvents() {
-        for (OutputEvent outputEvent : eventQueue) {
-            delegate.onOutput(outputEvent);
-        }
+        ListIterator<OutputEvent> iterator = eventQueue.listIterator();
 
-        eventQueue.clear();
+        while (iterator.hasNext()) {
+            delegate.onOutput(iterator.next());
+            iterator.remove();
+        }
     }
 
     private void toggleBuildProgressAreaVisibility(boolean visible) {
