@@ -58,6 +58,7 @@ public class UserInputConsoleRenderer implements OutputEventListener {
     private void handleUserInputRequestEvent(String prompt) {
         toggleBuildProgressAreaVisibility(false);
         printToBuildProgressArea(prompt);
+        flushConsole();
         paused = true;
     }
 
@@ -68,6 +69,7 @@ public class UserInputConsoleRenderer implements OutputEventListener {
 
         paused = false;
         toggleBuildProgressAreaVisibility(true);
+        flushConsole();
         replayEvents();
     }
 
@@ -82,11 +84,13 @@ public class UserInputConsoleRenderer implements OutputEventListener {
 
     private void toggleBuildProgressAreaVisibility(boolean visible) {
         console.getBuildProgressArea().setVisible(visible);
-        console.flush();
     }
 
     private void printToBuildProgressArea(String message) {
         console.getBuildOutputArea().println(message);
+    }
+
+    private void flushConsole() {
         console.flush();
     }
 
