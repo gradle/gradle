@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
@@ -24,16 +23,19 @@ import static org.gradle.util.TextUtil.getPlatformLineSeparator
 
 class UserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
 
+    public static final String USER_INPUT_SUPPORT_TASK_NAME = 'userInputSupport'
+    public static final String USER_INPUT_REQUEST_TASK_NAME = 'userInputRequest'
     public static final String USER_INPUT = 'Hello World'
 
     @Unroll
     def "can capture user input for interactive build [daemon enabled: #useDaemon, rich console: #richConsole]"() {
         given:
         interactiveExecution()
-        buildFile << userInputTask()
+        buildFile << userInputSupportedTask(true)
+        buildFile << userInputRequestedTask()
 
         when:
-        executer.withTasks('ask')
+        executer.withTasks(USER_INPUT_SUPPORT_TASK_NAME, USER_INPUT_REQUEST_TASK_NAME)
 
         if (useDaemon) {
             executer.requireDaemon().requireIsolatedDaemons()
@@ -54,13 +56,13 @@ class UserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
         [useDaemon, richConsole] << [[false, true], [false, true]].combinations()
     }
 
-    @NotYetImplemented
     def "fails gracefully if console is not interactive"() {
         given:
-        buildFile << userInputTask()
+        buildFile << userInputSupportedTask(false)
+        buildFile << userInputRequestedTask()
 
         when:
-        def gradleHandle = executer.withTasks('ask').start()
+        def gradleHandle = executer.withTasks(USER_INPUT_SUPPORT_TASK_NAME, USER_INPUT_REQUEST_TASK_NAME).start()
 
         then:
         def failure = gradleHandle.waitForFailure()
@@ -71,11 +73,24 @@ class UserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
         executer.withStdinPipe().withForceInteractive(true)
     }
 
-    static String userInputTask() {
+    static String userInputSupportedTask(boolean supported) {
         """
             import org.gradle.api.internal.tasks.UserInputHandler
 
-            task ask {
+            task $USER_INPUT_SUPPORT_TASK_NAME {
+                doLast {
+                    def userInputHandler = project.services.get(UserInputHandler)
+                    assert userInputHandler.userInputSupported == $supported
+                }
+            }
+        """
+    }
+
+    static String userInputRequestedTask() {
+        """
+            import org.gradle.api.internal.tasks.UserInputHandler
+
+            task $USER_INPUT_REQUEST_TASK_NAME {
                 doLast {
                     def userInputHandler = project.services.get(UserInputHandler)
                     def response = userInputHandler.getUserResponse('Enter your response:')
