@@ -18,8 +18,8 @@ package org.gradle.plugin.use.internal
 
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.internal.exceptions.LocationAwareException
+import org.gradle.plugin.dsl.PluginDependenciesSpec
 import org.gradle.plugin.management.internal.InvalidPluginRequestException
-import org.gradle.plugin.use.PluginDependenciesSpec
 import spock.lang.Specification
 
 class PluginRequestCollectorTest extends Specification {
@@ -29,7 +29,7 @@ class PluginRequestCollectorTest extends Specification {
 
     List<Map> plugins(@DelegatesTo(PluginDependenciesSpec) Closure<?> closure) {
         new PluginRequestCollector(scriptSource).with {
-            createSpec(LINE_NUMBER).with(closure)
+            createPluginDependenciesSpec(LINE_NUMBER).with(closure)
             listPluginRequests()
         }.collect {
             [id: it.id.id, version: it.version]

@@ -53,40 +53,6 @@ public class PluginRequestCollector {
         this.scriptSource = scriptSource;
     }
 
-    private static class BinaryDependencySpecImpl implements org.gradle.plugin.use.PluginDependencySpec {
-        private final int lineNumber;
-        private final PluginId id;
-        private String version;
-        private boolean apply = true;
-
-        private BinaryDependencySpecImpl(int lineNumber, String id) {
-            this.lineNumber = lineNumber;
-            this.id = id == null ? null : DefaultPluginId.of(id);
-        }
-
-        @Override
-        public org.gradle.plugin.use.PluginDependencySpec version(String version) {
-            this.version = version;
-            return this;
-        }
-
-        @Override
-        public org.gradle.plugin.use.PluginDependencySpec apply(boolean apply) {
-            this.apply = apply;
-            return this;
-        }
-    }
-
-    private static class ScriptDependencySpecImpl implements org.gradle.plugin.use.ScriptPluginDependencySpec {
-        private final int lineNumber;
-        private String script;
-
-        private ScriptDependencySpecImpl(int lineNumber, String script) {
-            this.lineNumber = lineNumber;
-            this.script = script;
-        }
-    }
-
     private static class BinaryPluginDependencySpecImpl implements BinaryPluginDependencySpec {
         private final int lineNumber;
         private final PluginId id;
@@ -122,24 +88,6 @@ public class PluginRequestCollector {
     }
 
     private final List<Object> specs = new LinkedList<Object>();
-
-    @Deprecated
-    public org.gradle.plugin.use.PluginDependenciesSpec createSpec(final int lineNumber) {
-        return new org.gradle.plugin.use.PluginDependenciesSpec() {
-            public org.gradle.plugin.use.PluginDependencySpec id(String id) {
-                org.gradle.plugin.use.PluginDependencySpec pluginDependency = new BinaryDependencySpecImpl(lineNumber, id);
-                specs.add(pluginDependency);
-                return pluginDependency;
-            }
-
-            @Override
-            public org.gradle.plugin.use.ScriptPluginDependencySpec script(String script) {
-                org.gradle.plugin.use.ScriptPluginDependencySpec pluginDependency = new ScriptDependencySpecImpl(lineNumber, script);
-                specs.add(pluginDependency);
-                return pluginDependency;
-            }
-        };
-    }
 
     public PluginDependenciesSpec createPluginDependenciesSpec(final int lineNumber) {
         return new PluginDependenciesSpec() {
@@ -182,10 +130,6 @@ public class PluginRequestCollector {
             return pluginRequestFor((BinaryPluginDependencySpecImpl) pluginDependency);
         } else if (pluginDependency instanceof ScriptPluginDependencySpecImpl) {
             return pluginRequestFor((ScriptPluginDependencySpecImpl) pluginDependency);
-        } else if (pluginDependency instanceof BinaryDependencySpecImpl) {
-            return pluginRequestFor((BinaryDependencySpecImpl) pluginDependency);
-        } else if (pluginDependency instanceof ScriptDependencySpecImpl) {
-            return pluginRequestFor((ScriptDependencySpecImpl) pluginDependency);
         } else {
             throw new IllegalStateException("Unknown PluginDependencySpec: " + pluginDependency);
         }
@@ -202,23 +146,6 @@ public class PluginRequestCollector {
     }
 
     private PluginRequestInternal pluginRequestFor(ScriptPluginDependencySpecImpl scriptPluginDependency) {
-        return new ScriptPluginRequest(
-            scriptSource,
-            scriptPluginDependency.lineNumber,
-            URI.create(scriptPluginDependency.script));
-    }
-
-    private PluginRequestInternal pluginRequestFor(BinaryDependencySpecImpl binaryPluginDependency) {
-        return new BinaryPluginRequest(
-            scriptSource,
-            binaryPluginDependency.lineNumber,
-            binaryPluginDependency.id,
-            binaryPluginDependency.version,
-            binaryPluginDependency.apply,
-            null);
-    }
-
-    private PluginRequestInternal pluginRequestFor(ScriptDependencySpecImpl scriptPluginDependency) {
         return new ScriptPluginRequest(
             scriptSource,
             scriptPluginDependency.lineNumber,
