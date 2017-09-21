@@ -830,8 +830,10 @@ public class DependencyGraphBuilder {
         }
 
         public void restart(ComponentState selected) {
-            select(selected);
-            doRestart(selected);
+            if (this.selected != selected) {
+                select(selected);
+                doRestart(selected);
+            }
         }
 
         public void softRestart(ComponentState selected) {

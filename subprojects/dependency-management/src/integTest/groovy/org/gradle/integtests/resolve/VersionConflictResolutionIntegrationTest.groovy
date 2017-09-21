@@ -1328,4 +1328,74 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
+    def "presence of evicted and orphan node for a module do not fail selection"() {
+        given:
+        mavenRepo.module("org", "a", "1.0").dependsOn("org", "b", "1.0").publish()
+        mavenRepo.module("org", "b", "1.0").publish()
+        mavenRepo.module("org", "b", "2.0").publish()
+        mavenRepo.module("org", "c", "1.0").dependsOn('org', 'b', '2.0').publish()
+        mavenRepo.module("org", "d", "1.0").dependsOn("org", 'e', '1.0').publish()
+        mavenRepo.module("org", "e", "1.0").dependsOn("org", 'a', '2.0').dependsOn('org', 'c', '1.0').publish()
+        mavenRepo.module("org", "a", "2.0").dependsOn("org", 'c', '2.0').publish()
+        mavenRepo.module('org', 'c', '2.0').publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:a:1.0', 'org:c:1.0', 'org:d:1.0'
+            }
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                    assert files == ['a-2.0.jar', 'c-2.0.jar', 'd-1.0.jar', 'e-1.0.jar']
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        noExceptionThrown()
+    }
+
+
+    def "can have a dependency on evicted node"() {
+        given:
+        mavenRepo.module("org", "a", "1.0").dependsOn("org", "b", "1.0").publish()
+        mavenRepo.module("org", "b", "1.0").publish()
+        mavenRepo.module("org", "c", "1.0").dependsOn('org', 'a', '1.0').publish()
+        mavenRepo.module('org', 'd', '1.0').dependsOn('org', 'a', '2.0').publish()
+        mavenRepo.module('org', 'a', '2.0').publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:a:1.0', 'org:c:1.0', 'org:d:1.0'
+            }
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                    assert files == ['a-2.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        noExceptionThrown()
+    }
+
 }
