@@ -78,8 +78,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         OutputEventListener stdOutChain = new LazyListener(new Factory<OutputEventListener>() {
             @Override
             public OutputEventListener create() {
-                return onNonError(
-                    new BuildLogLevelFilterRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false)));
+                return onNonError(new BuildLogLevelFilterRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false)));
             }
         });
         formatters.add(stdOutChain);
