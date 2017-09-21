@@ -1,17 +1,6 @@
-
-buildscript {
-    dependencies {
-        classpath("com.android.tools.build:gradle:2.3.3")
-        classpath(kotlin("gradle-plugin"))
-    }
-    repositories {
-        jcenter()
-    }
-}
-
-apply {
-    plugin("com.android.application")
-    plugin("kotlin-android")
+plugins {
+    id("com.android.application") version "2.3.3"
+    kotlin("android")
 }
 
 android {
@@ -44,4 +33,3 @@ dependencies {
 repositories {
     jcenter()
 }
-
