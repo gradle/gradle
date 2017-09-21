@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks
 
-import org.gradle.api.internal.tasks.userinput.UserInputHandler
+import org.gradle.api.internal.tasks.userinput.DefaultUserInputHandler
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -128,7 +128,7 @@ class UserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
             task $USER_INPUT_SUPPORT_TASK_NAME {
                 doLast {
                     ${createUserInputHandler()}
-                    assert userInputHandler.userInputSupported == $supported
+                    assert userInputHandler.inputSupported == $supported
                 }
             }
         """
@@ -147,14 +147,14 @@ class UserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
     static String verifyUserInput(String prompt, String expectedInput) {
         """
             ${createUserInputHandler()}
-            def response = userInputHandler.getUserResponse('$prompt:')
+            def response = userInputHandler.getInput('$prompt:')
             assert response == '$expectedInput'
         """
     }
 
     static String createUserInputHandler() {
         """
-            def userInputHandler = project.services.get(${UserInputHandler.class.getName()})
+            def userInputHandler = project.services.get(${DefaultUserInputHandler.class.getName()})
         """
     }
 }

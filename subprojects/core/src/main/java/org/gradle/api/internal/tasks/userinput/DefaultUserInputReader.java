@@ -20,7 +20,7 @@ import org.gradle.api.UncheckedIOException;
 
 import java.util.Scanner;
 
-public class ScannerUserInputReader implements UserInputReader {
+public class DefaultUserInputReader implements UserInputReader {
 
     private final Scanner scanner = new Scanner(System.in);
 

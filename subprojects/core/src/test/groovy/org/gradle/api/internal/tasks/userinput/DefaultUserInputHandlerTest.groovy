@@ -22,15 +22,15 @@ import org.gradle.internal.logging.sink.OutputEventRenderer
 import spock.lang.Specification
 import spock.lang.Subject
 
-class UserInputHandlerTest extends Specification {
+class DefaultUserInputHandlerTest extends Specification {
 
     def outputEventRenderer = Mock(OutputEventRenderer)
     def userInputReader = Mock(UserInputReader)
-    @Subject def userInputHandler = new UserInputHandler(outputEventRenderer, userInputReader)
+    @Subject def userInputHandler = new DefaultUserInputHandler(outputEventRenderer, userInputReader)
 
     def "can check if user input is supported"() {
         when:
-        boolean supported = userInputHandler.userInputSupported
+        boolean supported = userInputHandler.inputSupported
 
         then:
         1 * userInputReader.supported >> true

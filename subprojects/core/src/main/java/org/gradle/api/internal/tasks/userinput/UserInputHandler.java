@@ -13,39 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.tasks.userinput;
 
-import com.google.common.base.CharMatcher;
-import org.apache.commons.lang.StringUtils;
-import org.gradle.internal.logging.events.UserInputRequestEvent;
-import org.gradle.internal.logging.events.UserInputResumeEvent;
-import org.gradle.internal.logging.sink.OutputEventRenderer;
+public interface UserInputHandler {
 
-// TODO:DAZ Handle ctrl-D to cancel build during input
-public class UserInputHandler {
-    private final OutputEventRenderer outputEventRenderer;
-    private final UserInputReader userInputReader;
-
-    public UserInputHandler(OutputEventRenderer outputEventRenderer, UserInputReader userInputReader) {
-        this.outputEventRenderer = outputEventRenderer;
-        this.userInputReader = userInputReader;
-    }
-
-    public String getUserResponse(String prompt) {
-        outputEventRenderer.onOutput(new UserInputRequestEvent(prompt));
-
-        try {
-            return sanitizeInput(userInputReader.readInput());
-        } finally {
-            outputEventRenderer.onOutput(new UserInputResumeEvent());
-        }
-    }
-
-    public boolean isUserInputSupported() {
-        return userInputReader.isSupported();
-    }
-
-    private String sanitizeInput(String input) {
-        return CharMatcher.JAVA_ISO_CONTROL.removeFrom(StringUtils.trim(input));
-    }
+    String getInput(String prompt);
 }
