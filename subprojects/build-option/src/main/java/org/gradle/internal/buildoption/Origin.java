@@ -43,9 +43,8 @@ public abstract class Origin {
     String hintMessage(String hint) {
         if (StringUtils.isBlank(hint)) {
             return "";
-        } else {
-            return String.format(" (%s)", hint);
         }
+        return String.format(" (%s)", hint);
     }
 
     private static class GradlePropertyOrigin extends Origin {
