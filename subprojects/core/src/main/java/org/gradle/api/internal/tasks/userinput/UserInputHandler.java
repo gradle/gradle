@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.tasks.userinput;
 
+import com.google.common.base.CharMatcher;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.logging.events.UserInputRequestEvent;
 import org.gradle.internal.logging.events.UserInputResumeEvent;
 import org.gradle.internal.logging.sink.OutputEventRenderer;
 
-// TODO:DAZ Sanity check input
 // TODO:DAZ Handle ctrl-D to cancel build during input
 public class UserInputHandler {
     private final OutputEventRenderer outputEventRenderer;
@@ -35,7 +35,7 @@ public class UserInputHandler {
         outputEventRenderer.onOutput(new UserInputRequestEvent(prompt));
 
         try {
-            return StringUtils.trim(userInputReader.readInput());
+            return sanitizeInput(userInputReader.readInput());
         } finally {
             outputEventRenderer.onOutput(new UserInputResumeEvent());
         }
@@ -43,5 +43,9 @@ public class UserInputHandler {
 
     public boolean isUserInputSupported() {
         return userInputReader.isSupported();
+    }
+
+    private String sanitizeInput(String input) {
+        return CharMatcher.JAVA_ISO_CONTROL.removeFrom(StringUtils.trim(input));
     }
 }

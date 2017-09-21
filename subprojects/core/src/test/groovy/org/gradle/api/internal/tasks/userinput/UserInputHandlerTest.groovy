@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.userinput
 
-import org.apache.commons.lang.StringUtils
 import org.gradle.internal.logging.events.UserInputRequestEvent
 import org.gradle.internal.logging.events.UserInputResumeEvent
 import org.gradle.internal.logging.sink.OutputEventRenderer
@@ -47,9 +46,14 @@ class UserInputHandlerTest extends Specification {
         1 * outputEventRenderer.onOutput(_ as UserInputResumeEvent)
         0 * outputEventRenderer._
         1 * userInputReader.readInput() >> enteredUserInput
-        input == StringUtils.trim(enteredUserInput)
+        input == sanitizedUserInput
 
         where:
-        enteredUserInput << ['foobar', 'Hello World', '   abc   ', '']
+        enteredUserInput | sanitizedUserInput
+        'foobar'         | 'foobar'
+        'Hello World'    | 'Hello World'
+        '   abc   '      | 'abc'
+        ''               | ''
+        'ab\u0000cd'     | 'abcd'
     }
 }
