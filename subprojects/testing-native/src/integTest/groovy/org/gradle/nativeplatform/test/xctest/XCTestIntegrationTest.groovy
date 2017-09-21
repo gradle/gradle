@@ -166,7 +166,7 @@ dependencies {
     testImplementation project(':greeter')
 }
 """
-        lib.lib.writeToProject(file('greeter'))
+        lib.main.writeToProject(file('greeter'))
         lib.test.writeToProject(testDirectory)
 
         when:
