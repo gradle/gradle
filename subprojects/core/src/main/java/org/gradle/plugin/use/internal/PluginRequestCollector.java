@@ -141,7 +141,7 @@ public class PluginRequestCollector {
         };
     }
 
-    public PluginDependenciesSpec createPluginDependencySpec(final int lineNumber) {
+    public PluginDependenciesSpec createPluginDependenciesSpec(final int lineNumber) {
         return new PluginDependenciesSpec() {
             @Override
             public BinaryPluginDependencySpec id(String id) {

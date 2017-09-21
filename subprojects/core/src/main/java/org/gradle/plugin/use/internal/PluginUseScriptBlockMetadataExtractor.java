@@ -101,7 +101,7 @@ public class PluginUseScriptBlockMetadataExtractor {
                                 if (call.isImplicitThis()) {
                                     try {
                                         DefaultPluginId.validate(argStringValue);
-                                        call.setNodeMetaData(BinaryPluginDependencySpec.class, pluginRequestCollector.createPluginDependencySpec(call.getLineNumber()).id(argStringValue));
+                                        call.setNodeMetaData(BinaryPluginDependencySpec.class, pluginRequestCollector.createPluginDependenciesSpec(call.getLineNumber()).id(argStringValue));
                                     } catch (InvalidPluginIdException e) {
                                         restrict(argumentExpression, formatErrorMessage(e.getReason()));
                                     }
@@ -112,7 +112,7 @@ public class PluginUseScriptBlockMetadataExtractor {
 
                             if (methodNameText.equals("script")) {
                                 if (call.isImplicitThis()) {
-                                    call.setNodeMetaData(ScriptPluginDependencySpec.class, pluginRequestCollector.createPluginDependencySpec(call.getLineNumber()).script(argStringValue));
+                                    call.setNodeMetaData(ScriptPluginDependencySpec.class, pluginRequestCollector.createPluginDependenciesSpec(call.getLineNumber()).script(argStringValue));
                                 } else {
                                     restrict(call, formatErrorMessage(BASE_MESSAGE));
                                 }
