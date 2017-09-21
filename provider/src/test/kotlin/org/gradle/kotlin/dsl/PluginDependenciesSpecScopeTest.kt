@@ -67,7 +67,7 @@ fun expecting(vararg expected: Plugin, block: PluginDependenciesSpec.() -> Unit)
 
 fun plugins(block: PluginDependenciesSpecScope.() -> Unit) =
     PluginRequestCollector(StringScriptSource("script", "")).run {
-        PluginDependenciesSpecScope(createPluginDependencySpec(1)).block()
+        PluginDependenciesSpecScope(createPluginDependenciesSpec(1)).block()
         listPluginRequests()
     }
 
