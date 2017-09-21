@@ -15,8 +15,8 @@
  */
 package org.gradle.kotlin.dsl
 
-import org.gradle.plugin.use.PluginDependenciesSpec
-import org.gradle.plugin.use.PluginDependencySpec
+import org.gradle.plugin.dsl.BinaryPluginDependencySpec
+import org.gradle.plugin.dsl.PluginDependenciesSpec
 
 
 /**
@@ -28,5 +28,5 @@ import org.gradle.plugin.use.PluginDependencySpec
  *
  * You can also use e.g. `` `build-scan` version "1.7.1" `` if you want to use a different version.
  */
-val PluginDependenciesSpec.`build-scan`: PluginDependencySpec
+val PluginDependenciesSpec.`build-scan`: BinaryPluginDependencySpec
     get() = id("com.gradle.build-scan") version "1.8"

@@ -18,7 +18,7 @@ package org.gradle.kotlin.dsl
 
 import org.gradle.api.Project
 
-import org.gradle.plugin.use.PluginDependenciesSpec
+import org.gradle.plugin.dsl.PluginDependenciesSpec
 
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 
