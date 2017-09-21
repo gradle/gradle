@@ -13,44 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks;
+package org.gradle.api.internal.tasks.userinput;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.logging.events.UserInputRequestEvent;
 import org.gradle.internal.logging.events.UserInputResumeEvent;
 import org.gradle.internal.logging.sink.OutputEventRenderer;
-
-import java.util.Scanner;
 
 // TODO:DAZ Sanity check input
 // TODO:DAZ Handle ctrl-D to cancel build during input
 public class UserInputHandler {
     private final OutputEventRenderer outputEventRenderer;
-    private final Scanner scanner = new Scanner(System.in);
+    private final UserInputReader userInputReader;
 
-    public UserInputHandler(OutputEventRenderer outputEventRenderer) {
+    public UserInputHandler(OutputEventRenderer outputEventRenderer, UserInputReader userInputReader) {
         this.outputEventRenderer = outputEventRenderer;
+        this.userInputReader = userInputReader;
     }
 
     public String getUserResponse(String prompt) {
         outputEventRenderer.onOutput(new UserInputRequestEvent(prompt));
+
         try {
-            return StringUtils.trim(readInput());
+            return StringUtils.trim(userInputReader.readInput());
         } finally {
             outputEventRenderer.onOutput(new UserInputResumeEvent());
         }
     }
 
-    private String readInput() {
-        if (!isUserInputSupported()) {
-            throw new UncheckedIOException("Console does not support capturing input");
-        }
-
-        return scanner.nextLine();
-    }
-
     public boolean isUserInputSupported() {
-        return scanner.hasNextLine();
+        return userInputReader.isSupported();
     }
 }
