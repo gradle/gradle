@@ -18,25 +18,38 @@ package org.gradle.api.internal.tasks.userinput;
 
 import org.apache.commons.lang.StringUtils;
 
-public class DefaultInputRequest implements InputRequest {
+import java.util.List;
+
+public class MultipleChoiceInputRequest implements InputRequest {
 
     private final String prompt;
+    private final List<String> choices;
 
-    public DefaultInputRequest(String prompt) {
+    public MultipleChoiceInputRequest(String prompt, List<String> choices) {
         if (StringUtils.isBlank(prompt)) {
             throw new IllegalArgumentException("Prompt maybe not be null, empty or whitespace");
         }
 
+        if (choices == null || choices.size() < 2) {
+            throw new IllegalArgumentException("At least two choices need to be provided");
+        }
+
         this.prompt = prompt;
+        this.choices = choices;
     }
 
     @Override
     public String getPrompt() {
-        return prompt;
+        StringBuilder descriptivePrompt = new StringBuilder();
+        descriptivePrompt.append(prompt);
+        descriptivePrompt.append(" [");
+        descriptivePrompt.append(StringUtils.join(choices, ", "));
+        descriptivePrompt.append("]");
+        return descriptivePrompt.toString();
     }
 
     @Override
     public boolean isValid(String input) {
-        return input == null ? false : true;
+        return choices.contains(input);
     }
 }

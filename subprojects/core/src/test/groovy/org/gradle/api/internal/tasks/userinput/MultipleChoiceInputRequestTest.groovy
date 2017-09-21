@@ -18,13 +18,13 @@ package org.gradle.api.internal.tasks.userinput
 
 import spock.lang.Specification
 
-class DefaultInputRequestTest extends Specification {
+class MultipleChoiceInputRequestTest extends Specification {
 
-    private static final String PROMPT = 'Please provide information:'
+    private static final String PROMPT = 'Accept license?'
 
     def "throws exception if invalid prompt is provided"() {
         when:
-        new DefaultInputRequest(prompt)
+        new MultipleChoiceInputRequest(prompt, [])
 
         then:
         def t = thrown(IllegalArgumentException)
@@ -34,24 +34,36 @@ class DefaultInputRequestTest extends Specification {
         prompt << [null, '', ' ']
     }
 
-    def "can handle valid input"() {
+    def "throws exception if invalid choices are provided"() {
         when:
-        def inputRequest = new DefaultInputRequest(PROMPT)
+        new MultipleChoiceInputRequest(PROMPT, choices)
 
         then:
-        inputRequest.prompt == PROMPT
+        def t = thrown(IllegalArgumentException)
+        t.message == 'At least two choices need to be provided'
+
+        where:
+        choices << [null, [], ['yes']]
+    }
+
+    def "can handle valid input"() {
+        when:
+        def inputRequest = new MultipleChoiceInputRequest(PROMPT, ['yes', 'no'])
+
+        then:
+        inputRequest.prompt == "$PROMPT [yes, no]"
         inputRequest.isValid(input)
 
         where:
-        input << ['any', '', ' ']
+        input << ['yes', 'no']
     }
 
     def "can handle invalid input"() {
         when:
-        def inputRequest = new DefaultInputRequest(PROMPT)
+        def inputRequest = new MultipleChoiceInputRequest(PROMPT, ['yes', 'no'])
 
         then:
-        inputRequest.prompt == PROMPT
-        !inputRequest.isValid(null)
+        inputRequest.prompt == "$PROMPT [yes, no]"
+        !inputRequest.isValid('other')
     }
 }

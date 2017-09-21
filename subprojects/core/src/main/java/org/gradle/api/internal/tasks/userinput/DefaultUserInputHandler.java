@@ -36,7 +36,13 @@ public class DefaultUserInputHandler implements UserInputHandler {
         outputEventRenderer.onOutput(new UserInputRequestEvent(inputRequest.getPrompt()));
 
         try {
-            return sanitizeInput(userInputReader.readInput());
+            while (true) {
+                String input = sanitizeInput(userInputReader.readInput());
+
+                if (inputRequest.isValid(input)) {
+                    return input;
+                }
+            }
         } finally {
             outputEventRenderer.onOutput(new UserInputResumeEvent());
         }
@@ -47,6 +53,10 @@ public class DefaultUserInputHandler implements UserInputHandler {
     }
 
     private String sanitizeInput(String input) {
-        return CharMatcher.JAVA_ISO_CONTROL.removeFrom(StringUtils.trim(input));
+        if (input != null) {
+            return CharMatcher.JAVA_ISO_CONTROL.removeFrom(StringUtils.trim(input));
+        }
+
+        return input;
     }
 }

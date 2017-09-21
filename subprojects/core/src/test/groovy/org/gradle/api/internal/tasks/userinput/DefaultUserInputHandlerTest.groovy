@@ -37,7 +37,7 @@ class DefaultUserInputHandlerTest extends Specification {
         supported
     }
 
-    def "can read user input"() {
+    def "can read valid user input"() {
         when:
         def input = userInputHandler.getInput(new DefaultInputRequest('Enter username:'))
 
@@ -55,5 +55,18 @@ class DefaultUserInputHandlerTest extends Specification {
         '   abc   '      | 'abc'
         ''               | ''
         'ab\u0000cd'     | 'abcd'
+    }
+
+    def "re-requests user input if invalid"() {
+        when:
+        def input = userInputHandler.getInput(new DefaultInputRequest('Enter username:'))
+
+        then:
+        1 * outputEventRenderer.onOutput(_ as UserInputRequestEvent)
+        0 * outputEventRenderer._
+        1 * userInputReader.readInput() >> null
+        1 * userInputReader.readInput() >> 'foobar'
+        1 * outputEventRenderer.onOutput(_ as UserInputResumeEvent)
+        input == 'foobar'
     }
 }
