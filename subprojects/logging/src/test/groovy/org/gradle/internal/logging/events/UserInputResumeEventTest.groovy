@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.logging.events;
 
-import org.gradle.api.logging.LogLevel;
+package org.gradle.internal.logging.events
 
-public class UserInputResumeEvent extends OutputEvent {
+import org.gradle.api.logging.LogLevel
+import spock.lang.Specification
+import spock.lang.Subject
 
-    @Override
-    public LogLevel getLogLevel() {
-        return LogLevel.QUIET;
+class UserInputResumeEventTest extends Specification {
+
+    @Subject def userInputResumeEvent = new UserInputResumeEvent()
+
+    def "can create instance"() {
+        expect:
+        userInputResumeEvent.logLevel == LogLevel.QUIET
     }
 }

@@ -17,9 +17,8 @@ package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
 
-import javax.annotation.Nullable;
-
 public class UserInputRequestEvent extends OutputEvent {
+
     private final String prompt;
 
     public UserInputRequestEvent(String prompt) {
@@ -30,7 +29,6 @@ public class UserInputRequestEvent extends OutputEvent {
         return prompt;
     }
 
-    @Nullable
     @Override
     public LogLevel getLogLevel() {
         return LogLevel.QUIET;

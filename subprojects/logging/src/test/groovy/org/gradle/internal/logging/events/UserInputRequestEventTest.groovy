@@ -13,14 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.logging.events;
 
-import org.gradle.api.logging.LogLevel;
+package org.gradle.internal.logging.events
 
-public class UserInputResumeEvent extends OutputEvent {
+import org.gradle.api.logging.LogLevel
+import spock.lang.Specification
 
-    @Override
-    public LogLevel getLogLevel() {
-        return LogLevel.QUIET;
+class UserInputRequestEventTest extends Specification {
+
+    def "can create instance for provided prompt"() {
+        given:
+        def prompt = 'Please provide your input:'
+
+        when:
+        def userInputRequestEvent = new UserInputRequestEvent(prompt)
+
+        then:
+        userInputRequestEvent.prompt == prompt
+        userInputRequestEvent.logLevel == LogLevel.QUIET
     }
 }
