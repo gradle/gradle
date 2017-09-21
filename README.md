@@ -27,3 +27,11 @@ To create a full installation (includes docs):
 ## Contributing
 
 If you're looking to contribute to Gradle or provide a patch/pull request, you can find more info [here](https://github.com/gradle/gradle/blob/master/.github/CONTRIBUTING.md).
+
+## Code of Conduct
+
+In the interest of fostering an open and welcoming environment, we as contributors and maintainers pledge to making participation in our project and our community a harassment-free experience for everyone, regardless of age, body size, disability, ethnicity, gender identity and expression, level of experience, nationality, personal appearance, race, religion, or sexual identity and orientation.
+
+You can read the Gradle Code of Conduct at https://gradle.org/conduct/ and contribute to it at https://github.com/gradle/code-of-conduct/.
+
+This code of conduct applies to all of the projects under the Gradle organization on GitHub and the Gradle community at large (Slack, mailing lists, Twitter, etc.).

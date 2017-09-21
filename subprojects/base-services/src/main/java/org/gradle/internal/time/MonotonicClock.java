@@ -19,8 +19,7 @@ package org.gradle.internal.time;
 import com.google.common.annotations.VisibleForTesting;
 
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * A clock that is guaranteed to not go backwards.
@@ -53,15 +52,12 @@ class MonotonicClock implements Clock {
 
     private static final long SYNC_INTERVAL_MILLIS = TimeUnit.SECONDS.toMillis(3);
 
+    private final long syncIntervalMillis;
     private final TimeSource timeSource;
 
-    private long syncMillis;
-    private long syncNanos;
-
-    private long max;
-
-    private final Lock lock = new ReentrantLock();
-    private long syncIntervalMillis;
+    private final AtomicLong syncMillisRef;
+    private final AtomicLong syncNanosRef;
+    private final AtomicLong max = new AtomicLong(0);
 
     MonotonicClock() {
         this(TimeSource.SYSTEM, SYNC_INTERVAL_MILLIS);
@@ -69,29 +65,50 @@ class MonotonicClock implements Clock {
 
     @VisibleForTesting
     MonotonicClock(TimeSource timeSource, long syncIntervalMillis) {
+        long nanoTime = timeSource.nanoTime();
+        long currentTimeMillis = timeSource.currentTimeMillis();
+
         this.timeSource = timeSource;
-        this.syncMillis = this.max = timeSource.currentTimeMillis();
-        this.syncNanos = timeSource.nanoTime();
         this.syncIntervalMillis = syncIntervalMillis;
+        this.syncNanosRef = new AtomicLong(nanoTime);
+        this.syncMillisRef = new AtomicLong(currentTimeMillis);
+        this.max.set(currentTimeMillis);
     }
 
     public long getCurrentTime() {
-        lock.lock();
-        try {
-            long nowNanos = timeSource.nanoTime();
-            long sinceSyncNanos = nowNanos - syncNanos;
-            long sinceSyncMillis = TimeUnit.NANOSECONDS.toMillis(sinceSyncNanos);
-            long currentTime = syncMillis + sinceSyncMillis;
+        long nowNanos = timeSource.nanoTime();
+        long syncNanos = syncNanosRef.get();
+        long syncMillis = syncMillisRef.get();
+        long sinceSyncNanos = nowNanos - syncNanos;
+        long sinceSyncMillis = TimeUnit.NANOSECONDS.toMillis(sinceSyncNanos);
 
-            if (sinceSyncMillis >= syncIntervalMillis) {
-                syncNanos = nowNanos;
-                return syncMillis = max = Math.max(timeSource.currentTimeMillis(), max);
-            } else {
-                return max = Math.max(currentTime, max);
-            }
-        } finally {
-            lock.unlock();
+        if (syncIsDue(nowNanos, syncNanos, sinceSyncMillis)) {
+            return sync(syncMillis);
+        } else {
+            return advance(syncMillis + sinceSyncMillis);
         }
+    }
+
+    private boolean syncIsDue(long nowNanos, long syncNanos, long sinceSyncMillis) {
+        return sinceSyncMillis >= syncIntervalMillis && syncNanosRef.compareAndSet(syncNanos, nowNanos);
+    }
+
+    private long sync(long syncMillis) {
+        long newSyncMillis = advance(timeSource.currentTimeMillis());
+        // CAS due to potentially a later, but overlapping, sync having already completed
+        syncMillisRef.compareAndSet(syncMillis, newSyncMillis);
+        return newSyncMillis;
+    }
+
+    private long advance(long timestamp) {
+        long prev;
+        long next;
+        do {
+            prev = max.get();
+            next = Math.max(prev, timestamp);
+        } while (!max.compareAndSet(prev, next));
+
+        return next;
     }
 
 }

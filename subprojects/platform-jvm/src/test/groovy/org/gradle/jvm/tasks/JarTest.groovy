@@ -46,7 +46,7 @@ class JarTest extends AbstractArchiveTaskTest {
 
     def "correct jar manifest"() {
         when:
-        jar.manifest = new DefaultManifest(null);
+        jar.manifest = new DefaultManifest(null)
         jar.manifest {
             attributes(key: 'value')
         }
@@ -83,7 +83,7 @@ class JarTest extends AbstractArchiveTaskTest {
         } as Action<CopySpec>)
 
         when:
-        jar.execute()
+        execute(jar)
 
         then:
         new JarTestFixture(jar.archivePath).assertContainsFile('META-INF/file.txt')

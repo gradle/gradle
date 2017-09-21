@@ -23,14 +23,14 @@ import org.gradle.util.WrapUtil
 
 import static org.gradle.api.internal.file.TestFiles.fileSystem
 
-public class DeleteTest extends AbstractConventionTaskTest {
+class DeleteTest extends AbstractConventionTaskTest {
     private Delete delete
 
     def setup() {
         delete = createTask(Delete)
     }
 
-    public ConventionTask getTask() {
+    ConventionTask getTask() {
         return delete
     }
 
@@ -45,7 +45,7 @@ public class DeleteTest extends AbstractConventionTaskTest {
 
         when:
         delete.delete(file)
-        delete.execute()
+        execute(delete)
 
         then:
         delete.getDidWork()
@@ -55,7 +55,7 @@ public class DeleteTest extends AbstractConventionTaskTest {
     def "did work is false when nothing gets deleted"() {
         when:
         delete.delete("does-not-exist")
-        delete.execute()
+        execute(delete)
 
         then:
         !delete.getDidWork()
@@ -83,7 +83,7 @@ public class DeleteTest extends AbstractConventionTaskTest {
         when:
         delete.delete(link)
         delete.setFollowSymlinks(true)
-        delete.execute()
+        execute(delete)
 
         then:
         delete.getDidWork()
@@ -101,7 +101,7 @@ public class DeleteTest extends AbstractConventionTaskTest {
 
         when:
         delete.delete(link)
-        delete.execute()
+        execute(delete)
 
         then:
         delete.getDidWork()

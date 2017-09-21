@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.HasInternalProtocol;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -128,7 +129,7 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder, T
      */
     @Deprecated
     @Override
-    TaskInputs property(String name, Object value);
+    TaskInputPropertyBuilder property(String name, @Nullable Object value);
 
     /**
      * Throws {@link UnsupportedOperationException}.

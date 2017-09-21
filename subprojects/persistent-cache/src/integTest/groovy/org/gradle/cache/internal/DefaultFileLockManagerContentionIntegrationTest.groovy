@@ -166,6 +166,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
 
         requestReceived = false
         def prevReceivingSocket = receivingSocket
+        def prevReceivingLock = receivingLock
         lock1.close()
         def lock2 = setupLockOwner() {
             requestReceived = true
@@ -181,9 +182,9 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         build.waitForFinish()
         countPingsSent(build, prevReceivingSocket) == 1
         countPingsSent(build, receivingSocket) == 1
-        assertConfirmationCount(build, prevReceivingSocket)
-        assertConfirmationCount(build, receivingSocket)
-        assertConfirmationCount(build, prevReceivingSocket)
+        assertConfirmationCount(build, prevReceivingSocket, prevReceivingLock)
+        assertConfirmationCount(build, receivingSocket, receivingLock)
+        assertConfirmationCount(build, prevReceivingSocket, prevReceivingLock)
     }
 
     // This test simulates a long running Zic compiler setup by running code similar to ZincScalaCompilerFactory through the worker API.
@@ -260,8 +261,8 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
     }
 
 
-    void assertConfirmationCount(GradleHandle build, DatagramSocket socket = receivingSocket) {
-        assert (build.standardOutput =~ "Gradle process at port ${socket.localPort} confirmed unlock request").count == addressFactory.communicationAddresses.size()
+    void assertConfirmationCount(GradleHandle build, DatagramSocket socket = receivingSocket, FileLock lock = receivingLock) {
+        assert (build.standardOutput =~ "Gradle process at port ${socket.localPort} confirmed unlock request for lock with id ${lock.lockId}.").count == addressFactory.communicationAddresses.size()
     }
 
     def assertReceivingSocketEmpty() {

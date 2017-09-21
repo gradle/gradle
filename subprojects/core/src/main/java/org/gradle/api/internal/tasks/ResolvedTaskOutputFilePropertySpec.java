@@ -16,23 +16,26 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 
 import javax.annotation.Nullable;
 import java.io.File;
 
+@NonNullApi
 public class ResolvedTaskOutputFilePropertySpec extends AbstractTaskOutputPropertySpec implements CacheableTaskOutputFilePropertySpec {
 
     private final OutputType outputType;
     private final File outputFile;
     private final String propertyName;
 
-    public ResolvedTaskOutputFilePropertySpec(String propertyName, OutputType outputType, File outputFile) {
+    public ResolvedTaskOutputFilePropertySpec(String propertyName, OutputType outputType, @Nullable File outputFile) {
         this.propertyName = propertyName;
         this.outputType = outputType;
         this.outputFile = outputFile;
     }
 
+    @Override
     public String getPropertyName() {
         return propertyName;
     }

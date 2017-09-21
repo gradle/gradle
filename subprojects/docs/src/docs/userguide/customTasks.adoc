@@ -351,3 +351,12 @@ A daemon is considered compatible only if the default character encoding is set 
 
 
 Worker daemons will remain running until either the build daemon that started them is stopped, or system memory becomes scarce. When available system memory is low, Gradle will begin stopping worker daemons in an attempt to minimize memory consumption.
+
+[[sec:reusing_task_logic]]
+=== Re-using logic between task classes
+
+There are different ways to re-use logic between task classes.
+The easiest case is when you can extract the logic you want to share in a separate method or class and then use the extracted piece of code in your tasks.
+For example, the api:org.gradle.api.tasks.Copy[] task re-uses the logic of the api:org.gradle.api.Project#copy(org.gradle.api.Action)[] method.
+Another option is to add a task dependency on the task which outputs you want to re-use.
+Other options include using <<sec:task_rules,task rules>> or the <<worker_api,worker API>>.

@@ -45,7 +45,7 @@ class WarTest extends AbstractArchiveTaskTest {
         } as Action<CopySpec>)
 
         when:
-        war.execute()
+        execute(war)
 
         then:
         new JarTestFixture(war.archivePath).assertContainsFile('WEB-INF/file.txt')

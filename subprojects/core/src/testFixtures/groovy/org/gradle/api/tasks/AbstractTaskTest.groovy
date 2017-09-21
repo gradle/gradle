@@ -22,13 +22,8 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.AbstractTask
-import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
-import org.gradle.api.internal.tasks.TaskExecuter
-import org.gradle.api.internal.tasks.TaskExecutionContext
-import org.gradle.api.internal.tasks.TaskStateInternal
-import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.specs.Spec
 import org.gradle.internal.Actions
@@ -47,25 +42,20 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
     protected DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry()
     protected ObjectFactory objectFactory = TestUtil.objectFactory()
 
-    public abstract AbstractTask getTask()
+    abstract AbstractTask getTask()
 
-    public <T extends AbstractTask> T createTask(Class<T> type) {
+    def <T extends AbstractTask> T createTask(Class<T> type) {
         return createTask(type, project, TEST_TASK_NAME)
     }
 
-    public Task createTask(ProjectInternal project, String name) {
+    Task createTask(ProjectInternal project, String name) {
         return createTask(getTask().getClass(), project, name)
     }
 
-    public <T extends AbstractTask> T createTask(Class<T> type, ProjectInternal project, String name) {
+    def <T extends AbstractTask> T createTask(Class<T> type, ProjectInternal project, String name) {
         Task task = project.getServices().get(ITaskFactory.class).createTask(GUtil.map(Task.TASK_TYPE, type, Task.TASK_NAME, name))
         assertTrue(type.isAssignableFrom(task.getClass()))
         return type.cast(task)
-    }
-
-    public void execute(TaskInternal task) {
-        project.getServices().get(TaskExecuter.class).execute(task, task.getState(), new DefaultTaskExecutionContext())
-        task.getState().rethrowFailure()
     }
 
     def setup() {
@@ -149,20 +139,6 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
         e.message.equals("Action must not be null!")
     }
 
-    def "execute delegates to  TaskExecuter"() {
-        given:
-        final AbstractTask task = getTask()
-
-        final TaskExecuter executer = Mock(TaskExecuter.class)
-        task.setExecuter(executer)
-
-        when:
-        task.execute()
-
-        then:
-        1 * executer.execute(task, _ as TaskStateInternal, _ as TaskExecutionContext)
-    }
-
     def "test getDescription"() {
         given:
         def testDescription = "testDescription"
@@ -209,13 +185,13 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
 
         def task = getTask()
         task.onlyIf(new Spec<Task>() {
-            public boolean isSatisfiedBy(Task element) {
+            boolean isSatisfiedBy(Task element) {
                 return condition1.get()
             }
         })
 
         task.onlyIf(new Spec<Task>() {
-            public boolean isSatisfiedBy(Task element) {
+            boolean isSatisfiedBy(Task element) {
                 return condition2.get()
             }
         })
@@ -257,7 +233,7 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
         final Spec spec = Mock(Spec.class)
         task.onlyIf(spec)
         task.setOnlyIf(new Spec<Task>() {
-            public boolean isSatisfiedBy(Task element) {
+            boolean isSatisfiedBy(Task element) {
                 return condition1.get()
             }
         })

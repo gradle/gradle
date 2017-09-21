@@ -15,6 +15,7 @@
  */
 
 package org.gradle.language.objectivecpp.tasks
+
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.WorkResult
 import org.gradle.language.base.internal.compile.Compiler
@@ -25,34 +26,34 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppCompileSpec
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import org.junit.Rule
-import spock.lang.Specification
 
-class ObjectiveCppCompileTest extends Specification {
-    @Rule
-    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+class ObjectiveCppCompileTest extends AbstractProjectBuilderSpec {
 
-    ObjectiveCppCompile objCppCompile = TestUtil.create(testDir).task(ObjectiveCppCompile)
+    ObjectiveCppCompile objCppCompile
     def toolChain = Mock(NativeToolChainInternal)
     def platform = Mock(NativePlatformInternal)
     def platformToolChain = Mock(PlatformToolProvider)
     Compiler<ObjectiveCppCompileSpec> objCppCompiler = Mock(Compiler)
     def pch = Mock(PreCompiledHeader)
 
+    def setup() {
+        objCppCompile = TestUtil.createTask(ObjectiveCppCompile, project)
+    }
+
     def "executes using the objCppCompiler"() {
-        def sourceFile = testDir.createFile("sourceFile")
+        def sourceFile = temporaryFolder.createFile("sourceFile")
         def result = Mock(WorkResult)
         when:
         objCppCompile.toolChain = toolChain
         objCppCompile.targetPlatform = platform
         objCppCompile.compilerArgs = ["arg"]
         objCppCompile.macros = [def: "value"]
-        objCppCompile.objectFileDir = testDir.file("outputFile")
+        objCppCompile.objectFileDir = temporaryFolder.file("outputFile")
         objCppCompile.source sourceFile
         objCppCompile.setPreCompiledHeader pch
-        objCppCompile.execute()
+        execute(objCppCompile)
 
         then:
         _ * toolChain.outputType >> "objcpp"
@@ -62,8 +63,8 @@ class ObjectiveCppCompileTest extends Specification {
         1 * toolChain.select(platform) >> platformToolChain
         1 * platformToolChain.newCompiler({ ObjectiveCppCompileSpec.class.isAssignableFrom(it) }) >> objCppCompiler
         pch.includeString >> "header"
-        pch.prefixHeaderFile >> testDir.file("prefixHeader").createFile()
-        pch.objectFile >> testDir.file("pchObjectFile").createFile()
+        pch.prefixHeaderFile >> temporaryFolder.file("prefixHeader").createFile()
+        pch.objectFile >> temporaryFolder.file("pchObjectFile").createFile()
         pch.pchObjects >> new SimpleFileCollection()
         1 * objCppCompiler.execute({ ObjectiveCppCompileSpec spec ->
             assert spec.sourceFiles*.name == ["sourceFile"]

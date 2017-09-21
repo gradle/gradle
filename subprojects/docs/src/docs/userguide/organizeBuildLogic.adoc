@@ -63,6 +63,10 @@ You can use the configuration injection technique discussed in <<sec:cross_proje
 
 You can configure the current project using an external build script. All of the Gradle build language is available in the external script. You can even apply other scripts from the external script.
 
+Build scripts can be local files or remotely accessible files downloaded via a URL.
+
+Remote files will be cached and made available when Gradle runs offline. On each build, Gradle will check if the remote file has changed and will only download the build script file again if it has changed. URLs that contain query strings will not be cached.
+
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="configureProjectUsingScript" dir="userguide/tutorial/configureProjectUsingScript" title="Configuring the project using an external build script">
             <sourcefile file="build.gradle"/>

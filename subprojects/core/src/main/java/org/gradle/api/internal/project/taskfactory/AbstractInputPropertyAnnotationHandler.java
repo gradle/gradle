@@ -17,24 +17,15 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.TaskPropertyValue;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 
-import java.util.Collection;
-import java.util.concurrent.Callable;
-
 abstract class AbstractInputPropertyAnnotationHandler implements PropertyAnnotationHandler {
 
     public void attachActions(final TaskPropertyActionContext context) {
-        context.setValidationAction(new ValidationAction() {
-            @Override
-            public void validate(String propertyName, Object value, Collection<String> messages) {
-                AbstractInputPropertyAnnotationHandler.this.validate(propertyName, value, messages);
-            }
-        });
-
         PathSensitive pathSensitive = context.getAnnotation(PathSensitive.class);
         final PathSensitivity pathSensitivity;
         if (pathSensitive == null) {
@@ -47,7 +38,7 @@ abstract class AbstractInputPropertyAnnotationHandler implements PropertyAnnotat
         }
 
         context.setConfigureAction(new UpdateAction() {
-            public void update(TaskInternal task, Callable<Object> futureValue) {
+            public void update(TaskInternal task, TaskPropertyValue futureValue) {
                 final TaskInputFilePropertyBuilder propertyBuilder = createPropertyBuilder(context, task, futureValue);
                 propertyBuilder
                     .withPropertyName(context.getName())
@@ -58,6 +49,5 @@ abstract class AbstractInputPropertyAnnotationHandler implements PropertyAnnotat
         });
     }
 
-    protected abstract TaskInputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, Callable<Object> futureValue);
-    protected abstract void validate(String propertyName, Object value, Collection<String> messages);
+    protected abstract TaskInputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, TaskPropertyValue futureValue);
 }

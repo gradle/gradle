@@ -20,7 +20,7 @@ import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecException
 
-public class ExecTest extends AbstractTaskTest {
+class ExecTest extends AbstractTaskTest {
     Exec execTask
     def execAction = Mock(ExecAction)
 
@@ -29,14 +29,14 @@ public class ExecTest extends AbstractTaskTest {
         execTask.setExecAction(execAction)
     }
 
-    public AbstractTask getTask() {
-        return execTask;
+    AbstractTask getTask() {
+        return execTask
     }
 
     def "executes action on execute"() {
         when:
         execTask.setExecutable("ls")
-        execTask.execute()
+        execute(execTask)
 
         then:
         1 * execAction.setExecutable("ls")
@@ -47,7 +47,7 @@ public class ExecTest extends AbstractTaskTest {
 
     def "execute with non-zero exit value and ignore exit value should not throw exception"() {
         when:
-        execTask.execute()
+        execute(execTask)
 
         then:
         1 * execAction.execute() >> new ExpectedExecResult(1)

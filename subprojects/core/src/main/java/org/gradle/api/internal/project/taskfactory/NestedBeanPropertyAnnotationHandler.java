@@ -17,10 +17,10 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.TaskPropertyValue;
 import org.gradle.api.tasks.Nested;
 
 import java.lang.annotation.Annotation;
-import java.util.concurrent.Callable;
 
 public class NestedBeanPropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override
@@ -32,15 +32,10 @@ public class NestedBeanPropertyAnnotationHandler implements PropertyAnnotationHa
     public void attachActions(final TaskPropertyActionContext context) {
         context.setNestedType(context.getValueType());
         context.setConfigureAction(new UpdateAction() {
-            public void update(TaskInternal task, final Callable<Object> futureValue) {
-                task.getInputs().property(context.getName() + ".class", new Callable<Object>() {
-                    public Object call() throws Exception {
-                        Object bean = futureValue.call();
-                        return bean == null ? null : bean.getClass().getName();
-                    }
-                });
+            public void update(TaskInternal task, final TaskPropertyValue futureValue) {
+                task.getInputs().nested(context.getName(), futureValue)
+                    .optional(context.isOptional());
             }
         });
     }
-
 }

@@ -17,11 +17,11 @@ package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.TaskPropertyValue;
 import org.gradle.api.tasks.Input;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
-import java.util.concurrent.Callable;
 
 public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler {
     public Class<? extends Annotation> getAnnotationType() {
@@ -31,8 +31,9 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
     @SuppressWarnings("Since15")
     public void attachActions(final TaskPropertyActionContext context) {
         context.setConfigureAction(new UpdateAction() {
-            public void update(TaskInternal task, Callable<Object> futureValue) {
-                task.getInputs().property(context.getName(), futureValue);
+            public void update(TaskInternal task, TaskPropertyValue futureValue) {
+                task.getInputs().property(context.getName(), futureValue)
+                    .optional(context.isOptional());
             }
         });
         Class<?> valueType = context.getValueType();

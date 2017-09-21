@@ -1,7 +1,7 @@
 <!--- Please follow the instructions below. We receive dozens of issues every week, -->
 <!--- so to stay productive, we will close issues that don't provide enough information. -->
 
-<!--- We kindly ask you to open any issues related to the Gradle Android plugin or Android Studio on the Android Issue Tracker at `https://source.android.com/source/report-bugs` -->
+<!--- Please open Android-related issues on the Android Issue Tracker at `https://source.android.com/source/report-bugs` -->
 
 <!--- Provide a brief summary of the issue in the title above -->
 

@@ -13,23 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.ide.eclipse;
+package org.gradle.plugins.ide.eclipse
 
 
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.AbstractSpockTaskTest
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath
 
-public class GenerateEclipseClasspathTest extends AbstractSpockTaskTest {
+class GenerateEclipseClasspathTest extends AbstractSpockTaskTest {
 
-    private GenerateEclipseClasspath eclipseClasspath;
+    private GenerateEclipseClasspath eclipseClasspath
 
     ConventionTask getTask() {
         return eclipseClasspath
     }
 
     def setup() {
-        eclipseClasspath = createTask(GenerateEclipseClasspath.class);
+        eclipseClasspath = createTask(GenerateEclipseClasspath.class)
         eclipseClasspath.classpath = new EclipseClasspath()
     }
 }

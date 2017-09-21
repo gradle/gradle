@@ -16,18 +16,14 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.TaskPropertyValue;
 import org.gradle.api.tasks.OutputDirectories;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 
-import java.io.File;
 import java.lang.annotation.Annotation;
-import java.util.Collection;
-import java.util.concurrent.Callable;
-
-import static org.gradle.api.internal.tasks.TaskOutputsUtil.validateDirectory;
 
 @SuppressWarnings("deprecation")
-public class OutputDirectoriesPropertyAnnotationHandler extends AbstractPluralOutputPropertyAnnotationHandler {
+public class OutputDirectoriesPropertyAnnotationHandler extends AbstractOutputPropertyAnnotationHandler {
 
     @Override
     public Class<? extends Annotation> getAnnotationType() {
@@ -35,12 +31,7 @@ public class OutputDirectoriesPropertyAnnotationHandler extends AbstractPluralOu
     }
 
     @Override
-    protected TaskOutputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, Callable<Object> futureValue) {
+    protected TaskOutputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, TaskPropertyValue futureValue) {
         return task.getOutputs().dirs(futureValue);
-    }
-
-    @Override
-    protected void doValidate(String propertyName, File directory, Collection<String> messages) {
-        validateDirectory(propertyName, directory, messages);
     }
 }

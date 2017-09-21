@@ -46,6 +46,10 @@ public abstract class IncrementalElement {
         original.writeToProject(projectDir);
     }
 
+    public String getSourceSetName() {
+        return "main";
+    }
+
     public interface Transform {
         void applyChangesToProject(TestFile projectDir);
 
@@ -214,6 +218,11 @@ public abstract class IncrementalElement {
             }
             return result;
         }
+
+        @Override
+        public String getSourceSetName() {
+            return IncrementalElement.this.getSourceSetName();
+        }
     }
 
     private class AlternateElement extends SourceElement {
@@ -224,6 +233,11 @@ public abstract class IncrementalElement {
                 result.addAll(transform.getAfterFiles());
             }
             return result;
+        }
+
+        @Override
+        public String getSourceSetName() {
+            return IncrementalElement.this.getSourceSetName();
         }
     }
 }
