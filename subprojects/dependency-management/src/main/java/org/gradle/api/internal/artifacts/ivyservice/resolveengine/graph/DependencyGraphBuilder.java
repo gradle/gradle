@@ -166,13 +166,12 @@ public class DependencyGraphBuilder {
         ComponentState componentState = node.component;
         if (node != resolveState.root && node.incomingEdges.isEmpty()) {
             // this node was selected, but it doesn't have any incoming edge anymore, it's orphan
+            SelectorState selectedBy = componentState.selectedBy;
             if (node.component.module.selected == componentState) {
                 // and it was selected, clear selection
-                componentState.module.clearSelection();
-                componentState.module.selectors.remove(componentState.selectedBy);
+                resolveState.deselectVersionAction.execute(componentState.module.id);
+                componentState.module.removeSelector(selectedBy);
             }
-            componentState.allResolvers.remove(componentState.selectedBy);
-            componentState.selectedBy = null;
             componentState.state = ModuleState.Orphan;
             return true;
         }
@@ -880,6 +879,11 @@ public class DependencyGraphBuilder {
 
         public void addSelector(SelectorState selector) {
             selectors.add(selector);
+        }
+
+        public void removeSelector(SelectorState selectedBy) {
+            boolean removed = selectors.remove(selectedBy);
+            assert removed;
         }
     }
 
