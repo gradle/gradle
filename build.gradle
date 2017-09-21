@@ -274,8 +274,8 @@ def patchedExternalModules = files({ -> fileTree(patchedExternalModulesDir).file
 patchedExternalModules.builtBy 'patchExternalModules'
 
 dependencies {
-    externalModules 'org.gradle:gradle-kotlin-dsl:0.11.1'
-    externalModules 'org.gradle:gradle-kotlin-dsl-tooling-builders:0.11.1'
+    externalModules 'org.gradle:gradle-kotlin-dsl:0.12.0-SNAPSHOT'
+    externalModules 'org.gradle:gradle-kotlin-dsl-tooling-builders:0.12.0-SNAPSHOT'
     coreRuntime project(':launcher')
     coreRuntime project(':runtimeApiInfo')
     runtime project(':wrapper')
