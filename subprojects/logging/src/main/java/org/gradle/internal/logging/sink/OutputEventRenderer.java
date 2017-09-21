@@ -33,6 +33,7 @@ import org.gradle.internal.logging.console.DefaultColorMap;
 import org.gradle.internal.logging.console.DefaultWorkInProgressFormatter;
 import org.gradle.internal.logging.console.StyledTextOutputBackedRenderer;
 import org.gradle.internal.logging.console.ThrottlingOutputEventListener;
+import org.gradle.internal.logging.console.UserInputConsoleRenderer;
 import org.gradle.internal.logging.console.WorkInProgressRenderer;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.LogEvent;
@@ -53,7 +54,6 @@ import org.gradle.internal.time.Clock;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -352,57 +352,6 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         }
     }
 
-    private class UserInputConsoleRenderer implements OutputEventListener {
-        private final OutputEventListener delegate;
-        private final Console console;
-        private final List<OutputEvent> eventQueue = new ArrayList<OutputEvent>();
-        private boolean paused;
-
-        public UserInputConsoleRenderer(OutputEventListener delegate, Console console) {
-            this.delegate = delegate;
-            this.console = console;
-        }
-
-        @Override
-        public void onOutput(OutputEvent event) {
-            if (event instanceof UserInputRequestEvent) {
-                String prompt = ((UserInputRequestEvent) event).getPrompt();
-                console.getBuildProgressArea().setVisible(false);
-                console.flush();
-                console.getBuildOutputArea().println(prompt);
-                console.flush();
-                paused = true;
-                return;
-            }
-            if (event instanceof UserInputResumeEvent) {
-                if (!paused) {
-                    throw new RuntimeException("UnPause when not paused");
-                }
-                paused = false;
-                console.getBuildProgressArea().setVisible(true);
-                console.flush();
-
-                replayEvents();
-
-                return;
-            }
-
-            if (paused) {
-                eventQueue.add(event);
-                return;
-            }
-
-            delegate.onOutput(event);
-        }
-
-        private void replayEvents() {
-            for (OutputEvent outputEvent : eventQueue) {
-                delegate.onOutput(outputEvent);
-            }
-            eventQueue.clear();
-        }
-    }
-
     private class UserInputStandardOutputRenderer implements OutputEventListener {
         private final OutputEventListener delegate;
         private final List<OutputEvent> eventQueue = new ArrayList<OutputEvent>();
@@ -444,12 +393,5 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
             }
             eventQueue.clear();
         }
-    }
-
-    private PrintStream getSystemOut() {
-        if (originalStdOut != null) {
-            return (PrintStream) originalStdOut;
-        }
-        return System.out;
     }
 }
