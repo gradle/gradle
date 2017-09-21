@@ -36,15 +36,12 @@ import org.gradle.internal.logging.console.ThrottlingOutputEventListener;
 import org.gradle.internal.logging.console.UserInputConsoleRenderer;
 import org.gradle.internal.logging.console.WorkInProgressRenderer;
 import org.gradle.internal.logging.events.EndOutputEvent;
-import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
-import org.gradle.internal.logging.events.UserInputRequestEvent;
-import org.gradle.internal.logging.events.UserInputResumeEvent;
 import org.gradle.internal.logging.format.PrettyPrefixedLogHeaderFormatter;
 import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
 import org.gradle.internal.logging.text.StreamingStyledTextOutput;
@@ -54,8 +51,6 @@ import org.gradle.internal.time.Clock;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -83,9 +78,8 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         OutputEventListener stdOutChain = new LazyListener(new Factory<OutputEventListener>() {
             @Override
             public OutputEventListener create() {
-                return onNonError(new UserInputStandardOutputRenderer(
-                    new BuildLogLevelFilterRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false)))
-                );
+                return onNonError(
+                    new BuildLogLevelFilterRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false)));
             }
         });
         formatters.add(stdOutChain);
@@ -349,49 +343,6 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                 factory = null;
             }
             delegate.onOutput(event);
-        }
-    }
-
-    private class UserInputStandardOutputRenderer implements OutputEventListener {
-        private final OutputEventListener delegate;
-        private final List<OutputEvent> eventQueue = new ArrayList<OutputEvent>();
-        private boolean paused;
-
-        public UserInputStandardOutputRenderer(OutputEventListener delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public void onOutput(OutputEvent event) {
-            if (event instanceof UserInputRequestEvent) {
-                String prompt = ((UserInputRequestEvent) event).getPrompt();
-                delegate.onOutput(new LogEvent(0, "prompt", LogLevel.QUIET, prompt, null));
-                paused = true;
-                return;
-            }
-            if (event instanceof UserInputResumeEvent) {
-                if (!paused) {
-                    throw new RuntimeException("UnPause when not paused");
-                }
-                paused = false;
-                replayEvents();
-
-                return;
-            }
-
-            if (paused) {
-                eventQueue.add(event);
-                return;
-            }
-
-            delegate.onOutput(event);
-        }
-
-        private void replayEvents() {
-            for (OutputEvent outputEvent : eventQueue) {
-                delegate.onOutput(outputEvent);
-            }
-            eventQueue.clear();
         }
     }
 }
