@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
@@ -63,6 +64,8 @@ public class CompileOptions extends AbstractOptions {
     private ForkOptions forkOptions = new ForkOptions();
 
     private String bootClasspath;
+
+    private FileCollection bootstrapClasspath;
 
     private String extensionDirs;
 
@@ -235,18 +238,49 @@ public class CompileOptions extends AbstractOptions {
 
     /**
      * Returns the bootstrap classpath to be used for the compiler process. Defaults to {@code null}.
+     *
+     * @deprecated Use {@link #getBootstrapClasspath()} instead.
      */
-    @Input
-    @Optional
+    @Deprecated
+    @Internal
     public String getBootClasspath() {
+        if (bootClasspath == null && bootstrapClasspath != null) {
+            return bootstrapClasspath.getAsPath();
+        }
         return bootClasspath;
     }
 
     /**
      * Sets the bootstrap classpath to be used for the compiler process. Defaults to {@code null}.
+     *
+     * @deprecated Use {@link #setBootstrapClasspath(FileCollection)} instead.
      */
+    @Deprecated
     public void setBootClasspath(String bootClasspath) {
         this.bootClasspath = bootClasspath;
+        this.bootstrapClasspath = null;
+    }
+
+    /**
+     * Returns the bootstrap classpath to be used for the compiler process. Defaults to {@code null}.
+     *
+     * @since 4.3
+     */
+    // TODO This could be a @CompileClasspath, but that would require a lot of processing
+    @Optional
+    @Classpath
+    public FileCollection getBootstrapClasspath() {
+        return bootstrapClasspath;
+    }
+
+    /**
+     * Sets the bootstrap classpath to be used for the compiler process. Defaults to {@code null}.
+     *
+     * @since 4.3
+     */
+    public void setBootstrapClasspath(FileCollection bootstrapClasspath) {
+        this.bootClasspath = null;
+        this.bootstrapClasspath = bootstrapClasspath;
     }
 
     /**
