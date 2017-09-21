@@ -10,7 +10,7 @@ buildscript {
 
     val kotlinRepo: String by extra
     repositories {
-        maven { url = uri(kotlinRepo) }
+        maven(url = kotlinRepo)
     }
 
     val kotlinVersion: String by extra
@@ -26,11 +26,11 @@ plugins {
 
 allprojects {
     group = "org.gradle"
-    version = "0.10.3"
+    version = "0.11.1"
 }
 
-val publishedPluginsVersion by extra { "0.10.9" }
-val futurePluginsVersion = "0.10.10"
+val publishedPluginsVersion by extra { "0.11.2" }
+val futurePluginsVersion = "0.11.3"
 project(":plugins") {
     group = "org.gradle.kotlin"
     version = futurePluginsVersion
@@ -40,7 +40,6 @@ project(":plugins") {
 val publishedProjects =
     listOf(
         project(":provider"),
-        project(":compiler-plugin"),
         project(":tooling-models"),
         project(":tooling-builders"))
 

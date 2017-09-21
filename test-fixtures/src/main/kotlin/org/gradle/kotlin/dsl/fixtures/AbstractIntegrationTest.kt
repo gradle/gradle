@@ -4,6 +4,7 @@ import org.gradle.internal.FileUtils.toSafeFileName
 import org.gradle.kotlin.dsl.support.zipTo
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
+import org.gradle.testkit.runner.internal.DefaultGradleRunner
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
@@ -98,8 +99,12 @@ open class AbstractIntegrationTest {
 
     protected
     fun build(vararg arguments: String): BuildResult =
-        gradleRunnerForArguments(arguments)
+        gradleRunnerForArguments(*arguments)
             .build()
+
+    protected
+    fun BuildResult.outcomeOf(taskPath: String) =
+        task(taskPath)!!.outcome!!
 
     protected
     fun buildFailureOutput(vararg arguments: String): String =
@@ -107,25 +112,23 @@ open class AbstractIntegrationTest {
 
     protected
     fun buildAndFail(vararg arguments: String): BuildResult =
-        gradleRunnerForArguments(arguments)
+        gradleRunnerForArguments(*arguments)
             .buildAndFail()
 
     private
-    fun gradleRunnerForArguments(arguments: Array<out String>) =
-        gradleRunner()
-            .withArguments(*arguments, "--stacktrace")
-
-    private
-    fun gradleRunner() =
-        gradleRunnerFor(projectRoot)
+    fun gradleRunnerForArguments(vararg arguments: String) =
+        gradleRunnerFor(projectRoot, *arguments)
 }
 
 
-fun gradleRunnerFor(projectDir: File): GradleRunner = GradleRunner.create().run {
+private
+fun gradleRunnerFor(projectDir: File, vararg arguments: String): GradleRunner = GradleRunner.create().run {
     withGradleInstallation(customInstallation())
     withProjectDir(projectDir)
     withDebug(false)
-    if (isCI) withArguments("-Dkotlin-daemon.verbose=true")
+    if (isCI) withArguments(*arguments, "--stacktrace", "-Dkotlin-daemon.verbose=true")
+    else withArguments(*arguments, "--stacktrace")
+    (this as DefaultGradleRunner).withJvmArguments("-Xms128m", "-Xmx512m", "-Dfile.encoding=UTF-8")
     return this
 }
 
@@ -142,7 +145,7 @@ fun customInstallation() =
     } ?: throw IllegalStateException("Custom installation not found. Run `./gradlew customInstallation`.")
 
 
-val rootProjectDir = File("..")
+val rootProjectDir = File("..").canonicalFile!!
 
 
 val customInstallationBuildDir = File(rootProjectDir, "build/custom")
@@ -151,6 +154,11 @@ val customInstallationBuildDir = File(rootProjectDir, "build/custom")
 inline
 fun <T> withDaemonRegistry(registryBase: File, block: () -> T) =
     withSystemProperty("org.gradle.daemon.registry.base", registryBase.absolutePath, block)
+
+
+inline
+fun <T> withDaemonIdleTimeout(seconds: Int, block: () -> T) =
+    withSystemProperty("org.gradle.daemon.idletimeout", (seconds * 1000).toString(), block)
 
 
 inline

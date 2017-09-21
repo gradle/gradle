@@ -106,7 +106,7 @@ fun kotlinTypeStringFor(type: TypeOf<*>): String =
     type.run {
         when {
             isArray ->
-                "Array<${kotlinTypeStringFor(componentType)}>"
+                "Array<${kotlinTypeStringFor(componentType!!)}>"
             isParameterized ->
                 "$parameterizedTypeDefinition<${actualTypeArguments.joinToString(transform = ::kotlinTypeStringFor)}>"
             isWildcard ->

@@ -47,6 +47,7 @@ operator fun ExtensionContainer.get(name: String): Any =
  * @throws IllegalStateException When the given extension cannot be cast to the expected type.
  */
 inline
+@Suppress("extension_shadowed_by_member")
 fun <reified T : Any> ExtensionContainer.getByName(name: String) =
     getByName(name).let {
         it as? T

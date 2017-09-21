@@ -27,7 +27,7 @@ class CodeQualitySampleTest : AbstractSampleTest("code-quality") {
             ":jacocoTestCoverageVerification")
 
         successfulTasks.forEach { taskName ->
-            assertThat(result.task(taskName).outcome, equalTo(TaskOutcome.SUCCESS))
+            assertThat(result.outcomeOf(taskName), equalTo(TaskOutcome.SUCCESS))
         }
     }
 }

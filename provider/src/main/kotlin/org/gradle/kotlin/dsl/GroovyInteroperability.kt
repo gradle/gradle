@@ -17,7 +17,12 @@
 package org.gradle.kotlin.dsl
 
 import groovy.lang.Closure
+import groovy.lang.GroovyObject
+import groovy.lang.MetaClass
+
 import org.gradle.internal.Cast.uncheckedCast
+
+import org.codehaus.groovy.runtime.InvokerHelper.getMetaClass
 
 
 /**
@@ -116,3 +121,107 @@ operator fun <T> Closure<T>.invoke(): T = call()
 operator fun <T> Closure<T>.invoke(x: Any?): T = call(x)
 
 operator fun <T> Closure<T>.invoke(vararg xs: Any?): T = call(*xs)
+
+
+/**
+ * Executes the given [builder] against this object's [GroovyBuilderScope].
+ *
+ * @see GroovyBuilderScope
+ */
+inline
+fun <T> Any.withGroovyBuilder(builder: GroovyBuilderScope.() -> T): T =
+    GroovyBuilderScope.of(this).builder()
+
+
+/**
+ * Provides a dynamic dispatching DSL with Groovy semantics for better integration with
+ * plugins that rely on Groovy builders such as the core `maven` plugin.
+ *
+ * It supports Groovy keyword arguments and arbitrary nesting, for instance, the following Groovy code:
+ *
+ * ```Groovy
+ * repository(url: "scp://repos.mycompany.com/releases") {
+ *   authentication(userName: "me", password: "myPassword")
+ * }
+ * ```
+ *
+ * Can be mechanically translated to the following Kotlin with the aid of `withGroovyBuilder`:
+ *
+ * ```Kotlin
+ * withGroovyBuilder {
+ *   "repository"("url" to "scp://repos.mycompany.com/releases") {
+ *     "authentication"("userName" to "me", "password" to "myPassword")
+ *   }
+ * }
+ * ```
+ *
+ * @see withGroovyBuilder
+ */
+interface GroovyBuilderScope : GroovyObject {
+
+    companion object {
+
+        fun of(value: Any): GroovyBuilderScope =
+            when (value) {
+                is GroovyObject -> GroovyBuilderScopeForGroovyObject(value)
+                else            -> GroovyBuilderScopeForRegularObject(value)
+            }
+    }
+
+    operator fun String.invoke(vararg arguments: Any?): Any?
+
+    operator fun <T> String.invoke(vararg arguments: Any?, builder: GroovyBuilderScope.() -> T): Any? =
+        invoke(*arguments, closureFor(builder))
+
+    operator fun <T> String.invoke(builder: GroovyBuilderScope.() -> T): Any? =
+        invoke(closureFor(builder))
+
+    operator fun <T> String.invoke(vararg keywordArguments: Pair<String, Any?>, builder: GroovyBuilderScope.() -> T): Any? =
+        invoke(keywordArguments.toMap(), closureFor(builder))
+
+    operator fun String.invoke(vararg keywordArguments: Pair<String, Any?>): Any? =
+        invoke(keywordArguments.toMap())
+
+    private
+    fun <T> closureFor(builder: GroovyBuilderScope.() -> T): Closure<Any?> =
+        object : Closure<Any?>(this, this) {
+            @Suppress("unused")
+            fun doCall() = delegate.withGroovyBuilder(builder)
+        }
+}
+
+
+private
+class GroovyBuilderScopeForGroovyObject(private val receiver: GroovyObject) : GroovyBuilderScope, GroovyObject by receiver {
+
+    override fun String.invoke(vararg arguments: Any?): Any? =
+        receiver.invokeMethod(this, arguments)
+}
+
+
+private
+class GroovyBuilderScopeForRegularObject(private val receiver: Any) : GroovyBuilderScope {
+
+    private
+    val groovyMetaClass: MetaClass by lazy {
+        getMetaClass(receiver)
+    }
+
+    override fun invokeMethod(name: String, args: Any?): Any? =
+        groovyMetaClass.invokeMethod(receiver, name, args)
+
+    override fun setProperty(propertyName: String, newValue: Any?) =
+        groovyMetaClass.setProperty(receiver, propertyName, newValue)
+
+    override fun getProperty(propertyName: String): Any =
+        groovyMetaClass.getProperty(receiver, propertyName)
+
+    override fun setMetaClass(metaClass: MetaClass?) =
+        throw IllegalStateException()
+
+    override fun getMetaClass(): MetaClass =
+        groovyMetaClass
+
+    override fun String.invoke(vararg arguments: Any?): Any? =
+        groovyMetaClass.invokeMethod(receiver, this, arguments)
+}

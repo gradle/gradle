@@ -1,6 +1,5 @@
 package org.gradle.kotlin.dsl
 
-import com.nhaarman.mockito_kotlin.KStubbing
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
@@ -15,6 +14,8 @@ import org.gradle.api.artifacts.ResolutionStrategy
 
 import org.junit.Test
 
+import org.mockito.invocation.InvocationOnMock
+
 class ComponentSelectionRulesTest {
 
     @Test
@@ -22,13 +23,19 @@ class ComponentSelectionRulesTest {
 
         val componentSelection = mock<ComponentSelection>()
         val componentSelectionRules = mock<ComponentSelectionRules> {
-            acceptConfigurationActionFor(componentSelection, ComponentSelectionRules::all)
+            on { all(any<Action<ComponentSelection>>()) }.thenAnswer {
+                it.executeActionOn(componentSelection)
+            }
         }
         val resolutionStrategy = mock<ResolutionStrategy> {
-            acceptConfigurationActionFor(componentSelectionRules, ResolutionStrategy::componentSelection)
+            on { componentSelection(any<Action<ComponentSelectionRules>>()) }.thenAnswer {
+                it.executeActionOn(componentSelectionRules)
+            }
         }
         val conf = mock<Configuration> {
-            acceptConfigurationActionFor(resolutionStrategy, Configuration::resolutionStrategy)
+            on { resolutionStrategy(any<Action<ResolutionStrategy>>()) }.thenAnswer {
+                it.executeActionOn(resolutionStrategy)
+            }
         }
         val configurations = mock<ConfigurationContainer> {
             on { maybeCreate("conf") } doReturn conf
@@ -49,10 +56,8 @@ class ComponentSelectionRulesTest {
     }
 
     private
-    fun <T, E> KStubbing<T>.acceptConfigurationActionFor(element: E, method: T.(Action<E>) -> T) {
-        on { method(any()) }.thenAnswer { invocation ->
-            invocation.getArgument<Action<E>>(0).execute(element)
-            invocation.mock
-        }
+    fun <E> InvocationOnMock.executeActionOn(element: E): Any? {
+        getArgument<Action<E>>(0).execute(element)
+        return mock
     }
 }

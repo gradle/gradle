@@ -18,33 +18,29 @@ package org.gradle.kotlin.dsl.plugins.dsl
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
-import org.gradle.api.internal.classpath.ModuleRegistry
-
 import org.gradle.kotlin.dsl.gradleKotlinDsl
 import org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin
 
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
-import javax.inject.Inject
+import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverExtension
+import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverGradleSubplugin
 
 
 /**
  * The `kotlin-dsl` plugin.
  *
- * Applies the `embedded-kotlin` plugin,
- * adds the `gradleKotlinDsl()` dependency
- * and configures the Kotlin DSL compiler plugins.
+ * - Applies the `embedded-kotlin` plugin
+ * - Adds the `gradleKotlinDsl()` dependency to the `compileOnly` and `testRuntimeOnly` configurations
+ * - Configures the Kotlin DSL compiler plugins
  *
  * @see org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin
  */
-open class KotlinDslPlugin @Inject internal constructor(
-    private val moduleRegistry: ModuleRegistry) : Plugin<Project> {
+open class KotlinDslPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
         project.run {
 
             applyEmbeddedKotlinPlugin()
-            addGradleKotlinDslDependency()
+            addGradleKotlinDslDependencyTo("compileOnly", "testRuntimeOnly")
             configureCompilerPlugins()
         }
     }
@@ -55,17 +51,17 @@ open class KotlinDslPlugin @Inject internal constructor(
     }
 
     private
-    fun Project.addGradleKotlinDslDependency() {
-        dependencies.add("compileOnly", gradleKotlinDsl())
+    fun Project.addGradleKotlinDslDependencyTo(vararg configurations: String) {
+        configurations.forEach {
+            dependencies.add(it, gradleKotlinDsl())
+        }
     }
 
     private
     fun Project.configureCompilerPlugins() {
-        val compilerPluginModule = moduleRegistry.getExternalModule("gradle-kotlin-dsl-compiler-plugin")
-        val compilerPlugin = compilerPluginModule.classpath.asFiles.first()
-        require(compilerPlugin.exists()) { "Gradle Kotlin DSL Compiler plugin could not be found! " + compilerPlugin }
-        tasks.withType(KotlinCompile::class.java) {
-            it.kotlinOptions.freeCompilerArgs += listOf("-Xplugin", compilerPlugin.path)
+        plugins.apply(SamWithReceiverGradleSubplugin::class.java)
+        extensions.configure(SamWithReceiverExtension::class.java) { samWithReceiver ->
+            samWithReceiver.annotation(org.gradle.api.HasImplicitReceiver::class.qualifiedName!!)
         }
     }
 }

@@ -7,6 +7,7 @@ import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.customDaemonRegistry
 import org.gradle.kotlin.dsl.fixtures.customInstallation
+import org.gradle.kotlin.dsl.fixtures.withDaemonIdleTimeout
 import org.gradle.kotlin.dsl.fixtures.withDaemonRegistry
 import org.gradle.kotlin.dsl.fixtures.matching
 
@@ -229,7 +230,7 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
             subProjectScript,
             hasItems(
                 equalTo("kotlin-gradle-plugin-$embeddedKotlinVersion-sources.jar"),
-                matching("commons-io-[0-9.]+-sources\\.jar")))
+                matching("annotations-[0-9.]+-sources\\.jar")))
     }
 
     private
@@ -305,15 +306,18 @@ fun classPathFor(projectDir: File, scriptFile: File?) =
 internal
 fun kotlinBuildScriptModelFor(projectDir: File, scriptFile: File? = null): KotlinBuildScriptModel =
     withDaemonRegistry(customDaemonRegistry()) {
-        future {
-            fetchKotlinBuildScriptModelFor(
-                KotlinBuildScriptModelRequest(
-                    projectDir = projectDir,
-                    scriptFile = scriptFile,
-                    gradleInstallation = GradleInstallation.Local(customInstallation()))) {
+        withDaemonIdleTimeout(1) {
+            future {
+                fetchKotlinBuildScriptModelFor(
+                    KotlinBuildScriptModelRequest(
+                        projectDir = projectDir,
+                        scriptFile = scriptFile,
+                        gradleInstallation = GradleInstallation.Local(customInstallation()),
+                        jvmOptions = listOf("-Xms128m", "-Xmx256m"))) {
 
-                setStandardOutput(System.out)
-                setStandardError(System.err)
-            }
-        }.get()
+                    setStandardOutput(System.out)
+                    setStandardError(System.err)
+                }
+            }.get()
+        }
     }

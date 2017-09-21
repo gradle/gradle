@@ -154,7 +154,7 @@ val org.gradle.api.Project.hierarchy: Sequence<Project>
         var project = this@hierarchy
         yield(project)
         while (project != project.rootProject) {
-            project = project.parent
+            project = project.parent!!
             yield(project)
         }
     }

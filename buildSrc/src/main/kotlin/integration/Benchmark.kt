@@ -38,8 +38,9 @@ import java.io.IOException
 
 import java.lang.IllegalStateException
 
-import java.util.Calendar
-import java.util.TimeZone
+import java.time.OffsetDateTime
+import java.time.ZoneId
+
 
 open class Benchmark : DefaultTask() {
 
@@ -178,8 +179,7 @@ open class Benchmark : DefaultTask() {
 
     private
     val ISO8601Now by lazy {
-        // http://stackoverflow.com/a/11417382/214464
-        javax.xml.bind.DatatypeConverter.printDateTime(Calendar.getInstance(TimeZone.getTimeZone("UTC")))
+        OffsetDateTime.now(ZoneId.of("UTC")).toString()
     }
 
     private

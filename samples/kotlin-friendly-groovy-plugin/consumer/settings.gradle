@@ -1,0 +1,7 @@
+pluginManagement {
+    repositories {
+        maven {
+            url = "../plugin/build/repository"
+        }
+    }
+}

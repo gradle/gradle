@@ -7,6 +7,6 @@ A multi-build sample with:
 
 Run with:
 
-    ./gradlew checkConsumer
+    ./gradlew consumer
 
 This will build and publish the Gradle `plugin` locally ; and then run the task contributed by this plugin in the `consumer` build. 

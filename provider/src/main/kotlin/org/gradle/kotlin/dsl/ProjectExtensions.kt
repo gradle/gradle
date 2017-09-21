@@ -54,6 +54,7 @@ import kotlin.reflect.KProperty
  * starting the build.
  */
 inline
+@Suppress("nothing_to_inline")
 fun Project.defaultTasks(vararg tasks: Task) {
     defaultTasks(*tasks.map { it.name }.toTypedArray())
 }
@@ -81,18 +82,8 @@ fun Project.apply(crossinline block: ObjectConfigurationAction.() -> Unit) =
  * @see PluginManager.apply
  */
 inline
-fun <reified T : Plugin<Project>> Project.apply(): Unit =
+fun <reified T : Plugin<Project>> Project.apply() =
     pluginManager.apply(T::class.java)
-
-
-/**
- * Applies a script to the project.
- *
- * @param script the script to apply. Evaluated as per [Project.file]. However, note that
- * a URL can also be used, allowing the script to be fetched using HTTP, for example.
- */
-fun Project.applyFrom(script: Any) =
-    apply { it.from(script) }
 
 
 /**
@@ -118,16 +109,7 @@ fun <reified T : Any> Project.the() =
 
 
 fun <T : Any> Project.the(extensionType: KClass<T>) =
-    convention.findPlugin(extensionType.java) ?: convention.getByType(extensionType.java)!!
-
-
-inline
-fun <reified T : Any> Convention.getPlugin() =
-    getPlugin(T::class)
-
-
-fun <T : Any> Convention.getPlugin(conventionType: KClass<T>) =
-    getPlugin(conventionType.java)!!
+    convention.findPlugin(extensionType.java) ?: convention.getByType(extensionType.java)
 
 
 /**
@@ -146,6 +128,7 @@ fun <reified type : Task> Project.task(name: String, noinline configuration: typ
  * @see TaskContainer.create
  */
 inline
+@Suppress("extension_shadowed_by_member")
 fun <reified type : Task> Project.task(name: String) =
     tasks.create(name, type::class.java)
 
@@ -163,7 +146,7 @@ fun Project.task(name: String, configuration: Task.() -> Unit): DefaultTask =
 
 
 fun <T : Task> Project.createTask(name: String, type: KClass<T>, configuration: T.() -> Unit): T =
-    tasks.create(name, type.java, configuration)!!
+    tasks.create(name, type.java, configuration)
 
 
 /**

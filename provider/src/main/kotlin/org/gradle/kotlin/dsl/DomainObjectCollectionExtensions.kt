@@ -31,7 +31,7 @@ import org.gradle.api.DomainObjectCollection
  */
 inline
 fun <reified S : Any> DomainObjectCollection<in S>.withType(crossinline configuration: S.() -> Unit) =
-    withType(S::class.java, { it.configuration() })!!
+    withType(S::class.java, { it.configuration() })
 
 
 /**
@@ -46,5 +46,5 @@ fun <reified S : Any> DomainObjectCollection<in S>.withType(crossinline configur
  */
 inline
 fun <reified S : Any> DomainObjectCollection<in S>.withType() =
-    withType(S::class.java)!!
+    withType(S::class.java)
 

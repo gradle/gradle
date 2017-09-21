@@ -173,7 +173,7 @@ object ResolverCoordinator {
 
     private
     fun sameBuildscriptBlockHashAs(previousDependencies: KotlinScriptExternalDependencies?, hash: ByteArray?) =
-        hash?.let { hash -> buildscriptBlockHashOf(previousDependencies)?.let { equals(it, hash) } } ?: false
+        hash?.let { nonNullHash -> buildscriptBlockHashOf(previousDependencies)?.let { equals(it, nonNullHash) } } ?: false
 
     private
     fun buildscriptBlockHashOf(previousDependencies: KotlinScriptExternalDependencies?) =
@@ -189,9 +189,9 @@ object ResolverCoordinator {
             else ->
                 MessageDigest.getInstance("MD5").run {
                     val text = script.text ?: script.file?.readText()
-                    text?.let { text ->
+                    text?.let { nonNullText ->
                         fun updateWith(section: String) =
-                            getScriptSectionTokens(text, section).forEach {
+                            getScriptSectionTokens(nonNullText, section).forEach {
                                 update(it.toString().toByteArray())
                             }
                         updateWith("buildscript")

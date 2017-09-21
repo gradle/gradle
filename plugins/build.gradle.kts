@@ -17,6 +17,7 @@ dependencies {
 
     compile(futureKotlin("stdlib"))
     compile(futureKotlin("gradle-plugin"))
+    compile(futureKotlin("sam-with-receiver"))
 
     testImplementation(project(":test-fixtures"))
 }
@@ -64,9 +65,8 @@ plugins.forEach { plugin ->
 
 publishing {
     repositories {
-        maven {
+        maven(url = "build/repository") {
             name = "test"
-            url = uri("build/repository")
         }
     }
 }

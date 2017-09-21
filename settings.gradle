@@ -3,7 +3,6 @@ rootProject.name = 'gradle-kotlin-dsl'
 include 'provider',
         'tooling-models',
         'tooling-builders',
-        'compiler-plugin',
         'plugins',
         'test-fixtures',
         'samples-tests'

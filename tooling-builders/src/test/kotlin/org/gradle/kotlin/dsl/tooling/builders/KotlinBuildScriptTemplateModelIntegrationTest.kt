@@ -13,6 +13,7 @@ import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.customDaemonRegistry
 import org.gradle.kotlin.dsl.fixtures.customInstallation
+import org.gradle.kotlin.dsl.fixtures.withDaemonIdleTimeout
 import org.gradle.kotlin.dsl.fixtures.withDaemonRegistry
 
 import org.junit.Test
@@ -39,15 +40,17 @@ class KotlinBuildScriptTemplateModelIntegrationTest : AbstractIntegrationTest() 
     private
     fun fetchKotlinScriptTemplateClassPathModelFor(projectDir: File) =
         withDaemonRegistry(customDaemonRegistry()) {
-            val connection = GradleConnector.newConnector()
-                .forProjectDirectory(projectDir)
-                .useGradleUserHomeDir(File(projectDir, "gradle-user-home"))
-                .useInstallation(customInstallation())
-                .connect()
-            try {
-                connection.getModel(KotlinBuildScriptTemplateModel::class.java)
-            } finally {
-                connection.close()
+            withDaemonIdleTimeout(1) {
+                val connection = GradleConnector.newConnector()
+                    .forProjectDirectory(projectDir)
+                    .useGradleUserHomeDir(File(projectDir, "gradle-user-home"))
+                    .useInstallation(customInstallation())
+                    .connect()
+                try {
+                    connection.getModel(KotlinBuildScriptTemplateModel::class.java)
+                } finally {
+                    connection.close()
+                }
             }
         }
 

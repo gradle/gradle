@@ -1,7 +1,5 @@
 
-apply {
-    plugin("kotlin")
-}
+apply<plugins.KotlinLibrary>()
 
 dependencies {
     val compile by configurations

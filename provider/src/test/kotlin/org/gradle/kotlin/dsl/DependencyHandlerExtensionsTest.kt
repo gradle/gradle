@@ -9,6 +9,7 @@ import com.nhaarman.mockito_kotlin.whenever
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
@@ -118,30 +119,34 @@ class DependencyHandlerExtensionsTest {
     @Test
     fun `given configuration name and dependency notation, it will add the dependency`() {
 
-        val dependencies = DependencyHandlerScope(mock())
-        whenever(dependencies.add(any(), any())).thenReturn(mock())
+        val dependencyHandler = mock<DependencyHandler> {
+            on { add(any(), any()) } doReturn mock<Dependency>()
+        }
 
+        val dependencies = DependencyHandlerScope(dependencyHandler)
         dependencies {
             "configuration"("notation")
         }
 
-        verify(dependencies.dependencies).add("configuration", "notation")
+        verify(dependencyHandler).add("configuration", "notation")
     }
 
     @Test
     fun `given configuration and dependency notation, it will add the dependency to the named configuration`() {
 
-        val dependencies = DependencyHandlerScope(mock())
-        whenever(dependencies.add(any(), any())).thenReturn(mock())
+        val dependencyHandler = mock<DependencyHandler> {
+            on { add(any(), any()) } doReturn mock<Dependency>()
+        }
+        val configuration = mock<Configuration> {
+            on { name } doReturn "c"
+        }
 
-        val configuration: Configuration = mock()
-        whenever(configuration.name).thenReturn("c")
-
+        val dependencies = DependencyHandlerScope(dependencyHandler)
         dependencies {
             configuration("notation")
         }
 
-        verify(dependencies.dependencies).add("c", "notation")
+        verify(dependencyHandler).add("c", "notation")
     }
 
     @Test

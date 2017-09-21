@@ -31,10 +31,10 @@ open class GenerateClasspathManifest : DefaultTask() {
     var outputDirectory: File? = null
 
     @get:Input
-    val compileOnly = project.configurations.getByName("compileOnly")!!
+    val compileOnly = project.configurations.getByName("compileOnly")
 
     @get:Input
-    val runtime = project.configurations.getByName("runtime")!!
+    val runtime = project.configurations.getByName("runtime")
 
     @get:OutputFile
     val outputFile by lazy {
@@ -64,6 +64,6 @@ open class GenerateClasspathManifest : DefaultTask() {
 
     private
     val base by lazy {
-        project.convention.getPlugin(BasePluginConvention::class.java)!!
+        project.convention.getPlugin(BasePluginConvention::class.java)
     }
 }

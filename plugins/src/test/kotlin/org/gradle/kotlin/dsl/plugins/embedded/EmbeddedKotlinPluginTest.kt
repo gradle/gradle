@@ -42,7 +42,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
         val result = buildWithPlugin("assemble")
 
-        assertThat(result.task(":compileKotlin").outcome, equalTo(TaskOutcome.NO_SOURCE))
+        assertThat(result.outcomeOf(":compileKotlin"), equalTo(TaskOutcome.NO_SOURCE))
     }
 
     @Test
