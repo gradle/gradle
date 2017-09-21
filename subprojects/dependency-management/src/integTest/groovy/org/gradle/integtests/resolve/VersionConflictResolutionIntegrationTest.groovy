@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.resolve
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
@@ -1256,7 +1255,6 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    @NotYetImplemented
     def "evicted version removes range constraint from transitive dependency"() {
         given:
         (1..10).each {

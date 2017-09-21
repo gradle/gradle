@@ -29,6 +29,7 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
+import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails;
@@ -94,13 +95,14 @@ public class DependencyGraphBuilder {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final ModuleExclusions moduleExclusions;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final ModuleReplacementsData moduleReplacementsData;
 
     public DependencyGraphBuilder(DependencyToComponentIdResolver componentIdResolver, ComponentMetaDataResolver componentMetaDataResolver,
                                   ResolveContextToComponentResolver resolveContextToComponentResolver,
                                   ConflictHandler conflictHandler, Spec<? super DependencyMetadata> edgeFilter,
                                   AttributesSchemaInternal attributesSchema,
                                   ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions,
-                                  BuildOperationExecutor buildOperationExecutor) {
+                                  BuildOperationExecutor buildOperationExecutor, ModuleReplacementsData moduleReplacementsData) {
         this.idResolver = componentIdResolver;
         this.metaDataResolver = componentMetaDataResolver;
         this.moduleResolver = resolveContextToComponentResolver;
@@ -110,6 +112,7 @@ public class DependencyGraphBuilder {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.moduleExclusions = moduleExclusions;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.moduleReplacementsData = moduleReplacementsData;
     }
 
     public void resolve(final ResolveContext resolveContext, final DependencyGraphVisitor modelVisitor) {
@@ -118,7 +121,7 @@ public class DependencyGraphBuilder {
         DefaultBuildableComponentResolveResult rootModule = new DefaultBuildableComponentResolveResult();
         moduleResolver.resolve(resolveContext, rootModule);
 
-        final ResolveState resolveState = new ResolveState(idGenerator, rootModule, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleIdentifierFactory, moduleExclusions);
+        final ResolveState resolveState = new ResolveState(idGenerator, rootModule, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleIdentifierFactory, moduleExclusions, moduleReplacementsData);
         conflictHandler.registerResolver(new DirectDependencyForcingResolver(resolveState.root.component));
 
         traverseGraph(resolveState);
@@ -206,14 +209,18 @@ public class DependencyGraphBuilder {
         }
     }
 
-    private static boolean tryCompatibleSelection(final ResolveState resolveState, final ComponentState moduleRevision, final ModuleIdentifier moduleId, String version, final ModuleResolveState module) {
+    private static boolean tryCompatibleSelection(final ResolveState resolveState,
+                                                  final ComponentState moduleRevision,
+                                                  final ModuleIdentifier moduleId,
+                                                  String version,
+                                                  final ModuleResolveState module) {
         ComponentState selected = module.selected;
-        // TODO: CC. This fixes "evicted version removes range constraint from transitive dependency" but completely breaks component replacement integration tests
-        // because replacements are handled... at conflict resolution time!
-        //if (selected == null && allSelectorsAgreeWith(module.selectors, version)) {
-         //   module.select(moduleRevision);
-        //    return true;
-        //}
+        if (selected == null && !resolveState.moduleReplacementsData.participatesInReplacements(moduleId)) {
+            if (allSelectorsAgreeWith(module.selectors, version)){
+                module.select(moduleRevision);
+                return true;
+            }
+        }
         Set<SelectorState> selectedBy = moduleRevision.allResolvers;
         if (selected != null && selected != moduleRevision) {
             if (allSelectorsAgreeWith(moduleRevision.allResolvers, selected.getVersion())) {
@@ -591,10 +598,11 @@ public class DependencyGraphBuilder {
         private final ModuleExclusions moduleExclusions;
         private final DeselectVersionAction deselectVersionAction = new DeselectVersionAction(this);
         private final ReplaceSelectionWithConflictResultAction replaceSelectionWithConflictResultAction;
+        private final ModuleReplacementsData moduleReplacementsData;
 
         public ResolveState(IdGenerator<Long> idGenerator, ComponentResolveResult rootResult, String rootConfigurationName, DependencyToComponentIdResolver idResolver,
                             ComponentMetaDataResolver metaDataResolver, Spec<? super DependencyMetadata> edgeFilter, AttributesSchemaInternal attributesSchema,
-                            ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions) {
+                            ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions, ModuleReplacementsData moduleReplacementsData) {
             this.idGenerator = idGenerator;
             this.idResolver = idResolver;
             this.metaDataResolver = metaDataResolver;
@@ -602,6 +610,7 @@ public class DependencyGraphBuilder {
             this.attributesSchema = attributesSchema;
             this.moduleIdentifierFactory = moduleIdentifierFactory;
             this.moduleExclusions = moduleExclusions;
+            this.moduleReplacementsData = moduleReplacementsData;
             ComponentState rootVersion = getRevision(rootResult.getId());
             rootVersion.setMetaData(rootResult.getMetaData());
             root = new RootNode(idGenerator.generateId(), rootVersion, new ResolvedConfigurationIdentifier(rootVersion.id, rootConfigurationName), this);
