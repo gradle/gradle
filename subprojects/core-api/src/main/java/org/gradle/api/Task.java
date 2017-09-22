@@ -30,6 +30,7 @@ import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.api.tasks.TaskState;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 import java.util.Set;
@@ -491,6 +492,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @return The value of the property, possibly null.
      * @throws MissingPropertyException When the given property is unknown.
      */
+    @Nullable
     Object property(String propertyName) throws MissingPropertyException;
 
     /**
@@ -538,6 +540,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @return the description. May return null.
      */
     @Internal
+    @Nullable
     String getDescription();
 
     /**
@@ -546,7 +549,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @param description The description of the task. Might be null.
      */
-    void setDescription(String description);
+    void setDescription(@Nullable String description);
 
     /**
      * Returns the task group which this task belongs to. The task group is used in reports and user interfaces to
@@ -555,6 +558,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @return The task group for this task. Might be null.
      */
     @Internal
+    @Nullable
     String getGroup();
 
     /**
@@ -563,7 +567,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @param group The task group for this task. Can be null.
      */
-    void setGroup(String group);
+    void setGroup(@Nullable String group);
 
     /**
      * <p>Checks if any of the tasks that this task depends on {@link Task#getDidWork() didWork}.</p>

@@ -22,9 +22,12 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
@@ -791,7 +794,12 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void generatesDslObjectCompatibleObject() throws Exception {
-        new DslObject(generator.generate(Bean.class).newInstance());
+        DslObject dslObject = new DslObject(generator.generate(Bean.class).newInstance());
+        assertEquals(Bean.class, dslObject.getDeclaredType());
+        assertNotNull(dslObject.getConventionMapping());
+        assertNotNull(dslObject.getConvention());
+        assertNotNull(dslObject.getExtensions());
+        assertNotNull(dslObject.getAsDynamicObject());
     }
 
     @Test
@@ -815,6 +823,51 @@ public class AsmBackedClassGeneratorTest {
     @Test
     public void generatedTypeIsMarkedSynthetic() {
         assertTrue(generator.generate(Bean.class).isSynthetic());
+    }
+
+    @Test
+    public void addsSetterMethodsForPropertyWhoseTypeIsPropertyState() throws Exception {
+        DefaultProviderFactory providerFactory = new DefaultProviderFactory();
+        BeanWithPropertyState bean = generator.newInstance(BeanWithPropertyState.class, providerFactory);
+
+        DynamicObject dynamicObject = ((DynamicObjectAware) bean).getAsDynamicObject();
+
+        dynamicObject.setProperty("prop", "value");
+        assertEquals("value", bean.getProp().get());
+
+        dynamicObject.setProperty("prop", providerFactory.provider(new Callable<String>() {
+            int count;
+            @Override
+            public String call() throws Exception {
+                return "[" + String.valueOf(++count) + "]";
+            }
+        }));
+        assertEquals("[1]", bean.getProp().get());
+        assertEquals("[2]", bean.getProp().get());
+    }
+
+    @Test
+    public void doesNotAddSetterMethodsForPropertyWhoseTypeIsPropertyStateWhenTheyAlreadyExist() throws Exception {
+        DefaultProviderFactory providerFactory = new DefaultProviderFactory();
+        BeanWithPropertyState bean = generator.newInstance(BeanWithPropertyState.class, providerFactory);
+
+        DynamicObject dynamicObject = ((DynamicObjectAware) bean).getAsDynamicObject();
+
+        dynamicObject.setProperty("prop2", "value");
+        assertEquals("[value]", bean.getProp2().get());
+
+        dynamicObject.setProperty("prop2", 12);
+        assertEquals("[12]", bean.getProp2().get());
+
+        dynamicObject.setProperty("prop2", providerFactory.provider(new Callable<String>() {
+            int count;
+            @Override
+            public String call() throws Exception {
+                return "[" + String.valueOf(++count) + "]";
+            }
+        }));
+        assertEquals("[1]", bean.getProp2().get());
+        assertEquals("[2]", bean.getProp2().get());
     }
 
     public static class Bean {
@@ -1306,4 +1359,31 @@ public class AsmBackedClassGeneratorTest {
     )
     public static class AnnotatedBean {
     }
+
+    public static class BeanWithPropertyState {
+        private final PropertyState<String> prop;
+        private final PropertyState<String> prop2;
+
+        public BeanWithPropertyState(ProviderFactory factory) {
+            this.prop = factory.property(String.class);
+            this.prop2 = factory.property(String.class);
+        }
+
+        public PropertyState<String> getProp() {
+            return prop;
+        }
+
+        public PropertyState<String> getProp2() {
+            return prop2;
+        }
+
+        public void setProp2(String value) {
+            prop2.set("[" + value + "]");
+        }
+
+        public void setProp2(int value) {
+            prop2.set("[" + value + "]");
+        }
+    }
+
 }

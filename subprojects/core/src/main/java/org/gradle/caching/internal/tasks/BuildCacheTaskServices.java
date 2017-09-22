@@ -21,6 +21,8 @@ import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.state.FileSystemMirror;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.caching.internal.controller.BuildCacheController;
@@ -29,13 +31,14 @@ import org.gradle.caching.internal.controller.BuildCacheControllerFactory.BuildC
 import org.gradle.caching.internal.controller.BuildCacheControllerFactory.RemoteAccessMode;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Clock;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
 import org.gradle.util.SingleMessageLogger;
@@ -49,27 +52,27 @@ import static org.gradle.caching.internal.controller.BuildCacheControllerFactory
 
 public class BuildCacheTaskServices {
 
-    TaskOutputPacker createTaskResultPacker(
-        FileSystem fileSystem
-    ) {
-        return new GZipTaskOutputPacker(new TarTaskOutputPacker(fileSystem));
+    TaskOutputPacker createTaskResultPacker(FileSystem fileSystem, StreamHasher fileHasher, StringInterner stringInterner) {
+        return new GZipTaskOutputPacker(new TarTaskOutputPacker(fileSystem, fileHasher, stringInterner));
     }
 
     TaskOutputOriginFactory createTaskOutputOriginFactory(
-        TimeProvider timeProvider,
+        Clock clock,
         InetAddressFactory inetAddressFactory,
         GradleInternal gradleInternal,
         BuildInvocationScopeId buildInvocationScopeId
     ) {
         File rootDir = gradleInternal.getRootProject().getRootDir();
-        return new TaskOutputOriginFactory(timeProvider, inetAddressFactory, rootDir, SystemProperties.getInstance().getUserName(), OperatingSystem.current().getName(), GradleVersion.current(), buildInvocationScopeId);
+        return new TaskOutputOriginFactory(clock, inetAddressFactory, rootDir, SystemProperties.getInstance().getUserName(), OperatingSystem.current().getName(), GradleVersion.current(), buildInvocationScopeId);
     }
 
     TaskOutputCacheCommandFactory createTaskOutputCacheCommandFactory(
         TaskOutputPacker taskOutputPacker,
-        TaskOutputOriginFactory taskOutputOriginFactory
+        TaskOutputOriginFactory taskOutputOriginFactory,
+        FileSystemMirror fileSystemMirror,
+        StringInterner stringInterner
     ) {
-        return new TaskOutputCacheCommandFactory(taskOutputPacker, taskOutputOriginFactory);
+        return new TaskOutputCacheCommandFactory(taskOutputPacker, taskOutputOriginFactory, fileSystemMirror, stringInterner);
     }
 
     // TODO: Should live in BuildCacheServices

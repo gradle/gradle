@@ -24,7 +24,7 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppPCHC
 class ObjectiveCppPCHCompilerTest extends GccCompatibleNativeCompilerTest {
     @Override
     protected NativeCompiler getCompiler(CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile) {
-        return new ObjectiveCppPCHCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, invocationContext, objectFileExtension, useCommandFile)
+        return new ObjectiveCppPCHCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, invocationContext, objectFileExtension, useCommandFile, workerLeaseService)
     }
 
     @Override

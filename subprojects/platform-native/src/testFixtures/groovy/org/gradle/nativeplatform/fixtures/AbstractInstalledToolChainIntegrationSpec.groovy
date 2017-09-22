@@ -20,10 +20,11 @@ import org.gradle.api.internal.file.BaseDirFileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.internal.time.TrueTimeProvider
+import org.gradle.internal.time.Time
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.runner.RunWith
+
 /**
  * Runs a test separately for each installed tool chain.
  */
@@ -53,6 +54,15 @@ allprojects { p ->
         return new NativeInstallationFixture(file(installDir), os)
     }
 
+    def String executableName(Object path) {
+        return path + OperatingSystem.current().getExecutableSuffix()
+    }
+
+    def String getExecutableExtension() {
+        def suffix = OperatingSystem.current().executableSuffix
+        return suffix.empty ? "" : suffix.substring(1)
+    }
+
     def ExecutableFixture executable(Object path) {
         return toolChain.executable(file(path))
     }
@@ -63,6 +73,30 @@ allprojects { p ->
 
     def TestFile objectFile(Object path) {
         return toolChain.objectFile(file(path))
+    }
+
+    def String withLinkLibrarySuffix(Object path) {
+        return path + OperatingSystem.current().linkLibrarySuffix
+    }
+
+    def String linkLibraryName(Object path) {
+        return OperatingSystem.current().getLinkLibraryName(path.toString())
+    }
+
+    def String getLinkLibrarySuffix() {
+        return OperatingSystem.current().linkLibrarySuffix.substring(1)
+    }
+
+    def String withSharedLibrarySuffix(Object path) {
+        return path + OperatingSystem.current().sharedLibrarySuffix
+    }
+
+    def String sharedLibraryName(Object path) {
+        return OperatingSystem.current().getSharedLibraryName(path.toString())
+    }
+
+    def String getSharedLibraryExtension() {
+        return OperatingSystem.current().sharedLibrarySuffix.substring(1)
     }
 
     def SharedLibraryFixture sharedLibrary(Object path) {
@@ -78,16 +112,20 @@ allprojects { p ->
     }
 
     def objectFileFor(File sourceFile, String rootObjectFilesDir = "build/objs/main/main${sourceType}") {
+        return intermediateFileFor(sourceFile, rootObjectFilesDir, OperatingSystem.current().isWindows() ? ".obj" : ".o")
+    }
+
+    def intermediateFileFor(File sourceFile, String intermediateFilesDir, String intermediateFileSuffix) {
         File objectFile = new CompilerOutputFileNamingSchemeFactory(new BaseDirFileResolver(TestFiles.fileSystem(), testDirectory, TestFiles.getPatternSetFactory())).create()
-                        .withObjectFileNameSuffix(OperatingSystem.current().isWindows() ? ".obj" : ".o")
-                        .withOutputBaseFolder(file(rootObjectFilesDir))
-                        .map(file(sourceFile))
+            .withObjectFileNameSuffix(intermediateFileSuffix)
+            .withOutputBaseFolder(file(intermediateFilesDir))
+            .map(file(sourceFile))
         return file(getTestDirectory().toURI().relativize(objectFile.toURI()))
     }
 
     protected void maybeWait() {
         if (toolChain.visualCpp) {
-            def now = new TrueTimeProvider().getCurrentTime()
+            def now = Time.clock().currentTime
             def nextSecond = now % 1000
             Thread.sleep(1200 - nextSecond)
         }

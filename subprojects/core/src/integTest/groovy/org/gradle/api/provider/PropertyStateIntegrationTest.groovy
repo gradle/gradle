@@ -82,4 +82,149 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
         projectUnderTest.assertDefaultOutputFileDoesNotExist()
         projectUnderTest.assertCustomOutputFileContent()
     }
+
+    def "can use property state as task input"() {
+        given:
+        buildFile << """
+class SomeTask extends DefaultTask {
+    @Input
+    final PropertyState<String> prop = project.providers.property(String)
+    
+    @OutputFile
+    final PropertyState<RegularFile> outputFile = newOutputFile()
+    
+    @TaskAction
+    void go() { 
+        outputFile.get().asFile.text = prop.get()
+    }
+}
+
+task thing(type: SomeTask) {
+    prop = System.getProperty('prop')
+    outputFile = layout.buildDirectory.file("out.txt")
+}
+
+"""
+
+        when:
+        executer.withArgument("-Dprop=123")
+        run("thing")
+
+        then:
+        executedAndNotSkipped(":thing")
+
+        when:
+        executer.withArgument("-Dprop=123")
+        run("thing")
+
+        then:
+        skipped(":thing")
+
+        when:
+        executer.withArgument("-Dprop=abc")
+        run("thing")
+
+        then:
+        executedAndNotSkipped(":thing")
+
+        when:
+        executer.withArgument("-Dprop=abc")
+        run("thing")
+
+        then:
+        skipped(":thing")
+    }
+
+    def "can set property value from DSL using a value or a provider"() {
+        given:
+        buildFile << """
+class SomeExtension {
+    final PropertyState<String> prop
+    
+    @javax.inject.Inject
+    SomeExtension(ProviderFactory providers) {
+        prop = providers.property(String)
+    }
+}
+
+class SomeTask extends DefaultTask {
+    final PropertyState<String> prop = project.providers.property(String)
+}
+
+extensions.create('custom', SomeExtension, providers)
+custom.prop = "value"
+assert custom.prop.get() == "value"
+
+custom.prop = providers.provider { "new value" }
+assert custom.prop.get() == "new value"
+
+tasks.create('t', SomeTask)
+tasks.t.prop = custom.prop
+assert tasks.t.prop.get() == "new value"
+
+custom.prop = "changed"
+assert custom.prop.get() == "changed"
+assert tasks.t.prop.get() == "changed"
+
+"""
+
+        expect:
+        succeeds()
+    }
+
+    def "reports failure to set property value using incompatible type"() {
+        given:
+        buildFile << """
+class SomeExtension {
+    final PropertyState<String> prop
+    
+    @javax.inject.Inject
+    SomeExtension(ProviderFactory providers) {
+        prop = providers.property(String)
+    }
+}
+
+extensions.create('custom', SomeExtension, providers)
+
+task wrongValueType {
+    doLast {
+        custom.prop = 123
+    }
+}
+
+task wrongPropertyStateType {
+    doLast {
+        custom.prop = providers.property(Integer)
+    }
+}
+
+task wrongRuntimeType {
+    doLast {
+        custom.prop = providers.provider { 123 }
+        custom.prop.get()
+    }
+}
+"""
+
+        when:
+        fails("wrongValueType")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':wrongValueType'.")
+        failure.assertHasCause("Cannot set the value of a property of type java.lang.String using an instance of type java.lang.Integer.")
+
+        when:
+        fails("wrongPropertyStateType")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':wrongPropertyStateType'.")
+        failure.assertHasCause("Cannot set the value of a property of type java.lang.String using a provider of type java.lang.Integer.")
+
+        when:
+        fails("wrongRuntimeType")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':wrongRuntimeType'.")
+        failure.assertHasCause("Cannot get the value of a property of type java.lang.String as the provider associated with this property returned a value of type java.lang.Integer.")
+    }
 }

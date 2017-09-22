@@ -16,18 +16,29 @@
 
 package org.gradle.caching.internal.tasks
 
+import groovy.io.FileType
+import org.gradle.api.internal.cache.StringInterner
+import org.gradle.api.internal.changedetection.state.DirContentSnapshot
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
+import org.gradle.api.internal.changedetection.state.FileHashSnapshot
+import org.gradle.api.internal.tasks.OutputType
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter
+import org.gradle.internal.hash.DefaultStreamHasher
+import org.gradle.internal.hash.Hashing
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import org.gradle.test.fixtures.file.CleanupTestDirectory
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType.DIRECTORY
-import static org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType.FILE
+import java.util.concurrent.Callable
+
+import static OutputType.DIRECTORY
+import static OutputType.FILE
 
 @CleanupTestDirectory
 class TarTaskOutputPackerTest extends Specification {
@@ -37,7 +48,9 @@ class TarTaskOutputPackerTest extends Specification {
     def writeOrigin = Stub(TaskOutputOriginWriter)
 
     def fileSystem = Mock(FileSystem)
-    def packer = new TarTaskOutputPacker(fileSystem)
+    def streamHasher = new DefaultStreamHasher({ Hashing.md5().newHasher() })
+    def stringInterner = new StringInterner()
+    def packer = new TarTaskOutputPacker(fileSystem, streamHasher, stringInterner)
 
     @Unroll
     def "can pack single task output file with file mode #mode"() {
@@ -48,8 +61,7 @@ class TarTaskOutputPackerTest extends Specification {
         def unixMode = Integer.parseInt(mode, 8)
 
         when:
-        pack output,
-            new ResolvedTaskOutputFilePropertySpec("test", FILE, sourceOutputFile)
+        pack output, prop(FILE, sourceOutputFile)
 
         then:
         1 * fileSystem.getUnixMode(sourceOutputFile) >> unixMode
@@ -58,8 +70,7 @@ class TarTaskOutputPackerTest extends Specification {
 
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
-        unpack input,
-            new ResolvedTaskOutputFilePropertySpec("test", FILE, targetOutputFile)
+        unpack input, prop(FILE, targetOutputFile)
 
         then:
         1 * fileSystem.chmod(targetOutputFile, unixMode)
@@ -82,7 +93,7 @@ class TarTaskOutputPackerTest extends Specification {
         def targetDataFile = targetSubDir.file("data.txt")
         def output = new ByteArrayOutputStream()
         when:
-        pack output, new ResolvedTaskOutputFilePropertySpec("test", DIRECTORY, sourceOutputDir)
+        pack output, prop(DIRECTORY, sourceOutputDir)
 
         then:
         1 * fileSystem.getUnixMode(sourceSubDir) >> 0711
@@ -91,7 +102,7 @@ class TarTaskOutputPackerTest extends Specification {
 
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
-        unpack input, new ResolvedTaskOutputFilePropertySpec("test", DIRECTORY, targetOutputDir)
+        unpack input, prop(DIRECTORY, targetOutputDir)
 
         then:
         1 * fileSystem.chmod(targetOutputDir, 0755)
@@ -118,14 +129,14 @@ class TarTaskOutputPackerTest extends Specification {
         }
         def output = new ByteArrayOutputStream()
         when:
-        pack output, new ResolvedTaskOutputFilePropertySpec("test", type, sourceOutput)
+        pack output, prop(type, sourceOutput)
 
         then:
         0 * _
 
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
-        unpack input, new ResolvedTaskOutputFilePropertySpec("test", type, targetOutput)
+        unpack input, prop(type, targetOutput)
 
         then:
         !targetOutput.exists()
@@ -148,7 +159,7 @@ class TarTaskOutputPackerTest extends Specification {
         def targetOutputFile = temporaryFolder.file("target.txt")
         def output = new ByteArrayOutputStream()
         when:
-        pack output, new ResolvedTaskOutputFilePropertySpec(propertyName, FILE, sourceOutputFile)
+        pack output, prop(FILE, sourceOutputFile)
 
         then:
         noExceptionThrown()
@@ -157,7 +168,7 @@ class TarTaskOutputPackerTest extends Specification {
 
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
-        unpack input, new ResolvedTaskOutputFilePropertySpec(propertyName, FILE, targetOutputFile)
+        unpack input, prop(FILE, targetOutputFile)
 
         then:
         1 * fileSystem.chmod(targetOutputFile, 0644)
@@ -175,8 +186,8 @@ class TarTaskOutputPackerTest extends Specification {
         def output = new ByteArrayOutputStream()
         when:
         pack output,
-            new ResolvedTaskOutputFilePropertySpec("out1", FILE, null),
-            new ResolvedTaskOutputFilePropertySpec("out2", DIRECTORY, null)
+            prop("out1", FILE, null),
+            prop("out2", DIRECTORY, null)
 
         then:
         0 * _
@@ -184,8 +195,8 @@ class TarTaskOutputPackerTest extends Specification {
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
         unpack input,
-            new ResolvedTaskOutputFilePropertySpec("out1", FILE, null),
-            new ResolvedTaskOutputFilePropertySpec("out2", DIRECTORY, null)
+            prop("out1", FILE, null),
+            prop("out2", DIRECTORY, null)
 
         then:
         noExceptionThrown()
@@ -203,8 +214,8 @@ class TarTaskOutputPackerTest extends Specification {
 
         when:
         pack output,
-            new ResolvedTaskOutputFilePropertySpec("missingFile", FILE, missingSourceFile),
-            new ResolvedTaskOutputFilePropertySpec("missingDir", DIRECTORY, missingSourceDir)
+            prop("missingFile", FILE, missingSourceFile),
+            prop("missingDir", DIRECTORY, missingSourceDir)
 
         then:
         noExceptionThrown()
@@ -213,8 +224,8 @@ class TarTaskOutputPackerTest extends Specification {
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
         unpack input,
-            new ResolvedTaskOutputFilePropertySpec("missingFile", FILE, missingTargetFile),
-            new ResolvedTaskOutputFilePropertySpec("missingDir", DIRECTORY, missingTargetDir)
+            prop("missingFile", FILE, missingTargetFile),
+            prop("missingDir", DIRECTORY, missingTargetDir)
 
         then:
         noExceptionThrown()
@@ -226,7 +237,7 @@ class TarTaskOutputPackerTest extends Specification {
         def targetDir = temporaryFolder.file("target")
         def output = new ByteArrayOutputStream()
         when:
-        pack output, new ResolvedTaskOutputFilePropertySpec("empty", DIRECTORY, sourceDir)
+        pack output, prop("empty", DIRECTORY, sourceDir)
 
         then:
         noExceptionThrown()
@@ -234,7 +245,7 @@ class TarTaskOutputPackerTest extends Specification {
 
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
-        unpack input, new ResolvedTaskOutputFilePropertySpec("empty", DIRECTORY, targetDir)
+        unpack input, prop("empty", DIRECTORY, targetDir)
 
         then:
         noExceptionThrown()
@@ -244,19 +255,57 @@ class TarTaskOutputPackerTest extends Specification {
         0 * _
     }
 
-    def pack(OutputStream output, TaskOutputOriginWriter writeOrigin = this.writeOrigin, ResolvedTaskOutputFilePropertySpec... propertySpecs) {
-        pack(output, writeOrigin, propertySpecs as SortedSet)
+    def pack(OutputStream output, TaskOutputOriginWriter writeOrigin = this.writeOrigin, PropertyDefinition... propertyDefs) {
+        def propertySpecs = propertyDefs*.property as SortedSet
+        def outputSnapshots = propertyDefs.collectEntries { propertyDef ->
+            return [(propertyDef.property.propertyName): propertyDef.outputSnapshots()]
+        }
+        packer.pack(propertySpecs, outputSnapshots, output, writeOrigin)
     }
 
-    def pack(OutputStream output, TaskOutputOriginWriter writeOrigin = this.writeOrigin, SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs) {
-        packer.pack(propertySpecs, output, writeOrigin)
-    }
-
-    def unpack(InputStream input, TaskOutputOriginReader readOrigin = this.readOrigin, ResolvedTaskOutputFilePropertySpec... propertySpecs) {
-        unpack(input, readOrigin, propertySpecs as SortedSet)
-    }
-
-    def unpack(InputStream input, TaskOutputOriginReader readOrigin = this.readOrigin, SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs) {
+    def unpack(InputStream input, TaskOutputOriginReader readOrigin = this.readOrigin, PropertyDefinition... propertyDefs) {
+        def propertySpecs = propertyDefs*.property as SortedSet
         packer.unpack(propertySpecs, input, readOrigin)
+    }
+
+    def prop(String name = "test", OutputType type, File output) {
+        switch (type) {
+            case FILE:
+                return new PropertyDefinition(new ResolvedTaskOutputFilePropertySpec(name, FILE, output), {
+                    if (output == null || !output.exists()) {
+                        return [:]
+                    }
+                    return [(output.absolutePath): new FileHashSnapshot(TestFile.md5(output))]
+                })
+            case DIRECTORY:
+                return new PropertyDefinition(new ResolvedTaskOutputFilePropertySpec(name, DIRECTORY, output), {
+                    if (output == null || !output.exists()) {
+                        return [:]
+                    }
+                    def descendants = []
+                    output.traverse(type: FileType.ANY, visitRoot: true) { descendants += it }
+                    return descendants.collectEntries { File file ->
+                        def snapshot
+                        if (file.isDirectory()) {
+                            snapshot = DirContentSnapshot.INSTANCE
+                        } else {
+                            snapshot = new FileHashSnapshot(TestFile.md5(file))
+                        }
+                        return [(file.absolutePath): snapshot]
+                    }
+                })
+            default:
+                throw new AssertionError()
+        }
+    }
+
+    private static class PropertyDefinition {
+        ResolvedTaskOutputFilePropertySpec property
+        Callable<Map<String, FileCollectionSnapshot>> outputSnapshots
+
+        PropertyDefinition(ResolvedTaskOutputFilePropertySpec property, Callable<Map<String, FileCollectionSnapshot>> outputSnapshots) {
+            this.property = property
+            this.outputSnapshots = outputSnapshots
+        }
     }
 }

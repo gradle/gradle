@@ -27,6 +27,11 @@ import org.gradle.testing.performance.generator.tasks.RemoteProject
  'smallJavaMultiProject'].each { template ->
     tasks.create(template, JavaExecProjectGeneratorTask) {
         outputs.dir new File(buildDir, template)
+        outputs.cacheIf { true }
+        inputs.property('template', template)
+        inputs.property('args') { // Arguments are covered by the testProjectName and the outputs. We don't want them to contain the absolute path
+            return []
+        }
         classpath = sourceSets.performanceTest.runtimeClasspath
         main = 'org.gradle.performance.generator.TestProjectGenerator'
         args name, buildDir.absolutePath
@@ -245,6 +250,11 @@ task largeNativeBuildPrebuilt(type: GradleBuild) {
     tasks = ['build']
 }
 
+task archivePerformanceProject(type: Copy) {
+    into "build/$name"
+    from "src/templates/$name"
+}
+
 tasks.withType(JvmProjectGeneratorTask) {
     if (project.hasProperty("springDmPluginVersion")) {
         templateArgs['springDmPluginVersion'] = springDmPluginVersion
@@ -256,7 +266,7 @@ tasks.withType(JvmProjectGeneratorTask) {
 // a dedicated project in order for the classpath to be setup properly
 def androidRemoteProjects = tasks.withType(RemoteProject).matching { it.name =~ /Android/ }
 androidRemoteProjects.all {
-    dependsOn project(':internalAndroidPerformanceTesting').buildClassPath
+    dependsOn tasks.findByPath(':internalAndroidPerformanceTesting:buildClassPath')
     doLast {
         file("$outputDirectory/tapi-classpath.txt") << project(':internalAndroidPerformanceTesting').buildClassPath.outputFile.text
     }

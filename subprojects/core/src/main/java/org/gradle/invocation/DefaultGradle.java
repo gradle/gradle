@@ -71,6 +71,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast;
     private final Collection<IncludedBuild> includedBuilds = Lists.newArrayList();
     private MutableActionSet<Project> rootProjectActions = new MutableActionSet<Project>();
+    private boolean projectsLoaded;
     private Path identityPath;
     private final ClassLoaderScope classLoaderScope;
     private BuildOperationState operation;
@@ -88,8 +89,8 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
             public void projectsLoaded(Gradle gradle) {
                 if (!rootProjectActions.isEmpty()) {
                     services.get(CrossProjectConfigurator.class).rootProject(rootProject, rootProjectActions);
-                    rootProjectActions = null;
                 }
+                projectsLoaded = true;
             }
         });
 
@@ -209,11 +210,11 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     public void rootProject(Action<? super Project> action) {
-        if (rootProjectActions != null) {
-            rootProjectActions.add(action);
-        } else {
+        if (projectsLoaded) {
             assert rootProject != null;
             action.execute(rootProject);
+        } else {
+            rootProjectActions.add(action);
         }
     }
 

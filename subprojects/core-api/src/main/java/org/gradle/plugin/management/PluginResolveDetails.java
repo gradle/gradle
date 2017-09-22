@@ -18,6 +18,8 @@ package org.gradle.plugin.management;
 
 import org.gradle.api.Incubating;
 
+import javax.annotation.Nullable;
+
 /**
  * Allows plugin resolution rules to inspect a requested plugin and modify which
  * target plugin will be used.
@@ -44,7 +46,7 @@ public interface PluginResolveDetails {
      *
      * @param version version to use
      */
-    void useVersion(String version);
+    void useVersion(@Nullable String version);
 
     /**
      * The target plugin request to use.

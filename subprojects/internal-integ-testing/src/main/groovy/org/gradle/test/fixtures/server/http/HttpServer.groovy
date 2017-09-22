@@ -37,6 +37,8 @@ import org.slf4j.LoggerFactory
 
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import java.util.zip.GZIPOutputStream
 
 class HttpServer extends ServerWithExpectations implements HttpServerFixture {
@@ -86,6 +88,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     Handler getCustomHandler() {
         return new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+                String d = request.getQueryString()
                 if (request.handled) {
                     return
                 }
@@ -223,6 +226,13 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     }
 
     /**
+     * Expects one GET request, which will block for maximum 60 seconds
+     */
+    void expectGetBlocking(String path) {
+        expect(path, false, ['GET'], blocking())
+    }
+
+    /**
      * Expects one GET request for the given URL, which return 404 status code
      */
     void expectGetMissing(String path, PasswordCredentials passwordCredentials = null) {
@@ -263,6 +273,19 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
         }
     }
 
+    private Action blocking() {
+        new ActionSupport("throw socket timeout exception") {
+            CountDownLatch latch = new CountDownLatch(1)
+            void handle(HttpServletRequest request, HttpServletResponse response) {
+                try {
+                    latch.await(60, TimeUnit.SECONDS)
+                } catch (InterruptedException e) {
+                    // ignore
+                }
+            }
+        }
+    }
+
     /**
      * Expects one HEAD request for the given URL.
      */
@@ -289,6 +312,13 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
      */
     HttpResourceInteraction expectGet(String path, File srcFile) {
         return expect(path, false, ['GET'], fileHandler(path, srcFile))
+    }
+
+    /**
+     * Allows one GET request for the given URL with a query string. Reads the request content from the given file.
+     */
+    HttpResourceInteraction expectGetWithQueryString(String path, String query, File srcFile) {
+        return expect(path, false, ['GET'], withQueryString(query, fileHandler(path, srcFile)))
     }
 
     /**
@@ -518,6 +548,24 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
                     response.sendError(500, "unexpected username '${request.remoteUser}'")
                     return
                 }
+                action.handle(request, response)
+            }
+        }
+    }
+
+    private Action withQueryString(String query, Action action) {
+        return new Action() {
+            @Override
+            HttpResourceInteraction getInteraction() {
+                return action.interaction
+            }
+
+            String getDisplayName() {
+                return action.displayName
+            }
+
+            void handle(HttpServletRequest request, HttpServletResponse response) {
+                assert request.queryString == query
                 action.handle(request, response)
             }
         }

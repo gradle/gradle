@@ -20,13 +20,13 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
-import org.gradle.internal.time.TimeProvider
+import org.gradle.internal.time.Clock
 import org.gradle.util.GradleVersion
 import spock.lang.Specification
 
 class TaskOutputOriginFactoryTest extends Specification {
     def task = Mock(TaskInternal)
-    def timeProvider = Mock(TimeProvider)
+    def timeProvider = Mock(Clock)
     def inetAddressFactory = Mock(InetAddressFactory)
     def rootDir = Mock(File)
     private BuildInvocationScopeId buildInvocationId = new BuildInvocationScopeId(UniqueId.generate())

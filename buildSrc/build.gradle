@@ -44,6 +44,7 @@ dependencies {
     compile "org.pegdown:pegdown:1.6.0"
     compile "org.jsoup:jsoup:1.6.3"
     compile 'me.champeau.gradle:japicmp-gradle-plugin:0.2.4'
+    compile 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.3'
 }
 
 ext.isCiServer = System.getenv().containsKey("CI")
@@ -51,9 +52,6 @@ ext.isCiServer = System.getenv().containsKey("CI")
 apply from: '../gradle/compile.gradle'
 apply from: '../gradle/dependencies.gradle'
 apply from: '../gradle/classycle.gradle'
-
-apply from: '../gradle/buildScanUserData.gradle'
-apply from: '../gradle/taskCacheBuildScanUserData.gradle'
 
 if (!isCiServer || (isCiServer && Boolean.getBoolean('enableCodeQuality'))) {
     apply from: '../gradle/codeQuality.gradle'

@@ -76,6 +76,7 @@ public interface PublishArtifact extends Buildable {
      *
      * @return The date. May be null.
      */
+    @Nullable
     Date getDate();
 
 }

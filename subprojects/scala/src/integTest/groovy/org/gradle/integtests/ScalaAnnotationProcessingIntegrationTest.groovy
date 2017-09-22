@@ -82,9 +82,7 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         """
             apply plugin: 'scala'
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
             
             dependencies {
                 compile 'org.scala-lang:scala-library:2.11.8'

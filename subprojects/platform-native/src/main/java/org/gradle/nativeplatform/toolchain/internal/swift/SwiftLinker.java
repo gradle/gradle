@@ -19,6 +19,8 @@ package org.gradle.nativeplatform.toolchain.internal.swift;
 import org.gradle.api.Action;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
+import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.nativeplatform.internal.BundleLinkerSpec;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.SharedLibraryLinkerSpec;
 import org.gradle.nativeplatform.toolchain.internal.AbstractCompiler;
@@ -33,8 +35,8 @@ import java.util.List;
 
 // TODO(daniel): Swift compiler should extends from an abstraction of NativeCompiler (most of is applies to SwiftCompiler)
 class SwiftLinker extends AbstractCompiler<LinkerSpec> {
-    SwiftLinker(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext) {
-        super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new SwiftCompileArgsTransformer(), false);
+    SwiftLinker(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, WorkerLeaseService workerLeaseService) {
+        super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new SwiftCompileArgsTransformer(), false, workerLeaseService);
     }
 
     @Override
@@ -42,9 +44,7 @@ class SwiftLinker extends AbstractCompiler<LinkerSpec> {
     }
 
     @Override
-    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(final LinkerSpec spec) {
-        List<String> args = getArguments(spec);
-
+    protected Action<BuildOperationQueue<CommandLineToolInvocation>> newInvocationAction(final LinkerSpec spec, List<String> args) {
         final CommandLineToolInvocation invocation = newInvocation(
             "linking " + spec.getOutputFile().getName(), spec.getOutputFile().getParentFile(), args, spec.getOperationLogger());
 
@@ -66,6 +66,9 @@ class SwiftLinker extends AbstractCompiler<LinkerSpec> {
 
             if (spec instanceof SharedLibraryLinkerSpec) {
                 args.add("-emit-library");
+            } else if (spec instanceof BundleLinkerSpec) {
+                args.add("-Xlinker");
+                args.add("-bundle");
             } else {
                 args.add("-emit-executable");
             }

@@ -30,7 +30,7 @@ import java.util.Set;
 
 import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Maps.newHashMap;
-import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 
 /**
  * Generic container for conflicts. It's generic so that hopefully it's easier to comprehend (and test).
@@ -41,6 +41,7 @@ class ConflictContainer<K, T> {
 
     private final Map<K, Collection<? extends T>> elements = newHashMap();
     private final Multimap<K, K> targetToSource = LinkedHashMultimap.create();
+    private boolean empty;
 
     /**
      * Adds new element and returns a conflict instance if given element is conflicted. Element is conflicted when:
@@ -106,16 +107,24 @@ class ConflictContainer<K, T> {
     }
 
     private Conflict registerConflict(K target, K replacedBy) {
-        return registerConflict(asList(target), replacedBy);
+        return registerConflict(singletonList(target), replacedBy);
     }
 
     public int getSize() {
         return conflicts.size();
     }
 
+    public boolean hasConflicts() {
+        return !conflicts.isEmpty();
+    }
+
     public Conflict popConflict() {
         assert !conflicts.isEmpty();
         return conflicts.pop();
+    }
+
+    public boolean isEmpty() {
+        return conflicts.isEmpty();
     }
 
     class Conflict {

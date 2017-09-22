@@ -28,6 +28,8 @@ import java.io.File;
 
 /**
  * An executable which runs a suite of tests.
+ *
+ * @since 4.2
  */
 @Incubating @HasInternalProtocol
 public interface NativeTestSuiteBinarySpec extends TestSuiteBinarySpec, NativeBinarySpec {

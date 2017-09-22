@@ -6,80 +6,60 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
+### Improvements for plugin authors
+
+In Gradle 4.1, we added APIs that allow a specific task output directory or output file to be wired in as an input for another task, in a way that allows the task dependencies to be inferred and that deals with later changes to the configured locations of those outputs. It is intended to be a more robust, performant and descriptive alternative to using `File` property types and calls to `Task.dependsOn`.
+
+It added factory methods on `DefaultTask` - i.e. `newInputFile()`, `newOutputFile()`, and `newOutputDirectory()` - to allow a task implementation class to create `DirectoryVar` instances that represent an output directory, and `RegularFileVar` instances that represent an output file or directory. When used as an output directory or file property, these instances carry dependency information about the producing task. When used as an input file property, the producing task is tracked as a dependency of the consuming task. Similar support for input files is done using `ConfigurableFileCollection` and friends, as has been possible for quite a while.
+
+In Gradle 4.3, we added a new factory method on `DefaultTask` - i.e. `newInputDirectory()` - to allow a task implementation class to create `DirectoryVar` instances that represent an input directory.
+
+TBD: `Provider<T>` and `PropertyState<T>` can be used with `@Input` properties.
+TBD: `ListProperty<T>`
+TBD: `Provider.map()`
+TBD: `PropertyState<Directory>` and `PropertyState<RegularFile>` can be set using `File` in DSL.
+
+### Task input/output annotations and runtime API
+
+Gradle 4.3 introduces some changes that bring task inputs and outputs registered via task annotations (e.g. `@InputFile` and `@OutputDirectory` etc.) and the runtime API (think `task.inputs.file(...)` and `task.outputs.dir(...)` etc.) closer to each other.
+
+For task outputs declared via annotations like `@OutputDirectory` and `@OutputFile`, Gradle always ensured that the necessary directory exists before executing the task. Starting with version 4.3 Gradle will also create directories for outputs that were registered via the runtime API (e.g. by calling methods like `task.outputs.file()` and `dir()`).
+
+```
+task customTask {
+    inputs.file "input.txt"
+    outputs.file "output-dir/output.txt"
+    doLast {
+        mkdir "output-dir" // <-- This is now unnecessary
+        file("output-dir/output.txt") << file("input.txt")
+    }
+}
+```
+
+Task inputs and outputs declared via task property annotations have always been validated by Gradle. If a task declared a non-optional (`@Optional`) input that was `null`, Gradle would fail the build with the message:
+
+```text
+* What went wrong:
+Some problems were found with the configuration of task ':test'.
+> No value has been specified for property 'inputDirectory'.
+```
+
+Gradle would also fail the build if an input file or directory did not exist, and also if it expected an output directory, but found a file (or vice versa).
+
+Starting with Gradle 4.3, these validations also happen for properties registered via the runtime API. For backwards compatibility, Gradle will not fail the build if the new validation fails, but produce a warning similar to this:
+
+```text
+A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated and is scheduled to be removed in Gradle 5.0.
+ - No value has been specified for property 'inputDirectory'.
+```
+
+### Force rich or plain console with `org.gradle.console`
+
+You may now force Gradle to use rich or plain [build output](userguide/console.html#sec:console_build_output) by setting [`org.gradle.console`](userguide/build_environment.html#sec:gradle_configuration_properties) in your `gradle.properties`.
+
 <!--
 ### Example new and noteworthy
 -->
-
-### Support for Google Cloud Storage backed repositories
-
-It is now possible to consume dependencies from, and publish to, [Google Cloud Storage](https://cloud.google.com/storage/) buckets when using [`MavenArtifactRepository`](dsl/org.gradle.api.artifacts.repositories.MavenArtifactRepository.html) or [`IvyArtifactRepository`](dsl/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html).
-
-    repositories {
-        maven {
-            url "gcs://someGcsBucket/maven2"
-        }
-    
-        ivy {
-            url "gcs://someGcsBucket/ivy"
-        }
-    }
-
-Downloading dependencies from Google Cloud Storage is supported for Maven and Ivy type repositories as shown above. Publishing to Google Cloud Storage is supported with both the [Ivy Publishing](userguide/publishing_ivy.html) and [Maven Publishing](userguide/publishing_maven.html) plugins, as well as when using an `IvyArtifactRepository` with an `Upload` task (see section [publishing artifacts of the user guide](userguide/artifact_management.html#sec:publishing_artifacts)).
-
-Please see the [repositories section of the dependency management chapter](userguide/dependency_management.html#sec:repositories) in the user guide for more information on configuring Google Cloud Storage repository access.
-
-### Features for easier plugin authoring
-
-#### Nested DSL elements
-
-While it is easy for a plugin author to extend the Gradle DSL to add top level blocks to the DSL using project extensions, in previous versions of Gradle it was awkward to create a deeply nested DSL inside these top level blocks, often requiring the use of internal Gradle APIs.
-
-In this release of Gradle, API methods have been added to allow a plugin author to create nested DSL elements. See the [example in the user guide](userguide/custom_plugins.html#sec:nested_dsl_elements) section on custom plugins.
-
-#### Declaring the output of a task as a publish artifact
-
-In previous versions of Gradle, it was awkward to declare the output of a task as a publish artifact, in a way that deals with changes to the build directory and other configuration. A publish artifact makes a file or directory available to be referenced by a project dependency or published to a binary repository.
-
-TBD: The publish artifact DSL now accepts `Provider<File>`, `Provider<RegularFile>` and `Provider<Directory>` instances, which allows a plugin author to easily wire up a particular task output as a publish artifact in a way that respects configuration changes.
-
-### Safer handling of stale output files
-
-In previous releases, tasks could produce incorrect results when output files were left behind during upgrades or when processes outside of Gradle created files in a shared output directory.
-Gradle is able to detect these situations and automatically remove stale files, if it is safe to do so.
-Only files within `buildDir`, paths registered as targets for the `clean` task and source set outputs are considered safe to remove.
-
-### CLI abbreviates long test names
-
-In Gradle 4.1, the Gradle CLI began displaying tests in-progress. We received feedback that long packages and test names caused the test name to be truncated or omitted. This version will abbreviate java packages of long test names to 60 characters to make it highly likely to fit on terminal screens. 
-
-### Better support for script plugins loaded via HTTP
-
-Script plugins are applied to Gradle settings or projects via the `apply from: 'URL'` syntax. Support for `http://` and `https://` URLs has been improved in this release:
-
-- HTTP script plugins are cached for [`--offline`](userguide/dependency_management.html#sub:cache_offline) use.
-- Download of HTTP script plugins honours [proxy authentication settings](userguide/build_environment.html#sec:accessing_the_web_via_a_proxy).
-
-### Naming task actions defined with doFirst {} and doLast {}
-
-Task actions that are defined in build scripts can now be named using `doFirst("First things first") {}` or `doLast("One last thing") {}`. Gradle uses the names for logging, which allows the user, for example, to see the order in which actions are executed in the task execution views of IDEs. The action names will also be utilised in build scans in the future. This feature is supported in both Kotlin and Groovy build scripts.
-
-### Improved Play support
-
-#### Support for Play 2.6
-
-TODO Placeholder
-
-#### Only trigger a rebuild when someone reloads the Play app
-
-TODO Placeholder
-
-#### Support for built-in Twirl template types
-
-Gradle now supports built-in Twirl templates for HTML, JavaScript, TXT and XML.
-
-#### Support for custom Twirl template formats
-
-A [`TwirlSourceSet`](dsl/org.gradle.language.twirl.TwirlSourceSet.html) can now be configured to use user-defined template formats.
 
 ## Promoted features
 
@@ -92,7 +72,12 @@ The following are the features that have been promoted in this Gradle release.
 ### Example promoted
 -->
 
+### Disabled equivalents for existing command line options
+
+All Command line options that allow to enable a feature now also have an equivalent for disabling the feature. For example the command line option `--build-scan` supports `--no-build-scan` as well. Some of the existing command line options did not follow the same pattern. With this version of Gradle every boolean-based command line option also expose a "disabled" option. For more information please review the list of [command line options](userguide/gradle_command_line.html) in the user guide.
+
 ## Fixed issues
+
 
 ## Deprecations
 
@@ -105,46 +90,61 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example deprecation
 -->
 
+### Deprecation of old Tooling API version 
+
+The following supports are deprecated now and will be removed in Gradle 5.0. You should avoid using them:
+
+- Running Gradle older than 2.6 via Tooling API 
+- Running Gradle via Tooling API older than 3.0
+
+Please see [Gradle version and Java version compatibility](userguide/embedding.html#sec:embedding_compatibility) for more details.
+
+### Chaining calls on `TaskInputs`
+
+Chaining calls to `TaskInputs.property()` and `TaskInputs.properties()` is now deprecated, similar to how calls to `TaskInputs.file()` and `TaskOutputs.dir()` should not be chained since Gradle 3.0.
+
+Don't do this:
+
+```
+task myTask {
+    // Chaining all calls on `TaskInputs` is now deprecated
+    inputs.property("title", title).property("version", "1.0")
+}
+```
+
+Do this instead:
+
+```
+task myTask {
+    inputs.property("title", title)
+    inputs.property("version", "1.0")
+}
+```
+
+### Deprecation of `TaskInternal.execute()`
+
+In this release we deprecate calling `TaskInternal.execute()`. Calling `task.execute()` should never be necessary.
+There are better ways for re-using task logic, for example by using [task dependencies](userguide/more_about_tasks.html#sec:adding_dependencies_to_tasks), [task rules](userguide/more_about_tasks.html#sec:task_rules), extracting a re-usable piece of logic from your task which can be called on its own (e.g. `project.copy` vs. the `Copy` task) or using the [worker API](userguide/custom_tasks.html#worker_api).
+
 ## Potential breaking changes
 
-### Removed `TaskFilePropertyBuilder.withPathSensitivity` and `TaskOutputFilePropertyBuilder.withPathSensitivity`
+### Changes to incubating native compile and link tasks
 
-These methods where not meant to be used, since Gradle does not allow to customize the PathSensitivity for output files.
-
-### Upgraded the bndlib to 3.3.0
-
-Gradle previously depended on `biz.aQute.bnd:biz.aQute.bndlib:3.2.0`. That version of the library didn't support Java 9.
-To fix [issue 2583](https://github.com/gradle/gradle/issues/2583), we upgraded to version 3.3.0 of the library. This
-should cause no changes as it is a minor version release.
-
-<!--
-### Example breaking change
--->
-
-### FindBugs plugin does not render analysis progress anymore
-
-As observed by many users the FindBugs plugin renders a lot of progress information by default leading to longer, unmanageable logs. The output behavior changes with this release. By default the FindBugs plugin will render no more analysis progress. If you happen to post-process the output and relied on the pre-4.2 behavior, then you can enable the progressing logging with the property `FindBugsExtension.showProgress`.
+- `AbstractNativeCompileTask.compilerArgs` changed type to `ListProperty<String>` from `List<String>`.
+- `AbstractNativeCompileTask.objectFileDir` changed type to `DirectoryVar` from `File`.
+- `AbstractLinkTask.linkerArgs` changed type to `ListProperty<String>` from `List<String>`.
 
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
+- [Tomáš Polešovský](https://github.com/topolik) - Support for FindBugs JVM arguments (gradle/gradle#781)
+- [Juan Martín Sotuyo Dodero](https://github.com/jsotuyod) - Support PMD's analysis cache (gradle/gradle#2223)
+- [zosrothko](https://github.com/zosrothko) - Make the Gradle build import into Eclipse again (gradle/gradle#2899)
+
 <!--
- - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
+ - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
 -->
- - [Marcin Erdmann](https://github.com/erdi) - Add compilationClasspath property to CodeNarc task (#2325)
- - [Bo Zhang](https://github.com/blindpirate) - Add an option to FindBugs for toggling logging of analysis progress (#2181)
- - [Josué Lima](https://github.com/josuelima) - Fix typo on S3 AwsImAuthentication log message (#2349)
- - [Ian Kerins](https://github.com/CannedYerins) - Fix grammar error in logging documentation (#2482)
- - [Yannick Welsch](https://github.com/ywelsch) - Use GNU-style release flag for Java 9 compiler (#2474)
- - [Juan Martín Sotuyo Dodero](https://github.com/jsotuyod) - Register classloaders as parallelCapable (#772)
- - [Lance](https://github.com/uklance) - Fix Maven BOM evaluation order (#2282)
- - [Jokubas Dargis](https://github.com/eleventigerssc) - Add GCS transport protocol support for declaring dependencies (#2258)
- - [Thomas Halm](https://github.com/thhalm) - Maintain order of classpath when generating start scripts (#2513)
- - [Colin Dean](https://github.com/colindean) - Prevent NullPointerException if any of the signing properties is null but signing isn't required (#2268)
- - [Ben McCann](https://github.com/benmccann) - Add support for Play 2.6 (#1992)
- - [Ethan Hall](https://github.com/ethankhall) - Cache script plugins loaded via HTTP (#1944)
- - [Bo Zhang](https://github.com/blindpirate) - Handle null Throwable stack trace to avoid NullPointerException (#2168)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

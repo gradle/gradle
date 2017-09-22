@@ -16,22 +16,33 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.OutputPathNormalizationStrategy;
 import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 
-abstract class AbstractTaskOutputPropertySpec extends AbstractTaskOutputsDeprecatingTaskPropertyBuilder implements TaskOutputPropertySpecAndBuilder {
+import static org.gradle.api.internal.tasks.TaskPropertyUtils.checkPropertyName;
+
+@NonNullApi
+abstract class AbstractTaskOutputPropertySpec extends TaskOutputsDeprecationSupport implements TaskPropertySpec, TaskOutputFilePropertyBuilder {
+
+    private String propertyName;
     private boolean optional;
 
     @Override
     public TaskOutputFilePropertyBuilder withPropertyName(String propertyName) {
-        setPropertyName(propertyName);
+        this.propertyName = checkPropertyName(propertyName);
         return this;
     }
 
-    public boolean isOptional() {
+    @Override
+    public String getPropertyName() {
+        return propertyName;
+    }
+
+    protected boolean isOptional() {
         return optional;
     }
 

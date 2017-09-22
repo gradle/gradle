@@ -15,11 +15,14 @@
  */
 package org.gradle.api.internal.changedetection.changes;
 
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
+import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.id.UniqueId;
@@ -27,6 +30,7 @@ import org.gradle.internal.reflect.Instantiator;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Map;
 
 public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStateRepository {
 
@@ -73,6 +77,8 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
 
         @Override
         public boolean isUpToDate(Collection<String> messages) {
+            // Ensure that we snapshot the task's inputs
+            delegate.ensureSnapshotBeforeTask();
             messages.add(reason);
             return false;
         }
@@ -97,6 +103,11 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
             return delegate.getExecutionHistory();
         }
 
+        @Override
+        public Map<String, Map<String, FileContentSnapshot>> getOutputContentSnapshots() {
+            return delegate.getOutputContentSnapshots();
+        }
+
         @Nullable
         @Override
         public UniqueId getOriginBuildInvocationId() {
@@ -114,9 +125,13 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         }
 
         @Override
-        public void afterTask(Throwable failure) {
-            delegate.afterTask(failure);
+        public void snapshotAfterTaskExecution(Throwable failure) {
+            delegate.snapshotAfterTaskExecution(failure);
+        }
+
+        @Override
+        public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot) {
+            delegate.snapshotAfterLoadedFromCache(newOutputSnapshot);
         }
     }
-
 }

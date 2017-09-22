@@ -188,7 +188,13 @@ public class DefaultCommandLineConverterTest extends CommandLineConverterTestSup
     }
 
     @Test
-    public void withDryRunFlagSet() {
+    public void withDryRun() {
+        expectedDryRun = true;
+        checkConversion("--dry-run");
+    }
+
+    @Test
+    public void withDryRunShortFlag() {
         expectedDryRun = true;
         checkConversion("-m");
     }
@@ -218,6 +224,12 @@ public class DefaultCommandLineConverterTest extends CommandLineConverterTestSup
 
     @Test
     public void withNoProjectDependencyRebuild() {
+        buildProjectDependencies = false;
+        checkConversion("--no-rebuild");
+    }
+
+    @Test
+    public void withNoProjectDependencyRebuildShortFlag() {
         buildProjectDependencies = false;
         checkConversion("-a");
     }

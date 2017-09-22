@@ -18,6 +18,8 @@ package org.gradle.caching.internal.tasks;
 
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Maps;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -27,20 +29,22 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.CloseShieldInputStream;
 import org.apache.tools.zip.UnixStat;
 import org.gradle.api.GradleException;
-import org.gradle.api.JavaVersion;
-import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.collections.DefaultDirectoryWalkerFactory;
+import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.state.DirectoryFileSnapshot;
+import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
+import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
+import org.gradle.api.internal.changedetection.state.FileSnapshot;
+import org.gradle.api.internal.changedetection.state.RegularFileSnapshot;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
-import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType;
+import org.gradle.api.internal.tasks.OutputType;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
-import org.gradle.api.specs.Specs;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 
 import java.io.BufferedOutputStream;
@@ -51,10 +55,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.util.Collection;
 import java.util.Map;
 import java.util.SortedSet;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -77,16 +81,18 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         }
     };
 
-    private final DefaultDirectoryWalkerFactory directoryWalkerFactory;
     private final FileSystem fileSystem;
+    private final StreamHasher streamHasher;
+    private final StringInterner stringInterner;
 
-    public TarTaskOutputPacker(FileSystem fileSystem) {
-        this.directoryWalkerFactory = new DefaultDirectoryWalkerFactory(JavaVersion.current(), fileSystem);
+    public TarTaskOutputPacker(FileSystem fileSystem, StreamHasher streamHasher, StringInterner stringInterner) {
         this.fileSystem = fileSystem;
+        this.streamHasher = streamHasher;
+        this.stringInterner = stringInterner;
     }
 
     @Override
-    public PackResult pack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException {
+    public PackResult pack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, Map<String, Map<String, FileContentSnapshot>> outputSnapshots, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException {
         BufferedOutputStream bufferedOutput;
         if (output instanceof BufferedOutputStream) {
             bufferedOutput = (BufferedOutputStream) output;
@@ -99,7 +105,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             tarOutput.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_POSIX);
             tarOutput.setAddPaxHeadersForNonAsciiNames(true);
             packMetadata(writeOrigin, tarOutput);
-            long entryCount = pack(propertySpecs, tarOutput);
+            long entryCount = pack(propertySpecs, outputSnapshots, tarOutput);
             return new PackResult(entryCount + 1);
         } finally {
             IOUtils.closeQuietly(tarOutput);
@@ -114,77 +120,82 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         tarOutput.closeArchiveEntry();
     }
 
-    private long pack(Collection<ResolvedTaskOutputFilePropertySpec> propertySpecs, TarArchiveOutputStream tarOutput) {
+    private long pack(Collection<ResolvedTaskOutputFilePropertySpec> propertySpecs, Map<String, Map<String, FileContentSnapshot>> outputSnapshots, TarArchiveOutputStream tarOutput) {
         long entries = 0;
-        for (ResolvedTaskOutputFilePropertySpec spec : propertySpecs) {
+        for (ResolvedTaskOutputFilePropertySpec propertySpec : propertySpecs) {
+            String propertyName = propertySpec.getPropertyName();
+            Map<String, FileContentSnapshot> outputs = outputSnapshots.get(propertyName);
             try {
-                entries += packProperty(spec, tarOutput);
+                entries += packProperty(propertySpec, outputs, tarOutput);
             } catch (Exception ex) {
-                throw new GradleException(String.format("Could not pack property '%s': %s", spec.getPropertyName(), ex.getMessage()), ex);
+                throw new GradleException(String.format("Could not pack property '%s': %s", propertyName, ex.getMessage()), ex);
             }
         }
         return entries;
     }
 
-    private long packProperty(CacheableTaskOutputFilePropertySpec propertySpec, TarArchiveOutputStream tarOutput) throws IOException {
+    private long packProperty(CacheableTaskOutputFilePropertySpec propertySpec, Map<String, FileContentSnapshot> outputSnapshots, TarArchiveOutputStream tarOutput) throws IOException {
         String propertyName = propertySpec.getPropertyName();
-        File outputFile = propertySpec.getOutputFile();
-        if (outputFile == null) {
+        File root = propertySpec.getOutputFile();
+        if (root == null) {
             return 0;
         }
         String propertyPath = "property-" + propertyName;
-        if (!outputFile.exists()) {
+        if (outputSnapshots.isEmpty()) {
             storeMissingProperty(propertyPath, tarOutput);
             return 1;
         }
         switch (propertySpec.getOutputType()) {
             case DIRECTORY:
-                return 1 + storeDirectoryProperty(propertyPath, outputFile, tarOutput);
+                return storeDirectoryProperty(propertyPath, root, outputSnapshots, tarOutput);
             case FILE:
-                storeFileProperty(propertyPath, outputFile, tarOutput);
+                storeFileProperty(propertyPath, root, tarOutput);
                 return 1;
             default:
                 throw new AssertionError();
         }
     }
 
-    private long storeDirectoryProperty(String propertyPath, File directory, final TarArchiveOutputStream tarOutput) throws IOException {
+    private long storeDirectoryProperty(String propertyPath, File directory, Map<String, FileContentSnapshot> outputSnapshots, final TarArchiveOutputStream tarOutput) throws IOException {
         if (!directory.isDirectory()) {
             throw new IllegalArgumentException(String.format("Expected '%s' to be a directory", directory));
         }
+
+        long entries = 0;
+
         final String propertyRoot = propertyPath + "/";
         createTarEntry(propertyRoot, 0, UnixStat.DIR_FLAG | UnixStat.DEFAULT_DIR_PERM, tarOutput);
         tarOutput.closeArchiveEntry();
+        entries++;
 
-        class CountingFileVisitor implements FileVisitor {
+        String rootAbsolutePath = directory.getAbsolutePath();
+        URI rootUri = directory.toURI();
 
-            private long entries;
-
-            @Override
-            public void visitDir(FileVisitDetails dirDetails) {
-                try {
-                    ++entries;
-                    storeDirectoryEntry(dirDetails, propertyRoot, tarOutput);
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
+        for (Map.Entry<String, FileContentSnapshot> entry : outputSnapshots.entrySet()) {
+            String absolutePath = entry.getKey();
+            // We've already created the directory for the property
+            if (absolutePath.equals(rootAbsolutePath)) {
+                continue;
             }
-
-            @Override
-            public void visitFile(FileVisitDetails fileDetails) {
-                try {
-                    ++entries;
-                    String path = propertyRoot + fileDetails.getRelativePath().getPathString();
-                    storeFileEntry(fileDetails.getFile(), path, fileDetails.getSize(), fileDetails.getMode(), tarOutput);
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
+            File file = new File(absolutePath);
+            String relativePath = rootUri.relativize(file.toURI()).toString();
+            String targetPath = propertyRoot + relativePath;
+            int mode = fileSystem.getUnixMode(file);
+            switch (entry.getValue().getType()) {
+                case RegularFile:
+                    storeFileEntry(file, targetPath, file.length(), mode, tarOutput);
+                    break;
+                case Directory:
+                    storeDirectoryEntry(targetPath, mode, tarOutput);
+                    break;
+                case Missing:
+                    throw new IllegalStateException("File should not be missing: " + file);
+                default:
+                    throw new AssertionError();
             }
+            entries++;
         }
-
-        CountingFileVisitor visitor = new CountingFileVisitor();
-        directoryWalkerFactory.create().walkDir(directory, RelativePath.EMPTY_ROOT, visitor, Specs.satisfyAll(), new AtomicBoolean(), false);
-        return visitor.entries;
+        return entries;
     }
 
     private void storeFileProperty(String propertyPath, File file, TarArchiveOutputStream tarOutput) throws IOException {
@@ -199,9 +210,8 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         tarOutput.closeArchiveEntry();
     }
 
-    private void storeDirectoryEntry(FileVisitDetails dirDetails, String propertyRoot, TarArchiveOutputStream tarOutput) throws IOException {
-        String path = dirDetails.getRelativePath().getPathString();
-        createTarEntry(propertyRoot + path + "/", 0, UnixStat.DIR_FLAG | dirDetails.getMode(), tarOutput);
+    private void storeDirectoryEntry(String path, int mode, TarArchiveOutputStream tarOutput) throws IOException {
+        createTarEntry(path + "/", 0, UnixStat.DIR_FLAG | mode, tarOutput);
         tarOutput.closeArchiveEntry();
     }
 
@@ -240,13 +250,14 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
                 return propertySpec.getPropertyName();
             }
         });
-        TarArchiveEntry entry;
+        TarArchiveEntry tarEntry;
         TaskOutputOriginMetadata originMetadata = null;
+        ImmutableListMultimap.Builder<String, FileSnapshot> propertyFileSnapshots = ImmutableListMultimap.builder();
 
         long entries = 0;
-        while ((entry = tarInput.getNextTarEntry()) != null) {
+        while ((tarEntry = tarInput.getNextTarEntry()) != null) {
             ++entries;
-            String name = entry.getName();
+            String name = tarEntry.getName();
 
             if (name.equals(METADATA_PATH)) {
                 // handle origin metadata
@@ -266,25 +277,27 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
 
                 boolean outputMissing = matcher.group(1) != null;
                 String childPath = matcher.group(3);
-                unpackPropertyEntry(propertySpec, tarInput, entry, childPath, outputMissing);
+                unpackPropertyEntry(propertySpec, tarInput, tarEntry, childPath, outputMissing, propertyFileSnapshots);
             }
         }
         if (originMetadata == null) {
             throw new IllegalStateException("Cached result format error, no origin metadata was found.");
         }
 
-        return new UnpackResult(originMetadata, entries);
+        return new UnpackResult(originMetadata, entries, propertyFileSnapshots.build());
     }
 
-    private void unpackPropertyEntry(ResolvedTaskOutputFilePropertySpec propertySpec, InputStream input, TarArchiveEntry entry, String childPath, boolean missing) throws IOException {
+    private void unpackPropertyEntry(ResolvedTaskOutputFilePropertySpec propertySpec, InputStream input, TarArchiveEntry entry, String childPath, boolean missing, ImmutableMultimap.Builder<String, FileSnapshot> fileSnapshots) throws IOException {
         File propertyRoot = propertySpec.getOutputFile();
+        String propertyName = propertySpec.getPropertyName();
         if (propertyRoot == null) {
-            throw new IllegalStateException("Optional property should have a value: " + propertySpec.getPropertyName());
+            throw new IllegalStateException("Optional property should have a value: " + propertyName);
         }
 
         File outputFile;
         boolean isDirEntry = entry.isDirectory();
-        if (Strings.isNullOrEmpty(childPath)) {
+        boolean root = Strings.isNullOrEmpty(childPath);
+        if (root) {
             // We are handling the root of the property here
             if (missing) {
                 if (!makeDirectory(propertyRoot.getParentFile())) {
@@ -299,11 +312,11 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             OutputType outputType = propertySpec.getOutputType();
             if (isDirEntry) {
                 if (outputType != OutputType.DIRECTORY) {
-                    throw new IllegalStateException("Property should be an output directory property: " + propertySpec.getPropertyName());
+                    throw new IllegalStateException("Property should be an output directory property: " + propertyName);
                 }
             } else {
                 if (outputType == OutputType.DIRECTORY) {
-                    throw new IllegalStateException("Property should be an output file property: " + propertySpec.getPropertyName());
+                    throw new IllegalStateException("Property should be an output file property: " + propertyName);
                 }
             }
             ensureDirectoryForProperty(outputType, propertyRoot);
@@ -312,15 +325,21 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             outputFile = new File(propertyRoot, childPath);
         }
 
+        String internedPath = stringInterner.intern(outputFile.getAbsolutePath());
+        RelativePath relativePath = root ? RelativePath.parse(!isDirEntry, outputFile.getName()) : RelativePath.parse(!isDirEntry, childPath);
         if (isDirEntry) {
             FileUtils.forceMkdir(outputFile);
+            fileSnapshots.put(propertyName, new DirectoryFileSnapshot(internedPath, relativePath, root));
         } else {
-            FileOutputStream output = new FileOutputStream(outputFile);
+            OutputStream output = new FileOutputStream(outputFile);
+            HashCode hash;
             try {
-                IOUtils.copyLarge(input, output, COPY_BUFFERS.get());
+                hash = streamHasher.hashCopy(input, output);
             } finally {
                 IOUtils.closeQuietly(output);
             }
+            FileHashSnapshot contentSnapshot = new FileHashSnapshot(hash, outputFile.lastModified());
+            fileSnapshots.put(propertyName, new RegularFileSnapshot(internedPath, relativePath, root, contentSnapshot));
         }
 
         fileSystem.chmod(outputFile, entry.getMode() & FILE_PERMISSION_MASK);

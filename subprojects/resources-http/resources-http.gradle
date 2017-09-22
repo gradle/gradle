@@ -28,6 +28,8 @@ dependencies {
     implementation libraries.commons_io
     implementation libraries.xerces
     implementation libraries.nekohtml
+
+    testImplementation libraries.jetty
 }
 
 useTestFixtures()

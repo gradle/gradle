@@ -16,26 +16,22 @@
 
 package org.gradle.util;
 
-import org.gradle.internal.time.DefaultEventTimer;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
- * This class remains for backward compatibility. Replaced by `org.gradle.internal.time.DefaultEventTimer`.
+ * This only exists for backwards compatibility with the scan plugin.
  */
 @Deprecated
-public class Clock extends DefaultEventTimer {
-    public Clock() {
-        super();
-    }
+@UsedByScanPlugin("version 1.9 and earlier")
+public class Clock {
+
+    private final long startTime;
 
     public Clock(long startTime) {
-        super(startTime);
+        this.startTime = startTime;
     }
 
-    public String getTime() {
-        return getElapsed();
-    }
-
-    public long getTimeInMs() {
-        return getElapsedMillis();
+    public long getStartTime() {
+        return startTime;
     }
 }

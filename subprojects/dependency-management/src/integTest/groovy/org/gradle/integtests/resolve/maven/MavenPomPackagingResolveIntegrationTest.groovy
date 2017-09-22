@@ -94,14 +94,14 @@ task retrieve(type: Copy, dependsOn: deleteDir) {
         run 'retrieve'
 
         then:
-        file('libs').assertIsEmptyDir()
+        file('libs').assertDoesNotExist()
 
         when:
         server.resetExpectations()
         run 'retrieve'
 
         then: // Uses cached artifacts
-        file('libs').assertIsEmptyDir()
+        file('libs').assertDoesNotExist()
     }
 
     def "for a snapshot module with packaging of type 'pom', will check for jar artifact that was previously missing on cache expiry"() {

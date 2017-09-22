@@ -25,7 +25,7 @@ import org.junit.Test
 import spock.lang.Issue
 
 @TargetCoverage({TestNGCoverage.STANDARD_COVERAGE})
-public class TestNGSuiteIntegrationTest extends MultiVersionIntegrationSpec {
+class TestNGSuiteIntegrationTest extends MultiVersionIntegrationSpec {
 
     /**
      * https://discuss.gradle.org/t/npe-when-accessing-missing-property-in-usetestng-block-2-11-nightly/13226

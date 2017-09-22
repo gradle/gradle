@@ -19,6 +19,7 @@ package org.gradle.plugins.ear
 import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
@@ -216,7 +217,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         project.pluginManager.apply(EarPlugin)
 
         and:
-        execute project.tasks[EarPlugin.EAR_TASK_NAME]
+        executeWithDependencies project.tasks[EarPlugin.EAR_TASK_NAME]
 
         then:
         inEar "test2.txt"
@@ -233,7 +234,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         project.convention.plugins.ear.appDirName = "src/main/myapp"
 
         and:
-        execute project.tasks[EarPlugin.EAR_TASK_NAME]
+        executeWithDependencies project.tasks[EarPlugin.EAR_TASK_NAME]
 
         then:
         inEar "test.txt"
@@ -254,7 +255,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         }
 
         and:
-        execute project.tasks[EarPlugin.EAR_TASK_NAME]
+        executeWithDependencies project.tasks[EarPlugin.EAR_TASK_NAME]
 
         then:
         inEar "APP-INF/lib/child.jar"
@@ -263,7 +264,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
     def supportsGeneratingDeploymentDescriptor() {
         when:
         project.pluginManager.apply(EarPlugin)
-        execute project.tasks[EarPlugin.EAR_TASK_NAME]
+        executeWithDependencies project.tasks[EarPlugin.EAR_TASK_NAME]
 
         then:
         inEar "META-INF/application.xml"
@@ -276,7 +277,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
 
         when:
         project.pluginManager.apply(EarPlugin)
-        execute project.tasks[EarPlugin.EAR_TASK_NAME]
+        executeWithDependencies project.tasks[EarPlugin.EAR_TASK_NAME]
 
         then:
         inEar("META-INF/application.xml").text == TEST_APP_XML
@@ -288,7 +289,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         project.convention.plugins.ear.deploymentDescriptor {
             fileName = "myapp.xml"
         }
-        execute project.tasks[EarPlugin.EAR_TASK_NAME]
+        executeWithDependencies project.tasks[EarPlugin.EAR_TASK_NAME]
 
         then:
         inEar "META-INF/myapp.xml"
@@ -304,7 +305,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         project.convention.plugins.ear.deploymentDescriptor {
             fileName = "myapp.xml"
         }
-        execute project.tasks[EarPlugin.EAR_TASK_NAME]
+        executeWithDependencies project.tasks[EarPlugin.EAR_TASK_NAME]
 
         then:
         inEar("META-INF/myapp.xml").text == TEST_APP_XML
@@ -316,21 +317,17 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         project.convention.plugins.ear.deploymentDescriptor( { DeploymentDescriptor descriptor ->
             descriptor.fileName = "myapp.xml"
         } as Action<DeploymentDescriptor> )
-        execute project.tasks[EarPlugin.EAR_TASK_NAME]
+        executeWithDependencies project.tasks[EarPlugin.EAR_TASK_NAME]
 
         then:
         inEar "META-INF/myapp.xml"
     }
 
-    private static void execute(Task task) {
+    private void executeWithDependencies(Task task) {
         for (Task dep : task.taskDependencies.getDependencies(task)) {
-            for (Action action : dep.actions) {
-                action.execute(dep)
-            }
+            execute((TaskInternal) dep)
         }
-        for (Action action : task.actions) {
-            action.execute(task)
-        }
+        execute(task)
     }
 
     File inEar(path) {

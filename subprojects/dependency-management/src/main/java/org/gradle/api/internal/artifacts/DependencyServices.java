@@ -38,21 +38,25 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
         registration.addProvider(new DependencyManagementGradleUserHomeScopeServices());
     }
 
+    @Override
     public void registerBuildSessionServices(ServiceRegistration registration) {
-        registration.addProvider(new Object() {
-            CacheLockingManager createCacheLockingManager(CacheRepository cacheRepository, ArtifactCacheMetaData artifactCacheMetaData) {
-                return new DefaultCacheLockingManager(cacheRepository, artifactCacheMetaData);
-            }
-
-            TransformedFileCache createTransformedFileCache(ArtifactCacheMetaData artifactCacheMetaData, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory, FileSystemSnapshotter fileSystemSnapshotter, ListenerManager listenerManager) {
-                DefaultTransformedFileCache transformedFileCache = new DefaultTransformedFileCache(artifactCacheMetaData, cacheRepository, cacheDecoratorFactory, fileSystemSnapshotter);
-                listenerManager.addListener(transformedFileCache);
-                return transformedFileCache;
-            }
-        });
+        registration.addProvider(new DependencyManagementBuildSessionServices());
     }
 
+    @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new DependencyManagementBuildScopeServices());
+    }
+
+    private static class DependencyManagementBuildSessionServices {
+        CacheLockingManager createCacheLockingManager(CacheRepository cacheRepository, ArtifactCacheMetaData artifactCacheMetaData) {
+            return new DefaultCacheLockingManager(cacheRepository, artifactCacheMetaData);
+        }
+
+        TransformedFileCache createTransformedFileCache(ArtifactCacheMetaData artifactCacheMetaData, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory, FileSystemSnapshotter fileSystemSnapshotter, ListenerManager listenerManager) {
+            DefaultTransformedFileCache transformedFileCache = new DefaultTransformedFileCache(artifactCacheMetaData, cacheRepository, cacheDecoratorFactory, fileSystemSnapshotter);
+            listenerManager.addListener(transformedFileCache);
+            return transformedFileCache;
+        }
     }
 }

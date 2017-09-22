@@ -24,6 +24,7 @@ import org.gradle.initialization.DefaultExceptionAnalyser;
 import org.gradle.initialization.MultipleBuildFailuresExceptionAnalyser;
 import org.gradle.initialization.StackTraceSanitizingExceptionAnalyser;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.operations.notify.BuildOperationNotificationServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
@@ -41,6 +42,7 @@ public class BuildTreeScopeServices extends DefaultServiceRegistry {
                 }
             }
         });
+        addProvider(new BuildOperationNotificationServices());
     }
 
     protected ExceptionAnalyser createExceptionAnalyser(ListenerManager listenerManager, LoggingConfiguration loggingConfiguration) {

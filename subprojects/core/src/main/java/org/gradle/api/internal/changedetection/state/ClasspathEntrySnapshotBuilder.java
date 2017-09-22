@@ -20,9 +20,9 @@ import com.google.common.base.Function;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.Ordering;
-import com.google.common.hash.HashCode;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.internal.hash.HashCode;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,7 +38,7 @@ import static org.gradle.api.internal.changedetection.state.InputPathNormalizati
 /**
  * Builds the snapshot of a classpath entry.
  * It can be either used on {@link RegularFileSnapshot}s or {@link ZipEntry}.
- * The {@link NormalizedFileSnapshot}s can be collected by a {@link FileCollectionSnapshotBuilder}.
+ * The {@link NormalizedFileSnapshot}s can be collected by a {@link CollectingFileCollectionSnapshotBuilder}.
  */
 public class ClasspathEntrySnapshotBuilder implements ResourceWithContentsVisitor {
     private static final Ordering<Map.Entry<String, NormalizedFileSnapshot>> SNAPSHOT_ENTRY_ORDERING = Ordering.natural().onResultOf(new Function<Map.Entry<String, NormalizedFileSnapshot>, Comparable<NormalizedFileSnapshot>>() {
@@ -86,7 +86,7 @@ public class ClasspathEntrySnapshotBuilder implements ResourceWithContentsVisito
         return hasher.hash();
     }
 
-    public void collectNormalizedSnapshots(FileCollectionSnapshotBuilder builder) {
+    public void collectNormalizedSnapshots(CollectingFileCollectionSnapshotBuilder builder) {
         if (normalizedSnapshots.isEmpty()) {
             return;
         }

@@ -16,20 +16,17 @@
 
 package org.gradle.launcher.daemon.server.stats;
 
-import org.gradle.internal.time.DefaultEventTimer;
-import org.gradle.internal.time.EventTimer;
+import org.gradle.internal.time.Time;
+import org.gradle.internal.time.Timer;
 
 public class DaemonRunningStats {
 
-    private final EventTimer daemonTimer;
-    private EventTimer currentBuildTimer;
+    private final long startTime = System.currentTimeMillis();
+    private final Timer daemonTimer = Time.startTimer();
+    private final Timer currentBuildTimer = Time.startTimer();
 
     private int buildCount;
     private long allBuildsTime;
-
-    public DaemonRunningStats(EventTimer daemonTimer) {
-        this.daemonTimer = daemonTimer;
-    }
 
     public int getBuildCount() {
         return buildCount;
@@ -40,11 +37,7 @@ public class DaemonRunningStats {
     }
 
     public long getStartTime() {
-        return daemonTimer.getStartTime();
-    }
-
-    public long getCurrentBuildStart() {
-        return currentBuildTimer.getStartTime();
+        return startTime;
     }
 
     public long getAllBuildsTime() {
@@ -55,7 +48,7 @@ public class DaemonRunningStats {
 
     public void buildStarted() {
         ++buildCount;
-        currentBuildTimer = new DefaultEventTimer();
+        currentBuildTimer.reset();
     }
 
     public void buildFinished() {

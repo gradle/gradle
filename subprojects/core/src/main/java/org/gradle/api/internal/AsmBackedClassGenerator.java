@@ -22,8 +22,10 @@ import groovy.lang.GroovyObject;
 import groovy.lang.GroovySystem;
 import groovy.lang.MetaClass;
 import groovy.lang.MetaClassRegistry;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.internal.UncheckedException;
@@ -105,12 +107,17 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type OBJECT_ARRAY_TYPE = Type.getType(Object[].class);
         private static final Type ACTION_TYPE = Type.getType(Action.class);
         private static final Type WITH_SERVICE_REGISTRY = Type.getType(DependencyInjectingInstantiator.WithServiceRegistry.class);
+        private static final Type PROPERTY_INTERNAL_TYPE = Type.getType(PropertyInternal.class);
 
         private static final String RETURN_VOID_FROM_OBJECT = Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE);
         private static final String RETURN_VOID_FROM_OBJECT_CLASS_DYNAMIC_OBJECT = Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE, CLASS_TYPE, DYNAMIC_OBJECT_TYPE);
         private static final String RETURN_CLASS = Type.getMethodDescriptor(CLASS_TYPE);
         private static final String RETURN_VOID_FROM_CONVENTION_AWARE_CONVENTION = Type.getMethodDescriptor(Type.VOID_TYPE, CONVENTION_AWARE_TYPE, CONVENTION_TYPE);
         private static final String RETURN_CONVENTION = Type.getMethodDescriptor(CONVENTION_TYPE);
+        private static final String RETURN_DYNAMIC_OBJECT = Type.getMethodDescriptor(DYNAMIC_OBJECT_TYPE);
+        private static final String RETURN_META_CLASS_FROM_CLASS = Type.getMethodDescriptor(Type.getType(MetaClass.class), CLASS_TYPE);
+        private static final String RETURN_BOOLEAN_FROM_STRING = Type.getMethodDescriptor(BOOLEAN_TYPE, STRING_TYPE);
+        private static final String RETURN_META_CLASS_REGISTRY = Type.getMethodDescriptor(Type.getType(MetaClassRegistry.class));
         private static final String GET_DECLARED_METHOD_DESCRIPTOR = Type.getMethodDescriptor(METHOD_TYPE, STRING_TYPE, CLASS_ARRAY_TYPE);
         private static final String GET_METHOD_DESCRIPTOR = Type.getMethodDescriptor(OBJECT_TYPE, JAVA_LANG_REFLECT_TYPE);
 
@@ -274,7 +281,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     // GENERATE super.getAsDynamicObject()
                     visitor.visitVarInsn(Opcodes.ALOAD, 0);
                     visitor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getType(type).getInternalName(),
-                        "getAsDynamicObject", Type.getMethodDescriptor(DYNAMIC_OBJECT_TYPE), false);
+                        "getAsDynamicObject", RETURN_DYNAMIC_OBJECT, false);
                 } else {
                     // GENERATE null
                     visitor.visitInsn(Opcodes.ACONST_NULL);
@@ -357,19 +364,14 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             final MethodCodeBody initMetaClass = new MethodCodeBody() {
                 public void add(MethodVisitor visitor) throws Exception {
                     // GroovySystem.getMetaClassRegistry()
-                    String getMetaClassRegistryDesc = Type.getMethodDescriptor(GroovySystem.class.getDeclaredMethod(
-                        "getMetaClassRegistry"));
-                    visitor.visitMethodInsn(Opcodes.INVOKESTATIC, GROOVY_SYSTEM_TYPE.getInternalName(), "getMetaClassRegistry", getMetaClassRegistryDesc, false);
+                    visitor.visitMethodInsn(Opcodes.INVOKESTATIC, GROOVY_SYSTEM_TYPE.getInternalName(), "getMetaClassRegistry", RETURN_META_CLASS_REGISTRY, false);
 
                     // this.getClass()
                     visitor.visitVarInsn(Opcodes.ALOAD, 0);
-                    String getClassDesc = Type.getMethodDescriptor(Object.class.getDeclaredMethod("getClass"));
-                    visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, OBJECT_TYPE.getInternalName(), "getClass", getClassDesc, false);
+                    visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, OBJECT_TYPE.getInternalName(), "getClass", RETURN_CLASS, false);
 
                     // getMetaClass(..)
-                    String getMetaClassDesc = Type.getMethodDescriptor(MetaClassRegistry.class.getDeclaredMethod(
-                        "getMetaClass", Class.class));
-                    visitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, META_CLASS_REGISTRY_TYPE.getInternalName(), "getMetaClass", getMetaClassDesc, true);
+                    visitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, META_CLASS_REGISTRY_TYPE.getInternalName(), "getMetaClass", RETURN_META_CLASS_FROM_CLASS, true);
                 }
             };
 
@@ -393,6 +395,25 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, method.getName(), methodDescriptor, null, EMPTY_STRINGS);
             methodVisitor.visitCode();
             body.add(methodVisitor);
+            methodVisitor.visitInsn(Opcodes.RETURN);
+            methodVisitor.visitMaxs(0, 0);
+            methodVisitor.visitEnd();
+        }
+
+        @Override
+        public void addPropertyStateSetters(PropertyMetaData property, Method getter) throws Exception {
+
+            // GENERATE public void set<Name>(Object p) {
+            //    ((PropertyInternal)<getter>()).setFromAnyValue(p);
+            // }
+
+            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "set" + StringUtils.capitalize(property.getName()), RETURN_VOID_FROM_OBJECT, null, EMPTY_STRINGS);
+            methodVisitor.visitCode();
+            methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+            methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), getter.getName(), Type.getMethodDescriptor(getter), false);
+            methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, PROPERTY_INTERNAL_TYPE.getInternalName());
+            methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
+            methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, PROPERTY_INTERNAL_TYPE.getInternalName(), "setFromAnyValue", ClassBuilderImpl.RETURN_VOID_FROM_OBJECT, true);
             methodVisitor.visitInsn(Opcodes.RETURN);
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
@@ -463,8 +484,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             // GENERATE public boolean hasProperty(String name) { return getAsDynamicObject().hasProperty(name) }
 
-            String methodDescriptor = Type.getMethodDescriptor(BOOLEAN_TYPE, STRING_TYPE);
-            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "hasProperty", methodDescriptor, null, EMPTY_STRINGS);
+            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "hasProperty", RETURN_BOOLEAN_FROM_STRING, null, EMPTY_STRINGS);
             methodVisitor.visitCode();
 
             // GENERATE getAsDynamicObject().hasProperty(name);

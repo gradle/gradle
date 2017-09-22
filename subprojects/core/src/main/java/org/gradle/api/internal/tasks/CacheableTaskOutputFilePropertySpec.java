@@ -20,11 +20,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 
 public interface CacheableTaskOutputFilePropertySpec extends TaskOutputFilePropertySpec {
-    enum OutputType {
-        FILE, DIRECTORY
-    }
-
     @Nullable
     File getOutputFile();
-    OutputType getOutputType();
 }

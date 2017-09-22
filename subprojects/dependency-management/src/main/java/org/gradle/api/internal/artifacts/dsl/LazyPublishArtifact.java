@@ -18,8 +18,7 @@ package org.gradle.api.internal.artifacts.dsl;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.file.Directory;
-import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -61,13 +60,9 @@ public class LazyPublishArtifact implements PublishArtifact {
     @Override
     public File getFile() {
         Object value = provider.get();
-        if (value instanceof RegularFile) {
-            RegularFile regularFile = (RegularFile) value;
-            return regularFile.get();
-        }
-        if (value instanceof Directory) {
-            Directory directory = (Directory) value;
-            return directory.get();
+        if (value instanceof FileSystemLocation) {
+            FileSystemLocation location = (FileSystemLocation) value;
+            return location.getAsFile();
         }
         if (value instanceof File) {
             return (File) value;

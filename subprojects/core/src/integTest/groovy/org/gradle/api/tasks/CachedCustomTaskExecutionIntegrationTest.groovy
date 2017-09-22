@@ -399,9 +399,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         then:
         nonSkippedTasks.contains ":customTask"
         file("build/output.txt").text == "data"
-        // TODO: The runtime API doesn't automatically create output file paths
-        // This should really exist and behave the same as annotations.
-        file("build/output").assertDoesNotExist()
+        file("build/output").assertIsDir()
         file("build/output/missing").assertDoesNotExist()
 
         when:
@@ -497,6 +495,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 outputs.$expected "build/output" withPropertyName "output"
                 outputs.cacheIf { true }
                 doLast {
+                    delete('build')
                     ${
                         actual == "file" ?
                             "mkdir('build'); file('build/output').text = file('input.txt').text"
@@ -588,6 +587,131 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         withBuildCache().succeeds "customTask", "--info"
         then:
         output.contains "Not caching task ':customTask' because no valid cache key was generated"
+    }
+
+    def "task stays up-to-date after loaded from cache"() {
+        file("input.txt").text = "input"
+        buildFile << defineProducerTask()
+
+        withBuildCache().succeeds "producer"
+
+        when:
+        cleanBuildDir()
+        withBuildCache().succeeds "producer"
+        then:
+        skippedTasks as List == [":producer"]
+
+        when:
+        withBuildCache().succeeds "producer", "--info"
+        !output.contains("Caching disabled for task ':producer'")
+        then:
+        skippedTasks as List == [":producer"]
+    }
+
+    def "task can be cached after loaded from cache"() {
+        file("input.txt").text = "input"
+        buildFile << defineProducerTask()
+
+        // Store in local cache
+        withBuildCache().succeeds "producer"
+
+        // Load from local cache
+        cleanBuildDir()
+        withBuildCache().succeeds "producer"
+
+        // Store to local cache again
+        when:
+        cleanLocalBuildCache()
+        withBuildCache().succeeds "producer", "--info", "--rerun-tasks"
+        then:
+        !output.contains("Caching disabled for task ':producer'")
+
+        when:
+        // Can load from local cache again
+        cleanBuildDir()
+        withBuildCache().succeeds "producer"
+        then:
+        skippedTasks as List == [":producer"]
+    }
+
+    def "downstream task stays cached when upstream task is loaded from cache"() {
+        file("input.txt").text = "input"
+        buildFile << defineProducerTask()
+        buildFile << defineConsumerTask()
+
+        withBuildCache().succeeds "consumer"
+
+        when:
+        cleanBuildDir()
+        withBuildCache().succeeds "consumer"
+        then:
+        skippedTasks.sort() == [":consumer", ":producer"]
+    }
+
+    private static String defineProducerTask() {
+        """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+
+            @CacheableTask
+            class ProducerTask extends DefaultTask {
+                @InputFile File input
+                @Optional @OutputFile nullFile
+                @Optional @OutputDirectory nullDir
+                @OutputFile File missingFile
+                @OutputDirectory File missingDir
+                @OutputFile File regularFile
+                @OutputDirectory File emptyDir
+                @OutputDirectory File singleFileInDir
+                @OutputDirectory File manyFilesInDir
+                @TaskAction action() {
+                    project.delete(missingFile)
+                    project.delete(missingDir)
+                    regularFile.text = "regular file"
+                    project.file("\$singleFileInDir/file.txt").text = "single file in dir"
+                    project.file("\$manyFilesInDir/file-1.txt").text = "file #1 in dir"
+                    project.file("\$manyFilesInDir/file-2.txt").text = "file #2 in dir"
+                }
+            }
+
+            task producer(type: ProducerTask) {
+                input = file("input.txt")
+                missingFile = file("build/missing-file.txt")
+                missingDir = file("build/missing-dir")
+                regularFile = file("build/regular-file.txt")
+                emptyDir = file("build/empty-dir")
+                singleFileInDir = file("build/single-file-in-dir")
+                manyFilesInDir = file("build/many-files-in-dir")
+            }
+        """
+    }
+
+    private static String defineConsumerTask() {
+        """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+
+            @CacheableTask
+            class ConsumerTask extends DefaultTask {
+                @InputFile File regularFile
+                @InputDirectory File emptyDir
+                @InputDirectory File singleFileInDir
+                @InputDirectory File manyFilesInDir
+                @OutputFile File output
+                @TaskAction action() {
+                    output.text = "output"
+                }
+            }
+
+            task consumer(type: ConsumerTask) {
+                dependsOn producer
+                regularFile = producer.regularFile
+                emptyDir = producer.emptyDir
+                singleFileInDir = producer.singleFileInDir
+                manyFilesInDir = producer.manyFilesInDir
+                output = file("build/output.txt")
+            }
+        """
     }
 
     private TestFile cleanBuildDir() {

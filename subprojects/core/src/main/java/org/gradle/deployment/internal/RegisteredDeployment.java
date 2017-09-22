@@ -16,8 +16,6 @@
 
 package org.gradle.deployment.internal;
 
-import org.gradle.deployment.DeploymentHandle;
-import org.gradle.deployment.DeploymentRegistry;
 import org.gradle.initialization.ContinuousExecutionGate;
 import org.gradle.internal.concurrent.Stoppable;
 
@@ -34,18 +32,14 @@ class RegisteredDeployment implements Stoppable {
         this.handle = handle;
     }
 
-    static RegisteredDeployment create(String id, DeploymentRegistry.ChangeBehavior changeBehavior, boolean eagerBuild, ContinuousExecutionGate continuousExecutionGate, DeploymentHandle deploymentHandle) {
+    static RegisteredDeployment create(String id, DeploymentRegistry.ChangeBehavior changeBehavior, ContinuousExecutionGate continuousExecutionGate, DeploymentHandle deploymentHandle) {
         switch(changeBehavior) {
             case NONE:
                 return new RegisteredDeployment(id, false, deploymentHandle, new OutOfDateTrackingDeployment());
             case RESTART:
                 return new RegisteredDeployment(id, true, deploymentHandle, new SimpleBlockingDeployment(new OutOfDateTrackingDeployment()));
             case BLOCK:
-                if (eagerBuild) {
-                    return new RegisteredDeployment(id, false, deploymentHandle, new SimpleBlockingDeployment(new OutOfDateTrackingDeployment()));
-                } else {
-                    return new RegisteredDeployment(id, false, deploymentHandle, new GateControllingDeployment(continuousExecutionGate, new SimpleBlockingDeployment(new OutOfDateTrackingDeployment())));
-                }
+                return new RegisteredDeployment(id, false, deploymentHandle, new GateControllingDeployment(continuousExecutionGate, new SimpleBlockingDeployment(new OutOfDateTrackingDeployment())));
             default:
                 throw new IllegalArgumentException("Unknown changeBehavior " + changeBehavior);
         }

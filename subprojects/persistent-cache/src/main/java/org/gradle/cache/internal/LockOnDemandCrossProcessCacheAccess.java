@@ -102,7 +102,7 @@ class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAcces
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Acquiring file lock for {}", cacheDisplayName);
                 }
-                fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName);
+                fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName, "", whenContended);
                 try {
                     if (initAction.requiresInitialization(fileLock)) {
                         fileLock.writeFile(new Runnable() {
@@ -113,7 +113,6 @@ class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAcces
                         });
                     }
                     onOpen.execute(fileLock);
-                    lockManager.allowContention(fileLock, whenContended);
                 } catch (Exception e) {
                     fileLock.close();
                     fileLock = null;

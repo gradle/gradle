@@ -18,8 +18,8 @@ package org.gradle.configuration.project;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
+import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
-import org.gradle.internal.time.Timers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,13 +32,17 @@ public class BuildScriptProcessor implements ProjectConfigureAction {
     }
 
     public void execute(ProjectInternal project) {
-        LOGGER.info("Evaluating {} using {}.", project, project.getBuildScriptSource().getDisplayName());
-        final Timer clock = Timers.startTimer();
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Evaluating {} using {}.", project, project.getBuildScriptSource().getDisplayName());
+        }
+        final Timer clock = Time.startTimer();
         try {
             ScriptPlugin configurer = configurerFactory.create(project.getBuildScriptSource(), project.getBuildscript(), project.getClassLoaderScope(), project.getBaseClassLoaderScope(), true);
             configurer.apply(project);
         } finally {
-            LOGGER.debug("Timing: Running the build script took {}", clock.getElapsed());
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Timing: Running the build script took {}", clock.getElapsed());
+            }
         }
     }
 }

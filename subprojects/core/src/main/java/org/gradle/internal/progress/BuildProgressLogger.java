@@ -89,7 +89,9 @@ public class BuildProgressLogger implements LoggerProvider {
     }
 
     public void beforeComplete() {
-        buildProgress.completed(WAITING_PHASE_DESCRIPTION, false);
+        if (buildProgress != null) {
+            buildProgress.completed(WAITING_PHASE_DESCRIPTION, false);
+        }
         buildProgress = null;
     }
 

@@ -45,14 +45,18 @@ public interface TaskInternal extends Task, Configurable<Task> {
     @Internal
     Spec<? super TaskInternal> getOnlyIf();
 
+    @Deprecated
     void execute();
 
     @Internal
+    @SuppressWarnings("deprecation")
     StandardOutputCapture getStandardOutputCapture();
 
+    @Deprecated
     @Internal
     TaskExecuter getExecuter();
 
+    @Deprecated
     void setExecuter(TaskExecuter executer);
 
     @Override
@@ -61,9 +65,11 @@ public interface TaskInternal extends Task, Configurable<Task> {
     @Override
     TaskOutputsInternal getOutputs();
 
+    @Deprecated
     @Internal
     List<TaskValidator> getValidators();
 
+    @Deprecated
     void addValidator(TaskValidator validator);
 
     @Override

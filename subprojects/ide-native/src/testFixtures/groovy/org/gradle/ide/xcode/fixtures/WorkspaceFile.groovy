@@ -30,13 +30,11 @@ class WorkspaceFile {
         contentXml = new XmlParser().parse(file)
     }
 
-    def assertHasProjects(String... paths) {
-        assertHasProjects(Arrays.asList(paths))
-    }
-
-    def assertHasProjects(Iterable<String> paths) {
-        assert contentXml.FileRef.size() == paths.size()
-        assert contentXml.FileRef*.@location*.replaceAll('absolute:', '').containsAll(paths)
-        return true
+    void assertHasProjects(String... paths) {
+        def includedProjectPaths = paths.collect { path ->
+            file.parentFile.parentFile.file(path).absolutePath
+        }
+        assert contentXml.FileRef.size() == includedProjectPaths.size()
+        assert contentXml.FileRef*.@location*.replaceAll('absolute:', '').containsAll(includedProjectPaths)
     }
 }

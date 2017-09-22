@@ -31,7 +31,7 @@ When setting these properties you should keep in mind that Gradle requires a Jav
 The following properties can be used to configure the Gradle build environment:
 
 `org.gradle.daemon`::
-When set to `true` the Gradle daemon is used to run the build. For local developer builds this is our favorite property. The developer environment is optimized for speed and feedback so we nearly always run Gradle jobs with the daemon. We don't run CI builds with the daemon (i.e. a long running process) as the CI environment is optimized for consistency and reliability.
+When set to `true` the Gradle daemon is used to run the build. Since Gradle 3.0, daemon is enabled by default and is recommended for running Gradle.
 `org.gradle.java.home`::
 Specifies the Java home for the Gradle build process. The value can be set to either a `jdk` or `jre` location, however, depending on what your build does, `jdk` is safer. A reasonable default is used if the setting is unspecified.
 `org.gradle.jvmargs`::
@@ -50,6 +50,8 @@ When set to true, Gradle will run the build with remote debugging enabled, liste
 When set to false, Gradle will not monitor the memory usage of running daemons. See <<sec:what_can_go_wrong_with_daemon>>.
 `org.gradle.caching`::
 When set to true, Gradle will try to reuse outputs from previous builds. See <<sec:build_cache_intro>>.
+`org.gradle.console`::
+When set to plain, auto or rich, Gradle will use different type of console. See <<sec:console_build_output>>.
 
 [[sec:forked_java_processes]]
 ==== Forked Java processes

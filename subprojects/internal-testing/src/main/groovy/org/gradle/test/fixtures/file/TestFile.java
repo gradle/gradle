@@ -16,7 +16,7 @@
 
 package org.gradle.test.fixtures.file;
 
-import com.google.common.hash.Hashing;
+import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
@@ -25,6 +25,10 @@ import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.Zip;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.hash.HashingOutputStream;
+import org.gradle.internal.io.NullOutputStream;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.testing.internal.util.RetryUtil;
@@ -40,7 +44,6 @@ import java.io.ObjectStreamException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Formatter;
@@ -406,7 +409,7 @@ public class TestFile extends File {
         assertIsFile();
         other.assertIsFile();
         assertEquals(String.format("%s is not the same length as %s", this, other), other.length(), this.length());
-        assertTrue(String.format("%s does not have the same content as %s", this, other), Arrays.equals(getHash("MD5"), other.getHash("MD5")));
+        assertTrue(String.format("%s does not have the same content as %s", this, other), getMd5Hash().equals(other.getMd5Hash()));
         return this;
     }
 
@@ -418,21 +421,17 @@ public class TestFile extends File {
     }
 
     public String getMd5Hash() {
-        try {
-            return Files.hash(this, Hashing.md5()).toString();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return md5(this).toString();
     }
 
-    private byte[] getHash(String algorithm) {
+    public static HashCode md5(File file) {
+        HashingOutputStream hashingStream = new HashingOutputStream(Hashing.md5(), NullOutputStream.INSTANCE);
         try {
-            MessageDigest messageDigest = MessageDigest.getInstance(algorithm);
-            messageDigest.update(FileUtils.readFileToByteArray(this));
-            return messageDigest.digest();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            Files.copy(file, hashingStream);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
+        return hashingStream.hash();
     }
 
     public void createLink(File target) {
@@ -499,14 +498,14 @@ public class TestFile extends File {
     }
 
     /**
-     * Asserts that this file contains the given set of descendants (and possibly other files).
+     * Convenience method for {@link #assertHasDescendants(String...)}.
      */
-    public TestFile assertContainsDescendants(String... descendants) {
+    public TestFile assertHasDescendants(Iterable<String> descendants) {
         assertIsDir();
         Set<String> actual = new TreeSet<String>();
         visit(actual, "", this);
 
-        Set<String> expected = new TreeSet<String>(Arrays.asList(descendants));
+        Set<String> expected = new TreeSet<String>(Lists.newArrayList(descendants));
 
         Set<String> missing = new TreeSet<String>(expected);
         missing.removeAll(actual);
@@ -514,13 +513,19 @@ public class TestFile extends File {
         assertTrue(String.format("For dir: %s, missing files: %s, expected: %s, actual: %s", this, missing, expected, actual), missing.isEmpty());
 
         return this;
+
+    }
+
+    /**
+     * Asserts that this file contains the given set of descendants (and possibly other files).
+     */
+    public TestFile assertContainsDescendants(String... descendants) {
+        return assertHasDescendants(Arrays.asList(descendants));
     }
 
     public TestFile assertIsEmptyDir() {
-        if (exists()) {
-            assertIsDir();
-            assertHasDescendants();
-        }
+        assertIsDir();
+        assertHasDescendants();
         return this;
     }
 
@@ -657,28 +662,28 @@ public class TestFile extends File {
 
     public Snapshot snapshot() {
         assertIsFile();
-        return new Snapshot(lastModified(), getHash("MD5"));
+        return new Snapshot(lastModified(), md5(this));
     }
 
     public void assertHasChangedSince(Snapshot snapshot) {
         Snapshot now = snapshot();
-        assertTrue(String.format("contents or modification time of %s have not changed", this), now.modTime != snapshot.modTime || !Arrays.equals(now.hash, snapshot.hash));
+        assertTrue(String.format("contents or modification time of %s have not changed", this), now.modTime != snapshot.modTime || !now.hash.equals(snapshot.hash));
     }
 
     public void assertContentsHaveChangedSince(Snapshot snapshot) {
         Snapshot now = snapshot();
-        assertTrue(String.format("contents of %s have not changed", this), !Arrays.equals(now.hash, snapshot.hash));
+        assertNotEquals(String.format("contents of %s have not changed", this), snapshot.hash, now.hash);
     }
 
     public void assertContentsHaveNotChangedSince(Snapshot snapshot) {
         Snapshot now = snapshot();
-        assertArrayEquals(String.format("contents of %s has changed", this), snapshot.hash, now.hash);
+        assertEquals(String.format("contents of %s has changed", this), snapshot.hash, now.hash);
     }
 
     public void assertHasNotChangedSince(Snapshot snapshot) {
         Snapshot now = snapshot();
         assertEquals(String.format("last modified time of %s has changed", this), snapshot.modTime, now.modTime);
-        assertArrayEquals(String.format("contents of %s has changed", this), snapshot.hash, now.hash);
+        assertEquals(String.format("contents of %s has changed", this), snapshot.hash, now.hash);
     }
 
     public void writeProperties(Map<?, ?> properties) {
@@ -701,18 +706,29 @@ public class TestFile extends File {
     }
 
     public ExecOutput exec(Object... args) {
-        return new TestFileHelper(this).execute(Arrays.asList(args), null);
+        return new TestFileHelper(this).executeSuccess(Arrays.asList(args), null);
+    }
+
+    public ExecOutput execWithFailure(List args, List env) {
+        return new TestFileHelper(this).executeFailure(args, env);
     }
 
     public ExecOutput execute(List args, List env) {
-        return new TestFileHelper(this).execute(args, env);
+        return new TestFileHelper(this).executeSuccess(args, env);
+    }
+
+    /**
+     * Relativizes the URI of this file according to the base directory.
+     */
+    public URI relativizeFrom(TestFile baseDir) {
+        return baseDir.toURI().relativize(toURI());
     }
 
     public class Snapshot {
         private final long modTime;
-        private final byte[] hash;
+        private final HashCode hash;
 
-        public Snapshot(long modTime, byte[] hash) {
+        public Snapshot(long modTime, HashCode hash) {
             this.modTime = modTime;
             this.hash = hash;
         }

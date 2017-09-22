@@ -16,15 +16,9 @@
 
 package org.gradle.api.internal.provider
 
-import org.gradle.api.InvalidUserDataException
-import org.gradle.api.file.ConfigurableFileTree
-import org.gradle.api.file.FileCollection
-import org.gradle.api.file.FileTree
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 import spock.lang.Unroll
-
-import static org.gradle.api.internal.provider.DefaultProvider.NON_NULL_VALUE_EXCEPTION_MESSAGE
 
 class DefaultProviderFactoryTest extends Specification {
 
@@ -38,7 +32,7 @@ class DefaultProviderFactoryTest extends Specification {
         providerFactory.provider(null)
 
         then:
-        def t = thrown(InvalidUserDataException)
+        def t = thrown(IllegalArgumentException)
         t.message == 'Value cannot be null'
     }
 
@@ -52,35 +46,35 @@ class DefaultProviderFactoryTest extends Specification {
         provider.get() == value
 
         where:
-        type           | value
-        Boolean        | true
-        Byte           | Byte.valueOf((byte) 0)
-        Short          | Short.valueOf((short) 0)
-        Integer        | Integer.valueOf(0)
-        Long           | 4L
-        Float          | 5.5f
-        Double         | 6.6d
-        Character      | '\u1234'
-        String         | 'hello'
-        File           | TEST_FILE
+        type      | value
+        Boolean   | true
+        Byte      | Byte.valueOf((byte) 0)
+        Short     | Short.valueOf((short) 0)
+        Integer   | Integer.valueOf(0)
+        Long      | 4L
+        Float     | 5.5f
+        Double    | 6.6d
+        Character | '\u1234'
+        String    | 'hello'
+        File      | TEST_FILE
     }
 
-    def "cannot create property state for null value"() {
+    def "cannot create property for null value"() {
         when:
         providerFactory.property(null)
 
         then:
-        def t = thrown(InvalidUserDataException)
+        def t = thrown(IllegalArgumentException)
         t.message == 'Class cannot be null'
     }
 
     @Unroll
     def "property state representing boolean and numbers provide default value for #type"() {
         given:
-        def propertyState = providerFactory.property(type)
+        def property = providerFactory.property(type)
 
         expect:
-        propertyState.get() == defaultValue
+        property.get() == defaultValue
 
         where:
         type      | defaultValue
@@ -97,37 +91,41 @@ class DefaultProviderFactoryTest extends Specification {
     @Unroll
     def "can create property state for #type"() {
         when:
-        def propertyState = providerFactory.property(type)
-        propertyState.set(value)
+        def property = providerFactory.property(type)
+        property.set(value)
 
         then:
-        propertyState
-        propertyState.get() == value
+        property
+        property.get() == value
 
         where:
-        type           | value
-        Boolean        | true
-        Byte           | 1
-        Short          | 2
-        Integer        | 3
-        Long           | 4L
-        Float          | 5.5f
-        Double         | 6.6d
-        Character      | '\u1234'
-        String         | 'hello'
-        File           | TEST_FILE
+        type      | value
+        Boolean   | true
+        Byte      | (byte) 1
+        Short     | (short) 2
+        Integer   | 3
+        Long      | 4L
+        Float     | 5.5f
+        Double    | 6.6d
+        Character | (char) '\u1234'
+        String    | 'hello'
+        File      | TEST_FILE
     }
 
-    def "creating property type for Gradle file type #type throws exception upon retrieval of value"() {
+    def "creating property type for reference type throws exception upon retrieval of value"() {
         when:
-        def provider = providerFactory.property(type)
-        provider.get()
+        def property = providerFactory.property(Runnable)
+        property.get()
 
         then:
         def t = thrown(IllegalStateException)
-        t.message == NON_NULL_VALUE_EXCEPTION_MESSAGE
+        t.message == 'No value has been specified for this provider.'
+    }
 
-        where:
-        type << [FileCollection, ConfigurableFileTree, FileTree, ConfigurableFileTree]
+    def "can create a List property"() {
+        expect:
+        def property = providerFactory.listProperty(String)
+        property.present
+        property.get() == []
     }
 }

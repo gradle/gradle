@@ -19,16 +19,16 @@ import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.events.EndOutputEvent
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.events.UpdateNowEvent
+import org.gradle.internal.time.MockClock
 import org.gradle.util.MockExecutor
-import org.gradle.util.MockTimeProvider
 import spock.lang.Subject
 
 class ThrottlingOutputEventListenerTest extends OutputSpecification {
     def listener = Mock(OutputEventListener)
-    def timeProvider = new MockTimeProvider()
+    def clock = new MockClock()
     def executor = new MockExecutor()
 
-    @Subject renderer = new ThrottlingOutputEventListener(listener, 100, executor, timeProvider)
+    @Subject renderer = new ThrottlingOutputEventListener(listener, 100, executor, clock)
 
     def "forwards events to listener"() {
         def event = event('message')
@@ -80,7 +80,7 @@ class ThrottlingOutputEventListenerTest extends OutputSpecification {
         renderer.onOutput(event1)
 
         when:
-        timeProvider.increment(100)
+        clock.increment(100)
         renderer.onOutput(event2)
 
         then:

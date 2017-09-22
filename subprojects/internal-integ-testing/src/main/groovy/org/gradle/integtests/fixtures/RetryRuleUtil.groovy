@@ -49,7 +49,7 @@ class RetryRuleUtil {
             println "Cause   (caught during test): " + failure?.cause
         }
 
-        println "Daemons (potentially used): ${daemonsFixture?.daemons?.collect { it.context?.pid }} - ${daemonsFixture?.daemonBaseDir}"
+        println "Daemons (potentially used): ${daemonsFixture?.allDaemons?.collect { it.context?.pid }} - ${daemonsFixture?.daemonBaseDir}"
 
         if (releasedGradleVersion == null) {
             println "Can not retry cross version test because 'gradleVersion' is unknown"
@@ -86,7 +86,7 @@ class RetryRuleUtil {
                 && failure.cause?.message == "Unable to create directory 'metadata-2.1'") {
 
                 println "Retrying cross version test for " + targetDistVersion.version + " because failure was caused by directory creation race condition"
-                return retryWithCleanProjectDir()
+                return retryWithCleanProjectDir(specification)
             }
         }
 
@@ -99,7 +99,7 @@ class RetryRuleUtil {
         }
 
         // sometime sockets are unexpectedly disappearing on daemon side (running on windows): https://github.com/gradle/gradle/issues/1111
-        didSocketDisappearOnWindows(failure, specification, daemonsFixture)
+        didSocketDisappearOnWindows(failure, specification, daemonsFixture, targetDistVersion >= GradleVersion.version('3.0'))
     }
 
     static RetryRule retryToolingAPIOnWindowsSocketDisappearance(Specification specification) {
@@ -122,25 +122,33 @@ class RetryRuleUtil {
         }
     }
 
-    static private boolean didSocketDisappearOnWindows(Throwable failure, Specification specification, daemonsFixture) {
+    static private boolean didSocketDisappearOnWindows(Throwable failure, Specification specification, daemonsFixture, checkDaemonLogs = true) {
         // sometime sockets are unexpectedly disappearing on daemon side (running on windows): gradle/gradle#1111
         if (runsOnWindowsAndJava7or8() && daemonsFixture != null) {
             if (getRootCauseMessage(failure) == "An existing connection was forcibly closed by the remote host" ||
                 getRootCauseMessage(failure) == "An established connection was aborted by the software in your host machine" ||
                 getRootCauseMessage(failure) == "Connection refused: no further information") {
 
-                for (def daemon : daemonsFixture.daemons) {
-                    if (daemon.log.contains("java.net.SocketException: Socket operation on nonsocket:")
-                        || daemon.log.contains("java.io.IOException: An operation was attempted on something that is not a socket")
-                        || daemon.log.contains("java.io.IOException: An existing connection was forcibly closed by the remote host")) {
+                if (!checkDaemonLogs) {
+                    println "Retrying test because socket disappeared."
+                    return retryWithCleanProjectDir(specification)
+                }
 
-                        println "Retrying test because socket disappeared. Check log of daemon with PID " + daemon.context.pid
+                for (def daemon : daemonsFixture.allDaemons) {
+                    if (daemonStoppedWithSocketExceptionOnWindows(daemon)) {
+                        println "Retrying test because socket disappeared. Check log of daemon with PID ${daemon.context.pid}."
                         return retryWithCleanProjectDir(specification)
                     }
                 }
             }
         }
         false
+    }
+
+    static daemonStoppedWithSocketExceptionOnWindows(daemon) {
+        runsOnWindowsAndJava7or8() && (daemon.log.contains("java.net.SocketException: Socket operation on nonsocket:")
+        || daemon.log.contains("java.io.IOException: An operation was attempted on something that is not a socket")
+        || daemon.log.contains("java.io.IOException: An existing connection was forcibly closed by the remote host"))
     }
 
     static String getRootCauseMessage(Throwable throwable) {

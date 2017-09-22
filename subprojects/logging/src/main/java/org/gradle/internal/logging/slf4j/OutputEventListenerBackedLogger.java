@@ -22,7 +22,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.operations.BuildOperationIdentifierRegistry;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Clock;
 import org.slf4j.Marker;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
@@ -31,12 +31,12 @@ public class OutputEventListenerBackedLogger implements Logger {
 
     private final String name;
     private final OutputEventListenerBackedLoggerContext context;
-    private final TimeProvider timeProvider;
+    private final Clock clock;
 
-    public OutputEventListenerBackedLogger(String name, OutputEventListenerBackedLoggerContext context, TimeProvider timeProvider) {
+    public OutputEventListenerBackedLogger(String name, OutputEventListenerBackedLoggerContext context, Clock clock) {
         this.name = name;
         this.context = context;
-        this.timeProvider = timeProvider;
+        this.clock = clock;
     }
 
     public String getName() {
@@ -129,7 +129,7 @@ public class OutputEventListenerBackedLogger implements Logger {
 
     private void log(LogLevel logLevel, Throwable throwable, String message) {
         Object buildOperationId = BuildOperationIdentifierRegistry.getCurrentOperationIdentifier();
-        LogEvent logEvent = new LogEvent(timeProvider.getCurrentTime(), name, logLevel, message, throwable, buildOperationId);
+        LogEvent logEvent = new LogEvent(clock.getCurrentTime(), name, logLevel, message, throwable, buildOperationId);
         OutputEventListener outputEventListener = context.getOutputEventListener();
         try {
             outputEventListener.onOutput(logEvent);

@@ -153,6 +153,11 @@ apply plugin: SomePlugin
         // Don't run these for RC 3, as stuff did change during the RCs
         Assume.assumeFalse(previous.version == GradleVersion.version("2.14-rc-3"))
 
+        file("someFile").touch()
+        file("anotherFile").touch()
+        file("yetAnotherFile").touch()
+        file("someDir").createDir()
+
         when:
         file("producer/build.gradle") << """
             apply plugin: 'groovy'
@@ -169,12 +174,17 @@ apply plugin: SomePlugin
             import org.gradle.api.DefaultTask;
             import org.gradle.api.tasks.*;
             import org.gradle.api.logging.LogLevel;
+            import java.util.*;
 
             public class SubclassTask extends DefaultTask {
                 public SubclassTask() {
                     ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.file("someFile");
                     ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.files("anotherFile", "yetAnotherFile");
                     ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.dir("someDir");
+                    ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.property("input", "value");
+                    Map<String, Object> mapValues = new HashMap<String, Object>();
+                    mapValues.put("mapInput", "mapValue");
+                    ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.properties(mapValues);
                 }
                 
                 @TaskAction

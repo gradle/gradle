@@ -28,14 +28,14 @@ import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.resources.ResourceDeadlockException
 import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLockState
-import org.gradle.internal.time.TimeProvider
+import org.gradle.internal.time.Clock
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import static org.gradle.internal.progress.BuildOperationDescriptor.displayName
 
 class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
     def listener = Mock(BuildOperationListener)
-    def timeProvider = Mock(TimeProvider)
+    def timeProvider = Mock(Clock)
     def progressLoggerFactory = Spy(NoOpProgressLoggerFactory)
     def resourceLockCoordinator = Mock(ResourceLockCoordinationService)
     def operationExecutor = new DefaultBuildOperationExecutor(listener, timeProvider, progressLoggerFactory, Mock(BuildOperationQueueFactory), Mock(ExecutorFactory), resourceLockCoordinator, new ParallelismConfigurationManagerFixture(true, 1), new DefaultBuildOperationIdFactory())
@@ -134,7 +134,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         1 * buildOperation.run(_) >> { throw failure }
 
         then:
-        1 * progressLogger.completed(null, false)
+        1 * progressLogger.completed(null, true)
 
         then:
         1 * timeProvider.currentTime >> 124L

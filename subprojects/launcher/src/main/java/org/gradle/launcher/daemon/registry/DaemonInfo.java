@@ -21,8 +21,8 @@ import com.google.common.base.Preconditions;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.time.ReliableTimeProvider;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Clock;
+import org.gradle.internal.time.Time;
 import org.gradle.launcher.daemon.context.DaemonConnectDetails;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DefaultDaemonContext;
@@ -44,21 +44,21 @@ public class DaemonInfo implements Serializable, DaemonConnectDetails {
     private final Address address;
     private final DaemonContext context;
     private final byte[] token;
-    private final TimeProvider timeProvider;
+    private final Clock clock;
 
     private State state;
     private long lastBusy;
 
     public DaemonInfo(Address address, DaemonContext context, byte[] token, State state) {
-        this(address, context, token, state, new ReliableTimeProvider());
+        this(address, context, token, state, Time.clock());
     }
 
     @VisibleForTesting
-    DaemonInfo(Address address, DaemonContext context, byte[] token, State state, TimeProvider busyClock) {
+    DaemonInfo(Address address, DaemonContext context, byte[] token, State state, Clock busyClock) {
         this.address = Preconditions.checkNotNull(address);
         this.context = Preconditions.checkNotNull(context);
         this.token = Preconditions.checkNotNull(token);
-        this.timeProvider = Preconditions.checkNotNull(busyClock);
+        this.clock = Preconditions.checkNotNull(busyClock);
         this.lastBusy = -1; // Will be overwritten by setIdle if not idle.
         setState(state);
     }
@@ -69,12 +69,12 @@ public class DaemonInfo implements Serializable, DaemonConnectDetails {
         this.token = token;
         this.state = state;
         this.lastBusy = lastBusy;
-        this.timeProvider = new ReliableTimeProvider();
+        this.clock = Time.clock();
     }
 
     public DaemonInfo setState(State state) {
         if ((this.state == Idle || this.state == null) && state == Busy) {
-            lastBusy = timeProvider.getCurrentTime();
+            lastBusy = clock.getCurrentTime();
         }
         this.state = state;
         return this;

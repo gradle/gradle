@@ -27,7 +27,13 @@
                 <td>positionIndependentCode</td>
             </tr>
             <tr>
-                <td>objectFileDirectory</td>
+                <td>debuggable</td>
+            </tr>
+            <tr>
+                <td>optimized</td>
+            </tr>
+            <tr>
+                <td>objectFileDir</td>
             </tr>
             <tr>
                 <td>macros</td>

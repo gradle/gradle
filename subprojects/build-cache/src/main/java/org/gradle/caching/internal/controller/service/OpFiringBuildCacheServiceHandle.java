@@ -104,7 +104,7 @@ public class OpFiringBuildCacheServiceHandle extends BaseBuildCacheServiceHandle
 
                     @Override
                     public BuildOperationDescriptor.Builder description() {
-                        return BuildOperationDescriptor.displayName("Downloading from remote build cache")
+                        return BuildOperationDescriptor.displayName("Download from remote build cache")
                             .progressDisplayName("Downloading");
                     }
                 });

@@ -53,7 +53,7 @@ public class EarPluginConvention {
     /**
      * Construct an EarPluginConvention using public {@link ObjectFactory}.
      *
-     * @since 4.1
+     * @since 4.2
      */
     @Inject
     public EarPluginConvention(FileResolver fileResolver, ObjectFactory objectFactory) {

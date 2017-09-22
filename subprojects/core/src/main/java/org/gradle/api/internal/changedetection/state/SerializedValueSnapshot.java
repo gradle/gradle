@@ -17,10 +17,9 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.base.Objects;
-import com.google.common.hash.HashCode;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
 
 import java.io.ByteArrayInputStream;
@@ -51,19 +50,6 @@ public class SerializedValueSnapshot implements ValueSnapshot {
         ValueSnapshot snapshot = snapshotter.snapshot(value);
         if (hasSameSerializedValue(value, snapshot)) {
             return this;
-        }
-        return snapshot;
-    }
-
-    @Override
-    public ValueSnapshot isolatableSnapshot(Object value, ValueSnapshotter snapshotter) {
-        ValueSnapshot snapshot = snapshotter.isolatableSnapshot(value);
-        if (hasSameSerializedValue(value, snapshot)) {
-            if (this instanceof Isolatable) {
-                return this;
-            } else {
-                return snapshotter.wrap(value, this);
-            }
         }
         return snapshot;
     }

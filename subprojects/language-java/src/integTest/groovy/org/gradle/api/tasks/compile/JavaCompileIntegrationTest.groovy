@@ -408,7 +408,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
                 }.files
                 inputs.files(lazyInputs)
                 doLast {
-                    assert CollectionUtils.single(lazyInputs.files).toPath().endsWith("${expectedDirName}")
+                    assert org.gradle.util.CollectionUtils.single(lazyInputs.files).toPath().endsWith("${expectedDirName}")
                 }
             }
         """
@@ -437,9 +437,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
             buildFile.text = """
                 apply plugin: 'java'
                                   
-                repositories {
-                    mavenCentral()
-                }
+                ${mavenCentralRepository()}
 
                 dependencies {
                     ${dependencies.collect { "compile ${it}"}.join('\n') }

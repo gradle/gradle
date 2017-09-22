@@ -89,6 +89,7 @@ class OperatingSystemTest extends Specification {
         def os = new OperatingSystem.Windows()
 
         expect:
+        os.executableSuffix == ".exe"
         os.getExecutableName("a.exe") == "a.exe"
         os.getExecutableName("a.EXE") == "a.EXE"
         os.getExecutableName("a") == "a.exe"
@@ -101,12 +102,16 @@ class OperatingSystemTest extends Specification {
         def os = new OperatingSystem.Windows()
 
         expect:
+        os.sharedLibrarySuffix == ".dll"
+        os.linkLibrarySuffix == ".lib"
         os.getSharedLibraryName("a.dll") == "a.dll"
         os.getSharedLibraryName("a.DLL") == "a.DLL"
         os.getSharedLibraryName("a") == "a.dll"
         os.getSharedLibraryName("a.lib") == "a.dll"
         os.getSharedLibraryName("a.b/c") == "a.b/c.dll"
         os.getSharedLibraryName("a.b\\c") == "a.b\\c.dll"
+        os.getLinkLibraryName("a") == "a.lib"
+        os.getLinkLibraryName("a.lib") == "a.lib"
     }
 
     def "windows transforms static library names"() {
@@ -222,6 +227,7 @@ class OperatingSystemTest extends Specification {
         def os = new OperatingSystem.Unix()
 
         expect:
+        os.executableSuffix == ""
         os.getExecutableName("a.sh") == "a.sh"
         os.getExecutableName("a") == "a"
     }
@@ -230,12 +236,15 @@ class OperatingSystemTest extends Specification {
         def os = new OperatingSystem.Unix()
 
         expect:
+        os.sharedLibrarySuffix == ".so"
+        os.linkLibrarySuffix == ".so"
         os.getSharedLibraryName("a.so") == "a.so"
         os.getSharedLibraryName("liba.so") == "liba.so"
         os.getSharedLibraryName("a") == "liba.so"
         os.getSharedLibraryName("lib1") == "liblib1.so"
         os.getSharedLibraryName("path/liba.so") == "path/liba.so"
         os.getSharedLibraryName("path/a") == "path/liba.so"
+        os.getLinkLibraryName("a") == "liba.so"
     }
 
     def "UNIX transforms static library names"() {
@@ -301,12 +310,15 @@ class OperatingSystemTest extends Specification {
         def os = new OperatingSystem.MacOs()
 
         expect:
+        os.sharedLibrarySuffix == ".dylib"
+        os.linkLibrarySuffix == ".dylib"
         os.getSharedLibraryName("a.dylib") == "a.dylib"
         os.getSharedLibraryName("liba.dylib") == "liba.dylib"
         os.getSharedLibraryName("a") == "liba.dylib"
         os.getSharedLibraryName("lib1") == "liblib1.dylib"
         os.getSharedLibraryName("path/liba.dylib") == "path/liba.dylib"
         os.getSharedLibraryName("path/a") == "path/liba.dylib"
+        os.getLinkLibraryName("a") == "liba.dylib"
     }
 
     private static boolean resetOperatingSystemClassStaticFields() {

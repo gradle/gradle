@@ -119,7 +119,7 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
         succeeds('myTask')
 
         then:
-        output.contains(DEFAULT_TEXT) == renderText
+        result.normalizedOutput.contains(DEFAULT_TEXT) == renderText
 
         where:
         renderText << [false, true]

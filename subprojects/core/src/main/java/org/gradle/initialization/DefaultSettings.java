@@ -32,6 +32,7 @@ import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.vcs.SourceControl;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.composite.internal.IncludedBuildFactory;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -47,6 +48,8 @@ import org.gradle.plugin.management.PluginManagementSpec;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Map;
+
+import static org.gradle.util.NameValidator.asValidName;
 
 public class DefaultSettings extends AbstractPluginAware implements SettingsInternal {
     public static final String DEFAULT_BUILD_SRC_DIR = "buildSrc";
@@ -77,7 +80,7 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
         this.startParameter = startParameter;
         this.settingsClassLoaderScope = settingsClassLoaderScope;
         services = serviceRegistryFactory.createFor(this);
-        rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
+        rootProjectDescriptor = createProjectDescriptor(null, asValidName(settingsDir.getName()), settingsDir);
     }
 
     @Override
@@ -283,8 +286,8 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
         action.execute(getBuildCache());
     }
 
-    @Inject
     @Override
+    @Inject
     public BuildCacheConfiguration getBuildCache() {
         throw new UnsupportedOperationException();
     }
@@ -297,6 +300,17 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     @Override
     @Inject
     public PluginManagementSpec getPluginManagement() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void sourceControl(Action<? super SourceControl> configuration) {
+        configuration.execute(getSourceControl());
+    }
+
+    @Override
+    @Inject
+    public SourceControl getSourceControl() {
         throw new UnsupportedOperationException();
     }
 }

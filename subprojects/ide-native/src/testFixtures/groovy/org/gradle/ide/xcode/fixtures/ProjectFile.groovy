@@ -21,7 +21,6 @@ import com.dd.plist.NSDictionary
 import com.dd.plist.NSObject
 import com.dd.plist.NSString
 import com.dd.plist.PropertyListParser
-import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget
 import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget.ProductType
 import org.gradle.test.fixtures.file.TestFile
 
@@ -47,26 +46,44 @@ class ProjectFile {
         return file
     }
 
-    def getProperty(String name) {
-        rootObject.getProperty(name)
+    PBXObject getBuildConfigurationList() {
+        return rootObject.getProperty("buildConfigurationList")
     }
 
-    def assertNoTargets() {
-        assert getProperty("targets").empty
-        return true
+    List<PBXTarget> getTargets() {
+        return rootObject.getProperty("targets")
     }
 
-    def assertTargetsAreTools() {
+    PBXNativeTarget getIndexTarget() {
+        return targets.find { it instanceof PBXNativeTarget }
+    }
+
+    PBXLegacyTarget getGradleTarget() {
+        return targets.find { it instanceof PBXLegacyTarget }
+    }
+
+    PBXGroup getMainGroup() {
+        return rootObject.getProperty("mainGroup")
+    }
+
+    PBXGroup getProducts() {
+        return mainGroup.children.find { it.name == 'Products' }
+    }
+
+    void assertNoTargets() {
+        assert targets.empty
+    }
+
+    void assertTargetsAreTools() {
         assertTargetsAre(ProductType.TOOL)
     }
 
-    def assertTargetsAreDynamicLibraries() {
+    void assertTargetsAreDynamicLibraries() {
         assertTargetsAre(ProductType.DYNAMIC_LIBRARY)
     }
 
-    def assertTargetsAre(PBXTarget.ProductType productType) {
-        assert getProperty("targets").every { it.productType == productType.identifier }
-        return true
+    void assertTargetsAre(ProductType productType) {
+        assert targets.every { it.productType == productType.identifier }
     }
 
     private <T extends PBXObject> T toPbxObject(String id) {
@@ -74,6 +91,10 @@ class ProjectFile {
 
         if (object.isa.toJavaObject() == "PBXGroup") {
             return new PBXGroup(id, object)
+        } else if (object.isa.toJavaObject() == "PBXLegacyTarget") {
+            return new PBXLegacyTarget(id, object)
+        } else if (object.isa.toJavaObject() == "PBXNativeTarget") {
+            return new PBXNativeTarget(id, object)
         } else {
             return new PBXObject(id, object)
         }
@@ -121,11 +142,45 @@ class ProjectFile {
             super(id, object)
         }
 
+        List<PBXObject> getChildren() {
+            return getProperty("children")
+        }
+
         def assertHasChildren(List<String> entries) {
             def children = getProperty("children")
             assert children.size() == entries.size()
             assert children*.name.containsAll(entries)
             return true
+        }
+    }
+
+    class PBXTarget extends PBXObject {
+        PBXTarget(String id, NSDictionary object) {
+            super(id, object)
+        }
+
+        String getName() {
+            return getProperty("name")
+        }
+
+        PBXObject getProductReference() {
+            return getProperty("productReference")
+        }
+    }
+
+    class PBXNativeTarget extends PBXTarget {
+        PBXNativeTarget(String id, NSDictionary object) {
+            super(id, object)
+        }
+
+        Map<String, ?> getBuildSettings() {
+            return buildConfigurationList.buildConfigurations[0].buildSettings
+        }
+    }
+
+    class PBXLegacyTarget extends PBXTarget {
+        PBXLegacyTarget(String id, NSDictionary object) {
+            super(id, object)
         }
     }
 }

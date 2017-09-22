@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.Iterators;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.DeferredUtil;
 
@@ -25,23 +26,24 @@ import java.io.File;
 import java.util.Iterator;
 import java.util.Map;
 
-public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertySpec {
+@NonNullApi
+public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertySpec implements DeclaredTaskOutputFileProperty {
 
-    private final CacheableTaskOutputFilePropertySpec.OutputType outputType;
-    private final Object paths;
+    private final OutputType outputType;
+    private final ValidatingValue paths;
+    private final ValidationAction validationAction;
     private final String taskName;
     private final FileResolver resolver;
 
-    public CompositeTaskOutputPropertySpec(String taskName, FileResolver resolver, CacheableTaskOutputFilePropertySpec.OutputType outputType, Object[] paths) {
+    public CompositeTaskOutputPropertySpec(String taskName, FileResolver resolver, OutputType outputType, ValidatingValue paths, ValidationAction validationAction) {
         this.taskName = taskName;
         this.resolver = resolver;
         this.outputType = outputType;
-        this.paths = (paths != null && paths.length == 1)
-            ? paths[0]
-            : paths;
+        this.paths = paths;
+        this.validationAction = validationAction;
     }
 
-    public CacheableTaskOutputFilePropertySpec.OutputType getOutputType() {
+    public OutputType getOutputType() {
         return outputType;
     }
 
@@ -72,5 +74,10 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
                 new NonCacheableTaskOutputPropertySpec(taskName, this, resolver, unpackedPaths)
             );
         }
+    }
+
+    @Override
+    public void validate(TaskValidationContext context) {
+        paths.validate(getPropertyName(), isOptional(), validationAction, context);
     }
 }

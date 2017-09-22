@@ -49,7 +49,7 @@ import org.gradle.internal.operations.MultipleBuildOperationFailures;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resources.ResourceDeadlockException;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Clock;
 import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +65,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
 
     private final BuildOperationListener listener;
-    private final TimeProvider timeProvider;
+    private final Clock clock;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final BuildOperationQueueFactory buildOperationQueueFactory;
     private final ResourceLockCoordinationService resourceLockCoordinationService;
@@ -75,12 +75,12 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     private final ThreadLocal<DefaultBuildOperationState> currentOperation = new ThreadLocal<DefaultBuildOperationState>();
 
-    public DefaultBuildOperationExecutor(BuildOperationListener listener, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory,
+    public DefaultBuildOperationExecutor(BuildOperationListener listener, Clock clock, ProgressLoggerFactory progressLoggerFactory,
                                          BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory,
                                          ResourceLockCoordinationService resourceLockCoordinationService, ParallelismConfigurationManager parallelismConfigurationManager,
                                          BuildOperationIdFactory buildOperationIdFactory) {
         this.listener = listener;
-        this.timeProvider = timeProvider;
+        this.clock = clock;
         this.progressLoggerFactory = progressLoggerFactory;
         this.buildOperationQueueFactory = buildOperationQueueFactory;
         this.resourceLockCoordinationService = resourceLockCoordinationService;
@@ -178,7 +178,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         }
 
         BuildOperationDescriptor descriptor = createDescriptor(descriptorBuilder, parent);
-        DefaultBuildOperationState currentOperation = new DefaultBuildOperationState(descriptor, timeProvider.getCurrentTime());
+        DefaultBuildOperationState currentOperation = new DefaultBuildOperationState(descriptor, clock.getCurrentTime());
 
         assertParentRunning("Cannot start operation (%s) as parent operation (%s) has already completed.", descriptor, parent);
 
@@ -189,27 +189,24 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         BuildOperationIdentifierRegistry.setCurrentOperationIdentifier(this.currentOperation.get().getId());
         try {
             listener.started(descriptor, new OperationStartEvent(currentOperation.getStartTime()));
+            ProgressLogger progressLogger = createProgressLogger(currentOperation);
 
             Throwable failure = null;
             DefaultBuildOperationContext context = new DefaultBuildOperationContext();
-            try {
-                ProgressLogger progressLogger = createProgressLogger(currentOperation);
 
-                LOGGER.debug("Build operation '{}' started", descriptor.getDisplayName());
-                try {
-                    worker.execute(buildOperation, context);
-                } finally {
-                    LOGGER.debug("Completing Build operation '{}'", descriptor.getDisplayName());
-                    progressLogger.completed(context.status, context.failure != null);
-                    assertParentRunning("Parent operation (%2$s) completed before this operation (%1$s).", descriptor, parent);
-                }
+            LOGGER.debug("Build operation '{}' started", descriptor.getDisplayName());
+            try {
+                worker.execute(buildOperation, context);
             } catch (Throwable t) {
                 context.thrown(t);
                 failure = t;
             }
+            LOGGER.debug("Completing Build operation '{}'", descriptor.getDisplayName());
 
-            long endTime = timeProvider.getCurrentTime();
-            listener.finished(descriptor, new OperationFinishEvent(currentOperation.getStartTime(), endTime, context.failure, context.result));
+            progressLogger.completed(context.status, context.failure != null);
+            listener.finished(descriptor, new OperationFinishEvent(currentOperation.getStartTime(), clock.getCurrentTime(), context.failure, context.result));
+
+            assertParentRunning("Parent operation (%2$s) completed before this operation (%1$s).", descriptor, parent);
 
             if (failure != null) {
                 throw UncheckedException.throwAsUncheckedException(failure, true);
@@ -254,7 +251,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     private DefaultBuildOperationState maybeStartUnmanagedThreadOperation(DefaultBuildOperationState parentState) {
         if (!GradleThread.isManaged() && parentState == null) {
-            parentState = UnmanagedThreadOperation.create(timeProvider);
+            parentState = UnmanagedThreadOperation.create(clock);
             parentState.setRunning(true);
             currentOperation.set(parentState);
             listener.started(parentState.getDescription(), new OperationStartEvent(parentState.getStartTime()));
@@ -266,7 +263,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         DefaultBuildOperationState current = currentOperation.get();
         if (current instanceof UnmanagedThreadOperation) {
             try {
-                listener.finished(current.getDescription(), new OperationFinishEvent(current.getStartTime(), timeProvider.getCurrentTime(), null, null));
+                listener.finished(current.getDescription(), new OperationFinishEvent(current.getStartTime(), clock.getCurrentTime(), null, null));
             } finally {
                 currentOperation.set(null);
                 current.setRunning(false);
@@ -281,7 +278,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     protected void createRunningRootOperation(String displayName) {
         assert currentOperation.get() == null;
         OperationIdentifier rootBuildOpId = new OperationIdentifier(DefaultBuildOperationIdFactory.ROOT_BUILD_OPERATION_ID_VALUE);
-        DefaultBuildOperationState operation = new DefaultBuildOperationState(BuildOperationDescriptor.displayName(displayName).build(rootBuildOpId, null), timeProvider.getCurrentTime());
+        DefaultBuildOperationState operation = new DefaultBuildOperationState(BuildOperationDescriptor.displayName(displayName).build(rootBuildOpId, null), clock.getCurrentTime());
         operation.setRunning(true);
         currentOperation.set(operation);
     }
@@ -423,12 +420,12 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
         private static final AtomicLong UNMANAGED_THREAD_OPERATION_COUNTER = new AtomicLong(-1);
 
-        private static UnmanagedThreadOperation create(TimeProvider timeProvider) {
+        private static UnmanagedThreadOperation create(Clock clock) {
             // TODO:pm Move this to WARN level once we fixed maven-publish, see gradle/gradle#1662
             LOGGER.debug("WARNING No operation is currently running in unmanaged thread: {}", Thread.currentThread().getName());
             OperationIdentifier id = new OperationIdentifier(UNMANAGED_THREAD_OPERATION_COUNTER.getAndDecrement());
             String displayName = "Unmanaged thread operation #" + id + " (" + Thread.currentThread().getName() + ')';
-            return new UnmanagedThreadOperation(BuildOperationDescriptor.displayName(displayName).build(id, null), null, timeProvider.getCurrentTime());
+            return new UnmanagedThreadOperation(BuildOperationDescriptor.displayName(displayName).build(id, null), null, clock.getCurrentTime());
         }
 
         private UnmanagedThreadOperation(BuildOperationDescriptor descriptor, BuildOperationState parent, long startTime) {

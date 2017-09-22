@@ -16,20 +16,38 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.provider.Provider;
+import org.gradle.api.Transformer;
 
-public abstract class AbstractProvider<T> implements Provider<T> {
-    static final String NON_NULL_VALUE_EXCEPTION_MESSAGE = "No value has been specified for this provider.";
+import javax.annotation.Nullable;
+
+import static org.gradle.api.internal.provider.Providers.NULL_VALUE;
+
+public abstract class AbstractProvider<T> implements ProviderInternal<T> {
 
     @Override
     public T get() {
         T evaluatedValue = getOrNull();
 
         if (evaluatedValue == null) {
-            throw new IllegalStateException(NON_NULL_VALUE_EXCEPTION_MESSAGE);
+            throw new IllegalStateException(NULL_VALUE);
         }
 
         return evaluatedValue;
+    }
+
+    @Nullable
+    @Override
+    public T getOrElse(@Nullable T defaultValue) {
+        T value = getOrNull();
+        if (value != null) {
+            return value;
+        }
+        return defaultValue;
+    }
+
+    @Override
+    public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super T> transformer) {
+        return new TransformBackedProvider<S, T>(transformer, this);
     }
 
     @Override
@@ -41,4 +59,5 @@ public abstract class AbstractProvider<T> implements Provider<T> {
     public String toString() {
         return String.format("value: %s", getOrNull());
     }
+
 }

@@ -19,7 +19,11 @@ package org.gradle.internal.nativeintegration.filesystem;
 import org.gradle.internal.file.FileMetadataSnapshot;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 
 public interface FileMetadataAccessor {
     FileMetadataSnapshot stat(File f);
+    @SuppressWarnings("Since15")
+    FileMetadataSnapshot stat(Path path) throws IOException;
 }

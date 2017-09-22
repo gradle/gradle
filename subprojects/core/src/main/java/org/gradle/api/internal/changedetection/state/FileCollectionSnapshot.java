@@ -17,6 +17,8 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
+import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
 import java.util.Collection;
@@ -30,7 +32,7 @@ import static org.gradle.api.internal.changedetection.state.TaskFilePropertyComp
  * An immutable snapshot of some aspects of the contents and meta-data of a collection of files or directories.
  */
 public interface FileCollectionSnapshot extends Snapshot {
-    FileCollectionSnapshot EMPTY = new DefaultFileCollectionSnapshot(Collections.<String, NormalizedFileSnapshot>emptyMap(), UNORDERED, true);
+    FileCollectionSnapshot EMPTY = new DefaultFileCollectionSnapshot(Collections.<String, NormalizedFileSnapshot>emptyMap(), new DefaultBuildCacheHasher().hash(), UNORDERED, true);
 
     boolean isEmpty();
 
@@ -38,6 +40,11 @@ public interface FileCollectionSnapshot extends Snapshot {
      * Returns an iterator over the changes to file contents since the given snapshot, subject to the given filters.
      */
     Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, String title, boolean includeAdded);
+
+    /**
+     * Returns the combined hash of the contents of this {@link FileCollectionSnapshot}.
+     */
+    HashCode getHash();
 
     /**
      * Returns the elements of this snapshot, including regular files, directories and missing files
@@ -50,4 +57,6 @@ public interface FileCollectionSnapshot extends Snapshot {
     Collection<File> getFiles();
 
     Map<String, NormalizedFileSnapshot> getSnapshots();
+
+    Map<String, FileContentSnapshot> getContentSnapshots();
 }

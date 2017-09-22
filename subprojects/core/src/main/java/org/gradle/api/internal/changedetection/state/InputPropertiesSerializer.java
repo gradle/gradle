@@ -43,7 +43,8 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
     private static final int LIST_SNAPSHOT = 12;
     private static final int SET_SNAPSHOT = 13;
     private static final int MAP_SNAPSHOT = 14;
-    private static final int DEFAULT_SNAPSHOT = 15;
+    private static final int PROVIDER_SNAPSHOT = 15;
+    private static final int DEFAULT_SNAPSHOT = 16;
 
     private final HashCodeSerializer serializer = new HashCodeSerializer();
 
@@ -118,6 +119,8 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
                     mapBuilder.put(readSnapshot(decoder), readSnapshot(decoder));
                 }
                 return new MapValueSnapshot(mapBuilder.build());
+            case PROVIDER_SNAPSHOT:
+                return new ProviderSnapshot(readSnapshot(decoder));
             case DEFAULT_SNAPSHOT:
                 return new SerializedValueSnapshot(decoder.readBoolean() ? serializer.read(decoder) : null, decoder.readBinary());
             default:
@@ -212,6 +215,10 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
                     writeEntry(encoder, valueSnapshot);
                 }
             }
+        } else if (snapshot instanceof ProviderSnapshot) {
+            encoder.writeSmallInt(PROVIDER_SNAPSHOT);
+            ProviderSnapshot providerSnapshot = (ProviderSnapshot) snapshot;
+            writeEntry(encoder, providerSnapshot.getValue());
         } else {
             throw new IllegalArgumentException("Don't know how to serialize a value of type " + snapshot.getClass().getSimpleName());
         }

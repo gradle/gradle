@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.common.hash.HashCode;
+import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
 import java.util.LinkedHashMap;

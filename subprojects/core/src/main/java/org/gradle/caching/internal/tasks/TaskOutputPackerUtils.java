@@ -17,7 +17,7 @@
 package org.gradle.caching.internal.tasks;
 
 import org.apache.commons.io.FileUtils;
-import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType;
+import org.gradle.api.internal.tasks.OutputType;
 
 import java.io.File;
 import java.io.IOException;

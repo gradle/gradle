@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.state
 
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
-import com.google.common.hash.HashCode
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.InputStreamBackedDecoder
 import org.gradle.internal.serialize.OutputStreamBackedEncoder
 import spock.lang.Specification
@@ -151,6 +151,14 @@ class InputPropertiesSerializerTest extends Specification {
         def empty = builder.build()
         builder.put(string("123"), integer(123))
         def original = [a: new MapValueSnapshot(builder.build()), b: new MapValueSnapshot(empty)]
+        write(original)
+
+        expect:
+        original == written
+    }
+
+    def "serializes provider properties"() {
+        def original = [a: new ProviderSnapshot(new StringValueSnapshot("123"))]
         write(original)
 
         expect:

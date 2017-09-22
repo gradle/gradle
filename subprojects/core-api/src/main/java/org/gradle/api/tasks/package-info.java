@@ -17,4 +17,5 @@
 /**
  * The standard {@link org.gradle.api.Task} implementations.
  */
+@org.gradle.api.NonNullApi
 package org.gradle.api.tasks;

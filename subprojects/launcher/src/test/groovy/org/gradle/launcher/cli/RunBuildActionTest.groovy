@@ -44,11 +44,11 @@ class RunBuildActionTest extends Specification {
 
         then:
         startParameter.logLevel >> LogLevel.ERROR
-        1 * client.execute({!null}, {!null}, {!null}, {!null}) >> { ExecuteBuildAction action, BuildRequestContext context, BuildActionParameters build, ServiceRegistry services ->
+        1 * client.execute({ !null }, { !null }, { !null }, { !null }) >> { ExecuteBuildAction action, BuildRequestContext context, BuildActionParameters build, ServiceRegistry services ->
             assert action.startParameter == startParameter
             assert context.cancellationToken instanceof DefaultBuildCancellationToken
             assert context.client == clientMetaData
-            assert context.buildTimeClock.startTime == startTime
+            assert context.startTime == startTime
             assert build == parameters
             assert services == sharedServices
         }

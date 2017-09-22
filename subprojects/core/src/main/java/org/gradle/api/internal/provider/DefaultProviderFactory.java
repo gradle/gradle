@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -25,40 +25,45 @@ import java.util.concurrent.Callable;
 
 public class DefaultProviderFactory implements ProviderFactory {
 
-    public <T> Provider<T> provider(final Callable<T> value) {
+    public <T> Provider<T> provider(final Callable<? extends T> value) {
         if (value == null) {
-            throw new InvalidUserDataException("Value cannot be null");
+            throw new IllegalArgumentException("Value cannot be null");
         }
 
-        return new DefaultProvider(value);
+        return new DefaultProvider<T>(value);
     }
 
     @Override
-    public <T> PropertyState<T> property(Class<T> clazz) {
-        if (clazz == null) {
-            throw new InvalidUserDataException("Class cannot be null");
+    public <T> PropertyState<T> property(Class<T> valueType) {
+        if (valueType == null) {
+            throw new IllegalArgumentException("Class cannot be null");
         }
 
-        PropertyState<T> propertyState = new DefaultPropertyState<T>();
+        PropertyState<T> propertyState = new DefaultPropertyState<T>(valueType);
 
-        if (clazz == Boolean.class) {
-            ((PropertyState<Boolean>) propertyState).set(Boolean.FALSE);
-        } else if (clazz == Byte.class) {
-            ((PropertyState<Byte>) propertyState).set(Byte.valueOf((byte) 0));
-        } else if (clazz == Short.class) {
-            ((PropertyState<Short>) propertyState).set(Short.valueOf((short) 0));
-        } else if (clazz == Integer.class) {
-            ((PropertyState<Integer>) propertyState).set(Integer.valueOf(0));
-        } else if (clazz == Long.class) {
-            ((PropertyState<Long>) propertyState).set(Long.valueOf(0));
-        } else if (clazz == Float.class) {
-            ((PropertyState<Float>) propertyState).set(Float.valueOf(0));
-        } else if (clazz == Double.class) {
-            ((PropertyState<Double>) propertyState).set(Double.valueOf(0));
-        } else if (clazz == Character.class) {
-            ((PropertyState<Character>) propertyState).set(new Character('\0'));
+        if (valueType == Boolean.class) {
+            ((PropertyState<Boolean>) propertyState).set(Providers.FALSE);
+        } else if (valueType == Byte.class) {
+            ((PropertyState<Byte>) propertyState).set(Providers.BYTE_ZERO);
+        } else if (valueType == Short.class) {
+            ((PropertyState<Short>) propertyState).set(Providers.SHORT_ZERO);
+        } else if (valueType == Integer.class) {
+            ((PropertyState<Integer>) propertyState).set(Providers.INTEGER_ZERO);
+        } else if (valueType == Long.class) {
+            ((PropertyState<Long>) propertyState).set(Providers.LONG_ZERO);
+        } else if (valueType == Float.class) {
+            ((PropertyState<Float>) propertyState).set(Providers.FLOAT_ZERO);
+        } else if (valueType == Double.class) {
+            ((PropertyState<Double>) propertyState).set(Providers.DOUBLE_ZERO);
+        } else if (valueType == Character.class) {
+            ((PropertyState<Character>) propertyState).set(Providers.CHAR_ZERO);
         }
 
         return propertyState;
+    }
+
+    @Override
+    public <T> ListProperty<T> listProperty(Class<T> elementType) {
+        return new DefaultListProperty<T>(elementType);
     }
 }

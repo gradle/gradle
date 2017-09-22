@@ -22,8 +22,8 @@ import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.time.ReliableTimeProvider;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Clock;
+import org.gradle.internal.time.Time;
 import org.gradle.tooling.CancellationTokenSource;
 import org.gradle.tooling.internal.consumer.loader.CachingToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.DefaultToolingImplementationLoader;
@@ -56,6 +56,7 @@ public class ConnectorServices {
     }
 
     private static void checkJavaVersion() {
+        UnsupportedJavaRuntimeException.javaDeprecationWarning();
         UnsupportedJavaRuntimeException.assertUsingVersion("Gradle Tooling API", JavaVersion.VERSION_1_7);
     }
 
@@ -76,20 +77,20 @@ public class ConnectorServices {
             return new DefaultExecutorServiceFactory();
         }
 
-        protected TimeProvider createTimeProvider() {
-            return new ReliableTimeProvider();
+        protected Clock createTimeProvider() {
+            return Time.clock();
         }
 
-        protected DistributionFactory createDistributionFactory(TimeProvider timeProvider) {
-            return new DistributionFactory(timeProvider);
+        protected DistributionFactory createDistributionFactory(Clock clock) {
+            return new DistributionFactory(clock);
         }
 
         protected ToolingImplementationLoader createToolingImplementationLoader() {
             return new SynchronizedToolingImplementationLoader(new CachingToolingImplementationLoader(new DefaultToolingImplementationLoader()));
         }
 
-        protected LoggingProvider createLoggingProvider(TimeProvider timeProvider) {
-            return new SynchronizedLogging(timeProvider);
+        protected LoggingProvider createLoggingProvider(Clock clock) {
+            return new SynchronizedLogging(clock);
         }
 
         protected ConnectionFactory createConnectionFactory(ToolingImplementationLoader toolingImplementationLoader, ExecutorFactory executorFactory, LoggingProvider loggingProvider) {

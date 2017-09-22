@@ -45,6 +45,10 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class BuildSourceBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildSourceBuilder.class);
+    public static final BuildBuildSrcBuildOperationType.Details BUILD_BUILDSRC_DETAILS = new BuildBuildSrcBuildOperationType.Details() {
+    };
+    public static final BuildBuildSrcBuildOperationType.Result BUILD_BUILDSRC_RESULT = new BuildBuildSrcBuildOperationType.Result() {
+    };
 
     private final NestedBuildFactory nestedBuildFactory;
     private final ClassLoaderScope classLoaderScope;
@@ -77,15 +81,20 @@ public class BuildSourceBuilder {
             LOGGER.debug("Gradle source dir does not exist. We leave.");
             return ClassPath.EMPTY;
         }
+
         return buildOperationExecutor.call(new CallableBuildOperation<ClassPath>() {
             @Override
             public ClassPath call(BuildOperationContext context) {
-                return buildBuildSrc(startParameter);
+                ClassPath classPath = buildBuildSrc(startParameter);
+                context.setResult(BUILD_BUILDSRC_RESULT);
+                return classPath;
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Build buildSrc").progressDisplayName("buildSrc");
+                return BuildOperationDescriptor.displayName("Build buildSrc").
+                    progressDisplayName("buildSrc").
+                    details(BUILD_BUILDSRC_DETAILS);
             }
         });
     }

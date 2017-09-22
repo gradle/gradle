@@ -16,8 +16,6 @@
 
 package org.gradle.deployment.internal;
 
-import org.gradle.deployment.Deployment;
-
 public interface DeploymentInternal extends Deployment {
     void outOfDate();
     void upToDate(Throwable failure);

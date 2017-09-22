@@ -43,8 +43,9 @@ import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ParallelismConfigurationManager
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.hash.FileContentHasherFactory
+import org.gradle.internal.hash.ContentHasherFactory
 import org.gradle.internal.hash.FileHasher
+import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.jvm.inspection.JvmVersionDetector
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.events.OutputEventListener
@@ -53,7 +54,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.remote.MessagingServer
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
-import org.gradle.internal.time.TimeProvider
+import org.gradle.internal.time.Clock
 import org.gradle.process.internal.JavaExecHandleFactory
 import org.gradle.process.internal.health.memory.MemoryManager
 import org.gradle.process.internal.worker.WorkerProcessFactory
@@ -100,7 +101,7 @@ class GradleUserHomeScopeServicesTest extends Specification {
             _ * it.open(_, _, _, _, _, _, _, _) >> Mock(PersistentCache) { _ * getBaseDir() >> Mock(File) }
         }
         expectParentServiceLocated(LoggingManagerInternal)
-        expectParentServiceLocated(TimeProvider)
+        expectParentServiceLocated(Clock)
         expectParentServiceLocated(ProgressLoggerFactory)
         expectParentServiceLocated(StartParameter)
         expectParentServiceLocated(ExecutorFactory)
@@ -116,7 +117,8 @@ class GradleUserHomeScopeServicesTest extends Specification {
         expectParentServiceLocated(CrossBuildInMemoryCacheFactory)
         expectParentServiceLocated(ClassLoaderRegistry)
         expectParentServiceLocated(DirectoryFileTreeFactory)
-        expectParentServiceLocated(FileContentHasherFactory)
+        expectParentServiceLocated(ContentHasherFactory)
+        expectParentServiceLocated(StreamHasher)
 
         expect:
         findsAndCachesService(serviceType)

@@ -18,4 +18,5 @@
  * API classes for implementing incremental tasks.
  */
 @org.gradle.api.Incubating
+@org.gradle.api.NonNullApi
 package org.gradle.api.tasks.incremental;

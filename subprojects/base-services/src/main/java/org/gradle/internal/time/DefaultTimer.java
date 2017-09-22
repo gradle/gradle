@@ -17,45 +17,35 @@ package org.gradle.internal.time;
 
 import java.util.concurrent.TimeUnit;
 
-public class DefaultTimer implements Timer {
-    private static final long MS_PER_MINUTE = 60000;
-    private static final long MS_PER_HOUR = MS_PER_MINUTE * 60;
-    protected TimeSource timeSource;
-    protected long startInstantMillis;
+class DefaultTimer implements Timer {
+
+    private final TimeSource timeSource;
+    private long startTime;
 
     DefaultTimer(TimeSource timeSource) {
         this.timeSource = timeSource;
         reset();
     }
 
-    public static String prettyTime(long timeInMs) {
-        StringBuilder result = new StringBuilder();
-        if (timeInMs > MS_PER_HOUR) {
-            result.append(timeInMs / MS_PER_HOUR).append(" hrs ");
-        }
-        if (timeInMs > MS_PER_MINUTE) {
-            result.append((timeInMs % MS_PER_HOUR) / MS_PER_MINUTE).append(" mins ");
-        }
-        result.append((timeInMs % MS_PER_MINUTE) / 1000.0).append(" secs");
-        return result.toString();
-    }
-
     @Override
     public String getElapsed() {
-        long timeInMs = getElapsedMillis();
-        return prettyTime(timeInMs);
+        long elapsedMillis = getElapsedMillis();
+        return TimeFormatting.formatDurationVerbose(elapsedMillis);
     }
 
     @Override
     public long getElapsedMillis() {
-        return Math.max(getInstantMillis() - startInstantMillis, 0);
+        long elapsedNanos = timeSource.nanoTime() - startTime;
+        long elapsedMillis = TimeUnit.NANOSECONDS.toMillis(elapsedNanos);
+
+        // System.nanoTime() can go backwards under some circumstances.
+        // http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6458294
+        // This max() call ensures that we don't return negative durations.
+        return Math.max(elapsedMillis, 0);
     }
 
     public void reset() {
-        startInstantMillis = getInstantMillis();
+        startTime = timeSource.nanoTime();
     }
 
-    private long getInstantMillis() {
-        return TimeUnit.NANOSECONDS.toMillis(timeSource.nanoTime());
-    }
 }

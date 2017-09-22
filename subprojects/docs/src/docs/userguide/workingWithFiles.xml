@@ -147,6 +147,12 @@
         <sample id="fileTrees" dir="userguide/files/fileTrees" title="Using a file tree">
             <sourcefile file="build.gradle" snippet="use"/>
         </sample>
+        <note>
+            <para>
+                By default, the <literal>FileTree</literal> instance <literal>fileTree()</literal> returns will apply some Ant-style default exclude patterns for convenience.
+                For the complete default exclusion list, see <ulink url="http://ant.apache.org/manual/dirtasks.html#defaultexcludes">Default Excludes</ulink>.
+            </para>
+        </note>
     </section>
 
     <section id="sec:archive_contents">
@@ -227,7 +233,7 @@
         <sample id="copy" dir="userguide/files/copy" title="Copying files using the copy() method without up-to-date check">
             <sourcefile file="build.gradle" snippet="copy-method"/>
         </sample>
-        <para>Secondly, the <literal>copy()</literal> method can not honor task dependencies when a task is used as a copy source
+        <para>Secondly, the <literal>copy()</literal> method cannot honor task dependencies when a task is used as a copy source
             (i.e. as an argument to <literal>from()</literal>) because it's a method and not a task.
             As such, if you are using the <literal>copy()</literal> method as part of a task action, you must explicitly
             declare all inputs and outputs in order to get the correct behavior.

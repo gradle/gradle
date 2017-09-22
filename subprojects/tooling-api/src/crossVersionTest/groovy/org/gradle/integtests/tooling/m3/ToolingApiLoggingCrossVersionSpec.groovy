@@ -49,7 +49,7 @@ task log {
             build.standardOutput = output
             build.forTasks("log")
             build.run(resultHandler)
-            if (server.waitFor(false)) {
+            if (server.waitFor(false, 60)) {
                 ConcurrentTestUtil.poll {
                     // Need to poll, as logging output is delivered asynchronously to client
                     assert output.toString().contains(waitingMessage)

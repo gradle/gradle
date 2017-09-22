@@ -55,7 +55,7 @@ abstract class AbstractCopyTaskContractTest extends AbstractConventionTaskTest {
         task.from fromSrcDir
         task.into intoBuildDir
         task.eachFile closureInvocation.closure
-        task.execute()
+        execute(task)
 
         assert closureInvocation.wasCalled(1)
         assert closureInvocation.files.containsAll(fromPropertiesFile)
@@ -72,7 +72,7 @@ abstract class AbstractCopyTaskContractTest extends AbstractConventionTaskTest {
 
         task.from(project.fileTree(dir: fromSrcDir).matching { include 'conf/file.properties' }) { eachFile closureInvocation.closure }
         task.into intoBuildDir
-        task.execute()
+        execute(task)
 
         assert closureInvocation.wasCalled(1)
         assert closureInvocation.files.contains(fromPropertiesFile)
@@ -100,7 +100,7 @@ abstract class AbstractCopyTaskContractTest extends AbstractConventionTaskTest {
         private final Closure closure
         private final List<String> files = []
 
-        public EachFileClosureInvocation() {
+        EachFileClosureInvocation() {
             closure = {
                 ++calls
                 files << it.file

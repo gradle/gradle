@@ -55,15 +55,6 @@ public class MapValueSnapshot implements ValueSnapshot, Isolatable<Map> {
     }
 
     @Override
-    public ValueSnapshot isolatableSnapshot(Object value, ValueSnapshotter snapshotter) {
-        ValueSnapshot newSnapshot = snapshotter.isolatableSnapshot(value);
-        if (equals(newSnapshot)) {
-            return this;
-        }
-        return newSnapshot;
-    }
-
-    @Override
     public boolean equals(Object obj) {
         if (obj == this) {
             return true;

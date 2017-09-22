@@ -18,6 +18,7 @@ package org.gradle.caching.internal.tasks;
 
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter;
@@ -25,6 +26,7 @@ import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Map;
 import java.util.SortedSet;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -40,10 +42,10 @@ public class GZipTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Override
-    public PackResult pack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException {
+    public PackResult pack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, Map<String, Map<String, FileContentSnapshot>> outputFiles, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException {
         GZIPOutputStream gzipOutput = createGzipOutputStream(output);
         try {
-            return delegate.pack(propertySpecs, gzipOutput, writeOrigin);
+            return delegate.pack(propertySpecs, outputFiles, gzipOutput, writeOrigin);
         } finally {
             IOUtils.closeQuietly(gzipOutput);
         }

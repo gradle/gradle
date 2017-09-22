@@ -19,7 +19,6 @@
 
 ext.commitId = 'master'
 
-apply from: "https://raw.githubusercontent.com/gradle/gradle/${commitId}/gradle/taskCacheDetailedStatsInit.gradle"
 apply from: "https://raw.githubusercontent.com/gradle/gradle/${commitId}/gradle/overlappingTaskOutputsStatsInit.gradle"
 rootProject {
     apply from: "https://raw.githubusercontent.com/gradle/gradle/${commitId}/gradle/taskCacheBuildScanUserData.gradle"

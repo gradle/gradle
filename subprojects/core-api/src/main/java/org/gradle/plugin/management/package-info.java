@@ -19,4 +19,5 @@
  * @since 3.5
  */
 @org.gradle.api.Incubating
+@org.gradle.api.NonNullApi
 package org.gradle.plugin.management;

@@ -17,4 +17,5 @@
 package org.gradle.api.internal.tasks;
 
 public interface TaskOutputFilePropertySpec extends TaskFilePropertySpec {
+    OutputType getOutputType();
 }

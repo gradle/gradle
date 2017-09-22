@@ -110,13 +110,13 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
                     public Integer call() throws Exception {
                         return spec.getDirMode();
                     }
-                });
+                }).optional(true);
                 getInputs().property(specPropertyName + ".fileMode", new Callable<Integer>() {
                     @Override
                     public Integer call() throws Exception {
                         return spec.getFileMode();
                     }
-                });
+                }).optional(true);
                 getInputs().property(specPropertyName + ".filteringCharset", new Callable<String>() {
                     @Override
                     public String call() throws Exception {

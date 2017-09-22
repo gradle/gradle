@@ -15,6 +15,7 @@
  */
 
 package org.gradle.language.objectivec.tasks
+
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.WorkResult
 import org.gradle.language.base.internal.compile.Compiler
@@ -25,34 +26,34 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCCompileSpec
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import org.junit.Rule
-import spock.lang.Specification
 
-class ObjectiveCCompileTest extends Specification {
-    @Rule
-    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+class ObjectiveCCompileTest extends AbstractProjectBuilderSpec {
 
-    ObjectiveCCompile objCCompile = TestUtil.create(testDir).task(ObjectiveCCompile)
+    ObjectiveCCompile objCCompile
     def toolChain = Mock(NativeToolChainInternal)
     def platform = Mock(NativePlatformInternal)
     def platformToolChain = Mock(PlatformToolProvider)
     Compiler<ObjectiveCCompileSpec> objCCompiler = Mock(Compiler)
     def pch = Mock(PreCompiledHeader)
 
+    def setup() {
+        objCCompile = TestUtil.createTask(ObjectiveCCompile, project)
+    }
+
     def "executes using the C Compiler"() {
-        def sourceFile = testDir.createFile("sourceFile")
+        def sourceFile = temporaryFolder.createFile("sourceFile")
         def result = Mock(WorkResult)
         when:
         objCCompile.toolChain = toolChain
         objCCompile.targetPlatform = platform
         objCCompile.compilerArgs = ["arg"]
         objCCompile.macros = [def: "value"]
-        objCCompile.objectFileDir = testDir.file("outputFile")
+        objCCompile.objectFileDir = temporaryFolder.file("outputFile")
         objCCompile.source sourceFile
         objCCompile.setPreCompiledHeader pch
-        objCCompile.execute()
+        execute(objCCompile)
 
         then:
         _ * toolChain.outputType >> "objc"
@@ -62,8 +63,8 @@ class ObjectiveCCompileTest extends Specification {
         1 * toolChain.select(platform) >> platformToolChain
         1 * platformToolChain.newCompiler({ ObjectiveCCompileSpec.class.isAssignableFrom(it) }) >> objCCompiler
         pch.includeString >> "header"
-        pch.prefixHeaderFile >> testDir.file("prefixHeader").createFile()
-        pch.objectFile >> testDir.file("pchObjectFile").createFile()
+        pch.prefixHeaderFile >> temporaryFolder.file("prefixHeader").createFile()
+        pch.objectFile >> temporaryFolder.file("pchObjectFile").createFile()
         pch.pchObjects >> new SimpleFileCollection()
         1 * objCCompiler.execute({ ObjectiveCCompileSpec spec ->
             assert spec.sourceFiles*.name == ["sourceFile"]

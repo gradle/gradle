@@ -16,7 +16,7 @@
 
 package org.gradle.play.internal.run
 
-import org.gradle.deployment.Deployment
+import org.gradle.deployment.internal.Deployment
 import spock.lang.Specification
 
 class PlayApplicationDeploymentHandleTest extends Specification {

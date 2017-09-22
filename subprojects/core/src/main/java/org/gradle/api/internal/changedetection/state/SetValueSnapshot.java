@@ -53,15 +53,6 @@ public class SetValueSnapshot implements ValueSnapshot, Isolatable<Set> {
         return newSnapshot;
     }
 
-    @Override
-    public ValueSnapshot isolatableSnapshot(Object value, ValueSnapshotter snapshotter) {
-        ValueSnapshot newSnapshot = snapshotter.isolatableSnapshot(value);
-        if (isEqualSetValueSnapshot(newSnapshot)) {
-            return this;
-        }
-        return newSnapshot;
-    }
-
     private boolean isEqualSetValueSnapshot(ValueSnapshot newSnapshot) {
         if (newSnapshot instanceof SetValueSnapshot) {
             SetValueSnapshot other = (SetValueSnapshot) newSnapshot;

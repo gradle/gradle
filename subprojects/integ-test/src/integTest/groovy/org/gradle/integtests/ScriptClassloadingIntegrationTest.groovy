@@ -44,9 +44,7 @@ class ScriptClassloadingIntegrationTest extends AbstractIntegrationSpec {
                 buildscript {
                     File searchDir = project.projectDir
                     def version = new File(searchDir, 'version.txt').text
-                    repositories {
-                        mavenCentral()
-                    }
+                    ${mavenCentralRepository()}
                     dependencies {
                         // Dynamically changing the classpath here surfaces problems with the ClassLoaderCache
                         classpath "org.apache.commons:commons-lang3:\${version}"

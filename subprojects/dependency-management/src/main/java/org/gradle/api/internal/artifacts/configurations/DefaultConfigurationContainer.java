@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.UnknownConfigurationException;
-import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
+import org.gradle.api.internal.AbstractValidatingNamedDomainObjectContainer;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -35,6 +35,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultRe
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskResolver;
+import org.gradle.vcs.internal.VcsMappingsInternal;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerManager;
@@ -45,7 +46,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 import java.util.Collection;
 import java.util.Set;
 
-public class DefaultConfigurationContainer extends AbstractNamedDomainObjectContainer<Configuration>
+public class DefaultConfigurationContainer extends AbstractValidatingNamedDomainObjectContainer<Configuration>
     implements ConfigurationContainerInternal, ConfigurationsProvider {
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
 
@@ -69,8 +70,11 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
                                          final Instantiator instantiator, DomainObjectContext context, ListenerManager listenerManager,
                                          DependencyMetaDataProvider dependencyMetaDataProvider, ProjectAccessListener projectAccessListener,
                                          ProjectFinder projectFinder, ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder,
-                                         FileCollectionFactory fileCollectionFactory, final DependencySubstitutionRules globalDependencySubstitutionRules,
-                                         final ComponentIdentifierFactory componentIdentifierFactory, BuildOperationExecutor buildOperationExecutor,
+                                         FileCollectionFactory fileCollectionFactory,
+                                         final DependencySubstitutionRules globalDependencySubstitutionRules,
+                                         final VcsMappingsInternal vcsMappingsInternal,
+                                         final ComponentIdentifierFactory componentIdentifierFactory,
+                                         BuildOperationExecutor buildOperationExecutor,
                                          TaskResolver taskResolver,
                                          ImmutableAttributesFactory attributesFactory,
                                          final ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
@@ -89,7 +93,7 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
         resolutionStrategyFactory = new Factory<ResolutionStrategyInternal>() {
             @Override
             public ResolutionStrategyInternal create() {
-                return instantiator.newInstance(DefaultResolutionStrategy.class, globalDependencySubstitutionRules, componentIdentifierFactory, moduleIdentifierFactory);
+                return instantiator.newInstance(DefaultResolutionStrategy.class, globalDependencySubstitutionRules, vcsMappingsInternal, componentIdentifierFactory, moduleIdentifierFactory);
             }
         };
         this.rootComponentMetadataBuilder = new DefaultRootComponentMetadataBuilder(dependencyMetaDataProvider, componentIdentifierFactory, moduleIdentifierFactory, projectFinder, configurationComponentMetaDataBuilder, this);

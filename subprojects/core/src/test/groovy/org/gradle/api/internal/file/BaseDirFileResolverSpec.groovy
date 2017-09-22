@@ -193,6 +193,8 @@ The following types/formats are supported:
   - A String or CharSequence URI, for example 'file:/usr/include'.
   - A File instance.
   - A Path instance.
+  - A Directory instance.
+  - A RegularFile instance.
   - A URI or URL instance.""")
     }
 

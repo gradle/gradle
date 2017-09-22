@@ -58,12 +58,12 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends AbstractIntegrat
 
         when:
         executer.withStackTraceChecksDisabled()
-        executer.withFullDeprecationStackTraceDisabled()
+        executer.withStacktraceDisabled()
         withBuildCache().succeeds "customTask"
 
         then:
         output =~ /Could not store entry .* for task ':customTask' in remote build cache/
-        output =~ /.*org\.gradle\.caching\.BuildCacheException: Unable to store entry at .*: ${errorPattern}/
+        output =~ /Unable to store entry at .*: ${errorPattern}/
     }
 
     private void startServer() {

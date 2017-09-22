@@ -32,11 +32,6 @@ public class ErrorHandlingTaskStateChanges implements TaskStateChanges {
     }
 
     @Override
-    public void snapshotAfterTask() {
-        delegate.snapshotAfterTask();
-    }
-
-    @Override
     public Iterator<TaskStateChange> iterator() {
         final Iterator<TaskStateChange> iterator;
         try {

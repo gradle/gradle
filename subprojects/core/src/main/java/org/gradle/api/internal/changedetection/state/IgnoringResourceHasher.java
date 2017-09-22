@@ -17,11 +17,11 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.hash.HashCode;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.pattern.PathMatcher;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.hash.HashCode;
 
 import java.io.IOException;
 import java.io.InputStream;

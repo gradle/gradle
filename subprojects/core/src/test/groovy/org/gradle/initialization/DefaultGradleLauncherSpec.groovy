@@ -49,12 +49,13 @@ import spock.lang.Specification
 import static org.gradle.util.Path.path
 
 class DefaultGradleLauncherSpec extends Specification {
-    def initScriptHandlerMock = Mock(InitScriptHandler.class)
-    def settingsLoaderMock = Mock(SettingsLoader.class)
-    def taskExecuterMock = Mock(TaskGraphExecuter.class)
-    def buildConfigurerMock = Mock(BuildConfigurer.class)
-    def buildBroadcaster = Mock(BuildListener.class)
-    def buildExecuter = Mock(BuildExecuter.class)
+    def initScriptHandlerMock = Mock(InitScriptHandler)
+    def settingsLoaderMock = Mock(SettingsLoader)
+    def buildLoaderMock = Mock(BuildLoader)
+    def taskExecuterMock = Mock(TaskGraphExecuter)
+    def buildConfigurerMock = Mock(BuildConfigurer)
+    def buildBroadcaster = Mock(BuildListener)
+    def buildExecuter = Mock(BuildExecuter)
     def buildConfigurationActionExecuter = Mock(BuildConfigurationActionExecuter.class)
     def buildScopeServices = Mock(ServiceRegistry)
     def taskArtifactStateCacheAccess = Mock(TaskHistoryStore)
@@ -127,7 +128,7 @@ class DefaultGradleLauncherSpec extends Specification {
     }
 
     DefaultGradleLauncher launcher() {
-        return new DefaultGradleLauncher(gradleMock, initScriptHandlerMock, settingsLoaderMock,
+        return new DefaultGradleLauncher(gradleMock, initScriptHandlerMock, settingsLoaderMock, buildLoaderMock,
             buildConfigurerMock, exceptionAnalyserMock, buildBroadcaster,
             modelListenerMock, buildCompletionListener, buildOperationExecutor, buildConfigurationActionExecuter, buildExecuter,
             buildServices, [otherService])
@@ -180,6 +181,7 @@ class DefaultGradleLauncherSpec extends Specification {
         expectSettingsBuilt()
         expectBuildListenerCallbacks()
 
+        1 * buildLoaderMock.load(settingsMock, gradleMock)
         1 * buildConfigurerMock.configure(gradleMock)
 
         DefaultGradleLauncher gradleLauncher = launcher()

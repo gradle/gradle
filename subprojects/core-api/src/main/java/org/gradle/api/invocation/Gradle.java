@@ -29,6 +29,7 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.internal.HasInternalProtocol;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 
@@ -68,6 +69,7 @@ public interface Gradle extends PluginAware {
      *
      * @return The home directory. May return null.
      */
+    @Nullable
     File getGradleHomeDir();
 
     /**
@@ -75,6 +77,7 @@ public interface Gradle extends PluginAware {
      *
      * @return The parent build. May return null.
      */
+    @Nullable
     Gradle getParent();
 
     /**

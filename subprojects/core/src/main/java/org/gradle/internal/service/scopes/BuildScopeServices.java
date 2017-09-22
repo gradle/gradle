@@ -98,7 +98,6 @@ import org.gradle.groovy.scripts.internal.FileCacheBackedScriptClassCompiler;
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildLoader;
-import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.initialization.DefaultClassLoaderScopeRegistry;
@@ -109,6 +108,7 @@ import org.gradle.initialization.IGradlePropertiesLoader;
 import org.gradle.initialization.InitScriptHandler;
 import org.gradle.initialization.InstantiatingBuildLoader;
 import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.initialization.NotifyingBuildLoader;
 import org.gradle.initialization.NotifyingSettingsProcessor;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.ProjectPropertySettingBuildLoader;
@@ -131,6 +131,8 @@ import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.composite.CompositeContextBuilder;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -144,7 +146,8 @@ import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.buildevents.BuildStartedTime;
+import org.gradle.internal.time.Clock;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
@@ -204,10 +207,16 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultGradlePropertiesLoader(get(StartParameter.class));
     }
 
-    protected BuildLoader createBuildLoader() {
-        return new ProjectPropertySettingBuildLoader(
-            get(IGradlePropertiesLoader.class),
-            new InstantiatingBuildLoader(get(IProjectFactory.class)));
+    protected BuildLoader createBuildLoader(IGradlePropertiesLoader propertiesLoader, IProjectFactory projectFactory, BuildOperationExecutor buildOperationExecutor) {
+        return new NotifyingBuildLoader(
+            new ProjectPropertySettingBuildLoader(
+                propertiesLoader,
+                new InstantiatingBuildLoader(
+                    projectFactory
+                )
+            ),
+            buildOperationExecutor
+        );
     }
 
     protected ProjectEvaluator createProjectEvaluator(BuildOperationExecutor buildOperationExecutor, CachingServiceLocator cachingServiceLocator, ScriptPluginFactory scriptPluginFactory) {
@@ -291,12 +300,14 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(PluginRepositoryRegistry.class),
             get(PluginRepositoryFactory.class),
             get(ProviderFactory.class),
-            get(TextResourceLoader.class));
+            get(TextResourceLoader.class),
+            get(StreamHasher.class),
+            get(FileHasher.class));
     }
 
     protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, NestedBuildFactory nestedBuildFactory,
                                                                 ClassLoaderScopeRegistry classLoaderScopeRegistry, CacheRepository cacheRepository,
-                                                                BuildLoader buildLoader, BuildOperationExecutor buildOperationExecutor,
+                                                                BuildOperationExecutor buildOperationExecutor,
                                                                 CachedClasspathTransformer cachedClasspathTransformer,
                                                                 CachingServiceLocator cachingServiceLocator,
                                                                 CompositeContextBuilder compositeContextBuilder,
@@ -314,8 +325,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                     PluginsProjectConfigureActions.of(
                         BuildSrcProjectConfigurationAction.class,
                         cachingServiceLocator))),
-            buildLoader, compositeContextBuilder, includedBuildFactory
-        );
+            compositeContextBuilder,
+            includedBuildFactory);
     }
 
     protected InitScriptHandler createInitScriptHandler(ScriptPluginFactory scriptPluginFactory, ScriptHandlerFactory scriptHandlerFactory, BuildOperationExecutor buildOperationExecutor) {
@@ -372,7 +383,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected ProfileEventAdapter createProfileEventAdapter() {
-        return new ProfileEventAdapter(get(BuildRequestMetaData.class), get(TimeProvider.class), get(ListenerManager.class).getBroadcaster(ProfileListener.class));
+        return new ProfileEventAdapter(get(BuildStartedTime.class), get(Clock.class), get(ListenerManager.class).getBroadcaster(ProfileListener.class));
     }
 
     protected PluginRegistry createPluginRegistry(ClassLoaderScopeRegistry scopeRegistry, PluginInspector pluginInspector) {

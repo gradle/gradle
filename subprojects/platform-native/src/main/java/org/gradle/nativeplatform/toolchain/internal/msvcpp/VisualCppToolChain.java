@@ -20,6 +20,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.VisualCpp;
@@ -50,6 +51,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
     private final UcrtLocator ucrtLocator;
     private final Instantiator instantiator;
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
+    private final WorkerLeaseService workerLeaseService;
 
     private File installDir;
     private File ucrtDir;
@@ -60,7 +62,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
     private ToolChainAvailability availability;
 
     public VisualCppToolChain(String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory,
-                              CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, VisualStudioLocator visualStudioLocator, WindowsSdkLocator windowsSdkLocator, UcrtLocator ucrtLocator, Instantiator instantiator) {
+                              CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, VisualStudioLocator visualStudioLocator, WindowsSdkLocator windowsSdkLocator, UcrtLocator ucrtLocator, Instantiator instantiator, WorkerLeaseService workerLeaseService) {
         super(name, buildOperationExecutor, operatingSystem, fileResolver);
         this.name = name;
         this.operatingSystem = operatingSystem;
@@ -70,6 +72,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         this.windowsSdkLocator = windowsSdkLocator;
         this.ucrtLocator = ucrtLocator;
         this.instantiator = instantiator;
+        this.workerLeaseService = workerLeaseService;
     }
 
     @Override
@@ -119,7 +122,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         DefaultVisualCppPlatformToolChain configurableToolChain = instantiator.newInstance(DefaultVisualCppPlatformToolChain.class, targetPlatform, instantiator);
         configureActions.execute(configurableToolChain);
 
-        return new VisualCppPlatformToolProvider(buildOperationExecutor, targetPlatform.getOperatingSystem(), configurableToolChain.tools, visualCpp, windowsSdk, ucrt, targetPlatform, execActionFactory, compilerOutputFileNamingSchemeFactory);
+        return new VisualCppPlatformToolProvider(buildOperationExecutor, targetPlatform.getOperatingSystem(), configurableToolChain.tools, visualCpp, windowsSdk, ucrt, targetPlatform, execActionFactory, compilerOutputFileNamingSchemeFactory, workerLeaseService);
     }
 
     private ToolChainAvailability getAvailability() {
@@ -136,11 +139,13 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
             availability.unavailable("Visual Studio is not available on this operating system.");
             return;
         }
+
         VisualStudioLocator.SearchResult visualStudioSearchResult = visualStudioLocator.locateDefaultVisualStudioInstall(installDir);
         availability.mustBeAvailable(visualStudioSearchResult);
         if (visualStudioSearchResult.isAvailable()) {
             visualCpp = visualStudioSearchResult.getVisualStudio().getVisualCpp();
         }
+
         WindowsSdkLocator.SearchResult windowsSdkSearchResult = windowsSdkLocator.locateWindowsSdks(windowsSdkDir);
         availability.mustBeAvailable(windowsSdkSearchResult);
         if (windowsSdkSearchResult.isAvailable()) {
@@ -149,10 +154,10 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
 
         // Universal CRT is required only for VS2015
         if (isVisualCpp2015()) {
-            UcrtLocator.SearchResult ucrtSearchResult = ucrtLocator.locateUcrts(ucrtDir);
+            WindowsKitComponentLocator.SearchResult<Ucrt> ucrtSearchResult = ucrtLocator.locateComponents(ucrtDir);
             availability.mustBeAvailable(ucrtSearchResult);
             if (ucrtSearchResult.isAvailable()) {
-                ucrt = ucrtSearchResult.getUcrt();
+                ucrt = ucrtSearchResult.getComponent();
             }
         }
 

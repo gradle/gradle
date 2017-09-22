@@ -21,6 +21,7 @@ import com.google.common.base.Preconditions;
 import java.util.concurrent.TimeUnit;
 
 class DefaultCountdownTimer extends DefaultTimer implements CountdownTimer {
+
     private final long timeoutMillis;
 
     DefaultCountdownTimer(TimeSource timeSource, long timeout, TimeUnit unit) {
@@ -37,5 +38,10 @@ class DefaultCountdownTimer extends DefaultTimer implements CountdownTimer {
     @Override
     public long getRemainingMillis() {
         return Math.max(timeoutMillis - getElapsedMillis(), 0);
+    }
+
+    @Override
+    public long getTimeoutMillis() {
+        return timeoutMillis;
     }
 }

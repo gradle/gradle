@@ -225,7 +225,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         when:
         buildFile << """
             apply plugin: "java"
-            repositories.mavenCentral()
+            ${mavenCentralRepository()}
             dependencies { testCompile "$dependency" }
             test { $framework() }
         """
@@ -251,7 +251,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
                 apply plugin:'java'
-                repositories{ mavenCentral() }
+                ${mavenCentralRepository()}
 
                 sourceSets{
 	                othertests{
@@ -314,9 +314,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         when:
         buildScript """
             apply plugin: 'java'
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
             configurations { first {}; last {} }
             dependencies {
                 // guarantee ordering
@@ -356,9 +354,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         when:
         buildScript """
             apply plugin: 'java'
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
             dependencies {
                 testCompile 'junit:junit:4.12'
             }
@@ -405,9 +401,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             apply plugin:'java'
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
             dependencies {
                 testCompile 'junit:junit:4.12'
             }

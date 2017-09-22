@@ -18,21 +18,21 @@ package org.gradle.api.internal.tasks.testing.junit.report
 import org.gradle.api.internal.tasks.testing.BuildableTestResultsProvider
 import org.gradle.api.internal.tasks.testing.junit.result.AggregateTestResultsProvider
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
-import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
-import org.gradle.internal.operations.DefaultBuildOperationIdFactory
-import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.ParallelismConfigurationManager
+import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.DefaultBuildOperationIdFactory
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
 import org.gradle.internal.progress.BuildOperationListener
 import org.gradle.internal.progress.DefaultBuildOperationExecutor
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.internal.resources.ResourceLockCoordinationService
-import org.gradle.internal.time.TimeProvider
+import org.gradle.internal.time.Clock
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.util.ConfigureUtil
 import org.junit.Rule
 import spock.lang.Specification
@@ -51,7 +51,7 @@ class DefaultTestReportTest extends Specification {
     def reportWithMaxThreads(int numThreads) {
         ParallelismConfigurationManager parallelExecutionManager = new ParallelismConfigurationManagerFixture(false, numThreads)
         buildOperationExecutor = new DefaultBuildOperationExecutor(
-            Mock(BuildOperationListener), Mock(TimeProvider), new NoOpProgressLoggerFactory(),
+            Mock(BuildOperationListener), Mock(Clock), new NoOpProgressLoggerFactory(),
             new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), Mock(ResourceLockCoordinationService), parallelExecutionManager, new DefaultBuildOperationIdFactory())
         return new DefaultTestReport(buildOperationExecutor)
     }

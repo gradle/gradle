@@ -203,9 +203,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
                 id 'jvm-component'
                 id 'scala-lang'
             }
-            repositories{
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
         """
     }

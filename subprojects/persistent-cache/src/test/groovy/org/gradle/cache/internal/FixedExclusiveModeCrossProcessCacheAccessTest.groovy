@@ -38,7 +38,7 @@ class FixedExclusiveModeCrossProcessCacheAccessTest extends Specification {
         cacheAccess.open()
 
         then:
-        1 * lockManager.lock(file, _, _) >> lock
+        1 * lockManager.lock(file, _, _, "", _) >> lock
 
         then:
         1 * initAction.requiresInitialization(lock) >> false
@@ -55,7 +55,7 @@ class FixedExclusiveModeCrossProcessCacheAccessTest extends Specification {
         cacheAccess.open()
 
         then:
-        1 * lockManager.lock(file, _, _) >> lock
+        1 * lockManager.lock(file, _, _, "", _) >> lock
 
         then:
         1 * initAction.requiresInitialization(lock) >> true
@@ -79,7 +79,7 @@ class FixedExclusiveModeCrossProcessCacheAccessTest extends Specification {
         e == failure
 
         and:
-        1 * lockManager.lock(file, _, _) >> lock
+        1 * lockManager.lock(file, _, _, "", _) >> lock
 
         then:
         1 * initAction.requiresInitialization(lock) >> true
@@ -101,7 +101,7 @@ class FixedExclusiveModeCrossProcessCacheAccessTest extends Specification {
         def lock = Mock(FileLock)
 
         given:
-        lockManager.lock(file, _, _) >> lock
+        lockManager.lock(file, _, _, "", _) >> lock
         cacheAccess.open()
 
         when:

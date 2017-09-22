@@ -16,39 +16,54 @@
 package org.gradle.api.internal.tasks.execution
 
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.TaskOutputsInternal
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
+import org.gradle.api.internal.tasks.TaskValidationContext
 import org.gradle.api.tasks.TaskValidationException
 import spock.lang.Specification
 
+import static org.gradle.api.internal.tasks.TaskValidationContext.Severity.ERROR
+import static org.gradle.api.internal.tasks.TaskValidationContext.Severity.WARNING
+
 class ValidatingTaskExecuterTest extends Specification {
-    final TaskExecuter target = Mock()
-    final TaskInternal task = Mock()
-    final TaskStateInternal state = Mock()
-    final TaskExecutionContext executionContext = Mock()
-    final TaskValidator validator = Mock()
+    def target = Mock(TaskExecuter)
+    def task = Mock(TaskInternal)
+    def project = Stub(ProjectInternal)
+    def state = Mock(TaskStateInternal)
+    def inputs = Mock(TaskInputsInternal)
+    def outputs = Mock(TaskOutputsInternal)
+    def executionContext = Mock(TaskExecutionContext)
     final ValidatingTaskExecuter executer = new ValidatingTaskExecuter(target)
 
-    def executesTaskWhenThereAreNoViolations() {
+    def "executes task when there are no violations"() {
         when:
         executer.execute(task, state, executionContext)
 
         then:
-        _ * task.validators >> [validator]
-        1 * validator.validate(task, !null)
+        1 * task.getProject() >> project
+        1 * task.getInputs() >> inputs
+        1 * inputs.validate(_)
+        1 * task.getOutputs() >> outputs
+        1 * outputs.validate(_)
         1 * target.execute(task, state, executionContext)
         0 * _
     }
 
-    def failsTaskWhenThereIsAViolation() {
+    def "fails task when there is a violation"() {
         when:
         executer.execute(task, state, executionContext)
 
         then:
-        _ * task.validators >> [validator]
-        1 * validator.validate(task, !null) >> { it[1] << 'failure' }
+        1 * task.getProject() >> project
+        1 * task.getInputs() >> inputs
+        1 * inputs.validate(_) >> { TaskValidationContext context -> context.recordValidationMessage(ERROR,'failure') }
+        1 * task.getOutputs() >> outputs
+        1 * outputs.validate(_)
         1 * state.setOutcome(!null as Throwable) >> {
             def failure = it[0]
             assert failure instanceof TaskValidationException
@@ -59,13 +74,16 @@ class ValidatingTaskExecuterTest extends Specification {
         0 * _
     }
 
-    def failsTaskWhenThereAreMultipleViolations() {
+    def "fails task when there are multiple violations"() {
         when:
         executer.execute(task, state, executionContext)
 
         then:
-        _ * task.validators >> [validator]
-        1 * validator.validate(task, !null) >> { it[1] << 'failure1'; it[1] << 'failure2' }
+        1 * task.getProject() >> project
+        1 * task.getInputs() >> inputs
+        1 * inputs.validate(_) >> { TaskValidationContext context -> context.recordValidationMessage(ERROR, 'failure1') }
+        1 * task.getOutputs() >> outputs
+        1 * outputs.validate(_) >> { TaskValidationContext context -> context.recordValidationMessage(ERROR, 'failure2') }
         1 * state.setOutcome(!null as Throwable) >> {
             def failure = it[0]
             assert failure instanceof TaskValidationException
@@ -75,6 +93,20 @@ class ValidatingTaskExecuterTest extends Specification {
             assert failure.causes[1] instanceof InvalidUserDataException
             assert failure.causes[1].message == 'failure2'
         }
+        0 * _
+    }
+
+    def "executes task when there are multiple warnings"() {
+        when:
+        executer.execute(task, state, executionContext)
+
+        then:
+        1 * task.getProject() >> project
+        1 * task.getInputs() >> inputs
+        1 * inputs.validate(_) >> { TaskValidationContext context -> context.recordValidationMessage(WARNING, 'warning1') }
+        1 * task.getOutputs() >> outputs
+        1 * outputs.validate(_) >> { TaskValidationContext context -> context.recordValidationMessage(WARNING, 'warning2') }
+        1 * target.execute(task, state, executionContext)
         0 * _
     }
 }

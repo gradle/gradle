@@ -95,6 +95,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         output.count('\tat') == 3
+        output.count('(Run with --stacktrace to get the full stack trace of this deprecation warning.)') == 3
     }
 
     def 'DeprecatedPlugin and DeprecatedTask - with full stacktrace.'() {
@@ -129,13 +130,14 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         output.count('\tat') > 3
+        output.count('(Run with --stacktrace to get the full stack trace of this deprecation warning.)') == 0
     }
 
     def 'DeprecatedPlugin from init script - without full stacktrace.'() {
         given:
         def initScript = file("init.gradle") << """
             allprojects {
-                DeprecationLogger.nagUserOfPluginReplacedWithExternalOne("DeprecatedPlugin", "Foobar") // line 2
+                org.gradle.util.DeprecationLogger.nagUserOfPluginReplacedWithExternalOne("DeprecatedPlugin", "Foobar") // line 2
             }
         """.stripIndent()
 
@@ -151,6 +153,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         output.count(PLUGIN_DEPRECATION_MESSAGE) == 1
 
         output.count('\tat') == 1
+        output.count('(Run with --stacktrace to get the full stack trace of this deprecation warning.)') == 1
     }
 
     def 'DeprecatedPlugin from applied script - without full stacktrace.'() {
@@ -176,6 +179,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         output.count(PLUGIN_DEPRECATION_MESSAGE) == 1
 
         output.count('\tat') == 1
+        output.count('(Run with --stacktrace to get the full stack trace of this deprecation warning.)') == 1
     }
 
     def 'DeprecatedPlugin from applied script - with full stacktrace.'() {
@@ -201,5 +205,6 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         output.count(PLUGIN_DEPRECATION_MESSAGE) == 1
 
         output.count('\tat') > 1
+        output.count('(Run with --stacktrace to get the full stack trace of this deprecation warning.)') == 0
     }
 }

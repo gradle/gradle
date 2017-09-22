@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.internal.time;
 
-/**
- * A source for time values.
- */
-public interface TimeSource {
+import com.google.common.annotations.VisibleForTesting;
+
+@VisibleForTesting
+interface TimeSource {
+
     long currentTimeMillis();
+
     long nanoTime();
 
-    /**
-     * A time source backed by {@link System#currentTimeMillis()} and {@link System#nanoTime()}.
-     */
-    class True implements TimeSource {
+    TimeSource SYSTEM = new TimeSource() {
         @Override
         public long currentTimeMillis() {
             return System.currentTimeMillis();
@@ -35,32 +35,6 @@ public interface TimeSource {
         public long nanoTime() {
             return System.nanoTime();
         }
-    }
+    };
 
-    /**
-     * A time source with fixed values.
-     */
-    class Fixed implements TimeSource {
-        private final long millis;
-        private long nanos;
-
-        public Fixed(long millis, long nanos) {
-            this.millis = millis;
-            this.nanos = nanos;
-        }
-
-        public void setNanoTime(long nanos) {
-            this.nanos = nanos;
-        }
-
-        @Override
-        public long currentTimeMillis() {
-            return millis;
-        }
-
-        @Override
-        public long nanoTime() {
-            return nanos;
-        }
-    }
 }

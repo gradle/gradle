@@ -53,6 +53,13 @@ public interface BuildOperationFinishedNotification {
     Object getNotificationOperationParentId();
 
     /**
+     * The time that the operation finished.
+     *
+     * @since 4.2
+     */
+    long getNotificationOperationFinishedTimestamp();
+
+    /**
      * A structured object providing details about the operation that was performed.
      */
     Object getNotificationOperationDetails();

@@ -16,16 +16,44 @@
 
 package org.gradle.language.cpp.internal
 
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
-
 
 class DefaultCppLibraryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def library = new DefaultCppLibrary(TestFiles.fileOperations(tmpDir.testDirectory))
+    def fileOperations = TestFiles.fileOperations(tmpDir.testDirectory)
+    def providerFactory = new DefaultProviderFactory()
+    def api = Stub(TestConfiguration)
+    def configurations = Stub(ConfigurationContainer)
+    DefaultCppLibrary library
+
+    def setup() {
+        _ * configurations.create("api") >> api
+        _ * configurations.create(_) >> Stub(TestConfiguration)
+        library = new DefaultCppLibrary("main", TestUtil.objectFactory(), fileOperations, providerFactory, configurations)
+    }
+
+    def "has api configuration"() {
+        expect:
+        library.apiDependencies == api
+    }
+
+    def "has debug and release shared libraries"() {
+        expect:
+        library.debugSharedLibrary.name == "mainDebug"
+        library.debugSharedLibrary.debuggable
+        library.releaseSharedLibrary.name == "mainRelease"
+        !library.releaseSharedLibrary.debuggable
+        library.developmentBinary == library.debugSharedLibrary
+    }
 
     def "uses convention for public headers when nothing specified"() {
         def d = tmpDir.file("src/main/public")
@@ -51,17 +79,18 @@ class DefaultCppLibraryTest extends Specification {
         def d4 = tmpDir.file("src/main/d4")
 
         expect:
-        library.compileIncludePath.files as List == [defaultPublic, defaultPrivate]
+        library.debugSharedLibrary.compileIncludePath.files as List == [defaultPublic, defaultPrivate]
+        library.releaseSharedLibrary.compileIncludePath.files as List == [defaultPublic, defaultPrivate]
 
         library.publicHeaders.from(d1)
         library.privateHeaders.from(d2)
-        library.compileIncludePath.files as List == [d1, d2]
-
-        library.compileIncludePath.from(d3, d4)
-        library.compileIncludePath.files as List == [d1, d2, d3, d4]
+        library.debugSharedLibrary.compileIncludePath.files as List == [d1, d2]
+        library.releaseSharedLibrary.compileIncludePath.files as List == [d1, d2]
 
         library.publicHeaders.setFrom(d3)
-        library.compileIncludePath.files as List == [d3, d2, d4]
+        library.privateHeaders.from(d4)
+        library.debugSharedLibrary.compileIncludePath.files as List == [d3, d2, d4]
+        library.releaseSharedLibrary.compileIncludePath.files as List == [d3, d2, d4]
     }
 
     def "can query the header files of the library"() {
@@ -79,5 +108,36 @@ class DefaultCppLibraryTest extends Specification {
 
         library.privateHeaders.from(d1)
         library.headerFiles.files == [f3, f1, f2] as Set
+    }
+
+    def "can query the public header files of the library"() {
+        def d1 = tmpDir.createDir("d1")
+        def f1 = d1.createFile("a.h")
+        def f2 = d1.createFile("nested/b.h")
+        d1.createFile("ignore-me.cpp")
+        def f3 = tmpDir.createFile("src/main/public/c.h")
+        tmpDir.createFile("src/main/headers/ignore.h")
+        tmpDir.createFile("src/main/headers/ignore.cpp")
+        tmpDir.createFile("src/main/public/ignore.cpp")
+
+        expect:
+        library.publicHeaderFiles.files == [f3] as Set
+
+        library.publicHeaders.from(d1)
+        library.publicHeaderFiles.files == [f1, f2] as Set
+    }
+
+    def "uses component name to determine header directories"() {
+        def h1 = tmpDir.createFile("src/a/public")
+        def h2 = tmpDir.createFile("src/b/public")
+        def c1 = new DefaultCppLibrary("a", TestUtil.objectFactory(), fileOperations, providerFactory, configurations)
+        def c2 = new DefaultCppLibrary("b", TestUtil.objectFactory(), fileOperations, providerFactory, configurations)
+
+        expect:
+        c1.publicHeaderDirs.files == [h1] as Set
+        c2.publicHeaderDirs.files == [h2] as Set
+    }
+
+    interface TestConfiguration extends Configuration, FileCollectionInternal {
     }
 }

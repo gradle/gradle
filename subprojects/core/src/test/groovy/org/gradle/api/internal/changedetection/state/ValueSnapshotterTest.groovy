@@ -16,12 +16,17 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import org.gradle.api.provider.Provider
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
+import org.gradle.internal.hash.HashCode
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Specification
 
 class ValueSnapshotterTest extends Specification {
-    def snapshotter = new ValueSnapshotter(Stub(ClassLoaderHierarchyHasher))
+    def classLoaderHasher = Stub(ClassLoaderHierarchyHasher) {
+        getClassLoaderHash(_) >> HashCode.fromInt(123)
+    }
+    def snapshotter = new ValueSnapshotter(classLoaderHasher)
 
     def "creates snapshot for string"() {
         expect:
@@ -108,6 +113,16 @@ class ValueSnapshotterTest extends Specification {
         snapshot2 != snapshot1
     }
 
+    def "creates snapshot for list from empty list"() {
+        def snapshot1 = snapshotter.snapshot([])
+        def snapshot2 = snapshotter.snapshot(["123"], snapshot1)
+
+        expect:
+        snapshot2 instanceof ListValueSnapshot
+        snapshot2 == snapshotter.snapshot(["123"])
+        snapshot2 != snapshot1
+    }
+
     def "creates snapshot for set"() {
         expect:
         def snapshot1 = snapshotter.snapshot([] as Set)
@@ -169,6 +184,22 @@ class ValueSnapshotterTest extends Specification {
 
         // Not subclasses of `File`
         snapshotter.snapshot(new TestFile("abc")) != snapshot
+    }
+
+    def "creates snapshot for provider type"() {
+        def value = Stub(Provider)
+        value.get() >> "123"
+        def value2 = Stub(Provider)
+        value2.get() >> "123"
+        def value3 = Stub(Provider)
+        value3.get() >> "12"
+
+        expect:
+        def snapshot = snapshotter.snapshot(value)
+        snapshot instanceof ProviderSnapshot
+        snapshot == snapshotter.snapshot(value)
+        snapshot == snapshotter.snapshot(value2)
+        snapshot != snapshotter.snapshot(value3)
     }
 
     def "creates snapshot for serializable type"() {
@@ -396,6 +427,20 @@ class ValueSnapshotterTest extends Specification {
         snapshotter.snapshot(map3, snapshot4) == snapshotter.snapshot(map3)
     }
 
+    def "creates snapshot for provider type from candidate"() {
+        def value = Stub(Provider)
+        value.get() >> "123"
+        def value2 = Stub(Provider)
+        value2.get() >> "123"
+        def value3 = Stub(Provider)
+        value3.get() >> "12"
+
+        expect:
+        def snapshot = snapshotter.snapshot(value)
+        areTheSame(snapshot, value2)
+        areNotTheSame(snapshot, value3)
+    }
+
     def "creates snapshot for serializable type from candidate"() {
         expect:
         def snapshot = snapshotter.snapshot(new Bean(prop: "value"))
@@ -416,7 +461,9 @@ class ValueSnapshotterTest extends Specification {
     private void areNotTheSame(ValueSnapshot snapshot, Object value) {
         assert snapshotter.snapshot(value, snapshot) != snapshot
         assert snapshotter.snapshot(value) != snapshot
-        assert snapshotter.snapshot(value, snapshot) == snapshotter.snapshot(value)
+        def sn1 = snapshotter.snapshot(value, snapshot)
+        def sn2 = snapshotter.snapshot(value)
+        assert sn1 == sn2
     }
 
     static class Bean implements Serializable {

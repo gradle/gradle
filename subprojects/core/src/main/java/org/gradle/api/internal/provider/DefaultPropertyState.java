@@ -16,48 +16,72 @@
 
 package org.gradle.api.internal.provider;
 
-import com.google.common.base.Preconditions;
-import org.gradle.api.provider.PropertyState;
+import org.gradle.api.Transformer;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
-import java.util.concurrent.Callable;
+import javax.annotation.Nullable;
 
-import static org.gradle.api.internal.provider.AbstractProvider.NON_NULL_VALUE_EXCEPTION_MESSAGE;
+public class DefaultPropertyState<T> implements PropertyInternal<T> {
+    private final Class<T> type;
+    private Provider<? extends T> provider = Providers.notDefined();
 
-public class DefaultPropertyState<T> implements PropertyState<T> {
-    private static final Provider<Object> NULL_PROVIDER = new Provider<Object>() {
-        @Override
-        public Object get() {
-            throw new IllegalStateException(NON_NULL_VALUE_EXCEPTION_MESSAGE);
-        }
+    public DefaultPropertyState(Class<T> type) {
+        this.type = type;
+    }
 
-        @Override
-        public Object getOrNull() {
-            return null;
-        }
-
-        @Override
-        public boolean isPresent() {
-            return false;
-        }
-    };
-
-    private Provider<? extends T> provider = Cast.uncheckedCast(NULL_PROVIDER);
+    @Nullable
+    @Override
+    public Class<T> getType() {
+        return type;
+    }
 
     @Override
-    public void set(final T value) {
-        this.provider = new DefaultProvider<T>(new Callable<T>() {
-            @Override
-            public T call() throws Exception {
-                return value;
-            }
-        });
+    public void setFromAnyValue(Object object) {
+        if (object instanceof Provider) {
+            set((Provider<T>) object);
+        } else {
+            set((T) object);
+        }
+    }
+
+    @Override
+    public void set(T value) {
+        if (value == null) {
+            this.provider = Providers.notDefined();
+            return;
+        }
+        if (!type.isInstance(value)) {
+            throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using an instance of type %s.", type.getName(), value.getClass().getName()));
+        }
+        this.provider = Providers.of(value);
+    }
+
+    protected Provider<? extends T> getProvider() {
+        return provider;
     }
 
     @Override
     public void set(Provider<? extends T> provider) {
-        this.provider = Preconditions.checkNotNull(provider);
+        if (provider == null) {
+            throw new IllegalArgumentException("Cannot set the value of a property using a null provider.");
+        }
+        ProviderInternal<T> p = Cast.uncheckedCast(provider);
+        if (p.getType() != null && !type.isAssignableFrom(p.getType())) {
+            throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using a provider of type %s.", type.getName(), p.getType().getName()));
+        } else if (p.getType() == null) {
+            p = p.map(new Transformer<T, T>() {
+                @Override
+                public T transform(T t) {
+                    if (type.isInstance(t)) {
+                        return t;
+                    }
+                    throw new IllegalArgumentException(String.format("Cannot get the value of a property of type %s as the provider associated with this property returned a value of type %s.", type.getName(), t.getClass().getName()));
+                }
+            });
+        }
+
+        this.provider = p;
     }
 
     @Override
@@ -68,6 +92,21 @@ public class DefaultPropertyState<T> implements PropertyState<T> {
     @Override
     public T getOrNull() {
         return provider.getOrNull();
+    }
+
+    @Nullable
+    @Override
+    public T getOrElse(@Nullable T defaultValue) {
+        T t = provider.getOrNull();
+        if (t == null) {
+            return defaultValue;
+        }
+        return t;
+    }
+
+    @Override
+    public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super T> transformer) {
+        return new TransformBackedProvider<S, T>(transformer, this);
     }
 
     @Override

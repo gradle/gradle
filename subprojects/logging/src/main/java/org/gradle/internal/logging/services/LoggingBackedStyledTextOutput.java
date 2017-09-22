@@ -21,7 +21,7 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.text.AbstractLineChoppingStyledTextOutput;
 import org.gradle.internal.operations.BuildOperationIdentifierRegistry;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Clock;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,16 +34,16 @@ public class LoggingBackedStyledTextOutput extends AbstractLineChoppingStyledTex
     private final OutputEventListener listener;
     private final String category;
     private final LogLevel logLevel;
-    private final TimeProvider timeProvider;
+    private final Clock clock;
     private final StringBuilder buffer = new StringBuilder();
     private List<StyledTextOutputEvent.Span> spans = new ArrayList<StyledTextOutputEvent.Span>();
     private Style style = Style.Normal;
 
-    public LoggingBackedStyledTextOutput(OutputEventListener listener, String category, LogLevel logLevel, TimeProvider timeProvider) {
+    public LoggingBackedStyledTextOutput(OutputEventListener listener, String category, LogLevel logLevel, Clock clock) {
         this.listener = listener;
         this.category = category;
         this.logLevel = logLevel;
-        this.timeProvider = timeProvider;
+        this.clock = clock;
     }
 
     protected void doStyleChange(Style style) {
@@ -65,7 +65,7 @@ public class LoggingBackedStyledTextOutput extends AbstractLineChoppingStyledTex
         spans.add(new StyledTextOutputEvent.Span(this.style, buffer.toString()));
         buffer.setLength(0);
         Object buildOperationId = BuildOperationIdentifierRegistry.getCurrentOperationIdentifier();
-        listener.onOutput(new StyledTextOutputEvent(timeProvider.getCurrentTime(), category, logLevel, buildOperationId, spans));
+        listener.onOutput(new StyledTextOutputEvent(clock.getCurrentTime(), category, logLevel, buildOperationId, spans));
         spans = new ArrayList<StyledTextOutputEvent.Span>();
     }
 }

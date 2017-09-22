@@ -38,6 +38,7 @@ import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveRe
 import java.util.Map;
 
 public class ErrorHandlingModuleComponentRepository implements ModuleComponentRepository {
+
     private final ModuleComponentRepository delegate;
     private final ErrorHandlingModuleComponentRepositoryAccess local;
     private final ErrorHandlingModuleComponentRepositoryAccess remote;

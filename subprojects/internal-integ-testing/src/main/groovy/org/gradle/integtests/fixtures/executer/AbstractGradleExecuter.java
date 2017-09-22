@@ -23,6 +23,7 @@ import com.google.common.io.CharSource;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClosureBackedAction;
@@ -35,18 +36,20 @@ import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
+import org.gradle.launcher.daemon.configuration.DaemonBuildOptionFactory;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
-import org.gradle.launcher.daemon.configuration.GradleProperties;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -63,6 +66,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.*;
@@ -79,6 +83,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         .provider(new GlobalScopeServices(true))
         .build();
     protected final static Set<String> PROPAGATED_SYSTEM_PROPERTIES = Sets.newHashSet();
+    private static final List<String> JDK7_PATHS = Arrays.asList("1.7", "jdk7", "-7-", "jdk-7", "7u");
 
     public static void propagateSystemProperty(String name) {
         PROPAGATED_SYSTEM_PROPERTIES.add(name);
@@ -87,6 +92,20 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private static final String DEBUG_SYSPROP = "org.gradle.integtest.debug";
     private static final String LAUNCHER_DEBUG_SYSPROP = "org.gradle.integtest.launcher.debug";
     private static final String PROFILE_SYSPROP = "org.gradle.integtest.profile";
+
+    private static final List<String> LOW_LEVELS = Arrays.asList(
+        "--info",
+        "--debug",
+        "--warn",
+        "-Dorg.gradle.logging.level=lifecycle",
+        "-Dorg.gradle.logging.level=info",
+        "-Dorg.gradle.logging.level=debug",
+        "-Dorg.gradle.logging.level=warn");
+
+    private static final List<String> HIGH_LEVELS = Arrays.asList(
+        "-q",
+        "--quiet",
+        "-Dorg.gradle.logging.level=quiet");
 
     protected static final List<String> DEBUG_ARGS = ImmutableList.of(
         "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
@@ -127,6 +146,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean requiresGradleDistribution;
     private boolean useOwnUserHomeServices;
     private boolean useRichConsole;
+    private boolean showStacktrace = true;
 
     private int expectedDeprecationWarnings;
     private boolean eagerClassLoaderCreationChecksOn = true;
@@ -335,6 +355,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (requireDaemon) {
             executer.requireDaemon();
         }
+        if (searchUpwards) {
+            executer.withSearchUpwards();
+        }
 
         executer.startBuildProcessInDebugger(debug);
         executer.startLauncherInDebugger(debugLauncher);
@@ -353,6 +376,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             executer.withRichConsole();
         }
 
+        if (!showStacktrace) {
+            executer.withStacktraceDisabled();
+        }
         return executer;
     }
 
@@ -708,6 +734,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
+    public GradleExecuter withStacktraceDisabled() {
+        showStacktrace = false;
+        return this;
+    }
+
     /**
      * Performs cleanup at completion of the test.
      */
@@ -791,7 +822,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                 allArgs.add("--no-daemon");
             }
         }
-        allArgs.add("--stacktrace");
+        if (showStacktrace) {
+            allArgs.add("--stacktrace");
+        }
         if (taskList) {
             allArgs.add("tasks");
         }
@@ -844,8 +877,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             properties.put("user.home", getUserHomeDir().getAbsolutePath());
         }
 
-        properties.put(GradleProperties.IDLE_TIMEOUT_PROPERTY, "" + (daemonIdleTimeoutSecs * 1000));
-        properties.put(GradleProperties.DAEMON_BASE_DIR_PROPERTY, daemonBaseDir.getAbsolutePath());
+        properties.put(DaemonBuildOptionFactory.IdleTimeoutOption.GRADLE_PROPERTY, "" + (daemonIdleTimeoutSecs * 1000));
+        properties.put(DaemonBuildOptionFactory.BaseDirOption.GRADLE_PROPERTY, daemonBaseDir.getAbsolutePath());
         if (!noExplicitNativeServicesDir) {
             properties.put(NativeServices.NATIVE_DIR_OVERRIDE, buildContext.getNativeServicesDir().getAbsolutePath());
         }
@@ -916,6 +949,56 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         } finally {
             finished();
         }
+    }
+
+    private boolean java7DeprecationWarningShouldExist() {
+        if (org.apache.commons.collections.CollectionUtils.containsAny(args, LOW_LEVELS)) {
+            return currentOrTargetIsJava7();
+        }
+        if (org.apache.commons.collections.CollectionUtils.containsAny(args, HIGH_LEVELS)) {
+            return false;
+        }
+        return currentOrTargetIsJava7();
+    }
+
+    private boolean currentOrTargetIsJava7() {
+        String javaHomeInProperties = javaHomeInProperties();
+        if (javaHomeInProperties != null) {
+            return isJava7Home(javaHomeInProperties);
+        } else if (getJavaHome().equals(Jvm.current().getJavaHome())) {
+            return JavaVersion.current().isJava7();
+        } else {
+            return isJava7Home(getJavaHome().toString());
+        }
+    }
+
+    private String javaHomeInProperties() {
+        File gradleProperties = new File(getWorkingDir(), "gradle.properties");
+        if (gradleProperties.isFile()) {
+            Properties properties = GUtil.loadProperties(gradleProperties);
+            if (properties.getProperty("org.gradle.java.home") != null) {
+                return properties.getProperty("org.gradle.java.home");
+            }
+        }
+        return null;
+    }
+
+    private boolean isJava7Home(String path){
+        for(String jdk7Path: JDK7_PATHS){
+            if(path.contains(jdk7Path)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isJava7DeprecationTruncatedDaemonLog(List<String> lines, int i, String line) {
+        // for forkingIntegrationTests running on Java 7, daemon exit log will fail the tests with following stdout:
+        // ----- Last  20 lines from daemon log file - daemon-6753.out.log -----
+        //    at org.gradle.launcher.daemon.server.exec.ForwardClientInput.execute(ForwardClientInput.java:72)
+        //    at org.gradle.launcher.daemon.server.api.DaemonCommandExecution.proceed(DaemonCommandExecution.java:120)
+        //    ...
+        return line.startsWith("----- Last  ") && i < lines.size() - 1 && STACK_TRACE_ELEMENT.matcher(lines.get(i + 1)).matches();
     }
 
     protected void finished() {
@@ -1047,9 +1130,26 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                     if (line.matches(".*use(s)? or override(s)? a deprecated API\\.")) {
                         // A javac warning, ignore
                         i++;
+                    } else if (line.contains(UnsupportedJavaRuntimeException.JAVA7_DEPRECATION_WARNING)) {
+                        if (!java7DeprecationWarningShouldExist()) {
+                            throw new AssertionError(String.format("%s line %d contains unexpected deprecation warning: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
+                        }
+                        // skip over stack trace
+                        i++;
+                        while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
+                            i++;
+                        }
+                    } else if (isJava7DeprecationTruncatedDaemonLog(lines, i, line)) {
+                        // skip over stack trace
+                        i++;
+                        while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
+                            i++;
+                        }
+                    } else if (isDeprecationMessageInHelpDescription(line)) {
+                        i++;
                     } else if (line.matches(".*\\s+deprecated.*")) {
                         if (checkDeprecations && expectedDeprecationWarnings <= 0) {
-                            throw new AssertionError(String.format("%s line %d contains a deprecation warning: %s%n=====%n%s%n=====%n", displayName, i+1, line, output));
+                            throw new AssertionError(String.format("%s line %d contains a deprecation warning: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
                         }
                         expectedDeprecationWarnings--;
                         // skip over stack trace
@@ -1057,13 +1157,17 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                         while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
                             i++;
                         }
-                    } else if (!expectStackTraces && STACK_TRACE_ELEMENT.matcher(line).matches() && i < lines.size()-1 && STACK_TRACE_ELEMENT.matcher(lines.get(i+1)).matches()) {
+                    } else if (!expectStackTraces && STACK_TRACE_ELEMENT.matcher(line).matches() && i < lines.size() - 1 && STACK_TRACE_ELEMENT.matcher(lines.get(i + 1)).matches()) {
                         // 2 or more lines that look like stack trace elements
-                        throw new AssertionError(String.format("%s line %d contains an unexpected stack trace: %s%n=====%n%s%n=====%n", displayName, i+1, line, output));
+                        throw new AssertionError(String.format("%s line %d contains an unexpected stack trace: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
                     } else {
                         i++;
                     }
                 }
+            }
+
+            private boolean isDeprecationMessageInHelpDescription(String s) {
+                return s.matches(".*\\[deprecated.*]");
             }
         };
     }

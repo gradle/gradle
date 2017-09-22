@@ -16,6 +16,7 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.DefaultBuildCancellationToken;
@@ -62,15 +63,19 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.IOException;
 
 public class DefaultConnection implements ConnectionVersion4, InternalConnection, BuildActionRunner,
     ConfigurableConnection, ModelBuilder, InternalBuildActionExecutor, InternalCancellableConnection, StoppableConnection, InternalTestExecutionConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
+    private static final String UNSUPPORT_MESAGE = "Support for clients using a tooling API version older than 2.0 was removed in Gradle 3.0. %sYou should upgrade your tooling API client to version 3.0 or later.";
+    private static final String DEPRECATION_MESSAGE = "Support for clients using a tooling API version older than 3.0 was deprecated and will be removed in Gradle 5.0. %sYou should upgrade your tooling API client to version 3.0 or later.\n";
+
     private static final GradleVersion MIN_CLIENT_VERSION = GradleVersion.version("2.0");
+    private static final GradleVersion MIN_LTS_CLIENT_VERSION = GradleVersion.version("3.0");
     private ProtocolToModelAdapter adapter;
     private ServiceRegistry services;
     private ProviderConnection connection;
-    private boolean supportedConsumerVersion;
     @Nullable // not provided by older client versions
     private GradleVersion consumerVersion;
 
@@ -94,7 +99,6 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
         initializeServices(gradleUserHomeDir);
         connection.configure(providerConnectionParameters);
         consumerVersion = GradleVersion.version(providerConnectionParameters.getConsumerVersion());
-        supportedConsumerVersion = consumerVersion.compareTo(MIN_CLIENT_VERSION) >= 0;
     }
 
     private void initializeServices(File gradleUserHomeDir) {
@@ -221,24 +225,43 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
         return new ProviderBuildResult<Object>(results);
     }
 
-    private UnsupportedVersionException unsupportedConnectionException() {
-        StringBuilder message = new StringBuilder("Support for clients using a tooling API version older than 2.0 was removed in Gradle 3.0. ");
-        if (consumerVersion != null) {
-            // Consumer version is provided by client 1.2 and later
-            message.append("You are currently using tooling API version ");
-            message.append(consumerVersion.getVersion());
-            message.append(". ");
-        }
-        message.append("You should upgrade your tooling API client to version 2.0 or later.");
-        return new UnsupportedVersionException(message.toString());
-    }
-
     private ProviderOperationParameters validateAndConvert(BuildParameters buildParameters) {
         LOGGER.info("Tooling API is using target Gradle version: {}.", GradleVersion.current().getVersion());
         UnsupportedJavaRuntimeException.assertUsingVersion("Gradle", JavaVersion.VERSION_1_7);
-        if (!supportedConsumerVersion) {
+
+        checkUnsupportedTapiVersion();
+        ProviderOperationParameters parameters = adapter.builder(ProviderOperationParameters.class).mixInTo(ProviderOperationParameters.class, BuildLogLevelMixIn.class).build(buildParameters);
+        checkDeprecatedTapiVersion(parameters);
+
+        return parameters;
+    }
+
+    private UnsupportedVersionException unsupportedConnectionException() {
+        return new UnsupportedVersionException(String.format(UNSUPPORT_MESAGE, createCurrentVersionMessage()));
+    }
+
+    private String createCurrentVersionMessage() {
+        if (consumerVersion == null) {
+            return "";
+        } else {
+            // Consumer version is provided by client 1.2 and later
+            return String.format("You are currently using tooling API version %s. ", consumerVersion.getVersion());
+        }
+    }
+
+    private void checkUnsupportedTapiVersion() {
+        if (consumerVersion == null || consumerVersion.compareTo(MIN_CLIENT_VERSION) < 0) {
             throw unsupportedConnectionException();
         }
-        return adapter.builder(ProviderOperationParameters.class).mixInTo(ProviderOperationParameters.class, BuildLogLevelMixIn.class).build(buildParameters);
+    }
+
+    private void checkDeprecatedTapiVersion(ProviderOperationParameters parameters) {
+        if (consumerVersion.compareTo(MIN_LTS_CLIENT_VERSION) < 0 && parameters.getStandardOutput() != null) {
+            try {
+                parameters.getStandardOutput().write(String.format(DEPRECATION_MESSAGE, createCurrentVersionMessage()).getBytes());
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
     }
 }

@@ -19,9 +19,9 @@ package org.gradle.play.internal.twirl;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.file.RelativeFile;
-import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.FileUtils;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.twirl.TwirlTemplateFormat;
@@ -65,7 +65,7 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
             }
         }
 
-        return new SimpleWorkResult(!outputFiles.isEmpty());
+        return WorkResults.didWork(!outputFiles.isEmpty());
     }
 
     private ScalaMethod getCompileMethod(ClassLoader cl) {
@@ -78,7 +78,7 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
 
     private Object[] buildCompileArguments(TwirlCompileSpec spec, ClassLoader cl, RelativeFile sourceFile, TwirlTemplateFormat format) {
         try {
-            return adapter.createCompileParameters(cl, sourceFile.getFile(), sourceFile.getBaseDir(), spec.getDestinationDir(), spec.getDefaultImports(), format);
+            return adapter.createCompileParameters(cl, sourceFile.getFile(), sourceFile.getBaseDir(), spec.getDestinationDir(), spec.getDefaultImports(), format, spec.getAdditionalImports());
         } catch (Exception e) {
             throw new RuntimeException("Error invoking Play Twirl template compiler.", e);
         }

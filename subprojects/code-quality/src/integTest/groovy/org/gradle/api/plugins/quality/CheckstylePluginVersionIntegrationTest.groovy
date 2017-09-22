@@ -371,9 +371,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
 apply plugin: "groovy"
 apply plugin: "checkstyle"
 
-repositories {
-    mavenCentral()
-}
+${mavenCentralRepository()}
 
 dependencies {
     compile localGroovy()

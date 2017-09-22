@@ -36,11 +36,6 @@ public class PreviousSuccessTaskStateChanges implements TaskStateChanges {
     }
 
     @Override
-    public void snapshotAfterTask() {
-        currentExecution.setSuccessful(task.getState().getFailure() == null);
-    }
-
-    @Override
     public Iterator<TaskStateChange> iterator() {
         if (previousExecution == null || previousExecution.isSuccessful()) {
             return Iterators.emptyIterator();

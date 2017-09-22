@@ -24,6 +24,7 @@ import org.gradle.internal.featurelifecycle.UsageLocationReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -211,6 +212,13 @@ public class SingleMessageLogger {
         }
     }
 
+    public static void nagUserOfDeprecatedThing(String thing) {
+        if (isEnabled()) {
+            nagUserOfDeprecated(String.format("%s. This", thing));
+        }
+    }
+
+    @Nullable
     public static <T> T whileDisabled(Factory<T> factory) {
         ENABLED.set(false);
         try {

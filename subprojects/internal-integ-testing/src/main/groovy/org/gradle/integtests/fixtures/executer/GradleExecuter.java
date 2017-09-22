@@ -424,4 +424,9 @@ public interface GradleExecuter extends Stoppable {
      * @see AbstractConsoleFunctionalSpec
      */
     GradleExecuter withRichConsole();
+
+    /**
+     * Execute the builds without adding the {@code "--stacktrace"} argument.
+     */
+    GradleExecuter withStacktraceDisabled();
 }

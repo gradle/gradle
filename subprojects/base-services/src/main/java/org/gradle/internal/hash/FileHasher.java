@@ -15,19 +15,12 @@
  */
 package org.gradle.internal.hash;
 
-import com.google.common.hash.HashCode;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.internal.file.FileMetadataSnapshot;
 
 import java.io.File;
-import java.io.InputStream;
 
 public interface FileHasher {
-    /**
-     * Returns the hash of the given input stream.
-     */
-    HashCode hash(InputStream inputStream);
-
     /**
      * Returns the hash of the current content of the given file. The provided file must exist and be a file (rather than, say, a directory).
      */

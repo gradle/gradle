@@ -20,6 +20,9 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Factory;
+import org.gradle.internal.hash.DefaultContentHasherFactory;
+import org.gradle.internal.hash.DefaultFileHasher;
+import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.resource.local.FileResourceConnector;
@@ -67,7 +70,15 @@ public class TestFiles {
     }
 
     public static FileOperations fileOperations(File basedDir) {
-        return new DefaultFileOperations(resolver(basedDir), null, null, DirectInstantiator.INSTANCE, fileLookup(), directoryFileTreeFactory());
+        return new DefaultFileOperations(resolver(basedDir), null, null, DirectInstantiator.INSTANCE, fileLookup(), directoryFileTreeFactory(), streamHasher(), fileHasher());
+    }
+
+    public static DefaultStreamHasher streamHasher() {
+        return new DefaultStreamHasher(new DefaultContentHasherFactory());
+    }
+
+    public static DefaultFileHasher fileHasher() {
+        return new DefaultFileHasher(streamHasher());
     }
 
     public static FileCollectionFactory fileCollectionFactory() {

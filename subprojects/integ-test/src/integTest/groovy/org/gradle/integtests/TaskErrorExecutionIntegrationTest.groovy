@@ -15,21 +15,18 @@
  */
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
-import org.junit.Test
 
-class TaskErrorExecutionIntegrationTest extends AbstractIntegrationTest {
-    @Test
-    public void reportsTaskActionExecutionFailsWithError() {
-        TestFile buildFile = testFile("build.gradle")
-        buildFile.writelns(
-                "task('do-stuff').doFirst",
-                "{",
-                "throw new ArithmeticException('broken')",
-                "}")
-        ExecutionFailure failure = usingBuildFile(buildFile).withTasks("do-stuff").runWithFailure()
+class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec {
+    def reportsTaskActionExecutionFailsWithError() {
+        buildFile << """
+            task('do-stuff').doFirst {
+                throw new ArithmeticException('broken')
+            }
+        """
+        expect:
+        fails "do-stuff"
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile))
         failure.assertHasLineNumber(3)
@@ -37,112 +34,120 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationTest {
         failure.assertHasCause("broken")
     }
 
-    @Test
-    public void reportsTaskActionExecutionFailsWithRuntimeException() {
-        File buildFile = testFile("build.gradle").writelns(
-                "task brokenClosure {",
-                "    doLast {",
-                "        throw new RuntimeException('broken closure')",
-                "    }",
-                "}")
-
-        ExecutionFailure failure = usingBuildFile(buildFile).withTasks("brokenClosure").runWithFailure()
+    def reportsTaskActionExecutionFailsWithRuntimeException() {
+        buildFile << """
+            task brokenClosure {
+                doLast {
+                    throw new RuntimeException('broken closure')
+                }
+            }
+        """
+        expect:
+        fails "brokenClosure"
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile))
-        failure.assertHasLineNumber(3)
+        failure.assertHasLineNumber(4)
         failure.assertHasDescription("Execution failed for task ':brokenClosure'.")
         failure.assertHasCause("broken closure")
     }
 
-    @Test
-    public void reportsTaskActionExecutionFailsFromJavaWithRuntimeException() {
-        testFile("buildSrc/src/main/java/org/gradle/BrokenTask.java").writelns(
-                "package org.gradle;",
-                "import org.gradle.api.Action;",
-                "import org.gradle.api.DefaultTask;",
-                "import org.gradle.api.Task;",
-                "public class BrokenTask extends DefaultTask {",
-                "    public BrokenTask() {",
-                "        doFirst(new Action<Task>() {",
-                "            public void execute(Task task) {",
-                "                throw new RuntimeException(\"broken action\");",
-                "            }",
-                "        });",
-                "    }",
-                "}"
-        )
-        File buildFile = testFile("build.gradle")
-        buildFile.write("task brokenJavaTask(type: org.gradle.BrokenTask)")
+    def reportsTaskActionExecutionFailsFromJavaWithRuntimeException() {
+        file("buildSrc/src/main/java/org/gradle/BrokenTask.java") << """
+            package org.gradle;
 
-        ExecutionFailure failure = usingBuildFile(buildFile).withTasks("brokenJavaTask").runWithFailure()
+            import org.gradle.api.Action;
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.Task;
+
+            public class BrokenTask extends DefaultTask {
+                public BrokenTask() {
+                    doFirst(new Action<Task>() {
+                        public void execute(Task task) {
+                            throw new RuntimeException("broken action");
+                        }
+                    });
+                }
+            }
+        """
+        buildFile << """
+            task brokenJavaTask(type: org.gradle.BrokenTask)
+        """
+
+        expect:
+        fails "brokenJavaTask"
 
         failure.assertHasDescription("Execution failed for task ':brokenJavaTask'.")
         failure.assertHasCause("broken action")
     }
 
-    @Test
-    public void reportsTaskInjectedByOtherProjectFailsWithRuntimeException() {
-        testFile("settings.gradle").write("include 'a', 'b'")
-        TestFile buildFile = testFile("b/build.gradle")
-        buildFile.writelns(
-                "project(':a') {",
-                "    task a {",
-                "        doLast {",
-                "             throw new RuntimeException('broken')",
-                "        }",
-                "    }",
-                "}")
-
-        ExecutionFailure failure = inTestDirectory().withTasks("a").runWithFailure()
+    def reportsTaskInjectedByOtherProjectFailsWithRuntimeException() {
+        file("settings.gradle") << "include 'a', 'b'"
+        TestFile buildFile = file("b/build.gradle")
+        buildFile << """
+            project(':a') {
+                task a {
+                    doLast {
+                         throw new RuntimeException('broken')
+                    }
+                }
+            }
+        """
+        expect:
+        fails "a"
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile))
-        failure.assertHasLineNumber(4)
+        failure.assertHasLineNumber(5)
         failure.assertHasDescription("Execution failed for task ':a:a'.")
         failure.assertHasCause("broken")
     }
 
-    @Test
-    public void reportsTaskValidationFailure() {
-        def buildFile = testFile('build.gradle')
+    def reportsTaskValidationFailure() {
         buildFile << '''
-class CustomTask extends DefaultTask {
-    @InputFile File srcFile
-    @OutputFile File destFile
-}
-
-task custom(type: CustomTask)
-'''
-
-        ExecutionFailure failure = inTestDirectory().withTasks("custom").runWithFailure()
+            class CustomTask extends DefaultTask {
+                @InputFile File srcFile
+                @OutputFile File destFile
+                
+                @TaskAction
+                void action() {}
+            }
+            
+            task custom(type: CustomTask)
+        '''
+        expect:
+        fails "custom"
 
         failure.assertHasDescription("Some problems were found with the configuration of task ':custom'.")
         failure.assertHasCause("No value has been specified for property 'srcFile'.")
         failure.assertHasCause("No value has been specified for property 'destFile'.")
     }
 
-    @Test
-    public void reportsUnknownTask() {
-        def settingsFile = testFile("settings.gradle")
+    def reportsUnknownTask() {
         settingsFile << """
-rootProject.name = 'test'
-include 'a', 'b'
-"""
-        def buildFile = testFile('build.gradle')
+            rootProject.name = 'test'
+            include 'a', 'b'
+        """
         buildFile << """
-allprojects { task someTask }
-project(':a') { task someTaskA }
-project(':b') { task someTaskB }
-"""
+            allprojects { task someTask }
+            project(':a') { task someTaskA }
+            project(':b') { task someTaskB }
+        """
 
-        def failure = inTestDirectory().withTasks("someTest").runWithFailure()
+        when:
+        fails "someTest"
+
+        then:
         failure.assertHasDescription("Task 'someTest' not found in root project 'test'. Some candidates are: 'someTask', 'someTaskA', 'someTaskB'.")
         failure.assertHasResolution("Run gradle tasks to get a list of available tasks. Run with --info or --debug option to get more log output.")
 
-        failure = inTestDirectory().withTasks(":someTest").runWithFailure()
+        when:
+        fails ":someTest"
+        then:
         failure.assertHasDescription("Task 'someTest' not found in root project 'test'. Some candidates are: 'someTask'.")
         failure.assertHasResolution("Run gradle tasks to get a list of available tasks. Run with --info or --debug option to get more log output.")
 
-        failure = inTestDirectory().withTasks("a:someTest").runWithFailure()
+        when:
+        fails "a:someTest"
+        then:
         failure.assertHasDescription("Task 'someTest' not found in project ':a'. Some candidates are: 'someTask', 'someTaskA'.")
         failure.assertHasResolution("Run gradle tasks to get a list of available tasks. Run with --info or --debug option to get more log output.")
     }

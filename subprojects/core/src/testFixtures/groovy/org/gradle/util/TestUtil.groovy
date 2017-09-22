@@ -20,8 +20,11 @@ import org.gradle.api.Task
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.DefaultInstantiatorFactory
 import org.gradle.api.internal.InstantiatorFactory
+import org.gradle.api.internal.model.DefaultObjectFactory
+import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
+import org.gradle.api.model.ObjectFactory
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
 import org.gradle.groovy.scripts.DefaultScript
 import org.gradle.groovy.scripts.Script
@@ -46,6 +49,10 @@ class TestUtil {
     static InstantiatorFactory instantiatorFactory() {
         def generator = new AsmBackedClassGenerator()
         return new DefaultInstantiatorFactory(generator, new CrossBuildInMemoryCacheFactory(new DefaultListenerManager()))
+    }
+
+    static ObjectFactory objectFactory() {
+        return new DefaultObjectFactory(instantiatorFactory().decorate(), NamedObjectInstantiator.INSTANCE)
     }
 
     static TestUtil create(File rootDir) {

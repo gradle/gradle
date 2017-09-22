@@ -42,8 +42,14 @@ public class ServicesSetupBuildActionExecuter implements BuildExecuter {
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         StartParameter startParameter = action.getStartParameter();
         ServiceRegistry userHomeServices = userHomeServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
+
         try {
-            ServiceRegistry buildSessionScopeServices = new BuildSessionScopeServices(userHomeServices, startParameter, actionParameters.getInjectedPluginClasspath());
+            ServiceRegistry buildSessionScopeServices = new BuildSessionScopeServices(
+                userHomeServices,
+                startParameter,
+                requestContext,
+                actionParameters.getInjectedPluginClasspath()
+            );
             try {
                 SessionLifecycleListener sessionLifecycleListener = buildSessionScopeServices.get(ListenerManager.class).getBroadcaster(SessionLifecycleListener.class);
                 try {

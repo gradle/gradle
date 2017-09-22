@@ -17,6 +17,7 @@ package org.gradle.api.artifacts.cache;
 
 import org.gradle.api.Incubating;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -36,6 +37,7 @@ public interface ResolutionControl<A, B> {
      * Returns the cached result file or null if the result has not been cached.
      * @return the cached result
      */
+    @Nullable
     B getCachedResult();
     
     /**

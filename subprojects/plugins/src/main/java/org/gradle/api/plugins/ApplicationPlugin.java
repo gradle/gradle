@@ -21,6 +21,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.distribution.Distribution;
 import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.distribution.plugins.DistributionPlugin;
@@ -80,15 +81,22 @@ public class ApplicationPlugin implements Plugin<Project> {
             @Override
             public void execute(Task task) {
                 Sync sync = (Sync) task;
-                if (sync.getDestinationDir().isDirectory()) {
-                    if (!new File(sync.getDestinationDir(), "lib").isDirectory() || !new File(sync.getDestinationDir(), "bin").isDirectory()) {
-                        throw new GradleException("The specified installation directory \'"
-                            + sync.getDestinationDir()
-                            + "\' is neither empty nor does it contain an installation for \'"
-                            + pluginConvention.getApplicationName()
-                            + "\'.\n"
-                            + "If you really want to install to this directory, delete it and run the install task again.\n"
-                            + "Alternatively, choose a different installation directory.");
+                File destinationDir = sync.getDestinationDir();
+                if (destinationDir.isDirectory()) {
+                    String[] children = destinationDir.list();
+                    if (children == null) {
+                        throw new UncheckedIOException("Could not list directory " + destinationDir);
+                    }
+                    if (children.length > 0) {
+                        if (!new File(destinationDir, "lib").isDirectory() || !new File(destinationDir, "bin").isDirectory()) {
+                            throw new GradleException("The specified installation directory \'"
+                                + destinationDir
+                                + "\' is neither empty nor does it contain an installation for \'"
+                                + pluginConvention.getApplicationName()
+                                + "\'.\n"
+                                + "If you really want to install to this directory, delete it and run the install task again.\n"
+                                + "Alternatively, choose a different installation directory.");
+                        }
                     }
                 }
             }

@@ -191,7 +191,7 @@ Running `gradle help --task someTask` gives you detailed information about a spe
             </sample>
 ++++
 
-This information includes the full task path, the task type, possible commandline options and the description of the given task.
+This information includes the full task path, the task type, possible command line options and the description of the given task.
 
 [[sec:listing_dependencies]]
 ==== Listing project dependencies

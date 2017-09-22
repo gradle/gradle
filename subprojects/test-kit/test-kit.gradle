@@ -3,15 +3,15 @@ dependencies {
     compile project(':toolingApi')
     compile libraries.commons_io
     runtime project(':native')
+    integTestRuntime project(':toolingApiBuilders')
+    integTestRuntime project(':pluginDevelopment')
 }
 
-task testKitVersionCompatibilityIntegTest(type: org.gradle.testing.IntegrationTest) {
+task crossVersionTests(type: org.gradle.testing.IntegrationTest) {
     description "Runs the TestKit version compatibility tests"
     systemProperties['org.gradle.integtest.testkit.compatibility'] = 'all'
     systemProperties['org.gradle.integtest.executer'] = 'forking'
 }
-
-crossVersionTests.dependsOn testKitVersionCompatibilityIntegTest
 
 strictCompile()
 useTestFixtures()

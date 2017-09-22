@@ -30,14 +30,11 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.resolve.ModuleVersionResolveException
-import org.gradle.internal.resolve.result.DefaultBuildableComponentSelectionResult
+import org.gradle.internal.resolve.result.ComponentSelectionContext
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.rules.ClosureBackedRuleAction
 import org.gradle.internal.rules.SpecRuleAction
 import spock.lang.Specification
-
-import static org.gradle.internal.resolve.result.BuildableComponentSelectionResult.State.Failed
-import static org.gradle.internal.resolve.result.BuildableComponentSelectionResult.State.NoMatch
 
 class DefaultVersionedComponentChooserTest extends Specification {
     def versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator())
@@ -102,7 +99,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         def a = Mock(ModuleComponentResolveState)
         def b = Mock(ModuleComponentResolveState)
         def c = Mock(ModuleComponentResolveState)
-        def selectedComponentResult = new DefaultBuildableComponentSelectionResult()
+        def selectedComponentResult = Mock(ComponentSelectionContext)
 
         when:
         chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, dependency.getRequested())
@@ -114,10 +111,11 @@ class DefaultVersionedComponentChooserTest extends Specification {
         _ * b.id >> selected
         _ * c.version >> version("2.0")
         _ * componentSelectionRules.rules >> []
+        1 * selectedComponentResult.notMatched('2.0')
+        0 * selectedComponentResult.notMatched('1.2') // versions are checked latest first
+        1 * selectedComponentResult.matches(selected)
         0 * _
 
-        and:
-        selectedComponentResult.match == selected
     }
 
     def "chooses newest matching version requiring metadata"() {
@@ -128,7 +126,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         def b = Mock(ModuleComponentResolveState)
         def c = Mock(ModuleComponentResolveState)
         def dependency = Mock(DependencyMetadata)
-        def selectedComponentResult = new DefaultBuildableComponentSelectionResult()
+        def selectedComponentResult = Mock(ComponentSelectionContext)
 
         when:
         chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, dependency.getRequested())
@@ -145,10 +143,10 @@ class DefaultVersionedComponentChooserTest extends Specification {
         1 * b.resolve() >> resolvedWithStatus("milestone")
         1 * b.getComponentMetadataSupplier()
         _ * componentSelectionRules.rules >> []
+        1 * selectedComponentResult.notMatched('2.0')
+        1 * selectedComponentResult.matches(selected)
         0 * _
 
-        and:
-        selectedComponentResult.match == selected
     }
 
     def "rejects dynamic version by rule without metadata" () {
@@ -159,10 +157,11 @@ class DefaultVersionedComponentChooserTest extends Specification {
         def a = Mock(ModuleComponentResolveState)
         def b = Mock(ModuleComponentResolveState)
         def c = Mock(ModuleComponentResolveState)
-        def selectedComponentResult = new DefaultBuildableComponentSelectionResult()
+        def d = Mock(ModuleComponentResolveState)
+        def selectedComponentResult = Mock(ComponentSelectionContext)
 
         when:
-        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, dependency.getRequested())
+        chooser.selectNewestMatchingComponent([d, c, a, b], selectedComponentResult, dependency.getRequested())
 
         then:
         _ * dependency.getRequested() >> selector
@@ -170,15 +169,17 @@ class DefaultVersionedComponentChooserTest extends Specification {
         _ * b.version >> version("1.3")
         _ * b.id >> selected
         _ * c.version >> version("2.0")
+        _ * d.version >> version("1.4")
+        _ * d.id >> DefaultModuleComponentIdentifier.newId("group", "name", "1.4")
         _ * componentSelectionRules.rules >> rules({ComponentSelection selection ->
             if (selection.candidate.version != '1.3') {
                 selection.reject("rejected")
             }
         })
+        1 * selectedComponentResult.notMatched('2.0')
+        1 * selectedComponentResult.rejected('1.4') // 1.2 won't be rejected because of latest first sorting
+        1 * selectedComponentResult.matches(selected)
         0 * _
-
-        then:
-        selectedComponentResult.match == selected
     }
 
     def "rejects dynamic version by rule with metadata" () {
@@ -189,7 +190,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         def a = Mock(ModuleComponentResolveState)
         def b = Mock(ModuleComponentResolveState)
         def c = Mock(ModuleComponentResolveState)
-        def selectedComponentResult = new DefaultBuildableComponentSelectionResult()
+        def selectedComponentResult = Mock(ComponentSelectionContext)
 
         when:
         chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, dependency.getRequested())
@@ -210,11 +211,11 @@ class DefaultVersionedComponentChooserTest extends Specification {
                 selection.reject("rejected")
             }
         })
+        1 * selectedComponentResult.notMatched('2.0')
+        1 * selectedComponentResult.rejected('1.3')
+        1 * selectedComponentResult.noMatchFound()
         0 * _
 
-        then:
-        // Since 1.3 is "latest.release" but it's rejected by rule, we should fail to resolve
-        selectedComponentResult.state == NoMatch
     }
 
     def "returns no match when no versions match without metadata"() {
@@ -224,7 +225,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         def a = Mock(ModuleComponentResolveState)
         def b = Mock(ModuleComponentResolveState)
         def c = Mock(ModuleComponentResolveState)
-        def selectedComponentResult = new DefaultBuildableComponentSelectionResult()
+        def selectedComponentResult = Mock(ComponentSelectionContext)
 
         when:
         chooser.selectNewestMatchingComponent([c, b, a], selectedComponentResult, dependency.getRequested())
@@ -235,10 +236,12 @@ class DefaultVersionedComponentChooserTest extends Specification {
         _ * a.version >> version("1.2")
         _ * b.version >> version("1.3")
         _ * c.version >> version("2.0")
+        1 * selectedComponentResult.notMatched('2.0')
+        1 * selectedComponentResult.notMatched('1.3')
+        1 * selectedComponentResult.notMatched('1.2')
+        1 * selectedComponentResult.noMatchFound()
         0 * _
 
-        and:
-        selectedComponentResult.state == NoMatch
     }
 
     def "returns no match when no versions are chosen with metadata"() {
@@ -248,7 +251,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         def a = Mock(ModuleComponentResolveState)
         def b = Mock(ModuleComponentResolveState)
         def c = Mock(ModuleComponentResolveState)
-        def selectedComponentResult = new DefaultBuildableComponentSelectionResult()
+        def selectedComponentResult = Mock(ComponentSelectionContext)
 
         when:
         chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, dependency.getRequested())
@@ -265,10 +268,12 @@ class DefaultVersionedComponentChooserTest extends Specification {
         1 * c.resolve() >> resolvedWithStatus("integration")
         1 * c.getComponentMetadataSupplier()
         _ * componentSelectionRules.rules >> []
+        1 * selectedComponentResult.notMatched('2.0')
+        1 * selectedComponentResult.notMatched('1.3')
+        1 * selectedComponentResult.notMatched('1.2')
+        1 * selectedComponentResult.noMatchFound()
         0 * _
 
-        then:
-        selectedComponentResult.state == NoMatch
     }
 
     def "returns no match when all matching versions match are rejected by rule"() {
@@ -278,7 +283,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         def a = Mock(ModuleComponentResolveState)
         def b = Mock(ModuleComponentResolveState)
         def c = Mock(ModuleComponentResolveState)
-        def selectedComponentResult = new DefaultBuildableComponentSelectionResult()
+        def selectedComponentResult = Mock(ComponentSelectionContext)
 
         when:
         chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, dependency.getRequested())
@@ -294,10 +299,11 @@ class DefaultVersionedComponentChooserTest extends Specification {
         _ * componentSelectionRules.rules >> rules({ ComponentSelection selection ->
             selection.reject("Rejecting everything")
         })
+        1 * selectedComponentResult.rejected('2.0')
+        1 * selectedComponentResult.rejected('1.3')
+        1 * selectedComponentResult.rejected('1.2')
+        1 * selectedComponentResult.noMatchFound()
         0 * _
-
-        then:
-        selectedComponentResult.state == NoMatch
     }
 
     def "stops when candidate cannot be resolved"() {
@@ -307,7 +313,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         def a = Mock(ModuleComponentResolveState)
         def b = Mock(ModuleComponentResolveState)
         def c = Mock(ModuleComponentResolveState)
-        def selectedComponentResult = new DefaultBuildableComponentSelectionResult()
+        def selectedComponentResult = Mock(ComponentSelectionContext)
 
         when:
         chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, dependency.getRequested())
@@ -322,10 +328,10 @@ class DefaultVersionedComponentChooserTest extends Specification {
         1 * b.resolve() >> resolvedWithFailure()
         1 * b.getComponentMetadataSupplier()
         _ * componentSelectionRules.rules >> []
+        1 * selectedComponentResult.notMatched('2.0')
+        1 * selectedComponentResult.failed(_ as ModuleVersionResolveException)
         0 * _
 
-        then:
-        selectedComponentResult.state == Failed
     }
 
     def resolvedWithStatus(String status) {

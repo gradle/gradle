@@ -34,10 +34,17 @@ public abstract class SourceElement extends Element {
     public abstract List<SourceFile> getFiles();
 
     /**
+     * Returns the source set name to write the source into, using the Gradle convention for source layout.
+     */
+    public String getSourceSetName() {
+        return "main";
+    }
+
+    /**
      * Writes the source files of this element to the given project, using the Gradle convention for source layout.
      */
     public void writeToProject(TestFile projectDir) {
-        TestFile srcDir = projectDir.file("src/main");
+        TestFile srcDir = projectDir.file("src/" + getSourceSetName());
         for (SourceFile sourceFile : getFiles()) {
             sourceFile.writeToDir(srcDir);
         }

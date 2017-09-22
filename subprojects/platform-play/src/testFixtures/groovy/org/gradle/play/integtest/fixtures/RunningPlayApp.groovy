@@ -24,10 +24,11 @@ import org.gradle.test.fixtures.file.TestFile
 import static org.gradle.integtests.fixtures.UrlValidator.*
 
 class RunningPlayApp {
-    private static final int UNASSIGNED = -1
+    static final int UNASSIGNED = -1
     int httpPort = UNASSIGNED
     final TestFile testDirectory
     Closure output
+    boolean standalone
 
     RunningPlayApp(TestFile testDirectory) {
         this.testDirectory = testDirectory
@@ -56,13 +57,30 @@ class RunningPlayApp {
             throw new IllegalStateException("Attempted to parse the http port from the build output, but initialize() was not called first!")
         }
 
-        def matcher = output.call() =~ 'play - Listening for HTTP on .*:([0-9]+)'
-        if (matcher.count >= occurrence + 1) {
-            httpPort = matcher[occurrence][1] as int
-            return httpPort
+        if (standalone) {
+            httpPort = regexParseHttpPortStandalone(output.call(), occurrence)
         } else {
-            return UNASSIGNED
+            httpPort = regexParseHttpPortFromGradle(output.call(), occurrence)
         }
+        return httpPort
+    }
+
+
+    static int regexParseHttpPortStandalone(output, int occurrence) {
+        return parseHttpPort(output, /play - Listening for HTTP on .*:([0-9]+)/, occurrence)
+    }
+
+
+    static int regexParseHttpPortFromGradle(output, int occurrence) {
+        return parseHttpPort(output, /Running Play App \(:.*\) at http:\/\/.*:([0-9]+)\//, occurrence)
+    }
+
+    static int parseHttpPort(output, regex, int occurrence) {
+        def matcher = output =~ regex
+        if (matcher.count >= occurrence + 1) {
+            return matcher[occurrence][1] as int
+        }
+        return UNASSIGNED
     }
 
     void requireHttpPort(int occurence) {
@@ -79,10 +97,12 @@ class RunningPlayApp {
 
     void initialize(GradleHandle gradle) {
         output = { gradle.standardOutput }
+        standalone = false
     }
 
     void initialize(DistributionTestExecHandle distHandle) {
         output = { distHandle.standardOutput }
+        standalone = true
     }
 
     boolean isInitialized() {

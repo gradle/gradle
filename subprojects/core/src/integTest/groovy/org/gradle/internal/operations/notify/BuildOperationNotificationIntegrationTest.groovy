@@ -18,7 +18,10 @@ package org.gradle.internal.operations.notify
 
 import groovy.json.JsonOutput
 import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType
+import org.gradle.configuration.ApplyScriptPluginBuildOperationType
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
+import org.gradle.initialization.EvaluateSettingsBuildOperationType
+import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
@@ -26,12 +29,24 @@ import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec {
 
     String registerListener() {
+        listenerClass() + """
+        registrar.registerBuildScopeListener(listener)
+        """
+    }
+
+    String registerListenerWithDrainRecordings() {
+        listenerClass() + """
+        registrar.registerBuildScopeListenerAndReceiveStoredOperations(listener)
+        """
+    }
+
+    String listenerClass(){
         """
             def listener = new $BuildOperationNotificationListener.name() {
                 void started($BuildOperationStartedNotification.name notification) {
                     def details = notification.notificationOperationDetails
                     if (details instanceof $ExecuteTaskBuildOperationType.Details.name) {
-                        details = [taskPath: details.taskPath, buildPath: details.buildPath, taskId: details.taskId, taskClass: details.taskClass.name]
+                        details = [taskPath: details.taskPath, buildPath: details.buildPath, taskClass: details.taskClass.name]
                     } else  if (details instanceof $ApplyPluginBuildOperationType.Details.name) {
                         details = [pluginId: details.pluginId, pluginClass: details.pluginClass.name, targetType: details.targetType, targetPath: details.targetPath, buildPath: details.buildPath]
                     }
@@ -39,43 +54,91 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
                 }
 
                 void finished($BuildOperationFinishedNotification.name notification) {
-                    println "FINISHED: \${notification.result?.class?.interfaces?.first()?.name} - \${${JsonOutput.name}.toJson(notification.notificationOperationResult)} - \$notification.notificationOperationId"
+                    println "FINISHED: \${notification.result?.class?.interfaces?.first()?.name} - \${${JsonOutput.name}.toJson(notification.notificationOperationResult)} - \$notification.notificationOperationId - \$notification.notificationOperationParentId"
                 }
             }
-            def registrar = services.get($BuildOperationNotificationListenerRegistrar.name)
-            registrar.registerBuildScopeListener(listener)
+            def registrar = services.get($BuildOperationNotificationListenerRegistrar.name)            
         """
     }
 
-    def "emits notifications"() {
+    def "obtains notifications about init scripts"() {
+        when:
+        executer.requireOwnGradleUserHomeDir()
+        def init = executer.gradleUserHomeDir.file("init.d/init.gradle") << """
+            println "init script"
+        """
+        buildScript """
+           ${registerListenerWithDrainRecordings()}
+            task t
+        """
+
+        file("buildSrc/build.gradle") << ""
+
+        succeeds "t"
+
+        then:
+        started(ApplyScriptPluginBuildOperationType.Details, [targetType: "gradle", targetPath: null, file: init.absolutePath, buildPath: ":", uri: null])
+        started(ApplyScriptPluginBuildOperationType.Details, [targetType: "gradle", targetPath: null, file: init.absolutePath, buildPath: ":buildSrc", uri: null])
+    }
+
+    def "can emit notifications from start of build"() {
         when:
         buildScript """
-           ${registerListener()}
-            task t  
+           ${registerListenerWithDrainRecordings()}
+            task t
         """
 
         succeeds "t", "-S"
 
         then:
+        started(EvaluateSettingsBuildOperationType.Details, [settingsDir: testDirectory.absolutePath, settingsFile: settingsFile.absolutePath])
+        finished(EvaluateSettingsBuildOperationType.Result, [:])
+        started(LoadProjectsBuildOperationType.Details, [:])
+        finished(LoadProjectsBuildOperationType.Result)
+        started(ConfigureProjectBuildOperationType.Details, [buildPath: ':', projectPath: ':'])
+        started(ApplyPluginBuildOperationType.Details, [pluginId: "org.gradle.help-tasks", pluginClass: "org.gradle.api.plugins.HelpTasksPlugin", targetType: "project", targetPath: ":", buildPath: ":"])
+        finished(ApplyPluginBuildOperationType.Result, [:])
+        started(ApplyScriptPluginBuildOperationType.Details, [targetType: "project", targetPath: ":", file: buildFile.absolutePath, buildPath: ":", uri:null])
+        finished(ApplyScriptPluginBuildOperationType.Result, [:])
+        finished(ConfigureProjectBuildOperationType.Result, [:])
+
         started(CalculateTaskGraphBuildOperationType.Details, [:])
         finished(CalculateTaskGraphBuildOperationType.Result, [excludedTaskPaths: [], requestedTaskPaths: [":t"]])
+        started(ExecuteTaskBuildOperationType.Details, [taskPath: ":t", buildPath: ":", taskClass: "org.gradle.api.DefaultTask"])
+        finished(ExecuteTaskBuildOperationType.Result, [actionable: false, cachingDisabledReasonMessage: "Cacheability was not determined", upToDateMessages: null, cachingDisabledReasonCategory: "UNKNOWN", skipMessage: "UP-TO-DATE", originBuildInvocationId: null])
     }
 
-    def "emits notifications for nested builds"() {
+    def "can emit notifications from point of registration"() {
         when:
-        executer.requireOwnGradleUserHomeDir()
-        executer.gradleUserHomeDir.file("init.d/init.gradle") << """
-            if (parent == null) {
-                ${registerListener()}
-            }
+        buildScript """
+           ${registerListener()}
+            task t
         """
 
+        succeeds "t", "-S"
+
+        then:
+        // Operations that started before the listener registration are not included (even if they finish _after_ listener registration)
+        notIncluded(EvaluateSettingsBuildOperationType)
+        notIncluded(LoadProjectsBuildOperationType)
+        notIncluded(ApplyPluginBuildOperationType)
+        notIncluded(ConfigureProjectBuildOperationType)
+
+        started(CalculateTaskGraphBuildOperationType.Details, [:])
+        finished(CalculateTaskGraphBuildOperationType.Result, [excludedTaskPaths: [], requestedTaskPaths: [":t"]])
+        started(ExecuteTaskBuildOperationType.Details, [taskPath: ":t", buildPath: ":", taskClass: "org.gradle.api.DefaultTask"])
+        finished(ExecuteTaskBuildOperationType.Result, [actionable: false, cachingDisabledReasonMessage: "Cacheability was not determined", upToDateMessages: null, cachingDisabledReasonCategory: "UNKNOWN", skipMessage: "UP-TO-DATE", originBuildInvocationId: null])
+    }
+
+    def "can emit notifications for nested builds"() {
+        when:
         file("buildSrc/build.gradle") << ""
         file("a/buildSrc/build.gradle") << ""
         file("a/build.gradle") << "task t"
         file("a/settings.gradle") << ""
         file("settings.gradle") << "includeBuild 'a'"
         buildScript """
+           ${registerListenerWithDrainRecordings()}
             task t {
                 dependsOn gradle.includedBuild("a").task(":t")
             }
@@ -84,6 +147,11 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         succeeds "t"
 
         then:
+        started(EvaluateSettingsBuildOperationType.Details, [settingsDir: file('buildSrc').absolutePath, settingsFile: file('buildSrc/settings.gradle').absolutePath])
+        started(EvaluateSettingsBuildOperationType.Details, [settingsDir: file('a').absolutePath, settingsFile: file('a/settings.gradle').absolutePath])
+        started(EvaluateSettingsBuildOperationType.Details, [settingsDir: file('a/buildSrc').absolutePath, settingsFile: file('a/buildSrc/settings.gradle').absolutePath])
+        started(EvaluateSettingsBuildOperationType.Details, [settingsDir: file('.').absolutePath, settingsFile: file('settings.gradle').absolutePath])
+
         started(ConfigureProjectBuildOperationType.Details, [buildPath: ":buildSrc", projectPath: ":"])
         started(ConfigureProjectBuildOperationType.Details, [buildPath: ":a:buildSrc", projectPath: ":"])
         started(ConfigureProjectBuildOperationType.Details, [buildPath: ":a", projectPath: ":"])
@@ -135,42 +203,45 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
     }
 
     // This test simulates what the build scan plugin does.
-    def "can ignore buildSrc events by deferring registration"() {
+    def "drains notifications for buildSrc build"() {
         given:
-        executer.requireOwnGradleUserHomeDir()
-        executer.gradleUserHomeDir.file("init.d/init.gradle") << """
-            if (parent == null) {
-                rootProject {
-                    ${registerListener()}
-                }
-            }
-        """
-
         file("buildSrc/build.gradle") << ""
-        file("build.gradle") << "task t"
+        file("build.gradle") << """
+            ${registerListenerWithDrainRecordings()}
+            task t
+        """
 
         when:
         succeeds "t"
 
         then:
         output.contains(":buildSrc:compileJava") // executedTasks check fails with in process executer
-        output.count(ConfigureProjectBuildOperationType.Details.name) == 1
+        output.count(ConfigureProjectBuildOperationType.Details.name) == 2
+        output.count(ExecuteTaskBuildOperationType.Details.name) == 15 // including all buildSrc task execution events
     }
 
-    void started(Class<?> type, Map<String, ?> payload) {
+    void started(Class<?> type, Map<String, ?> payload = null) {
         has(true, type, payload)
     }
 
-    void finished(Class<?> type, Map<String, ?> payload) {
+    void finished(Class<?> type, Map<String, ?> payload = null) {
         has(false, type, payload)
     }
 
     void has(boolean started, Class<?> type, Map<String, ?> payload) {
         def string = notificationLogLine(started, type, payload)
-        assert output.contains(string)
+        assert output.contains(string) : "did not emit event string: $string"
+    }
+
+    void notIncluded(Class<?> type) {
+        assert !output.contains(type.name)
     }
 
     String notificationLogLine(boolean started, Class<?> type, Map<String, ?> payload) {
-        "${started ? "STARTED" : "FINISHED"}: $type.name - ${JsonOutput.toJson(payload)}"
+        def line = "${started ? "STARTED" : "FINISHED"}: $type.name"
+        if (payload != null) {
+            line += " - " + JsonOutput.toJson(payload)
+        }
+        return line
     }
 }

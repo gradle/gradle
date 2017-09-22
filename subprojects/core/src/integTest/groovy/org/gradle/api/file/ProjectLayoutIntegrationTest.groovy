@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
     def "can access the project dir and build dir"() {
         buildFile << """
-            println "project dir: " + layout.projectDirectory.get()
+            println "project dir: " + layout.projectDirectory.asFile
             def b = layout.buildDirectory
             println "build dir: " + b.get()
             buildDir = "output"

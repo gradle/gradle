@@ -17,7 +17,7 @@
 package org.gradle.play.tasks
 
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.deployment.Deployment
+import org.gradle.deployment.internal.Deployment
 import org.gradle.play.internal.run.PlayApplicationRunner
 import org.gradle.play.internal.run.PlayApplication
 import org.gradle.play.internal.run.PlayRunSpec

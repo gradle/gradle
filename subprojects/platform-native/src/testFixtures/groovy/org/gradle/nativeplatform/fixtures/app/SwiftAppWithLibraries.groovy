@@ -40,7 +40,7 @@ class SwiftAppWithLibraries implements AppElement {
             @Override
             List<SourceFile> getFiles() {
                 return [greeter.sourceFile].collect {
-                    sourceFile(it.path, it.name, "import log\n${it.content}")
+                    sourceFile(it.path, it.name, "import Log\n${it.content}")
                 }
             }
         }
@@ -51,7 +51,7 @@ class SwiftAppWithLibraries implements AppElement {
             @Override
             List<SourceFile> getFiles() {
                 return [main.sourceFile].collect {
-                    sourceFile(it.path, it.name, "import hello\n${it.content}")
+                    sourceFile(it.path, it.name, "import Hello\n${it.content}")
                 }
             }
         }

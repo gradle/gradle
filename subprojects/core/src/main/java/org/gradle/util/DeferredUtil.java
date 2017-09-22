@@ -30,13 +30,13 @@ public class DeferredUtil {
      * until it's resolved to null or something other than a Callable or Factory.
      */
     @Nullable
-    public static Object unpack(Object path) {
+    public static Object unpack(@Nullable Object path) {
         Object current = path;
         while (current != null) {
             if (current instanceof Callable) {
                 current = uncheckedCall((Callable) current);
             } else if (current instanceof Provider) {
-                current = ((Provider<?>) current).get();
+                return ((Provider<?>) current).get();
             } else if (current instanceof Factory) {
                 return ((Factory) current).create();
             } else {

@@ -150,6 +150,7 @@ public class PlayTwirlPlugin extends RuleSource {
                     twirlCompile.setOutputDirectory(twirlCompileOutputDirectory);
                     twirlCompile.setDefaultImports(twirlSourceSet.getDefaultImports());
                     twirlCompile.setUserTemplateFormats(twirlSourceSet.getUserTemplateFormats());
+                    twirlCompile.setAdditionalImports(twirlSourceSet.getAdditionalImports());
 
                     twirlScalaSources.getSource().srcDir(twirlCompileOutputDirectory);
                     twirlScalaSources.builtBy(twirlCompile);

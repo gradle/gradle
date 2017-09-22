@@ -18,4 +18,5 @@
  * Types of {@link org.gradle.plugin.repository.PluginRepository}.
  */
 @org.gradle.api.Incubating
+@org.gradle.api.NonNullApi
 package org.gradle.plugin.repository;

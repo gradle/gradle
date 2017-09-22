@@ -29,9 +29,7 @@ class FindBugsClasspathValidationIntegrationTest extends AbstractIntegrationSpec
             apply plugin: "java"
             apply plugin: "findbugs"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
         """
         file('src/main/java/org/gradle/BadClass.java') << 'package org.gradle; public class BadClass { public boolean isFoo(Object arg) { System.exit(1); return true; } }'
     }

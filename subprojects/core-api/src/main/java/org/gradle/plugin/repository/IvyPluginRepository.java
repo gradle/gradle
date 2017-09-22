@@ -21,6 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.repositories.AuthenticationSupported;
 import org.gradle.api.artifacts.repositories.RepositoryLayout;
 
+import javax.annotation.Nullable;
 import java.net.URI;
 
 /**
@@ -33,6 +34,7 @@ public interface IvyPluginRepository extends PluginRepository, AuthenticationSup
      *
      * @return The URL.
      */
+    @Nullable
     URI getUrl();
 
     /**

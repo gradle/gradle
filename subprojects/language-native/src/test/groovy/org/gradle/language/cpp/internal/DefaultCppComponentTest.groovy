@@ -16,7 +16,13 @@
 
 package org.gradle.language.cpp.internal
 
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.provider.DefaultProviderFactory
+import org.gradle.api.provider.ProviderFactory
+import org.gradle.language.cpp.CppBinary
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -24,7 +30,21 @@ import spock.lang.Specification
 class DefaultCppComponentTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def component = new DefaultCppComponent(TestFiles.fileOperations(tmpDir.testDirectory))
+    def fileOperations = TestFiles.fileOperations(tmpDir.testDirectory)
+    def providerFactory = new DefaultProviderFactory()
+    def implementation = Stub(Configuration)
+    def configurations = Stub(ConfigurationContainer)
+    DefaultCppComponent component
+
+    def setup() {
+        _ * configurations.create("implementation") >> implementation
+        component = new TestComponent("main", fileOperations, providerFactory, configurations)
+    }
+
+    def "has an implementation configuration"() {
+        expect:
+        component.implementationDependencies == implementation
+    }
 
     def "has no source files by default"() {
         expect:
@@ -93,26 +113,6 @@ class DefaultCppComponentTest extends Specification {
         component.privateHeaderDirs.files == [d] as Set
     }
 
-    def "compile include path includes private header dirs"() {
-        def d = tmpDir.file("src/main/headers")
-        def d2 = tmpDir.file("src/main/d1")
-        def d3 = tmpDir.file("src/main/d2")
-        def d4 = tmpDir.file("src/main/d3")
-        def d5 = tmpDir.file("src/main/d4")
-
-        expect:
-        component.compileIncludePath.files as List == [d]
-
-        component.privateHeaders.from(d2, d3)
-        component.compileIncludePath.files as List == [d2, d3]
-
-        component.compileIncludePath.from(d4, d5)
-        component.compileIncludePath.files as List == [d2, d3, d4, d5]
-
-        component.privateHeaders.setFrom(d3)
-        component.compileIncludePath.files as List == [d3, d4, d5]
-    }
-
     def "can query the header files of the component"() {
         def d1 = tmpDir.createDir("d1")
         def f1 = d1.createFile("a.h")
@@ -126,5 +126,31 @@ class DefaultCppComponentTest extends Specification {
 
         component.privateHeaders.from(d1)
         component.headerFiles.files == [f1, f2] as Set
+    }
+
+    def "uses component name to determine source directories"() {
+        def f1 = tmpDir.createFile("src/a/cpp/a.cpp")
+        def h1 = tmpDir.createFile("src/a/headers")
+        def f2 = tmpDir.createFile("src/b/cpp/b.cpp")
+        def h2 = tmpDir.createFile("src/b/headers")
+        def c1 = new TestComponent("a", fileOperations, providerFactory, configurations)
+        def c2 = new TestComponent("b", fileOperations, providerFactory, configurations)
+
+        expect:
+        c1.cppSource.files == [f1] as Set
+        c1.privateHeaderDirs.files == [h1] as Set
+        c2.cppSource.files == [f2] as Set
+        c2.privateHeaderDirs.files == [h2] as Set
+    }
+
+    static class TestComponent extends DefaultCppComponent {
+        TestComponent(String name, FileOperations fileOperations, ProviderFactory providerFactory, ConfigurationContainer configurations) {
+            super(name, fileOperations, providerFactory, configurations)
+        }
+
+        @Override
+        CppBinary getDevelopmentBinary() {
+            throw new UnsupportedOperationException()
+        }
     }
 }

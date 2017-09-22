@@ -18,11 +18,21 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.provider.Provider;
 
+import javax.annotation.Nullable;
+
 public abstract class AbstractMappingProvider<OUT, IN> extends AbstractProvider<OUT> {
+    private final Class<OUT> type;
     private final Provider<? extends IN> provider;
 
-    public AbstractMappingProvider(Provider<? extends IN> provider) {
+    public AbstractMappingProvider(Class<OUT> type, Provider<? extends IN> provider) {
+        this.type = type;
         this.provider = provider;
+    }
+
+    @Nullable
+    @Override
+    public Class<OUT> getType() {
+        return type;
     }
 
     @Override
@@ -31,9 +41,15 @@ public abstract class AbstractMappingProvider<OUT, IN> extends AbstractProvider<
     }
 
     @Override
+    public OUT get() {
+        return map(provider.get());
+    }
+
+    @Override
     public OUT getOrNull() {
-        if (provider.isPresent()) {
-            return map(provider.get());
+        IN value = provider.getOrNull();
+        if (value != null) {
+            return map(value);
         }
         return null;
     }

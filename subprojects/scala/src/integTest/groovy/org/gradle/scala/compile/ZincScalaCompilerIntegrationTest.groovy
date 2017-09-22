@@ -26,6 +26,7 @@ import org.gradle.util.VersionNumber
 import org.junit.Assume
 import org.junit.Rule
 
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 @TargetCoverage({ScalaCoverage.DEFAULT})
@@ -129,9 +130,7 @@ compileScala.scalaCompileOptions.failOnError = false
 
             apply plugin: 'scala'
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 compile 'org.scala-lang:scala-library:2.11.1'
@@ -234,7 +233,7 @@ compileScala.scalaCompileOptions.debugLevel = "none"
 apply plugin: "scala"
 
 repositories {
-    mavenCentral()
+    ${mavenCentralRepositoryDefinition()}
     // temporary measure for the next few hours, until Zinc 0.2-M2 has landed in Central
     maven { url "https://oss.sonatype.org/content/repositories/releases" }
 }

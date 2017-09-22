@@ -152,7 +152,7 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
         def file1 = new File("classes-1.zip")
 
         _ * provider.get() >> value
-        _ * value.get() >> file1
+        _ * value.getAsFile() >> file1
         _ * provider.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(task1); context.add(task2) }
 
         when:
@@ -180,7 +180,7 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
         def file1 = new File("classes-1.dir")
 
         _ * provider.get() >> value
-        _ * value.get() >> file1
+        _ * value.getAsFile() >> file1
         _ * provider.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(task1); context.add(task2) }
 
         when:

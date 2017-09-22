@@ -17,7 +17,6 @@
 package org.gradle.api.file;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.provider.Provider;
 
 import java.io.File;
 
@@ -30,10 +29,9 @@ import java.io.File;
  * @since 4.1
  */
 @Incubating
-public interface RegularFile extends Provider<File> {
+public interface RegularFile extends FileSystemLocation {
     /**
-     * Returns the location of this file, as a {@link File}.
+     * Returns the location of this file, as an absolute {@link File}.
      */
-    @Override
-    File get();
+    File getAsFile();
 }

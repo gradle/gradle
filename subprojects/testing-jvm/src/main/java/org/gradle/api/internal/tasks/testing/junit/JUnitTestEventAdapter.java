@@ -16,10 +16,14 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import org.gradle.api.internal.tasks.testing.*;
+import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
+import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
+import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.internal.time.TimeProvider;
 import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.time.Clock;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
@@ -34,17 +38,17 @@ import java.util.regex.Pattern;
 public class JUnitTestEventAdapter extends RunListener {
     private static final Pattern DESCRIPTOR_PATTERN = Pattern.compile("(.*)\\((.*)\\)", Pattern.DOTALL);
     private final TestResultProcessor resultProcessor;
-    private final TimeProvider timeProvider;
+    private final Clock clock;
     private final IdGenerator<?> idGenerator;
     private final Object lock = new Object();
     private final Map<Description, TestDescriptorInternal> executing = new HashMap<Description, TestDescriptorInternal>();
     private final Set<Description> assumptionFailed = new HashSet<Description>();
 
-    public JUnitTestEventAdapter(TestResultProcessor resultProcessor, TimeProvider timeProvider,
+    public JUnitTestEventAdapter(TestResultProcessor resultProcessor, Clock clock,
                                  IdGenerator<?> idGenerator) {
         assert resultProcessor instanceof org.gradle.internal.concurrent.ThreadSafe;
         this.resultProcessor = resultProcessor;
-        this.timeProvider = timeProvider;
+        this.clock = clock;
         this.idGenerator = idGenerator;
     }
 
@@ -73,7 +77,7 @@ public class JUnitTestEventAdapter extends RunListener {
         }
         resultProcessor.failure(testInternal.getId(), failure.getException());
         if (needEndEvent) {
-            resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(timeProvider.getCurrentTime()));
+            resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(clock.getCurrentTime()));
         }
     }
 
@@ -95,7 +99,7 @@ public class JUnitTestEventAdapter extends RunListener {
 
         TestDescriptorInternal testInternal = descriptor(idGenerator.generateId(), description);
         resultProcessor.started(testInternal, startEvent());
-        resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(timeProvider.getCurrentTime(), TestResult.ResultType.SKIPPED));
+        resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(clock.getCurrentTime(), TestResult.ResultType.SKIPPED));
     }
 
     private void processIgnoredClass(Description description) throws Exception {
@@ -108,7 +112,7 @@ public class JUnitTestEventAdapter extends RunListener {
 
     @Override
     public void testFinished(Description description) throws Exception {
-        long endTime = timeProvider.getCurrentTime();
+        long endTime = clock.getCurrentTime();
         TestDescriptorInternal testInternal;
         TestResult.ResultType resultType;
         synchronized (lock) {
@@ -125,7 +129,7 @@ public class JUnitTestEventAdapter extends RunListener {
     }
 
     private TestStartEvent startEvent() {
-        return new TestStartEvent(timeProvider.getCurrentTime());
+        return new TestStartEvent(clock.getCurrentTime());
     }
 
     private TestDescriptorInternal descriptor(Object id, Description description) {
