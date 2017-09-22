@@ -22,10 +22,12 @@ import org.gradle.ide.xcode.XcodeProject;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DefaultXcodeProject implements XcodeProject {
     private final ConfigurableFileCollection sources;
-    private XcodeTarget target;
+    private List<XcodeTarget> targets = new ArrayList<XcodeTarget>();
     private File locationDir;
 
     @Inject
@@ -41,12 +43,8 @@ public class DefaultXcodeProject implements XcodeProject {
         return sources;
     }
 
-    public XcodeTarget getTarget() {
-        return target;
-    }
-
-    public void setTarget(XcodeTarget target) {
-        this.target = target;
+    public List<XcodeTarget> getTargets() {
+        return targets;
     }
 
     public File getLocationDir() {

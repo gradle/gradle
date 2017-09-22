@@ -16,13 +16,15 @@
 
 package org.gradle.language.swift.tasks;
 
+import com.google.common.io.Files;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileVar;
 import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.language.swift.internal.SwiftStdlibToolLocator;
@@ -30,6 +32,8 @@ import org.gradle.process.ExecSpec;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
 
 /**
  * Creates Apple bundle from compiled Swift code.
@@ -53,7 +57,7 @@ public class CreateSwiftBundle extends DefaultTask {
     }
 
     @TaskAction
-    void createBundle() {
+    void createBundle() throws IOException {
         getProject().copy(new Action<CopySpec>() {
             @Override
             public void execute(CopySpec copySpec) {
@@ -64,16 +68,22 @@ public class CreateSwiftBundle extends DefaultTask {
                     }
                 });
 
-                copySpec.from(getInformationFile(), new Action<CopySpec>() {
-                    @Override
-                    public void execute(CopySpec copySpec) {
-                        copySpec.into("Contents");
-                    }
-                });
-
                 copySpec.into(getOutputDir());
             }
         });
+
+        File inputFile = getInformationFileIfExists();
+        File outputFile = new File(getOutputDir().getAsFile().get(), "Contents/Info.plist");
+        outputFile.getParentFile().mkdirs();
+        if (inputFile == null) {
+            Files.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
+                + "<plist version=\"1.0\">\n"
+                + "<dict/>\n"
+                + "</plist>", outputFile, Charset.defaultCharset());
+        } else {
+            Files.copy(inputFile, outputFile);
+        }
 
         getProject().exec(new Action<ExecSpec>() {
             @Override
@@ -102,8 +112,19 @@ public class CreateSwiftBundle extends DefaultTask {
         return executableFile;
     }
 
-    @InputFile
+    @Internal("Covered by inputFileIfExists")
     public RegularFileVar getInformationFile() {
         return informationFile;
+    }
+
+    // Workaround for when the task is given an input file that doesn't exist
+    @Optional
+    @InputFile
+    public File getInformationFileIfExists() {
+        File inputFile = this.informationFile.getAsFile().getOrNull();
+        if (inputFile != null && inputFile.exists()) {
+            return inputFile;
+        }
+        return null;
     }
 }

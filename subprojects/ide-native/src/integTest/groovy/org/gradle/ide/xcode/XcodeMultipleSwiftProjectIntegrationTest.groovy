@@ -17,8 +17,10 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
+import org.gradle.ide.xcode.fixtures.XcodebuildExecuter
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
+import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraryTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -213,5 +215,37 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
 
         then:
         resultReleaseGreeter.assertTasksExecuted(':compileReleaseSwift', ':linkRelease')
+    }
+
+    def "can run tests for Swift library within multi-project from xcode"() {
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-executable'
+                dependencies {
+                    implementation project(':greeter')
+                }
+            }
+            project(':greeter') {
+                apply plugin: 'swift-library'
+                apply plugin: 'xctest'
+            }
+        """
+        def app = new SwiftAppWithLibraryTest()
+        app.library.writeToProject(file("greeter"))
+        app.executable.writeToProject(file("app"))
+        succeeds("xcode")
+
+        when:
+        def resultTestRunner = xcodebuild
+            .withWorkspace(rootXcodeWorkspace)
+            .withScheme('Greeter SharedLibrary')
+            .succeeds(XcodebuildExecuter.XcodeAction.TEST)
+
+        then:
+        resultTestRunner.assertTasksExecuted(':greeter:compileDebugSwift', ':greeter:compileTestSwift', ':greeter:linkTest',
+            ':greeter:bundleSwiftTest', ':greeter:syncTestBundleToXcodeBuiltProductDir', ':greeter:buildXcodeTestProduct')
+        app.library.assertTestCasesRan(resultTestRunner.output)
+
     }
 }

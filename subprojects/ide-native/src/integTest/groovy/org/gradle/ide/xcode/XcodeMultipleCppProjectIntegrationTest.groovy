@@ -27,7 +27,7 @@ import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 @Requires(TestPrecondition.XCODE)
 class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
     def setup() {
-        executer.requireGradleDistribution()
+        executer.requireGradleDistribution().requireOwnGradleUserHomeDir()
     }
 
     def "can create xcode project for C++ executable"() {
