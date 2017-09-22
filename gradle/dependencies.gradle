@@ -190,7 +190,7 @@ libraries.bouncycastle_pgp = dependencies.module("org.bouncycastle:bcpg-jdk15on:
 
 libraries.joda = 'joda-time:joda-time:2.8.2@jar'
 
-versions.aws = "1.11.6"
+versions.aws = "1.11.199"
 versions.jackson = "2.6.6"
 libraries.awsS3 = [
         "com.amazonaws:aws-java-sdk-s3:${versions.aws}@jar",
