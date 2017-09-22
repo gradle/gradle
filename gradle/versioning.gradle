@@ -1,3 +1,4 @@
+import org.gradle.build.BuildReceipt
 import org.gradle.internal.os.OperatingSystem
 
 if (buildTypes.promotionBuild.active) {
@@ -13,12 +14,14 @@ if ((milestoneNumber != null && rcNumber != null) ||
     throw new InvalidUserDataException("Cannot set any combination of milestoneNumber, rcNumber and finalRelease at the same time")
 }
 
-if (incomingDistributionsBuildReceipt) {
-    ext.baseVersion = incomingDistributionsBuildReceipt.baseVersion
-    ext.buildTimestamp = incomingDistributionsBuildReceipt.buildTimestamp
-} else {
-    ext.baseVersion = rootProject.file("version.txt").text.trim()
+ext.baseVersion = rootProject.file("version.txt").text.trim()
 
+File incomingBuildReceiptDir = file("incoming-distributions")
+if (new File(incomingBuildReceiptDir, BuildReceipt.BUILD_RECEIPT_FILE_NAME).exists()) {
+    def incomingDistributionsBuildReceipt = BuildReceipt.readBuildReceipt(incomingBuildReceiptDir)
+    ext.buildTimestamp = incomingDistributionsBuildReceipt.buildTimestamp
+    println "Using timestamp from incoming build receipt: $buildTimestamp"
+} else {
     def timestampFormat = new java.text.SimpleDateFormat('yyyyMMddHHmmssZ')
     timestampFormat.timeZone = TimeZone.getTimeZone("UTC")
     Date buildTime
