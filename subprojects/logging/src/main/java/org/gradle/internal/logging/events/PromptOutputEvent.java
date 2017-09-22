@@ -23,7 +23,7 @@ public class PromptOutputEvent extends RenderableOutputEvent {
 
     private final String message;
 
-    public PromptOutputEvent(long timestamp,String message) {
+    public PromptOutputEvent(long timestamp, String message) {
         super(timestamp, "prompt", LogLevel.QUIET, null);
         this.message = message;
     }
