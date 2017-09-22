@@ -33,7 +33,7 @@ class DefaultDaemonScanInfoSpec extends ConcurrentSpec {
         given:
         def listenerManager = Mock(ListenerManager)
         def notifyAction = Mock(Action)
-        def daemonScanInfo = new DefaultDaemonScanInfo(Stub(DaemonRunningStats), 0, Stub(DaemonRegistry), listenerManager, false)
+        def daemonScanInfo = new DefaultDaemonScanInfo(Stub(DaemonRunningStats), 0, false, Stub(DaemonRegistry), listenerManager)
         DaemonExpirationListener daemonExpirationListener
         BuildListener buildListener
 
@@ -60,7 +60,7 @@ class DefaultDaemonScanInfoSpec extends ConcurrentSpec {
         given:
         def listenerManager = Mock(ListenerManager)
         def notifyAction = Mock(Action)
-        def daemonScanInfo = new DefaultDaemonScanInfo(Stub(DaemonRunningStats), 0, Stub(DaemonRegistry), listenerManager, false)
+        def daemonScanInfo = new DefaultDaemonScanInfo(Stub(DaemonRunningStats), 0, false, Stub(DaemonRegistry), listenerManager)
         DaemonExpirationListener daemonExpirationListener
         BuildListener buildListener
 
@@ -84,7 +84,7 @@ class DefaultDaemonScanInfoSpec extends ConcurrentSpec {
 
     def "should not deadlock with deamon scan info"() {
         def manager = new DefaultListenerManager()
-        def daemonScanInfo = new DefaultDaemonScanInfo(new DaemonRunningStats(), 1000, Mock(DaemonRegistry), manager, false)
+        def daemonScanInfo = new DefaultDaemonScanInfo(new DaemonRunningStats(), 1000, false, Mock(DaemonRegistry), manager)
         daemonScanInfo.notifyOnUnhealthy {
             println "Hello"
             sleep 500
