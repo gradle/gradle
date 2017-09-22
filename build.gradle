@@ -80,8 +80,8 @@ buildTypes {
     }
 
     // Used for cross version tests on CI
-    crossVersionTest {
-        tasks "crossVersionTests"
+    allVersionsCrossVersionTest {
+        tasks "allVersionsCrossVersionTests"
     }
 
     quickFeedbackCrossVersionTest {

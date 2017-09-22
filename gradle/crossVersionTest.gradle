@@ -66,7 +66,7 @@ check.dependsOn(crossVersionTest)
     }
 }
 
-task crossVersionTests {
+task allVersionsCrossVersionTests {
     description "Runs the cross-version tests against all Gradle versions with 'forking' executer"
 }
 
@@ -76,7 +76,7 @@ task quickFeedbackCrossVersionTests {
 
 releasedVersions.testedVersions.each { targetVersion ->
     tasks.create("gradle${targetVersion}CrossVersionTest", CrossVersionTest).configure {
-        crossVersionTests.dependsOn it
+        allVersionsCrossVersionTests.dependsOn it
         description "Runs the cross-version tests against Gradle ${targetVersion}"
         systemProperties['org.gradle.integtest.versions'] = targetVersion
         systemProperties['org.gradle.integtest.executer'] = 'forking'
