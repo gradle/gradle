@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r42
+package org.gradle.integtests.tooling.r43
 
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -24,7 +24,7 @@ import org.gradle.tooling.BuildException
 import org.gradle.tooling.ProjectConnection
 
 @ToolingApiVersion(">=2.5")
-@TargetGradleVersion(">=4.2")
+@TargetGradleVersion(">=4.3")
 class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
     def "generates plugin application events for single project build"() {
