@@ -71,10 +71,15 @@ project(":project3") {
 project(":project3") {
     publishing {
         publications {
-            extraMaven(MavenPublication) {
+            extraComp(MavenPublication) {
                 from components.java
                 groupId "extra.group"
-                artifactId "extra-artifact"
+                artifactId "extra-comp"
+                version "extra"
+            }
+            extra(MavenPublication) {
+                groupId "extra.group"
+                artifactId "extra"
                 version "extra"
             }
         }
@@ -87,7 +92,49 @@ project(":project3") {
 
         then:
         failure.assertHasCause "Exception thrown while executing model rule: PublishingPlugin.Rules#publishing"
-        failure.assertHasCause "Publishing is not yet able to resolve a dependency on a project with multiple different publications."
+        failure.assertHasCause """Publishing is not yet able to resolve a dependency on a project with multiple publications that have different coordinates.
+Found the following publications in project ':project3':
+  - Publication 'extra' with coordinates extra.group:extra:extra
+  - Publication 'extraComp' with coordinates extra.group:extra-comp:extra
+  - Publication 'maven' with coordinates org.gradle.test:project3:3.0"""
+    }
+
+    def "referenced project can have multiple additional publications that contain a child of some other publication"() {
+        createBuildScripts("""
+// TODO - replace this with a public API when available
+class ExtraComp implements org.gradle.api.internal.component.SoftwareComponentInternal, ChildComponent {
+    String name = 'extra'
+    Set usages = []
+    SoftwareComponent owner
+}
+
+project(":project3") {
+    def c1 = new ExtraComp(owner: components.java)
+    def c2 = new ExtraComp(owner: c1)
+    publishing {
+        publications {
+            extra1(MavenPublication) {
+                from c1
+                groupId "extra.group"
+                artifactId "extra1"
+                version "extra"
+            }
+            extra2(MavenPublication) {
+                from c2
+                groupId "extra.group"
+                artifactId "extra2"
+                version "extra"
+            }
+        }
+    }
+}
+""")
+
+        when:
+        succeeds "publish"
+
+        then:
+        project1.parsedPom.scopes.compile.assertDependsOn("org.gradle.test:project2:2.0", "org.gradle.test:project3:3.0")
     }
 
     def "maven-publish plugin does not take archivesBaseName into account when publishing"() {

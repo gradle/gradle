@@ -54,7 +54,7 @@ allprojects { p ->
         return new NativeInstallationFixture(file(installDir), os)
     }
 
-    def String withExecutableSuffix(Object path) {
+    def String executableName(Object path) {
         return path + OperatingSystem.current().getExecutableSuffix()
     }
 
@@ -79,12 +79,20 @@ allprojects { p ->
         return path + OperatingSystem.current().linkLibrarySuffix
     }
 
+    def String linkLibraryName(Object path) {
+        return OperatingSystem.current().getLinkLibraryName(path.toString())
+    }
+
     def String getLinkLibrarySuffix() {
         return OperatingSystem.current().linkLibrarySuffix.substring(1)
     }
 
     def String withSharedLibrarySuffix(Object path) {
         return path + OperatingSystem.current().sharedLibrarySuffix
+    }
+
+    def String sharedLibraryName(Object path) {
+        return OperatingSystem.current().getSharedLibraryName(path.toString())
     }
 
     def String getSharedLibraryExtension() {

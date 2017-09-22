@@ -60,7 +60,7 @@ class ScalaCompileTest extends AbstractCompileTest {
         scalaClasspath.isEmpty() >> false
 
         when:
-        scalaCompile.execute()
+        execute(scalaCompile)
 
         then:
         1 * scalaCompiler.execute(_ as ScalaJavaJointCompileSpec)
@@ -72,7 +72,7 @@ class ScalaCompileTest extends AbstractCompileTest {
         scalaClasspath.isEmpty() >> true
 
         when:
-        scalaCompile.execute()
+        execute(scalaCompile)
 
         then:
         TaskExecutionException e = thrown()
@@ -88,7 +88,7 @@ class ScalaCompileTest extends AbstractCompileTest {
         processorDetector.getEffectiveAnnotationProcessorClasspath(scalaCompile.getOptions(), scalaCompile.getClasspath()) >> processorClasspath
 
         when:
-        scalaCompile.execute()
+        execute(scalaCompile)
 
         then:
         1 * scalaCompiler.execute(_ as ScalaJavaJointCompileSpec) >> { args -> compileSpec = args[0]; null }

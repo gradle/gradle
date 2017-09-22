@@ -43,7 +43,7 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
         archiveTask.from temporaryFolder.createFile('file.txt')
 
         when:
-        archiveTask.execute()
+        execute(archiveTask)
 
         then:
         archiveTask.destinationDir.isDirectory()

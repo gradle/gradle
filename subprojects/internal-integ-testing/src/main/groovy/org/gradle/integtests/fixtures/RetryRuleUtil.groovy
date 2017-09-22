@@ -99,7 +99,7 @@ class RetryRuleUtil {
         }
 
         // sometime sockets are unexpectedly disappearing on daemon side (running on windows): https://github.com/gradle/gradle/issues/1111
-        didSocketDisappearOnWindows(failure, specification, daemonsFixture)
+        didSocketDisappearOnWindows(failure, specification, daemonsFixture, targetDistVersion >= GradleVersion.version('3.0'))
     }
 
     static RetryRule retryToolingAPIOnWindowsSocketDisappearance(Specification specification) {
@@ -122,16 +122,21 @@ class RetryRuleUtil {
         }
     }
 
-    static private boolean didSocketDisappearOnWindows(Throwable failure, Specification specification, daemonsFixture) {
+    static private boolean didSocketDisappearOnWindows(Throwable failure, Specification specification, daemonsFixture, checkDaemonLogs = true) {
         // sometime sockets are unexpectedly disappearing on daemon side (running on windows): gradle/gradle#1111
         if (runsOnWindowsAndJava7or8() && daemonsFixture != null) {
             if (getRootCauseMessage(failure) == "An existing connection was forcibly closed by the remote host" ||
                 getRootCauseMessage(failure) == "An established connection was aborted by the software in your host machine" ||
                 getRootCauseMessage(failure) == "Connection refused: no further information") {
 
+                if (!checkDaemonLogs) {
+                    println "Retrying test because socket disappeared."
+                    return retryWithCleanProjectDir(specification)
+                }
+
                 for (def daemon : daemonsFixture.allDaemons) {
                     if (daemonStoppedWithSocketExceptionOnWindows(daemon)) {
-                        println "Retrying test because socket disappeared. Check log of daemon with PID " + daemon.context.pid
+                        println "Retrying test because socket disappeared. Check log of daemon with PID ${daemon.context.pid}."
                         return retryWithCleanProjectDir(specification)
                     }
                 }

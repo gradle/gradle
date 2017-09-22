@@ -47,6 +47,7 @@ import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.Comparator;
@@ -94,6 +95,12 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     public String getName() {
         return name;
+    }
+
+    @Nullable
+    @Override
+    public SoftwareComponentInternal getComponent() {
+        return component;
     }
 
     public IvyModuleDescriptorSpecInternal getDescriptor() {

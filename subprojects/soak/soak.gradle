@@ -19,6 +19,4 @@ task('soakTest', type: org.gradle.testing.SoakTest) {
     options {
         includeCategories 'org.gradle.soak.categories.SoakTest'
     }
-    requiresBinZip = true
-    requiresLibsRepo = true
 }

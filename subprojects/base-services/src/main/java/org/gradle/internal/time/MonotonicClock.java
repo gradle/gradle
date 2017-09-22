@@ -52,11 +52,6 @@ class MonotonicClock implements Clock {
 
     private static final long SYNC_INTERVAL_MILLIS = TimeUnit.SECONDS.toMillis(3);
 
-    /**
-     * This determines the minimum elapsed time between syncs.
-     * The coordination strategy between different book keeping variables
-     * relies on this being greater than
-     */
     private final long syncIntervalMillis;
     private final TimeSource timeSource;
 

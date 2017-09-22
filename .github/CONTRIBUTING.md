@@ -17,9 +17,15 @@ For any non-trivial change, we'll ask you to create a short design document expl
 
 This can be done directly inside the GitHub issue or (for large changes) you can share a Google Doc with us.
 
-## Sing the CLA
+## Sign the CLA
 
 Before we can accept any code contributions, you must electronically sign a [Gradle CLA](http://gradle.org/cla).
+
+## Follow the Code of Conduct
+
+In order to foster a more inclusive community, Gradle has adopted the [Contributor Covenant](https://www.contributor-covenant.org/version/1/4/code-of-conduct/). 
+
+Contributors must follow the Code of Conduct outlined at [https://gradle.org/conduct/](https://gradle.org/conduct/).
 
 ## Making Changes
 

@@ -25,7 +25,7 @@ import org.gradle.util.WrapUtil
 import org.gradle.wrapper.GradleWrapperMain
 import org.gradle.wrapper.WrapperExecutor
 
-public class WrapperTest extends AbstractTaskTest {
+class WrapperTest extends AbstractTaskTest {
     private Wrapper wrapper
     private String targetWrapperJarPath
     private TestFile expectedTargetWrapperJar
@@ -43,7 +43,7 @@ public class WrapperTest extends AbstractTaskTest {
         wrapper.setDistributionPath("somepath")
     }
 
-    public AbstractTask getTask() {
+    AbstractTask getTask() {
         return wrapper
     }
 
@@ -121,7 +121,7 @@ public class WrapperTest extends AbstractTaskTest {
     def "execute with non extant wrapper jar parent directory"() {
         when:
         def unjarDir = temporaryFolder.createDir("unjar")
-        wrapper.execute()
+        execute(wrapper)
         expectedTargetWrapperJar.unzipTo(unjarDir)
         def properties = GUtil.loadProperties(expectedTargetWrapperProperties)
 
@@ -152,7 +152,7 @@ public class WrapperTest extends AbstractTaskTest {
 
         when:
         def unjarDir = temporaryFolder.createDir("unjar")
-        wrapper.execute()
+        execute(wrapper)
         expectedTargetWrapperJar.unzipTo(unjarDir)
         def properties = GUtil.loadProperties(expectedTargetWrapperProperties)
 
@@ -171,7 +171,7 @@ public class WrapperTest extends AbstractTaskTest {
         Locale.setDefault(new Locale("tr","TR"))
 
         when:
-        wrapper.execute()
+        execute(wrapper)
         String distributionUrl = wrapper.getDistributionUrl()
 
         then:

@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.changes
 
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
+import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.TaskArtifactState
@@ -511,7 +512,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         !state.isUpToDate([])
 
         when:
-        task.execute()
+        execute(task)
         fileSystemMirror.beforeTaskOutputsGenerated()
         otherFile.write("new content")
         state.snapshotAfterTaskExecution(null)
@@ -651,13 +652,18 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         assert state.isUpToDate([])
     }
 
-    private void execute(TaskInternal... tasks) {
+    @Override
+    void execute(Task task) {
+        execute([(TaskInternal) task] as TaskInternal[])
+    }
+
+    void execute(TaskInternal... tasks) {
         for (TaskInternal task : tasks) {
             TaskArtifactState state = repository.getStateFor(task)
             state.isUpToDate([])
             // reset state
             fileSystemMirror.beforeTaskOutputsGenerated()
-            task.execute()
+            super.execute(task)
             state.snapshotAfterTaskExecution(null)
         }
         // reset state
