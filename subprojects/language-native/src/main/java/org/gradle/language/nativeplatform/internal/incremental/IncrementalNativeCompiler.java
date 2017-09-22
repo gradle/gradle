@@ -66,8 +66,9 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
     @Override
     public WorkResult execute(final T spec) {
         PersistentStateCache<CompilationState> compileStateCache = compilationStateCacheFactory.create(task.getPath());
-        DefaultSourceIncludesParser sourceIncludesParser = new DefaultSourceIncludesParser(sourceParser, importsAreIncludes);
-        IncrementalCompileProcessor processor = createProcessor(compileStateCache, sourceIncludesParser, spec.getIncludeRoots());
+
+        IncrementalCompileProcessor processor = createProcessor(compileStateCache, createIncrementalCompileFilesFactory(spec));
+
         IncrementalCompilation compilation = processor.processSourceFiles(spec.getSourceFiles());
 
         spec.setSourceFileIncludeDirectives(mapIncludes(spec.getSourceFiles(), compilation.getFinalState()));
@@ -84,6 +85,12 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
         compileStateCache.set(compilation.getFinalState());
 
         return workResult;
+    }
+
+    private IncrementalCompileFilesFactory createIncrementalCompileFilesFactory(T spec) {
+        DefaultSourceIncludesParser sourceIncludesParser = new DefaultSourceIncludesParser(sourceParser, importsAreIncludes);
+        DefaultSourceIncludesResolver dependencyParser = new DefaultSourceIncludesResolver(CollectionUtils.toList(spec.getIncludeRoots()));
+        return new IncrementalCompileFilesFactory(sourceIncludesParser, dependencyParser, hasher);
     }
 
     protected void handleDiscoveredInputs(T spec, IncrementalCompilation compilation, final DiscoveredInputRecorder discoveredInputRecorder) {
@@ -158,9 +165,7 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
         return task;
     }
 
-    private IncrementalCompileProcessor createProcessor(PersistentStateCache<CompilationState> compileStateCache, SourceIncludesParser sourceIncludesParser, Iterable<File> includes) {
-        DefaultSourceIncludesResolver dependencyParser = new DefaultSourceIncludesResolver(CollectionUtils.toList(includes));
-
-        return new IncrementalCompileProcessor(compileStateCache, dependencyParser, sourceIncludesParser, hasher);
+    private IncrementalCompileProcessor createProcessor(PersistentStateCache<CompilationState> compileStateCache, IncrementalCompileFilesFactory incrementalCompileFilesFactory) {
+        return new IncrementalCompileProcessor(compileStateCache, incrementalCompileFilesFactory);
     }
 }

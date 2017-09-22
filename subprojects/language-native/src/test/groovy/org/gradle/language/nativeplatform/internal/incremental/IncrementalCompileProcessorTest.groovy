@@ -32,7 +32,7 @@ class IncrementalCompileProcessorTest extends Specification {
     def dependencyParser = Mock(SourceIncludesResolver)
     def hasher = Stub(FileHasher)
     def stateCache = new DummyPersistentStateCache()
-    def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, dependencyParser, includesParser, hasher)
+    def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, new IncrementalCompileFilesFactory(includesParser, dependencyParser, hasher))
 
     def source1 = sourceFile("source1")
     def source2 = sourceFile("source2")
