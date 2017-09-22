@@ -1434,4 +1434,38 @@ task checkDeps(dependsOn: configurations.compile) {
         then:
         noExceptionThrown()
     }
+
+    @NotYetImplemented
+    def "doesn't include evicted version from branch which has been deselected"() {
+        given:
+        mavenRepo.module('org', 'a', '1').dependsOn('org', 'b', '2').publish()
+        mavenRepo.module('org', 'b', '1').publish()
+        mavenRepo.module('org', 'b', '2').publish()
+        mavenRepo.module('org', 'c', '1').dependsOn('org', 'a', '2').publish()
+        mavenRepo.module('org', 'a', '2').publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:a:1', 'org:b:1', 'org:c:1'
+            }
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                    assert files == ['a-2.jar', 'b-1.jar', 'c-1.jar']
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        noExceptionThrown()
+    }
 }
