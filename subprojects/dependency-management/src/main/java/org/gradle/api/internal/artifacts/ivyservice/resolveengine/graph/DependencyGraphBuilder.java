@@ -160,22 +160,6 @@ public class DependencyGraphBuilder {
         }
     }
 
-    private static boolean tryMakeOrphan(ResolveState resolveState, NodeState node) {
-        ComponentState componentState = node.component;
-        if (node != resolveState.root && node.incomingEdges.isEmpty()) {
-            // this node was selected, but it doesn't have any incoming edge anymore, it's orphan
-            SelectorState selectedBy = componentState.selectedBy;
-            if (node.component.module.selected == componentState) {
-                // and it was selected, clear selection
-                resolveState.deselectVersionAction.execute(componentState.module.id);
-                componentState.module.removeSelector(selectedBy);
-            }
-            componentState.state = ModuleState.Orphan;
-            return true;
-        }
-        return false;
-    }
-
     private void performSelection(final ResolveState resolveState, ComponentState moduleRevision) {
         ModuleIdentifier moduleId = moduleRevision.id.getModule();
         String version = moduleRevision.id.getVersion();
@@ -218,32 +202,23 @@ public class DependencyGraphBuilder {
                 return true;
             }
         }
-        Set<SelectorState> selectedBy = moduleRevision.allResolvers;
+        final Set<SelectorState> selectedBy = moduleRevision.allResolvers;
         if (selected != null && selected != moduleRevision) {
             if (allSelectorsAgreeWith(moduleRevision.allResolvers, selected.getVersion())) {
                 // if this selector agrees with the already selected version, don't bother and pick it
                 return true;
             }
 
-            // Now check if all selectors from the module agree with the fact we should select this version
-            boolean allAccept = true;
-            boolean atLeastOne = false;
+            List<SelectorState> otherSelectors = Lists.newArrayListWithCapacity(module.selectors.size());
             for (SelectorState selector : module.selectors) {
-                if (selectedBy.contains(selector)) {
-                    continue;
-                }
-                atLeastOne = true;
-                VersionSelector previousVersionSelector = selector.versionSelector;
-                if (previousVersionSelector == null || !previousVersionSelector.canShortCircuitWhenVersionAlreadyPreselected() || !previousVersionSelector.accept(version)) {
-                    allAccept = false;
-                    break;
+                if (!selectedBy.contains(selector)) {
+                    otherSelectors.add(selector);
                 }
             }
-            // all selectors agree, let's pick it
-            if (atLeastOne && allAccept) {
+
+            if (allSelectorsAgreeWith(otherSelectors, version)) {
                 resolveState.deselectVersionAction.execute(moduleId);
                 module.softSelect(moduleRevision);
-//                module.softRestart(moduleRevision);
                 return true;
             }
         }
@@ -720,16 +695,7 @@ public class DependencyGraphBuilder {
          * from the moment it is evicted. Either because it has been excluded, or because conflict resolution
          * selected a different version.
          */
-        Evicted(false, false),
-
-        /**
-         * An orphan module is a module which, at some point, had been selected (probably transitively),
-         * but doesn't participate in the graph anymore (because the dependency which brought it in has either
-         * been evicted, or another compatible version with a different dependency set has been selected).
-         * An orphaned module _may_ reappear in the graph later, so is still selectable. It is therefore NOT
-         * evicted.
-         */
-        Orphan(false, true);
+        Evicted(false, false);
 
         private final boolean candidateForConflictResolution;
         private final boolean canSelect;
@@ -752,8 +718,8 @@ public class DependencyGraphBuilder {
         if (allSelectors.isEmpty()) {
             return false;
         }
-        for (SelectorState allResolver : allSelectors) {
-            VersionSelector candidateSelector = allResolver.versionSelector;
+        for (SelectorState selectorState : allSelectors) {
+            VersionSelector candidateSelector = selectorState.versionSelector;
             if (candidateSelector == null || !candidateSelector.canShortCircuitWhenVersionAlreadyPreselected() || !candidateSelector.accept(version)) {
                 return false;
             }
@@ -966,7 +932,7 @@ public class DependencyGraphBuilder {
             }
         }
 
-        public void addResolver(SelectorState resolver) {
+        public void selectedBy(SelectorState resolver) {
             if (selectedBy == null) {
                 selectedBy = resolver;
                 allResolvers = Sets.newLinkedHashSet();
@@ -1225,9 +1191,7 @@ public class DependencyGraphBuilder {
 
         public void removeIncomingEdge(EdgeState dependencyEdge) {
             incomingEdges.remove(dependencyEdge);
-            if (!tryMakeOrphan(resolveState, this)) {
-                resolveState.onFewerSelected(this);
-            }
+            resolveState.onFewerSelected(this);
         }
 
         public boolean isSelected() {
@@ -1374,7 +1338,7 @@ public class DependencyGraphBuilder {
             }
 
             selected = resolveState.getRevision(idResolveResult.getModuleVersionId());
-            selected.addResolver(this);
+            selected.selectedBy(this);
             selected.selectionReason = idResolveResult.getSelectionReason();
             targetModule = selected.module;
             targetModule.addSelector(this);

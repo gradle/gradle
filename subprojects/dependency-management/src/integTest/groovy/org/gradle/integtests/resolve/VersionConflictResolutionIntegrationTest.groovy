@@ -1217,6 +1217,7 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
+    @NotYetImplemented
     def "previously selected transitive dependency is not used when it becomes orphaned because of selection of a different version of its dependent module"() {
         given:
         (1..10).each {
@@ -1256,6 +1257,7 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
+    @NotYetImplemented
     def "evicted version removes range constraint from transitive dependency"() {
         given:
         (1..10).each {
