@@ -32,7 +32,7 @@
     <requirements />
     <build-triggers />
     <artifact-dependencies>
-      <dependency id="ARTIFACT_DEPENDENCY_9" sourceBuildTypeId="Gradle_Check_Stage_QuickFeedback_Trigger" cleanDestination="true">
+      <dependency id="ARTIFACT_DEPENDENCY_9" sourceBuildTypeId="Gradle_Check_Stage_MasterAccept_Trigger" cleanDestination="true">
         <revisionRule name="lastSuccessful" revision="latest.lastSuccessful" branch="master" />
         <artifact sourcePath="build-receipt.properties =&gt; incoming-build-receipt/" />
       </dependency>
