@@ -16,7 +16,9 @@
 
 package org.gradle.api.tasks.compile
 
+import org.gradle.api.GradleException
 import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.internal.file.collections.SimpleFileCollection
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -152,6 +154,8 @@ class CompileOptionsTest extends Specification {
         compileOptions.bootClasspath = 'xxxx'
         compileOptions.fork = false
         compileOptions.define(debug: true, bootClasspath: null)
+
+        expect:
         compileOptions.debug
         compileOptions.bootClasspath == null
         compileOptions.bootstrapClasspath == null
@@ -175,5 +179,42 @@ class CompileOptionsTest extends Specification {
         deprecatedPath == "resolved"
         1 * bootstrapClasspath.getAsPath() >> "resolved"
         0 * _
+    }
+
+    @SuppressWarnings("GrDeprecatedAPIUsage")
+    def "setting deprecated bootClasspath resets bootstrapClasspath"() {
+        given:
+        compileOptions.bootstrapClasspath = new SimpleFileCollection(new File("lib1.jar"))
+
+        when:
+        compileOptions.bootClasspath = "lib2.jar"
+
+        then:
+        compileOptions.bootClasspath == "lib2.jar"
+    }
+
+    @SuppressWarnings("GrDeprecatedAPIUsage")
+    def "querying bootstrapClasspath when deprecated bootClasspath is set fails"() {
+        given:
+        compileOptions.bootClasspath = "lib2.jar"
+
+        when:
+        compileOptions.bootstrapClasspath
+
+        then:
+        def ex = thrown GradleException
+        ex.message == "Deprecated property CompileOptions.bootClasspath was set, but replacement property CompileOptions.bootstrapClasspath was queried"
+    }
+
+    @SuppressWarnings("GrDeprecatedAPIUsage")
+    def "setting bootstrapClasspath resets deprecated bootClasspath"() {
+        given:
+        compileOptions.bootClasspath = "lib1.jar"
+
+        when:
+        compileOptions.bootstrapClasspath = new SimpleFileCollection(new File("lib2.jar"))
+
+        then:
+        compileOptions.bootClasspath == "lib2.jar"
     }
 }

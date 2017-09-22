@@ -18,6 +18,7 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Classpath;
@@ -270,6 +271,9 @@ public class CompileOptions extends AbstractOptions {
     @Optional
     @Classpath
     public FileCollection getBootstrapClasspath() {
+        if (bootClasspath != null) {
+            throw new GradleException("Deprecated property CompileOptions.bootClasspath was set, but replacement property CompileOptions.bootstrapClasspath was queried");
+        }
         return bootstrapClasspath;
     }
 
