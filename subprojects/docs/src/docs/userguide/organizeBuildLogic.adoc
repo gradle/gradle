@@ -67,6 +67,18 @@ Build scripts can be local files or remotely accessible files downloaded via a U
 
 Remote files will be cached and made available when Gradle runs offline. On each build, Gradle will check if the remote file has changed and will only download the build script file again if it has changed. URLs that contain query strings will not be cached.
 
+Such scripts can be requested declaratively using the `plugins` block:
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="configureProjectUsingScriptPlugin" dir="userguide/organizeBuildLogic/scriptPlugin" title="Configuring the project using a script plugin">
+            <sourcefile file="build.gradle"/>
+            <sourcefile file="other.gradle"/>
+            <output args="-q hello"/>
+        </sample>
+++++
+
+Or applied imperatively:
+
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="configureProjectUsingScript" dir="userguide/tutorial/configureProjectUsingScript" title="Configuring the project using an external build script">
             <sourcefile file="build.gradle"/>
