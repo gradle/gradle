@@ -123,6 +123,7 @@ data class CIBuildModel (
             GradleSubproject("testingNative"),
             GradleSubproject("toolingApi", crossVersionTests = true),
             GradleSubproject("toolingApiBuilders", functionalTests = false),
+            GradleSubproject("versionControl"),
             GradleSubproject("workers"),
             GradleSubproject("wrapper", crossVersionTests = true),
 
