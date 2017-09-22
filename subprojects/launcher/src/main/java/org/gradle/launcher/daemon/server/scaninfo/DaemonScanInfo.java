@@ -17,12 +17,14 @@
 package org.gradle.launcher.daemon.server.scaninfo;
 
 import org.gradle.api.Action;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * A means to expose Daemon information _specifically_ for the purpose of build scans. The associated plugin obtains this via the service registry and queries all values when it is applied.
  *
  * This API is a contract with the plugin. Any binary incompatible changes will require changes to the plugin.
  */
+@UsedByScanPlugin
 public interface DaemonScanInfo {
     /**
      * @return the number of builds that the daemon has run
@@ -44,6 +46,9 @@ public interface DaemonScanInfo {
      */
     int getNumberOfRunningDaemons();
 
+    /**
+     * @return true if daemon is single run daemon, false otherwise
+     */
     boolean isSingleRun();
 
     /**
