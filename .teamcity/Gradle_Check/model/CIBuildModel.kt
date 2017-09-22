@@ -45,8 +45,8 @@ data class CIBuildModel (
                     functionalTests = listOf(
                             TestCoverage(TestType.soak, OS.linux, JvmVersion.java8),
                             TestCoverage(TestType.soak, OS.windows, JvmVersion.java8),
-                            TestCoverage(TestType.crossVersion, OS.linux, JvmVersion.java7),
-                            TestCoverage(TestType.crossVersion, OS.windows, JvmVersion.java7),
+                            TestCoverage(TestType.allVersionsCrossVersion, OS.linux, JvmVersion.java7),
+                            TestCoverage(TestType.allVersionsCrossVersion, OS.windows, JvmVersion.java7),
                             TestCoverage(TestType.noDaemon, OS.linux, JvmVersion.java8),
                             TestCoverage(TestType.noDaemon, OS.windows, JvmVersion.java8)),
                     performanceTests = listOf(
@@ -172,7 +172,7 @@ enum class JvmVersion {
 
 enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false) {
     quick(true, true, false), platform(true, true, false),
-    crossVersion(false, false, true), quickFeedbackCrossVersion(false, false, true),
+    quickFeedbackCrossVersion(false, false, true), allVersionsCrossVersion(false, false, true),
     parallel(false, true, false), noDaemon(false, true, false), java9Smoke(false, true, false),
     soak(false, false, false)
 }
