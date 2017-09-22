@@ -19,8 +19,6 @@ package org.gradle.api.internal.tasks
 import org.gradle.api.internal.tasks.userinput.DefaultInputRequest
 import org.gradle.api.internal.tasks.userinput.DefaultUserInputHandler
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleHandle
-import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.ToBeImplemented
 import spock.lang.Ignore
 import spock.lang.Unroll
@@ -32,7 +30,6 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
     private static final String USER_INPUT_SUPPORT_TASK_NAME = 'userInputSupport'
     private static final String USER_INPUT_REQUEST_TASK_NAME = 'userInputRequest'
     private static final String HELLO_WORLD_USER_INPUT = 'Hello World'
-    private static final int WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS = 20
 
     @Unroll
     def "can capture user input for interactive build [daemon enabled: #useDaemon, rich console: #richConsole]"() {
@@ -43,21 +40,38 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.withTasks(USER_INPUT_SUPPORT_TASK_NAME, USER_INPUT_REQUEST_TASK_NAME)
-
-        if (useDaemon) {
-            executer.requireDaemon().requireIsolatedDaemons()
-        }
-
-        if (richConsole) {
-            executer.withRichConsole()
-        }
-
+        withDaemon(useDaemon)
+        withRichConsole(richConsole)
         def gradleHandle = executer.start()
 
         then:
         gradleHandle.stdinPipe.write(HELLO_WORLD_USER_INPUT.bytes)
         gradleHandle.stdinPipe.write(getPlatformLineSeparator().bytes)
         gradleHandle.waitForFinish()
+
+        where:
+        [useDaemon, richConsole] << [[false, true], [false, true]].combinations()
+    }
+
+    @Ignore
+    @ToBeImplemented
+    @Unroll
+    def "can cancel build during user input with ctrl-d [daemon enabled: #useDaemon, rich console: #richConsole]"() {
+        given:
+        interactiveExecution()
+        buildFile << userInputRequestedTask()
+
+        when:
+        executer.withTasks(USER_INPUT_REQUEST_TASK_NAME)
+        withDaemon(useDaemon)
+        withRichConsole(richConsole)
+        def gradleHandle = executer.start()
+
+        then:
+        gradleHandle.stdinPipe.write(4)
+        gradleHandle.stdinPipe.write(getPlatformLineSeparator().bytes)
+        def failure = gradleHandle.waitForFailure()
+        failure.assertHasCause('Build cancelled.')
 
         where:
         [useDaemon, richConsole] << [[false, true], [false, true]].combinations()
@@ -98,29 +112,19 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause('Console does not support capturing input')
     }
 
-    @Ignore
-    @ToBeImplemented
-    def "can cancel build during user input"() {
-        given:
-        interactiveExecution()
-        buildFile << userInputRequestedTask()
-
-        when:
-        def gradleHandle = executer.withTasks(USER_INPUT_REQUEST_TASK_NAME).start()
-
-        then:
-        gradleHandle.cancelWithEOT().waitForFinish()
-        waitForNotRunning(gradleHandle)
-        assert gradleHandle.standardOutput.contains('Build cancelled.')
-    }
-
     private void interactiveExecution() {
         executer.withStdinPipe().withForceInteractive(true)
     }
 
-    private waitForNotRunning(GradleHandle gradleHandle) {
-        ConcurrentTestUtil.poll(WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS) {
-            assert !gradleHandle.running
+    private void withDaemon(boolean enabled) {
+        if (enabled) {
+            executer.requireDaemon().requireIsolatedDaemons()
+        }
+    }
+
+    private void withRichConsole(boolean enabled) {
+        if (enabled) {
+            executer.withRichConsole()
         }
     }
 

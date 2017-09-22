@@ -59,14 +59,33 @@ class DefaultUserInputHandlerTest extends Specification {
 
     def "re-requests user input if invalid"() {
         when:
-        def input = userInputHandler.getInput(new DefaultInputRequest('Enter username:'))
+        def input = userInputHandler.getInput(new TestInputRequest('Enter username:'))
 
         then:
         1 * outputEventRenderer.onOutput(_ as UserInputRequestEvent)
         0 * outputEventRenderer._
-        1 * userInputReader.readInput() >> null
-        1 * userInputReader.readInput() >> 'foobar'
+        1 * userInputReader.readInput() >> 'invalid'
+        1 * userInputReader.readInput() >> 'valid'
         1 * outputEventRenderer.onOutput(_ as UserInputResumeEvent)
-        input == 'foobar'
+        input == 'valid'
+    }
+
+    private static class TestInputRequest implements InputRequest {
+
+        private final String prompt
+
+        TestInputRequest(String prompt) {
+            this.prompt = prompt
+        }
+
+        @Override
+        String getPrompt() {
+            prompt
+        }
+
+        @Override
+        boolean isValid(String input) {
+            input == 'valid' ? true : false
+        }
     }
 }
