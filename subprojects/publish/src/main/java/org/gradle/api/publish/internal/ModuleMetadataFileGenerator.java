@@ -20,6 +20,7 @@ import com.google.gson.stream.JsonWriter;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.ComponentWithVariants;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
@@ -31,10 +32,10 @@ import java.io.Writer;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class MetadataFileGenerator {
+public class ModuleMetadataFileGenerator {
     private final BuildInvocationScopeId buildInvocationScopeId;
 
-    public MetadataFileGenerator(BuildInvocationScopeId buildInvocationScopeId) {
+    public ModuleMetadataFileGenerator(BuildInvocationScopeId buildInvocationScopeId) {
         this.buildInvocationScopeId = buildInvocationScopeId;
     }
 
@@ -44,7 +45,7 @@ public class MetadataFileGenerator {
         jsonWriter.setIndent("  ");
         jsonWriter.beginObject();
         jsonWriter.name("formatVersion");
-        jsonWriter.value("0.1");
+        jsonWriter.value(ModuleMetadataParser.FORMAT_VERSION);
         jsonWriter.name("createdBy");
         jsonWriter.beginObject();
         jsonWriter.name("gradle");

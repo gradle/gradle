@@ -28,10 +28,10 @@ import org.gradle.util.GradleVersion
 import spock.lang.Specification
 
 
-class MetadataFileGeneratorTest extends Specification {
+class ModuleMetadataFileGeneratorTest extends Specification {
     def buildId = UniqueId.generate()
     def id = DefaultModuleVersionIdentifier.newId("group", "module", "1.2")
-    def generator = new MetadataFileGenerator(new BuildInvocationScopeId(buildId))
+    def generator = new ModuleMetadataFileGenerator(new BuildInvocationScopeId(buildId))
 
     def "writes file for component with no variants"() {
         def writer = new StringWriter()
