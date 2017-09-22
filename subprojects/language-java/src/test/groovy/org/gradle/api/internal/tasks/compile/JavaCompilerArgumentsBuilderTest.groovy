@@ -167,10 +167,10 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     }
 
     def "generates -bootclasspath option"() {
-        spec.compileOptions.bootstrapClasspath = new SimpleFileCollection([new File("/lib/lib1.jar"), new File("/lib/lib2.jar")])
+        spec.compileOptions.bootstrapClasspath = new SimpleFileCollection([new File("lib1.jar"), new File("lib2.jar")])
 
         expect:
-        builder.build() == ["-bootclasspath", "/lib/lib1.jar${File.pathSeparator}/lib/lib2.jar"] + defaultOptions
+        builder.build() == ["-bootclasspath", "lib1.jar${File.pathSeparator}lib2.jar"] + defaultOptions
     }
 
     @SuppressWarnings("GrDeprecatedAPIUsage")
