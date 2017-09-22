@@ -190,7 +190,7 @@ idea {
         def defaultTestVmParams = [
                 "-Dorg.gradle.docs.releasenotes.source=${docsProject.releaseNotesMarkdown.markdownFile}",
                 "-Dorg.gradle.docs.releasenotes.rendered=${new File(docsProject.releaseNotes.destinationDir, docsProject.releaseNotes.fileName)}",
-                "-DintegTest.gradleHomeDir=${rootProject.intTestImage.destinationDir.absolutePath}",
+                "-DintegTest.gradleHomeDir=\$MODULE_DIR\$/build/integ test",
                 "-DintegTest.gradleUserHomeDir=${rootProject.file('intTestHomeDir').absolutePath}",
                 "-DintegTest.libsRepo=${rootProject.file('build/repo').absolutePath}",
                 "-Dorg.gradle.integtest.daemon.registry=${rootProject.file('build/daemon').absolutePath}",
