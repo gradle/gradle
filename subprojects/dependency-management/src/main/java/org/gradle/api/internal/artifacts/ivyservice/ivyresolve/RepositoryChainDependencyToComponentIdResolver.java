@@ -17,10 +17,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.cache.internal.ProducerGuard;
+import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -31,25 +34,34 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
     private final VersionSelectorScheme versionSelectorScheme;
     private final DynamicVersionResolver dynamicRevisionResolver;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final ProducerGuard<ModuleIdentifier> producerGuard;
 
-    public RepositoryChainDependencyToComponentIdResolver(VersionSelectorScheme versionSelectorScheme, VersionedComponentChooser componentChooser, Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public RepositoryChainDependencyToComponentIdResolver(VersionSelectorScheme versionSelectorScheme, VersionedComponentChooser componentChooser, Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ProducerGuard<ModuleIdentifier> producerGuard) {
         this.versionSelectorScheme = versionSelectorScheme;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.dynamicRevisionResolver = new DynamicVersionResolver(componentChooser, metaDataFactory);
+        this.producerGuard = producerGuard;
     }
 
     public void add(ModuleComponentRepository repository) {
         dynamicRevisionResolver.add(repository);
     }
 
-    public void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result) {
-        ModuleVersionSelector requested = dependency.getRequested();
-        if (versionSelectorScheme.parseSelector(requested.getVersion()).isDynamic()) {
-            dynamicRevisionResolver.resolve(dependency, result);
-        } else {
-            DefaultModuleComponentIdentifier id = new DefaultModuleComponentIdentifier(requested.getGroup(), requested.getName(), requested.getVersion());
-            ModuleVersionIdentifier mvId = moduleIdentifierFactory.moduleWithVersion(requested.getGroup(), requested.getName(), requested.getVersion());
-            result.resolved(id, mvId);
-        }
+    public void resolve(final DependencyMetadata dependency, final BuildableComponentIdResolveResult result) {
+        ModuleIdentifier identifier = moduleIdentifierFactory.module(dependency.getRequested().getGroup(), dependency.getRequested().getName());
+        producerGuard.guardByKey(identifier, new Factory<Void>() {
+            @Override
+            public Void create() {
+                ModuleVersionSelector requested = dependency.getRequested();
+                if (versionSelectorScheme.parseSelector(requested.getVersion()).isDynamic()) {
+                    dynamicRevisionResolver.resolve(dependency, result);
+                } else {
+                    DefaultModuleComponentIdentifier id = new DefaultModuleComponentIdentifier(requested.getGroup(), requested.getName(), requested.getVersion());
+                    ModuleVersionIdentifier mvId = moduleIdentifierFactory.moduleWithVersion(requested.getGroup(), requested.getName(), requested.getVersion());
+                    result.resolved(id, mvId);
+                }
+                return null;
+            }
+        });
     }
 }

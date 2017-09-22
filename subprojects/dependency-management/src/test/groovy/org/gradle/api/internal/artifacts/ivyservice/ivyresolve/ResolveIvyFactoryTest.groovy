@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import com.google.common.collect.Lists
+import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
@@ -31,6 +32,7 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
 import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.cache.internal.ProducerGuard
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.cached.CachedArtifactIndex
@@ -53,6 +55,7 @@ class ResolveIvyFactoryTest extends Specification {
     VersionSelectorScheme versionSelectorScheme
     VersionComparator versionComparator
     ImmutableModuleIdentifierFactory moduleIdentifierFactory
+    ProducerGuard<ModuleIdentifier> producerGuard = ProducerGuard.adaptive()
 
     def setup() {
         moduleVersionsCache = Mock(ModuleVersionsCache)
@@ -72,7 +75,7 @@ class ResolveIvyFactoryTest extends Specification {
 
         resolveIvyFactory = new ResolveIvyFactory(moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache,
             cachedArtifactIndex, startParameterResolutionOverride, buildCommencedTimeProvider,
-            inMemoryCachedRepositoryFactory, versionSelectorScheme, versionComparator, moduleIdentifierFactory)
+            inMemoryCachedRepositoryFactory, versionSelectorScheme, versionComparator, moduleIdentifierFactory, producerGuard)
     }
 
     def "returns an empty resolver when no repositories are configured" () {

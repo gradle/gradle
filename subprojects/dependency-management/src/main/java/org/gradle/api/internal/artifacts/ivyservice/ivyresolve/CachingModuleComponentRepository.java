@@ -76,8 +76,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     private final BuildCommencedTimeProvider timeProvider;
     private final ComponentMetadataProcessor metadataProcessor;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final ResolveAndCacheRepositoryAccess resolveAndCacheRepositoryAccess;
     private LocateInCacheRepositoryAccess locateInCacheRepositoryAccess = new LocateInCacheRepositoryAccess();
-    private ResolveAndCacheRepositoryAccess resolveAndCacheRepositoryAccess = new ResolveAndCacheRepositoryAccess();
 
     public CachingModuleComponentRepository(ModuleComponentRepository delegate, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache,
                                             ModuleArtifactsCache moduleArtifactsCache, CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex,
@@ -93,6 +93,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         this.cachePolicy = cachePolicy;
         this.metadataProcessor = metadataProcessor;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        resolveAndCacheRepositoryAccess = new ResolveAndCacheRepositoryAccess();
     }
 
     public String getId() {
@@ -341,7 +342,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
 
         @Override
-        public void listModuleVersions(DependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
+        public void listModuleVersions(final DependencyMetadata dependency, final BuildableModuleVersionListingResolveResult result) {
             delegate.getRemoteAccess().listModuleVersions(dependency, result);
             switch (result.getState()) {
                 case Listed:

@@ -36,11 +36,13 @@ public class DependencySubstitutionResolver implements DependencyToComponentIdRe
     public void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result) {
         ComponentSelector selector = dependency.getSelector();
         DependencySubstitutionInternal details = new DefaultDependencySubstitution(selector, dependency.getRequested());
-        try {
-            rule.execute(details);
-        } catch (Throwable e) {
-            result.failed(new ModuleVersionResolveException(selector, e));
-            return;
+        synchronized (resolver) {
+            try {
+                rule.execute(details);
+            } catch (Throwable e) {
+                result.failed(new ModuleVersionResolveException(selector, e));
+                return;
+            }
         }
         if (details.isUpdated()) {
             resolver.resolve(dependency.withTarget(details.getTarget()), result);

@@ -40,14 +40,7 @@ import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult.State.Failed;
 import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult.State.Resolved;
@@ -182,12 +175,9 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
     }
 
     /**
-     * This class contains state used to resolve a component from a specific repository. It can be used in multiple passes,
-     * (local access, remote access), and will be used for 2 different steps:
+     * This class contains state used to resolve a component from a specific repository. It can be used in multiple passes, (local access, remote access), and will be used for 2 different steps:
      *
-     * 1. selecting a version, thanks to the versioned component chooser, for a specific version selector
-     * 2. once the selection is done, fetch metadata for this component
-     *
+     * 1. selecting a version, thanks to the versioned component chooser, for a specific version selector 2. once the selection is done, fetch metadata for this component
      */
     private static class RepositoryResolveState implements ComponentSelectionContext {
         private final VersionedComponentChooser versionedComponentChooser;
@@ -342,8 +332,8 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
         }
 
         /**
-         * Once a version has been selected, this tries to resolve metadata for this specific version. If it can it
-         * will copy the result to the target builder
+         * Once a version has been selected, this tries to resolve metadata for this specific version. If it can it will copy the result to the target builder
+         *
          * @param target where to put metadata
          */
         public void resolve(BuildableModuleComponentMetaDataResolveResult target) {

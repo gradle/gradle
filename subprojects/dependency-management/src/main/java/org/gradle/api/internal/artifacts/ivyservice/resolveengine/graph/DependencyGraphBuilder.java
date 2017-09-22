@@ -187,6 +187,7 @@ public class DependencyGraphBuilder {
         if (dependencies.isEmpty()) {
             return;
         }
+        resolveModuleRevisionIdsConcurrently(dependencies);
         performSelectionSerially(dependencies, resolveState);
         computePreemptiveDownloadList(dependencies, dependenciesMissingMetadataLocally, componentIdentifierCache);
         downloadMetadataConcurrently(node, dependenciesMissingMetadataLocally);
@@ -215,6 +216,27 @@ public class DependencyGraphBuilder {
             public void execute(BuildOperationQueue<RunnableBuildOperation> buildOperationQueue) {
                 for (final EdgeState dependency : dependencies) {
                     buildOperationQueue.add(new DownloadMetadataOperation(dependency.targetModuleRevision));
+                }
+            }
+        });
+    }
+
+    private void resolveModuleRevisionIdsConcurrently(List<EdgeState> dependencies) {
+        final List<SelectorState> selectors = new ArrayList<SelectorState>(dependencies.size());
+        for (EdgeState dependency: dependencies) {
+            SelectorState state = dependency.selector;
+            if (!state.isResolved()) {
+                selectors.add(state);
+            }
+        }
+        if (selectors.size() <= 1) {
+            return;
+        }
+        buildOperationExecutor.runAll(new Action<BuildOperationQueue<RunnableBuildOperation>>() {
+            @Override
+            public void execute(BuildOperationQueue<RunnableBuildOperation> buildOperationQueue) {
+                for (final SelectorState selector : selectors) {
+                    buildOperationQueue.add(new ResolveComponentIdOperation(selector));
                 }
             }
         });
@@ -1176,6 +1198,22 @@ public class DependencyGraphBuilder {
             return targetModule;
         }
 
+        public boolean isResolved() {
+            return idResolveResult != null;
+        }
+
+        public void resolveComponentId() {
+            if (isResolved()) {
+                return;
+            }
+
+            idResolveResult = new DefaultBuildableComponentIdResolveResult();
+            resolver.resolve(dependencyMetadata, idResolveResult);
+            if (idResolveResult.getFailure() != null) {
+                failure = idResolveResult.getFailure();
+            }
+        }
+
         /**
          * @return The module version, or null if there is a failure to resolve this selector.
          */
@@ -1183,14 +1221,10 @@ public class DependencyGraphBuilder {
             if (selected != null) {
                 return selected;
             }
-            if (failure != null) {
-                return null;
-            }
 
-            idResolveResult = new DefaultBuildableComponentIdResolveResult();
-            resolver.resolve(dependencyMetadata, idResolveResult);
-            if (idResolveResult.getFailure() != null) {
-                failure = idResolveResult.getFailure();
+            resolveComponentId();
+
+            if (failure != null) {
                 return null;
             }
 
@@ -1280,6 +1314,24 @@ public class DependencyGraphBuilder {
                     resolveState.getModule(moduleIdentifier).restart(selected);
                 }
             });
+        }
+    }
+
+    private static class ResolveComponentIdOperation implements RunnableBuildOperation {
+        private final SelectorState selector;
+
+        ResolveComponentIdOperation(SelectorState selector) {
+            this.selector = selector;
+        }
+
+        @Override
+        public void run(BuildOperationContext context) {
+            selector.resolveComponentId();
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor.displayName("Resolve module revision " + selector);
         }
     }
 }

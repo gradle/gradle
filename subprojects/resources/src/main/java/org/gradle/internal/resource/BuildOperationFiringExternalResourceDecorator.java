@@ -67,6 +67,7 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor
                     .displayName("Metadata of " + resourceName.getDisplayName())
+                    .progressDisplayName(resourceName.getShortDisplayName())
                     .details(new MetadataOperationDetails(resourceName.getUri()));
             }
         });
@@ -87,6 +88,7 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor
                     .displayName("List " + resourceName.getDisplayName())
+                    .progressDisplayName("List directory")
                     .details(new ListOperationDetails(resourceName.getUri()));
             }
         });
