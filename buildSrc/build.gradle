@@ -17,7 +17,7 @@ apply plugin: 'kotlin'
 tasks.withType(KotlinCompile) {
     kotlinOptions {
         freeCompilerArgs = [
-            "-Xjsr305-annotations=enable",
+            "-Xjsr305=strict",
             "-Xskip-runtime-version-check"
         ]
     }
