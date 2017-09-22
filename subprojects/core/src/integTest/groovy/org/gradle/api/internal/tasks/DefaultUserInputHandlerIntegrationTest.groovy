@@ -29,6 +29,7 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String USER_INPUT_SUPPORT_TASK_NAME = 'userInputSupport'
     private static final String USER_INPUT_REQUEST_TASK_NAME = 'userInputRequest'
+    private static final String PROMPT = 'Enter your response'
     private static final String HELLO_WORLD_USER_INPUT = 'Hello World'
 
     @Unroll
@@ -48,6 +49,7 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
         gradleHandle.stdinPipe.write(HELLO_WORLD_USER_INPUT.bytes)
         gradleHandle.stdinPipe.write(getPlatformLineSeparator().bytes)
         gradleHandle.waitForFinish()
+        gradleHandle.standardOutput.contains(PROMPT)
 
         where:
         [useDaemon, richConsole] << [[false, true], [false, true]].combinations()
@@ -139,7 +141,7 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    static String userInputRequestedTask(String prompt = 'Enter your response', String expectedInput = HELLO_WORLD_USER_INPUT) {
+    static String userInputRequestedTask(String prompt = PROMPT, String expectedInput = HELLO_WORLD_USER_INPUT) {
         """
             task $USER_INPUT_REQUEST_TASK_NAME {
                 doLast {

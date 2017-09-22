@@ -17,37 +17,24 @@
 package org.gradle.internal.logging.console;
 
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.events.PromptOutputEvent;
+import org.gradle.internal.time.Clock;
 
-public class UserInputConsoleRenderer extends AbstractUserInputRenderer {
-    private final Console console;
+public class UserInputStandardOutputRenderer extends AbstractUserInputRenderer {
 
-    public UserInputConsoleRenderer(OutputEventListener delegate, Console console) {
+    private final Clock clock;
+
+    public UserInputStandardOutputRenderer(OutputEventListener delegate, Clock clock) {
         super(delegate);
-        this.console = console;
+        this.clock = clock;
     }
 
     @Override
     void startInput(String prompt) {
-        toggleBuildProgressAreaVisibility(false);
-        printToBuildProgressArea(prompt);
-        flushConsole();
+        delegate.onOutput(new PromptOutputEvent(clock.getCurrentTime(), prompt));
     }
 
     @Override
     void finishInput() {
-        toggleBuildProgressAreaVisibility(true);
-        flushConsole();
-    }
-
-    private void toggleBuildProgressAreaVisibility(boolean visible) {
-        console.getBuildProgressArea().setVisible(visible);
-    }
-
-    private void printToBuildProgressArea(String message) {
-        console.getBuildOutputArea().println(message);
-    }
-
-    private void flushConsole() {
-        console.flush();
     }
 }
