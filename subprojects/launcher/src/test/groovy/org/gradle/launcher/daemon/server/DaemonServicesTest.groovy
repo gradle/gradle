@@ -16,11 +16,12 @@
 package org.gradle.launcher.daemon.server
 
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.logging.LoggingManagerInternal
+import org.gradle.internal.logging.services.LoggingServiceRegistry
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.launcher.daemon.configuration.DefaultDaemonServerConfiguration
 import org.gradle.launcher.daemon.registry.DaemonDir
-import org.gradle.internal.logging.LoggingManagerInternal
-import org.gradle.internal.logging.services.LoggingServiceRegistry
+import org.gradle.launcher.daemon.server.scaninfo.DaemonScanInfo
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
@@ -30,9 +31,15 @@ import static java.util.Arrays.asList
 
 @UsesNativeServices
 class DaemonServicesTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
+    @Rule
+    TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
+
     final DaemonServices services = new DaemonServices(new DefaultDaemonServerConfiguration("uid", tmp.testDirectory, 100, 50, asList()),
-        LoggingServiceRegistry.newEmbeddableLogging(), Mock(LoggingManagerInternal), Stub(ClassPath))
+        LoggingServiceRegistry.newEmbeddableLogging(), Mock(LoggingManagerInternal), Stub(ClassPath), false)
+
+    final DaemonServices singleRunServices = new DaemonServices(new DefaultDaemonServerConfiguration("uid", tmp.testDirectory, 200, 50, asList()),
+        LoggingServiceRegistry.newEmbeddableLogging(), Mock(LoggingManagerInternal), Stub(ClassPath), true)
+
 
     def "makes a DaemonDir available"() {
         expect:
@@ -47,5 +54,18 @@ class DaemonServicesTest extends Specification {
     def "makes a Daemon available"() {
         expect:
         services.get(Daemon.class) != null
+    }
+
+    def "makes a DaemonScanInfo available"() {
+        expect:
+        services.get(DaemonScanInfo.class) != null
+        services.get(DaemonScanInfo.class).singleRun == false
+        services.get(DaemonScanInfo.class).idleTimeout == 100
+
+        and:
+        singleRunServices.get(DaemonScanInfo.class) != null
+        singleRunServices.get(DaemonScanInfo.class).singleRun == true
+        singleRunServices.get(DaemonScanInfo.class).idleTimeout == 200
+
     }
 }

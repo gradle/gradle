@@ -66,7 +66,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
         this.versionValidator = versionValidator;
     }
 
-    public DaemonStartupInfo startDaemon() {
+    public DaemonStartupInfo startDaemon(boolean singleUse) {
         String daemonUid = UUID.randomUUID().toString();
 
         GradleInstallation gradleInstallation = CurrentGradleInstallation.get();
@@ -107,7 +107,10 @@ public class DefaultDaemonStarter implements DaemonStarter {
         daemonArgs.add(GradleDaemon.class.getName());
         // Version isn't used, except by a human looking at the output of jps.
         daemonArgs.add(GradleVersion.current().getVersion());
-
+        // mark daemons intended for single use with an according flag
+        if (singleUse) {
+            daemonArgs.add("--single-use");
+        }
         // Serialize configuration to daemon via the process' stdin
         StreamByteBuffer buffer = new StreamByteBuffer();
         FlushableEncoder encoder = new KryoBackedEncoder(new EncodedStream.EncodedOutput(buffer.getOutputStream()));

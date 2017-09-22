@@ -68,12 +68,14 @@ import java.util.UUID;
 public class DaemonServices extends DefaultServiceRegistry {
     private final DaemonServerConfiguration configuration;
     private final LoggingManagerInternal loggingManager;
+    private final boolean singleRun;
     private static final Logger LOGGER = Logging.getLogger(DaemonServices.class);
 
-    public DaemonServices(DaemonServerConfiguration configuration, ServiceRegistry loggingServices, LoggingManagerInternal loggingManager, ClassPath additionalModuleClassPath) {
+    public DaemonServices(DaemonServerConfiguration configuration, ServiceRegistry loggingServices, LoggingManagerInternal loggingManager, ClassPath additionalModuleClassPath, boolean singleRun) {
         super(NativeServices.getInstance(), loggingServices);
         this.configuration = configuration;
         this.loggingManager = loggingManager;
+        this.singleRun = singleRun;
 
         addProvider(new DaemonRegistryServices(configuration.getBaseDir()));
         addProvider(new GlobalScopeServices(true, additionalModuleClassPath));
@@ -112,7 +114,7 @@ public class DaemonServices extends DefaultServiceRegistry {
     }
 
     protected DaemonScanInfo createDaemonScanInfo(DaemonRunningStats runningStats, ListenerManager listenerManager) {
-        return new DefaultDaemonScanInfo(runningStats, configuration.getIdleTimeout(), get(DaemonRegistry.class), listenerManager);
+        return new DefaultDaemonScanInfo(runningStats, configuration.getIdleTimeout(), get(DaemonRegistry.class), listenerManager, singleRun);
     }
 
     protected MasterExpirationStrategy createMasterExpirationStrategy(Daemon daemon, HealthExpirationStrategy healthExpirationStrategy, ListenerManager listenerManager) {

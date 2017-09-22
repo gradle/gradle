@@ -705,7 +705,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     @Override
     public GradleExecuter requireDaemon() {
-        requireDaemon = true;
+        return requireDaemon(true);
+    }
+
+//    @Override
+    public GradleExecuter requireDaemon(boolean requireDaemon) {
+        this.requireDaemon = requireDaemon;
         return this;
     }
 
@@ -716,10 +721,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     @Override
     public boolean isUseDaemon() {
         CliDaemonArgument cliDaemonArgument = resolveCliDaemonArgument();
-        if (cliDaemonArgument == DAEMON) {
-            return true;
+        if (cliDaemonArgument == NO_DAEMON) {
+            return false;
         }
-        return requireDaemon;
+        return requireDaemon || cliDaemonArgument == DAEMON;
     }
 
     @Override

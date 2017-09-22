@@ -17,6 +17,7 @@ package org.gradle.launcher.daemon.client;
 
 import com.google.common.base.Preconditions;
 import org.gradle.api.internal.specs.ExplainingSpec;
+import org.gradle.api.internal.specs.ExplainingSpecs;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
@@ -200,9 +201,13 @@ public class DefaultDaemonConnector implements DaemonConnector {
     }
 
     public DaemonClientConnection startDaemon(ExplainingSpec<DaemonContext> constraint) {
+        return doStartDaemon(constraint, false);
+    }
+
+    private DaemonClientConnection doStartDaemon(ExplainingSpec<DaemonContext> constraint, boolean singleRun) {
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(DefaultDaemonConnector.class)
             .start("Starting Gradle Daemon", "Starting Daemon");
-        final DaemonStartupInfo startupInfo = daemonStarter.startDaemon();
+        final DaemonStartupInfo startupInfo = daemonStarter.startDaemon(singleRun);
         LOGGER.debug("Started Gradle daemon {}", startupInfo);
         CountdownTimer timer = Time.startCountdownTimer(connectTimeout);
         try {
@@ -223,6 +228,11 @@ public class DefaultDaemonConnector implements DaemonConnector {
         }
 
         throw new DaemonConnectionException("Timeout waiting to connect to the Gradle daemon.\n" + startupInfo.describe());
+    }
+
+    @Override
+    public DaemonClientConnection startSingleUseDaemon() {
+        return doStartDaemon(ExplainingSpecs.<DaemonContext>satisfyAll(), true);
     }
 
     private DaemonClientConnection connectToDaemonWithId(DaemonStartupInfo daemon, ExplainingSpec<DaemonContext> constraint) throws ConnectException {

@@ -59,6 +59,7 @@ import java.util.List;
 public class DaemonMain extends EntryPoint {
 
     private static final Logger LOGGER = Logging.getLogger(DaemonMain.class);
+    public static final String SINGLE_USE_FLAG = "--single-use";
 
     private PrintStream originalOut;
     private PrintStream originalErr;
@@ -66,8 +67,12 @@ public class DaemonMain extends EntryPoint {
     @Override
     protected void doAction(String[] args, ExecutionListener listener) {
         //The first argument is not really used but it is very useful in diagnosing, i.e. running 'jps -m'
-        if (args.length != 1) {
+        if (args.length < 1) {
             invalidArgs("Following arguments are required: <gradle-version>");
+        }
+
+        if (args.length == 2 && !args[1].equals(SINGLE_USE_FLAG)){
+            invalidArgs("Only '--single-use' flag is allowed as 2nd argument");
         }
 
         // Read configuration from stdin
@@ -106,7 +111,7 @@ public class DaemonMain extends EntryPoint {
         LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newCommandLineProcessLogging();
         LoggingManagerInternal loggingManager = loggingRegistry.newInstance(LoggingManagerInternal.class);
 
-        DaemonServices daemonServices = new DaemonServices(parameters, loggingRegistry, loggingManager, new DefaultClassPath(additionalClassPath));
+        DaemonServices daemonServices = new DaemonServices(parameters, loggingRegistry, loggingManager, new DefaultClassPath(additionalClassPath), isSingleUseDaemon(args));
         File daemonLog = daemonServices.getDaemonLogFile();
 
         // Any logging prior to this point will not end up in the daemon log file.
@@ -134,8 +139,12 @@ public class DaemonMain extends EntryPoint {
         }
     }
 
+    private boolean isSingleUseDaemon(String[] args) {
+        return args.length == 2 && args[1].equals(SINGLE_USE_FLAG);
+    }
+
     private static void invalidArgs(String message) {
-        System.out.println("USAGE: <gradle version> <path to registry base dir> <idle timeout in milliseconds>");
+        System.out.println("USAGE: <gradle version> [--single-use]");
         System.out.println(message);
         System.exit(1);
     }
