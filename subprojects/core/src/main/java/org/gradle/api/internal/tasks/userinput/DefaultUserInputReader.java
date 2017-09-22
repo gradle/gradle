@@ -18,23 +18,35 @@ package org.gradle.api.internal.tasks.userinput;
 
 import org.gradle.api.UncheckedIOException;
 
-import java.util.Scanner;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 
 public class DefaultUserInputReader implements UserInputReader {
 
-    private final Scanner scanner = new Scanner(System.in);
-
     @Override
     public String readInput() {
-        if (!isSupported()) {
-            throw new UncheckedIOException("Console does not support capturing input");
+        Reader br = new InputStreamReader(System.in);
+        StringBuilder out = new StringBuilder();
+
+        while (true) {
+            try {
+                int c = br.read();
+
+                if (c == 4 || c == -1) {
+                    return null;
+                }
+
+                out.append((char)c);
+
+                if ((c == '\n') || (c == '\r')) {
+                    break;
+                }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
         }
 
-        return scanner.nextLine();
-    }
-
-    @Override
-    public boolean isSupported() {
-        return scanner.hasNextLine();
+        return out.toString();
     }
 }

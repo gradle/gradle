@@ -21,7 +21,6 @@ import org.gradle.internal.logging.events.UserInputRequestEvent;
 import org.gradle.internal.logging.events.UserInputResumeEvent;
 import org.gradle.internal.logging.sink.OutputEventRenderer;
 
-// TODO:DAZ Handle ctrl-D to cancel build during input
 public class DefaultUserInputHandler implements UserInputHandler {
     private final OutputEventRenderer outputEventRenderer;
     private final UserInputReader userInputReader;
@@ -37,19 +36,21 @@ public class DefaultUserInputHandler implements UserInputHandler {
 
         try {
             while (true) {
-                String input = sanitizeInput(userInputReader.readInput());
+                String input = userInputReader.readInput();
 
-                if (inputRequest.isValid(input)) {
-                    return input;
+                if (input == null) {
+                    return null;
+                }
+
+                String sanitizedInput = sanitizeInput(input);
+
+                if (inputRequest.isValid(sanitizedInput)) {
+                    return sanitizedInput;
                 }
             }
         } finally {
             outputEventRenderer.onOutput(new UserInputResumeEvent());
         }
-    }
-
-    public boolean isInputSupported() {
-        return userInputReader.isSupported();
     }
 
     private String sanitizeInput(String input) {

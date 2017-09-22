@@ -28,15 +28,6 @@ class DefaultUserInputHandlerTest extends Specification {
     def userInputReader = Mock(UserInputReader)
     @Subject def userInputHandler = new DefaultUserInputHandler(outputEventRenderer, userInputReader)
 
-    def "can check if user input is supported"() {
-        when:
-        boolean supported = userInputHandler.inputSupported
-
-        then:
-        1 * userInputReader.supported >> true
-        supported
-    }
-
     def "can read valid user input"() {
         when:
         def input = userInputHandler.getInput(new DefaultInputRequest('Enter username:'))
