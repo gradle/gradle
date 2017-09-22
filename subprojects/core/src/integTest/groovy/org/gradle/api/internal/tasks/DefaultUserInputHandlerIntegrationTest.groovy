@@ -75,6 +75,35 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
         [useDaemon, richConsole] << [[false, true], [false, true]].combinations()
     }
 
+    def "can capture user input from plugin"() {
+        file('buildSrc/src/main/groovy/UserInputPlugin.groovy') << """
+            import org.gradle.api.Project
+            import org.gradle.api.Plugin
+
+            class UserInputPlugin implements Plugin<Project> {
+                @Override
+                void apply(Project project) {
+                    ${verifyUserInput(PROMPT, HELLO_WORLD_USER_INPUT)}
+                }
+            }
+        """
+        buildFile << """
+            apply plugin: UserInputPlugin
+            
+            task doSomething
+        """
+        interactiveExecution()
+
+        when:
+        def gradleHandle = executer.withTasks('doSomething').start()
+
+        then:
+        gradleHandle.stdinPipe.write(HELLO_WORLD_USER_INPUT.bytes)
+        gradleHandle.stdinPipe.write(getPlatformLineSeparator().bytes)
+        gradleHandle.waitForFinish()
+        gradleHandle.standardOutput.contains(PROMPT)
+    }
+
     @Ignore
     @ToBeImplemented
     def "fails gracefully if console is not interactive"() {
