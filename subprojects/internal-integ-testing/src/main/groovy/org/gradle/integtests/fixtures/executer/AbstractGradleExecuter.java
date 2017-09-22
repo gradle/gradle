@@ -705,12 +705,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     @Override
     public GradleExecuter requireDaemon() {
-        return requireDaemon(true);
-    }
-
-//    @Override
-    public GradleExecuter requireDaemon(boolean requireDaemon) {
-        this.requireDaemon = requireDaemon;
+        this.requireDaemon = true;
         return this;
     }
 
