@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import org.gradle.api.Named
+import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.provider.Provider
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
@@ -199,6 +201,24 @@ class ValueSnapshotterTest extends Specification {
         snapshot instanceof ProviderSnapshot
         snapshot == snapshotter.snapshot(value)
         snapshot == snapshotter.snapshot(value2)
+        snapshot != snapshotter.snapshot(value3)
+    }
+
+    interface Thing extends Named {}
+
+    def "creates snapshot for named managed type"() {
+        def instantiator = NamedObjectInstantiator.INSTANCE
+        def value = instantiator.named(Thing, "value1")
+        def value1 = instantiator.named(Thing, "value1")
+        def value2 = instantiator.named(Thing, "value2")
+        def value3 = instantiator.named(Named, "value1")
+
+        expect:
+        def snapshot = snapshotter.snapshot(value)
+        snapshot instanceof ManagedNamedTypeSnapshot
+        snapshot == snapshotter.snapshot(value)
+        snapshot == snapshotter.snapshot(value1)
+        snapshot != snapshotter.snapshot(value2)
         snapshot != snapshotter.snapshot(value3)
     }
 
@@ -439,6 +459,22 @@ class ValueSnapshotterTest extends Specification {
         def snapshot = snapshotter.snapshot(value)
         areTheSame(snapshot, value2)
         areNotTheSame(snapshot, value3)
+        areNotTheSame(snapshot, "123")
+    }
+
+    def "creates snapshot for named managed type from candidate"() {
+        def instantiator = NamedObjectInstantiator.INSTANCE
+        def value = instantiator.named(Thing, "value")
+        def value1 = instantiator.named(Thing, "value")
+        def value2 = instantiator.named(Thing, "value2")
+        def value3 = instantiator.named(Named, "value2")
+
+        expect:
+        def snapshot = snapshotter.snapshot(value)
+        areTheSame(snapshot, value1)
+        areNotTheSame(snapshot, value2)
+        areNotTheSame(snapshot, value3)
+        areNotTheSame(snapshot, "value")
     }
 
     def "creates snapshot for serializable type from candidate"() {
