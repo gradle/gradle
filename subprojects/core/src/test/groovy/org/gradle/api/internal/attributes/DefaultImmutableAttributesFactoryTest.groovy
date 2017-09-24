@@ -35,6 +35,25 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
         attributes.keySet() == [] as Set
     }
 
+    def "can create a single entry immutable set"() {
+        when:
+        def attributes = factory.of(FOO, "foo")
+
+        then:
+        attributes.keySet() == [FOO] as Set
+
+        and:
+        attributes.getAttribute(FOO) == 'foo'
+    }
+
+    def "caches singleton sets"() {
+        expect:
+        def attributes = factory.of(FOO, "foo")
+        factory.of(FOO, "foo").is(attributes)
+        factory.of(FOO, "other") != attributes
+        factory.of(BAR, "foo") != attributes
+    }
+
     def "can concatenate immutable attributes sets"() {
         when:
         def set1 = factory.of(FOO, "foo")
@@ -73,17 +92,6 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
         set2.getAttribute(BAR) == 'bar'
     }
 
-    def "can create a single entry immutable set"() {
-        when:
-        def attributes = factory.of(FOO, "foo")
-
-        then:
-        attributes.keySet() == [FOO] as Set
-
-        and:
-        attributes.getAttribute(FOO) == 'foo'
-    }
-
     def "can concatenate attribute to multiple value set"() {
         given:
         def attributes = factory.of(FOO, 'foo')
@@ -97,6 +105,18 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
         set.getAttribute(FOO) == 'foo'
         set.getAttribute(BAR) == 'bar'
         set.getAttribute(BAZ) == 'baz'
+    }
+
+    def "caches instances of multple value sets"() {
+        given:
+        def attributes = factory.concat(factory.of(FOO, 'foo'), BAR, 'bar')
+
+        expect:
+        def a2 = factory.concat(factory.of(FOO, 'foo'), BAR, 'bar')
+        a2.is(attributes)
+
+        def a3 = factory.concat(factory.of(FOO, 'foo'), BAR, 'other')
+        a3 != attributes
     }
 
     def "order of entries is not significant in equality"() {
