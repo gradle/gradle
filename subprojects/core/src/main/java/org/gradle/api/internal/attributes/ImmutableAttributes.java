@@ -19,6 +19,7 @@ package org.gradle.api.internal.attributes;
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.internal.Cast;
 
 import java.util.Collections;
@@ -40,7 +41,7 @@ public final class ImmutableAttributes implements AttributeContainerInternal {
 
     private final ImmutableAttributes parent;
     final Attribute<?> attribute;
-    final Object value;
+    final Isolatable<?> value;
 
     private final int hashCode;
     private final int size;
@@ -60,7 +61,7 @@ public final class ImmutableAttributes implements AttributeContainerInternal {
         this.size = 0;
     }
 
-    ImmutableAttributes(ImmutableAttributes parent, Attribute<?> key, Object value) {
+    ImmutableAttributes(ImmutableAttributes parent, Attribute<?> key, Isolatable<?> value) {
         this.parent = parent;
         this.attribute = key;
         this.value = value;
@@ -89,7 +90,7 @@ public final class ImmutableAttributes implements AttributeContainerInternal {
         ImmutableAttributes cur = this;
 
         while (cur.value != null) {
-            if (!cur.value.equals(that.getAttribute(cur.attribute))) {
+            if (!cur.value.isolate().equals(that.getAttribute(cur.attribute))) {
                 return false;
             }
             cur = cur.parent;
@@ -121,7 +122,7 @@ public final class ImmutableAttributes implements AttributeContainerInternal {
     @Override
     public <T> T getAttribute(Attribute<T> key) {
         if (key.equals(attribute)) {
-            return Cast.uncheckedCast(value);
+            return Cast.uncheckedCast(value.isolate());
         }
         if (parent != null) {
             return parent.getAttribute(key);
@@ -160,7 +161,7 @@ public final class ImmutableAttributes implements AttributeContainerInternal {
         ImmutableAttributes node = this;
         while (node != null) {
             if (node.attribute != null) {
-                sorted.put(node.attribute, node.value);
+                sorted.put(node.attribute, node.value.isolate());
             }
             node = node.parent;
         }

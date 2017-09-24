@@ -34,7 +34,7 @@ import spock.lang.Unroll
 
 class DefaultAttributesSchemaTest extends Specification {
     def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
-    def factory = new DefaultImmutableAttributesFactory()
+    def factory = TestUtil.attributesFactory()
 
     @Unroll
     def "can create an attribute of scalar type #type"() {
