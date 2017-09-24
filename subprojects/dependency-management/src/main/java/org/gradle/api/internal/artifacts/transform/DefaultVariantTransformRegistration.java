@@ -23,10 +23,8 @@ import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.changedetection.state.ArrayValueSnapshot;
-import org.gradle.api.internal.changedetection.state.ValueSnapshot;
-import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
-import org.gradle.api.internal.changedetection.state.isolation.IsolationException;
+import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
+import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
@@ -46,7 +44,7 @@ class DefaultVariantTransformRegistration implements VariantTransformRegistry.Re
     private final TransformedFileCache transformedFileCache;
     private final BiFunction<List<File>, File, File> transformer;
 
-    DefaultVariantTransformRegistration(AttributeContainerInternal from, AttributeContainerInternal to, Class<? extends ArtifactTransform> implementation, Object[] params, TransformedFileCache transformedFileCache, ValueSnapshotter valueSnapshotter, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, Instantiator instantiator) {
+    DefaultVariantTransformRegistration(AttributeContainerInternal from, AttributeContainerInternal to, Class<? extends ArtifactTransform> implementation, Object[] params, TransformedFileCache transformedFileCache, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, Instantiator instantiator) {
         this.from = from.asImmutable();
         this.to = to.asImmutable();
         this.implementation = implementation;
@@ -57,21 +55,15 @@ class DefaultVariantTransformRegistration implements VariantTransformRegistry.Re
         hasher.putHash(classLoaderHierarchyHasher.getClassLoaderHash(implementation.getClassLoader()));
 
         // TODO - should snapshot later?
-        ValueSnapshot snapshot;
+        Isolatable<Object[]> paramsSnapshot;
         try {
-            snapshot = valueSnapshotter.isolatableSnapshot(params);
+            paramsSnapshot = isolatableFactory.isolate(params);
         } catch (Exception e) {
             throw new VariantTransformConfigurationException(String.format("Could not snapshot configuration values for transform %s: %s", ModelType.of(implementation).getDisplayName(), Arrays.asList(params)), e);
         }
 
-        snapshot.appendToHasher(hasher);
+        paramsSnapshot.appendToHasher(hasher);
         inputsHash = hasher.hash();
-
-        // Isolate Parameters
-        if (!(snapshot instanceof ArrayValueSnapshot)) {
-            throw new IsolationException("Snapshotting the ActionConfiguration's params didn't create an ArrayValueSnapshot.");
-        }
-        ArrayValueSnapshot paramsSnapshot = (ArrayValueSnapshot) snapshot;
 
         this.transformer = new ArtifactTransformBackedTransformer(implementation, paramsSnapshot, instantiator);
     }
