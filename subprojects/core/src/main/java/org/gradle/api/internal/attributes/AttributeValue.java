@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,6 @@
 
 package org.gradle.api.internal.attributes;
 
-import org.gradle.api.InvalidUserCodeException;
-import org.gradle.internal.Cast;
-
-import java.util.NoSuchElementException;
-
 /**
  * Represents an optional attribute value, as found in an attribute container. There are 3 possible cases:
  * <ul>
@@ -32,76 +27,28 @@ import java.util.NoSuchElementException;
  *
  * @since 3.3
  */
-public class AttributeValue<T> {
-    private final static AttributeValue<Object> MISSING = new AttributeValue<Object>(null) {
+public interface AttributeValue<T> {
+    AttributeValue<Object> MISSING = new AttributeValue<Object>() {
+        @Override
+        public boolean isPresent() {
+            return false;
+        }
+
         @Override
         public Object get() {
-            throw new InvalidUserCodeException("get() should not be called on a missing attribute value");
+            throw new UnsupportedOperationException("get() should not be called on a missing attribute value");
         }
     };
-
-    private final T value;
-
-    private AttributeValue(T value) {
-        this.value = value;
-    }
-
-    /**
-     * Creates a valued attribute from a non-null value.
-     * @param value the value of the attribute
-     * @param <T> the type of the attribute
-     * @return a <i>present</i> attribute value
-     */
-    public static <T> AttributeValue<T> of(T value) {
-        return new AttributeValue<T>(value);
-    }
-
-    /**
-     * Creates a missing attribute value, used to represent the fact that the attribute is known
-     * but the consumer didn't want to express a value for it (it doesn't care).
-     * @param <T> the type of the attribute
-     * @return a <i>missing</i> attribute value
-     */
-    public static <T> AttributeValue<T> missing() {
-        return Cast.uncheckedCast(MISSING);
-    }
 
     /**
      * Tells if this attribute value is present.
      * @return true if this attribute value is present, implying not <code>null</code>.
      */
-    public boolean isPresent() {
-        return value != null;
-    }
+    boolean isPresent();
 
     /**
      * Returns the value of this attribute.
      * @return the value of this attribute. Throws an error if called on a missing or unknown attribute value.
      */
-    public T get() {
-        if (value == null) {
-            throw new NoSuchElementException("No value provided");
-        }
-        return value;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        AttributeValue<?> that = (AttributeValue<?>) o;
-
-        return value != null ? value.equals(that.value) : that.value == null;
-
-    }
-
-    @Override
-    public int hashCode() {
-        return value != null ? value.hashCode() : 0;
-    }
+    T get();
 }

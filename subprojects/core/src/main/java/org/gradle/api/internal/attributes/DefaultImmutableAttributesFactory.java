@@ -26,14 +26,14 @@ import java.util.Map;
 
 public class DefaultImmutableAttributesFactory implements ImmutableAttributesFactory {
     private final ImmutableAttributes root;
-    private final Map<ImmutableAttributes, List<ImmutableAttributes>> children;
+    private final Map<ImmutableAttributes, List<DefaultImmutableAttributes>> children;
     private final IsolatableFactory isolatableFactory;
 
     public DefaultImmutableAttributesFactory(IsolatableFactory isolatableFactory) {
         this.isolatableFactory = isolatableFactory;
-        this.root = new ImmutableAttributes();
+        this.root = ImmutableAttributes.EMPTY;
         this.children = Maps.newHashMap();
-        children.put(root, new ArrayList<ImmutableAttributes>());
+        children.put(root, new ArrayList<DefaultImmutableAttributes>());
     }
 
     public int size() {
@@ -47,17 +47,17 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
 
     @Override
     public synchronized <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, T value) {
-        List<ImmutableAttributes> nodeChildren = children.get(node);
+        List<DefaultImmutableAttributes> nodeChildren = children.get(node);
         if (nodeChildren == null) {
             nodeChildren = Lists.newArrayList();
             children.put(node, nodeChildren);
         }
-        for (ImmutableAttributes child : nodeChildren) {
+        for (DefaultImmutableAttributes child : nodeChildren) {
             if (child.attribute.equals(key) && child.value.isolate().equals(value)) {
                 return child;
             }
         }
-        ImmutableAttributes child = new ImmutableAttributes(node, key, isolatableFactory.isolate(value));
+        DefaultImmutableAttributes child = new DefaultImmutableAttributes((DefaultImmutableAttributes) node, key, isolatableFactory.isolate(value));
         nodeChildren.add(child);
         return child;
     }
