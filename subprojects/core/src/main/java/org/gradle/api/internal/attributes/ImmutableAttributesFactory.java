@@ -18,10 +18,9 @@ package org.gradle.api.internal.attributes;
 import org.gradle.api.attributes.Attribute;
 
 public interface ImmutableAttributesFactory {
-    DefaultImmutableAttributesFactory.Builder builder();
-
-    DefaultImmutableAttributesFactory.Builder builder(ImmutableAttributes from);
-
+    /**
+     * Returns an attribute container that contains the given value.
+     */
     ImmutableAttributes of(Attribute<?> key, Object value);
 
     /**
