@@ -29,7 +29,7 @@ import java.util.TreeMap;
 
 public final class ImmutableAttributes implements AttributeContainerInternal {
 
-    public final static ImmutableAttributes EMPTY = new ImmutableAttributes(null);
+    public final static ImmutableAttributes EMPTY = new ImmutableAttributes();
 
     private static final Comparator<Attribute<?>> ATTRIBUTE_NAME_COMPARATOR = new Comparator<Attribute<?>>() {
         @Override
@@ -38,16 +38,12 @@ public final class ImmutableAttributes implements AttributeContainerInternal {
         }
     };
 
-    final ImmutableAttributes parent;
+    private final ImmutableAttributes parent;
     final Attribute<?> attribute;
     final Object value;
 
     private final int hashCode;
     private final int size;
-
-    // the builder here is a performance optimization. It avoids trashing a lot
-    // of object that would be otherwise built again and again
-    final DefaultImmutableAttributesFactory.Builder builder;
 
     // cache keyset in case we need it again
     private Set<Attribute<?>> keySet;
@@ -56,8 +52,7 @@ public final class ImmutableAttributes implements AttributeContainerInternal {
         return ((AttributeContainerInternal) attributes).asImmutable();
     }
 
-    ImmutableAttributes(ImmutableAttributesFactory owner) {
-        this.builder = owner != null ? owner.builder(this) : null;
+    ImmutableAttributes() {
         this.parent = null;
         this.attribute = null;
         this.value = null;
@@ -65,11 +60,10 @@ public final class ImmutableAttributes implements AttributeContainerInternal {
         this.size = 0;
     }
 
-    ImmutableAttributes(ImmutableAttributes parent, Attribute<?> key, Object value, ImmutableAttributesFactory owner) {
+    ImmutableAttributes(ImmutableAttributes parent, Attribute<?> key, Object value) {
         this.parent = parent;
         this.attribute = key;
         this.value = value;
-        this.builder = owner != null ? owner.builder(this) : null;
         int hashCode = parent.hashCode();
         hashCode = 31 * hashCode + attribute.hashCode();
         hashCode = 31 * hashCode + value.hashCode();

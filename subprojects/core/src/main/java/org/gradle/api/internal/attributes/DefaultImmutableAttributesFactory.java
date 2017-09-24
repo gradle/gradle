@@ -28,23 +28,13 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
     private final Map<ImmutableAttributes, List<ImmutableAttributes>> children;
 
     public DefaultImmutableAttributesFactory() {
-        this.root = new ImmutableAttributes(this);
+        this.root = new ImmutableAttributes();
         this.children = Maps.newHashMap();
         children.put(root, new ArrayList<ImmutableAttributes>());
     }
 
     public int size() {
         return children.size();
-    }
-
-    @Override
-    public Builder builder() {
-        return root.builder;
-    }
-
-    @Override
-    public Builder builder(ImmutableAttributes from) {
-        return from.builder != null ? from.builder : new Builder(from);
     }
 
     @Override
@@ -64,7 +54,7 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
                 return child;
             }
         }
-        ImmutableAttributes child = new ImmutableAttributes(node, key, value, this);
+        ImmutableAttributes child = new ImmutableAttributes(node, key, value);
         nodeChildren.add(child);
         return child;
     }
@@ -75,30 +65,12 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
 
     @Override
     public ImmutableAttributes concat(ImmutableAttributes attributes1, ImmutableAttributes attributes2) {
-        Builder builder = new Builder(attributes2);
+        ImmutableAttributes current = attributes2;
         for (Attribute<?> attribute : attributes1.keySet()) {
-            builder = builder.addAttribute(attribute, attributes1.getAttribute(attribute));
-        }
-        return builder.get();
-    }
-
-    public class Builder {
-        private final ImmutableAttributes node;
-
-        public Builder(ImmutableAttributes from) {
-            node = from;
-        }
-
-        public Builder addAttribute(Attribute<?> attribute, Object value) {
-            ImmutableAttributes cur = node;
-            if (!cur.contains(attribute)) {
-                cur = concat(cur, attribute, value);
+            if (!current.contains(attribute)) {
+                current = concat(current, attribute, attributes1.getAttribute(attribute));
             }
-            return cur.builder;
         }
-
-        public ImmutableAttributes get() {
-            return node;
-        }
+        return current;
     }
 }

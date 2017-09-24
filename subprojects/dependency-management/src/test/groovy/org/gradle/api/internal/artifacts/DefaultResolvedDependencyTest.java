@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -106,10 +105,7 @@ public class DefaultResolvedDependencyTest {
 
     public static DefaultResolvedArtifact createResolvedArtifact(final Mockery context, final String name, final String type, final String extension, final File file) {
         final IvyArtifactName artifactStub = context.mock(IvyArtifactName.class, "artifact" + name);
-        final ImmutableAttributesFactory factory = context.mock(ImmutableAttributesFactory.class);
-        final BuildOperationExecutor buildOperationExecutor = context.mock(BuildOperationExecutor.class);
         context.checking(new Expectations() {{
-            allowing(factory).builder(ImmutableAttributes.EMPTY);
             allowing(artifactStub).getName();
             will(returnValue(name));
             allowing(artifactStub).getType();
