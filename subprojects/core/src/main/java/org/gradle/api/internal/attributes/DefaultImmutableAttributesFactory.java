@@ -38,12 +38,12 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
     }
 
     @Override
-    public ImmutableAttributes of(Attribute<?> key, Object value) {
+    public <T> ImmutableAttributes of(Attribute<T> key, T value) {
         return concat(root, key, value);
     }
 
     @Override
-    public synchronized ImmutableAttributes concat(ImmutableAttributes node, Attribute<?> key, Object value) {
+    public synchronized <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, T value) {
         List<ImmutableAttributes> nodeChildren = children.get(node);
         if (nodeChildren == null) {
             nodeChildren = Lists.newArrayList();
@@ -66,7 +66,7 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
     @Override
     public ImmutableAttributes concat(ImmutableAttributes attributes1, ImmutableAttributes attributes2) {
         ImmutableAttributes current = attributes2;
-        for (Attribute<?> attribute : attributes1.keySet()) {
+        for (Attribute attribute : attributes1.keySet()) {
             if (!current.contains(attribute)) {
                 current = concat(current, attribute, attributes1.getAttribute(attribute));
             }
