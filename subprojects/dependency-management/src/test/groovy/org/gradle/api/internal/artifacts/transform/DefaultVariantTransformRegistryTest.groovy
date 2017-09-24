@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.artifacts.transform.ArtifactTransformException
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.changedetection.state.ArrayValueSnapshot
 import org.gradle.api.internal.changedetection.state.StringValueSnapshot
 import org.gradle.api.internal.changedetection.state.ValueSnapshot
@@ -48,7 +47,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def transformedFileCache = Mock(TransformedFileCache)
     def isolatableFactory = Mock(IsolatableFactory)
     def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
-    def attributesFactory = new DefaultImmutableAttributesFactory()
+    def attributesFactory = TestUtil.attributesFactory()
     def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, transformedFileCache, isolatableFactory, classLoaderHierarchyHasher)
 
     def "creates registration without configuration"() {

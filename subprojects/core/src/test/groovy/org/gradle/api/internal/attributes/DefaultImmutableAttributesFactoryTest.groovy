@@ -17,6 +17,8 @@
 package org.gradle.api.internal.attributes
 
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.internal.changedetection.state.ValueSnapshotter
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import spock.lang.Specification
 
 class DefaultImmutableAttributesFactoryTest extends Specification {
@@ -24,7 +26,8 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
     private static final Attribute<String> BAR = Attribute.of("bar", String)
     private static final Attribute<String> BAZ = Attribute.of("baz", String)
 
-    def factory = new DefaultImmutableAttributesFactory()
+    def snapshotter = new ValueSnapshotter(Stub(ClassLoaderHierarchyHasher))
+    def factory = new DefaultImmutableAttributesFactory(snapshotter)
 
     def "can create empty attributes"() {
         when:
@@ -130,7 +133,7 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
 
     def "can compare attribute sets created by two different factories"() {
         given:
-        def otherFactory = new DefaultImmutableAttributesFactory()
+        def otherFactory = new DefaultImmutableAttributesFactory(snapshotter)
 
         when:
         def set1 = factory.concat(factory.of(FOO, "foo"), BAR, "bar")
@@ -142,7 +145,7 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
 
     def "can append to a set created with a different factory"() {
         given:
-        def otherFactory = new DefaultImmutableAttributesFactory()
+        def otherFactory = new DefaultImmutableAttributesFactory(snapshotter)
         def attributes = otherFactory.of(FOO, 'foo')
 
         when:

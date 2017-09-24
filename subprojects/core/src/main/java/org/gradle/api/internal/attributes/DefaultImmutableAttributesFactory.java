@@ -18,6 +18,7 @@ package org.gradle.api.internal.attributes;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,8 +27,10 @@ import java.util.Map;
 public class DefaultImmutableAttributesFactory implements ImmutableAttributesFactory {
     private final ImmutableAttributes root;
     private final Map<ImmutableAttributes, List<ImmutableAttributes>> children;
+    private final IsolatableFactory isolatableFactory;
 
-    public DefaultImmutableAttributesFactory() {
+    public DefaultImmutableAttributesFactory(IsolatableFactory isolatableFactory) {
+        this.isolatableFactory = isolatableFactory;
         this.root = new ImmutableAttributes();
         this.children = Maps.newHashMap();
         children.put(root, new ArrayList<ImmutableAttributes>());
@@ -50,11 +53,11 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
             children.put(node, nodeChildren);
         }
         for (ImmutableAttributes child : nodeChildren) {
-            if (child.attribute.equals(key) && child.value.equals(value)) {
+            if (child.attribute.equals(key) && child.value.isolate().equals(value)) {
                 return child;
             }
         }
-        ImmutableAttributes child = new ImmutableAttributes(node, key, value);
+        ImmutableAttributes child = new ImmutableAttributes(node, key, isolatableFactory.isolate(value));
         nodeChildren.add(child);
         return child;
     }
