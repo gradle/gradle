@@ -29,13 +29,23 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
     def snapshotter = new ValueSnapshotter(Stub(ClassLoaderHierarchyHasher))
     def factory = new DefaultImmutableAttributesFactory(snapshotter)
 
-    def "can create empty attributes"() {
+    def "can create empty set"() {
         when:
         def attributes = factory.root
 
         then:
         attributes.empty
         attributes.keySet() == [] as Set
+    }
+
+    def "can lookup entries in empty set"() {
+        when:
+        def attributes = factory.root
+
+        then:
+        attributes.getAttribute(FOO) == null
+        !attributes.findEntry(FOO).isPresent()
+        !attributes.findEntry("foo").isPresent()
     }
 
     def "can create a single entry immutable set"() {
@@ -47,6 +57,20 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
 
         and:
         attributes.getAttribute(FOO) == 'foo'
+    }
+
+    def "can lookup entries in a singleton set"() {
+        when:
+        def attributes = factory.of(FOO, "foo")
+
+        then:
+        attributes.getAttribute(FOO) == 'foo'
+        attributes.findEntry(FOO).get() == "foo"
+        attributes.findEntry("foo").get() == "foo"
+
+        attributes.getAttribute(BAR) == null
+        !attributes.findEntry(BAR).isPresent()
+        !attributes.findEntry("bar").isPresent()
     }
 
     def "caches singleton sets"() {
@@ -110,7 +134,25 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
         set.getAttribute(BAZ) == 'baz'
     }
 
-    def "caches instances of multple value sets"() {
+    def "can lookup entries in a multiple value set"() {
+        when:
+        def attributes = factory.concat(factory.of(FOO, 'foo'), BAR, 'bar')
+
+        then:
+        attributes.getAttribute(FOO) == "foo"
+        attributes.findEntry(FOO).get() == "foo"
+        attributes.findEntry("foo").get() == "foo"
+
+        attributes.getAttribute(BAR) == "bar"
+        attributes.findEntry(BAR).get() == "bar"
+        attributes.findEntry("bar").get() == "bar"
+
+        attributes.getAttribute(BAZ) == null
+        !attributes.findEntry(BAZ).isPresent()
+        !attributes.findEntry("baz").isPresent()
+    }
+
+    def "caches instances of multiple value sets"() {
         given:
         def attributes = factory.concat(factory.of(FOO, 'foo'), BAR, 'bar')
 

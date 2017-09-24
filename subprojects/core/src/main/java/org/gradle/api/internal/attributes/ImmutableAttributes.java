@@ -130,6 +130,32 @@ public final class ImmutableAttributes implements AttributeContainerInternal {
         return null;
     }
 
+    /**
+     * Locates the entry for the given attribute. Returns a 'missing' value when not present.
+     */
+    public <T> AttributeValue<T> findEntry(Attribute<T> key) {
+        if (key.equals(attribute)) {
+            return Cast.uncheckedCast(AttributeValue.of(value.isolate()));
+        }
+        if (parent != null) {
+            return parent.findEntry(key);
+        }
+        return AttributeValue.missing();
+    }
+
+    /**
+     * Locates the entry for the attribute with the given name. Returns a 'missing' value when not present.
+     */
+    public AttributeValue<?> findEntry(String key) {
+        if (attribute != null && key.equals(attribute.getName())) {
+            return Cast.uncheckedCast(AttributeValue.of(value.isolate()));
+        }
+        if (parent != null) {
+            return parent.findEntry(key);
+        }
+        return AttributeValue.missing();
+    }
+
     @Override
     public boolean isEmpty() {
         return attribute == null;
@@ -142,11 +168,6 @@ public final class ImmutableAttributes implements AttributeContainerInternal {
 
     @Override
     public ImmutableAttributes asImmutable() {
-        return this;
-    }
-
-    @Override
-    public AttributeContainerInternal copy() {
         return this;
     }
 

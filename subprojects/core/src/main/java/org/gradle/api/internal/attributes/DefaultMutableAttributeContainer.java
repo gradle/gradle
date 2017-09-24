@@ -115,10 +115,6 @@ public class DefaultMutableAttributeContainer implements AttributeContainerInter
         }
     }
 
-    public AttributeContainerInternal copy() {
-        return new DefaultMutableAttributeContainer(cache, parent, state);
-    }
-
     @Override
     public AttributeContainer getAttributes() {
         return this;

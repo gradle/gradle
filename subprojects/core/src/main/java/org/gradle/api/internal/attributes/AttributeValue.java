@@ -25,11 +25,7 @@ import java.util.NoSuchElementException;
  * Represents an optional attribute value, as found in an attribute container. There are 3 possible cases:
  * <ul>
  *     <li><i>present</i> is the default, and represents an attribute with an actual value</li>
- *     <li><i>missing</i> used whenever an attribute is known of the {@link org.gradle.api.attributes.AttributesSchema} of a consumer,
- *     no value was provided.</li>
- *     <li><i>unknown</i> used whenever an attribute is unknown of the {@link org.gradle.api.attributes.AttributesSchema} of a consumer,
- *     implying that no value was provided. It is different from the missing case in the sense that the consumer
- *     had no chance to provide a value here.</li>
+ *     <li><i>missing</i> used whenever an attribute has no value.</li>
  * </ul>
  * During attribute matching, this can be used to implement various {@link org.gradle.api.attributes.AttributeMatchingStrategy strategies}.
  * @param <T> the type of the attribute
@@ -39,24 +35,8 @@ import java.util.NoSuchElementException;
 public class AttributeValue<T> {
     private final static AttributeValue<Object> MISSING = new AttributeValue<Object>(null) {
         @Override
-        public boolean isMissing() {
-            return true;
-        }
-
-        @Override
         public Object get() {
             throw new InvalidUserCodeException("get() should not be called on a missing attribute value");
-        }
-    };
-    private final static AttributeValue<Object> UNKNOWN = new AttributeValue<Object>(null) {
-        @Override
-        public boolean isUnknown() {
-            return true;
-        }
-
-        @Override
-        public Object get() {
-            throw new InvalidUserCodeException("get() should not be called on an unknown attribute value");
         }
     };
 
@@ -87,16 +67,6 @@ public class AttributeValue<T> {
     }
 
     /**
-     * Creates an unknown attribute value, used to represent the fact that the attribute is unknown
-     * from the consumer side. Produces might want to do something differently in this case.
-     * @param <T> the type of the attribute
-     * @return an <i>unknown</i> attribute value
-     */
-    public static <T> AttributeValue<T> unknown() {
-        return Cast.uncheckedCast(UNKNOWN);
-    }
-
-    /**
      * Tells if this attribute value is present.
      * @return true if this attribute value is present, implying not <code>null</code>.
      */
@@ -113,22 +83,6 @@ public class AttributeValue<T> {
             throw new NoSuchElementException("No value provided");
         }
         return value;
-    }
-
-    /**
-     * Returns true if this attribute value is unknown.
-     * @return true if this attribute value is unknown.
-     */
-    public boolean isUnknown() {
-        return false;
-    }
-
-    /**
-     * Returns true if this attribute value is missing.
-     * @return true if this attribute value is missing.
-     */
-    public boolean isMissing() {
-        return false;
     }
 
     @Override
