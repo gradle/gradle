@@ -452,6 +452,7 @@ allprojects {
         "boolean"      | "true"
         "int"          | "123"
         "List<Object>" | "[123, 'abc']"
+        "Named"        | "objects.named(Named, 'abc')"
     }
 
     def "each file is transformed once per transform class"() {

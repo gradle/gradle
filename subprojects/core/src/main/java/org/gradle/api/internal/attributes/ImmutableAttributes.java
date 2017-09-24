@@ -19,6 +19,7 @@ package org.gradle.api.internal.attributes;
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.internal.Cast;
 
 import java.util.Collections;
@@ -29,7 +30,7 @@ import java.util.TreeMap;
 
 public final class ImmutableAttributes implements AttributeContainerInternal {
 
-    public final static ImmutableAttributes EMPTY = new ImmutableAttributes(null);
+    public final static ImmutableAttributes EMPTY = new ImmutableAttributes();
 
     private static final Comparator<Attribute<?>> ATTRIBUTE_NAME_COMPARATOR = new Comparator<Attribute<?>>() {
         @Override
@@ -38,16 +39,12 @@ public final class ImmutableAttributes implements AttributeContainerInternal {
         }
     };
 
-    final ImmutableAttributes parent;
+    private final ImmutableAttributes parent;
     final Attribute<?> attribute;
-    final Object value;
+    final Isolatable<?> value;
 
     private final int hashCode;
     private final int size;
-
-    // the builder here is a performance optimization. It avoids trashing a lot
-    // of object that would be otherwise built again and again
-    final DefaultImmutableAttributesFactory.Builder builder;
 
     // cache keyset in case we need it again
     private Set<Attribute<?>> keySet;
@@ -56,8 +53,7 @@ public final class ImmutableAttributes implements AttributeContainerInternal {
         return ((AttributeContainerInternal) attributes).asImmutable();
     }
 
-    ImmutableAttributes(ImmutableAttributesFactory owner) {
-        this.builder = owner != null ? owner.builder(this) : null;
+    ImmutableAttributes() {
         this.parent = null;
         this.attribute = null;
         this.value = null;
@@ -65,11 +61,10 @@ public final class ImmutableAttributes implements AttributeContainerInternal {
         this.size = 0;
     }
 
-    ImmutableAttributes(ImmutableAttributes parent, Attribute<?> key, Object value, ImmutableAttributesFactory owner) {
+    ImmutableAttributes(ImmutableAttributes parent, Attribute<?> key, Isolatable<?> value) {
         this.parent = parent;
         this.attribute = key;
         this.value = value;
-        this.builder = owner != null ? owner.builder(this) : null;
         int hashCode = parent.hashCode();
         hashCode = 31 * hashCode + attribute.hashCode();
         hashCode = 31 * hashCode + value.hashCode();
@@ -95,7 +90,7 @@ public final class ImmutableAttributes implements AttributeContainerInternal {
         ImmutableAttributes cur = this;
 
         while (cur.value != null) {
-            if (!cur.value.equals(that.getAttribute(cur.attribute))) {
+            if (!cur.value.isolate().equals(that.getAttribute(cur.attribute))) {
                 return false;
             }
             cur = cur.parent;
@@ -127,7 +122,7 @@ public final class ImmutableAttributes implements AttributeContainerInternal {
     @Override
     public <T> T getAttribute(Attribute<T> key) {
         if (key.equals(attribute)) {
-            return Cast.uncheckedCast(value);
+            return Cast.uncheckedCast(value.isolate());
         }
         if (parent != null) {
             return parent.getAttribute(key);
@@ -166,7 +161,7 @@ public final class ImmutableAttributes implements AttributeContainerInternal {
         ImmutableAttributes node = this;
         while (node != null) {
             if (node.attribute != null) {
-                sorted.put(node.attribute, node.value);
+                sorted.put(node.attribute, node.value.isolate());
             }
             node = node.parent;
         }

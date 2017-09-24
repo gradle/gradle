@@ -25,16 +25,16 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDepen
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder
-import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.tasks.TaskResolver
-import org.gradle.vcs.internal.VcsMappingsInternal
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.Path
+import org.gradle.util.TestUtil
+import org.gradle.vcs.internal.VcsMappingsInternal
 import spock.lang.Specification
 
 class DefaultConfigurationContainerSpec extends Specification {
@@ -58,7 +58,7 @@ class DefaultConfigurationContainerSpec extends Specification {
             DefaultModuleIdentifier.newId(*args)
         }
     }
-    private DefaultImmutableAttributesFactory immutableAttributesFactory = new DefaultImmutableAttributesFactory()
+    def immutableAttributesFactory = TestUtil.attributesFactory()
 
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(resolver, instantiator, domainObjectContext, listenerManager, metaDataProvider,
         projectAccessListener, projectFinder, metaDataBuilder, fileCollectionFactory, globalSubstitutionRules, vcsMappingsInternal, componentIdentifierFactory, buildOperationExecutor, taskResolver, immutableAttributesFactory, moduleIdentifierFactory);

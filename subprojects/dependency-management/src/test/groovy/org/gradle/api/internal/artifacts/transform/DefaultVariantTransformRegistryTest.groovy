@@ -20,11 +20,10 @@ import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.artifacts.transform.ArtifactTransformException
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.changedetection.state.ArrayValueSnapshot
 import org.gradle.api.internal.changedetection.state.StringValueSnapshot
 import org.gradle.api.internal.changedetection.state.ValueSnapshot
-import org.gradle.api.internal.changedetection.state.ValueSnapshotter
+import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
@@ -46,10 +45,10 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def outputDirectory = tmpDir.createDir("OUTPUT_DIR")
     def outputFile = outputDirectory.file('input/OUTPUT_FILE')
     def transformedFileCache = Mock(TransformedFileCache)
-    def valueSnapshotter = Mock(ValueSnapshotter)
+    def isolatableFactory = Mock(IsolatableFactory)
     def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
-    def attributesFactory = new DefaultImmutableAttributesFactory()
-    def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, transformedFileCache, valueSnapshotter, classLoaderHierarchyHasher)
+    def attributesFactory = TestUtil.attributesFactory()
+    def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, transformedFileCache, isolatableFactory, classLoaderHierarchyHasher)
 
     def "creates registration without configuration"() {
         given:
@@ -63,7 +62,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
-        1 * valueSnapshotter.isolatableSnapshot([] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray)
+        1 * isolatableFactory.isolate([] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray)
         1 * classLoaderHierarchyHasher.getClassLoaderHash(TestArtifactTransform.classLoader) >> HashCode.fromInt(123)
 
         and:
@@ -100,7 +99,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
-        1 * valueSnapshotter.isolatableSnapshot(["EXTRA_1", "EXTRA_2"] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray);
+        1 * isolatableFactory.isolate(["EXTRA_1", "EXTRA_2"] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray);
         1 * classLoaderHierarchyHasher.getClassLoaderHash(TestArtifactTransform.classLoader) >> HashCode.fromInt(123)
 
         and:
@@ -138,7 +137,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
-        1 * valueSnapshotter.isolatableSnapshot([] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray)
+        1 * isolatableFactory.isolate([] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray)
         1 * classLoaderHierarchyHasher.getClassLoaderHash(AbstractArtifactTransform.classLoader) >> HashCode.fromInt(123)
 
         and:
@@ -175,7 +174,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
-        1 * valueSnapshotter.isolatableSnapshot(["EXTRA_1", "EXTRA_2", "EXTRA_3"] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray)
+        1 * isolatableFactory.isolate(["EXTRA_1", "EXTRA_2", "EXTRA_3"] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray)
         1 * classLoaderHierarchyHasher.getClassLoaderHash(TestArtifactTransformWithParams.classLoader) >> HashCode.fromInt(123)
 
         and:
@@ -209,7 +208,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
-        1 * valueSnapshotter.isolatableSnapshot([] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray)
+        1 * isolatableFactory.isolate([] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray)
         1 * classLoaderHierarchyHasher.getClassLoaderHash(BrokenTransform.classLoader) >> HashCode.fromInt(123)
 
         and:

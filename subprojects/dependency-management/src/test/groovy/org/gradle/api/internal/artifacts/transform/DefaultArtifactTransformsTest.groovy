@@ -26,7 +26,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
-import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
 import org.gradle.internal.Describables
 import org.gradle.internal.component.AmbiguousVariantSelectionException
@@ -36,6 +35,7 @@ import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.internal.operations.BuildOperationQueue
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT
@@ -258,7 +258,7 @@ Found the following transforms:
     }
 
     private AttributeContainerInternal typeAttributes(String artifactType) {
-        def attributeContainer = new DefaultMutableAttributeContainer(new DefaultImmutableAttributesFactory())
+        def attributeContainer = new DefaultMutableAttributeContainer(TestUtil.attributesFactory())
         attributeContainer.attribute(ARTIFACT_FORMAT, artifactType)
         attributeContainer.asImmutable()
     }

@@ -51,6 +51,8 @@ class NamedObjectInstantiatorTest extends ConcurrentSpec {
 
         n1.is(factory.named(Named, "a"))
         n2.is(factory.named(Named, "b"))
+
+        n1 instanceof NamedObjectInstantiator.Managed
     }
 
     def "creates instance of subtype of Named"() {
@@ -79,6 +81,8 @@ class NamedObjectInstantiatorTest extends ConcurrentSpec {
 
         !n1.is(factory.named(Named, "a"))
         !n2.is(factory.named(Named, "b"))
+
+        n1 instanceof NamedObjectInstantiator.Managed
     }
 
     def "multiple threads can create different instances of same type"() {
@@ -148,6 +152,8 @@ class NamedObjectInstantiatorTest extends ConcurrentSpec {
 
         !n1.is(factory.named(Named, "a"))
         !n2.is(factory.named(Named, "b"))
+
+        n1 instanceof NamedObjectInstantiator.Managed
 
         AbstractNamed.counter == 2
     }

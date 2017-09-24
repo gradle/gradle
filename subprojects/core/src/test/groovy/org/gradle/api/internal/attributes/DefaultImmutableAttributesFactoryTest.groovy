@@ -17,6 +17,8 @@
 package org.gradle.api.internal.attributes
 
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.internal.changedetection.state.ValueSnapshotter
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import spock.lang.Specification
 
 class DefaultImmutableAttributesFactoryTest extends Specification {
@@ -24,61 +26,16 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
     private static final Attribute<String> BAR = Attribute.of("bar", String)
     private static final Attribute<String> BAZ = Attribute.of("baz", String)
 
-    ImmutableAttributesFactory factory = new DefaultImmutableAttributesFactory()
+    def snapshotter = new ValueSnapshotter(Stub(ClassLoaderHierarchyHasher))
+    def factory = new DefaultImmutableAttributesFactory(snapshotter)
 
     def "can create empty attributes"() {
         when:
-        def attributes = factory.builder().get()
+        def attributes = factory.root
 
         then:
         attributes.empty
-    }
-
-    def "can create immutable attributes"() {
-        when:
-        def attributes = factory.builder()
-            .addAttribute(FOO, "foo")
-            .get()
-
-        then:
-        attributes.keySet() == [FOO] as Set
-
-        and:
-        attributes.getAttribute(FOO) == 'foo'
-    }
-
-    def "can concatenate immutable attributes sets"() {
-        when:
-        def set1 = factory.builder()
-            .addAttribute(FOO, "foo")
-            .get()
-        def set2 = factory.builder()
-            .addAttribute(BAR, "bar")
-            .get()
-        def union = factory.concat(set1, set2)
-
-        then:
-        union.keySet() == [FOO, BAR] as Set
-
-        and:
-        union.getAttribute(FOO) == 'foo'
-        union.getAttribute(BAR) == 'bar'
-    }
-
-    def "can concatenate an immutable attribute set with a new value"() {
-        when:
-        def set1 = factory.builder()
-            .addAttribute(FOO, "foo")
-            .get()
-        def set2 = factory.concat(set1, BAR, "bar")
-        def union = factory.concat(set1, set2)
-
-        then:
-        union.keySet() == [FOO, BAR] as Set
-
-        and:
-        union.getAttribute(FOO) == 'foo'
-        union.getAttribute(BAR) == 'bar'
+        attributes.keySet() == [] as Set
     }
 
     def "can create a single entry immutable set"() {
@@ -92,87 +49,18 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
         attributes.getAttribute(FOO) == 'foo'
     }
 
-    def "can start a build chain from another set"() {
-        given:
-        def attributes = factory.of(FOO, 'foo')
-
-        when:
-        def set = factory.builder(attributes)
-            .addAttribute(BAR, 'bar')
-            .addAttribute(BAZ, 'baz')
-            .get()
-
-        then:
-        set.keySet() == [FOO, BAR, BAZ] as Set
-        set.getAttribute(FOO) == 'foo'
-        set.getAttribute(BAR) == 'bar'
-        set.getAttribute(BAZ) == 'baz'
-
+    def "caches singleton sets"() {
+        expect:
+        def attributes = factory.of(FOO, "foo")
+        factory.of(FOO, "foo").is(attributes)
+        factory.of(FOO, "other") != attributes
+        factory.of(BAR, "foo") != attributes
     }
 
-    def "order of entries is not significant in equality"() {
+    def "can concatenate immutable attributes sets"() {
         when:
-        def set1 = factory.builder()
-            .addAttribute(FOO, "foo")
-            .addAttribute(BAR, "bar")
-            .get()
-        def set2 = factory.builder()
-            .addAttribute(BAR, "bar")
-            .addAttribute(FOO, "foo")
-            .get()
-
-        then:
-        set1 == set2
-    }
-
-    def "can compare attribute sets created by two different factories"() {
-        given:
-        def otherFactory = new DefaultImmutableAttributesFactory()
-
-        when:
-        def set1 = factory.builder()
-            .addAttribute(FOO, "foo")
-            .addAttribute(BAR, "bar")
-            .get()
-        def set2 = otherFactory.builder()
-            .addAttribute(BAR, "bar")
-            .addAttribute(FOO, "foo")
-            .get()
-
-        then:
-        set1 == set2
-    }
-
-    def "can start a build chain from another set created with a different factory"() {
-        given:
-        def otherFactory = new DefaultImmutableAttributesFactory()
-        def attributes = otherFactory.of(FOO, 'foo')
-
-        when:
-        def set = factory.builder(attributes)
-            .addAttribute(BAR, 'bar')
-            .addAttribute(BAZ, 'baz')
-            .get()
-
-        then:
-        set.keySet() == [FOO, BAR, BAZ] as Set
-        set.getAttribute(FOO) == 'foo'
-        set.getAttribute(BAR) == 'bar'
-        set.getAttribute(BAZ) == 'baz'
-
-    }
-
-    def "can concatenate immutable attributes sets from different factories"() {
-        given:
-        def otherFactory = new DefaultImmutableAttributesFactory()
-
-        when:
-        def set1 = factory.builder()
-            .addAttribute(FOO, "foo")
-            .get()
-        def set2 = otherFactory.builder()
-            .addAttribute(BAR, "bar")
-            .get()
+        def set1 = factory.of(FOO, "foo")
+        def set2 = factory.of(BAR, "bar")
         def union = factory.concat(set1, set2)
 
         then:
@@ -183,9 +71,95 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
         union.getAttribute(BAR) == 'bar'
     }
 
+    def "can concatenate attribute to an empty set"() {
+        when:
+        def set = factory.concat(factory.root, FOO, "foo")
+
+        then:
+        set.keySet() == [FOO] as Set
+
+        and:
+        set.getAttribute(FOO) == 'foo'
+    }
+
+    def "can concatenate attribute to a singleton set"() {
+        when:
+        def set1 = factory.of(FOO, "foo")
+        def set2 = factory.concat(set1, BAR, "bar")
+
+        then:
+        set2.keySet() == [FOO, BAR] as Set
+
+        and:
+        set2.getAttribute(FOO) == 'foo'
+        set2.getAttribute(BAR) == 'bar'
+    }
+
+    def "can concatenate attribute to multiple value set"() {
+        given:
+        def attributes = factory.of(FOO, 'foo')
+        attributes = factory.concat(attributes, BAR, 'bar')
+
+        when:
+        def set = factory.concat(attributes, BAZ, 'baz')
+
+        then:
+        set.keySet() == [FOO, BAR, BAZ] as Set
+        set.getAttribute(FOO) == 'foo'
+        set.getAttribute(BAR) == 'bar'
+        set.getAttribute(BAZ) == 'baz'
+    }
+
+    def "caches instances of multple value sets"() {
+        given:
+        def attributes = factory.concat(factory.of(FOO, 'foo'), BAR, 'bar')
+
+        expect:
+        def a2 = factory.concat(factory.of(FOO, 'foo'), BAR, 'bar')
+        a2.is(attributes)
+
+        def a3 = factory.concat(factory.of(FOO, 'foo'), BAR, 'other')
+        a3 != attributes
+    }
+
+    def "order of entries is not significant in equality"() {
+        when:
+        def set1 = factory.concat(factory.of(FOO, "foo"), BAR, "bar")
+        def set2 = factory.concat(factory.of(BAR, "bar"), FOO, "foo")
+
+        then:
+        set1 == set2
+    }
+
+    def "can compare attribute sets created by two different factories"() {
+        given:
+        def otherFactory = new DefaultImmutableAttributesFactory(snapshotter)
+
+        when:
+        def set1 = factory.concat(factory.of(FOO, "foo"), BAR, "bar")
+        def set2 = otherFactory.concat(otherFactory.of(BAR, "bar"), FOO, "foo")
+
+        then:
+        set1 == set2
+    }
+
+    def "can append to a set created with a different factory"() {
+        given:
+        def otherFactory = new DefaultImmutableAttributesFactory(snapshotter)
+        def attributes = otherFactory.of(FOO, 'foo')
+
+        when:
+        def set = factory.concat(attributes, BAR, 'bar')
+
+        then:
+        set.keySet() == [FOO, BAR] as Set
+        set.getAttribute(FOO) == 'foo'
+        set.getAttribute(BAR) == 'bar'
+    }
+
     def "immutable attribute sets throw a default error when attempting modification"() {
         given:
-        def attributes = factory.builder().get()
+        def attributes = factory.root
 
         when:
         attributes.attribute(FOO, "foo")

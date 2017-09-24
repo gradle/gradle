@@ -32,7 +32,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Modul
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
-import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
 import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
@@ -53,7 +52,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
 
     def setup() {
         attributesSchema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
-        factory = new DefaultImmutableAttributesFactory()
+        factory = TestUtil.attributesFactory()
     }
 
     def "returns this when same version requested"() {
