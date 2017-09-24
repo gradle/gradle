@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Named;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableEnumValueSnapshot;
@@ -25,6 +26,7 @@ import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableSerializedValueSnapshot;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableValueSnapshotStrategy;
 import org.gradle.api.internal.changedetection.state.isolation.IsolationException;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
@@ -153,6 +155,9 @@ public class ValueSnapshotter implements IsolatableFactory {
             Provider<?> provider = (Provider) value;
             ValueSnapshot valueSnapshot = strategy.snapshot(provider.get());
             return new ProviderSnapshot(valueSnapshot);
+        }
+        if (value instanceof NamedObjectInstantiator.Managed) {
+            return new ManagedNamedTypeSnapshot((Named)value);
         }
 
         // Fall back to serialization

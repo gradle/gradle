@@ -27,5 +27,8 @@ import org.gradle.api.internal.changedetection.state.Snapshot;
  * fear that it's internal state is changing while the work is being carried out.
  */
 public interface Isolatable<T> extends Snapshot {
+    /**
+     * Returns an instance of T that is isolated from the original object. When T is mutable, a new instance is created on each call. When T is immutable, a new instance may or may not be created on each call.
+     */
     T isolate();
 }
