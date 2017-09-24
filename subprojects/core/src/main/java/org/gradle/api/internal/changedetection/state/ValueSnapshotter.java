@@ -186,6 +186,9 @@ public class ValueSnapshotter implements IsolatableFactory {
             SerializedValueSnapshot original = (SerializedValueSnapshot) possible;
             return new IsolatableSerializedValueSnapshot(original.getImplementationHash(), original.getValue(), value.getClass());
         }
+        if (possible instanceof ManagedNamedTypeSnapshot) {
+            return new IsolatedManagedNamedTypeSnapshot((Named) value);
+        }
         throw new IsolationException(value);
     }
 
