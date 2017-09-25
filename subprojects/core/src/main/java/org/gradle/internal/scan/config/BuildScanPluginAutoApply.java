@@ -46,7 +46,7 @@ import java.util.List;
  */
 public class BuildScanPluginAutoApply implements PluginRequestsTransformer {
     public static final String BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION = "1.10";
-    private static final PluginId BUILD_SCAN_PLUGIN_ID = DefaultPluginId.of("com.gradle.build-scan");
+    public static final PluginId BUILD_SCAN_PLUGIN_ID = DefaultPluginId.of("com.gradle.build-scan");
     private static final String BUILD_SCAN_PLUGIN_GROUP = "com.gradle";
     private static final String BUILD_SCAN_PLUGIN_NAME = "build-scan-plugin";
 

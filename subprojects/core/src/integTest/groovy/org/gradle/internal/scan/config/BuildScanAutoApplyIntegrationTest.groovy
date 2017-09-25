@@ -21,6 +21,7 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.VersionNumber
 import spock.lang.Unroll
 
+import static org.gradle.initialization.StartParameterBuildOptionFactory.BuildScanOption
 import static org.gradle.internal.scan.config.BuildScanPluginAutoApply.BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION
 
 class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
@@ -183,7 +184,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private void runBuildWithScanRequest() {
-        args("--scan")
+        args("--${BuildScanOption.LONG_OPTION}")
         succeeds("dummy")
     }
 

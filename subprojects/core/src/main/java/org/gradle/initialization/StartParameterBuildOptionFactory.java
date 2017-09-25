@@ -23,8 +23,8 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
-import org.gradle.internal.buildoption.ListBuildOption;
 import org.gradle.internal.buildoption.EnabledOnlyBooleanBuildOption;
+import org.gradle.internal.buildoption.ListBuildOption;
 import org.gradle.internal.buildoption.StringBuildOption;
 
 import java.io.File;
@@ -265,8 +265,10 @@ public class StartParameterBuildOptionFactory implements Factory<List<BuildOptio
     }
 
     public static class BuildScanOption extends BooleanBuildOption<StartParameter> {
+        public static final String LONG_OPTION = "scan";
+
         public BuildScanOption() {
-            super(null, CommandLineOptionConfiguration.create("scan", "Creates a build scan. Gradle will emit a warning if the build scan plugin has not been applied. (https://gradle.com/build-scans)").incubating());
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "Creates a build scan. Gradle will emit a warning if the build scan plugin has not been applied. (https://gradle.com/build-scans)").incubating());
         }
 
         @Override
