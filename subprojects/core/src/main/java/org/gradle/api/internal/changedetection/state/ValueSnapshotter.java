@@ -42,11 +42,13 @@ import java.util.Set;
 
 public class ValueSnapshotter implements IsolatableFactory {
     private final ClassLoaderHierarchyHasher classLoaderHasher;
+    private final NamedObjectInstantiator namedObjectInstantiator;
     private final ValueSnapshotStrategy valueSnapshotStrategy;
     private final IsolatableValueSnapshotStrategy isolatedSnapshotStrategy;
 
-    public ValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHasher) {
+    public ValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHasher, NamedObjectInstantiator namedObjectInstantiator) {
         this.classLoaderHasher = classLoaderHasher;
+        this.namedObjectInstantiator = namedObjectInstantiator;
         valueSnapshotStrategy = new ValueSnapshotStrategy(this);
         isolatedSnapshotStrategy = new IsolatableValueSnapshotStrategy(this);
     }
@@ -182,7 +184,7 @@ public class ValueSnapshotter implements IsolatableFactory {
         return new SerializedValueSnapshot(classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader()), outputStream.toByteArray());
     }
 
-    ValueSnapshot wrap(Object value, ValueSnapshot possible) {
+    private ValueSnapshot wrap(Object value, ValueSnapshot possible) {
         if (possible instanceof EnumValueSnapshot) {
             return new IsolatableEnumValueSnapshot((Enum) value);
         }
@@ -191,7 +193,7 @@ public class ValueSnapshotter implements IsolatableFactory {
             return new IsolatableSerializedValueSnapshot(original.getImplementationHash(), original.getValue(), value.getClass());
         }
         if (possible instanceof ManagedNamedTypeSnapshot) {
-            return new IsolatedManagedNamedTypeSnapshot((Named) value);
+            return new IsolatedManagedNamedTypeSnapshot((Named) value, namedObjectInstantiator);
         }
         throw new IsolationException(value);
     }

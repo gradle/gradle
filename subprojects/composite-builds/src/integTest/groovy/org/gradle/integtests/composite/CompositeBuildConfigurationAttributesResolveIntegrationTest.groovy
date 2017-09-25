@@ -17,11 +17,8 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
-import org.junit.runner.RunWith
 import spock.lang.Unroll
 
-@RunWith(FluidDependenciesResolveRunner)
 class CompositeBuildConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationSpec {
 
     def setup(){
@@ -123,6 +120,109 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         then:
         executedAndNotSkipped ':external:barJar'
         notExecuted ':external:fooJar'
+    }
+
+    @Unroll
+    def "attribute values are matched across builds - #type"() {
+        given:
+        file('settings.gradle') << """
+            include 'a', 'b'
+            includeBuild 'includedBuild'
+        """
+        buildFile << """
+            enum SomeEnum { free, paid }
+            interface Thing extends Named { }
+
+            def flavor = Attribute.of('flavor', $type)
+            allprojects {
+                dependencies {
+                    attributesSchema {
+                        attribute(flavor)
+                    }
+                }
+            }
+            project(':a') {
+                configurations {
+                    _compileFree.attributes { attribute(flavor, $freeValue) }
+                    _compilePaid.attributes { attribute(flavor, $paidValue) }
+                }
+                dependencies {
+                    _compileFree project(':b')
+                    _compilePaid project(':b')
+                }
+                task checkFree(dependsOn: configurations._compileFree) {
+                    doLast {
+                       assert configurations._compileFree.collect { it.name } == ['b-transitive.jar', 'c-foo.jar']
+                    }
+                }
+                task checkPaid(dependsOn: configurations._compilePaid) {
+                    doLast {
+                       assert configurations._compilePaid.collect { it.name } == ['b-transitive.jar', 'c-bar.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations.create('default')
+                artifacts {
+                    'default' file('b-transitive.jar')
+                }
+                dependencies {
+                    'default'('com.acme.external:external:1.0')
+                }
+            }
+        """
+
+        file('includedBuild/build.gradle') << """
+            enum SomeEnum { free, paid }
+            interface Thing extends Named { }
+
+            group = 'com.acme.external'
+            version = '2.0-SNAPSHOT'
+
+            def flavor = Attribute.of('flavor', $type)
+            dependencies {
+                attributesSchema {
+                    attribute(flavor)
+                }
+            }
+
+            configurations {
+                foo.attributes { attribute(flavor, $freeValue) }
+                bar.attributes { attribute(flavor, $paidValue) }
+            }
+            task fooJar(type: Jar) {
+               baseName = 'c-foo'
+            }
+            task barJar(type: Jar) {
+               baseName = 'c-bar'
+            }
+            artifacts {
+                foo fooJar
+                bar barJar
+            }
+        """
+        file('includedBuild/settings.gradle') << '''
+            rootProject.name = 'external'
+        '''
+
+        when:
+        run ':a:checkFree'
+
+        then:
+        executedAndNotSkipped ':external:fooJar'
+        notExecuted ':external:barJar'
+
+        when:
+        run ':a:checkPaid'
+
+        then:
+        executedAndNotSkipped ':external:barJar'
+        notExecuted ':external:fooJar'
+
+        where:
+        type       | freeValue                      | paidValue
+        'SomeEnum' | 'SomeEnum.free'                | 'SomeEnum.paid'
+        'Thing'    | 'objects.named(Thing, "free")' | 'objects.named(Thing, "paid")'
     }
 
     @Unroll("context travels down to transitive dependencies with typed attributes using plugin [#v1, #v2, pluginsDSL=#usePluginsDSL]")

@@ -16,15 +16,32 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
+import org.gradle.internal.Cast;
 
-public class LongValueSnapshot extends AbstractIsolatableScalarValue<Long> {
-    public LongValueSnapshot(Long value) {
+import javax.annotation.Nullable;
+
+/**
+ * A isolated immutable scalar value. Should only be used for immutable JVM provided or core Gradle types.
+ *
+ * @param <T>
+ */
+public abstract class AbstractIsolatableScalarValue<T> extends AbstractScalarValueSnapshot<T> implements Isolatable<T> {
+    public AbstractIsolatableScalarValue(T value) {
         super(value);
     }
 
     @Override
-    public void appendToHasher(BuildCacheHasher hasher) {
-        hasher.putLong(getValue());
+    public T isolate() {
+        return getValue();
+    }
+
+    @Nullable
+    @Override
+    public <S> Isolatable<S> coerce(Class<S> type) {
+        if (type.isInstance(getValue())) {
+            return Cast.uncheckedCast(this);
+        }
+        return null;
     }
 }

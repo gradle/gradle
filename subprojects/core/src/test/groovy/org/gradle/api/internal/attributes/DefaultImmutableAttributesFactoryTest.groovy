@@ -17,8 +17,7 @@
 package org.gradle.api.internal.attributes
 
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.internal.changedetection.state.ValueSnapshotter
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultImmutableAttributesFactoryTest extends Specification {
@@ -26,7 +25,7 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
     private static final Attribute<String> BAR = Attribute.of("bar", String)
     private static final Attribute<String> BAZ = Attribute.of("baz", String)
 
-    def snapshotter = new ValueSnapshotter(Stub(ClassLoaderHierarchyHasher))
+    def snapshotter = TestUtil.valueSnapshotter()
     def factory = new DefaultImmutableAttributesFactory(snapshotter)
 
     def "can create empty set"() {

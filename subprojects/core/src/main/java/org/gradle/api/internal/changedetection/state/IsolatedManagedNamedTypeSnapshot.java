@@ -18,15 +18,19 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.Named;
 import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 
 public class IsolatedManagedNamedTypeSnapshot extends ManagedNamedTypeSnapshot implements Isolatable<Named> {
     private final Named value;
+    private final NamedObjectInstantiator instantiator;
 
-    public IsolatedManagedNamedTypeSnapshot(Named value) {
+    public IsolatedManagedNamedTypeSnapshot(Named value, NamedObjectInstantiator instantiator) {
         super(value);
         this.value = value;
+        this.instantiator = instantiator;
     }
 
     @Override
@@ -37,6 +41,17 @@ public class IsolatedManagedNamedTypeSnapshot extends ManagedNamedTypeSnapshot i
     @Nullable
     @Override
     public <S> Isolatable<S> coerce(Class<S> type) {
+        if (type.isAssignableFrom(value.getClass())) {
+            return Cast.uncheckedCast(this);
+        }
+        if (!Named.class.isAssignableFrom(type)) {
+            return null;
+        }
+        for (Class<?> interfaceType : value.getClass().getInterfaces()) {
+            if (interfaceType.getName().equals(type.getName())) {
+                return Cast.uncheckedCast(new IsolatedManagedNamedTypeSnapshot(instantiator.named((Class<? extends Named>) type, value.getName()), instantiator));
+            }
+        }
         return null;
     }
 }

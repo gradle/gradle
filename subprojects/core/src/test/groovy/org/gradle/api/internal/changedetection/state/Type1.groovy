@@ -14,17 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.api.internal.changedetection.state
 
-import org.gradle.caching.internal.BuildCacheHasher;
-
-public class LongValueSnapshot extends AbstractIsolatableScalarValue<Long> {
-    public LongValueSnapshot(Long value) {
-        super(value);
-    }
-
-    @Override
-    public void appendToHasher(BuildCacheHasher hasher) {
-        hasher.putLong(getValue());
-    }
+enum Type1 {
+    ONE, TWO
 }

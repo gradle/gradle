@@ -60,13 +60,17 @@ class TestUtil {
         return new DefaultObjectFactory(instantiatorFactory().decorate(), NamedObjectInstantiator.INSTANCE)
     }
 
-    static ImmutableAttributesFactory attributesFactory() {
-        return new DefaultImmutableAttributesFactory(new ValueSnapshotter(new ClassLoaderHierarchyHasher() {
+    static ValueSnapshotter valueSnapshotter() {
+        return new ValueSnapshotter(new ClassLoaderHierarchyHasher() {
             @Override
             HashCode getClassLoaderHash(ClassLoader classLoader) {
                 return HashCode.fromInt(classLoader.hashCode())
             }
-        }))
+        }, NamedObjectInstantiator.INSTANCE)
+    }
+
+    static ImmutableAttributesFactory attributesFactory() {
+        return new DefaultImmutableAttributesFactory(valueSnapshotter())
     }
 
     static TestUtil create(File rootDir) {

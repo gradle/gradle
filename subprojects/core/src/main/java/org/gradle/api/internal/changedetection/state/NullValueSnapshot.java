@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 
@@ -48,6 +49,6 @@ public class NullValueSnapshot implements ValueSnapshot, Isolatable<Object> {
     @Nullable
     @Override
     public <S> Isolatable<S> coerce(Class<S> type) {
-        return null;
+        return Cast.uncheckedCast(this);
     }
 }

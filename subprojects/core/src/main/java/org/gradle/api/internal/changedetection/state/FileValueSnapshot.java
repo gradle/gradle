@@ -16,17 +16,34 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.Cast;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
-public class FileValueSnapshot extends AbstractScalarValueSnapshot<String> {
+public class FileValueSnapshot extends AbstractScalarValueSnapshot<String> implements Isolatable<File> {
     public FileValueSnapshot(File value) {
         super(value.getPath());
     }
 
     public FileValueSnapshot(String value) {
         super(value);
+    }
+
+    @Override
+    public File isolate() {
+        return new File(getValue());
+    }
+
+    @Nullable
+    @Override
+    public <S> Isolatable<S> coerce(Class<S> type) {
+        if (type.isAssignableFrom(File.class)) {
+            return Cast.uncheckedCast(this);
+        }
+        return null;
     }
 
     @Override
