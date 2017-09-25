@@ -15,18 +15,24 @@
  */
 package org.gradle.language.nativeplatform.tasks;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
+import com.google.common.io.Files;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryVar;
+import org.gradle.api.file.RegularFileVar;
 import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
@@ -45,8 +51,10 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -67,12 +75,14 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private final Map<String, String> macros = new LinkedHashMap<String, String>();
     private final ListProperty<String> compilerArgs;
     private ImmutableList<String> includePaths;
+    private final RegularFileVar discoveredInputs;
 
     public AbstractNativeCompileTask() {
         includes = getProject().files();
         source = getProject().files();
         objectFileDir = newOutputDirectory();
         compilerArgs = getProject().getProviders().listProperty(String.class);
+        discoveredInputs = newInputFile();
         getInputs().property("outputType", new Callable<String>() {
             @Override
             public String call() throws Exception {
@@ -122,7 +132,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private <T extends NativeCompileSpec> WorkResult doCompile(T spec, PlatformToolProvider platformToolProvider) {
         Class<T> specType = Cast.uncheckedCast(spec.getClass());
         Compiler<T> baseCompiler = platformToolProvider.newCompiler(specType);
-        Compiler<T> incrementalCompiler = getIncrementalCompilerBuilder().createIncrementalCompiler(this, baseCompiler, toolChain);
+        Compiler<T> incrementalCompiler = getIncrementalCompilerBuilder().createIncrementalCompiler(this, baseCompiler, toolChain, !getDiscoveredInputs().isPresent());
         Compiler<T> loggingCompiler = BuildOperationLoggingCompilerDecorator.wrap(incrementalCompiler);
         return loggingCompiler.execute(spec);
     }
@@ -277,5 +287,23 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     @Input
     public ListProperty<String> getCompilerArgs() {
         return compilerArgs;
+    }
+
+    @Internal
+    public RegularFileVar getDiscoveredInputs() {
+        return discoveredInputs;
+    }
+
+    public void setDiscoveredInputs(RegularFileVar discoveredInputs) {
+        this.discoveredInputs.set(discoveredInputs);
+    }
+
+    @Optional
+    @InputFiles
+    @PathSensitive(PathSensitivity.NAME_ONLY)
+    public List<String> getDiscoveredInputFiles() throws IOException {
+        File inputFile = discoveredInputs.getAsFile().getOrElse(null);
+        return inputFile == null ? null
+            : inputFile.isFile() ? Files.readLines(inputFile, Charsets.UTF_8) : null;
     }
 }

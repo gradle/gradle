@@ -31,4 +31,6 @@ public interface IncrementalCompileFiles {
     List<File> getRemovedSources();
 
     Set<File> getDiscoveredInputs();
+
+    boolean isSourceFilesUseMacroIncludes();
 }

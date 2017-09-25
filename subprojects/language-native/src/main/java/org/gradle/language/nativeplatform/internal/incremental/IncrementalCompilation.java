@@ -30,4 +30,6 @@ public interface IncrementalCompilation {
      * The set of all input locations that were discovered as part of resolving the dependencies for this compilation.
      */
     Set<File> getDiscoveredInputs();
+
+    boolean isSourceFilesUseMacroIncludes();
 }

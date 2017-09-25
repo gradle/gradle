@@ -15,6 +15,7 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
@@ -23,7 +24,6 @@ import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.cache.PersistentStateCache;
@@ -43,6 +43,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Map;
 
+@NonNullApi
 public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
     private static final Logger LOGGER = Logging.getLogger(IncrementalNativeCompiler.class);
     private final Compiler<T> delegateCompiler;
@@ -51,16 +52,17 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
     private final FileHasher hasher;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final CompilationStateCacheFactory compilationStateCacheFactory;
-
+    private final boolean discoverInputs;
     private final CSourceParser sourceParser = new RegexBackedCSourceParser();
 
-    public IncrementalNativeCompiler(TaskInternal task, FileHasher hasher, CompilationStateCacheFactory compilationStateCacheFactory, Compiler<T> delegateCompiler, NativeToolChain toolChain, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    public IncrementalNativeCompiler(TaskInternal task, FileHasher hasher, CompilationStateCacheFactory compilationStateCacheFactory, Compiler<T> delegateCompiler, NativeToolChain toolChain, DirectoryFileTreeFactory directoryFileTreeFactory, boolean discoverInputs) {
         this.task = task;
         this.hasher = hasher;
         this.compilationStateCacheFactory = compilationStateCacheFactory;
         this.delegateCompiler = delegateCompiler;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.importsAreIncludes = Clang.class.isAssignableFrom(toolChain.getClass()) || Gcc.class.isAssignableFrom(toolChain.getClass());
+        this.discoverInputs = discoverInputs;
     }
 
     @Override
@@ -73,7 +75,9 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
 
         spec.setSourceFileIncludeDirectives(mapIncludes(spec.getSourceFiles(), compilation.getFinalState()));
 
-        handleDiscoveredInputs(spec, compilation, spec.getDiscoveredInputRecorder());
+        if (discoverInputs) {
+            handleDiscoveredInputs(spec, compilation, spec.getDiscoveredInputRecorder());
+        }
 
         WorkResult workResult;
         if (spec.isIncrementalCompile()) {
@@ -98,7 +102,7 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
             discoveredInputRecorder.newInput(includeFile);
         }
 
-        if (sourceFilesUseMacroIncludes(spec.getSourceFiles(), compilation.getFinalState())) {
+        if (compilation.isSourceFilesUseMacroIncludes()) {
             LOGGER.info("After parsing the source files, Gradle cannot calculate the exact set of include files for {}. Every file in the include search path will be considered an input.", task.getName());
             for (final File includeRoot : spec.getIncludeRoots()) {
                 LOGGER.info("adding files in {} to discovered inputs for {}", includeRoot, task.getName());
@@ -121,23 +125,6 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
         });
     }
 
-    private boolean sourceFilesUseMacroIncludes(Collection<File> files, final CompilationState compilationState) {
-        // If we couldn't determine all dependencies of some files due to macros, we have to scan all include directories.
-        return CollectionUtils.any(files, new Spec<File>() {
-            @Override
-            public boolean isSatisfiedBy(File file) {
-                // If a macro was used for any #includes
-                return CollectionUtils.any(compilationState.getState(file).getResolvedIncludes(), new Spec<ResolvedInclude>() {
-                    @Override
-                    public boolean isSatisfiedBy(ResolvedInclude element) {
-                        // Using macro
-                        return element.isMaybeMacro();
-                    }
-                });
-            }
-        });
-    }
-
     protected WorkResult doIncrementalCompile(IncrementalCompilation compilation, T spec) {
         // Determine the actual sources to clean/compile
         spec.setSourceFiles(compilation.getRecompile());
@@ -149,7 +136,7 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
         boolean deleted = cleanPreviousOutputs(spec);
         WorkResult compileResult = delegateCompiler.execute(spec);
         if (deleted && !compileResult.getDidWork()) {
-            return WorkResults.didWork(deleted);
+            return WorkResults.didWork(true);
         }
         return compileResult;
     }

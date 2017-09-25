@@ -44,10 +44,10 @@ public class IncrementalCompileFilesFactory {
     }
 
     public IncrementalCompileFiles filesFor(CompilationState previousCompileState) {
-        return new StandaloneIncrementalCompileFiles(previousCompileState);
+        return new DefaultIncrementalCompileFiles(previousCompileState);
     }
 
-    public class StandaloneIncrementalCompileFiles implements IncrementalCompileFiles {
+    public class DefaultIncrementalCompileFiles implements IncrementalCompileFiles {
 
         private final CompilationState previous;
 
@@ -62,7 +62,9 @@ public class IncrementalCompileFilesFactory {
         private final List<File> toRecompile = new ArrayList<File>();
         private final Set<File> discoveredInputs = Sets.newHashSet();
 
-        public StandaloneIncrementalCompileFiles(CompilationState previousCompileState) {
+        private boolean sourceFilesUseMacroIncludes;
+
+        public DefaultIncrementalCompileFiles(CompilationState previousCompileState) {
             this.previous = previousCompileState == null ? new CompilationState() : previousCompileState;
         }
 
@@ -102,6 +104,11 @@ public class IncrementalCompileFilesFactory {
 
             CompilationFileState newState = new CompilationFileState(newHash, includeDirectives, ImmutableSet.copyOf(resolutionResult.getResolvedIncludes()));
 
+            for (ResolvedInclude resolvedInclude : resolutionResult.getResolvedIncludes()) {
+                if (resolvedInclude.isMaybeMacro()) {
+                    sourceFilesUseMacroIncludes = true;
+                }
+            }
             discoveredInputs.addAll(resolutionResult.getCheckedLocations());
 
             // Compare the previous resolved includes with resolving now.
@@ -157,6 +164,11 @@ public class IncrementalCompileFilesFactory {
         @Override
         public Set<File> getDiscoveredInputs() {
             return discoveredInputs;
+        }
+
+        @Override
+        public boolean isSourceFilesUseMacroIncludes() {
+            return sourceFilesUseMacroIncludes;
         }
     }
 }

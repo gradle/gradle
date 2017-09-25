@@ -42,7 +42,7 @@ class IncrementalNativeCompilerTest extends Specification {
     def toolChain = Mock(NativeToolChain)
     def task = Mock(TaskInternal)
     def directoryTreeFactory = TestFiles.directoryFileTreeFactory()
-    def compiler = new IncrementalNativeCompiler(task, null, null, delegateCompiler, toolChain, directoryTreeFactory)
+    def compiler = new IncrementalNativeCompiler(task, null, null, delegateCompiler, toolChain, directoryTreeFactory, true)
 
     def outputs = Mock(TaskOutputsInternal)
 
@@ -99,7 +99,7 @@ class IncrementalNativeCompilerTest extends Specification {
     @Unroll
     def "imports are includes for toolchain #tcName"() {
        when:
-       def compiler = new IncrementalNativeCompiler(task, null, null, delegateCompiler, toolChain, directoryTreeFactory)
+       def compiler = new IncrementalNativeCompiler(task, null, null, delegateCompiler, toolChain, directoryTreeFactory, true)
        then:
        compiler.importsAreIncludes
        where:
