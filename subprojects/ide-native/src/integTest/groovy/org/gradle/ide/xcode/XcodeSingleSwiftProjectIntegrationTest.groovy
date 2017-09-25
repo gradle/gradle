@@ -79,6 +79,7 @@ apply plugin: 'swift-library'
         project.products.children[0].path == sharedLib("build/lib/main/debug/App").absolutePath
     }
 
+    @Requires(TestPrecondition.MAC_OS_X)
     def "can create xcode project for Swift executable with xctest"() {
         given:
         buildFile << """
@@ -109,6 +110,7 @@ apply plugin: 'xctest'
         project.products.children[0].path == exe("build/exe/main/debug/App").absolutePath
     }
 
+    @Requires(TestPrecondition.MAC_OS_X)
     def "can create xcode project for Swift library with xctest"() {
         given:
         buildFile << """
