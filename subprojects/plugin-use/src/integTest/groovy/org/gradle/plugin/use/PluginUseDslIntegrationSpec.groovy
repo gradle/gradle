@@ -135,22 +135,6 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         includesLinkToUserguide()
     }
 
-    def "script plugins cannot have plugin blocks"() {
-        def scriptPlugin = file("plugin.gradle")
-
-        when:
-        scriptPlugin << "plugins {}"
-        buildScript "apply from: 'plugin.gradle'"
-
-        then:
-        fails "help"
-
-        failure.assertHasLineNumber 1
-        failure.assertHasFileName("Script '$scriptPlugin.absolutePath'")
-        failure.assertThatCause(containsString("Only Project build scripts can contain plugins {} blocks"))
-        includesLinkToUserguide()
-    }
-
     def "script plugins applied to arbitrary objects cannot have plugin blocks"() {
         def scriptPlugin = file("plugin.gradle")
 

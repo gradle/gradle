@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,10 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectScript;
 import org.gradle.groovy.scripts.BasicScript;
 
-public class ProjectScriptTarget implements ScriptTarget {
+public class TopLevelProjectScriptTarget implements ScriptTarget {
     private final ProjectInternal target;
 
-    public ProjectScriptTarget(ProjectInternal target) {
+    public TopLevelProjectScriptTarget(ProjectInternal target) {
         this.target = target;
     }
 
@@ -56,7 +56,7 @@ public class ProjectScriptTarget implements ScriptTarget {
 
     @Override
     public boolean getSupportsMethodInheritance() {
-        return false;
+        return true;
     }
 
     @Override
@@ -66,7 +66,7 @@ public class ProjectScriptTarget implements ScriptTarget {
 
     @Override
     public void attachScript(Script script) {
-        throw new UnsupportedOperationException();
+        target.setScript(script);
     }
 
     @Override
