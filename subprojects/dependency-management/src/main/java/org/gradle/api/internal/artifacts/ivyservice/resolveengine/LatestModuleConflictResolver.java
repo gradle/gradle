@@ -29,11 +29,12 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
         this.versionComparator = versionComparator.asVersionComparator();
     }
 
-    public <T extends ComponentResolutionState> T select(Collection<? extends T> candidates) {
+    @Override
+    public <T extends ComponentResolutionState> void select(ConflictResolverDetails<T> details) {
         // Find the candidates with the highest base version
         Version baseVersion = null;
         Map<Version, T> matches = new LinkedHashMap<Version, T>();
-        for (T candidate : candidates) {
+        for (T candidate : details.getCandidates()) {
             Version version = VersionParser.INSTANCE.transform(candidate.getVersion());
             if (baseVersion == null || versionComparator.compare(version.getBaseVersion(), baseVersion) > 0) {
                 matches.clear();
@@ -45,7 +46,8 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
         }
 
         if (matches.size() == 1) {
-            return matches.values().iterator().next();
+            details.select(matches.values().iterator().next());
+            return;
         }
 
         // Work backwards from highest version, return the first candidate with qualified version and release status, or candidate with unqualified version
@@ -54,15 +56,17 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
         for (Version version : sorted) {
             T component = matches.get(version);
             if (!version.isQualified()) {
-                return component;
+                details.select(component);
+                return;
             }
             ComponentResolveMetadata metaData = component.getMetaData();
             if (metaData != null && "release".equals(metaData.getStatus())) {
-                return component;
+                details.select(component);
+                return;
             }
         }
 
         // Nothing - just return the highest version
-        return matches.get(sorted.get(0));
+        details.select(matches.get(sorted.get(0)));
     }
 }

@@ -209,7 +209,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
         cleaner.execute();
 
         if (getSource().isEmpty()) {
-            setDidWork(false);
+            setDidWork(cleaner.getDidWork());
             return;
         }
 

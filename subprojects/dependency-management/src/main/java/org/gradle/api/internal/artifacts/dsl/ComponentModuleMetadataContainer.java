@@ -30,11 +30,13 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.collect.Maps.newHashMap;
+import static com.google.common.collect.Sets.newHashSet;
 import static java.lang.String.format;
 
 public class ComponentModuleMetadataContainer implements ModuleReplacementsData {
 
     private final Map<ModuleIdentifier, ModuleIdentifier> replacements = newHashMap();
+    private final Set<ModuleIdentifier> targets = newHashSet();
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
     public ComponentModuleMetadataContainer(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
@@ -49,6 +51,7 @@ public class ComponentModuleMetadataContainer implements ModuleReplacementsData 
                 ModuleIdentifier target = parser.parseNotation(targetModule);
                 detectCycles(replacements, source, target);
                 replacements.put(source, target);
+                targets.add(target);
             }
 
             public ModuleIdentifier getId() {
@@ -63,6 +66,11 @@ public class ComponentModuleMetadataContainer implements ModuleReplacementsData 
 
     public ModuleIdentifier getReplacementFor(ModuleIdentifier sourceModule) {
         return replacements.get(sourceModule);
+    }
+
+    @Override
+    public boolean participatesInReplacements(ModuleIdentifier moduleId) {
+        return targets.contains(moduleId) || replacements.keySet().contains(moduleId);
     }
 
     private static void detectCycles(Map<ModuleIdentifier, ModuleIdentifier> replacements, ModuleIdentifier source, ModuleIdentifier target) {

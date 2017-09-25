@@ -20,6 +20,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
@@ -44,12 +45,18 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
 
     public void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result) {
         ModuleVersionSelector requested = dependency.getRequested();
-        if (versionSelectorScheme.parseSelector(requested.getVersion()).isDynamic()) {
-            dynamicRevisionResolver.resolve(dependency, result);
+        VersionSelector versionSelector = versionSelectorScheme.parseSelector(requested.getVersion());
+        if (versionSelector.isDynamic()) {
+            dynamicRevisionResolver.resolve(dependency, versionSelector, result);
         } else {
             DefaultModuleComponentIdentifier id = new DefaultModuleComponentIdentifier(requested.getGroup(), requested.getName(), requested.getVersion());
             ModuleVersionIdentifier mvId = moduleIdentifierFactory.moduleWithVersion(requested.getGroup(), requested.getName(), requested.getVersion());
             result.resolved(id, mvId);
         }
+        if (result.hasResult()) {
+            result.setVersionSelector(versionSelector);
+        }
     }
+
+
 }

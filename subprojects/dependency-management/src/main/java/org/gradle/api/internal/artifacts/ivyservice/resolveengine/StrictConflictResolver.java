@@ -15,16 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import java.util.Collection;
 import java.util.Formatter;
 
 class StrictConflictResolver implements ModuleConflictResolver {
-    public <T extends ComponentResolutionState> T select(Collection<? extends T> candidates) {
+    @Override
+    public <T extends ComponentResolutionState> void select(ConflictResolverDetails<T> details) {
         Formatter formatter = new Formatter();
         formatter.format("A conflict was found between the following modules:");
-        for (ComponentResolutionState candidate : candidates) {
+        for (ComponentResolutionState candidate : details.getCandidates()) {
             formatter.format("%n - %s", candidate.getId());
         }
-        throw new RuntimeException(formatter.toString());
+        details.fail(new RuntimeException(formatter.toString()));
     }
 }

@@ -33,9 +33,12 @@ public class UserResolverChain implements ComponentResolvers {
     private final RepositoryChainArtifactResolver artifactResolver;
     private final ComponentSelectionRulesInternal componentSelectionRules;
 
-    public UserResolverChain(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, ComponentSelectionRulesInternal componentSelectionRules, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public UserResolverChain(VersionSelectorScheme versionSelectorScheme,
+                             VersionComparator versionComparator,
+                             ComponentSelectionRulesInternal componentSelectionRules,
+                             ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.componentSelectionRules = componentSelectionRules;
-        VersionedComponentChooser componentChooser = new DefaultVersionedComponentChooser(versionComparator, versionSelectorScheme, componentSelectionRules);
+        VersionedComponentChooser componentChooser = new DefaultVersionedComponentChooser(versionComparator, componentSelectionRules);
         ModuleTransformer metaDataFactory = new ModuleTransformer();
         componentIdResolver = new RepositoryChainDependencyToComponentIdResolver(versionSelectorScheme, componentChooser, metaDataFactory, moduleIdentifierFactory);
         componentResolver = new RepositoryChainComponentMetaDataResolver(componentChooser, metaDataFactory);

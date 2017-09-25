@@ -34,4 +34,4 @@ In the interest of fostering an open and welcoming environment, we as contributo
 
 You can read the Gradle Code of Conduct at https://gradle.org/conduct/ and contribute to it at https://github.com/gradle/code-of-conduct/.
 
-This code of conduct applies to all of the projects under the Gradle organization on GitHub and the Gradle community at large (Slack, mailing lists, Twitter, etc.).
+This code of conduct applies to all of the projects under the Gradle organization on GitHub and the Gradle community at large (Gradle forums, mailing lists, Twitter, etc.).

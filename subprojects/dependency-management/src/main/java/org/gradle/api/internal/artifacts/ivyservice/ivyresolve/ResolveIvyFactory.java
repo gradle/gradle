@@ -79,8 +79,8 @@ public class ResolveIvyFactory {
     }
 
     public ComponentResolvers create(ResolutionStrategyInternal resolutionStrategy,
-                                  Collection<? extends ResolutionAwareRepository> repositories,
-                                  ComponentMetadataProcessor metadataProcessor) {
+                                     Collection<? extends ResolutionAwareRepository> repositories,
+                                     ComponentMetadataProcessor metadataProcessor) {
         if (repositories.isEmpty()) {
             return new NoRepositoriesResolver();
         }
@@ -106,7 +106,7 @@ public class ResolveIvyFactory {
             } else {
                 moduleComponentRepository = startParameterResolutionOverride.overrideModuleVersionRepository(moduleComponentRepository);
                 moduleComponentRepository = new CachingModuleComponentRepository(moduleComponentRepository, moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache, artifactAtRepositoryCachedResolutionIndex,
-                        cachePolicy, timeProvider, metadataProcessor, moduleIdentifierFactory);
+                    cachePolicy, timeProvider, metadataProcessor, moduleIdentifierFactory);
             }
 
             if (baseRepository.isDynamicResolveMode()) {

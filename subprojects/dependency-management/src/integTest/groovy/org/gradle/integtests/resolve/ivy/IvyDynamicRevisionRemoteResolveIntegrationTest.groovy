@@ -440,7 +440,7 @@ dependencies {
 """
 
         when:
-        ivyHttpRepo.module("org.test", "projectA", "1.1").publish()
+        def projectA11 = ivyHttpRepo.module("org.test", "projectA", "1.1").publish()
         def projectA12 = ivyHttpRepo.module("org.test", "projectA", "1.2").publish()
 
         and:
