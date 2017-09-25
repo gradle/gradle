@@ -18,19 +18,15 @@ package org.gradle.api.internal.project.taskfactory;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
-import org.gradle.api.Action;
-import org.gradle.api.Describable;
-import org.gradle.api.Task;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.execution.TaskValidator;
+import org.gradle.api.internal.tasks.TaskPropertyValue;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
-public class TaskClassValidator implements TaskValidator, Action<Task>, Describable {
+@NonNullApi
+public class TaskClassValidator {
     private final ImmutableSortedSet<TaskPropertyInfo> annotatedProperties;
     private final ImmutableList<TaskClassValidationMessage> validationMessages;
     private final boolean cacheable;
@@ -41,53 +37,9 @@ public class TaskClassValidator implements TaskValidator, Action<Task>, Describa
         this.cacheable = cacheable;
     }
 
-    @Override
-    public void execute(Task task) {
-    }
-
     public void addInputsAndOutputs(final TaskInternal task) {
-        task.addValidator(this);
         for (TaskPropertyInfo property : annotatedProperties) {
-            property.getConfigureAction().update(task, new FutureValue(property, task));
-        }
-    }
-
-    @Override
-    public String getDisplayName() {
-        return "Validate task inputs";
-    }
-
-    private static class FutureValue implements Callable<Object> {
-        private final TaskPropertyInfo property;
-        private final TaskInternal task;
-
-        private FutureValue(TaskPropertyInfo property, TaskInternal task) {
-            this.property = property;
-            this.task = task;
-        }
-
-        @Override
-        public Object call() throws Exception {
-            return property.getValue(task).getValue();
-        }
-
-        @Override
-        public String toString() {
-            return String.format("property (%s) for task '%s'", property, task.getName());
-        }
-    }
-
-    @Override
-    public void validate(TaskInternal task, Collection<String> messages) {
-        List<TaskPropertyValue> propertyValues = new ArrayList<TaskPropertyValue>();
-        for (TaskPropertyInfo property : annotatedProperties) {
-            propertyValues.add(property.getValue(task));
-        }
-        for (TaskPropertyValue propertyValue : propertyValues) {
-            propertyValue.checkNotNull(messages);
-        }
-        for (TaskPropertyValue propertyValue : propertyValues) {
-            propertyValue.checkValid(messages);
+            property.getConfigureAction().update(task, new TaskPropertyValue(property, task));
         }
     }
 

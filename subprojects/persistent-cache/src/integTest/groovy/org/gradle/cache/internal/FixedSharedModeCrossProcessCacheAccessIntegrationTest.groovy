@@ -20,17 +20,19 @@ import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Subject
 
-import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
-
 @Subject(FixedSharedModeCrossProcessCacheAccess)
 class FixedSharedModeCrossProcessCacheAccessIntegrationTest extends AbstractIntegrationSpec {
+    @Rule BlockingHttpServer server = new BlockingHttpServer()
 
     @Issue("https://github.com/gradle/gradle/issues/2737")
     def "parallel initialization attempt of a shared cache does not timeout one of the processes"() {
         given:
+        server.start()
         executer.requireOwnGradleUserHomeDir().withDaemonBaseDir(file("daemon")).requireDaemon()
         buildFile << """
             task doWork(type: WorkerTask)
@@ -44,24 +46,22 @@ class FixedSharedModeCrossProcessCacheAccessIntegrationTest extends AbstractInte
                     workerExecutor.submit(TestRunnable) { WorkerConfiguration config ->
                         config.isolationMode = IsolationMode.PROCESS
                     }
-                    new File("started").createNewFile()
-                    while (!new File("finished").exists()) { Thread.sleep(100) }
+                    ${server.callFromBuild("waiting")}
                 }
             }
             class TestRunnable implements Runnable { void run() { } }
         """
 
         when:
-        //start a build with a IsolationMode.PROCESS worker that will initialize the worker classpath cache and wait until the cache was initialized
+        // start a build with a IsolationMode.PROCESS worker that will initialize the worker classpath cache and wait until the cache was initialized
+        def block = server.expectAndBlock("waiting")
         def build = executer.withTasks("doWork").start()
-        poll {
-            assert file("started").exists()
-        }
+        block.waitForAllPendingCalls()
 
-        //simulate another "build" that tries to initialize the cache as well before recognizing that it has been done already
+        // simulate another "build" that tries to initialize the cache as well before recognizing that it has been done already
         def cacheAccess = simulateAnotherInitializationOfAlreadyInitializedWorkerClasspathCache()
         cacheAccess.open()
-        file("finished").createFile()
+        block.releaseAll()
         build.waitForFinish()
 
         then:

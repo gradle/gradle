@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.file;
 
+import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
@@ -481,10 +482,17 @@ public class TestFile extends File {
      * Asserts that this file contains exactly the given set of descendants.
      */
     public TestFile assertHasDescendants(String... descendants) {
+        return assertHasDescendants(Arrays.asList(descendants));
+    }
+
+    /**
+     * Convenience method for {@link #assertHasDescendants(String...)}.
+     */
+    public TestFile assertHasDescendants(Iterable<String> descendants) {
         Set<String> actual = new TreeSet<String>();
         assertIsDir();
         visit(actual, "", this);
-        Set<String> expected = new TreeSet<String>(Arrays.asList(descendants));
+        Set<String> expected = new TreeSet<String>(Lists.<String>newArrayList(descendants));
 
         Set<String> extras = new TreeSet<String>(actual);
         extras.removeAll(expected);
@@ -494,6 +502,7 @@ public class TestFile extends File {
         assertEquals(String.format("For dir: %s, extra files: %s, missing files: %s, expected: %s", this, extras, missing, expected), expected, actual);
 
         return this;
+
     }
 
     /**
@@ -504,7 +513,7 @@ public class TestFile extends File {
         Set<String> actual = new TreeSet<String>();
         visit(actual, "", this);
 
-        Set<String> expected = new TreeSet<String>(Arrays.asList(descendants));
+        Set<String> expected = new TreeSet<String>(Lists.newArrayList(descendants));
 
         Set<String> missing = new TreeSet<String>(expected);
         missing.removeAll(actual);
@@ -515,10 +524,8 @@ public class TestFile extends File {
     }
 
     public TestFile assertIsEmptyDir() {
-        if (exists()) {
-            assertIsDir();
-            assertHasDescendants();
-        }
+        assertIsDir();
+        assertHasDescendants();
         return this;
     }
 
@@ -699,11 +706,22 @@ public class TestFile extends File {
     }
 
     public ExecOutput exec(Object... args) {
-        return new TestFileHelper(this).execute(Arrays.asList(args), null);
+        return new TestFileHelper(this).executeSuccess(Arrays.asList(args), null);
+    }
+
+    public ExecOutput execWithFailure(List args, List env) {
+        return new TestFileHelper(this).executeFailure(args, env);
     }
 
     public ExecOutput execute(List args, List env) {
-        return new TestFileHelper(this).execute(args, env);
+        return new TestFileHelper(this).executeSuccess(args, env);
+    }
+
+    /**
+     * Relativizes the URI of this file according to the base directory.
+     */
+    public URI relativizeFrom(TestFile baseDir) {
+        return baseDir.toURI().relativize(toURI());
     }
 
     public class Snapshot {

@@ -19,7 +19,6 @@ package org.gradle.ide.xcode.fixtures
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.CollectionUtils
 
 class AbstractXcodeIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
@@ -46,31 +45,32 @@ rootProject.name = "${rootProjectName}"
     }
 
     protected XcodeProjectPackage xcodeProject(String path) {
-        new XcodeProjectPackage(file(path))
+        xcodeProject(file(path))
+    }
+
+    protected XcodeProjectPackage xcodeProject(TestFile bundle) {
+        new XcodeProjectPackage(bundle)
+    }
+
+    protected XcodeProjectPackage getRootXcodeProject() {
+        xcodeProject("${rootProjectName}.xcodeproj")
     }
 
     protected XcodeWorkspacePackage xcodeWorkspace(String path) {
-        new XcodeWorkspacePackage(file(path))
+        xcodeWorkspace(file(path))
     }
 
-    protected void assertProjectHasEqualsNumberOfGradleAndIndexTargets(def targets) {
-        assert targets.findAll(gradleTargets()).size() == targets.size() / 2
-        assert targets.findAll(indexTargets()).size() == targets.size() / 2
+    protected XcodeWorkspacePackage xcodeWorkspace(TestFile bundle) {
+        new XcodeWorkspacePackage(bundle)
     }
 
-    protected static def gradleTargets() {
-        return {
-            it.isa == 'PBXLegacyTarget'
-        }
+    protected XcodeWorkspacePackage getRootXcodeWorkspace() {
+        xcodeWorkspace("${rootProjectName}.xcworkspace")
     }
 
-    protected static def indexTargets() {
-        return {
-            it.isa == 'PBXNativeTarget'
-        }
-    }
-
-    protected def buildSettings(def project) {
-        return CollectionUtils.single(project.targets.find(indexTargets()).buildConfigurationList.buildConfigurations).buildSettings
+    protected XcodebuildExecuter getXcodebuild() {
+        // Gradle needs to be isolated so the xcodebuild does not leave behind daemons
+        assert executer.isRequiresGradleDistribution()
+        new XcodebuildExecuter(executer.getGradleUserHomeDir(), testDirectory.file(".xcode-derived"))
     }
 }

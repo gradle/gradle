@@ -83,6 +83,58 @@ class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
         projectUnderTest.assertCustomOutputFileContent()
     }
 
+    def "can use property state as task input"() {
+        given:
+        buildFile << """
+class SomeTask extends DefaultTask {
+    @Input
+    final PropertyState<String> prop = project.providers.property(String)
+    
+    @OutputFile
+    final PropertyState<RegularFile> outputFile = newOutputFile()
+    
+    @TaskAction
+    void go() { 
+        outputFile.get().asFile.text = prop.get()
+    }
+}
+
+task thing(type: SomeTask) {
+    prop = System.getProperty('prop')
+    outputFile = layout.buildDirectory.file("out.txt")
+}
+
+"""
+
+        when:
+        executer.withArgument("-Dprop=123")
+        run("thing")
+
+        then:
+        executedAndNotSkipped(":thing")
+
+        when:
+        executer.withArgument("-Dprop=123")
+        run("thing")
+
+        then:
+        skipped(":thing")
+
+        when:
+        executer.withArgument("-Dprop=abc")
+        run("thing")
+
+        then:
+        executedAndNotSkipped(":thing")
+
+        when:
+        executer.withArgument("-Dprop=abc")
+        run("thing")
+
+        then:
+        skipped(":thing")
+    }
+
     def "can set property value from DSL using a value or a provider"() {
         given:
         buildFile << """

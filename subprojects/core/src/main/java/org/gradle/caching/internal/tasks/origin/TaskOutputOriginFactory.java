@@ -21,7 +21,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Clock;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,17 +44,17 @@ public class TaskOutputOriginFactory {
     private final InetAddressFactory inetAddressFactory;
     private final String userName;
     private final String operatingSystem;
-    private final TimeProvider timeProvider;
+    private final Clock clock;
     private final GradleVersion gradleVersion;
     private final BuildInvocationScopeId buildInvocationScopeId;
     private final File rootDir;
 
-    public TaskOutputOriginFactory(TimeProvider timeProvider, InetAddressFactory inetAddressFactory, File rootDir, String userName, String operatingSystem, GradleVersion gradleVersion, BuildInvocationScopeId buildInvocationScopeId) {
+    public TaskOutputOriginFactory(Clock clock, InetAddressFactory inetAddressFactory, File rootDir, String userName, String operatingSystem, GradleVersion gradleVersion, BuildInvocationScopeId buildInvocationScopeId) {
         this.inetAddressFactory = inetAddressFactory;
         this.rootDir = rootDir;
         this.userName = userName;
         this.operatingSystem = operatingSystem;
-        this.timeProvider = timeProvider;
+        this.clock = clock;
         this.gradleVersion = gradleVersion;
         this.buildInvocationScopeId = buildInvocationScopeId;
     }
@@ -69,7 +69,7 @@ public class TaskOutputOriginFactory {
                 properties.setProperty("type", task.getClass().getCanonicalName());
                 properties.setProperty("path", task.getPath());
                 properties.setProperty("gradleVersion", gradleVersion.getVersion());
-                properties.setProperty("creationTime", Long.toString(timeProvider.getCurrentTime()));
+                properties.setProperty("creationTime", Long.toString(clock.getCurrentTime()));
                 properties.setProperty("executionTime", Long.toString(elapsedTime));
                 properties.setProperty("rootPath", rootDir.getAbsolutePath());
                 properties.setProperty("operatingSystem", operatingSystem);

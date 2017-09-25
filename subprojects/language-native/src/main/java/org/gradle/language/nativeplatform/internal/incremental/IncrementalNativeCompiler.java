@@ -21,11 +21,11 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.WorkResults;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -142,7 +142,7 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
         boolean deleted = cleanPreviousOutputs(spec);
         WorkResult compileResult = delegateCompiler.execute(spec);
         if (deleted && !compileResult.getDidWork()) {
-            return new SimpleWorkResult(deleted);
+            return WorkResults.didWork(deleted);
         }
         return compileResult;
     }

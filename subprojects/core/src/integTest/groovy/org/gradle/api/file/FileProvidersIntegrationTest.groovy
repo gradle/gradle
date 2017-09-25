@@ -136,6 +136,68 @@ task useFileProvider {
         outputContains("task output file: " + testDirectory.file("output/some-dir/other-child"))
     }
 
+    def "can set directory property value from DSL using a value or a provider"() {
+        given:
+        buildFile << """
+class SomeExtension {
+    final DirectoryVar prop
+    
+    @javax.inject.Inject
+    SomeExtension(ProjectLayout layout) {
+        prop = layout.newDirectoryVar()
+    }
+}
+
+extensions.create('custom', SomeExtension, layout)
+custom.prop = layout.projectDir.dir("dir1")
+assert custom.prop.get().asFile == file("dir1")
+
+custom.prop = providers.provider { layout.projectDir.dir("dir2") }
+assert custom.prop.get().asFile == file("dir2")
+
+custom.prop = layout.buildDir.dir("dir3")
+assert custom.prop.get().asFile == file("build/dir3")
+
+custom.prop = file("dir4")
+assert custom.prop.get().asFile == file("dir4")
+
+"""
+
+        expect:
+        succeeds()
+    }
+
+    def "can set regular file property value from DSL using a value or a provider"() {
+        given:
+        buildFile << """
+class SomeExtension {
+    final RegularFileVar prop
+    
+    @javax.inject.Inject
+    SomeExtension(ProjectLayout layout) {
+        prop = layout.newFileVar()
+    }
+}
+
+extensions.create('custom', SomeExtension, layout)
+custom.prop = layout.projectDir.file("file1")
+assert custom.prop.get().asFile == file("file1")
+
+custom.prop = providers.provider { layout.projectDir.file("file2") }
+assert custom.prop.get().asFile == file("file2")
+
+custom.prop = layout.buildDir.file("file3")
+assert custom.prop.get().asFile == file("build/file3")
+
+custom.prop = file("file4")
+assert custom.prop.get().asFile == file("file4")
+
+"""
+
+        expect:
+        succeeds()
+    }
+
     def "reports failure to set regular file property value using incompatible type"() {
         given:
         buildFile << """
@@ -282,4 +344,75 @@ task useDirProvider {
         file("output/merged.txt").text == 'new-file1,file2,dir1'
     }
 
+    def "can wire the output directory of a task as input directory to another task"() {
+        buildFile << """
+            class DirOutputTask extends DefaultTask {
+                @InputFile
+                final RegularFileVar inputFile = newInputFile()
+
+                @OutputDirectory
+                final DirectoryVar outputDir = newOutputDirectory()
+
+                @TaskAction
+                void go() {
+                    def dir = outputDir.asFile.get()
+                    new File(dir, "file.txt").text = inputFile.asFile.get().text
+                }
+            }
+
+            class MergeTask extends DefaultTask {
+                @InputDirectory
+                final DirectoryVar inputDir1 = newInputDirectory()
+                @InputDirectory
+                final DirectoryVar inputDir2 = newInputDirectory()
+                @OutputFile
+                final RegularFileVar outputFile = newOutputFile()
+
+                @TaskAction
+                void go() {
+                    def file = outputFile.asFile.get()
+                    file.text = [inputDir1, inputDir2]*.asFile*.get()*.listFiles().flatten()*.text.join(',')
+                }
+            }
+
+            task createDir1(type: DirOutputTask)
+            task createDir2(type: DirOutputTask)
+            task merge(type: MergeTask) {
+                outputFile = layout.buildDirectory.file("merged.txt")
+                inputDir1 = createDir1.outputDir
+                inputDir2 = createDir2.outputDir
+            }
+
+            // Set values lazily
+            createDir1.inputFile = layout.projectDirectory.file("dir1-source.txt")
+            createDir1.outputDir = layout.buildDirectory.dir("dir1")
+            createDir2.inputFile = layout.projectDirectory.file("dir2-source.txt")
+            createDir2.outputDir = layout.buildDirectory.dir("dir2")
+
+            buildDir = "output"
+"""
+        file("dir1-source.txt").text = "dir1"
+        file("dir2-source.txt").text = "dir2"
+
+        when:
+        run("merge")
+
+        then:
+        result.assertTasksExecuted(":createDir1", ":createDir2", ":merge")
+        file("output/merged.txt").text == 'dir1,dir2'
+
+        when:
+        run("merge")
+
+        then:
+        result.assertTasksNotSkipped()
+
+        when:
+        file("dir1-source.txt").text = "new-dir1"
+        run("merge")
+
+        then:
+        result.assertTasksNotSkipped(":createDir1", ":merge")
+        file("output/merged.txt").text == 'new-dir1,dir2'
+    }
 }

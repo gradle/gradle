@@ -37,7 +37,6 @@ public class DefaultHttpSettings implements HttpSettings {
     private final HostnameVerifier hostnameVerifier;
     private HttpProxySettings proxySettings;
     private HttpProxySettings secureProxySettings;
-    private HttpTimeoutSettings timeoutSettings;
 
     public static DefaultHttpSettings allowUntrustedSslConnections(Collection<Authentication> authenticationSettings) {
         return new DefaultHttpSettings(authenticationSettings, ALL_TRUSTING_SSL_CONTEXT_FACTORY, ALL_TRUSTING_HOSTNAME_VERIFIER);
@@ -71,14 +70,6 @@ public class DefaultHttpSettings implements HttpSettings {
             secureProxySettings = new JavaSystemPropertiesSecureHttpProxySettings();
         }
         return secureProxySettings;
-    }
-
-    @Override
-    public HttpTimeoutSettings getTimeoutSettings() {
-        if (timeoutSettings == null) {
-            timeoutSettings = new JavaSystemPropertiesHttpTimeoutSettings();
-        }
-        return timeoutSettings;
     }
 
     @Override

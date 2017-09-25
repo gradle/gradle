@@ -17,8 +17,8 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.logging.BuildOperationLogger;
@@ -58,7 +58,7 @@ public abstract class AbstractCompiler<T extends BinaryToolSpec> implements Comp
             }
         });
 
-        return new SimpleWorkResult(true);
+        return WorkResults.didWork(true);
     }
 
     // TODO(daniel): Should support in a better way multi file invocation.

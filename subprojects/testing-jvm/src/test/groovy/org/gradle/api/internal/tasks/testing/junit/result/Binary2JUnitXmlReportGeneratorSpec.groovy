@@ -17,21 +17,21 @@
 package org.gradle.api.internal.tasks.testing.junit.result
 
 import org.gradle.api.Action
-import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
-import org.gradle.internal.operations.DefaultBuildOperationIdFactory
-import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.ParallelismConfigurationManager
+import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.DefaultBuildOperationIdFactory
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
 import org.gradle.internal.operations.MultipleBuildOperationFailures
 import org.gradle.internal.progress.BuildOperationListener
 import org.gradle.internal.progress.DefaultBuildOperationExecutor
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.internal.resources.ResourceLockCoordinationService
-import org.gradle.internal.time.TimeProvider
+import org.gradle.internal.time.Clock
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -47,7 +47,7 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
     def generatorWithMaxThreads(int numThreads) {
         ParallelismConfigurationManager parallelExecutionManager = new ParallelismConfigurationManagerFixture(false, numThreads)
         buildOperationExecutor = new DefaultBuildOperationExecutor(
-            Mock(BuildOperationListener), Mock(TimeProvider), new NoOpProgressLoggerFactory(),
+            Mock(BuildOperationListener), Mock(Clock), new NoOpProgressLoggerFactory(),
             new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), Mock(ResourceLockCoordinationService), parallelExecutionManager, new DefaultBuildOperationIdFactory())
         Binary2JUnitXmlReportGenerator reportGenerator = new Binary2JUnitXmlReportGenerator(temp.testDirectory, resultsProvider, TestOutputAssociation.WITH_SUITE, buildOperationExecutor, "localhost")
         reportGenerator.xmlWriter = Mock(JUnitXmlResultWriter)

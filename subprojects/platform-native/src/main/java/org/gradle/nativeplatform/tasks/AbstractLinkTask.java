@@ -21,6 +21,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileVar;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
@@ -44,7 +45,6 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
@@ -54,8 +54,9 @@ import java.util.concurrent.Callable;
 public abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBinary {
     private NativeToolChainInternal toolChain;
     private NativePlatformInternal targetPlatform;
+    private boolean debuggable;
     private final RegularFileVar outputFile;
-    private List<String> linkerArgs;
+    private final ListProperty<String> linkerArgs;
     private final ConfigurableFileCollection source;
     private final ConfigurableFileCollection libs;
 
@@ -63,6 +64,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
         libs = getProject().files();
         source = getProject().files();
         outputFile = newOutputFile();
+        linkerArgs = getProject().getProviders().listProperty(String.class);
         getInputs().property("outputType", new Callable<String>() {
             @Override
             public String call() throws Exception {
@@ -134,22 +136,34 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     }
 
     /**
-     * Additional arguments passed to the linker.
+     * <em>Additional</em> arguments passed to the linker.
+     *
+     * @since 4.3
      */
     @Input
-    public List<String> getLinkerArgs() {
+    public ListProperty<String> getLinkerArgs() {
         return linkerArgs;
     }
 
-    public void setLinkerArgs(List<String> linkerArgs) {
-        this.linkerArgs = linkerArgs;
+    /**
+     * Create a debuggable binary?
+     *
+     * @since 4.3
+     */
+    @Input
+    public boolean isDebuggable() {
+        return debuggable;
+    }
+
+    public void setDebuggable(boolean debuggable) {
+        this.debuggable = debuggable;
     }
 
     /**
      * The source object files to be passed to the linker.
      */
     @InputFiles
-    public FileCollection getSource() {
+    public ConfigurableFileCollection getSource() {
         return source;
     }
 
@@ -161,7 +175,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
      * The library files to be passed to the linker.
      */
     @InputFiles
-    public FileCollection getLibs() {
+    public ConfigurableFileCollection getLibs() {
         return libs;
     }
 
@@ -195,7 +209,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
         cleaner.execute();
 
         if (getSource().isEmpty()) {
-            setDidWork(false);
+            setDidWork(cleaner.getDidWork());
             return;
         }
 
@@ -206,7 +220,8 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
 
         spec.objectFiles(getSource());
         spec.libraries(getLibs());
-        spec.args(getLinkerArgs());
+        spec.args(getLinkerArgs().get());
+        spec.setDebuggable(isDebuggable());
 
         BuildOperationLogger operationLogger = getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir());
         spec.setOperationLogger(operationLogger);

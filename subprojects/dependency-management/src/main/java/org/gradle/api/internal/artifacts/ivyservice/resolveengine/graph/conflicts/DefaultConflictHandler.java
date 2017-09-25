@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.UncheckedException;
 
 import javax.annotation.Nullable;
 
@@ -54,7 +55,7 @@ public class DefaultConflictHandler implements ConflictHandler {
      * Informs if there are any batched up conflicts.
      */
     public boolean hasConflicts() {
-        return conflicts.getSize() > 0;
+        return !conflicts.isEmpty();
     }
 
     /**
@@ -62,14 +63,19 @@ public class DefaultConflictHandler implements ConflictHandler {
      */
     public void resolveNextConflict(Action<ConflictResolutionResult> resolutionAction) {
         assert hasConflicts();
-        ConflictContainer.Conflict conflict = conflicts.popConflict();
-        ComponentResolutionState selected = compositeResolver.select(conflict.candidates);
-        ConflictResolutionResult result = new DefaultConflictResolutionResult(potentialConflict(conflict), selected);
+        ConflictContainer<ModuleIdentifier, ComponentResolutionState>.Conflict conflict = conflicts.popConflict();
+        DefaultConflictResolverDetails<ComponentResolutionState> details = new DefaultConflictResolverDetails<ComponentResolutionState>(conflict.candidates);
+        compositeResolver.select(details);
+        if (details.hasFailure()) {
+            throw UncheckedException.throwAsUncheckedException(details.getFailure());
+        }
+        ConflictResolutionResult result = new DefaultConflictResolutionResult(conflict.participants, details.getSelected(), conflict.candidates);
         resolutionAction.execute(result);
-        LOGGER.debug("Selected {} from conflicting modules {}.", selected, conflict.candidates);
+        LOGGER.debug("Selected {} from conflicting modules {}.", details.getSelected(), conflict.candidates);
     }
 
     public void registerResolver(ModuleConflictResolver conflictResolver) {
         compositeResolver.addFirst(conflictResolver);
     }
+
 }

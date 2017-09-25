@@ -47,14 +47,6 @@ public abstract class AbstractScalarValueSnapshot<T> implements ValueSnapshot, I
     }
 
     @Override
-    public ValueSnapshot isolatableSnapshot(Object value, ValueSnapshotter snapshotter) {
-        if (this.value.equals(value)) {
-            return this;
-        }
-        return snapshotter.isolatableSnapshot(value);
-    }
-
-    @Override
     public boolean equals(Object obj) {
         if (obj == this) {
             return true;

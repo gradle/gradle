@@ -155,4 +155,9 @@ public class HashCode implements Serializable, Comparable<HashCode> {
         }
         return sb.toString();
     }
+
+    // Package private accessor used by MessageDigestHasher.putHash for performance reasons
+    byte[] getBytes() {
+        return bytes;
+    }
 }

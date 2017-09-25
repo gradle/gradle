@@ -50,10 +50,12 @@ import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher;
+import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.initialization.layout.ProjectCacheDir;
+import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
@@ -85,7 +87,7 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
 import org.gradle.internal.work.DefaultWorkerLeaseService;
@@ -100,7 +102,7 @@ import java.io.File;
  */
 public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
-    public BuildSessionScopeServices(final ServiceRegistry parent, final StartParameter startParameter, ClassPath injectedPluginClassPath) {
+    public BuildSessionScopeServices(final ServiceRegistry parent, final StartParameter startParameter, BuildRequestMetaData buildRequestMetaData, ClassPath injectedPluginClassPath) {
         super(parent);
         register(new Action<ServiceRegistration>() {
             @Override
@@ -112,6 +114,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
             }
         });
         add(InjectedPluginClasspath.class, new InjectedPluginClasspath(injectedPluginClassPath));
+        add(BuildRequestMetaData.class, buildRequestMetaData);
         addProvider(new CacheRepositoryServices(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir()));
 
         // Must be no higher than this scope as needs cache repository services.
@@ -140,7 +143,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
     BuildOperationExecutor createBuildOperationExecutor(
         ListenerManager listenerManager,
-        TimeProvider timeProvider,
+        Clock clock,
         ProgressLoggerFactory progressLoggerFactory,
         WorkerLeaseService workerLeaseService,
         ExecutorFactory executorFactory,
@@ -152,7 +155,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
     ) {
         return new DefaultBuildOperationExecutor(
             listenerManager.getBroadcaster(BuildOperationListener.class),
-            timeProvider, progressLoggerFactory,
+            clock, progressLoggerFactory,
             new DefaultBuildOperationQueueFactory(workerLeaseService),
             executorFactory,
             resourceLockCoordinationService,
@@ -239,5 +242,10 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
     protected WorkspaceScopeId createWorkspaceScopeId(PersistentScopeIdLoader persistentScopeIdLoader) {
         return persistentScopeIdLoader.getWorkspace();
+    }
+
+    BuildStartedTime createBuildStartedTime(Clock clock, BuildRequestMetaData buildRequestMetaData) {
+        long currentTime = clock.getCurrentTime();
+        return BuildStartedTime.startingAt(Math.min(currentTime, buildRequestMetaData.getStartTime()));
     }
 }

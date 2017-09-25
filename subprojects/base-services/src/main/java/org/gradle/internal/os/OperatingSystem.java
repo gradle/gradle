@@ -109,9 +109,17 @@ public abstract class OperatingSystem {
 
     public abstract String getExecutableName(String executablePath);
 
+    public abstract String getExecutableSuffix();
+
     public abstract String getSharedLibraryName(String libraryName);
 
+    public abstract String getSharedLibrarySuffix();
+
     public abstract String getStaticLibraryName(String libraryName);
+
+    public abstract String getLinkLibrarySuffix();
+
+    public abstract String getLinkLibraryName(String libraryPath);
 
     @UsedByScanPlugin
     public abstract String getFamilyName();
@@ -191,13 +199,33 @@ public abstract class OperatingSystem {
         }
 
         @Override
+        public String getExecutableSuffix() {
+            return ".exe";
+        }
+
+        @Override
         public String getExecutableName(String executablePath) {
             return withSuffix(executablePath, ".exe");
         }
 
         @Override
+        public String getSharedLibrarySuffix() {
+            return ".dll";
+        }
+
+        @Override
         public String getSharedLibraryName(String libraryPath) {
             return withSuffix(libraryPath, ".dll");
+        }
+
+        @Override
+        public String getLinkLibrarySuffix() {
+            return ".lib";
+        }
+
+        @Override
+        public String getLinkLibraryName(String libraryPath) {
+            return withSuffix(libraryPath, ".lib");
         }
 
         @Override
@@ -260,13 +288,18 @@ public abstract class OperatingSystem {
         }
 
         @Override
+        public String getExecutableSuffix() {
+            return "";
+        }
+
+        @Override
         public String getExecutableName(String executablePath) {
             return executablePath;
         }
 
         @Override
         public String getSharedLibraryName(String libraryName) {
-            return getLibraryName(libraryName, getSharedLibSuffix());
+            return getLibraryName(libraryName, getSharedLibrarySuffix());
         }
 
         private String getLibraryName(String libraryName, String suffix) {
@@ -281,8 +314,19 @@ public abstract class OperatingSystem {
             }
         }
 
-        protected String getSharedLibSuffix() {
+        @Override
+        public String getSharedLibrarySuffix() {
             return ".so";
+        }
+
+        @Override
+        public String getLinkLibrarySuffix() {
+            return getSharedLibrarySuffix();
+        }
+
+        @Override
+        public String getLinkLibraryName(String libraryPath) {
+            return getSharedLibraryName(libraryPath);
         }
 
         @Override
@@ -343,7 +387,7 @@ public abstract class OperatingSystem {
         }
 
         @Override
-        protected String getSharedLibSuffix() {
+        public String getSharedLibrarySuffix() {
             return ".dylib";
         }
 

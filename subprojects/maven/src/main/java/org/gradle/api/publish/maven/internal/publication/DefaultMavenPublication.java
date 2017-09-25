@@ -16,8 +16,8 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
@@ -50,6 +50,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.Comparator;
@@ -59,19 +60,24 @@ import java.util.Set;
 
 public class DefaultMavenPublication implements MavenPublicationInternal {
 
-    /**
+    /*
      * Maven supports wildcards in exclusion rules according to:
      * http://www.smartjava.org/content/maven-and-wildcard-exclusions
      * https://issues.apache.org/jira/browse/MNG-3832
      * This should be used for non-transitive dependencies
-     * @return
      */
     private static final Set<ExcludeRule> EXCLUDE_ALL_RULE = Collections.<ExcludeRule>singleton(new DefaultExcludeRule("*", "*"));
-    private static final Comparator<? super UsageContext> COMPILE_BEFORE_RUNTIME = new Comparator<UsageContext>() {
-        private final Comparator<String> compileBeforeRuntime = Ordering.explicit(Usage.JAVA_API, Usage.JAVA_RUNTIME);
+    private static final Comparator<? super UsageContext> USAGE_ORDERING = new Comparator<UsageContext>() {
         @Override
         public int compare(UsageContext left, UsageContext right) {
-            return compileBeforeRuntime.compare(left.getUsage().getName(), right.getUsage().getName());
+            // API first
+            if (left.getUsage().getName().equals(Usage.JAVA_API)) {
+                return -1;
+            }
+            if (right.getUsage().getName().equals(Usage.JAVA_API)) {
+                return 1;
+            }
+            return left.getUsage().getName().compareTo(right.getUsage().getName());
         }
     };
 
@@ -100,6 +106,12 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         return name;
     }
 
+    @Nullable
+    @Override
+    public SoftwareComponentInternal getComponent() {
+        return component;
+    }
+
     public MavenPomInternal getPom() {
         return pom;
     }
@@ -119,12 +131,13 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         }
         this.component = (SoftwareComponentInternal) component;
 
-        Set<PublishArtifact> seenArtifacts = Sets.newHashSet();
+        Set<ArtifactKey> seenArtifacts = Sets.newHashSet();
         Set<ModuleDependency> seenDependencies = Sets.newHashSet();
         for (UsageContext usageContext : getSortedUsageContexts()) {
             // TODO Need a smarter way to map usage to artifact classifier
             for (PublishArtifact publishArtifact : usageContext.getArtifacts()) {
-                if (seenArtifacts.add(publishArtifact)) {
+                ArtifactKey key = new ArtifactKey(publishArtifact.getFile(), publishArtifact.getClassifier(), publishArtifact.getExtension());
+                if (seenArtifacts.add(key)) {
                     artifact(publishArtifact);
                 }
             }
@@ -144,7 +157,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     private List<UsageContext> getSortedUsageContexts() {
         List<UsageContext> usageContexts = Lists.newArrayList(this.component.getUsages());
-        Collections.sort(usageContexts, COMPILE_BEFORE_RUNTIME);
+        Collections.sort(usageContexts, USAGE_ORDERING);
         return usageContexts;
     }
 
@@ -283,5 +296,28 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     public ModuleVersionIdentifier getCoordinates() {
         return new DefaultModuleVersionIdentifier(getGroupId(), getArtifactId(), getVersion());
+    }
+
+    private static class ArtifactKey {
+        final File file;
+        final String classifier;
+        final String extension;
+
+        public ArtifactKey(File file, String classifier, String extension) {
+            this.file = file;
+            this.classifier = classifier;
+            this.extension = extension;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            ArtifactKey other = (ArtifactKey) obj;
+            return file.equals(other.file) && Objects.equal(classifier, other.classifier) && Objects.equal(extension, other.extension);
+        }
+
+        @Override
+        public int hashCode() {
+            return file.hashCode() ^ Objects.hashCode(classifier, extension);
+        }
     }
 }

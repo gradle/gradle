@@ -17,7 +17,8 @@
 package org.gradle.nativeplatform.test.xctest;
 
 import org.gradle.api.Incubating;
-import org.gradle.language.swift.SwiftBinary;
+import org.gradle.api.file.DirectoryVar;
+import org.gradle.language.swift.SwiftBundle;
 import org.gradle.language.swift.SwiftComponent;
 
 /**
@@ -28,7 +29,14 @@ import org.gradle.language.swift.SwiftComponent;
 @Incubating
 public interface SwiftXCTestSuite extends SwiftComponent {
     /**
-     * Returns the executable that is built to run this test suite.
+     * Returns the bundle that is built to run this test suite.
      */
-    SwiftBinary getExecutable();
+    SwiftBundle getBundle();
+
+    /**
+     * Returns the resource directory for this component.
+     *
+     * <p>{@code src/test/resources} is used by default.
+     */
+    DirectoryVar getResourceDir();
 }

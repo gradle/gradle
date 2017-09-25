@@ -5,6 +5,148 @@
             "type": "org.gradle.api.tasks.compile.JavaCompile",
             "member": "Method org.gradle.api.tasks.compile.JavaCompile.getStreamHasher()",
             "acceptation": "Injected service"
+        },
+        {
+            "type": "org.gradle.api.tasks.WorkResults",
+            "member": "Method org.gradle.api.tasks.WorkResults.didWork(boolean)",
+            "acceptation": "Not incubating"
+        },
+        {
+            "type": "org.gradle.language.c.tasks.CPreCompiledHeaderCompile",
+            "member": "Class org.gradle.language.c.tasks.CPreCompiledHeaderCompile",
+            "acceptation": "changes says it all",
+            "changes": [
+                "Method has been removed in superclass"
+            ]
+        },
+        {
+            "type": "org.gradle.language.cpp.tasks.CppPreCompiledHeaderCompile",
+            "member": "Class org.gradle.language.cpp.tasks.CppPreCompiledHeaderCompile",
+            "acceptation": "changes says it all",
+            "changes": [
+                "Method has been removed in superclass"
+            ]
+        },
+        {
+            "type": "org.gradle.language.objectivec.tasks.ObjectiveCPreCompiledHeaderCompile",
+            "member": "Class org.gradle.language.objectivec.tasks.ObjectiveCPreCompiledHeaderCompile",
+            "acceptation": "changes says it all",
+            "changes": [
+                "Method has been removed in superclass"
+            ]
+        },
+        {
+            "type": "org.gradle.language.objectivecpp.tasks.ObjectiveCppPreCompiledHeaderCompile",
+            "member": "Class org.gradle.language.objectivecpp.tasks.ObjectiveCppPreCompiledHeaderCompile",
+            "acceptation": "changes says it all",
+            "changes": [
+                "Method has been removed in superclass"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.plugins.XCTestConventionPlugin",
+            "member": "Constructor XCTestConventionPlugin",
+            "acceptation": "Injectable constructor, shouldn't be used directly by users",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.CreateXcTestBundle",
+            "member": "Constructor CreateXcTestBundle",
+            "acceptation": "The incubating task was moved and renamed",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.CreateXcTestBundle",
+            "member": "Implemented interface org.gradle.api.Task",
+            "acceptation": "The incubating task was moved and renamed",
+            "changes": [
+                "Interface has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.CreateXcTestBundle",
+            "member": "Implemented interface org.gradle.util.Configurable",
+            "acceptation": "The incubating task was moved and renamed",
+            "changes": [
+                "Interface has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.CreateXcTestBundle",
+            "member": "Implemented interface org.gradle.api.internal.TaskInternal",
+            "acceptation": "The incubating task was moved and renamed",
+            "changes": [
+                "Interface has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.CreateXcTestBundle",
+            "member": "Implemented interface org.gradle.api.plugins.ExtensionAware",
+            "acceptation": "The incubating task was moved and renamed",
+            "changes": [
+                "Interface has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.CreateXcTestBundle",
+            "member": "Implemented interface java.lang.Comparable",
+            "acceptation": "The incubating task was moved and renamed",
+            "changes": [
+                "Interface has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.CreateXcTestBundle",
+            "member": "Implemented interface org.gradle.api.internal.DynamicObjectAware",
+            "acceptation": "The incubating task was moved and renamed",
+            "changes": [
+                "Interface has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.CompatibilityAdapterForTaskInputs",
+            "member": "Method org.gradle.api.tasks.CompatibilityAdapterForTaskInputs.property(java.lang.String,java.lang.Object)",
+            "acceptation": "Introduced a property builder for non-file task input properties",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.TaskFilePropertyBuilder",
+            "member": "Implemented interface org.gradle.api.tasks.TaskPropertyBuilder",
+            "acceptation": "Introduced a property builder for non-file task input properties"
+        },
+        {
+            "type": "org.gradle.api.tasks.TaskInputFilePropertyBuilder",
+            "member": "Implemented interface org.gradle.api.tasks.TaskInputs",
+            "acceptation": "Introduced a property builder for non-file task input properties"
+        },
+        {
+            "type": "org.gradle.api.tasks.TaskInputs",
+            "member": "Method org.gradle.api.tasks.TaskInputs.property(java.lang.String,java.lang.Object)",
+            "acceptation": "Introduced a property builder for non-file task input properties",
+            "changes": [
+                "Method return type has changed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.TaskOutputFilePropertyBuilder",
+            "member": "Implemented interface org.gradle.api.tasks.TaskPropertyBuilder",
+            "acceptation": "Introduced a property builder for non-file task input properties"
+        },
+        {
+            "type": "org.gradle.api.tasks.TaskInputFilePropertyBuilder",
+            "member": "Implemented interface org.gradle.api.tasks.TaskPropertyBuilder",
+            "acceptation": "Introduced a property builder for non-file task input properties"
+        },
+        {
+            "type": "org.gradle.api.specs.AndSpec",
+            "member": "Method org.gradle.api.specs.AndSpec.and(org.gradle.api.specs.Spec)",
+            "acceptation": "Added overload to help with generics"
         }
     ]
 }

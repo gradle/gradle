@@ -31,7 +31,9 @@ import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
@@ -128,12 +130,12 @@ public class InstallExecutable extends DefaultTask {
      *
      * @since 4.1
      */
-    @InputFile
+    @Internal("Covered by inputFileIfExists")
     public RegularFileVar getSourceFile() {
         return executable;
     }
 
-    @Internal
+    @Internal("Covered by inputFileIfExists")
     public File getExecutable() {
         return executable.getAsFile().getOrNull();
     }
@@ -151,6 +153,19 @@ public class InstallExecutable extends DefaultTask {
      */
     public void setExecutable(Provider<? extends RegularFile> executable) {
         this.executable.set(executable);
+    }
+
+    // Workaround for when the task is given an input file that doesn't exist
+    @SkipWhenEmpty
+    @Optional
+    @InputFile
+    protected File getInputFileIfExists() {
+        File inputFile = getExecutable();
+        if (inputFile != null && inputFile.exists()) {
+            return inputFile;
+        } else {
+            return null;
+        }
     }
 
     /**

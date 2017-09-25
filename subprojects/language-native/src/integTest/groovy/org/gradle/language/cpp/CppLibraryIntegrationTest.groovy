@@ -18,6 +18,8 @@ package org.gradle.language.cpp
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
+import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
+import org.gradle.nativeplatform.fixtures.app.CppGreeterWithOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.junit.Assume
 
@@ -27,6 +29,19 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
     def setup() {
         // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
         Assume.assumeTrue(toolChain.id != "mingw" && toolChain.id != "gcccygwin")
+    }
+
+    def "skip compile and link tasks when no source"() {
+        given:
+        buildFile << """
+            apply plugin: 'cpp-library'
+        """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":assemble")
+        // TODO - should skip the task as NO-SOURCE
+        result.assertTasksSkipped(":compileDebugCpp", ":linkDebug", ":assemble")
     }
 
     def "build fails when compilation fails"() {
@@ -66,21 +81,32 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 
-    def "can build release variant of library"() {
+    def "can build debug and release variants of library"() {
         given:
         settingsFile << "rootProject.name = 'hello'"
-        def lib = new CppLib()
+        def lib = new CppGreeterWithOptionalFeature()
         lib.writeToProject(testDirectory)
 
         and:
         buildFile << """
             apply plugin: 'cpp-library'
+            compileReleaseCpp.macros(WITH_FEATURE: "true")
          """
 
         expect:
+        executer.withArgument("--info")
         succeeds "linkRelease"
+
         result.assertTasksExecuted(":compileReleaseCpp", ":linkRelease")
         sharedLibrary("build/lib/main/release/hello").assertExists()
+        output.contains('compiling with feature enabled')
+
+        executer.withArgument("--info")
+        succeeds "linkDebug"
+
+        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug")
+        sharedLibrary("build/lib/main/debug/hello").assertExists()
+        !output.contains('compiling with feature enabled')
     }
 
     def "build logic can change source layout convention"() {
@@ -170,7 +196,7 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         and:
         buildFile << """
             apply plugin: 'cpp-library'
-            compileDebugCpp.objectFileDirectory = layout.buildDirectory.dir("object-files")
+            compileDebugCpp.objectFileDir = layout.buildDirectory.dir("object-files")
             linkDebug.binaryFile = layout.buildDirectory.file("some-lib/main.bin")
          """
 
@@ -202,37 +228,44 @@ class CppLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 
-    def "can compile and link against another library"() {
-        settingsFile << "include 'lib1', 'lib2'"
-        def app = new CppAppWithLibraries()
+    def "can compile and link against implementation and api libraries"() {
+        settingsFile << "include 'lib1', 'lib2', 'lib3'"
+        def app = new CppAppWithLibrariesWithApiDependencies()
 
         given:
         buildFile << """
             project(':lib1') {
                 apply plugin: 'cpp-library'
                 dependencies {
-                    implementation project(':lib2')
+                    api project(':lib2')
+                    implementation project(':lib3')
                 }
             }
             project(':lib2') {
                 apply plugin: 'cpp-library'
             }
+            project(':lib3') {
+                apply plugin: 'cpp-library'
+            }
 """
-        app.greeterLib.writeToProject(file("lib1"))
-        app.loggerLib.writeToProject(file("lib2"))
+        app.deck.writeToProject(file("lib1"))
+        app.card.writeToProject(file("lib2"))
+        app.shuffle.writeToProject(file("lib3"))
 
         expect:
         succeeds ":lib1:assemble"
 
-        result.assertTasksExecuted(":lib2:compileDebugCpp", ":lib2:linkDebug", ":lib1:compileDebugCpp", ":lib1:linkDebug", ":lib1:assemble")
+        result.assertTasksExecuted(":lib3:compileDebugCpp", ":lib3:linkDebug", ":lib2:compileDebugCpp", ":lib2:linkDebug", ":lib1:compileDebugCpp", ":lib1:linkDebug", ":lib1:assemble")
         sharedLibrary("lib1/build/lib/main/debug/lib1").assertExists()
         sharedLibrary("lib2/build/lib/main/debug/lib2").assertExists()
+        sharedLibrary("lib3/build/lib/main/debug/lib3").assertExists()
 
         succeeds ":lib1:linkRelease"
 
-        result.assertTasksExecuted(":lib2:compileReleaseCpp", ":lib2:linkRelease", ":lib1:compileReleaseCpp", ":lib1:linkRelease")
+        result.assertTasksExecuted(":lib3:compileReleaseCpp", ":lib3:linkRelease", ":lib2:compileReleaseCpp", ":lib2:linkRelease", ":lib1:compileReleaseCpp", ":lib1:linkRelease")
         sharedLibrary("lib1/build/lib/main/release/lib1").assertExists()
         sharedLibrary("lib2/build/lib/main/release/lib2").assertExists()
+        sharedLibrary("lib3/build/lib/main/release/lib3").assertExists()
     }
 
     def "can change default base name and successfully link against library"() {

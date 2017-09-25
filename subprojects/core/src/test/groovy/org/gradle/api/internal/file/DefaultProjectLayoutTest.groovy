@@ -100,6 +100,7 @@ class DefaultProjectLayoutTest extends Specification {
     def "regular file is not present when path provider is not present"() {
         def pathProvider = Stub(Provider)
         _ * pathProvider.present >> false
+        _ * pathProvider.getOrNull() >> null
 
         expect:
         def provider = layout.projectDirectory.file(pathProvider)
@@ -226,6 +227,28 @@ class DefaultProjectLayoutTest extends Specification {
         fileVar.get().getAsFile() == otherFile
         fileProvider.present
         fileProvider.get() == otherFile
+    }
+
+    def "can set directory var untyped using a File"() {
+        def otherDir = projectDir.file("sub-dir")
+
+        expect:
+        def dirVar = layout.newDirectoryVar()
+
+        dirVar.setFromAnyValue(new File("sub-dir"))
+        dirVar.present
+        dirVar.get().getAsFile() == otherDir
+    }
+
+    def "can set file var untyped using a File"() {
+        def otherFile = projectDir.file("some-file")
+
+        expect:
+        def fileVar = layout.newFileVar()
+
+        fileVar.setFromAnyValue(new File("some-file"))
+        fileVar.present
+        fileVar.get().getAsFile() == otherFile
     }
 
     def "can resolve directory relative to calculated directory"() {

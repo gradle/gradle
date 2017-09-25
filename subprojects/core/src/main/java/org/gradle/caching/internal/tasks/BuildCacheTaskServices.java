@@ -38,7 +38,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Clock;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
 import org.gradle.util.SingleMessageLogger;
@@ -57,13 +57,13 @@ public class BuildCacheTaskServices {
     }
 
     TaskOutputOriginFactory createTaskOutputOriginFactory(
-        TimeProvider timeProvider,
+        Clock clock,
         InetAddressFactory inetAddressFactory,
         GradleInternal gradleInternal,
         BuildInvocationScopeId buildInvocationScopeId
     ) {
         File rootDir = gradleInternal.getRootProject().getRootDir();
-        return new TaskOutputOriginFactory(timeProvider, inetAddressFactory, rootDir, SystemProperties.getInstance().getUserName(), OperatingSystem.current().getName(), GradleVersion.current(), buildInvocationScopeId);
+        return new TaskOutputOriginFactory(clock, inetAddressFactory, rootDir, SystemProperties.getInstance().getUserName(), OperatingSystem.current().getName(), GradleVersion.current(), buildInvocationScopeId);
     }
 
     TaskOutputCacheCommandFactory createTaskOutputCacheCommandFactory(

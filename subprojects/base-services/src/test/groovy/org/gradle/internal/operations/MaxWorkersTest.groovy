@@ -23,7 +23,7 @@ import org.gradle.internal.progress.DefaultBuildOperationExecutor
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLockCoordinationService
-import org.gradle.internal.time.TimeProvider
+import org.gradle.internal.time.Clock
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
@@ -38,7 +38,7 @@ class MaxWorkersTest extends ConcurrentSpec {
         def maxWorkers = 1
         def workerLeaseService = this.workerLeaseService(maxWorkers)
         def processor = new DefaultBuildOperationExecutor(
-            Mock(BuildOperationListener), Mock(TimeProvider), new NoOpProgressLoggerFactory(),
+            Mock(BuildOperationListener), Mock(Clock), new NoOpProgressLoggerFactory(),
             new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), Mock(ResourceLockCoordinationService), new ParallelismConfigurationManagerFixture(true, maxWorkers), new DefaultBuildOperationIdFactory())
         def processorWorker = new SimpleWorker()
 
@@ -80,7 +80,7 @@ class MaxWorkersTest extends ConcurrentSpec {
         def maxWorkers = 1
         def workerLeaseService = this.workerLeaseService(maxWorkers)
         def processor = new DefaultBuildOperationExecutor(
-            Mock(BuildOperationListener), Mock(TimeProvider), new NoOpProgressLoggerFactory(),
+            Mock(BuildOperationListener), Mock(Clock), new NoOpProgressLoggerFactory(),
             new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), Mock(ResourceLockCoordinationService), new ParallelismConfigurationManagerFixture(true, maxWorkers), new DefaultBuildOperationIdFactory())
         def processorWorker = new SimpleWorker()
 
@@ -122,7 +122,7 @@ class MaxWorkersTest extends ConcurrentSpec {
         def maxWorkers = 1
         def workerLeaseService = this.workerLeaseService(maxWorkers)
         def processor = new DefaultBuildOperationExecutor(
-            Mock(BuildOperationListener), Mock(TimeProvider), new NoOpProgressLoggerFactory(),
+            Mock(BuildOperationListener), Mock(Clock), new NoOpProgressLoggerFactory(),
             new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), Mock(ResourceLockCoordinationService), new ParallelismConfigurationManagerFixture(true, maxWorkers), new DefaultBuildOperationIdFactory())
         def processorWorker = new SimpleWorker()
 
@@ -166,7 +166,7 @@ class MaxWorkersTest extends ConcurrentSpec {
 
         def workerLeaseService = this.workerLeaseService(maxWorkers)
         def processor = new DefaultBuildOperationExecutor(
-            Mock(BuildOperationListener), Mock(TimeProvider), new NoOpProgressLoggerFactory(),
+            Mock(BuildOperationListener), Mock(Clock), new NoOpProgressLoggerFactory(),
             new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), Mock(ResourceLockCoordinationService), new ParallelismConfigurationManagerFixture(true, maxWorkers), new DefaultBuildOperationIdFactory())
         def processorWorker = new SimpleWorker()
 

@@ -60,13 +60,12 @@ public class ResolveIvyFactory {
     private final VersionSelectorScheme versionSelectorScheme;
     private final VersionComparator versionComparator;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final RepositoryBlacklister repositoryBlacklister;
 
     public ResolveIvyFactory(ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache, ModuleArtifactsCache moduleArtifactsCache,
                              CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex,
                              StartParameterResolutionOverride startParameterResolutionOverride,
                              BuildCommencedTimeProvider timeProvider, InMemoryCachedRepositoryFactory inMemoryCache, VersionSelectorScheme versionSelectorScheme,
-                             VersionComparator versionComparator, ImmutableModuleIdentifierFactory moduleIdentifierFactory, RepositoryBlacklister repositoryBlacklister) {
+                             VersionComparator versionComparator, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.moduleVersionsCache = moduleVersionsCache;
         this.moduleMetaDataCache = moduleMetaDataCache;
         this.moduleArtifactsCache = moduleArtifactsCache;
@@ -77,12 +76,11 @@ public class ResolveIvyFactory {
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
-        this.repositoryBlacklister = repositoryBlacklister;
     }
 
     public ComponentResolvers create(ResolutionStrategyInternal resolutionStrategy,
-                                  Collection<? extends ResolutionAwareRepository> repositories,
-                                  ComponentMetadataProcessor metadataProcessor) {
+                                     Collection<? extends ResolutionAwareRepository> repositories,
+                                     ComponentMetadataProcessor metadataProcessor) {
         if (repositories.isEmpty()) {
             return new NoRepositoriesResolver();
         }
@@ -108,14 +106,14 @@ public class ResolveIvyFactory {
             } else {
                 moduleComponentRepository = startParameterResolutionOverride.overrideModuleVersionRepository(moduleComponentRepository);
                 moduleComponentRepository = new CachingModuleComponentRepository(moduleComponentRepository, moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache, artifactAtRepositoryCachedResolutionIndex,
-                        cachePolicy, timeProvider, metadataProcessor, moduleIdentifierFactory);
+                    cachePolicy, timeProvider, metadataProcessor, moduleIdentifierFactory);
             }
 
             if (baseRepository.isDynamicResolveMode()) {
                 moduleComponentRepository = IvyDynamicResolveModuleComponentRepositoryAccess.wrap(moduleComponentRepository);
             }
             moduleComponentRepository = inMemoryCache.cached(moduleComponentRepository);
-            moduleComponentRepository = new ErrorHandlingModuleComponentRepository(moduleComponentRepository, repositoryBlacklister);
+            moduleComponentRepository = new ErrorHandlingModuleComponentRepository(moduleComponentRepository);
 
             moduleResolver.add(moduleComponentRepository);
             parentModuleResolver.add(moduleComponentRepository);

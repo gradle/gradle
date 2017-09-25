@@ -19,8 +19,11 @@ package org.gradle.language.cpp
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
+import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
+import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
+import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraryAndOptionalFeature
+import org.gradle.nativeplatform.fixtures.app.CppAppWithOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
-import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.junit.Assume
 
 import static org.gradle.util.Matchers.containsText
@@ -29,6 +32,19 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
     def setup() {
         // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
         Assume.assumeTrue(toolChain.id != "mingw" && toolChain.id != "gcccygwin")
+    }
+
+    def "skip compile, link and install tasks when no source"() {
+        given:
+        buildFile << """
+            apply plugin: 'cpp-executable'
+        """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":installDebug", ":assemble")
+        // TODO - should skip the task as NO-SOURCE
+        result.assertTasksSkipped(":compileDebugCpp", ":linkDebug", ":installDebug", ":assemble")
     }
 
     def "build fails when compilation fails"() {
@@ -65,15 +81,15 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":installMain", ":assemble")
+        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":installDebug", ":assemble")
 
         executable("build/exe/main/debug/app").assertExists()
-        installation("build/install/app").exec().out == app.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
+        installation("build/install/main/debug").exec().out == app.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
     }
 
-    def "can build release variant of executable"() {
+    def "can build debug and release variants of executable"() {
         settingsFile << "rootProject.name = 'app'"
-        def app = new CppApp()
+        def app = new CppAppWithOptionalFeature()
 
         given:
         app.writeToProject(testDirectory)
@@ -81,14 +97,21 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         and:
         buildFile << """
             apply plugin: 'cpp-executable'
+            compileReleaseCpp.macros(WITH_FEATURE: "true")
          """
 
         expect:
-        succeeds "linkRelease"
-        result.assertTasksExecuted(":compileReleaseCpp", ":linkRelease")
+        succeeds "installRelease"
+        result.assertTasksExecuted(":compileReleaseCpp", ":linkRelease", ":installRelease")
 
         executable("build/exe/main/release/app").assertExists()
-        executable("build/exe/main/release/app").exec().out == app.expectedOutput
+        installation("build/install/main/release").exec().out == app.withFeatureEnabled().expectedOutput
+
+        succeeds "installDebug"
+        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":installDebug")
+
+        executable("build/exe/main/debug/app").assertExists()
+        installation("build/install/main/debug").exec().out == app.withFeatureDisabled().expectedOutput
     }
 
     def "ignores non-C++ source files in source directory"() {
@@ -110,10 +133,10 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":installMain", ":assemble")
+        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":installDebug", ":assemble")
 
         executable("build/exe/main/debug/app").assertExists()
-        installation("build/install/app").exec().out == app.expectedOutput
+        installation("build/install/main/debug").exec().out == app.expectedOutput
     }
 
     def "build logic can change source layout convention"() {
@@ -137,11 +160,11 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":installMain", ":assemble")
+        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":installDebug", ":assemble")
 
         file("build/obj/main/debug").assertIsDir()
         executable("build/exe/main/debug/app").assertExists()
-        installation("build/install/app").exec().out == app.expectedOutput
+        installation("build/install/main/debug").exec().out == app.expectedOutput
     }
 
     def "build logic can add individual source files"() {
@@ -169,11 +192,11 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":installMain", ":assemble")
+        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":installDebug", ":assemble")
 
         file("build/obj/main/debug").assertIsDir()
         executable("build/exe/main/debug/app").assertExists()
-        installation("build/install/app").exec().out == app.expectedOutput
+        installation("build/install/main/debug").exec().out == app.expectedOutput
     }
 
     def "build logic can change buildDir"() {
@@ -191,12 +214,12 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":installMain", ":assemble")
+        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":installDebug", ":assemble")
 
         !file("build").exists()
         file("output/obj/main/debug").assertIsDir()
         executable("output/exe/main/debug/app").assertExists()
-        installation("output/install/app").exec().out == app.expectedOutput
+        installation("output/install/main/debug").exec().out == app.expectedOutput
     }
 
     def "build logic can define the base name"() {
@@ -213,11 +236,11 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":installMain", ":assemble")
+        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":installDebug", ":assemble")
 
         file("build/obj/main/debug").assertIsDir()
         executable("build/exe/main/debug/test_app").assertExists()
-        installation("build/install/test_app").exec().out == app.expectedOutput
+        installation("build/install/main/debug").exec().out == app.expectedOutput
     }
 
     def "build logic can change task output locations"() {
@@ -230,14 +253,14 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         and:
         buildFile << """
             apply plugin: 'cpp-executable'
-            compileDebugCpp.objectFileDirectory = layout.buildDirectory.dir("object-files")
+            compileDebugCpp.objectFileDir = layout.buildDirectory.dir("object-files")
             linkDebug.binaryFile = layout.buildDirectory.file("exe/some-app.exe")
-            installMain.installDirectory = layout.buildDirectory.dir("some-app")
+            installDebug.installDirectory = layout.buildDirectory.dir("some-app")
          """
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":installMain", ":assemble")
+        result.assertTasksExecuted(":compileDebugCpp", ":linkDebug", ":installDebug", ":assemble")
 
         file("build/object-files").assertIsDir()
         file("build/exe/some-app.exe").assertIsFile()
@@ -246,7 +269,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
     def "can compile and link against a library"() {
         settingsFile << "include 'app', 'hello'"
-        def app = new CppHelloWorldApp()
+        def app = new CppAppWithLibrary()
 
         given:
         buildFile << """
@@ -260,62 +283,100 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
                 apply plugin: 'cpp-library'
             }
 """
-        app.library.headerFiles.each { it.writeToFile(file("hello/src/main/public/$it.name")) }
-        app.library.sourceFiles.each { it.writeToFile(file("hello/src/main/cpp/$it.name")) }
-        app.executable.sourceFiles.each { it.writeToDir(file('app/src/main')) }
+        app.greeter.writeToProject(file("hello"))
+        app.main.writeToProject(file("app"))
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(":hello:compileDebugCpp", ":hello:linkDebug", ":app:compileDebugCpp", ":app:linkDebug", ":app:installMain", ":app:assemble")
+
+        result.assertTasksExecuted(":hello:compileDebugCpp", ":hello:linkDebug", ":app:compileDebugCpp", ":app:linkDebug", ":app:installDebug", ":app:assemble")
         executable("app/build/exe/main/debug/app").assertExists()
         sharedLibrary("hello/build/lib/main/debug/hello").assertExists()
-        installation("app/build/install/app").exec().out == app.englishOutput
-        sharedLibrary("app/build/install/app/lib/hello").file.assertExists()
+        installation("app/build/install/main/debug").exec().out == app.expectedOutput
+        sharedLibrary("app/build/install/main/debug/lib/hello").file.assertExists()
     }
 
-    def "can compile and link against library with dependencies"() {
-        settingsFile << "include 'app', 'lib1', 'lib2'"
-        def app = new CppAppWithLibraries()
+    def "can compile and link against a library with debug and release variants"() {
+        settingsFile << "include 'app', 'hello'"
+        def app = new CppAppWithLibraryAndOptionalFeature()
 
         given:
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-executable'
                 dependencies {
-                    implementation project(':lib1')
+                    implementation project(':hello')
+                    compileReleaseCpp.macros(WITH_FEATURE: "true")
                 }
             }
-            project(':lib1') {
+            project(':hello') {
+                apply plugin: 'cpp-library'
+                compileReleaseCpp.macros(WITH_FEATURE: "true")
+            }
+"""
+        app.greeterLib.writeToProject(file("hello"))
+        app.main.writeToProject(file("app"))
+
+        expect:
+        succeeds ":app:installRelease"
+
+        result.assertTasksExecuted(":hello:compileReleaseCpp", ":hello:linkRelease", ":app:compileReleaseCpp", ":app:linkRelease", ":app:installRelease")
+        executable("app/build/exe/main/release/app").assertExists()
+        sharedLibrary("hello/build/lib/main/release/hello").assertExists()
+        installation("app/build/install/main/release").exec().out == app.withFeatureEnabled().expectedOutput
+
+        succeeds ":app:installDebug"
+
+        result.assertTasksExecuted(":hello:compileDebugCpp", ":hello:linkDebug", ":app:compileDebugCpp", ":app:linkDebug", ":app:installDebug")
+
+        executable("app/build/exe/main/debug/app").assertExists()
+        sharedLibrary("hello/build/lib/main/debug/hello").assertExists()
+        installation("app/build/install/main/debug").exec().out == app.withFeatureDisabled().expectedOutput
+    }
+
+    def "can compile and link against library with api and implementation dependencies"() {
+        settingsFile << "include 'app', 'deck', 'card', 'shuffle'"
+        def app = new CppAppWithLibrariesWithApiDependencies()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'cpp-executable'
+                dependencies {
+                    implementation project(':deck')
+                }
+            }
+            project(':deck') {
                 apply plugin: 'cpp-library'
                 dependencies {
-                    implementation project(':lib2')
+                    api project(':card')
+                    implementation project(':shuffle')
                 }
             }
-            project(':lib2') {
+            project(':card') {
+                apply plugin: 'cpp-library'
+            }
+            project(':shuffle') {
                 apply plugin: 'cpp-library'
             }
 """
-        app.greeterLib.writeToProject(file("lib1"))
-        app.loggerLib.writeToProject(file("lib2"))
+        app.deck.writeToProject(file("deck"))
+        app.card.writeToProject(file("card"))
+        app.shuffle.writeToProject(file("shuffle"))
         app.main.writeToProject(file("app"))
 
         expect:
         succeeds ":app:assemble"
 
-        result.assertTasksExecuted(":lib1:compileDebugCpp", ":lib1:linkDebug", ":lib2:compileDebugCpp", ":lib2:linkDebug", ":app:compileDebugCpp", ":app:linkDebug", ":app:installMain", ":app:assemble")
-        sharedLibrary("lib1/build/lib/main/debug/lib1").assertExists()
-        sharedLibrary("lib2/build/lib/main/debug/lib2").assertExists()
+        result.assertTasksExecuted(":shuffle:compileDebugCpp", ":shuffle:linkDebug", ":card:compileDebugCpp", ":card:linkDebug", ":deck:compileDebugCpp", ":deck:linkDebug", ":app:compileDebugCpp", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        sharedLibrary("deck/build/lib/main/debug/deck").assertExists()
+        sharedLibrary("card/build/lib/main/debug/card").assertExists()
+        sharedLibrary("shuffle/build/lib/main/debug/shuffle").assertExists()
         executable("app/build/exe/main/debug/app").assertExists()
-        installation("app/build/install/app").exec().out == app.expectedOutput
-        sharedLibrary("app/build/install/app/lib/lib1").file.assertExists()
-        sharedLibrary("app/build/install/app/lib/lib2").file.assertExists()
-
-        succeeds(":app:linkRelease")
-
-        result.assertTasksExecuted(":lib1:compileReleaseCpp", ":lib1:linkRelease", ":lib2:compileReleaseCpp", ":lib2:linkRelease", ":app:compileReleaseCpp", ":app:linkRelease")
-        sharedLibrary("lib1/build/lib/main/release/lib1").assertExists()
-        sharedLibrary("lib2/build/lib/main/release/lib2").assertExists()
-        executable("app/build/exe/main/release/app").assertExists()
+        installation("app/build/install/main/debug").exec().out == app.expectedOutput
+        sharedLibrary("app/build/install/main/debug/lib/deck").file.assertExists()
+        sharedLibrary("app/build/install/main/debug/lib/card").file.assertExists()
+        sharedLibrary("app/build/install/main/debug/lib/shuffle").file.assertExists()
     }
 
     def "honors changes to library buildDir"() {
@@ -347,15 +408,16 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(":lib1:compileDebugCpp", ":lib1:linkDebug", ":lib2:compileDebugCpp", ":lib2:linkDebug", ":app:compileDebugCpp", ":app:linkDebug", ":app:installMain", ":app:assemble")
+
+        result.assertTasksExecuted(":lib1:compileDebugCpp", ":lib1:linkDebug", ":lib2:compileDebugCpp", ":lib2:linkDebug", ":app:compileDebugCpp", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
         !file("lib2/build").exists()
         sharedLibrary("lib1/build/lib/main/debug/lib1").assertExists()
         sharedLibrary("lib2/out/lib/main/debug/lib2").assertExists()
         executable("app/build/exe/main/debug/app").assertExists()
-        installation("app/build/install/app").exec().out == app.expectedOutput
-        sharedLibrary("app/build/install/app/lib/lib1").file.assertExists()
-        sharedLibrary("app/build/install/app/lib/lib2").file.assertExists()
+        installation("app/build/install/main/debug").exec().out == app.expectedOutput
+        sharedLibrary("app/build/install/main/debug/lib/lib1").file.assertExists()
+        sharedLibrary("app/build/install/main/debug/lib/lib2").file.assertExists()
     }
 
     def "honors changes to library public header location"() {
@@ -395,14 +457,15 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(":lib1:compileDebugCpp", ":lib1:linkDebug", ":lib2:compileDebugCpp", ":lib2:linkDebug", ":app:compileDebugCpp", ":app:linkDebug", ":app:installMain", ":app:assemble")
+
+        result.assertTasksExecuted(":lib1:compileDebugCpp", ":lib1:linkDebug", ":lib2:compileDebugCpp", ":lib2:linkDebug", ":app:compileDebugCpp", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
         sharedLibrary("lib1/build/lib/main/debug/lib1").assertExists()
         sharedLibrary("lib2/build/lib/main/debug/lib2").assertExists()
         executable("app/build/exe/main/debug/app").assertExists()
-        installation("app/build/install/app").exec().out == app.expectedOutput
-        sharedLibrary("app/build/install/app/lib/lib1").file.assertExists()
-        sharedLibrary("app/build/install/app/lib/lib2").file.assertExists()
+        installation("app/build/install/main/debug").exec().out == app.expectedOutput
+        sharedLibrary("app/build/install/main/debug/lib/lib1").file.assertExists()
+        sharedLibrary("app/build/install/main/debug/lib/lib2").file.assertExists()
     }
 
     def "multiple components can share the same source directory"() {
@@ -444,14 +507,14 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(":greeter:compileDebugCpp", ":greeter:linkDebug", ":logger:compileDebugCpp", ":logger:linkDebug", ":app:compileDebugCpp", ":app:linkDebug", ":app:installMain", ":app:assemble")
+        result.assertTasksExecuted(":greeter:compileDebugCpp", ":greeter:linkDebug", ":logger:compileDebugCpp", ":logger:linkDebug", ":app:compileDebugCpp", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
         sharedLibrary("greeter/build/lib/main/debug/greeter").assertExists()
         sharedLibrary("logger/build/lib/main/debug/logger").assertExists()
         executable("app/build/exe/main/debug/app").assertExists()
-        installation("app/build/install/app").exec().out == app.expectedOutput
-        sharedLibrary("app/build/install/app/lib/greeter").file.assertExists()
-        sharedLibrary("app/build/install/app/lib/logger").file.assertExists()
+        installation("app/build/install/main/debug").exec().out == app.expectedOutput
+        sharedLibrary("app/build/install/main/debug/lib/greeter").file.assertExists()
+        sharedLibrary("app/build/install/main/debug/lib/logger").file.assertExists()
     }
 
     def "can compile and link against libraries in included builds"() {
@@ -490,12 +553,12 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         expect:
         succeeds ":assemble"
-        result.assertTasksExecuted(":lib1:compileDebugCpp", ":lib1:linkDebug",  ":lib2:compileDebugCpp", ":lib2:linkDebug", ":compileDebugCpp", ":linkDebug", ":installMain", ":assemble")
+        result.assertTasksExecuted(":lib1:compileDebugCpp", ":lib1:linkDebug",  ":lib2:compileDebugCpp", ":lib2:linkDebug", ":compileDebugCpp", ":linkDebug", ":installDebug", ":assemble")
         sharedLibrary("lib1/build/lib/main/debug/lib1").assertExists()
         sharedLibrary("lib2/build/lib/main/debug/lib2").assertExists()
         executable("build/exe/main/debug/app").assertExists()
-        installation("build/install/app").exec().out == app.expectedOutput
-        sharedLibrary("build/install/app/lib/lib1").file.assertExists()
-        sharedLibrary("build/install/app/lib/lib2").file.assertExists()
+        installation("build/install/main/debug").exec().out == app.expectedOutput
+        sharedLibrary("build/install/main/debug/lib/lib1").file.assertExists()
+        sharedLibrary("build/install/main/debug/lib/lib2").file.assertExists()
     }
 }

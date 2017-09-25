@@ -31,8 +31,8 @@ import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.caching.internal.tasks.UnrecoverableTaskOutputUnpackingException;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata;
+import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
-import org.gradle.internal.time.Timers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +61,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
 
     @Override
     public void execute(final TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        final Timer clock = Timers.startTimer();
+        final Timer clock = Time.startTimer();
 
         LOGGER.debug("Determining if {} is cached already", task);
 

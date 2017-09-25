@@ -23,6 +23,7 @@ class VerifyNoTaskInputChangesTaskExecutionIntegrationTest extends AbstractInteg
 
     @Unroll
     def "modifying input #what during execution fails the build"(what, expression) {
+        file("input.txt").touch()
         given:
         buildFile << taskDefinition()
         buildFile << """
@@ -44,6 +45,7 @@ class VerifyNoTaskInputChangesTaskExecutionIntegrationTest extends AbstractInteg
 
     def "modifying inputs during execution does not fail the build if the verifier is not enabled"() {
         given:
+        file("input.txt").touch()
         buildFile << taskDefinition()
         buildFile << """
             someTask.doFirst {

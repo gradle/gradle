@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.junit.Assert.assertTrue
@@ -50,7 +51,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
-    def "file permissions can be modfied with eachFile closure"() {
+    def "file permissions can be modified with eachFile closure"() {
         given:
         def testSourceFile = file("reference.txt") << 'test file"'
         testSourceFile.mode = 0746
@@ -193,5 +194,32 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         testTargetFile.canWrite()
     }
 
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Issue('https://github.com/gradle/gradle/issues/2639')
+    def "excluded files' permissions should be ignored"() {
+        given:
+        getTestDirectory().createFile('src/unauthorized/file')
+        getTestDirectory().createFile('src/authorized')
+        getTestDirectory().createDir('dest')
+        file('src/unauthorized').mode = 0000
 
+        and:
+        buildFile << """
+            task copy(type: Copy) {
+                from('src'){
+                    exclude 'unauthorized'
+                }
+                into 'dest'
+            }
+            """
+
+        when:
+        run "copy"
+
+        then:
+        file('dest').assertHasDescendants('authorized')
+
+        cleanup:
+        file('src/unauthorized').mode = 0777
+    }
 }

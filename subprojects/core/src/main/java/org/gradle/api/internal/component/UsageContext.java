@@ -25,6 +25,6 @@ import java.util.Set;
 
 public interface UsageContext {
     Usage getUsage();
-    Set<PublishArtifact> getArtifacts();
-    Set<ModuleDependency> getDependencies();
+    Set<? extends PublishArtifact> getArtifacts();
+    Set<? extends ModuleDependency> getDependencies();
 }

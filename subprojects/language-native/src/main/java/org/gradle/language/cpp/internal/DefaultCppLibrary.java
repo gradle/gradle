@@ -21,9 +21,11 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.CppSharedLibrary;
 
@@ -41,8 +43,8 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
         super(name, fileOperations, providerFactory, configurations);
         publicHeaders = fileOperations.files();
         publicHeadersWithConvention = createDirView(publicHeaders, "src/" + name + "/public");
-        debug = new DefaultCppSharedLibrary(name + "Debug", objectFactory, getBaseName(), true, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
-        release = new DefaultCppSharedLibrary(name + "Release", objectFactory, getBaseName(), false, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
+        debug = objectFactory.newInstance(DefaultCppSharedLibrary.class, name + "Debug", objectFactory, getBaseName(), true, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
+        release = objectFactory.newInstance(DefaultCppSharedLibrary.class, name + "Release", objectFactory, getBaseName(), false, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
 
         api = configurations.create(getNames().withSuffix("api"));
         api.setCanBeConsumed(false);
@@ -68,6 +70,11 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     @Override
     public FileCollection getPublicHeaderDirs() {
         return publicHeadersWithConvention;
+    }
+
+    @Override
+    public FileTree getPublicHeaderFiles() {
+        return publicHeadersWithConvention.getAsFileTree().matching(new PatternSet().include("**/*.h"));
     }
 
     @Override

@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,18 +29,78 @@ class CompositeConflictResolver implements ModuleConflictResolver {
 
     private final List<ModuleConflictResolver> resolvers = new LinkedList<ModuleConflictResolver>();
 
-    public <T extends ComponentResolutionState> T select(Collection<? extends T> candidates) {
+    @Override
+    public <T extends ComponentResolutionState> void select(ConflictResolverDetails<T> details) {
+        CompositeDetails<T> composite = new CompositeDetails<T>(details);
         for (ModuleConflictResolver r : resolvers) {
-            T selection = r.select(candidates);
-            if (selection != null) {
-                return selection;
+            r.select(composite);
+            if (composite.hasResult) {
+                return;
             }
         }
         throw new IllegalStateException(this.getClass().getSimpleName()
-                + " was unable to select a candidate using resolvers: " + resolvers + ". Candidates: " + candidates);
+                + " was unable to select a candidate using resolvers: " + resolvers + ". Candidates: " + details.getCandidates());
     }
 
     void addFirst(ModuleConflictResolver conflictResolver) {
         resolvers.add(0, conflictResolver);
+    }
+
+    private static class CompositeDetails<T extends ComponentResolutionState> implements ConflictResolverDetails<T> {
+        private final ConflictResolverDetails<T> delegate;
+        private boolean hasResult;
+
+        private CompositeDetails(ConflictResolverDetails<T> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public Collection<? extends T> getCandidates() {
+            return delegate.getCandidates();
+        }
+
+        @Override
+        public void select(T candidate) {
+            hasResult = true;
+            delegate.select(candidate);
+        }
+
+        @Override
+        public void restart() {
+            hasResult = true;
+            delegate.restart();
+        }
+
+        @Override
+        public void fail(Throwable error) {
+            hasResult = true;
+            delegate.fail(error);
+        }
+
+        @Override
+        public T getSelected() {
+            return delegate.getSelected();
+        }
+
+        @Override
+        public boolean isRestart() {
+            return delegate.isRestart();
+        }
+
+        @Nullable
+        @Override
+        public Throwable getFailure() {
+            return delegate.getFailure();
+        }
+
+        @Override
+        public boolean hasFailure() {
+            return delegate.hasFailure();
+        }
+
+        @Override
+        public boolean hasSelected() {
+            return delegate.hasSelected();
+        }
     }
 }

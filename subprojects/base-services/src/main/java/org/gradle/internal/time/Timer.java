@@ -17,6 +17,7 @@
 package org.gradle.internal.time;
 
 public interface Timer {
+
     /**
      * @return A human-consumable description of the elapsed time.
      */

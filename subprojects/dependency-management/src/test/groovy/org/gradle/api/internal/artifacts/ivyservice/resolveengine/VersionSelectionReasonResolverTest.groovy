@@ -27,15 +27,27 @@ class VersionSelectionReasonResolverTest extends Specification {
 
         def candidate1 = Mock(ComponentResolutionState)
         def candidate2 = Mock(ComponentResolutionState)
+        def out
 
         when:
-        def out = resolver.select([candidate1, candidate2])
+        def details = Mock(ConflictResolverDetails) {
+            getCandidates() >> [candidate1, candidate2]
+            select(_) >> { args ->
+                out = args[0]
+            }
+            hasFailure() >> false
+            getSelected() >> { out }
+        }
+        resolver.select(details)
+
 
         then:
         out == candidate2
 
         and:
-        1 * delegate.select([candidate1, candidate2]) >> candidate2
+        1 * delegate.select(_) >> { args ->
+            args[0].select(candidate2)
+        }
         1 * candidate2.getSelectionReason() >> VersionSelectionReasons.REQUESTED
         1 * candidate2.setSelectionReason(VersionSelectionReasons.CONFLICT_RESOLUTION)
         0 * _._

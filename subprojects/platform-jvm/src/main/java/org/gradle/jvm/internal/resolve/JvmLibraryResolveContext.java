@@ -27,8 +27,9 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.DisplayName;
+import org.gradle.vcs.internal.VcsMappingsInternal;
 import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetadata;
 import org.gradle.platform.base.DependencySpec;
@@ -57,7 +58,7 @@ public class JvmLibraryResolveContext implements ResolveContext {
         this.displayName = displayName;
         this.variants = variants;
         this.dependencies = dependencies;
-        this.resolutionStrategy = new DefaultResolutionStrategy(DependencySubstitutionRules.NO_OP, null, moduleIdentifierFactory);
+        this.resolutionStrategy = new DefaultResolutionStrategy(DependencySubstitutionRules.NO_OP, VcsMappingsInternal.NO_OP, null, moduleIdentifierFactory);
     }
 
     @Override

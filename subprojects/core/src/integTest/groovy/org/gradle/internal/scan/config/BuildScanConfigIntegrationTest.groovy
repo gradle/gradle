@@ -22,6 +22,7 @@ import spock.lang.Unroll
 
 import static org.gradle.internal.scan.config.BuildScanPluginAutoApply.BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION
 
+@Unroll
 class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String PLUGIN_NOT_APPLIED_MSG = """Build scan cannot be created because the build scan plugin was not applied.
@@ -43,6 +44,11 @@ Please see https://gradle.com/scans/help/gradle-incompatible-plugin-version for 
                     println "buildScan.disabled: " + c.disabled 
                 """
             }
+
+            buildFile << """    
+                def pluginApplied = services.get(${BuildScanPluginApplied.name}).isBuildScanPluginApplied()
+                println "buildScan plugin applied: " + pluginApplied
+            """
 
             buildFile << "task t"
         }
@@ -118,7 +124,6 @@ Please see https://gradle.com/scans/help/gradle-incompatible-plugin-version for 
         issuedNoPluginWarning()
     }
 
-    @Unroll
     def "warns if scan requested by sys prop value #value but no scan plugin applied"() {
         given:
         collect = false
@@ -187,6 +192,21 @@ Please see https://gradle.com/scans/help/gradle-incompatible-plugin-version for 
 
         then:
         output.count(PLUGIN_NOT_APPLIED_MSG) == 1
+    }
+
+    def "detects that the build scan plugin has been #description"() {
+        given:
+        collect = applied
+
+        when:
+        succeeds "t"
+
+        then:
+        output.contains("buildScan plugin applied: ${applied}")
+
+        where:
+        applied << [true, false]
+        description = applied ? "applied" : "not applied"
     }
 
     void assertFailedVersionCheck() {

@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 package org.gradle.api.publish.maven.internal.publication
+
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
-import org.gradle.api.artifacts.*
+import org.gradle.api.artifacts.DependencyArtifact
+import org.gradle.api.artifacts.ExcludeRule
+import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
@@ -97,7 +102,6 @@ public class DefaultMavenPublicationTest extends Specification {
         publication.mavenProjectIdentity.groupId == "group2"
         publication.mavenProjectIdentity.artifactId == "name2"
         publication.mavenProjectIdentity.version == "version2"
-
     }
 
     def "packaging is taken from first added artifact without extension"() {
@@ -164,6 +168,9 @@ public class DefaultMavenPublicationTest extends Specification {
         given:
         def publication = createPublication()
         def artifact = Mock(PublishArtifact)
+        artifact.file >> artifactFile
+        artifact.classifier >> ""
+        artifact.extension >> "jar"
         def publishArtifactDependencies = Mock(TaskDependency)
 
         def mavenArtifact = Mock(MavenArtifact)
@@ -187,6 +194,35 @@ public class DefaultMavenPublicationTest extends Specification {
 
         then:
         publication.publishableFiles.buildDependencies.getDependencies(task) == [task] as Set
+    }
+
+    def "multiple usages of a component can provide the same artifact"() {
+        given:
+        def publication = createPublication()
+        def artifact1 = Mock(PublishArtifact)
+        artifact1.file >> artifactFile
+        artifact1.classifier >> ""
+        artifact1.extension >> "jar"
+        def artifact2 = Mock(PublishArtifact)
+        artifact2.file >> artifactFile
+        artifact2.classifier >> ""
+        artifact2.extension >> "jar"
+        def usage1 = Stub(UsageContext)
+        usage1.artifacts >> [artifact1]
+        def usage2 = Stub(UsageContext)
+        usage2.artifacts >> [artifact2]
+        def component = Stub(SoftwareComponentInternal)
+        component.usages >> [usage1, usage2]
+        def mavenArtifact = Mock(MavenArtifact)
+        mavenArtifact.file >> artifactFile
+        notationParser.parseNotation(artifact1) >> mavenArtifact
+
+        when:
+        publication.from(component)
+
+        then:
+        publication.publishableFiles.files == [pomFile, artifactFile] as Set
+        publication.artifacts == [mavenArtifact] as Set
     }
 
     def "adopts module dependency from added component"() {
@@ -250,7 +286,7 @@ public class DefaultMavenPublicationTest extends Specification {
         }
     }
 
-    def "maps project dependency to ivy dependency"() {
+    def "maps project dependency to maven dependency"() {
         given:
         def publication = createPublication()
         def projectDependency = Mock(ProjectDependency)

@@ -1245,4 +1245,53 @@ task generate(type: TransformerTask) {
         skippedTasks.contains(':myTask')
     }
 
+    def "task with no actions is skipped even if it has inputs"() {
+        buildFile << """
+            task taskWithInputs(type: TaskWithInputs) {
+                input = 'some-name'
+            }
+
+            class TaskWithInputs extends DefaultTask {
+                @Input
+                String input
+            }            
+        """
+
+        when:
+        succeeds 'taskWithInputs'
+
+        then:
+        skipped(':taskWithInputs')
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/1224')
+    def 'can change input properties dynamically'() {
+        given:
+        file('inputDir1').createDir()
+        file('inputDir2').createDir()
+        buildFile << '''
+    class MyTask extends DefaultTask{
+        @TaskAction
+        void processFiles(IncrementalTaskInputs inputs) {
+            inputs.outOfDate { }
+        }
+    }
+    
+    task myTask (type: MyTask){
+        project.ext.inputDirs.split(',').each { inputs.dir(it) }
+    }
+'''
+
+        when:
+        args('-PinputDirs=inputDir1,inputDir2')
+
+        then:
+        succeeds('myTask')
+
+        when:
+        args('-PinputDirs=inputDir1')
+
+        then:
+        succeeds('myTask')
+    }
 }

@@ -17,8 +17,9 @@
 package org.gradle.nativeplatform.test.xctest.plugins
 
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.language.swift.tasks.CreateSwiftBundle
 import org.gradle.language.swift.tasks.SwiftCompile
-import org.gradle.nativeplatform.tasks.LinkExecutable
+import org.gradle.nativeplatform.tasks.LinkMachOBundle
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite
 import org.gradle.nativeplatform.test.xctest.tasks.XcTest
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -53,7 +54,7 @@ class XCTestConventionPluginTest extends Specification {
 
         then:
         project.components.test == project.xctest
-        project.components.testExe == project.xctest.executable
+        project.components.testBundle == project.xctest.bundle
     }
 
     def "adds compile, link and install tasks"() {
@@ -67,14 +68,45 @@ class XCTestConventionPluginTest extends Specification {
         def compileSwift = project.tasks.compileTestSwift
         compileSwift instanceof SwiftCompile
         compileSwift.source.files == [src] as Set
-        compileSwift.objectFileDirectory.get().asFile == projectDir.file("build/obj/test")
+        compileSwift.objectFileDir.get().asFile == projectDir.file("build/obj/test")
+        compileSwift.debuggable
+        !compileSwift.optimized
 
         def link = project.tasks.linkTest
-        link instanceof LinkExecutable
-        link.binaryFile.get().asFile == projectDir.file("build/exe/" + OperatingSystem.current().getExecutableName("testAppTest"))
+        link instanceof LinkMachOBundle
+        link.binaryFile.get().asFile == projectDir.file("build/exe/test/" + OperatingSystem.current().getExecutableName("TestAppTest"))
+        link.debuggable
+
+        def bundle = project.tasks.bundleSwiftTest
+        bundle instanceof CreateSwiftBundle
+        bundle.outputDir.get().asFile == project.file("build/bundle/test/TestAppTest.xctest")
 
         def test = project.tasks.xcTest
         test instanceof XcTest
+        test.workingDir == projectDir.file("build/bundle/test")
+        test.binResultsDir == projectDir.file("build/results/test/bin")
+        test.reports.html.destination == projectDir.file("build/reports/test")
+        test.reports.junitXml.destination == projectDir.file("build/reports/test/xml")
     }
 
+    def "output locations reflects changes to buildDir"() {
+        when:
+        project.pluginManager.apply(XCTestConventionPlugin)
+        project.buildDir = project.file("output")
+
+        then:
+        def compileSwift = project.tasks.compileTestSwift
+        compileSwift.objectFileDir.get().asFile == projectDir.file("output/obj/test")
+
+        def link = project.tasks.linkTest
+        link.binaryFile.get().asFile == projectDir.file("output/exe/test/" + OperatingSystem.current().getExecutableName("TestAppTest"))
+
+        def bundle = project.tasks.bundleSwiftTest
+        bundle.outputDir.get().asFile == project.file("output/bundle/test/TestAppTest.xctest")
+
+        def test = project.tasks.xcTest
+        test.workingDir == projectDir.file("output/bundle/test")
+        test.reports.html.destination == projectDir.file("output/reports/test")
+        test.reports.junitXml.destination == projectDir.file("output/reports/test/xml")
+    }
 }

@@ -16,14 +16,18 @@
 
 package org.gradle.test.fixtures
 
+import org.gradle.api.Task
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.tasks.TaskExecuter
+import org.gradle.api.internal.tasks.TaskStateInternal
+import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
-
 /**
  * An abstract class for writing tests using ProjectBuilder.
  * The fixture automatically takes care of deleting files creating in the temporary project directory used by the Project instance.
@@ -44,5 +48,10 @@ abstract class AbstractProjectBuilderSpec extends Specification {
 
     def setup() {
         project = TestUtil.createRootProject(temporaryFolder.testDirectory)
+    }
+
+    void execute(Task task) {
+        project.services.get(TaskExecuter).execute((TaskInternal) task, (TaskStateInternal) task.state, new DefaultTaskExecutionContext())
+        task.state.rethrowFailure()
     }
 }

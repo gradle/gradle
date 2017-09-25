@@ -15,6 +15,8 @@
  */
 package org.gradle.internal;
 
+import javax.annotation.Nullable;
+
 /**
  * A generic factory which creates instances of type T.
  *
@@ -23,7 +25,8 @@ package org.gradle.internal;
 public interface Factory<T> {
     /**
      * Creates a new instance of type T.
-     * @return The instance. Never returns null.
+     * @return The instance.
      */
+    @Nullable
     T create();
 }

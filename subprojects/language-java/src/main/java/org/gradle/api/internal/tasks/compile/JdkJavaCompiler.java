@@ -16,9 +16,9 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.reflect.SourcepathIgnoringProxy;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.WorkResults;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -51,7 +51,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
             throw new CompilationFailedException();
         }
 
-        return new SimpleWorkResult(true);
+        return WorkResults.didWork(true);
     }
 
     private JavaCompiler.CompilationTask createCompileTask(JavaCompileSpec spec) {

@@ -19,14 +19,11 @@ package org.gradle.language.swift.plugins;
 import com.google.common.collect.Lists;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.swift.SwiftApplication;
@@ -34,11 +31,9 @@ import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.internal.DefaultSwiftApplication;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
-import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
-import java.util.concurrent.Callable;
 
 /**
  * <p>A plugin that produces an executable from Swift source.</p>
@@ -67,7 +62,6 @@ public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(SwiftBasePlugin.class);
 
-        final DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
         ProviderFactory providers = project.getProviders();
         ConfigurationContainer configurations = project.getConfigurations();
         TaskContainer tasks = project.getTasks();
@@ -84,30 +78,10 @@ public class SwiftExecutablePlugin implements Plugin<ProjectInternal> {
 
         // Configure compile task
         SwiftCompile compile = (SwiftCompile) tasks.getByName("compileDebugSwift");
-        compile.setCompilerArgs(Lists.newArrayList("-g", "-enable-testing"));
+        compile.getCompilerArgs().set(Lists.newArrayList("-enable-testing"));
 
-        LinkExecutable link = (LinkExecutable) tasks.getByName("linkDebug");
-
-        // Add an install task
-        final InstallExecutable install = tasks.create("installMain", InstallExecutable.class);
-        install.setPlatform(link.getTargetPlatform());
-        install.setToolChain(link.getToolChain());
-        install.setDestinationDir(buildDirectory.dir(providers.provider(new Callable<CharSequence>() {
-            @Override
-            public String call() {
-                return "install/" + module.get();
-            }
-        })));
-        install.setExecutable(link.getBinaryFile());
-        // TODO - infer this
-        install.onlyIf(new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return install.getExecutable().exists();
-            }
-        });
-        install.lib(application.getDebugExecutable().getRuntimeLibraries());
-
+        // Wire in this install task
+        InstallExecutable install = (InstallExecutable) tasks.getByName("installDebug");
         tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(install);
     }
 }

@@ -20,8 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
 /**
- * This tests the following scenario with different version settings
- * (see also design doc: dependency-management-projectpriority.md):
+ * This tests the following scenario with different version settings:
  *
  * ProjectA ─(project dependency)─> myorg.ModuleC
  *  |

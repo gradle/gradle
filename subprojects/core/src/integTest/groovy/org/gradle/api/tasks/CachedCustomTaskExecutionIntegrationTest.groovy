@@ -399,9 +399,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         then:
         nonSkippedTasks.contains ":customTask"
         file("build/output.txt").text == "data"
-        // TODO: The runtime API doesn't automatically create output file paths
-        // This should really exist and behave the same as annotations.
-        file("build/output").assertDoesNotExist()
+        file("build/output").assertIsDir()
         file("build/output/missing").assertDoesNotExist()
 
         when:
@@ -497,6 +495,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 outputs.$expected "build/output" withPropertyName "output"
                 outputs.cacheIf { true }
                 doLast {
+                    delete('build')
                     ${
                         actual == "file" ?
                             "mkdir('build'); file('build/output').text = file('input.txt').text"

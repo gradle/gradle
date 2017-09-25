@@ -40,4 +40,7 @@ public interface LinkerSpec extends BinaryToolSpec {
 
     void setOutputFile(File outputFile);
 
+    boolean isDebuggable();
+
+    void setDebuggable(boolean debuggable);
 }

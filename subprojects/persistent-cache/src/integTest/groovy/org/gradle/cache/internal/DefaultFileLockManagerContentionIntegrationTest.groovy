@@ -25,7 +25,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
-import org.gradle.internal.time.TrueTimeProvider
+import org.gradle.internal.time.Time
 
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -34,7 +34,6 @@ import java.util.concurrent.TimeoutException
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegrationSpec {
-    def timeProvider = new TrueTimeProvider()
     def addressFactory = new InetAddressFactory()
 
     FileLockContentionHandler receivingFileLockContentionHandler
@@ -61,7 +60,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
 
         when:
         def build = executer.withTasks("help").start()
-        def startTime = timeProvider.currentTime
+        def timer = Time.startTimer()
         poll {
             assert (build.standardOutput =~ 'Pinged owner at port').count == 3
         }
@@ -70,7 +69,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         then:
         build.waitForFinish()
         pingRequestCount == 3 || pingRequestCount == 4
-        timeProvider.currentTime - startTime > 3000 // See: DefaultFileLockContentionHandler.PING_DELAY
+        timer.elapsedMillis > 3000 // See: DefaultFileLockContentionHandler.PING_DELAY
     }
 
     def "the lock holder starts the release request only once and discards additional requests in the meantime"() {
@@ -167,6 +166,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
 
         requestReceived = false
         def prevReceivingSocket = receivingSocket
+        def prevReceivingLock = receivingLock
         lock1.close()
         def lock2 = setupLockOwner() {
             requestReceived = true
@@ -182,9 +182,9 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         build.waitForFinish()
         countPingsSent(build, prevReceivingSocket) == 1
         countPingsSent(build, receivingSocket) == 1
-        assertConfirmationCount(build, prevReceivingSocket)
-        assertConfirmationCount(build, receivingSocket)
-        assertConfirmationCount(build, prevReceivingSocket)
+        assertConfirmationCount(build, prevReceivingSocket, prevReceivingLock)
+        assertConfirmationCount(build, receivingSocket, receivingLock)
+        assertConfirmationCount(build, prevReceivingSocket, prevReceivingLock)
     }
 
     // This test simulates a long running Zic compiler setup by running code similar to ZincScalaCompilerFactory through the worker API.
@@ -261,8 +261,8 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
     }
 
 
-    void assertConfirmationCount(GradleHandle build, DatagramSocket socket = receivingSocket) {
-        assert (build.standardOutput =~ "Gradle process at port ${socket.localPort} confirmed unlock request").count == addressFactory.communicationAddresses.size()
+    void assertConfirmationCount(GradleHandle build, DatagramSocket socket = receivingSocket, FileLock lock = receivingLock) {
+        assert (build.standardOutput =~ "Gradle process at port ${socket.localPort} confirmed unlock request for lock with id ${lock.lockId}.").count == addressFactory.communicationAddresses.size()
     }
 
     def assertReceivingSocketEmpty() {

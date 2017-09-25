@@ -17,15 +17,14 @@
 package org.gradle.nativeplatform.test.xctest
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.app.SwiftLib
-import org.gradle.nativeplatform.fixtures.app.SwiftXcTestTestApp
-import org.gradle.nativeplatform.fixtures.app.TestElement
+import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftXCTestAddDiscoveryBundle
+import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftXCTestRemoveDiscoveryBundle
+import org.gradle.nativeplatform.fixtures.app.SwiftFailingXCTestBundle
+import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTest
+import org.gradle.nativeplatform.fixtures.app.SwiftXCTestBundle
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
-
-import static org.gradle.nativeplatform.fixtures.app.SourceTestElement.newTestCase
-import static org.gradle.nativeplatform.fixtures.app.SourceTestElement.newTestSuite
+import spock.lang.Unroll
 
 @Requires([TestPrecondition.SWIFT_SUPPORT, TestPrecondition.MAC_OS_X])
 class XCTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -37,193 +36,181 @@ apply plugin: 'xctest'
 """
     }
 
-    def "test tasks are skipped when no source is available"() {
+    def "skips test tasks when no source is available"() {
         when:
         succeeds("test")
 
         then:
-        result.assertTasksExecutedInOrder(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
-        result.assertTasksSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
-
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
+        result.assertTasksSkipped(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
     }
 
-    def "test task fail when test cases fail"() {
-        def testApp = new SwiftXcTestTestApp([
-                newTestSuite("FailingTestSuite", [
-                        newTestCase("testFail", TestElement.TestCase.Result.FAIL)
-                ])
-        ])
+    def "fails when test cases fail"() {
+        def testBundle = new SwiftFailingXCTestBundle()
 
         given:
-        testApp.writeToProject(testDirectory)
+        testBundle.writeToProject(testDirectory)
 
         when:
         fails("test")
 
         then:
-        executedAndNotSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest")
-        testApp.expectedSummaryOutputPattern.matcher(output).find()
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest")
+        testBundle.assertTestCasesRan(output)
     }
 
-    def "test task succeed when test cases pass"() {
-        def testApp = new SwiftXcTestTestApp([
-            newTestSuite("PassingTestSuite", [
-                newTestCase("testPass", TestElement.TestCase.Result.PASS)
-            ])
-        ])
+    def "succeeds when test cases pass"() {
+        def testBundle = new SwiftXCTestBundle()
 
         given:
-        testApp.writeToProject(testDirectory)
+        testBundle.writeToProject(testDirectory)
 
         when:
         succeeds("test")
 
         then:
-        executedAndNotSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
-        testApp.expectedSummaryOutputPattern.matcher(output).find()
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
+        testBundle.assertTestCasesRan(output)
     }
 
-    @Ignore("https://github.com/gradle/gradle-native/issues/94")
+    @Unroll
+    def "runs tests when #task lifecycle task executes"() {
+        def testBundle = new SwiftXCTestBundle()
+
+        given:
+        testBundle.writeToProject(testDirectory)
+
+        when:
+        succeeds(task)
+
+        then:
+        executed(":xcTest")
+        testBundle.assertTestCasesRan(output)
+
+        where:
+        task << ["test", "check", "build"]
+    }
+
     def "doesn't execute removed test suite and case"() {
-        def oldTestApp = new SwiftXcTestTestApp([
-            newTestSuite("FooTestSuite", [
-                newTestCase("testA", TestElement.TestCase.Result.PASS),
-                newTestCase("testB", TestElement.TestCase.Result.PASS)
-            ]),
-            newTestSuite("BarTestSuite", [
-                newTestCase("testA", TestElement.TestCase.Result.PASS)
-            ])
-        ])
-
-        def newTestApp = new SwiftXcTestTestApp([
-            newTestSuite("FooTestSuite", [
-                newTestCase("testA", TestElement.TestCase.Result.PASS)
-            ])
-        ])
+        def testBundle = new IncrementalSwiftXCTestRemoveDiscoveryBundle()
 
         given:
-        oldTestApp.writeToProject(testDirectory)
+        testBundle.writeToProject(testDirectory)
 
         when:
         succeeds("test")
 
         then:
-        executedAndNotSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
-        oldTestApp.expectedSummaryOutputPattern.matcher(output).find()
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
+        testBundle.expectedSummaryOutputPattern.matcher(output).find()
 
         when:
-        file("src").deleteDir()
-        newTestApp.writeToProject(testDirectory)
+        testBundle.applyChangesToProject(testDirectory)
         succeeds("test")
 
         then:
-        executedAndNotSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
-        newTestApp.expectedSummaryOutputPattern.matcher(output).find()
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
+        testBundle.expectedAlternateSummaryOutputPattern.matcher(output).find()
     }
 
-    def "execute added test suite and case"() {
-        def oldTestApp = new SwiftXcTestTestApp([
-            newTestSuite("FooTestSuite", [
-                newTestCase("testA", TestElement.TestCase.Result.PASS)
-            ])
-        ])
-
-        def newTestApp = new SwiftXcTestTestApp([
-            newTestSuite("FooTestSuite", [
-                newTestCase("testA", TestElement.TestCase.Result.PASS),
-                newTestCase("testB", TestElement.TestCase.Result.PASS)
-            ]),
-            newTestSuite("BarTestSuite", [
-                newTestCase("testA", TestElement.TestCase.Result.PASS)
-            ])
-        ])
+    def "executes added test suite and case"() {
+        def testBundle = new IncrementalSwiftXCTestAddDiscoveryBundle()
 
         given:
-        oldTestApp.writeToProject(testDirectory)
+        testBundle.writeToProject(testDirectory)
 
         when:
         succeeds("test")
 
         then:
-        executedAndNotSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
-        oldTestApp.expectedSummaryOutputPattern.matcher(output).find()
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
+        testBundle.expectedSummaryOutputPattern.matcher(output).find()
 
         when:
-        file("src").deleteDir()
-        newTestApp.writeToProject(testDirectory)
+        testBundle.applyChangesToProject(testDirectory)
         succeeds("test")
 
         then:
-        executedAndNotSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
-        newTestApp.expectedSummaryOutputPattern.matcher(output).find()
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
+        testBundle.expectedAlternateSummaryOutputPattern.matcher(output).find()
     }
 
-    def "test tasks are up-to-date when nothing changes between invocation"() {
-        def testApp = new SwiftXcTestTestApp([
-            newTestSuite("PassingTestSuite", [
-                newTestCase("testPass", TestElement.TestCase.Result.PASS)
-            ])
-        ])
+    def "skips test tasks as up-to-date when nothing changes between invocation"() {
+        def testBundle = new SwiftXCTestBundle()
 
         given:
-        testApp.writeToProject(testDirectory)
+        testBundle.writeToProject(testDirectory)
 
         when:
         succeeds("test")
         succeeds("test")
 
         then:
-        executed(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
-        result.assertTasksSkipped(":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
+        result.assertTasksSkipped(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
     }
 
-    def "xctest component can specify a dependency on another library"() {
-        def lib = new SwiftLib()
-        def testApp = new SwiftXcTestTestApp([
-            newTestSuite("PassingTestSuite", [
-                newTestCase("testPass", TestElement.TestCase.Result.PASS, "XCTAssert(sum(a: 40, b: 2) == 42)")
-            ], [], ["Greeter"])
-        ])
+    def "can specify a test dependency on another library"() {
+        def lib = new SwiftLibWithXCTest()
 
         given:
         settingsFile << """
-include 'Greeter'
+include 'greeter'
 """
         buildFile << """
-project(':Greeter') {
+project(':greeter') {
     apply plugin: 'swift-library'
 }
 
 dependencies {
-    testImplementation project(':Greeter')
+    testImplementation project(':greeter')
 }
 """
-        lib.writeToProject(file('Greeter'))
-        testApp.writeToProject(testDirectory)
+        lib.lib.writeToProject(file('greeter'))
+        lib.test.writeToProject(testDirectory)
 
         when:
         succeeds("test")
 
         then:
-        executedAndNotSkipped(":Greeter:compileDebugSwift", ":compileTestSwift", ":Greeter:linkDebug",
-            ":compileTestSwift", ":linkTest", ":createXcTestBundle", ":xcTest", ":test")
+        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
     }
 
-    def "assemble task doesn't build or run any of the tests"() {
-        def testApp = new SwiftXcTestTestApp([
-            newTestSuite("PassingTestSuite", [
-                newTestCase("testPass", TestElement.TestCase.Result.PASS)
-            ])
-        ])
+    def "does not build or run any of the tests when assemble task executes"() {
+        def testBundle = new SwiftFailingXCTestBundle()
 
         given:
-        testApp.writeToProject(testDirectory)
+        testBundle.writeToProject(testDirectory)
 
         when:
         succeeds("assemble")
 
         then:
-        result.assertTasksExecutedInOrder(":assemble")
+        result.assertTasksExecuted(":assemble")
         result.assertTasksSkipped(":assemble")
+    }
+
+    def "build logic can change source layout convention"() {
+        def testBundle = new SwiftXCTestBundle()
+
+        given:
+        testBundle.writeToSourceDir(file("Tests"))
+        file("src/test/swift/broken.swift") << "ignore me!"
+
+        and:
+        buildFile << """
+            xctest {
+                source.from 'Tests'
+                resourceDir.set(file('Tests'))
+            }
+         """
+
+        expect:
+        succeeds "test"
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
+
+        file("build/obj/test").assertIsDir()
+        executable("build/exe/test/AppTest").assertExists()
+        testBundle.assertTestCasesRan(output)
     }
 }

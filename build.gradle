@@ -35,76 +35,62 @@ buildTypes {
     // Used for builds to run all tests, but not necessarily on all platforms
     fullTest {
         tasks "test", "forkingIntegTest", "forkingCrossVersionTest"
-        projectProperties useIncomingDistributions: true, testAllVersions: true
+        projectProperties testAllVersions: true
     }
 
     // Used for builds to test the code on certain platforms
     platformTest {
         tasks "test", "forkingIntegTest", "forkingCrossVersionTest"
-        projectProperties useIncomingDistributions: true, testAllVersions: true, testAllPlatforms: true
+        projectProperties testAllVersions: true, testAllPlatforms: true
     }
 
     // Tests not using the daemon mode
     noDaemonTest {
         tasks "noDaemonIntegTest"
-        projectProperties useIncomingDistributions: true
+        projectProperties useAllDistribution: true
     }
 
     // Run the integration tests using the parallel executer
     parallelTest {
         tasks "parallelIntegTest"
-        projectProperties useIncomingDistributions: true
     }
 
     performanceTests {
         tasks "performance:performanceTest"
-        projectProperties useIncomingDistributions: true
     }
 
     performanceExperiments {
         tasks "performance:performanceExperiments"
-        projectProperties useIncomingDistributions: true
     }
 
     fullPerformanceTests {
         tasks "performance:fullPerformanceTest"
-        projectProperties useIncomingDistributions: true
     }
 
     distributedPerformanceTests {
         tasks "performance:distributedPerformanceTest"
-        projectProperties useIncomingDistributions: true
     }
 
     distributedPerformanceExperiments {
         tasks "performance:distributedPerformanceExperiment"
-        projectProperties useIncomingDistributions: true
     }
 
     distributedFullPerformanceTests {
         tasks "performance:distributedFullPerformanceTest"
-        projectProperties useIncomingDistributions: true
     }
 
     // Used for cross version tests on CI
-    crossVersionTest {
-        tasks "crossVersionTests"
-        projectProperties useIncomingDistributions: true
+    allVersionsCrossVersionTest {
+        tasks "allVersionsCrossVersionTests"
     }
 
     quickFeedbackCrossVersionTest {
         tasks "quickFeedbackCrossVersionTests"
-        projectProperties useIncomingDistributions: true
     }
 
     // Used to build production distros and smoke test them
     packageBuild {
         tasks "verifyIsProductionBuildEnvironment", "clean", "buildDists", "distributions:integTest"
-    }
-
-    // Used to build (experimental) production distros and smoke test them
-    packageBuildExperimental {
-        tasks "verifyIsProductionBuildEnvironment", "buildDists", "distributions:integTest"
     }
 
     // Used to build production distros and smoke test them
@@ -115,12 +101,10 @@ buildTypes {
     //Initial smoke test for java 9
     java9Build {
         tasks "java9Test", "java9IntegTest"
-        projectProperties useIncomingDistributions: true
     }
 
     java9SmokeTest {
         tasks "java9IntegTest"
-        projectProperties useIncomingDistributions: true
     }
 
     soakTest {
@@ -141,10 +125,10 @@ ext {
         ext.maxParallelForks = 4
     }
 
-    if (project.hasProperty("useIncomingDistributions")) {
-        project.useIncomingDistributions = true
+    if (project.hasProperty("useAllDistribution")) {
+        project.useAllDistribution = true
     } else {
-        ext.useIncomingDistributions = false
+        ext.useAllDistribution = false
     }
 
     agentNum = 1
@@ -166,14 +150,10 @@ ext {
         'platformNative', 'platformPlay', 'idePlay', 'languageNative', 'ideNative', 'testingBase',
         'testingNative', 'testingJvm', 'pluginDevelopment', 'pluginUse', 'resourcesHttp',
         'resourcesSftp', 'resourcesS3', 'resourcesGcs', 'compositeBuilds', 'buildCacheHttp'
-    ].collect {
-        project(it)
-    }
+    ].collect { project(it) }
     implementationPluginProjects = [
-            'toolingApiBuilders'
-    ].collect {
-        project(it)
-    }
+        project('toolingApiBuilders')
+    ]
     publishedProjects = [
         project(':logging'),
         project(':core'),
@@ -188,12 +168,10 @@ ext {
         project(':processServices'),
         project(':resources')
     ]
-    removedProjects = ['sonar']
 }
 
 apply from: "gradle/buildScanUserData.gradle"
 apply from: "gradle/taskCacheBuildScanUserData.gradle"
-apply from: "gradle/incomingDistributions.gradle"
 apply from: "gradle/versioning.gradle"
 apply from: "gradle/dependencies.gradle"
 apply from: "gradle/wrapper.gradle"
@@ -246,6 +224,9 @@ configurations {
     coreRuntime {
         visible = false
     }
+    coreRuntimeExtensions {
+        visible = false
+    }
     externalModules {
         visible = false
     }
@@ -274,8 +255,8 @@ def patchedExternalModules = files({ -> fileTree(patchedExternalModulesDir).file
 patchedExternalModules.builtBy 'patchExternalModules'
 
 dependencies {
-    externalModules 'org.gradle:gradle-kotlin-dsl:0.11.0'
-    externalModules 'org.gradle:gradle-kotlin-dsl-tooling-builders:0.11.0'
+    externalModules "org.gradle:gradle-kotlin-dsl:${versions.gradle_kotlin_dsl}"
+    externalModules "org.gradle:gradle-kotlin-dsl-tooling-builders:${versions.gradle_kotlin_dsl}"
     coreRuntime project(':launcher')
     coreRuntime project(':runtimeApiInfo')
     runtime project(':wrapper')
@@ -286,6 +267,11 @@ dependencies {
     gradlePlugins project(':workers')
     gradlePlugins project(':dependencyManagement')
     gradlePlugins project(':testKit')
+
+    coreRuntimeExtensions project(':dependencyManagement') //See: DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES
+    coreRuntimeExtensions project(':pluginUse')
+    coreRuntimeExtensions project(':workers')
+    coreRuntimeExtensions patchedExternalModules
 }
 
 import org.gradle.modules.PatchExternalModules
@@ -305,19 +291,6 @@ task verifyIsProductionBuildEnvironment {
     }
 }
 
-task waitForDaemonsToDie {
-    if (!project.hasProperty("noWaitForDaemonsToDie")) {
-        if (isWindows && isCiServer && buildTypes.crossVersionTest.active) {
-            gradle.startParameter.taskNames.add(0, it.path)
-        }
-        doLast {
-            def mins = 2
-            println "I'm waiting for $mins mins so that existing daemons can die with honour. It's a workaround until we fix it properly."
-            sleep mins * 60 * 1000
-        }
-    }
-}
-
 evaluationDependsOn ":distributions"
 
 task install(type: Install) {
@@ -334,8 +307,6 @@ task installAll(type: Install) {
     installDirPropertyName = 'gradle_installPath'
 }
 
-apply from: "gradle/intTestImage.gradle"
-
 // Generate a report showing which tests in a subproject are leaving
 // files around.
 //
@@ -351,11 +322,6 @@ subprojects { prj ->
         errorWhenNotEmpty = true
     }
 }
-
-task cleanUpRemovedProjects(type: Delete) {
-    delete removedProjects.collect { "subprojects/$it" }
-}
-clean.dependsOn(cleanUpRemovedProjects)
 
 gradle.buildFinished { result ->
     def rootProject = result.gradle.rootProject

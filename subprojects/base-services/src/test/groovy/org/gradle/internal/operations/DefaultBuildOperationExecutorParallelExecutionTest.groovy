@@ -17,8 +17,8 @@
 package org.gradle.internal.operations
 
 import org.gradle.api.GradleException
-import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.DefaultExecutorFactory
+import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.concurrent.ParallelismConfigurationManager
@@ -32,7 +32,7 @@ import org.gradle.internal.progress.DefaultBuildOperationExecutor
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLockCoordinationService
-import org.gradle.internal.time.TimeProvider
+import org.gradle.internal.time.Clock
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
@@ -51,7 +51,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         ParallelismConfigurationManager parallelExecutionManager = new ParallelismConfigurationManagerFixture(true, maxThreads)
         workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), parallelExecutionManager)
         buildOperationExecutor = new DefaultBuildOperationExecutor(
-            operationListener, Mock(TimeProvider), new NoOpProgressLoggerFactory(),
+            operationListener, Mock(Clock), new NoOpProgressLoggerFactory(),
             new DefaultBuildOperationQueueFactory(workerRegistry), executorFactory, Mock(ResourceLockCoordinationService), parallelExecutionManager, new DefaultBuildOperationIdFactory())
         outerOperationCompletion = workerRegistry.getWorkerLease().start()
         outerOperation = workerRegistry.getCurrentWorkerLease()
@@ -212,7 +212,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
             create(_, _) >> { buildQueue }
         }
 
-        def buildOperationExecutor = new DefaultBuildOperationExecutor(operationListener, Mock(TimeProvider), new NoOpProgressLoggerFactory(),
+        def buildOperationExecutor = new DefaultBuildOperationExecutor(operationListener, Mock(Clock), new NoOpProgressLoggerFactory(),
             buildOperationQueueFactory, Stub(ExecutorFactory), Mock(ResourceLockCoordinationService), new ParallelismConfigurationManagerFixture(true, 1), new DefaultBuildOperationIdFactory())
         def worker = Stub(BuildOperationWorker)
         def operation = Mock(DefaultBuildOperationQueueTest.TestBuildOperation)
@@ -240,7 +240,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
             create(_, _) >> { buildQueue }
         }
         def buildOperationExecutor = new DefaultBuildOperationExecutor(
-            operationListener, Mock(TimeProvider), new NoOpProgressLoggerFactory(),
+            operationListener, Mock(Clock), new NoOpProgressLoggerFactory(),
             buildOperationQueueFactory, Stub(ExecutorFactory), Mock(ResourceLockCoordinationService), new ParallelismConfigurationManagerFixture(true, 1), new DefaultBuildOperationIdFactory())
         def worker = Stub(BuildOperationWorker)
         def operation = Mock(DefaultBuildOperationQueueTest.TestBuildOperation)
@@ -399,7 +399,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         def parallelExecutionManager = new ParallelismConfigurationManagerFixture(true, 1)
 
         when:
-        buildOperationExecutor = new DefaultBuildOperationExecutor(operationListener, Mock(TimeProvider), new NoOpProgressLoggerFactory(),
+        buildOperationExecutor = new DefaultBuildOperationExecutor(operationListener, Mock(Clock), new NoOpProgressLoggerFactory(),
             Stub(BuildOperationQueueFactory), Stub(ExecutorFactory), Mock(ResourceLockCoordinationService), parallelExecutionManager, new DefaultBuildOperationIdFactory())
 
         then:

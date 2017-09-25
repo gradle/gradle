@@ -47,6 +47,12 @@ abstract class GccCompilerArgsTransformer<T extends NativeCompileSpec> implement
                 args.add("-fPIC");
             }
         }
+        if (spec.isDebuggable()) {
+            args.add("-g");
+        }
+        if (spec.isOptimized()) {
+            args.add("-O3");
+        }
     }
 
     protected void addIncludeArgs(T spec, List<String> args) {

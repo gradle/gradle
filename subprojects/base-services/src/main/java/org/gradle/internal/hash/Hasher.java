@@ -29,5 +29,6 @@ public interface Hasher {
     void putDouble(double value);
     void putBoolean(boolean value);
     void putString(CharSequence value);
+    void putHash(HashCode hashCode);
     HashCode hash();
 }

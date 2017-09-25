@@ -28,7 +28,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileHashSnapshot
 import org.gradle.api.internal.changedetection.state.FileSystemMirror
 import org.gradle.api.internal.changedetection.state.RegularFileSnapshot
-import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType
+import org.gradle.api.internal.tasks.OutputType
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory
@@ -40,8 +40,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.internal.util.Specification
 import org.junit.Rule
 
-import static org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType.DIRECTORY
-import static org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType.FILE
+import static OutputType.DIRECTORY
+import static OutputType.FILE
 
 @CleanupTestDirectory
 class TaskOutputCacheCommandFactoryTest extends Specification {

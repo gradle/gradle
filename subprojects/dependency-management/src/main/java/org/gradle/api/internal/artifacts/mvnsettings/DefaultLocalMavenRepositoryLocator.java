@@ -48,7 +48,12 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
         try {
             String repoPath = parseLocalRepoPathFromMavenSettings();
             if (repoPath != null) {
-                return new File(resolvePlaceholders(repoPath.trim()));
+                File file = new File(resolvePlaceholders(repoPath.trim()));
+                if (isDriveRelativeWindowsPath(file)) {
+                    return file.getAbsoluteFile();
+                } else {
+                    return file;
+                }
             } else {
                 File defaultLocation = new File(system.getProperty("user.home"), "/.m2/repository").getAbsoluteFile();
                 LOGGER.debug("No local repository in Settings file defined. Using default path: {}", defaultLocation);
@@ -57,6 +62,10 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
         } catch (SettingsBuildingException e) {
             throw new CannotLocateLocalMavenRepositoryException("Unable to parse local Maven settings.", e);
         }
+    }
+
+    private boolean isDriveRelativeWindowsPath(File file) {
+        return !file.isAbsolute() && file.getPath().startsWith(File.separator);
     }
 
     // We only cache the result of parsing the Maven settings files, but allow this value to be updated in-flight

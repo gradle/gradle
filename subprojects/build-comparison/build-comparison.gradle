@@ -27,6 +27,8 @@ dependencies {
     compile libraries.slf4j_api
 
     testCompile libraries.jsoup
+
+    integTestRuntime project(":toolingApiBuilders")
 }
 
 processResources {

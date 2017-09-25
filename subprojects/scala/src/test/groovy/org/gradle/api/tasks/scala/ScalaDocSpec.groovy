@@ -19,15 +19,13 @@ import org.gradle.api.internal.AbstractTask
 import org.gradle.api.tasks.AbstractSpockTaskTest
 import org.gradle.util.WrapUtil
 
-import static org.gradle.api.tasks.compile.AbstractCompileTest.TEST_PATTERN_1
-import static org.gradle.api.tasks.compile.AbstractCompileTest.TEST_PATTERN_2
-import static org.gradle.api.tasks.compile.AbstractCompileTest.TEST_PATTERN_3
+import static org.gradle.api.tasks.compile.AbstractCompileTest.*
 
-public class ScalaDocSpec extends AbstractSpockTaskTest {
+class ScalaDocSpec extends AbstractSpockTaskTest {
     ScalaDoc scalaDoc
 
     @Override
-    public AbstractTask getTask() {
+    AbstractTask getTask() {
         return scalaDoc
     }
 

@@ -74,12 +74,6 @@ public interface TaskPropertyActionContext {
     void setOptional(boolean optional);
 
     /**
-     * Specifies the action used to validate the value of this property. This action is only executed when the property
-     * value is not null.
-     */
-    void setValidationAction(ValidationAction action);
-
-    /**
      * Specified the action used to configure the task based on the value of this property. Note that this action is
      * called before the skip and validation actions.
      */

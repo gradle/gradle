@@ -32,18 +32,14 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 
 public class CompositeBuildServices extends AbstractPluginServiceRegistry {
-    public void registerGlobalServices(ServiceRegistration registration) {
-    }
-
+    @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.addProvider(new CompositeBuildTreeScopeServices());
     }
 
+    @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new CompositeBuildBuildScopeServices());
-    }
-
-    private static class CompositeBuildGlobalScopeServices {
     }
 
     private static class CompositeBuildTreeScopeServices {

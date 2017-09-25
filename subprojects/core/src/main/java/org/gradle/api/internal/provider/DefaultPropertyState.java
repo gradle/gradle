@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.provider.PropertyState;
+import org.gradle.api.Transformer;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 
-public class DefaultPropertyState<T> implements PropertyState<T>, ProviderInternal<T> {
+public class DefaultPropertyState<T> implements PropertyInternal<T> {
     private final Class<T> type;
     private Provider<? extends T> provider = Providers.notDefined();
 
@@ -37,7 +37,16 @@ public class DefaultPropertyState<T> implements PropertyState<T>, ProviderIntern
     }
 
     @Override
-    public void set(final T value) {
+    public void setFromAnyValue(Object object) {
+        if (object instanceof Provider) {
+            set((Provider<T>) object);
+        } else {
+            set((T) object);
+        }
+    }
+
+    @Override
+    public void set(T value) {
         if (value == null) {
             this.provider = Providers.notDefined();
             return;
@@ -53,7 +62,7 @@ public class DefaultPropertyState<T> implements PropertyState<T>, ProviderIntern
     }
 
     @Override
-    public void set(final Provider<? extends T> provider) {
+    public void set(Provider<? extends T> provider) {
         if (provider == null) {
             throw new IllegalArgumentException("Cannot set the value of a property using a null provider.");
         }
@@ -61,22 +70,15 @@ public class DefaultPropertyState<T> implements PropertyState<T>, ProviderIntern
         if (p.getType() != null && !type.isAssignableFrom(p.getType())) {
             throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using a provider of type %s.", type.getName(), p.getType().getName()));
         } else if (p.getType() == null) {
-            p = new AbstractProvider<T>() {
-                @Nullable
+            p = p.map(new Transformer<T, T>() {
                 @Override
-                public Class<T> getType() {
-                    return null;
-                }
-
-                @Override
-                public T getOrNull() {
-                    T value = provider.getOrNull();
-                    if (value == null || type.isInstance(value)) {
-                        return value;
+                public T transform(T t) {
+                    if (type.isInstance(t)) {
+                        return t;
                     }
-                    throw new IllegalArgumentException(String.format("Cannot get the value of a property of type %s as the provider associated with this property returned a value of type %s.", type.getName(), value.getClass().getName()));
+                    throw new IllegalArgumentException(String.format("Cannot get the value of a property of type %s as the provider associated with this property returned a value of type %s.", type.getName(), t.getClass().getName()));
                 }
-            };
+            });
         }
 
         this.provider = p;
@@ -90,6 +92,21 @@ public class DefaultPropertyState<T> implements PropertyState<T>, ProviderIntern
     @Override
     public T getOrNull() {
         return provider.getOrNull();
+    }
+
+    @Nullable
+    @Override
+    public T getOrElse(@Nullable T defaultValue) {
+        T t = provider.getOrNull();
+        if (t == null) {
+            return defaultValue;
+        }
+        return t;
+    }
+
+    @Override
+    public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super T> transformer) {
+        return new TransformBackedProvider<S, T>(transformer, this);
     }
 
     @Override

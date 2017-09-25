@@ -20,12 +20,12 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
@@ -60,7 +60,7 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> extends Abstra
 
         super.execute(spec);
 
-        return new SimpleWorkResult(!transformedSpec.getSourceFiles().isEmpty());
+        return WorkResults.didWork(!transformedSpec.getSourceFiles().isEmpty());
     }
 
     // TODO(daniel): Should support in a better way multi file invocation.
@@ -71,8 +71,7 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> extends Abstra
             public void execute(BuildOperationQueue<CommandLineToolInvocation> buildQueue) {
                 buildQueue.setLogLocation(spec.getOperationLogger().getLogLocation());
                 for (File sourceFile : spec.getSourceFiles()) {
-                    CommandLineToolInvocation perFileInvocation =
-                        createPerFileInvocation(genericArgs, sourceFile, objectDir, spec);
+                    CommandLineToolInvocation perFileInvocation = createPerFileInvocation(genericArgs, sourceFile, objectDir, spec);
                     buildQueue.add(perFileInvocation);
                 }
             }
@@ -83,7 +82,7 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> extends Abstra
         return Collections.singletonList(sourceFile.getAbsolutePath());
     }
 
-    protected abstract List<String> getOutputArgs(File outputFile);
+    protected abstract List<String> getOutputArgs(T spec, File outputFile);
 
     protected abstract void addOptionsFileArgs(List<String> args, File tempDir);
 
@@ -139,9 +138,8 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> extends Abstra
     }
 
     protected CommandLineToolInvocation createPerFileInvocation(List<String> genericArgs, File sourceFile, File objectDir, T spec) {
-        String objectFileSuffix = objectFileExtension;
         List<String> sourceArgs = getSourceArgs(sourceFile);
-        List<String> outputArgs = getOutputArgs(getOutputFileDir(sourceFile, objectDir, objectFileSuffix));
+        List<String> outputArgs = getOutputArgs(spec, getOutputFileDir(sourceFile, objectDir, objectFileExtension));
         List<String> pchArgs = maybeGetPCHArgs(spec, sourceFile);
 
         return newInvocation("compiling ".concat(sourceFile.getName()), objectDir, buildPerFileArgs(genericArgs, sourceArgs, outputArgs, pchArgs), spec.getOperationLogger());

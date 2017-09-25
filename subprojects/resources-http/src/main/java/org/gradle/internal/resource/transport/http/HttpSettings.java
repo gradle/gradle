@@ -26,8 +26,6 @@ public interface HttpSettings {
 
     HttpProxySettings getSecureProxySettings();
 
-    HttpTimeoutSettings getTimeoutSettings();
-
     Collection<Authentication> getAuthenticationSettings();
 
     SslContextFactory getSslContextFactory();

@@ -20,41 +20,27 @@ import org.gradle.cli.AbstractCommandLineConverter;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
+import org.gradle.internal.buildoption.BuildOption;
+import org.gradle.launcher.daemon.configuration.DaemonBuildOptionFactory;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
+
+import java.util.List;
 
 public class DaemonCommandLineConverter extends AbstractCommandLineConverter<DaemonParameters> {
 
-    private static final String DAEMON = "daemon";
-    private static final String NO_DAEMON = "no-daemon";
-    private static final String FOREGROUND = "foreground";
-    private static final String STOP = "stop";
-    private static final String STATUS = "status";
+    private List<BuildOption<DaemonParameters>> buildOptions = new DaemonBuildOptionFactory().create();
 
     public DaemonParameters convert(ParsedCommandLine args, DaemonParameters target) throws CommandLineArgumentException {
-        if (args.hasOption(FOREGROUND)) {
-            target.setForeground(true);
-        }
-        if (args.hasOption(STOP)) {
-            target.setStop(true);
-        }
-        if (args.hasOption(STATUS)) {
-            target.setStatus(true);
+        for (BuildOption<DaemonParameters> option : buildOptions) {
+            option.applyFromCommandLine(args, target);
         }
 
-        if (args.hasOption(NO_DAEMON)) {
-            target.setEnabled(false);
-        } else if (args.hasOption(DAEMON)) {
-            target.setEnabled(true);
-        }
         return target;
     }
 
     public void configure(CommandLineParser parser) {
-        parser.option(FOREGROUND).hasDescription("Starts the Gradle Daemon in the foreground.").incubating();
-        parser.option(STOP).hasDescription("Stops the Gradle Daemon if it is running.");
-        parser.option(STATUS).hasDescription("Shows status of running and recently stopped Gradle Daemon(s).");
-        parser.option(DAEMON).hasDescription("Uses the Gradle Daemon to run the build. Starts the Daemon if not running.");
-        parser.option(NO_DAEMON).hasDescription("Do not use the Gradle Daemon to run the build.");
-        parser.allowOneOf(DAEMON, NO_DAEMON);
+        for (BuildOption<DaemonParameters> option : buildOptions) {
+            option.configure(parser);
+        }
     }
 }

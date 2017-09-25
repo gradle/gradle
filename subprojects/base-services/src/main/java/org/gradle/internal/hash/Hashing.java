@@ -189,5 +189,10 @@ public class Hashing {
         public void putString(CharSequence value) {
             putBytes(value.toString().getBytes(Charsets.UTF_8));
         }
+
+        @Override
+        public void putHash(HashCode hashCode) {
+            putBytes(hashCode.getBytes());
+        }
     }
 }

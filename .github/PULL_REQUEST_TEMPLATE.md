@@ -5,7 +5,6 @@
 ### Contributor Checklist
 - [ ] [Review Contribution Guidelines](https://github.com/gradle/gradle/blob/master/.github/CONTRIBUTING.md)
 - [ ] [Sign Gradle CLA](http://gradle.org/contributor-license-agreement/)
-- [ ] [Link to Design Spec](https://github.com/gradle/gradle/tree/master/design-docs) for changes that affect more than 1 public API (that is, not in an `internal` package) or updates to > 20 files
 - [ ] Check ["Allow edit from maintainers" option](https://help.github.com/articles/allowing-changes-to-a-pull-request-branch-created-from-a-fork/) in pull request so that additional changes can be pushed by Gradle team
 - [ ] Provide integration tests (under `<subproject>/src/integTest`) to verify changes from a user perspective
 - [ ] Provide unit tests (under `<subproject>/src/test`) to verify logic
@@ -15,5 +14,5 @@
 ### Gradle Core Team Checklist
 - [ ] Verify design and implementation 
 - [ ] Verify test coverage and CI build status
-- [ ] Verify documentation including proper use of `@since` and `@Incubating` annotations for all public APIs
+- [ ] Verify documentation
 - [ ] Recognize contributor in release notes

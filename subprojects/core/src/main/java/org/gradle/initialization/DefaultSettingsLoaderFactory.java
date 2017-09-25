@@ -50,7 +50,8 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
     private SettingsLoader compositeBuildSettingsLoader() {
         return new CompositeBuildSettingsLoader(
             defaultSettingsLoader(),
-            compositeContextBuilder, includedBuildFactory
+            compositeContextBuilder,
+            includedBuildFactory
         );
     }
 

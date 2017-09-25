@@ -38,6 +38,7 @@ import spock.lang.Unroll
 
 import javax.annotation.Nullable
 import java.lang.annotation.Annotation
+import java.nio.file.Path
 
 class DefaultTaskClassValidatorExtractorTest extends Specification {
     private static final List<Class<? extends Annotation>> PROCESSED_PROPERTY_TYPE_ANNOTATIONS = [
@@ -349,6 +350,9 @@ class DefaultTaskClassValidatorExtractorTest extends Specification {
         File file
 
         @Input
+        Path filePath
+
+        @Input
         FileCollection fileCollection
 
         @Input
@@ -365,6 +369,7 @@ class DefaultTaskClassValidatorExtractorTest extends Specification {
         validator.validationMessages*.toString() == [
             "property 'file' has @Input annotation used on property of type $File.name",
             "property 'fileCollection' has @Input annotation used on property of type $FileCollection.name",
+            "property 'filePath' has @Input annotation used on property of type $Path.name",
             "property 'fileTree' has @Input annotation used on property of type $FileTree.name"
         ]
     }

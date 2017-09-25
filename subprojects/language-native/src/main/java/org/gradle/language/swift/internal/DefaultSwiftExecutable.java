@@ -23,7 +23,10 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.swift.SwiftExecutable;
 
+import javax.inject.Inject;
+
 public class DefaultSwiftExecutable extends DefaultSwiftBinary implements SwiftExecutable {
+    @Inject
     public DefaultSwiftExecutable(String name, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
         super(name, objectFactory, module, debuggable, source, configurations, implementation);
     }

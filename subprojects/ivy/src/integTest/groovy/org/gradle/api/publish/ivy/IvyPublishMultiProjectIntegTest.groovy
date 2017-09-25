@@ -78,10 +78,15 @@ project(":project3") {
 project(":project3") {
     publishing {
         publications {
-            extraIvy(IvyPublication) {
+            extraComponent(IvyPublication) {
                 from components.java
                 organisation "extra.org"
                 module "extra-module"
+                revision "extra"
+            }
+            extra(IvyPublication) {
+                organisation "extra.org"
+                module "extra-module-2"
                 revision "extra"
             }
         }
@@ -94,7 +99,47 @@ project(":project3") {
 
         then:
         failure.assertHasDescription "A problem occurred configuring project ':project1'."
-        failure.assertHasCause "Publishing is not yet able to resolve a dependency on a project with multiple different publications."
+        failure.assertHasCause """Publishing is not yet able to resolve a dependency on a project with multiple publications that have different coordinates.
+Found the following publications in project ':project3':
+  - Publication 'extra' with coordinates extra.org:extra-module-2:extra
+  - Publication 'extraComponent' with coordinates extra.org:extra-module:extra
+  - Publication 'ivy' with coordinates org.gradle.test:project3:3.0"""
+    }
+
+    def "referenced project can have multiple additional publications that contain a child of some other publication"() {
+        createBuildScripts("""
+// TODO - replace this with a public API when available
+class ExtraComp implements org.gradle.api.internal.component.SoftwareComponentInternal, ChildComponent {
+    String name = 'extra'
+    Set usages = []
+    SoftwareComponent owner
+}
+
+project(":project3") {
+    publishing {
+        publications {
+            extra1(IvyPublication) {
+                from new ExtraComp(owner: components.java)
+                organisation "extra.org"
+                module "extra-1"
+                revision "extra"
+            }
+            extra2(IvyPublication) {
+                from new ExtraComp(owner: components.java)
+                organisation "extra.org"
+                module "extra-2"
+                revision "extra"
+            }
+        }
+    }
+}
+""")
+
+        when:
+        succeeds "publish"
+
+        then:
+        project1.parsedIvy.assertDependsOn("org.gradle.test:project2:2.0@compile", "org.gradle.test:project3:3.0@compile")
     }
 
     def "ivy-publish plugin does not take archivesBaseName into account"() {

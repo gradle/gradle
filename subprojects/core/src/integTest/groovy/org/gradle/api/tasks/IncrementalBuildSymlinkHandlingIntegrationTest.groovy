@@ -48,6 +48,7 @@ task work {
     }
 
     def "uses the target of symlink for input file content"() {
+        file("in-dir").createDir()
         def inFile = file("other").createFile()
         def link = file("in.txt")
         link.createLink("other")
@@ -72,6 +73,7 @@ task work {
     }
 
     def "uses the target of symlink for input directory content"() {
+        file('in.txt').touch()
         def inDir = file("other").createDir()
         def inFile = inDir.file("file").createFile()
         file("in-dir").createLink("other")
@@ -96,6 +98,7 @@ task work {
     }
 
     def "follows symlinks in input directories"() {
+        file('in.txt').touch()
         def inFile = file("other").createFile()
         def inDir = file("in-dir").createDir()
         inDir.file("file").createLink("../other")
@@ -120,31 +123,20 @@ task work {
     }
 
     def "symlink may reference missing input file"() {
-        def inFile = file("other")
+        file("in-dir").createDir()
         def link = file("in.txt")
         link.createLink("other")
         assert !link.exists()
 
-        given:
-        run("work")
-        run("work")
-        result.assertTasksSkipped(":work")
-
-        when:
-        inFile.text = 'new content'
-        run("work")
-
-        then:
-        result.assertTasksNotSkipped(":work")
-
-        when:
-        run("work")
-
-        then:
-        result.assertTasksSkipped(":work")
+        expect:
+        executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
+        succeeds("work")
+        output.contains """A problem was found with the configuration of task ':work'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated and is scheduled to be removed in Gradle 5.0.
+ - File '$link' specified for property '\$1' does not exist."""
     }
 
     def "can replace input file with symlink to file with same content"() {
+        file("in-dir").createDir()
         def inFile = file("in.txt").createFile()
         def copy = file("other")
 
@@ -178,6 +170,7 @@ task work {
     }
 
     def "can replace input directory with symlink to directory with same content"() {
+        file('in.txt').touch()
         def inDir = file("in-dir").createDir()
         inDir.file("file").createFile()
         def copy = file("other")
@@ -212,6 +205,8 @@ task work {
     }
 
     def "can replace output file with symlink to file with same content"() {
+        file('in.txt').touch()
+        file("in-dir").createDir()
         def outFile = file("out.txt")
         def copy = file("other")
 
@@ -245,6 +240,8 @@ task work {
     }
 
     def "can replace output directory with symlink to directory with same content"() {
+        file('in.txt').touch()
+        file("in-dir").createDir()
         def outDir = file("out-dir")
         def copy = file("other")
 

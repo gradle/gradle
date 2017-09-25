@@ -16,8 +16,8 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.WorkResults;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 
@@ -39,7 +39,7 @@ public class OutputCleaningCompiler<T extends NativeCompileSpec> implements Comp
     public WorkResult execute(T spec) {
         boolean didRemove = deleteOutputsForRemovedSources(spec);
         boolean didCompile = compileSources(spec);
-        return new SimpleWorkResult(didRemove || didCompile);
+        return WorkResults.didWork(didRemove || didCompile);
     }
 
     private boolean compileSources(T spec) {
@@ -53,6 +53,10 @@ public class OutputCleaningCompiler<T extends NativeCompileSpec> implements Comp
         boolean didRemove = false;
         for (File removedSource : spec.getRemovedSourceFiles()) {
             File objectFile = getObjectFile(spec.getObjectFileDir(), removedSource);
+
+            // Remove .pdb file if present
+            new File(objectFile.getParentFile(), objectFile.getName() + ".pdb").delete();
+
             if (objectFile.delete()) {
                 didRemove = true;
                 objectFile.getParentFile().delete();

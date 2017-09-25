@@ -18,8 +18,6 @@ package org.gradle.caching.http.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.SOCKET_TIMEOUT_SYSTEM_PROPERTY
-
 class HttpBuildCacheServiceErrorHandlingIntegrationTest extends AbstractIntegrationSpec implements HttpBuildCacheFixture {
     def setup() {
         buildFile << """   
@@ -66,20 +64,6 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends AbstractIntegrat
         then:
         output =~ /Could not store entry .* for task ':customTask' in remote build cache/
         output =~ /Unable to store entry at .*: ${errorPattern}/
-    }
-
-    def "build cache is deactivated for the build if the connection times out"() {
-        httpBuildCacheServer.blockIncomingConnectionsForSeconds = 10
-        startServer()
-
-        when:
-        executer.withArgument("-D${SOCKET_TIMEOUT_SYSTEM_PROPERTY}=1000")
-        executer.withStacktraceDisabled()
-        withBuildCache().succeeds("customTask")
-
-        then:
-        output =~ /Could not load entry .* for task ':customTask' from remote build cache/
-        output =~ /Read timed out/
     }
 
     private void startServer() {

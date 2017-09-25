@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.api.file.FileCollection
+import org.gradle.api.provider.Provider
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.Actions
 import spock.lang.Issue
@@ -39,8 +40,10 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        when: fails "foo"
-        then: failure.assertHasDescription("Unable to store input properties for task ':foo'. Property 'b' with value 'xxx' cannot be serialized.")
+        when:
+        fails "foo"
+        then:
+        failure.assertHasDescription("Unable to store input properties for task ':foo'. Property 'b' with value 'xxx' cannot be serialized.")
     }
 
     def "deals gracefully with not serializable contents of GStrings"() {
@@ -206,7 +209,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "fails when inputs calls are chained (#method)"() {
+    def "fails when input file calls are chained (#method)"() {
         buildFile << """
             task test {
                 inputs.${call}.${call}
@@ -218,10 +221,29 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         failureCauseContains "Chaining of the TaskInputs.$method method is not supported since Gradle 4.0."
 
         where:
-        method              | call
-        "file(Object)"      | 'file("a")'
-        "dir(Object)"       | 'dir("a")'
-        "files(Object...)"  | 'files("a", "b")'
+        method             | call
+        "file(Object)"     | 'file("a")'
+        "dir(Object)"      | 'dir("a")'
+        "files(Object...)" | 'files("a", "b")'
+    }
+
+    @Unroll
+    def "shows deprecation warning when input property calls are chained (#method)"() {
+        buildFile << """
+            task test {
+                inputs.${call}.${call}
+            }
+        """
+
+        expect:
+        executer.expectDeprecationWarning()
+        succeeds "test"
+        output.contains "The chaining of the $method method has been deprecated and is scheduled to be removed in Gradle 5.0. Use '$method' on TaskInputs directly instead."
+
+        where:
+        method                     | call
+        "property(String, Object)" | "property('input', 1)"
+        "properties(Map)"          | "properties(input: 1)"
     }
 
     @Unroll
@@ -341,10 +363,10 @@ task someTask {
     }
 
     @Unroll
-    def "task is out of date when property type changes"() {
+    def "task is out of date when property type changes #oldValue -> #newValue"() {
         buildFile << """
 task someTask {
-    inputs.property("a", $oldValue)
+    inputs.property("a", $oldValue).optional(true)
     outputs.file "out"
     doLast ${Actions.name}.doNothing() // attach an action that is not defined by the build script
 }
@@ -466,5 +488,178 @@ task someTask(type: SomeTask) {
         "Iterable<java.io.File>"         | "[file('1'), file('2')] as Set" | "files('1')"
         FileCollection.name              | "files('1', '2')"               | "configurations.create('empty')"
         "java.util.Map<String, Boolean>" | "[a: true, b: false]"           | "[a: true, b: true]"
+        "${Provider.name}<String>"       | "providers.provider { 'a' }"    | "providers.provider { 'b' }"
+    }
+
+    def "null input properties registered via TaskInputs.property are reported"() {
+        buildFile << """
+            task test {
+                inputs.property("input", { null })
+                doLast {}
+            }
+        """
+        expect:
+        executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
+        succeeds "test"
+        output.contains """A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated and is scheduled to be removed in Gradle 5.0.
+ - No value has been specified for property 'input'."""
+    }
+
+    def "optional null input properties registered via TaskInputs.property are allowed"() {
+        buildFile << """
+            task test {
+                inputs.property("input", { null }).optional(true)
+                doLast {}
+            }
+        """
+        expect:
+        succeeds "test"
+    }
+
+    @Unroll
+    def "null input files registered via TaskInputs.#method are reported"() {
+        buildFile << """
+            task test {
+                inputs.${method}({ null }) withPropertyName "input"
+                doLast {}
+            }
+        """
+        expect:
+        executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
+        succeeds "test"
+        output.contains """A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated and is scheduled to be removed in Gradle 5.0.
+ - No value has been specified for property 'input'."""
+
+        where:
+        method << ["file", "files", "dir"]
+    }
+
+    @Unroll
+    def "optional null input files registered via TaskInputs.#method are allowed"() {
+        buildFile << """
+            task test {
+                inputs.${method}({ null }) withPropertyName "input" optional(true)
+                doLast {}
+            }
+        """
+        expect:
+        succeeds "test"
+
+        where:
+        method << ["file", "files", "dir"]
+    }
+
+    @Unroll
+    def "null output files registered via TaskOutputs.#method are reported"() {
+        buildFile << """
+            task test {
+                outputs.${method}({ null }) withPropertyName "output"
+                doLast {}
+            }
+        """
+        expect:
+        executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
+        if (expectToFail) {
+            // Singular null outputs will cause build to fail, but message should still be printed
+            fails "test"
+        } else {
+            succeeds "test"
+        }
+        output.contains """A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated and is scheduled to be removed in Gradle 5.0.
+ - No value has been specified for property 'output'."""
+
+        where:
+        method  | expectToFail
+        "file"  | true
+        "files" | false
+        "dir"   | true
+        "dirs"  | false
+    }
+
+    @Unroll
+    def "optional null output files registered via TaskOutputs.#method are allowed"() {
+        buildFile << """
+            task test {
+                outputs.${method}({ null }) withPropertyName "output" optional(true)
+                doLast {}
+            }
+        """
+        expect:
+        succeeds "test"
+
+        where:
+        method << ["file", "files", "dir", "dirs"]
+    }
+
+    @Unroll
+    def "missing input files registered via TaskInputs.#method are reported"() {
+        buildFile << """
+            task test {
+                inputs.${method}({ "missing" }) withPropertyName "input"
+                doLast {}
+            }
+        """
+
+        expect:
+        executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
+        succeeds "test"
+        output.contains """A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated and is scheduled to be removed in Gradle 5.0.
+ - $type '${file("missing")}' specified for property 'input' does not exist."""
+
+        where:
+        method | type
+        "file" | "File"
+        "dir"  | "Directory"
+    }
+
+    @Unroll
+    def "wrong input file type registered via TaskInputs.#method is reported"() {
+        file("input-file.txt").touch()
+        file("input-dir").createDir()
+        buildFile << """
+            task test {
+                inputs.${method}({ "$path" }) withPropertyName "input"
+                doLast {}
+            }
+        """
+
+        expect:
+        executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
+        succeeds "test"
+        output.contains """A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated and is scheduled to be removed in Gradle 5.0.
+ - ${type.capitalize()} '${file(path)}' specified for property 'input' is not a $type."""
+
+        where:
+        method | path             | type
+        "file" | "input-dir"      | "file"
+        "dir"  | "input-file.txt" | "directory"
+    }
+
+    @Unroll
+    def "wrong output file type registered via TaskOutputs.#method is reported"() {
+        file("input-file.txt").touch()
+        file("input-dir").createDir()
+        buildFile << """
+            task test {
+                outputs.${method}({ "$path" }) withPropertyName "output"
+                doLast {}
+            }
+        """
+
+        expect:
+        executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
+        if (expectToFail) {
+            fails "test"
+        } else {
+            succeeds "test"
+        }
+        output.contains message.replace("<PATH>", file(path).absolutePath)
+
+        where:
+        method  | path             | expectToFail | message
+        "file"  | "input-dir"      | false        | "Cannot write to file '<PATH>' specified for property 'output' as it is a directory."
+        "files" | "input-dir"      | false        | "Cannot write to file '<PATH>' specified for property 'output' as it is a directory."
+        "dir"   | "input-file.txt" | true         | "Directory '<PATH>' specified for property 'output' is not a directory."
+        "dirs"  | "input-file.txt" | true         | "Directory '<PATH>' specified for property 'output' is not a directory."
     }
 }

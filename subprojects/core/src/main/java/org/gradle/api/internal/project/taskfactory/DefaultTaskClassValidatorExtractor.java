@@ -45,6 +45,7 @@ import org.gradle.internal.reflect.GroovyMethods;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.Types;
 
+import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -61,6 +62,7 @@ import java.util.Set;
 
 public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExtractor {
     // Avoid reflecting on classes we know we don't need to look at
+    @SuppressWarnings("RedundantTypeArguments")
     private static final Collection<Class<?>> IGNORED_SUPER_CLASSES = ImmutableSet.<Class<?>>of(
         ConventionTask.class, DefaultTask.class, AbstractTask.class, Task.class, Object.class, GroovyObject.class
     );
@@ -330,7 +332,7 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
         }
 
         @Override
-        public int compareTo(Getter o) {
+        public int compareTo(@Nonnull Getter o) {
             // Sort "is"-getters before "get"-getters when both are available
             return method.getName().compareTo(o.method.getName());
         }
@@ -345,7 +347,6 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
         private final boolean cacheable;
         private final ImmutableCollection.Builder<TaskClassValidationMessage> validationMessages;
         private Field instanceVariableField;
-        private ValidationAction validationAction;
         private UpdateAction configureAction;
         private boolean optional;
         private Class<?> nestedType;
@@ -432,11 +433,6 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
         }
 
         @Override
-        public void setValidationAction(ValidationAction action) {
-            this.validationAction = action;
-        }
-
-        @Override
         public void setConfigureAction(UpdateAction action) {
             this.configureAction = action;
         }
@@ -451,10 +447,10 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
         }
 
         public TaskPropertyInfo createProperty() {
-            if (configureAction == null && validationAction == null) {
+            if (configureAction == null) {
                 return null;
             }
-            return new TaskPropertyInfo(parent, name, propertyType, method, validationAction, configureAction, optional);
+            return new TaskPropertyInfo(parent, name, propertyType, method, configureAction);
         }
 
         @Override

@@ -22,11 +22,11 @@ public abstract class Names {
 
     public static Names of(String name) {
         // Assume that names that end with 'Exe' represent the 'main' variant of the parent thing
-        if (name.equals("main") || name.equals("mainExe")) {
+        if (name.equals("main") || name.equals("mainBundle")) {
             return new Main();
         }
-        if (name.endsWith("Exe")) {
-            return new Other(name.substring(0, name.length() - 3));
+        if (name.endsWith("Bundle")) {
+            return new Other(name.substring(0, name.length() - 6));
         }
         return new Other(name);
     }
@@ -96,23 +96,28 @@ public abstract class Names {
             this.dirName = dirName.toString();
         }
 
+        @Override
         public String withPrefix(String prefix) {
             return prefix + capitalizedBaseName;
         }
 
+        @Override
         public String withSuffix(String suffix) {
             return baseName + StringUtils.capitalize(suffix);
         }
 
+        @Override
         public String getTaskName(String action) {
             return action + capitalizedBaseName;
         }
 
+        @Override
         public String getCompileTaskName(String language) {
             return "compile" + capitalizedBaseName + StringUtils.capitalize(language);
         }
 
         // Includes trailing '/'
+        @Override
         public String getDirName() {
             return dirName;
         }

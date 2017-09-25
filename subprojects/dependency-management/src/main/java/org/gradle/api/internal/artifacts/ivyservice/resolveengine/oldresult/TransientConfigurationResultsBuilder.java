@@ -33,8 +33,8 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
-import org.gradle.internal.time.Timers;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -148,7 +148,7 @@ public class TransientConfigurationResultsBuilder {
     }
 
     private TransientConfigurationResults deserialize(Decoder decoder, ResolvedGraphResults graphResults, SelectedArtifactResults artifactResults, BuildOperationExecutor buildOperationProcessor) {
-        Timer clock = Timers.startTimer();
+        Timer clock = Time.startTimer();
         Map<Long, DefaultResolvedDependency> allDependencies = new HashMap<Long, DefaultResolvedDependency>();
         Map<ModuleDependency, DependencyGraphNodeResult> firstLevelDependencies = new LinkedHashMap<ModuleDependency, DependencyGraphNodeResult>();
         DependencyGraphNodeResult root;

@@ -17,8 +17,8 @@ package org.gradle.internal.logging.slf4j
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
-import org.gradle.internal.time.TrueTimeProvider
 import org.gradle.internal.logging.events.OutputEventListener
+import org.gradle.internal.time.Time
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import spock.lang.Specification
@@ -39,7 +39,7 @@ class Slf4jLoggingConfigurerTest extends Specification {
         logger.info('message')
 
         then:
-        1 * listener.onOutput({it.category == 'cat1' && it.message == 'message' && it.logLevel == LogLevel.INFO && it.throwable == null})
+        1 * listener.onOutput({ it.category == 'cat1' && it.message == 'message' && it.logLevel == LogLevel.INFO && it.throwable == null })
         0 * listener._
     }
 
@@ -51,7 +51,7 @@ class Slf4jLoggingConfigurerTest extends Specification {
         logger.info('message', failure)
 
         then:
-        1 * listener.onOutput({it.category == 'cat1' && it.message == 'message' && it.logLevel == LogLevel.INFO && it.throwable == failure})
+        1 * listener.onOutput({ it.category == 'cat1' && it.message == 'message' && it.logLevel == LogLevel.INFO && it.throwable == failure })
         0 * listener._
     }
 
@@ -67,12 +67,12 @@ class Slf4jLoggingConfigurerTest extends Specification {
         logger.error('error')
 
         then:
-        1 * listener.onOutput({it.message == 'debug' && it.logLevel == LogLevel.DEBUG})
-        1 * listener.onOutput({it.message == 'info' && it.logLevel == LogLevel.INFO})
-        1 * listener.onOutput({it.message == 'lifecycle' && it.logLevel == LogLevel.LIFECYCLE})
-        1 * listener.onOutput({it.message == 'quiet' && it.logLevel == LogLevel.QUIET})
-        1 * listener.onOutput({it.message == 'warn' && it.logLevel == LogLevel.WARN})
-        1 * listener.onOutput({it.message == 'error' && it.logLevel == LogLevel.ERROR})
+        1 * listener.onOutput({ it.message == 'debug' && it.logLevel == LogLevel.DEBUG })
+        1 * listener.onOutput({ it.message == 'info' && it.logLevel == LogLevel.INFO })
+        1 * listener.onOutput({ it.message == 'lifecycle' && it.logLevel == LogLevel.LIFECYCLE })
+        1 * listener.onOutput({ it.message == 'quiet' && it.logLevel == LogLevel.QUIET })
+        1 * listener.onOutput({ it.message == 'warn' && it.logLevel == LogLevel.WARN })
+        1 * listener.onOutput({ it.message == 'error' && it.logLevel == LogLevel.ERROR })
         0 * listener._
     }
 
@@ -82,7 +82,7 @@ class Slf4jLoggingConfigurerTest extends Specification {
         logger.info('message {} {}', 'arg1', 'arg2')
 
         then:
-        1 * listener.onOutput({it.message == 'message arg1 arg2'})
+        1 * listener.onOutput({ it.message == 'message arg1 arg2' })
         0 * listener._
     }
 
@@ -92,7 +92,7 @@ class Slf4jLoggingConfigurerTest extends Specification {
         logger.info('message')
 
         then:
-        1 * listener.onOutput({it.timestamp >= new TrueTimeProvider().getCurrentTime() - 1000})
+        1 * listener.onOutput({ it.timestamp >= Time.clock().currentTime - 1000 })
         0 * listener._
     }
 
@@ -109,8 +109,8 @@ class Slf4jLoggingConfigurerTest extends Specification {
         logger.error('error')
 
         then:
-        1 * listener.onOutput({it.message == 'quiet' && it.logLevel == LogLevel.QUIET})
-        1 * listener.onOutput({it.message == 'error' && it.logLevel == LogLevel.ERROR})
+        1 * listener.onOutput({ it.message == 'quiet' && it.logLevel == LogLevel.QUIET })
+        1 * listener.onOutput({ it.message == 'error' && it.logLevel == LogLevel.ERROR })
         0 * listener._
     }
 
@@ -127,10 +127,10 @@ class Slf4jLoggingConfigurerTest extends Specification {
         logger.error('error')
 
         then:
-        1 * listener.onOutput({it.message == 'lifecycle' && it.logLevel == LogLevel.LIFECYCLE})
-        1 * listener.onOutput({it.message == 'quiet' && it.logLevel == LogLevel.QUIET})
-        1 * listener.onOutput({it.message == 'warn' && it.logLevel == LogLevel.WARN})
-        1 * listener.onOutput({it.message == 'error' && it.logLevel == LogLevel.ERROR})
+        1 * listener.onOutput({ it.message == 'lifecycle' && it.logLevel == LogLevel.LIFECYCLE })
+        1 * listener.onOutput({ it.message == 'quiet' && it.logLevel == LogLevel.QUIET })
+        1 * listener.onOutput({ it.message == 'warn' && it.logLevel == LogLevel.WARN })
+        1 * listener.onOutput({ it.message == 'error' && it.logLevel == LogLevel.ERROR })
         0 * listener._
     }
 
@@ -147,11 +147,11 @@ class Slf4jLoggingConfigurerTest extends Specification {
         logger.error('error')
 
         then:
-        1 * listener.onOutput({it.message == 'info' && it.logLevel == LogLevel.INFO})
-        1 * listener.onOutput({it.message == 'lifecycle' && it.logLevel == LogLevel.LIFECYCLE})
-        1 * listener.onOutput({it.message == 'quiet' && it.logLevel == LogLevel.QUIET})
-        1 * listener.onOutput({it.message == 'warn' && it.logLevel == LogLevel.WARN})
-        1 * listener.onOutput({it.message == 'error' && it.logLevel == LogLevel.ERROR})
+        1 * listener.onOutput({ it.message == 'info' && it.logLevel == LogLevel.INFO })
+        1 * listener.onOutput({ it.message == 'lifecycle' && it.logLevel == LogLevel.LIFECYCLE })
+        1 * listener.onOutput({ it.message == 'quiet' && it.logLevel == LogLevel.QUIET })
+        1 * listener.onOutput({ it.message == 'warn' && it.logLevel == LogLevel.WARN })
+        1 * listener.onOutput({ it.message == 'error' && it.logLevel == LogLevel.ERROR })
         0 * listener._
     }
 
@@ -168,12 +168,12 @@ class Slf4jLoggingConfigurerTest extends Specification {
         logger.error('error')
 
         then:
-        1 * listener.onOutput({it.message == 'debug' && it.logLevel == LogLevel.DEBUG})
-        1 * listener.onOutput({it.message == 'info' && it.logLevel == LogLevel.INFO})
-        1 * listener.onOutput({it.message == 'lifecycle' && it.logLevel == LogLevel.LIFECYCLE})
-        1 * listener.onOutput({it.message == 'quiet' && it.logLevel == LogLevel.QUIET})
-        1 * listener.onOutput({it.message == 'warn' && it.logLevel == LogLevel.WARN})
-        1 * listener.onOutput({it.message == 'error' && it.logLevel == LogLevel.ERROR})
+        1 * listener.onOutput({ it.message == 'debug' && it.logLevel == LogLevel.DEBUG })
+        1 * listener.onOutput({ it.message == 'info' && it.logLevel == LogLevel.INFO })
+        1 * listener.onOutput({ it.message == 'lifecycle' && it.logLevel == LogLevel.LIFECYCLE })
+        1 * listener.onOutput({ it.message == 'quiet' && it.logLevel == LogLevel.QUIET })
+        1 * listener.onOutput({ it.message == 'warn' && it.logLevel == LogLevel.WARN })
+        1 * listener.onOutput({ it.message == 'error' && it.logLevel == LogLevel.ERROR })
         0 * listener._
     }
 }

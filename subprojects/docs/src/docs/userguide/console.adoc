@@ -54,7 +54,7 @@ Output from build script log messages, tasks, forked processes, test output and 
 
 Starting with Gradle 4.0, the volume of command-line console output has been reduced. The start and end of each task is not displayed anymore or the outcome of the task (e.g. `UP-TO-DATE`). The task's name is only displayed if some output is emitted during task execution. Gradle also groups output originating from a specific context together, e.g. all warnings from a compilation task, test execution or forked processes. Grouped output is especially useful for parallel task execution, as it prevents interleaved messages that do not clearly indicate their origin (see <<sec:parallel_execution>>).
 
-NOTE: Grouped console output and reduced console output only occurs with interactive and _rich console_ command-lines. Continuous integration servers and builds using `--console=plain` will see console output similar to pre-Gradle 4.0.
+NOTE: Grouped console output and reduced console output only occurs with interactive and _rich console_ command-lines. Continuous integration servers and builds using `--console=plain` will see console output similar to pre-Gradle 4.0. You can also set this option via `org.gradle.console` property, see <<sec:gradle_configuration_properties>>.
 
 The following console output shows grouped output for the configuration phase and the task `:compileJava`:
 

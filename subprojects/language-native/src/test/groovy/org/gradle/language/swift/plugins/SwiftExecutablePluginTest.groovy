@@ -66,25 +66,36 @@ class SwiftExecutablePluginTest extends Specification {
         def compileDebug = project.tasks.compileDebugSwift
         compileDebug instanceof SwiftCompile
         compileDebug.source.files == [src] as Set
-        compileDebug.objectFileDirectory.get().asFile == projectDir.file("build/obj/main/debug")
+        compileDebug.objectFileDir.get().asFile == projectDir.file("build/obj/main/debug")
+        compileDebug.debuggable
+        !compileDebug.optimized
 
         def linkDebug = project.tasks.linkDebug
         linkDebug instanceof LinkExecutable
         linkDebug.binaryFile.get().asFile == projectDir.file("build/exe/main/debug/" + OperatingSystem.current().getExecutableName("TestApp"))
+        linkDebug.debuggable
 
-        def install = project.tasks.installMain
-        install instanceof InstallExecutable
-        install.installDirectory.get().asFile == projectDir.file("build/install/TestApp")
-        install.runScript.name == OperatingSystem.current().getScriptName("TestApp")
+        def installDebug = project.tasks.installDebug
+        installDebug instanceof InstallExecutable
+        installDebug.installDirectory.get().asFile == projectDir.file("build/install/main/debug")
+        installDebug.runScript.name == OperatingSystem.current().getScriptName("TestApp")
 
         def compileRelease = project.tasks.compileReleaseSwift
         compileRelease instanceof SwiftCompile
         compileRelease.source.files == [src] as Set
-        compileRelease.objectFileDirectory.get().asFile == projectDir.file("build/obj/main/release")
+        compileRelease.objectFileDir.get().asFile == projectDir.file("build/obj/main/release")
+        !compileRelease.debuggable
+        compileRelease.optimized
 
         def linkRelease = project.tasks.linkRelease
         linkRelease instanceof LinkExecutable
         linkRelease.binaryFile.get().asFile == projectDir.file("build/exe/main/release/" + OperatingSystem.current().getExecutableName("TestApp"))
+        !linkRelease.debuggable
+
+        def installRelease = project.tasks.installRelease
+        installRelease instanceof InstallExecutable
+        installRelease.installDirectory.get().asFile == projectDir.file("build/install/main/release")
+        installRelease.runScript.name == OperatingSystem.current().getScriptName("TestApp")
     }
 
     def "output file names are calculated from module name defined on extension"() {
@@ -99,8 +110,8 @@ class SwiftExecutablePluginTest extends Specification {
         def link = project.tasks.linkDebug
         link.binaryFile.get().asFile == projectDir.file("build/exe/main/debug/" + OperatingSystem.current().getExecutableName("App"))
 
-        def install = project.tasks.installMain
-        install.installDirectory.get().asFile == projectDir.file("build/install/App")
+        def install = project.tasks.installDebug
+        install.installDirectory.get().asFile == projectDir.file("build/install/main/debug")
         install.runScript.name == OperatingSystem.current().getScriptName("App")
     }
 }

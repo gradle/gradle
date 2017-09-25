@@ -27,7 +27,7 @@ import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import org.gradle.internal.progress.BuildOperationCategory
 import org.gradle.internal.progress.BuildProgressLogger
-import org.gradle.internal.time.TimeProvider
+import org.gradle.internal.time.Clock
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
@@ -37,7 +37,7 @@ class ConsoleFunctionalTest extends Specification {
     @Rule
     public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
     private final ConsoleStub console = new ConsoleStub()
-    private final TimeProvider timeProvider = Mock(TimeProvider)
+    private final Clock timeProvider = Mock(Clock)
     private final ConsoleMetaData metaData = Mock(ConsoleMetaData)
     private OutputEventRenderer renderer
     private long currentTimeMs

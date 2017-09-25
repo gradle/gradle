@@ -22,7 +22,9 @@ import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompilerBuilder;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask;
 import org.gradle.language.swift.internal.DefaultSwiftCompileSpec;
@@ -77,5 +79,19 @@ public class SwiftCompile extends AbstractNativeCompileTask {
      */
     public void setModuleName(Provider<String> moduleName) {
         this.moduleName.set(moduleName);
+    }
+
+    @Override
+    public void compile(IncrementalTaskInputs inputs) {
+        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs());
+        cleaner.setDestinationDir(getObjectFileDir().getAsFile().get());
+        cleaner.execute();
+
+        if (getSource().isEmpty()) {
+            setDidWork(cleaner.getDidWork());
+            return;
+        }
+
+        super.compile(inputs);
     }
 }

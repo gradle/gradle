@@ -16,13 +16,13 @@
 package org.gradle.initialization;
 
 import org.gradle.internal.scan.UsedByScanPlugin;
-import org.gradle.util.Clock;
 
 /**
  * A bunch of information about the request which launched a build.
  */
-@UsedByScanPlugin("Loaded via root project service registry, and getBuildTimeClock() called")
+@UsedByScanPlugin("Loaded via root project service registry, and getBuildTimeClock() called. Stopped being used in plugin 1.10")
 public interface BuildRequestMetaData {
+
     /**
      * Returns the meta-data about the client used to launch this build.
      */
@@ -30,7 +30,16 @@ public interface BuildRequestMetaData {
 
     /**
      * Returns a clock measuring the time since the request was made by the user of the client.
+     *
+     * Use {@link #getStartTime()}.
      */
     @Deprecated
-    Clock getBuildTimeClock();
+    @UsedByScanPlugin("see class doc")
+    org.gradle.util.Clock getBuildTimeClock();
+
+    /**
+     * The time that the request was made by the user of the client.
+     */
+    long getStartTime();
+
 }

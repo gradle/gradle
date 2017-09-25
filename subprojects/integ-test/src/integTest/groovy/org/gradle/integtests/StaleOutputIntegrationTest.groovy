@@ -128,13 +128,14 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
             }
         """
         def dirInBuildDir = file("build/dir").createDir()
+        file("build/dir/stale-file.txt").touch()
         def customFile = file("customFile").touch()
         def myTaskDir = file("external/output").createDir()
 
         when:
         succeeds("myTask")
         then:
-        dirInBuildDir.assertDoesNotExist()
+        dirInBuildDir.assertIsEmptyDir()
         customFile.assertDoesNotExist()
         buildFile.assertExists()
         // We should improve this eventually.  We currently don't delete _all_ outputs from every task
@@ -153,12 +154,13 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     assert !file("build/file").exists()
                     file("build/file").text = "Created"
-                    assert !file("build/dir").exists() 
-                    assert file("build/dir").mkdirs()
+                    assert file("build/dir").directory
+                    assert file("build/dir").list().length == 0
                 }
             }
         """
         def dirInBuildDir = file("build/dir").createDir()
+        def staleFileInDir = file("build/dir/stale-file.txt").touch()
         def fileInBuildDir = file("build/file").touch()
 
         expect:
@@ -172,6 +174,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         """
         // recreate the output
         dirInBuildDir.createDir()
+        staleFileInDir.touch()
         fileInBuildDir.touch()
         then:
         succeeds("myTask")
@@ -319,12 +322,12 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
                 apply plugin: 'base'
 
                 task ${taskName} {
-                    def sources = files("src")
+                    def sources = file("src")
                     inputs.dir sources skipWhenEmpty()
                     outputs.dir "${outputDir}"
                     doLast {
                         file("${outputDir}").mkdirs()
-                        sources.asFileTree.visit { details ->
+                        files(sources).asFileTree.visit { details ->
                             if (!details.directory) {
                                 def output = file("${outputDir}/\$details.relativePath")
                                 output.parentFile.mkdirs()
@@ -474,7 +477,8 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
 
             if (project.findProperty('assertRemoved')) {
                 ${taskName}.doFirst {
-                    assert !file('${outputDirPath}').exists()
+                    assert file('${outputDirPath}').directory
+                    assert file('${outputDirPath}').list().length == 0
                     assert !file('${outputFilePath}').exists()
                 }
             }

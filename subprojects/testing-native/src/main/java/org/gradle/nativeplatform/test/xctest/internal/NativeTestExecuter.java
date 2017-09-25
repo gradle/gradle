@@ -38,7 +38,7 @@ import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.io.LineBufferingOutputStream;
 import org.gradle.internal.io.TextStream;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Clock;
 import org.gradle.process.internal.DefaultExecHandleBuilder;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
@@ -72,7 +72,7 @@ public class NativeTestExecuter implements TestExecuter {
     }
 
     @Inject
-    public TimeProvider getTimeProvider() {
+    public Clock getTimeProvider() {
         throw new UnsupportedOperationException();
     }
 
@@ -109,14 +109,14 @@ public class NativeTestExecuter implements TestExecuter {
         private ExecHandle execHandle;
         private final ExecHandleBuilder execHandleBuilder;
         private final IdGenerator<?> idGenerator;
-        private final TimeProvider timeProvider;
+        private final Clock clock;
         private final File bundle;
 
         @Inject
-        public NativeTestClassProcessor(TimeProvider timeProvider, MacOSXCTestLocator xcTestLocator, File executable, File workingDir, ExecHandleBuilder execHandleBuilder, IdGenerator<?> idGenerator) {
+        public NativeTestClassProcessor(Clock clock, MacOSXCTestLocator xcTestLocator, File executable, File workingDir, ExecHandleBuilder execHandleBuilder, IdGenerator<?> idGenerator) {
             this.execHandleBuilder = execHandleBuilder;
             this.idGenerator = idGenerator;
-            this.timeProvider = timeProvider;
+            this.clock = clock;
             this.bundle = executable;
             execHandleBuilder.executable(xcTestLocator.find());
             execHandleBuilder.setWorkingDir(workingDir);
@@ -135,8 +135,8 @@ public class NativeTestExecuter implements TestExecuter {
 
         private ExecHandle executeTest(String testName) {
             execHandleBuilder.setArgs(Arrays.asList("-XCTest", testName, bundle));
-            TextStream stdOut = new TextStreamToProcessor(TestOutputEvent.Destination.StdOut, resultProcessor, idGenerator, timeProvider);
-            TextStream stdErr = new TextStreamToProcessor(TestOutputEvent.Destination.StdErr, resultProcessor, idGenerator, timeProvider);
+            TextStream stdOut = new TextStreamToProcessor(TestOutputEvent.Destination.StdOut, resultProcessor, idGenerator, clock);
+            TextStream stdErr = new TextStreamToProcessor(TestOutputEvent.Destination.StdErr, resultProcessor, idGenerator, clock);
             execHandleBuilder.setStandardOutput(new LineBufferingOutputStream(stdOut));
             execHandleBuilder.setErrorOutput(new LineBufferingOutputStream(stdErr));
             ExecHandle handle = execHandleBuilder.build();
@@ -159,14 +159,14 @@ public class NativeTestExecuter implements TestExecuter {
         private final TestResultProcessor processor;
         private final TestOutputEvent.Destination destination;
         private final IdGenerator<?> idGenerator;
-        private final TimeProvider timeProvider;
+        private final Clock clock;
         private final Deque<TestDescriptorInternal> testDescriptors = new ArrayDeque<TestDescriptorInternal>();
 
-        private TextStreamToProcessor(TestOutputEvent.Destination destination, TestResultProcessor processor, IdGenerator<?> idGenerator, TimeProvider timeProvider) {
+        private TextStreamToProcessor(TestOutputEvent.Destination destination, TestResultProcessor processor, IdGenerator<?> idGenerator, Clock clock) {
             this.processor = processor;
             this.destination = destination;
             this.idGenerator = idGenerator;
-            this.timeProvider = timeProvider;
+            this.clock = clock;
         }
 
         @Override
@@ -182,7 +182,7 @@ public class NativeTestExecuter implements TestExecuter {
                 if (text.contains("started at")) {
                     TestDescriptorInternal testDescriptor = new DefaultTestClassDescriptor(idGenerator.generateId(), testSuite);  // Using DefaultTestClassDescriptor to fake JUnit test
 
-                    processor.started(testDescriptor, new TestStartEvent(timeProvider.getCurrentTime()));
+                    processor.started(testDescriptor, new TestStartEvent(clock.getCurrentTime()));
                     testDescriptors.push(testDescriptor);
                 } else {
                     TestDescriptorInternal testDescriptor = testDescriptors.pop();
@@ -191,7 +191,7 @@ public class NativeTestExecuter implements TestExecuter {
                         resultType = TestResult.ResultType.FAILURE;
                     }
 
-                    processor.completed(testDescriptor.getId(), new TestCompleteEvent(timeProvider.getCurrentTime(), resultType));
+                    processor.completed(testDescriptor.getId(), new TestCompleteEvent(clock.getCurrentTime(), resultType));
                 }
             } else if (text.startsWith("Test Case")) {
                 Matcher testCaseMatcher = TEST_CASE_NAME_PATTERN.matcher(text);
@@ -202,7 +202,7 @@ public class NativeTestExecuter implements TestExecuter {
                 if (text.contains("started.")) {
                     TestDescriptorInternal testDescriptor = new DefaultTestMethodDescriptor(idGenerator.generateId(), testSuite, testCase);
 
-                    processor.started(testDescriptor, new TestStartEvent(timeProvider.getCurrentTime()));
+                    processor.started(testDescriptor, new TestStartEvent(clock.getCurrentTime()));
                     testDescriptors.push(testDescriptor);
                 } else {
                     TestDescriptorInternal testDescriptor = testDescriptors.pop();
@@ -212,7 +212,7 @@ public class NativeTestExecuter implements TestExecuter {
                         processor.failure(testDescriptor.getId(), new Throwable("Dummy failure for HTML generation"));
                     }
 
-                    processor.completed(testDescriptor.getId(), new TestCompleteEvent(timeProvider.getCurrentTime(), resultType));
+                    processor.completed(testDescriptor.getId(), new TestCompleteEvent(clock.getCurrentTime(), resultType));
                 }
             } else {
                 TestDescriptorInternal testDescriptor = testDescriptors.peek();

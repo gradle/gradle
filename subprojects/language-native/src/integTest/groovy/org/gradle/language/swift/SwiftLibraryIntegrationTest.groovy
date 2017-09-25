@@ -26,6 +26,19 @@ import static org.gradle.util.Matchers.containsText
 
 @Requires(TestPrecondition.SWIFT_SUPPORT)
 class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+    def "skip compile and link tasks when no source"() {
+        given:
+        buildFile << """
+            apply plugin: 'swift-library'
+        """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
+        // TODO - should skip the task as NO-SOURCE
+        result.assertTasksSkipped(":compileDebugSwift", ":linkDebug", ":assemble")
+    }
+
     def "build fails when compilation fails"() {
         given:
         buildFile << """
@@ -158,8 +171,8 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         and:
         buildFile << """
             apply plugin: 'swift-library'
-            compileDebugSwift.objectFileDirectory.set(layout.buildDirectory.dir("object-files"))
-            linkDebug.binaryFile.set(layout.buildDirectory.file("some-lib/main.bin"))
+            compileDebugSwift.objectFileDir = layout.buildDirectory.dir("object-files")
+            linkDebug.binaryFile = layout.buildDirectory.file("some-lib/main.bin")
          """
 
         expect:

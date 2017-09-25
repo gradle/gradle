@@ -41,7 +41,7 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
                         }
 
                         @Override
-                        public void explain(TreeVisitor<? super String> visitor) {
+                        public void explain(org.gradle.util.TreeVisitor<? super String> visitor) {
                             visitor.node("Binary \${name} has 'notBuildable' in the name")
                         }
                     };

@@ -16,6 +16,7 @@
 
 package org.gradle.groovy.scripts.internal;
 
+import com.google.common.base.Joiner;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyCodeSource;
 import groovy.lang.GroovyResourceLoader;
@@ -29,6 +30,7 @@ import org.codehaus.groovy.control.CompilationUnit;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.MultipleCompilationErrorsException;
 import org.codehaus.groovy.control.Phases;
+import org.codehaus.groovy.control.ProcessingUnit;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
 import org.codehaus.groovy.syntax.SyntaxException;
@@ -50,8 +52,9 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
+import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
-import org.gradle.internal.time.Timers;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,6 +68,7 @@ import java.net.URL;
 import java.security.CodeSource;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class DefaultScriptCompilationHandler implements ScriptCompilationHandler {
     private Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
@@ -86,7 +90,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     @Override
     public void compileToDir(ScriptSource source, ClassLoader classLoader, File classesDir, File metadataDir, CompileOperation<?> extractingTransformer,
                              Class<? extends Script> scriptBaseClass, Action<? super ClassNode> verifier) {
-        Timer clock = Timers.startTimer();
+        Timer clock = Time.startTimer();
         GFileUtils.deleteDirectory(classesDir);
         GFileUtils.mkdirs(classesDir);
         CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
@@ -277,7 +281,6 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     private class CustomCompilationUnit extends CompilationUnit {
-
         public CustomCompilationUnit(CompilerConfiguration compilerConfiguration, CodeSource codeSource, final Action<? super ClassNode> customVerifier, GroovyClassLoader groovyClassLoader) {
             super(compilerConfiguration, codeSource, groovyClassLoader);
             this.verifier = new Verifier() {
@@ -285,9 +288,21 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                     customVerifier.execute(node);
                     super.visitClass(node);
                 }
-
             };
-            this.resolveVisitor = new GradleResolveVisitor(this, defaultImportPackages, simpleNameToFQN);
+            final GradleResolveVisitor resolveVisitor = new GradleResolveVisitor(this, defaultImportPackages, simpleNameToFQN);
+            this.resolveVisitor = resolveVisitor;
+            this.progressCallback = new ProgressCallback() {
+                @Override
+                public void call(ProcessingUnit context, int phase) throws CompilationFailedException {
+                    if (phase == Phases.CANONICALIZATION) {
+                        Set<String> deprecatedImports = resolveVisitor.getDeprecatedImports();
+                        if (!deprecatedImports.isEmpty()) {
+                            DeprecationLogger.nagUserWith("Using " + Joiner.on(",").join(deprecatedImports)
+                                + " from the private org.gradle.util package without an explicit import is deprecated. Please either stop using these private classes (recommended) or import them explicitly at the top of your build file (not recommended). The implicit import will be removed in Gradle 5.0");
+                        }
+                    }
+                }
+            };
         }
     }
 

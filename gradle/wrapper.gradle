@@ -57,12 +57,3 @@ tasks.withType(Wrapper) {
 wrapperUpdateTask "nightly", "nightly"
 wrapperUpdateTask "rc", "release-candidate"
 wrapperUpdateTask "current", "current"
-
-if (useIncomingDistributions) {
-    task incomingDistributionsWrapper(type: Wrapper) {
-        distributionUrl = incomingAllDistribution.toURI().toURL()
-        group = 'wrapper'
-        distributionBase = Wrapper.PathBase.PROJECT
-        archiveBase = Wrapper.PathBase.PROJECT
-    }
-}

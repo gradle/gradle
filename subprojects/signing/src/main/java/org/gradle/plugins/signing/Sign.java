@@ -102,7 +102,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
                 final PgpKeyId id = signatory == null ? null : signatory.getKeyId();
                 return id == null ? null : id.getAsHex();
             }
-        });
+        }).optional(true);
     }
 
     @InputFiles

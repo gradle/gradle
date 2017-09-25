@@ -15,20 +15,12 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.TaskPropertyValue;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
-import org.gradle.util.DeferredUtil;
 
-import java.io.File;
 import java.lang.annotation.Annotation;
-import java.nio.file.Path;
-import java.util.Collection;
-import java.util.concurrent.Callable;
-
-import static org.gradle.api.internal.tasks.TaskOutputsUtil.ensureParentDirectoryExists;
-import static org.gradle.api.internal.tasks.TaskOutputsUtil.validateFile;
 
 public class OutputFilePropertyAnnotationHandler extends AbstractOutputPropertyAnnotationHandler {
 
@@ -38,31 +30,7 @@ public class OutputFilePropertyAnnotationHandler extends AbstractOutputPropertyA
     }
 
     @Override
-    protected void validate(String propertyName, Object value, Collection<String> messages) {
-        validateFile(propertyName, toFile(value), messages);
-    }
-
-    @Override
-    protected TaskOutputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, Callable<Object> futureValue) {
+    protected TaskOutputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, TaskPropertyValue futureValue) {
         return task.getOutputs().file(futureValue);
-    }
-
-    @Override
-    protected void beforeTask(final Callable<Object> futureValue) {
-        File file = toFile(futureValue);
-        if (file != null) {
-            ensureParentDirectoryExists(file);
-        }
-    }
-
-    private File toFile(Object value) {
-        Object unpacked = DeferredUtil.unpack(value);
-        if (unpacked instanceof Path) {
-            return ((Path) unpacked).toFile();
-        }
-        if (unpacked instanceof FileSystemLocation) {
-            return ((FileSystemLocation) unpacked).getAsFile();
-        }
-        return (File) unpacked;
     }
 }

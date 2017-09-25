@@ -27,7 +27,14 @@ public interface ModuleReplacementsData {
         public ModuleIdentifier getReplacementFor(ModuleIdentifier sourceModule) {
             return null;
         }
+
+        @Override
+        public boolean participatesInReplacements(ModuleIdentifier moduleId) {
+            return false;
+        }
     };
 
     @Nullable ModuleIdentifier getReplacementFor(ModuleIdentifier sourceModule);
+
+    boolean participatesInReplacements(ModuleIdentifier moduleId);
 }

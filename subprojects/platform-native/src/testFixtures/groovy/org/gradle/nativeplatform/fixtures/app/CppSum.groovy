@@ -19,7 +19,11 @@ package org.gradle.nativeplatform.fixtures.app
 import static org.gradle.nativeplatform.fixtures.app.SourceFileElement.ofFile
 
 class CppSum extends CppSourceFileElement implements SumElement {
-    final SourceFileElement header = ofFile(sourceFile("headers", "sum.h", """
+    final SourceFileElement header
+    final SourceFileElement source
+
+    CppSum(String publicHeadersDir = "headers") {
+        header = ofFile(sourceFile(publicHeadersDir, "sum.h", """
 #ifdef _WIN32
 #define EXPORT_FUNC __declspec(dllexport)
 #else
@@ -32,13 +36,20 @@ public:
 };
 """))
 
-    final SourceFileElement source = ofFile(sourceFile("cpp", "sum.cpp", """
+        source = ofFile(sourceFile("cpp", "sum.cpp", """
 #include "sum.h"
 
 int Sum::sum(int a, int b) {
     return a + b;
 }
 """))
+
+    }
+
+    @Override
+    CppSum asLib() {
+        return new CppSum("public")
+    }
 
     @Override
     int sum(int a, int b) {

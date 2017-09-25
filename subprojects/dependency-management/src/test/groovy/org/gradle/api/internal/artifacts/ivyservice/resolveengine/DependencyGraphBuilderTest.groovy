@@ -27,7 +27,7 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.DependencyGraphBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphPathResolver
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector
@@ -98,7 +98,7 @@ class DependencyGraphBuilderTest extends Specification {
         _ * configuration.path >> 'root'
         _ * moduleResolver.resolve(_, _) >> { it[1].resolved(root) }
 
-        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, new DefaultConflictHandler(conflictResolver, moduleReplacements), Specs.satisfyAll(), attributesSchema, moduleIdentifierFactory, moduleExclusions, buildOperationProcessor)
+        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, new DefaultConflictHandler(conflictResolver, moduleReplacements), Specs.satisfyAll(), attributesSchema, moduleIdentifierFactory, moduleExclusions, buildOperationProcessor, moduleReplacements)
     }
 
     private TestGraphVisitor resolve(DependencyGraphBuilder builder = this.builder) {
@@ -138,11 +138,12 @@ class DependencyGraphBuilderTest extends Specification {
         traverses b, d
 
         moduleReplacements.getReplacementFor(new DefaultModuleIdentifier("group", "a")) >> new DefaultModuleIdentifier("group", "b")
-        1 * conflictResolver.select(!null) >> {
-            Collection<ComponentResolutionState> candidates = it[0]
+        1 * conflictResolver.select(!null) >> {  args ->
+            def details = args[0]
+            Collection<ComponentResolutionState> candidates = details.candidates
             def sel = candidates.find { it.id.name == 'b' }
             assert sel
-            sel
+            details.select(sel)
         }
         0 * conflictResolver._
 
@@ -195,10 +196,11 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select(!null) >> {
-            Collection<ComponentResolutionState> candidates = it[0]
+        1 * conflictResolver.select(!null) >> { args ->
+            def details = args[0]
+            Collection<ComponentResolutionState> candidates = details.candidates
             assert candidates*.version as Set == ['1.2', '1.1'] as Set
-            return candidates.find { it.version == '1.2' }
+            details.select(candidates.find { it.version == '1.2' })
         }
         0 * conflictResolver._
 
@@ -226,10 +228,11 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select(!null) >> {
-            Collection<ComponentResolutionState> candidates = it[0]
+        1 * conflictResolver.select(!null) >> { args ->
+            def details = args[0]
+            Collection<ComponentResolutionState> candidates = details.candidates
             assert candidates*.version == ['1.1', '1.2']
-            return candidates.find { it.version == '1.2' }
+            details.select(candidates.find { it.version == '1.2' })
         }
         0 * conflictResolver._
 
@@ -257,10 +260,11 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select(!null) >> {
-            Collection<ComponentResolutionState> candidates = it[0]
+        1 * conflictResolver.select(!null) >> { args ->
+            def details = args[0]
+            Collection<ComponentResolutionState> candidates = details.candidates
             assert candidates*.version == ['1.1', '1.2']
-            return candidates.find { it.version == '1.2' }
+            details.select(candidates.find { it.version == '1.2' })
         }
         0 * conflictResolver._
 
@@ -287,10 +291,11 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select(!null) >> {
-            Collection<ComponentResolutionState> candidates = it[0]
+        1 * conflictResolver.select(!null) >> { args ->
+            def details = args[0]
+            Collection<ComponentResolutionState> candidates = details.candidates
             assert candidates*.version as Set == ['1.2', '1.1'] as Set
-            return candidates.find { it.version == '1.2' }
+            details.select(candidates.find { it.version == '1.2' })
         }
         0 * conflictResolver._
 
@@ -317,10 +322,11 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select(!null) >> {
-            Collection<ComponentResolutionState> candidates = it[0]
+        1 * conflictResolver.select(!null) >> { args ->
+            def details = args[0]
+            Collection<ComponentResolutionState> candidates = details.candidates
             assert candidates*.version == ['1.1', '1.2']
-            return candidates.find { it.version == '1.2' }
+            details.select(candidates.find { it.version == '1.2' })
         }
         0 * conflictResolver._
 
@@ -349,15 +355,17 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select(!null) >> {
-            Collection<ComponentResolutionState> candidates = it[0]
+        1 * conflictResolver.select(!null) >> { args ->
+            def details = args[0]
+            Collection<ComponentResolutionState> candidates = details.candidates
             assert candidates*.version == ['1.1', '1.2']
-            return candidates.find { it.version == '1.2' }
+            details.select(candidates.find { it.version == '1.2' })
         }
-        1 * conflictResolver.select(!null) >> {
-            Collection<ComponentResolutionState> candidates = it[0]
+        1 * conflictResolver.select(!null) >> { args ->
+            def details = args[0]
+            Collection<ComponentResolutionState> candidates = details.candidates
             assert candidates*.version == ['2.1', '2.2']
-            return candidates.find { it.version == '2.2' }
+            details.select(candidates.find { it.version == '2.2' })
         }
         0 * conflictResolver._
 
@@ -381,10 +389,11 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select(!null) >> {
-            Collection<ComponentResolutionState> candidates = it[0]
+        1 * conflictResolver.select(!null) >> { args ->
+            def details = args[0]
+            Collection<ComponentResolutionState> candidates = details.candidates
             assert candidates*.version as Set == ['1.2', '1.1'] as Set
-            return candidates.find { it.version == '1.2' }
+            details.select(candidates.find { it.version == '1.2' })
         }
         0 * conflictResolver._
 
@@ -411,10 +420,11 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select(!null) >> {
-            Collection<ComponentResolutionState> candidates = it[0]
+        1 * conflictResolver.select(!null) >> { args ->
+            def details = args[0]
+            Collection<ComponentResolutionState> candidates = details.candidates
             assert candidates*.version == ['1.1', '1.2']
-            return candidates.find { it.version == '1.2' }
+            details.select(candidates.find { it.version == '1.2' })
         }
         0 * conflictResolver._
 
@@ -442,17 +452,23 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select({ it*.version == ['1.1', '1.2'] }) >> {
-            Collection<ComponentResolutionState> candidates = it[0]
-            return candidates.find { it.version == '1.2' }
+        1 * conflictResolver.select(_) >> { args ->
+            def details = args[0]
+            Collection<ComponentResolutionState> candidates = details.candidates
+            assert candidates*.version == ['1.1', '1.2']
+            details.select(candidates.find { it.version == '1.2' })
         }
-        1 * conflictResolver.select({ it*.version == ['2.1', '2.2'] }) >> {
-            Collection<ComponentResolutionState> candidates = it[0]
-            return candidates.find { it.version == '2.2' }
+        1 * conflictResolver.select(_) >> { args ->
+            def details = args[0]
+            Collection<ComponentResolutionState> candidates = details.candidates
+            assert candidates*.version == ['2.1', '2.2']
+            details.select(candidates.find { it.version == '2.2' })
         }
-        1 * conflictResolver.select({ it*.version == ['1.1', '1.2', '1.0'] }) >> {
-            Collection<ComponentResolutionState> candidates = it[0]
-            return candidates.find { it.version == '1.2' }
+        1 * conflictResolver.select(_) >> { args ->
+            def details = args[0]
+            Collection<ComponentResolutionState> candidates = details.candidates
+            assert candidates*.version == ['1.2', '1.0'] // 1.1 is no longer a candidate since it has been rejected already
+            details.select(candidates.find { it.version == '1.2' })
         }
         0 * conflictResolver._
 
@@ -481,9 +497,11 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select({ it*.version == ['1', '2'] }) >> {
-            Collection<ComponentResolutionState> candidates = it[0]
-            return candidates.find { it.version == '2' }
+        1 * conflictResolver.select(_) >> { args ->
+            def details = args[0]
+            Collection<ComponentResolutionState> candidates = details.candidates
+            assert candidates*.version == ['1', '2']
+            details.select(candidates.find { it.version == '2' })
         }
         0 * conflictResolver._
 
@@ -512,9 +530,11 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select({ it*.version == ['1', '2'] }) >> {
-            Collection<ComponentResolutionState> candidates = it[0]
-            return candidates.find { it.version == '2' }
+        1 * conflictResolver.select(_) >> { args ->
+            def details = args[0]
+            Collection<ComponentResolutionState> candidates = details.candidates
+            assert candidates*.version == ['1', '2']
+            details.select(candidates.find { it.version == '2' })
         }
         0 * conflictResolver._
 
@@ -525,7 +545,7 @@ class DependencyGraphBuilderTest extends Specification {
     def "does not include filtered dependencies"() {
         given:
         def spec = { DependencyMetadata dep -> dep.requested.name != 'c' }
-        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, new DefaultConflictHandler(conflictResolver, moduleReplacements), spec, attributesSchema, moduleIdentifierFactory, moduleExclusions, buildOperationProcessor)
+        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, new DefaultConflictHandler(conflictResolver, moduleReplacements), spec, attributesSchema, moduleIdentifierFactory, moduleExclusions, buildOperationProcessor, moduleReplacements)
 
         def a = revision('a')
         def b = revision('b')
@@ -856,9 +876,10 @@ class DependencyGraphBuilderTest extends Specification {
         def result = resolve()
 
         then:
-        1 * conflictResolver.select(!null) >> {
-            Collection<ComponentResolutionState> candidates = it[0]
-            return candidates.find { it.version == '1.2' }
+        1 * conflictResolver.select(!null) >> { args ->
+            def details = args[0]
+            Collection<ComponentResolutionState> candidates = details.candidates
+            details.select(candidates.find { it.version == '1.2' })
         }
 
         when:
@@ -888,9 +909,10 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select(!null) >> {
-            Collection<ComponentResolutionState> candidates = it[0]
-            return candidates.find { it.version == '1.2' }
+        1 * conflictResolver.select(!null) >> { args ->
+            def details = args[0]
+            Collection<ComponentResolutionState> candidates = details.candidates
+            details.select(candidates.find { it.version == '1.2' })
         }
 
         and:
@@ -913,9 +935,10 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select(!null) >> {
-            Collection<ComponentResolutionState> candidates = it[0]
-            return candidates.find { it.version == '1.2' }
+        1 * conflictResolver.select(!null) >> { args ->
+            def details = args[0]
+            Collection<ComponentResolutionState> candidates = details.candidates
+            details.select(candidates.find { it.version == '1.2' })
         }
 
         and:
@@ -938,9 +961,10 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select(!null) >> {
-            Collection<ComponentResolutionState> candidates = it[0]
-            return candidates.find { it.version == '1.2' }
+        1 * conflictResolver.select(!null) >> { args ->
+            def details = args[0]
+            Collection<ComponentResolutionState> candidates = details.candidates
+            details.select(candidates.find { it.version == '1.2' })
         }
 
         and:

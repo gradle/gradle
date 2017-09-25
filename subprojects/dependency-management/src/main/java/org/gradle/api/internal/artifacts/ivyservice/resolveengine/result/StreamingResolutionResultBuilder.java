@@ -36,8 +36,8 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
-import org.gradle.internal.time.Timers;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -183,7 +183,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         private ResolvedComponentResult deserialize(Decoder decoder) {
             int valuesRead = 0;
             byte type = -1;
-            Timer clock = Timers.startTimer();
+            Timer clock = Time.startTimer();
             try {
                 DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
                 Map<Long, ComponentSelector> selectors = new HashMap<Long, ComponentSelector>();

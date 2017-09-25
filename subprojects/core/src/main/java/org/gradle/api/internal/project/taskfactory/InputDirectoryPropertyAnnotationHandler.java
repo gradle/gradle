@@ -15,43 +15,19 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.TaskPropertyValue;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 
-import java.io.File;
 import java.lang.annotation.Annotation;
-import java.nio.file.Path;
-import java.util.Collection;
-import java.util.concurrent.Callable;
 
 public class InputDirectoryPropertyAnnotationHandler extends AbstractInputPropertyAnnotationHandler {
     public Class<? extends Annotation> getAnnotationType() {
         return InputDirectory.class;
     }
 
-    @Override
-    protected void validate(String propertyName, Object value, Collection<String> messages) {
-        File fileValue = toFile(value);
-        if (!fileValue.exists()) {
-            messages.add(String.format("Directory '%s' specified for property '%s' does not exist.", fileValue, propertyName));
-        } else if (!fileValue.isDirectory()) {
-            messages.add(String.format("Directory '%s' specified for property '%s' is not a directory.", fileValue, propertyName));
-        }
-    }
-
-    private File toFile(Object value) {
-        if (value instanceof ConfigurableFileTree) {
-            return ((ConfigurableFileTree) value).getDir();
-        } else if (value instanceof Path) {
-            return ((Path) value).toFile();
-        } else {
-            return (File) value;
-        }
-    }
-
-    protected TaskInputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, Callable<Object> futureValue) {
+    protected TaskInputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, TaskPropertyValue futureValue) {
         return task.getInputs().dir(futureValue);
     }
 }

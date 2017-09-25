@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.caching.internal.BuildCacheHasher;
 
 public class EnumValueSnapshot implements ValueSnapshot {
@@ -48,18 +47,6 @@ public class EnumValueSnapshot implements ValueSnapshot {
             return this;
         }
         return snapshotter.snapshot(value);
-    }
-
-    @Override
-    public ValueSnapshot isolatableSnapshot(Object value, ValueSnapshotter snapshotter) {
-        if (isEqualEnum(value)) {
-            if (this instanceof Isolatable) {
-                return this;
-            } else {
-                return snapshotter.wrap(value, this);
-            }
-        }
-        return snapshotter.isolatableSnapshot(value);
     }
 
     private boolean isEqualEnum(Object value) {

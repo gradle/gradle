@@ -26,7 +26,7 @@ class XcodeSingleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
         then:
         executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcode")
 
-        def project = xcodeProject("${rootProjectName}.xcodeproj").projectFile
+        def project = rootXcodeProject.projectFile
         project.mainGroup.assertHasChildren(['build.gradle'])
         project.assertNoTargets()
     }
@@ -43,7 +43,7 @@ apply plugin: 'swift-executable'
         then:
         executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
-        def project = xcodeProject("${rootProjectName}.xcodeproj")
+        def project = rootXcodeProject
         project.projectFile.getFile().assertExists()
         project.schemeFiles*.file*.assertExists()
         project.workspaceSettingsFile.assertExists()

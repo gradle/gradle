@@ -32,9 +32,4 @@ public class IsolatableValueSnapshotStrategy extends ValueSnapshotStrategy {
     public ValueSnapshot snapshot(Object value) {
         return snapshotter.isolatableSnapshot(value);
     }
-
-    @Override
-    public ValueSnapshot snapshot(Object value, ValueSnapshot candidate) {
-        return snapshotter.isolatableSnapshot(value, candidate);
-    }
 }

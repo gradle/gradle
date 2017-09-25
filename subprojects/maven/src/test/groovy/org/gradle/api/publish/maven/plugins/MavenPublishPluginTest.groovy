@@ -17,13 +17,16 @@
 package org.gradle.api.publish.maven.plugins
 
 import org.gradle.api.artifacts.PublishArtifactSet
+import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
+import org.gradle.api.publish.maven.tasks.GenerateMavenPom
 import org.gradle.api.publish.maven.tasks.PublishToMavenLocal
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
+import org.gradle.api.publish.tasks.GenerateModuleMetadata
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
@@ -60,19 +63,38 @@ class MavenPublishPluginTest extends AbstractProjectBuilderSpec {
         publishing.publications.test instanceof DefaultMavenPublication
     }
 
-    def "creates publish tasks for publication and repository"() {
+    def "creates generation tasks for publication"() {
+        when:
+        publishing.publications.create("test", MavenPublication)
+        closeTaskContainer()
+
+        then:
+        project.tasks["generatePomFileForTestPublication"] instanceof GenerateMavenPom
+    }
+
+    def "creates generation tasks for publication with component"() {
+        def component = Stub(TestComponent)
+
+        when:
+        def publication = publishing.publications.create("test", MavenPublication)
+        publication.from(component)
+        closeTaskContainer()
+
+        then:
+        project.tasks["generateMetadataFileForTestPublication"] instanceof GenerateModuleMetadata
+    }
+
+    def "creates publish tasks for each publication and repository"() {
         when:
         publishing.publications.create("test", MavenPublication)
         publishing.repositories { maven { url = "http://foo.com" } }
         closeTaskContainer()
 
         then:
-        project.tasks["publishTestPublicationToMavenRepository"] != null
-        project.tasks["publishTestPublicationToMavenLocal"] != null
-        project.tasks["generatePomFileForTestPublication"] != null
+        project.tasks["publishTestPublicationToMavenRepository"] instanceof PublishToMavenRepository
     }
 
-    def "task is created for publishing to mavenLocal"() {
+    def "creates task to publish each publication to mavenLocal"() {
         given:
         publishing.publications.create("test", MavenPublication)
         closeTaskContainer()
@@ -163,5 +185,8 @@ class MavenPublishPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         project.tasks["generatePomFileForTestPublication"].destination == new File(newBuildDir, "publications/test/pom-default.xml")
+    }
+
+    interface TestComponent extends SoftwareComponentInternal, ComponentWithVariants {
     }
 }

@@ -16,33 +16,21 @@
 
 package org.gradle.launcher.cli.converter;
 
-import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
-import org.gradle.launcher.daemon.configuration.GradleProperties;
+import org.gradle.internal.buildoption.BuildOption;
+import org.gradle.internal.logging.LoggingConfigurationBuildOptionFactory;
 
+import java.util.List;
 import java.util.Map;
 
 public class PropertiesToLogLevelConfigurationConverter {
+    private final List<BuildOption<LoggingConfiguration>> buildOptions = new LoggingConfigurationBuildOptionFactory().create();
+
     public LoggingConfiguration convert(Map<String, String> properties, LoggingConfiguration loggingConfiguration) {
-        String logLevel = properties.get(GradleProperties.LOG_LEVEL_PROPERTY);
-        if (logLevel != null) {
-            LogLevel level = parseLogLevel(logLevel);
-            loggingConfiguration.setLogLevel(level);
+        for (BuildOption<LoggingConfiguration> option : buildOptions) {
+            option.applyFromProperty(properties, loggingConfiguration);
         }
 
         return loggingConfiguration;
-    }
-
-    private LogLevel parseLogLevel(String value) {
-        try {
-            LogLevel logLevel = LogLevel.valueOf(value.toUpperCase());
-            if (logLevel == LogLevel.ERROR) {
-                throw new IllegalArgumentException("Log level cannot be set to 'ERROR'.");
-            }
-            return logLevel;
-        } catch (IllegalArgumentException e) {
-            String message = String.format("Value '%s' given for %s system property is invalid.  (must be one of quiet, warn, lifecycle, info, or debug)", value, GradleProperties.LOG_LEVEL_PROPERTY);
-            throw new IllegalArgumentException(message, e);
-        }
     }
 }

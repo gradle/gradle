@@ -41,9 +41,15 @@ public abstract class AbstractMappingProvider<OUT, IN> extends AbstractProvider<
     }
 
     @Override
+    public OUT get() {
+        return map(provider.get());
+    }
+
+    @Override
     public OUT getOrNull() {
-        if (provider.isPresent()) {
-            return map(provider.get());
+        IN value = provider.getOrNull();
+        if (value != null) {
+            return map(value);
         }
         return null;
     }

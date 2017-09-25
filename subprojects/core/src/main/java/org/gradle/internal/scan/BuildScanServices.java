@@ -17,24 +17,33 @@
 package org.gradle.internal.scan;
 
 import org.gradle.StartParameter;
-import org.gradle.internal.scan.clock.BuildScanTimeProvider;
-import org.gradle.internal.scan.clock.DefaultBuildScanTimeProvider;
+import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.scan.config.BuildScanConfigServices;
 import org.gradle.internal.scan.config.BuildScanPluginAutoApply;
+import org.gradle.internal.scan.time.BuildScanBuildStartedTime;
+import org.gradle.internal.scan.time.BuildScanClock;
+import org.gradle.internal.scan.time.DefaultBuildScanBuildStartedTime;
+import org.gradle.internal.scan.time.DefaultBuildScanClock;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
-import org.gradle.internal.time.TimeProvider;
+import org.gradle.internal.time.Clock;
 import org.gradle.plugin.management.internal.PluginRequestsTransformer;
 
 public class BuildScanServices extends AbstractPluginServiceRegistry {
 
     @Override
-    public void registerGlobalServices(ServiceRegistration registration) {
+    public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.addProvider(new Object() {
-            BuildScanTimeProvider createTimeProvider(TimeProvider timeProvider) {
-                return new DefaultBuildScanTimeProvider(timeProvider);
+            BuildScanClock createBuildScanClock(Clock clock) {
+                return new DefaultBuildScanClock(clock);
             }
         });
+        registration.addProvider(new Object() {
+            BuildScanBuildStartedTime createBuildScanBuildStartedTime(BuildStartedTime buildStartedTime) {
+                return new DefaultBuildScanBuildStartedTime(buildStartedTime);
+            }
+        });
+        registration.addProvider(new BuildScanConfigServices());
     }
 
     @Override
@@ -44,10 +53,5 @@ public class BuildScanServices extends AbstractPluginServiceRegistry {
                 return new BuildScanPluginAutoApply(startParameter);
             }
         });
-    }
-
-    @Override
-    public void registerBuildTreeServices(ServiceRegistration registration) {
-        registration.addProvider(new BuildScanConfigServices());
     }
 }
