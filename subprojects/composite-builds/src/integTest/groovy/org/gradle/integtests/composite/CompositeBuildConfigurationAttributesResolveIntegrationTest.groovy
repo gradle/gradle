@@ -67,9 +67,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
 
             }
             project(':b') {
-                configurations.create('default') {
-
-                }
+                configurations.create('default')
                 artifacts {
                     'default' file('b-transitive.jar')
                 }
@@ -127,10 +125,6 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         notExecuted ':external:fooJar'
     }
 
-    // This test documents the current behavior, NOT the expected one.
-    // In particular, it's going to work for identical plugin versions on both ends
-    // but will fail as soon as we use different versions because they will come from
-    // different classloaders.
     @Unroll("context travels down to transitive dependencies with typed attributes using plugin [#v1, #v2, pluginsDSL=#usePluginsDSL]")
     def "context travels down to transitive dependencies with typed attributes"() {
         buildTypedAttributesPlugin('1.0')
@@ -230,46 +224,26 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         """
 
         when:
-        if (expectSuccess) {
-            run ':a:checkDebug'
-        } else {
-            fails ':a:checkDebug'
-        }
+        run ':a:checkDebug'
 
         then:
-        if (expectSuccess) {
-            executedAndNotSkipped ':external:fooJar'
-            notExecuted ':external:barJar'
-        } else {
-            failure.assertHasDescription("Could not determine the dependencies of task ':a:checkDebug'.")
-            failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:_compileFreeDebug'")
-        }
+        executedAndNotSkipped ':external:fooJar'
+        notExecuted ':external:barJar'
 
         when:
-        if (expectSuccess) {
-            run ':a:checkRelease'
-        } else {
-            fails ':a:checkRelease'
-        }
+        run ':a:checkRelease'
 
         then:
-        if (expectSuccess) {
-            executedAndNotSkipped ':external:barJar'
-            notExecuted ':external:fooJar'
-        } else {
-            failure.assertHasDescription("Could not determine the dependencies of task ':a:checkRelease'.")
-            failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:_compileFreeRelease'")
-        }
+        executedAndNotSkipped ':external:barJar'
+        notExecuted ':external:fooJar'
 
         where:
-        v1    | v2    | usePluginsDSL | expectSuccess
-        '1.0' | '1.0' | false         | true
-        '1.1' | '1.0' | false         | false
-        '1.0' | '1.1' | false         | false
+        v1    | v2    | usePluginsDSL
+        '1.0' | '1.0' | false
+        '1.1' | '1.0' | false
 
-        '1.0' | '1.0' | true          | true
-        '1.1' | '1.0' | true          | false
-        '1.0' | '1.1' | true          | false
+        '1.0' | '1.0' | true
+        '1.1' | '1.0' | true
     }
 
     private String usesTypedAttributesPlugin(String version, boolean usePluginsDSL) {

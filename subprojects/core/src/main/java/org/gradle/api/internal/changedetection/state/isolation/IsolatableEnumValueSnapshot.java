@@ -18,6 +18,8 @@ package org.gradle.api.internal.changedetection.state.isolation;
 
 import org.gradle.api.internal.changedetection.state.EnumValueSnapshot;
 
+import javax.annotation.Nullable;
+
 /**
  * Isolates an Enum value and is a snapshot for that value.
  */
@@ -32,5 +34,14 @@ public class IsolatableEnumValueSnapshot extends EnumValueSnapshot implements Is
     @Override
     public Enum isolate() {
         return value;
+    }
+
+    @Nullable
+    @Override
+    public <S> Isolatable<S> coerce(Class<S> type) {
+        if (type.isEnum() && type.getName().equals(value.getClass().getName())) {
+            return (Isolatable<S>) new IsolatableEnumValueSnapshot((Enum) Enum.valueOf(type.asSubclass(Enum.class), value.name()));
+        }
+        return null;
     }
 }

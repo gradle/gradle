@@ -22,6 +22,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.internal.Cast;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
@@ -152,6 +153,18 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
     @Override
     public Object get() {
         return value.isolate();
+    }
+
+    @Nullable
+    @Override
+    public <S> S coerce(Class<S> type) {
+        if (value != null) {
+            Isolatable<S> converted = value.coerce(type);
+            if (converted != null) {
+                return converted.isolate();
+            }
+        }
+        return null;
     }
 
     @Override

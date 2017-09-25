@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.attributes;
 
+import javax.annotation.Nullable;
+
 /**
  * Represents an optional attribute value, as found in an attribute container. There are 3 possible cases:
  * <ul>
@@ -32,6 +34,12 @@ public interface AttributeValue<T> {
         @Override
         public boolean isPresent() {
             return false;
+        }
+
+        @Nullable
+        @Override
+        public <S> S coerce(Class<S> type) {
+            return null;
         }
 
         @Override
@@ -51,4 +59,11 @@ public interface AttributeValue<T> {
      * @return the value of this attribute. Throws an error if called on a missing or unknown attribute value.
      */
     T get();
+
+    /**
+     * Returns the value of this attribute as the given type, if possible.
+     * @return null if cannot be converted.
+     */
+    @Nullable
+    <S> S coerce(Class<S> type);
 }

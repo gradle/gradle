@@ -18,6 +18,8 @@ package org.gradle.api.internal.changedetection.state.isolation;
 
 import org.gradle.api.internal.changedetection.state.Snapshot;
 
+import javax.annotation.Nullable;
+
 /**
  * Isolatable objects can return an isolated instance of the given type T from which this object was created.
  * An <b>isolated</b> instance has the same internal state as the original object on which this isolatable was based,
@@ -31,4 +33,12 @@ public interface Isolatable<T> extends Snapshot {
      * Returns an instance of T that is isolated from the original object. When T is mutable, a new instance is created on each call. When T is immutable, a new instance may or may not be created on each call.
      */
     T isolate();
+
+    /**
+     * Returns an {@link Isolatable} that can produce values of the given type from this value, if possible.
+     *
+     * @return null if not supported.
+     */
+    @Nullable
+    <S> Isolatable<S> coerce(Class<S> type);
 }

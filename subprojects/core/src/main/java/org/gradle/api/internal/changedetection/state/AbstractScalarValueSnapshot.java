@@ -18,6 +18,8 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 
+import javax.annotation.Nullable;
+
 /**
  * A snapshot of an immutable scalar value. Should only be used for immutable JVM provided or core Gradle types.
  *
@@ -36,6 +38,12 @@ public abstract class AbstractScalarValueSnapshot<T> implements ValueSnapshot, I
 
     public T isolate() {
         return getValue();
+    }
+
+    @Nullable
+    @Override
+    public <S> Isolatable<S> coerce(Class<S> type) {
+        return null;
     }
 
     @Override

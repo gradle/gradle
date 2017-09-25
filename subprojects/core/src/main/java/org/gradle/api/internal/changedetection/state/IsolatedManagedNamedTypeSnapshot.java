@@ -19,6 +19,8 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.Named;
 import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 
+import javax.annotation.Nullable;
+
 public class IsolatedManagedNamedTypeSnapshot extends ManagedNamedTypeSnapshot implements Isolatable<Named> {
     private final Named value;
 
@@ -30,5 +32,11 @@ public class IsolatedManagedNamedTypeSnapshot extends ManagedNamedTypeSnapshot i
     @Override
     public Named isolate() {
         return value;
+    }
+
+    @Nullable
+    @Override
+    public <S> Isolatable<S> coerce(Class<S> type) {
+        return null;
     }
 }
