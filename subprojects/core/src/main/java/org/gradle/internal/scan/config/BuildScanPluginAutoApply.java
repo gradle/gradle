@@ -41,6 +41,8 @@ import java.util.List;
  * <li>The plugin request is inserted before any other plugin requests.</li>
  * <li>A fixed version of the build scan plugin is requested.</li>
  * </ol>
+ *
+ * @since 4.3
  */
 public class BuildScanPluginAutoApply implements PluginRequestsTransformer {
     public static final String BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION = "1.10";
