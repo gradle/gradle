@@ -443,12 +443,21 @@ class ValueSnapshotterTest extends Specification {
     def "creates isolated serializable type"() {
         def value = new Bean(prop: "123")
 
+        def loader = new GroovyClassLoader(getClass().classLoader)
+        loader.addURL(ClasspathUtil.getClasspathForClass(GroovyObject).toURI().toURL())
+        def cl = loader.parseClass("package ${Bean.package.name}; class Bean implements Serializable { String prop }")
+        assert cl != Bean
+        assert cl.name == Bean.name
+
         expect:
         def isolated = snapshotter.isolate(value)
         isolated instanceof SerializedValueSnapshot
         def other = isolated.isolate()
         other.prop == "123"
         !other.is(value)
+
+        def v = isolated.coerce(cl).isolate()
+        v.prop == "123"
     }
 
     def "can coerce serializable value"() {
@@ -727,9 +736,5 @@ class ValueSnapshotterTest extends Specification {
         def sn1 = snapshotter.snapshot(value, snapshot)
         def sn2 = snapshotter.snapshot(value)
         assert sn1 == sn2
-    }
-
-    static class Bean implements Serializable {
-        String prop
     }
 }

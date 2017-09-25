@@ -44,6 +44,9 @@ public class IsolatableSerializedValueSnapshot extends SerializedValueSnapshot i
         if (type.isAssignableFrom(originalClass)) {
             return Cast.uncheckedCast(this);
         }
+        if (type.getName().equals(originalClass.getName())) {
+            return Cast.uncheckedCast(new IsolatableSerializedValueSnapshot(getImplementationHash(), getValue(), type));
+        }
         return null;
     }
 }
