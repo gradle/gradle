@@ -137,8 +137,18 @@ class ModuleResolveState implements CandidateModule {
         for (SelectorState selector : selectors) {
             selector.restart(selected);
         }
-        for (EdgeState dependency : new ArrayList<EdgeState>(unattachedDependencies)) {
-            dependency.restart(selected);
+        if (!unattachedDependencies.isEmpty()) {
+            restartUnattachedDependencies(selected);
+        }
+    }
+
+    private void restartUnattachedDependencies(ComponentState selected) {
+        if (unattachedDependencies.size()==1) {
+            unattachedDependencies.iterator().next().restart(selected);
+        } else {
+            for (EdgeState dependency : new ArrayList<EdgeState>(unattachedDependencies)) {
+                dependency.restart(selected);
+            }
         }
         unattachedDependencies.clear();
     }
