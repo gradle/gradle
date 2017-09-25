@@ -1,26 +1,26 @@
 <classpath>
 	<classpathentry kind="output" path="bin"/>
-	<classpathentry kind="src" path="src/main/java">
+	<classpathentry kind="src" output="output/src/main/java" path="src/main/java">
 		<attributes>
 			<attribute name="gradle_source_sets" value="main"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="src" path="src/main/resources">
+	<classpathentry kind="src" output="output/src/main/resources" path="src/main/resources">
 		<attributes>
 			<attribute name="gradle_source_sets" value="main"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="src" path="src/test/java">
+	<classpathentry kind="src" output="output/src/test/java" path="src/test/java">
 		<attributes>
 			<attribute name="gradle_source_sets" value="test"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="src" path="src/test/resources">
+	<classpathentry kind="src" output="output/src/test/resources" path="src/test/resources">
 		<attributes>
 			<attribute name="gradle_source_sets" value="test"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="src" path="src/integTest/java">
+	<classpathentry kind="src" output="output/src/integTest/java" path="src/integTest/java">
 		<attributes>
 			<attribute name="gradle_source_sets" value="integTest"/>
 		</attributes>

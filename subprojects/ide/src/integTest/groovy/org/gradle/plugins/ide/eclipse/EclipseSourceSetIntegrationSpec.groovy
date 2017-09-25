@@ -96,4 +96,45 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
         classpath.lib('junit-4.12.jar').assertHasAttribute('gradle_source_sets', 'test')
         classpath.lib('guava-18.0.jar').assertHasAttribute('gradle_source_sets', 'main,test,integTest')
     }
+
+    def "Source dir has default output location"() {
+        setup:
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
+        """
+        file('src/main/java').mkdirs()
+        file('src/main/resources').mkdirs()
+
+        when:
+        run 'eclipse'
+
+        then:
+        EclipseClasspathFixture classpath = classpath('.')
+        classpath.sourceDir('src/main/java').assertOutputLocation('output/src/main/java')
+        classpath.sourceDir('src/main/resources').assertOutputLocation('output/src/main/resources')
+    }
+
+    def "Source folder output location can be customized in whenMerged block"() {
+        setup:
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
+
+            eclipse.classpath.file.whenMerged {
+                entries.find { entry -> entry.path == 'src/main/java' }.output = null
+                entries.find { entry -> entry.path == 'src/main/resources' }.output = 'out/res'
+            }
+        """
+        file('src/main/java').mkdirs()
+        file('src/main/resources').mkdirs()
+
+        when:
+        run 'eclipse'
+
+        then:
+        EclipseClasspathFixture classpath = classpath('.')
+        classpath.sourceDir('src/main/java').assertOutputLocation(null)
+        classpath.sourceDir('src/main/resources').assertOutputLocation('out/res')
+    }
 }

@@ -126,6 +126,7 @@ public class SourceFoldersCreator {
                     folder.setName(dir.getName());
                     folder.setIncludes(getIncludesForTree(sourceSet, tree));
                     folder.setExcludes(getExcludesForTree(sourceSet, tree));
+                    folder.setOutput("output/" + relativePath.replaceAll("\\\\", "/"));
 
                     folder.getEntryAttributes().put("gradle_source_sets", sourceSet.getName().replaceAll(",", ""));
                     entries.add(folder);
