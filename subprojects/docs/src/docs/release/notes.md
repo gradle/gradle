@@ -6,6 +6,10 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
+### Convenient use of build scan plugin
+
+This version of Gradle makes it even easier to gain deep insights into your build. By using the command line option `--scan`, the latest [build scan plugin](https://scans.gradle.com/get-started) is applied automatically. You will not have to explicitly declare the plugin in your build script or an init script.
+
 ### Improvements for plugin authors
 
 In Gradle 4.1, we added APIs that allow a specific task output directory or output file to be wired in as an input for another task, in a way that allows the task dependencies to be inferred and that deals with later changes to the configured locations of those outputs. It is intended to be a more robust, performant and descriptive alternative to using `File` property types and calls to `Task.dependsOn`.
