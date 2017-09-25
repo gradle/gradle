@@ -87,6 +87,11 @@ public class SwiftCompile extends AbstractNativeCompileTask {
         cleaner.setDestinationDir(getObjectFileDir().getAsFile().get());
         cleaner.execute();
 
+        if (getSource().isEmpty()) {
+            setDidWork(cleaner.getDidWork());
+            return;
+        }
+
         super.compile(inputs);
     }
 }

@@ -116,13 +116,6 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     install.setToolChain(link.getToolChain());
                     install.setDestinationDir(buildDirectory.dir("install/" + names.getDirName()));
                     install.setExecutable(link.getBinaryFile());
-                    // TODO - infer this
-                    install.onlyIf(new Spec<Task>() {
-                        @Override
-                        public boolean isSatisfiedBy(Task element) {
-                            return install.getExecutable().exists();
-                        }
-                    });
                     install.lib(binary.getRuntimeLibraries());
                 } else if (binary instanceof SwiftSharedLibrary) {
                     // Add a link task
