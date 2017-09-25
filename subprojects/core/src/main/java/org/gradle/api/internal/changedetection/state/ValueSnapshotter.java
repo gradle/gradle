@@ -71,7 +71,11 @@ public class ValueSnapshotter implements IsolatableFactory {
      */
     @Override
     public <T> Isolatable<T> isolate(T value) {
-        return Cast.uncheckedCast(isolatableSnapshot(value));
+        try {
+            return Cast.uncheckedCast(isolatableSnapshot(value));
+        } catch (Throwable t) {
+            throw new IsolationException(value, t);
+        }
     }
 
     public ValueSnapshot isolatableSnapshot(Object value) throws UncheckedIOException {
