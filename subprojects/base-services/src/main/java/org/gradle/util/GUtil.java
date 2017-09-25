@@ -27,6 +27,7 @@ import org.gradle.internal.io.SkipFirstTextStream;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.io.WriterTextStream;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -431,6 +432,7 @@ public class GUtil {
      * @param <T> Callable's return type
      * @return The value returned by {@link Callable#call()}
      */
+    @Nullable
     public static <T> T uncheckedCall(Callable<T> callable) {
         try {
             return callable.call();

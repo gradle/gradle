@@ -21,6 +21,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.api.tasks.util.PatternSet;
@@ -41,6 +42,7 @@ import java.util.concurrent.Callable;
 
 import static org.gradle.util.GUtil.uncheckedCall;
 
+@SuppressWarnings("Since15")
 public class DefaultFileCollectionResolveContext implements ResolvableFileCollectionResolveContext {
     protected final PathToFileResolver fileResolver;
     private final List<Object> queue = new LinkedList<Object>();
@@ -125,6 +127,11 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
                 Object callableResult = uncheckedCall(callable);
                 if (callableResult != null) {
                     queue.add(0, callableResult);
+                }
+            } else if (element instanceof Provider) {
+                Object providerResult = ((Provider<?>) element).getOrNull();
+                if (providerResult != null) {
+                    queue.add(0, providerResult);
                 }
             } else if (element instanceof Path) {
                 queue.add(0, ((Path) element).toFile());
