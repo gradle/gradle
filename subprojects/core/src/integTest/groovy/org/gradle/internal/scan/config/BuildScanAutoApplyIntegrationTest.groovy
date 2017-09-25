@@ -22,12 +22,11 @@ import org.gradle.util.VersionNumber
 import spock.lang.Unroll
 
 import static org.gradle.internal.scan.config.BuildScanPluginAutoApply.BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION
-import static org.gradle.internal.scan.config.BuildScanPluginAutoApply.BUILD_SCAN_PLUGIN_ID
 
 class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
     private static final String BUILD_SCAN_PLUGIN_MINIMUM_VERSION = BuildScanPluginCompatibilityEnforcer.MIN_SUPPORTED_VERSION.toString()
     private static final String BUILD_SCAN_PLUGIN_NEWER_VERSION = newerThanAutoApplyPluginVersion()
-    private static final String BUILD_SCAN_PLUGIN_ID = BUILD_SCAN_PLUGIN_ID.id
+    private static final String BUILD_SCAN_PLUGIN_ID = BuildScanPluginAutoApply.BUILD_SCAN_PLUGIN_ID.id
 
     def setup() {
         buildFile << """
