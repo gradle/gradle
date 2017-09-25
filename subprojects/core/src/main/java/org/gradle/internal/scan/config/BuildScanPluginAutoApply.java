@@ -33,12 +33,14 @@ import org.gradle.util.CollectionUtils;
 import java.util.List;
 
 /**
- * Automatically adds a plugin request for the build scan plugin when `--scan` is detected.
+ * Automatically adds a plugin request for the build scan plugin when {@code --scan} is detected.
  *
- * - Plugin request is only added for the root project.
- * - No request is added if the project has already requested the build scan plugin, via `plugins` or `buildscript`.
- * - The plugin request is inserted before any other plugin requests.
- * - A fixed version of the build scan plugin is requested.
+ * <ol>
+ * <li>Plugin request is only added for the root project.</li>
+ * <li>No request is added if the project has already requested the build scan plugin, via {@code plugins} or {@code buildscript}.</li>
+ * <li>The plugin request is inserted before any other plugin requests.</li>
+ * <li>A fixed version of the build scan plugin is requested.</li>
+ * </ol>
  */
 public class BuildScanPluginAutoApply implements PluginRequestsTransformer {
     public static final String BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION = "1.10";
