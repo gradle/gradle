@@ -22,10 +22,13 @@ import org.gradle.util.VersionNumber
 import spock.lang.Unroll
 
 import static org.gradle.internal.scan.config.BuildScanPluginAutoApply.BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION
+import static org.gradle.internal.scan.config.BuildScanPluginAutoApply.BUILD_SCAN_PLUGIN_ID
 
 class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
     private static final String BUILD_SCAN_PLUGIN_MINIMUM_VERSION = BuildScanPluginCompatibilityEnforcer.MIN_SUPPORTED_VERSION.toString()
     private static final String BUILD_SCAN_PLUGIN_NEWER_VERSION = newerThanAutoApplyPluginVersion()
+    private static final String BUILD_SCAN_PLUGIN_ID = BUILD_SCAN_PLUGIN_ID.id
+
     def setup() {
         buildFile << """
             task dummy {}
@@ -63,9 +66,9 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
             include 'a', 'b'
         """
         buildFile << """
-            assert pluginManager.hasPlugin('com.gradle.build-scan')
+            assert pluginManager.hasPlugin('$BUILD_SCAN_PLUGIN_ID')
             subprojects {
-                assert !pluginManager.hasPlugin('com.gradle.build-scan')
+                assert !pluginManager.hasPlugin('$BUILD_SCAN_PLUGIN_ID')
             }
         """
 
@@ -80,7 +83,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         when:
         file('buildSrc/build.gradle') << """
             println 'in buildSrc'
-            assert !pluginManager.hasPlugin('com.gradle.build-scan')
+            assert !pluginManager.hasPlugin('$BUILD_SCAN_PLUGIN_ID')
         """
 
         and:
@@ -101,7 +104,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         """
         file('a/build.gradle') << """
             println 'in nested build'
-            assert !pluginManager.hasPlugin('com.gradle.build-scan')
+            assert !pluginManager.hasPlugin('$BUILD_SCAN_PLUGIN_ID')
         """
 
         and:
@@ -118,7 +121,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         if (version != BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION) {
             publishDummyBuildScanPlugin(version)
         }
-        pluginsRequest "id 'com.gradle.build-scan' version '$version'"
+        pluginsRequest "id '$BUILD_SCAN_PLUGIN_ID' version '$version'"
 
         and:
         runBuildWithScanRequest()
@@ -156,7 +159,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
     def "does not auto-apply build scan plugin when explicitly requested and not applied"() {
         when:
-        pluginsRequest "id 'com.gradle.build-scan' version '${BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION}' apply false"
+        pluginsRequest "id '$BUILD_SCAN_PLUGIN_ID' version '${BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION}' apply false"
 
         and:
         runBuildWithScanRequest()
@@ -176,7 +179,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
             gradle.buildFinished {
                 println 'PUBLISHING BUILD SCAN v${version}'
             }
-""", "com.gradle.build-scan", "DummyBuildScanPlugin")
+""", BUILD_SCAN_PLUGIN_ID, "DummyBuildScanPlugin")
         builder.publishAs("com.gradle:build-scan-plugin:${version}", mavenRepo, executer)
     }
 
@@ -215,7 +218,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
                     classpath '${coordinates}'
                 }
             }
-            apply plugin: 'com.gradle.build-scan'
+            apply plugin: '$BUILD_SCAN_PLUGIN_ID'
 """ + buildFile.text
     }
 
