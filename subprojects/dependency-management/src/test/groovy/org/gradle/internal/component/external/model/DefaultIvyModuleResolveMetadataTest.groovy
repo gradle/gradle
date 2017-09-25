@@ -48,10 +48,10 @@ class DefaultIvyModuleResolveMetadataTest extends AbstractModuleComponentResolve
         def md = metadata
 
         then:
-        md.getConfiguration("a").hierarchy == ["a"] as Set
-        md.getConfiguration("b").hierarchy == ["a", "b"] as Set
-        md.getConfiguration("c").hierarchy == ["a", "c"] as Set
-        md.getConfiguration("d").hierarchy == ["a", "b", "c", "d"] as Set
+        md.getConfiguration("a").hierarchy == ["a"]
+        md.getConfiguration("b").hierarchy == ["b", "a"]
+        md.getConfiguration("c").hierarchy == ["c", "a"]
+        md.getConfiguration("d").hierarchy == ["d", "b", "a", "c"]
     }
 
     def "getBranch returns branch from moduleDescriptor" () {

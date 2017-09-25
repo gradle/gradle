@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -43,6 +44,7 @@ import org.gradle.internal.component.model.VariantMetadata;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -271,7 +273,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         private final Set<ComponentArtifactMetadata> artifacts = new LinkedHashSet<ComponentArtifactMetadata>();
         private final boolean transitive;
         private final boolean visible;
-        private final Set<String> hierarchy;
+        private final List<String> hierarchy;
         private final List<Exclude> excludes;
         private ModuleExclusion exclusions;
 
@@ -305,21 +307,21 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         }
 
         @Override
-        public Set<String> getHierarchy() {
+        public Collection<String> getHierarchy() {
             return hierarchy;
         }
 
-        private Set<String> calculateHierarchy() {
+        private List<String> calculateHierarchy() {
             if (parents == null) {
-                return Collections.singleton(name);
+                return Collections.singletonList(name);
             }
             Set<String> hierarchy = new LinkedHashSet<String>(1 + parents.size());
             populateHierarchy(hierarchy);
-            return hierarchy;
+            return ImmutableList.copyOf(hierarchy);
         }
 
         private void populateHierarchy(Set<String> accumulator) {
-            accumulator.add(name);
+                accumulator.add(name);
             if (parents != null) {
                 for (DefaultConfigurationMetadata parent : parents) {
                     parent.populateHierarchy(accumulator);
@@ -366,7 +368,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         }
 
         private boolean include(DependencyMetadata dependency) {
-            Set<String> hierarchy = getHierarchy();
+            Collection<String> hierarchy = getHierarchy();
             for (String moduleConfiguration : dependency.getModuleConfigurations()) {
                 if (moduleConfiguration.equals("%") || hierarchy.contains(moduleConfiguration)) {
                     return true;
@@ -396,7 +398,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         }
 
         private ModuleExclusion filterExcludes(ModuleExclusions exclusions, Iterable<Exclude> excludes) {
-            Set<String> hierarchy = getHierarchy();
+            Collection<String> hierarchy = getHierarchy();
             List<Exclude> filtered = Lists.newArrayList();
             for (Exclude exclude : excludes) {
                 for (String config : exclude.getConfigurations()) {
