@@ -28,7 +28,6 @@ class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceT
         runner.minimumVersion = '4.0'
     }
 
-    @Ignore
     def "merge exclude rules"() {
         runner.testProject = TEST_PROJECT_NAME
         startServer()

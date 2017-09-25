@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
@@ -47,6 +49,7 @@ import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -55,6 +58,7 @@ import java.util.Set;
 
 public class DependencyGraphBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(DependencyGraphBuilder.class);
+    private static final Predicate<SelectorState> ALL_SELECTORS = Predicates.alwaysTrue();
     private final ConflictHandler conflictHandler;
     private final Spec<? super DependencyMetadata> edgeFilter;
     private final ResolveContextToComponentResolver moduleResolver;
@@ -164,29 +168,28 @@ public class DependencyGraphBuilder {
                                                   final ModuleIdentifier moduleId,
                                                   String version,
                                                   final ModuleResolveState module) {
-        ComponentState selected = module.getSelected();
+        final ComponentState selected = module.getSelected();
         Set<SelectorState> moduleSelectors = module.getSelectors();
         if (selected == null && !resolveState.getModuleReplacementsData().participatesInReplacements(moduleId)) {
-            if (allSelectorsAgreeWith(moduleSelectors, version)) {
+            if (allSelectorsAgreeWith(moduleSelectors, version, ALL_SELECTORS)) {
                 module.select(moduleRevision);
                 return true;
             }
         }
+
         final Set<SelectorState> selectedBy = moduleRevision.allResolvers;
         if (selected != null && selected != moduleRevision) {
-            if (allSelectorsAgreeWith(moduleRevision.allResolvers, selected.getVersion())) {
+            if (allSelectorsAgreeWith(moduleRevision.allResolvers, selected.getVersion(), ALL_SELECTORS)) {
                 // if this selector agrees with the already selected version, don't bother and pick it
                 return true;
             }
 
-            List<SelectorState> otherSelectors = Lists.newArrayListWithCapacity(moduleSelectors.size());
-            for (SelectorState selector : moduleSelectors) {
-                if (!selectedBy.contains(selector)) {
-                    otherSelectors.add(selector);
+            if (allSelectorsAgreeWith(moduleSelectors, version, new Predicate<SelectorState>() {
+                @Override
+                public boolean apply(@Nullable SelectorState input) {
+                    return !selectedBy.contains(input);
                 }
-            }
-
-            if (allSelectorsAgreeWith(otherSelectors, version)) {
+            })) {
                 resolveState.getDeselectVersionAction().execute(moduleId);
                 module.softSelect(moduleRevision);
                 return true;
@@ -354,17 +357,18 @@ public class DependencyGraphBuilder {
         visitor.finish(resolveState.getRoot());
     }
 
-    public static boolean allSelectorsAgreeWith(Collection<SelectorState> allSelectors, String version) {
-        if (allSelectors.isEmpty()) {
-            return false;
-        }
+    private static boolean allSelectorsAgreeWith(Collection<SelectorState> allSelectors, String version, Predicate<SelectorState> filter) {
+        boolean atLeastOneAgrees = false;
         for (SelectorState selectorState : allSelectors) {
-            VersionSelector candidateSelector = selectorState.getVersionSelector();
-            if (candidateSelector == null || !candidateSelector.canShortCircuitWhenVersionAlreadyPreselected() || !candidateSelector.accept(version)) {
-                return false;
+            if (filter.apply(selectorState)) {
+                VersionSelector candidateSelector = selectorState.getVersionSelector();
+                if (candidateSelector == null || !candidateSelector.canShortCircuitWhenVersionAlreadyPreselected() || !candidateSelector.accept(version)) {
+                    return false;
+                }
+                atLeastOneAgrees = true;
             }
         }
-        return true;
+        return atLeastOneAgrees;
     }
 
 

@@ -25,6 +25,7 @@ import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -62,15 +63,31 @@ class ModuleResolveState implements CandidateModule {
 
     @Override
     public Collection<ComponentState> getVersions() {
-        // todo: maybe we could avoid allocation here if we do a pre-check to see if all versions are selectable
-        // in which case we could return the list directly
-        List<ComponentState> versions = Lists.newArrayListWithCapacity(this.versions.size());
-        for (ComponentState componentState : this.versions.values()) {
+        if (this.versions.isEmpty()) {
+            return Collections.emptyList();
+        }
+        Collection<ComponentState> values = this.versions.values();
+        if (areAllCandidatesForSelection(values)) {
+            return values;
+        }
+        List<ComponentState> versions = Lists.newArrayListWithCapacity(values.size());
+        for (ComponentState componentState : values) {
             if (componentState.isCandidateForConflictResolution()) {
                 versions.add(componentState);
             }
         }
         return versions;
+    }
+
+    private static boolean areAllCandidatesForSelection(Collection<ComponentState> values) {
+        boolean allCandidates = true;
+        for (ComponentState value : values) {
+            if (!value.isCandidateForConflictResolution()) {
+                allCandidates = false;
+                break;
+            }
+        }
+        return allCandidates;
     }
 
     public ComponentState getSelected() {
