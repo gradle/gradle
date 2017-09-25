@@ -17,14 +17,10 @@
 package org.gradle.nativeplatform.toolchain
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import spock.lang.Issue
 
-import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
-
-@RequiresInstalledToolChain(GCC_COMPATIBLE)
-class GccToolChainIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class CommonToolChainIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Issue("https://github.com/gradle/gradle-native/issues/139")
     def "can rely on working directory to be project directory"() {
         def app = new CHelloWorldApp()
