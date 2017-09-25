@@ -36,6 +36,7 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.model.FixedComponentArtifacts;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -194,7 +195,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 result.setAuthoritative(cachedMetaData.getAgeMillis() == 0);
                 return;
             }
-            ModuleComponentResolveMetadata metaData = cachedMetaData.getMetaData();
+            MutableModuleComponentResolveMetadata metaData = cachedMetaData.getMetaData();
             metaData = metadataProcessor.processMetadata(metaData);
             if (requestMetaData.isChanging() || metaData.isChanging()) {
                 if (cachePolicy.mustRefreshChangingModule(moduleComponentIdentifier, cachedMetaData.getModuleVersion(), cachedMetaData.getAgeMillis())) {
@@ -210,8 +211,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             }
 
             LOGGER.debug("Using cached module metadata for module '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
-            metaData = metaData.withSource(new CachingModuleSource(cachedMetaData.getDescriptorHash(), metaData.isChanging(), metaData.getSource()));
-            result.resolved(metaData);
+            ModuleComponentResolveMetadata immutableMetadata = metaData.asImmutableWithSource(new CachingModuleSource(cachedMetaData.getDescriptorHash(), metaData.isChanging(), metaData.getSource()));
+            result.resolved(immutableMetadata);
             // When age == 0, verified since the start of this build, assume the meta-data hasn't changed
             result.setAuthoritative(cachedMetaData.getAgeMillis() == 0);
         }
@@ -293,7 +294,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 }
                 return true;
             }
-            ModuleComponentResolveMetadata metaData = cachedMetaData.getMetaData();
+            MutableModuleComponentResolveMetadata metaData = cachedMetaData.getMetaData();
             metaData = metadataProcessor.processMetadata(metaData);
             if (metaData.isChanging()) {
                 if (cachePolicy.mustRefreshChangingModule(moduleComponentIdentifier, cachedMetaData.getModuleVersion(), cachedMetaData.getAgeMillis())) {
@@ -369,10 +370,9 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     ModuleComponentResolveMetadata metaData = result.getMetaData();
                     ModuleSource moduleSource = metaData.getSource();
                     ModuleMetaDataCache.CachedMetaData cachedMetaData = moduleMetaDataCache.cacheMetaData(delegate, metaData);
-                    metaData = metadataProcessor.processMetadata(metaData);
-                    moduleSource = new CachingModuleSource(cachedMetaData.getDescriptorHash(), requestMetaData.isChanging() || metaData.isChanging(), moduleSource);
-                    metaData = metaData.withSource(moduleSource);
-                    result.resolved(metaData);
+                    MutableModuleComponentResolveMetadata mutableMetaData = metadataProcessor.processMetadata(metaData.asMutable());
+                    moduleSource = new CachingModuleSource(cachedMetaData.getDescriptorHash(), requestMetaData.isChanging() || mutableMetaData.isChanging(), moduleSource);
+                    result.resolved(mutableMetaData.asImmutableWithSource(moduleSource));
                     break;
                 case Failed:
                     break;

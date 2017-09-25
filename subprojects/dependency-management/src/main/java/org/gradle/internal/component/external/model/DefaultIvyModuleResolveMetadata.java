@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.component.external.model;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.component.model.ModuleSource;
 
@@ -22,7 +23,11 @@ import java.util.Map;
 
 public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements IvyModuleResolveMetadata {
     DefaultIvyModuleResolveMetadata(MutableIvyModuleResolveMetadata metadata) {
-        super(metadata);
+        super(metadata, null);
+    }
+
+    DefaultIvyModuleResolveMetadata(MutableIvyModuleResolveMetadata metadata, @Nullable ModuleSource source) {
+        super(metadata, source);
     }
 
     private DefaultIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, ModuleSource source) {

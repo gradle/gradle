@@ -31,17 +31,12 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadata
 import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.internal.component.external.model.IvyModuleResolveMetadata;
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
+import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.gradle.internal.rules.DefaultRuleActionAdapter;
-import org.gradle.internal.rules.DefaultRuleActionValidator;
-import org.gradle.internal.rules.RuleAction;
-import org.gradle.internal.rules.RuleActionAdapter;
-import org.gradle.internal.rules.RuleActionValidator;
-import org.gradle.internal.rules.SpecRuleAction;
+import org.gradle.internal.rules.*;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
@@ -125,30 +120,26 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         return addRule(createSpecRuleActionForModule(id, ruleActionAdapter.createFromRuleSource(ComponentMetadataDetails.class, ruleSource)));
     }
 
-    public ModuleComponentResolveMetadata processMetadata(ModuleComponentResolveMetadata metadata) {
-        ModuleComponentResolveMetadata updatedMetadata;
-        if (rules.isEmpty()) {
-            updatedMetadata = metadata;
-        } else {
-            MutableModuleComponentResolveMetadata mutableMetadata = metadata.asMutable();
-            ComponentMetadataDetails details = instantiator.newInstance(ComponentMetadataDetailsAdapter.class, mutableMetadata);
+    @Override
+    public MutableModuleComponentResolveMetadata processMetadata(MutableModuleComponentResolveMetadata metadata) {
+        if (!rules.isEmpty()) {
+            ComponentMetadataDetails details = instantiator.newInstance(ComponentMetadataDetailsAdapter.class, metadata);
             processAllRules(metadata, details);
-            updatedMetadata = mutableMetadata.asImmutable();
         }
 
-        if (!updatedMetadata.getStatusScheme().contains(updatedMetadata.getStatus())) {
-            throw new ModuleVersionResolveException(updatedMetadata.getId(), String.format("Unexpected status '%s' specified for %s. Expected one of: %s", updatedMetadata.getStatus(), updatedMetadata.getComponentId().getDisplayName(), updatedMetadata.getStatusScheme()));
+        if (!metadata.getStatusScheme().contains(metadata.getStatus())) {
+            throw new ModuleVersionResolveException(metadata.getId(), String.format("Unexpected status '%s' specified for %s. Expected one of: %s", metadata.getStatus(), metadata.getComponentId().getDisplayName(), metadata.getStatusScheme()));
         }
-        return updatedMetadata;
+        return metadata;
     }
 
-    private void processAllRules(ModuleComponentResolveMetadata metadata, ComponentMetadataDetails details) {
+    private void processAllRules(MutableModuleComponentResolveMetadata metadata, ComponentMetadataDetails details) {
         for (SpecRuleAction<? super ComponentMetadataDetails> rule : rules) {
             processRule(rule, metadata, details);
         }
     }
 
-    private void processRule(SpecRuleAction<? super ComponentMetadataDetails> specRuleAction, ModuleComponentResolveMetadata metadata, final ComponentMetadataDetails details) {
+    private void processRule(SpecRuleAction<? super ComponentMetadataDetails> specRuleAction, MutableModuleComponentResolveMetadata metadata, final ComponentMetadataDetails details) {
         if (!specRuleAction.getSpec().isSatisfiedBy(details)) {
             return;
         }
@@ -158,12 +149,12 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         for (Class<?> inputType : action.getInputTypes()) {
             if (inputType == IvyModuleDescriptor.class) {
                 // Ignore the rule if it expects Ivy metadata and this isn't an Ivy module
-                if (!(metadata instanceof IvyModuleResolveMetadata)) {
+                if (!(metadata instanceof MutableIvyModuleResolveMetadata)) {
                     return;
                 }
 
-                IvyModuleResolveMetadata ivyMetadata = (IvyModuleResolveMetadata) metadata;
-                inputs.add(new DefaultIvyModuleDescriptor(ivyMetadata.getExtraInfo(), ivyMetadata.getBranch(), ivyMetadata.getStatus()));
+                ModuleDescriptorState descriptor = metadata.getDescriptor();
+                inputs.add(new DefaultIvyModuleDescriptor(descriptor.getExtraInfo(), descriptor.getBranch(), metadata.getStatus()));
                 continue;
             }
 

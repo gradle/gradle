@@ -67,14 +67,14 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final List<? extends DependencyMetadata> dependencies;
     private final List<Exclude> excludes;
 
-    protected AbstractModuleComponentResolveMetadata(MutableModuleComponentResolveMetadata metadata) {
+    protected AbstractModuleComponentResolveMetadata(MutableModuleComponentResolveMetadata metadata, @Nullable ModuleSource source) {
         this.descriptor = metadata.getDescriptor();
         this.componentIdentifier = metadata.getComponentId();
         this.moduleVersionIdentifier = metadata.getId();
         changing = metadata.isChanging();
         status = metadata.getStatus();
         statusScheme = metadata.getStatusScheme();
-        moduleSource = metadata.getSource();
+        moduleSource = source == null ? metadata.getSource() : source;
         configurationDefinitions = metadata.getConfigurationDefinitions();
         dependencies = metadata.getDependencies();
         excludes = descriptor.getExcludes();
@@ -367,13 +367,14 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
 
         private boolean include(DependencyMetadata dependency) {
             Set<String> hierarchy = getHierarchy();
-            for (String moduleConfiguration : dependency.getModuleConfigurations()) {
+            Set<String> moduleConfigurations = dependency.getModuleConfigurations();
+            for (String moduleConfiguration : moduleConfigurations) {
                 if (moduleConfiguration.equals("%") || hierarchy.contains(moduleConfiguration)) {
                     return true;
                 }
                 if (moduleConfiguration.equals("*")) {
                     boolean include = true;
-                    for (String conf2 : dependency.getModuleConfigurations()) {
+                    for (String conf2 : moduleConfigurations) {
                         if (conf2.startsWith("!") && conf2.substring(1).equals(getName())) {
                             include = false;
                             break;

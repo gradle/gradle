@@ -43,6 +43,11 @@ public interface MutableModuleComponentResolveMetadata {
     ModuleComponentResolveMetadata asImmutable();
 
     /**
+     * Creates an immutable copy of this meta-data.
+     */
+    ModuleComponentResolveMetadata asImmutableWithSource(ModuleSource source);
+
+    /**
      * Sets the component id and legacy module version id
      */
     void setComponentId(ModuleComponentIdentifier componentId);

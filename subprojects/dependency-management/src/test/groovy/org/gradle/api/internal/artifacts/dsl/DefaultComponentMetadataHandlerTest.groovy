@@ -53,7 +53,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     def ruleAction = Stub(RuleAction)
 
     def "does nothing when no rules registered"() {
-        def metadata = ivyMetadata().asImmutable()
+        def metadata = ivyMetadata()
 
         expect:
         mockedHandler.processMetadata(metadata).is(metadata)
@@ -202,7 +202,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         metadata.statusScheme = ["alpha", "beta"]
 
         when:
-        handler.processMetadata(metadata.asImmutable())
+        handler.processMetadata(metadata)
 
         then:
         ModuleVersionResolveException e = thrown()
@@ -217,7 +217,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         handler.all { throw failure }
 
         and:
-        handler.processMetadata(metadata.asImmutable())
+        handler.processMetadata(metadata)
 
         then:
         InvalidUserCodeException e = thrown()
@@ -235,7 +235,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         handler.all { ComponentMetadataDetails cmd, IvyModuleDescriptor imd -> closuresCalled << 3 }
 
         and:
-        handler.processMetadata(metadata.asImmutable())
+        handler.processMetadata(metadata)
 
         then:
         closuresCalled.sort() == [ 1, 2, 3 ]
@@ -249,7 +249,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.processMetadata(metadata.asImmutable())
+        handler.processMetadata(metadata)
 
         then:
         noExceptionThrown()
@@ -277,7 +277,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.processMetadata(metadata.asImmutable())
+        handler.processMetadata(metadata)
 
         then:
         noExceptionThrown()
@@ -306,7 +306,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.processMetadata(metadata.asImmutable())
+        handler.processMetadata(metadata)
 
         then:
         noExceptionThrown()
@@ -322,7 +322,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.processMetadata(metadata.asImmutable())
+        handler.processMetadata(metadata)
 
         then:
         !invoked
@@ -369,7 +369,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.processMetadata(metadata.asImmutable())
+        handler.processMetadata(metadata)
 
         then:
         noExceptionThrown()
