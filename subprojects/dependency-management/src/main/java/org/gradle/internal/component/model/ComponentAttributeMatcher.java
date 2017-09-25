@@ -244,11 +244,20 @@ public class ComponentAttributeMatcher {
         }
 
         void update(final Attribute<Object> attribute, AttributeSelectionSchema schema, AttributeValue<Object> consumerValue, AttributeValue<Object> producerValue) {
-            DefaultCompatibilityCheckResult<Object> details = new DefaultCompatibilityCheckResult<Object>(consumerValue.get(), producerValue.get());
+            Object val = producerValue.get();
+            Class<Object> attributeType = attribute.getType();
+            if (!attributeType.isInstance(val)) {
+                String foundType = val.getClass().getName();
+                if (foundType.equals(attributeType.getName())) {
+                    foundType += " with a different ClassLoader";
+                }
+                throw new IllegalArgumentException(String.format("Unexpected type for attribute '%s' provided. Expected a value of type %s but found a value of type %s.", attribute.getName(), attributeType.getName(), foundType));
+            }
+            DefaultCompatibilityCheckResult<Object> details = new DefaultCompatibilityCheckResult<Object>(consumerValue.get(), val);
             schema.matchValue(attribute, details);
             if (details.isCompatible()) {
                 matched.add(attribute);
-                matchesByAttribute.put(attribute, producerValue.get());
+                matchesByAttribute.put(attribute, val);
             } else {
                 compatible = false;
             }

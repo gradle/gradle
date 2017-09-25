@@ -342,6 +342,37 @@ class ComponentAttributeMatcherTest extends Specification {
         matcher.match(schema, [candidate1, candidate2, fallback1], requested, fallback1) == [fallback1]
     }
 
+    def "can match when consumer uses more general type for attribute"() {
+        def matcher = new ComponentAttributeMatcher()
+        def key1 = Attribute.of("a", Number)
+        def key2 = Attribute.of("a", Integer)
+        schema.attribute(key1)
+
+        def requested = attributes().attribute(key1, 1)
+        def c1 = attributes().attribute(key2, 1)
+        def c2 = attributes().attribute(key2, 2)
+
+        expect:
+        matcher.match(schema, [c1, c2], requested, null) == [c1]
+    }
+
+    def "matching fails when attribute has incompatible types in consumer and producer"() {
+        def matcher = new ComponentAttributeMatcher()
+        def key1 = Attribute.of("a", String)
+        def key2 = Attribute.of("a", Number)
+        schema.attribute(key1)
+
+        def requested = attributes().attribute(key1, "1")
+        def c1 = attributes().attribute(key2, 1)
+
+        when:
+        matcher.match(schema, [c1], requested, null)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Unexpected type for attribute 'a' provided. Expected a value of type java.lang.String but found a value of type java.lang.Integer."
+    }
+
     private DefaultMutableAttributeContainer attributes() {
         new DefaultMutableAttributeContainer(factory)
     }
