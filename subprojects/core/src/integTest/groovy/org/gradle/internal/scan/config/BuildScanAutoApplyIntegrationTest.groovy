@@ -18,12 +18,14 @@ package org.gradle.internal.scan.config
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
+import org.gradle.util.VersionNumber
 import spock.lang.Unroll
 
 import static org.gradle.internal.scan.config.BuildScanPluginAutoApply.BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION
 
 class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
     private static final String BUILD_SCAN_PLUGIN_MINIMUM_VERSION = BuildScanPluginCompatibilityEnforcer.MIN_SUPPORTED_VERSION.toString()
+    private static final String BUILD_SCAN_PLUGIN_NEWER_VERSION = newerThanAutoApplyPluginVersion()
     def setup() {
         buildFile << """
             task dummy {}
@@ -128,7 +130,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         sequence | version
         "older"  | BUILD_SCAN_PLUGIN_MINIMUM_VERSION
         "same"   | BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION
-        "newer"  | "100.0"
+        "newer"  | BUILD_SCAN_PLUGIN_NEWER_VERSION
     }
 
     @Unroll
@@ -149,7 +151,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         sequence | version
         "older"  | BUILD_SCAN_PLUGIN_MINIMUM_VERSION
         "same"   | BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION
-        "newer"  | "100.0"
+        "newer"  | BUILD_SCAN_PLUGIN_NEWER_VERSION
     }
 
     def "does not auto-apply build scan plugin when explicitly requested and not applied"() {
@@ -215,5 +217,10 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
             }
             apply plugin: 'com.gradle.build-scan'
 """ + buildFile.text
+    }
+
+    static String newerThanAutoApplyPluginVersion() {
+        def autoApplyVersion = VersionNumber.parse(BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION)
+        VersionNumber.version(autoApplyVersion.major + 1).toString()
     }
 }
