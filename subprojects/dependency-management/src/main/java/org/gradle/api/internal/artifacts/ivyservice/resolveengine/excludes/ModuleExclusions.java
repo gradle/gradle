@@ -21,6 +21,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.DependencyGraphBuilder;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
@@ -38,10 +39,10 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.exclude
  * Manages sets of exclude rules, allowing union and intersection operations on the rules.
  *
  * <p>This class attempts to reduce execution time, by flattening union and intersection specs, at the cost of more analysis at construction time. This is taken advantage of by {@link
- * org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder}, on the assumption that there are many more edges in the dependency graph than there are exclude rules (ie
+ * DependencyGraphBuilder}, on the assumption that there are many more edges in the dependency graph than there are exclude rules (ie
  * we evaluate the rules much more often that we construct them). </p>
  *
- * <p>Also, this class attempts to be quite accurate in determining if 2 specs will exclude exactly the same set of modules. {@link org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder}
+ * <p>Also, this class attempts to be quite accurate in determining if 2 specs will exclude exactly the same set of modules. {@link DependencyGraphBuilder}
  * uses this to avoid traversing the dependency graph of a particular version that has already been traversed when a new incoming edge is added (eg a newly discovered dependency) and when an incoming
  * edge is removed (eg a conflict evicts a version that depends on the given version). </p>
  *

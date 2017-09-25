@@ -27,7 +27,7 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.DependencyGraphBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphPathResolver
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector
