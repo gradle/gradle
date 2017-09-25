@@ -27,19 +27,19 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
             task dummy {}
-"""
+        """
         settingsFile << """
             pluginManagement {
                 repositories {
                     maven { url '${mavenRepo.uri}' }
                 }
             }
-"""
+        """
 
         publishDummyBuildScanPlugin(BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION)
     }
 
-    def "automatically applies buildscan plugin when --scan is provided on command-line"() {
+    def "automatically applies build scan plugin when --scan is provided on command-line"() {
         when:
         runBuildWithScanRequest()
 
@@ -47,7 +47,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         buildScanPluginApplied(BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION)
     }
 
-    def "does not automatically apply buildscan plugin when --scan is not provided on command-line"() {
+    def "does not automatically apply build scan plugin when --scan is not provided on command-line"() {
         when:
         runBuildWithoutScanRequest()
 
@@ -55,17 +55,17 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         buildScanPluginNotApplied()
     }
 
-    def "does not automatically apply buildscan plugin to subprojects"() {
+    def "does not automatically apply build scan plugin to subprojects"() {
         when:
         settingsFile << """
             include 'a', 'b'
-"""
+        """
         buildFile << """
             assert pluginManager.hasPlugin('com.gradle.build-scan')
             subprojects {
                 assert !pluginManager.hasPlugin('com.gradle.build-scan')
             }
-"""
+        """
 
         and:
         runBuildWithScanRequest()
@@ -74,12 +74,12 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         buildScanPluginApplied(BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION)
     }
 
-    def "does not apply buildscan plugin to buildSrc build"() {
+    def "does not apply build scan plugin to buildSrc build"() {
         when:
         file('buildSrc/build.gradle') << """
             println 'in buildSrc'
             assert !pluginManager.hasPlugin('com.gradle.build-scan')
-"""
+        """
 
         and:
         runBuildWithScanRequest()
@@ -89,18 +89,18 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         buildScanPluginApplied(BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION)
     }
 
-    def "does not apply buildscan plugin to nested builds in a composite"() {
+    def "does not apply build scan plugin to nested builds in a composite"() {
         when:
         settingsFile << """
             includeBuild 'a'
-"""
+        """
         file('a/settings.gradle') << """
             rootProject.name = 'a'
-"""
+        """
         file('a/build.gradle') << """
             println 'in nested build'
             assert !pluginManager.hasPlugin('com.gradle.build-scan')
-"""
+        """
 
         and:
         runBuildWithScanRequest()
@@ -152,7 +152,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         "newer"  | "100.0"
     }
 
-    def "does not auto-apply buildscan plugin when explicitly requested and not applied"() {
+    def "does not auto-apply build scan plugin when explicitly requested and not applied"() {
         when:
         pluginsRequest "id 'com.gradle.build-scan' version '${BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION}' apply false"
 
