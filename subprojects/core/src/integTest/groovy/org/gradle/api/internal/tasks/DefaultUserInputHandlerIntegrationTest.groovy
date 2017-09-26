@@ -97,14 +97,21 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can capture user input from plugin"() {
-        file('buildSrc/src/main/groovy/UserInputPlugin.groovy') << """
-            import org.gradle.api.Project
-            import org.gradle.api.Plugin
+        file('buildSrc/src/main/java/UserInputPlugin.java') << """
+            import org.gradle.api.Project;
+            import org.gradle.api.Plugin;
 
-            class UserInputPlugin implements Plugin<Project> {
+            import org.gradle.api.internal.project.ProjectInternal;
+            import org.gradle.api.internal.tasks.userinput.DefaultUserInputHandler;
+            import org.gradle.api.internal.tasks.userinput.DefaultInputRequest;
+
+            public class UserInputPlugin implements Plugin<Project> {
                 @Override
-                void apply(Project project) {
-                    ${verifyUserInput(PROMPT, HELLO_WORLD_USER_INPUT)}
+                public void apply(Project project) {
+                    DefaultUserInputHandler userInputHandler = ((ProjectInternal) project).getServices().get(DefaultUserInputHandler.class);
+                    DefaultInputRequest inputRequest = new DefaultInputRequest("$PROMPT");
+                    String response = userInputHandler.getInput(inputRequest);
+                    System.out.println("You entered '" + response + "'");
                 }
             }
         """
@@ -123,6 +130,7 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
         gradleHandle.stdinPipe.write(getPlatformLineSeparator().bytes)
         gradleHandle.waitForFinish()
         gradleHandle.standardOutput.contains(PROMPT)
+        gradleHandle.standardOutput.contains("You entered '$HELLO_WORLD_USER_INPUT'")
     }
 
     @Ignore
@@ -163,10 +171,6 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-    }
-
-    static String verifyUserInput(String prompt, String expectedInput) {
-        verifyUserInput(prompt, null, expectedInput)
     }
 
     static String verifyUserInput(String prompt, String defaultValue, String expectedInput) {
