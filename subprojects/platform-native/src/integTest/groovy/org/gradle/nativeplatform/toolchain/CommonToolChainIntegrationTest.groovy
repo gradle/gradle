@@ -38,7 +38,7 @@ model {
                 def librarySearchPath = 'build/libs/hello/static'
                 def libraryName = 'hello'
                 if (toolChain in VisualCpp) {
-                    linker.args "/LIBPATH:\${librarySearchPath}", "\${libraryName}.lib}"
+                    linker.args "/LIBPATH:\${librarySearchPath}", "\${libraryName}.lib"
                 } else {
                     linker.args "-L\${librarySearchPath}", "-l\${libraryName}"
                 }
