@@ -641,7 +641,6 @@ class DefaultModuleExclusionTest extends Specification {
         intersect(spec, spec2).is(spec)
     }
 
-    @NotYetImplemented
     def "intersection of two specs where one spec contains a superset of the rules of the other returns the spec containing the superset"() {
         def rule1 = excludeRule("org", "module")
         def rule2 = regexpExcludeRule("org", "module2")
