@@ -76,11 +76,10 @@ public class OptionalDependenciesHandler {
     }
 
     boolean maybeAddAsOptionalDependency(NodeState node, DependencyMetadata dependency) {
-        PendingOptionalDependencies pendingOptionalDependencies;
-        ModuleIdentifier key;
+        ModuleIdentifier key = toKey(dependency);
+        PendingOptionalDependencies pendingOptionalDependencies = optionalDependencies.get(key);
+
         if (dependency.isOptional() && !isOptionalConfiguration) {
-            key = toKey(dependency);
-            pendingOptionalDependencies = optionalDependencies.get(key);
             if (pendingOptionalDependencies == null || pendingOptionalDependencies.isPending()) {
                 if (pendingOptionalDependencies == null) {
                     pendingOptionalDependencies = new PendingOptionalDependencies();
@@ -90,8 +89,6 @@ public class OptionalDependenciesHandler {
                 return true;
             }
         } else {
-            key = dependencyMetadataToModuleIdentifier(dependency);
-            pendingOptionalDependencies = optionalDependencies.get(key);
             if (pendingOptionalDependencies != null && pendingOptionalDependencies.isPending()) {
                 if (noLongerOptional == null) {
                     noLongerOptional = Lists.newLinkedList();
