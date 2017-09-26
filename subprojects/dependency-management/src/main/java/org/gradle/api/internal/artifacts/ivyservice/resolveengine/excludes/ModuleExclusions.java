@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.DependencyGraphBuilder;
@@ -56,10 +56,10 @@ public class ModuleExclusions {
 
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
-    private final Map<List<Exclude>, Map<Set<String>, ModuleExclusion>> cachedExcludes = Maps.newConcurrentMap();
+    private final Map<ImmutableList<Exclude>, Map<ImmutableSet<String>, ModuleExclusion>> cachedExcludes = Maps.newConcurrentMap();
     private final Map<MergeOperation, AbstractModuleExclusion> mergeCache = Maps.newConcurrentMap();
-    private final Map<List<Exclude>, AbstractModuleExclusion> excludeAnyCache = Maps.newConcurrentMap();
-    private final Map<Set<AbstractModuleExclusion>, ImmutableModuleExclusionSet> exclusionSetCache = Maps.newConcurrentMap();
+    private final Map<ImmutableList<Exclude>, AbstractModuleExclusion> excludeAnyCache = Maps.newConcurrentMap();
+    private final Map<ImmutableSet<AbstractModuleExclusion>, IntersectionExclusion> intersectionCache = Maps.newConcurrentMap();
     private final Map<AbstractModuleExclusion[], Map<AbstractModuleExclusion[], MergeOperation>> mergeOperationCache = Maps.newIdentityHashMap();
     private final Map<ModuleIdentifier, ModuleIdExcludeSpec> moduleIdSpecs = Maps.newConcurrentMap();
     private final Map<String, ModuleNameExcludeSpec> moduleNameSpecs = Maps.newConcurrentMap();
@@ -71,15 +71,15 @@ public class ModuleExclusions {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
-    public ModuleExclusion excludeAny(List<Exclude> excludes, Set<String> hierarchy) {
-        Map<Set<String>, ModuleExclusion> exclusionMap = cachedExcludes.get(excludes);
+    public ModuleExclusion excludeAny(ImmutableList<Exclude> excludes, ImmutableSet<String> hierarchy) {
+        Map<ImmutableSet<String>, ModuleExclusion> exclusionMap = cachedExcludes.get(excludes);
         if (exclusionMap == null) {
             exclusionMap = Maps.newConcurrentMap();
             cachedExcludes.put(excludes, exclusionMap);
         }
         ModuleExclusion moduleExclusion = exclusionMap.get(hierarchy);
         if (moduleExclusion == null) {
-            List<Exclude> filtered = Lists.newArrayList();
+            ImmutableList.Builder<Exclude> filtered = ImmutableList.builder();
             for (Exclude exclude : excludes) {
                 for (String config : exclude.getConfigurations()) {
                     if (hierarchy.contains(config)) {
@@ -88,17 +88,17 @@ public class ModuleExclusions {
                     }
                 }
             }
-            moduleExclusion = excludeAny(filtered);
+            moduleExclusion = excludeAny(filtered.build());
             exclusionMap.put(hierarchy, moduleExclusion);
         }
         return moduleExclusion;
     }
 
-    private ImmutableModuleExclusionSet asImmutable(Set<AbstractModuleExclusion> excludes) {
-        ImmutableModuleExclusionSet cached = exclusionSetCache.get(excludes);
+    private IntersectionExclusion asIntersection(ImmutableSet<AbstractModuleExclusion> excludes) {
+        IntersectionExclusion cached = intersectionCache.get(excludes);
         if (cached == null) {
-            cached = new ImmutableModuleExclusionSet(excludes);
-            exclusionSetCache.put(excludes, cached);
+            cached = new IntersectionExclusion(new ImmutableModuleExclusionSet(excludes));
+            intersectionCache.put(excludes, cached);
         }
         return cached;
     }
@@ -117,13 +117,13 @@ public class ModuleExclusions {
         if (excludes.length == 0) {
             return EXCLUDE_NONE;
         }
-        return excludeAny(Arrays.asList(excludes));
+        return excludeAny(ImmutableList.copyOf(excludes));
     }
 
     /**
      * Returns a spec that excludes those modules and artifacts that are excluded by _any_ of the given exclude rules.
      */
-    public ModuleExclusion excludeAny(List<Exclude> excludes) {
+    public ModuleExclusion excludeAny(ImmutableList<Exclude> excludes) {
         if (excludes.isEmpty()) {
             return EXCLUDE_NONE;
         }
@@ -131,11 +131,11 @@ public class ModuleExclusions {
         if (exclusion != null) {
             return exclusion;
         }
-        Set<AbstractModuleExclusion> exclusions = Sets.newHashSetWithExpectedSize(excludes.size());
+        ImmutableSet.Builder<AbstractModuleExclusion> exclusions = ImmutableSet.builder();
         for (Exclude exclude : excludes) {
             exclusions.add(forExclude(exclude));
         }
-        exclusion = new IntersectionExclusion(asImmutable(exclusions));
+        exclusion = asIntersection(exclusions.build());
         excludeAnyCache.put(excludes, exclusion);
         return exclusion;
     }
@@ -218,12 +218,12 @@ public class ModuleExclusions {
             return two;
         }
 
-        Set<AbstractModuleExclusion> builder = Sets.newHashSet();
+        ImmutableSet.Builder<AbstractModuleExclusion> builder = ImmutableSet.builder();
 
         ((AbstractModuleExclusion) one).unpackIntersection(builder);
         ((AbstractModuleExclusion) two).unpackIntersection(builder);
 
-        return new IntersectionExclusion(asImmutable(builder));
+        return asIntersection(builder.build());
     }
 
     /**
@@ -338,7 +338,7 @@ public class ModuleExclusions {
         if (merged.isEmpty()) {
             exclusion = ModuleExclusions.EXCLUDE_NONE;
         } else {
-            exclusion = new IntersectionExclusion(asImmutable(merged));
+            exclusion = asIntersection(ImmutableSet.copyOf(merged));
         }
         mergeCache.put(merge, exclusion);
         return exclusion;

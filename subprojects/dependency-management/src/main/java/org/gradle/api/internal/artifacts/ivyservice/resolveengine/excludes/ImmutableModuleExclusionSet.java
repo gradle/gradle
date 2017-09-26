@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import org.gradle.internal.Cast;
 
@@ -28,7 +29,7 @@ final class ImmutableModuleExclusionSet implements Set<AbstractModuleExclusion> 
     final AbstractModuleExclusion[] elements;
     private final int hashCode;
 
-    ImmutableModuleExclusionSet(Set<AbstractModuleExclusion> delegate) {
+    ImmutableModuleExclusionSet(ImmutableSet<AbstractModuleExclusion> delegate) {
         this.delegate = delegate;
         this.elements = delegate.toArray(new AbstractModuleExclusion[0]);
         this.hashCode = delegate.hashCode();

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -157,7 +158,7 @@ class EdgeState implements DependencyGraphEdge {
         if (excludes.isEmpty()) {
             return ModuleExclusions.excludeNone();
         }
-        return resolveState.getModuleExclusions().excludeAny(excludes);
+        return resolveState.getModuleExclusions().excludeAny(ImmutableList.copyOf(excludes));
     }
 
     @Override

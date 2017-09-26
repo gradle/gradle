@@ -43,6 +43,7 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static com.google.common.collect.ImmutableList.copyOf
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class LocalComponentDependencyMetadataTest extends Specification {
@@ -363,9 +364,9 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [], false, false, true, false)
 
         expect:
-        def exclusions = moduleExclusions.excludeAny(dep.excludes)
+        def exclusions = moduleExclusions.excludeAny(copyOf(dep.excludes))
         exclusions == ModuleExclusions.excludeNone()
-        exclusions.is(moduleExclusions.excludeAny(dep.excludes))
+        exclusions.is(moduleExclusions.excludeAny(copyOf(dep.excludes)))
     }
 
     def "applies exclude rules when traversing the from configuration"() {
@@ -375,9 +376,9 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", null, "to", [] as Set, [exclude1, exclude2], false, false, true, false)
 
         expect:
-        def exclusions = moduleExclusions.excludeAny(dep.excludes)
+        def exclusions = moduleExclusions.excludeAny(copyOf(dep.excludes))
         exclusions == moduleExclusions.excludeAny(exclude1, exclude2)
-        exclusions.is(moduleExclusions.excludeAny(dep.excludes))
+        exclusions.is(moduleExclusions.excludeAny(copyOf(dep.excludes)))
     }
 
     static class EqualsValuesCompatibleRule implements AttributeCompatibilityRule<String> {
