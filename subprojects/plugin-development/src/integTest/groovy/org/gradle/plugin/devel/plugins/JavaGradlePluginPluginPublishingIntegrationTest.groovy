@@ -135,6 +135,48 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         ivyRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0').assertPublished()
     }
 
+    def "Can publish supplementary artifacts to both Maven and Ivy"() {
+
+        given:
+        plugin('foo', 'com.example.foo')
+        publishToMaven()
+        publishToIvy()
+
+        and:
+        buildFile << """
+
+            task sourceJar(type: Jar) {
+                classifier "sources"
+                from sourceSets.main.allSource
+            }
+            
+            publishing {
+                publications {
+                    pluginMaven(MavenPublication) {
+                        artifact sourceJar
+                    }
+                    pluginIvy(IvyPublication) {
+                        artifact sourceJar
+                    }
+                }
+            }
+
+        """.stripIndent()
+
+        when:
+        succeeds 'publish'
+
+        then:
+
+        mavenRepo.module('com.example', 'plugins', '1.0')
+            .assertArtifactsPublished("plugins-1.0.pom", "plugins-1.0.jar", "plugins-1.0-sources.jar")
+        mavenRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0').assertPublished()
+
+        ivyRepo.module('com.example', 'plugins', '1.0')
+            .assertArtifactsPublished("ivy-1.0.xml", "plugins-1.0.jar", "plugins-1.0-sources.jar")
+        ivyRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0').assertPublished()
+    }
+
     def "Can handle unspecified version"() {
         given:
         buildFile << """
