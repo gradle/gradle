@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.compile
 
-import org.gradle.api.GradleException
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import spock.lang.Specification
@@ -194,20 +193,16 @@ class CompileOptionsTest extends Specification {
     }
 
     @SuppressWarnings("GrDeprecatedAPIUsage")
-    def "querying bootstrapClasspath when deprecated bootClasspath is set fails"() {
+    def "setting deprecated bootClasspath sets bootstrapClasspath"() {
         given:
         compileOptions.bootClasspath = "lib2.jar"
 
-        when:
-        compileOptions.bootstrapClasspath
-
-        then:
-        def ex = thrown GradleException
-        ex.message == "Deprecated property CompileOptions.bootClasspath was set, but replacement property CompileOptions.bootstrapClasspath was queried"
+        expect:
+        compileOptions.bootstrapClasspath.files as List == [new File("lib2.jar")]
     }
 
     @SuppressWarnings("GrDeprecatedAPIUsage")
-    def "setting bootstrapClasspath resets deprecated bootClasspath"() {
+    def "setting bootstrapClasspath sets deprecated bootClasspath"() {
         given:
         compileOptions.bootClasspath = "lib1.jar"
 

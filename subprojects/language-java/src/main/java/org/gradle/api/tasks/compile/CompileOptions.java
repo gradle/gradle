@@ -18,9 +18,10 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import org.gradle.api.GradleException;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
@@ -33,6 +34,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -64,8 +66,6 @@ public class CompileOptions extends AbstractOptions {
     private boolean fork;
 
     private ForkOptions forkOptions = new ForkOptions();
-
-    private String bootClasspath;
 
     private FileCollection bootstrapClasspath;
 
@@ -248,10 +248,7 @@ public class CompileOptions extends AbstractOptions {
     @SuppressWarnings("DeprecatedIsStillUsed")
     public String getBootClasspath() {
         DeprecationLogger.nagUserOfReplacedProperty("CompileOptions.bootClasspath", "CompileOptions.bootstrapClasspath");
-        if (bootClasspath == null && bootstrapClasspath != null) {
-            return bootstrapClasspath.getAsPath();
-        }
-        return bootClasspath;
+        return bootstrapClasspath == null ? null : bootstrapClasspath.getAsPath();
     }
 
     /**
@@ -262,8 +259,16 @@ public class CompileOptions extends AbstractOptions {
     @Deprecated
     public void setBootClasspath(String bootClasspath) {
         DeprecationLogger.nagUserOfReplacedProperty("CompileOptions.bootClasspath", "CompileOptions.bootstrapClasspath");
-        this.bootClasspath = bootClasspath;
-        this.bootstrapClasspath = null;
+        if (bootClasspath == null) {
+            this.bootstrapClasspath = null;
+        } else {
+            String[] paths = StringUtils.split(bootClasspath, File.pathSeparatorChar);
+            List<File> files = Lists.newArrayListWithCapacity(paths.length);
+            for (String path : paths) {
+                files.add(new File(path));
+            }
+            this.bootstrapClasspath = new SimpleFileCollection(files);
+        }
     }
 
     /**
@@ -277,9 +282,6 @@ public class CompileOptions extends AbstractOptions {
     @Optional
     @Classpath
     public FileCollection getBootstrapClasspath() {
-        if (bootClasspath != null) {
-            throw new GradleException("Deprecated property CompileOptions.bootClasspath was set, but replacement property CompileOptions.bootstrapClasspath was queried");
-        }
         return bootstrapClasspath;
     }
 
@@ -289,7 +291,6 @@ public class CompileOptions extends AbstractOptions {
      * @since 4.3
      */
     public void setBootstrapClasspath(FileCollection bootstrapClasspath) {
-        this.bootClasspath = null;
         this.bootstrapClasspath = bootstrapClasspath;
     }
 

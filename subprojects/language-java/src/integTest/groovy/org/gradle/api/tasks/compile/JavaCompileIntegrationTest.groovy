@@ -18,10 +18,10 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.util.Requires
 import org.gradle.util.Resources
 import org.gradle.util.TestPrecondition
+import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -843,5 +843,23 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         executer.withJavaHome jdk7.javaHome
         succeeds "-Pjava8", "clean", "compileJava"
+    }
+
+    def "CompileOptions.bootclasspath is deprecated"() {
+        def jre = AvailableJavaHomes.getBestJre()
+        def bootClasspath = TextUtil.escapeString(jre.absolutePath) + "/lib/rt.jar"
+        buildFile << """
+            apply plugin: 'java'
+            
+            compileJava {
+                options.bootClasspath = "$bootClasspath"
+            }
+        """
+        file('src/main/java/Main.java') << "public class Main {}"
+
+        expect:
+        executer.withFullDeprecationStackTraceDisabled()
+        executer.expectDeprecationWarning()
+        succeeds "compileJava"
     }
 }
