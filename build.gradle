@@ -25,6 +25,7 @@ archivesBaseName = 'gradle'
 buildTypes {
     sanityCheck {
         tasks "classes", "doc:checkstyleApi", "codeQuality", "docs:check", "distribution:checkBinaryCompatibility", "javadocAll"
+        projectProperties ignoreIncomingBuildReceipt: true
     }
 
     // Used by the first phase of the build pipeline, running only last version on multiversion - tests
