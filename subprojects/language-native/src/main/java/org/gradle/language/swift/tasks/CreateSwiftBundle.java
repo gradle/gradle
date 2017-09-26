@@ -74,13 +74,12 @@ public class CreateSwiftBundle extends DefaultTask {
 
         File inputFile = getInformationFileIfExists();
         File outputFile = new File(getOutputDir().getAsFile().get(), "Contents/Info.plist");
-        outputFile.getParentFile().mkdirs();
         if (inputFile == null) {
             Files.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                 + "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
                 + "<plist version=\"1.0\">\n"
                 + "<dict/>\n"
-                + "</plist>", outputFile, Charset.defaultCharset());
+                + "</plist>", outputFile, Charset.forName("UTF-8"));
         } else {
             Files.copy(inputFile, outputFile);
         }

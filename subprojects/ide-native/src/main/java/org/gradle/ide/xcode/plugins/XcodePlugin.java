@@ -230,7 +230,7 @@ public class XcodePlugin extends IdePlugin {
                         return buildProductsDir != null;
                     }
                 });
-                task.from(bundleDebug.getOutputDir());
+                task.from(bundleDebug);
                 task.into(buildProductsDir + "/" + bundleDebug.getOutputDir().getAsFile().get().getName());
             }
         });
