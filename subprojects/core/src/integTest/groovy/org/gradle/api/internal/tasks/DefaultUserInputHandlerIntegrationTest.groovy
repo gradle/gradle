@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks
 
 import org.gradle.api.internal.tasks.userinput.DefaultInputRequest
 import org.gradle.api.internal.tasks.userinput.DefaultUserInputHandler
+import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.ToBeImplemented
 import spock.lang.Ignore
@@ -159,7 +160,7 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
 
     private void withRichConsole(boolean enabled) {
         if (enabled) {
-            executer.withRichConsole()
+            executer.withConsole(ConsoleOutput.Rich)
         }
     }
 
