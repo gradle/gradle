@@ -18,13 +18,17 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Named;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableEnumValueSnapshot;
+import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableSerializedValueSnapshot;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableValueSnapshotStrategy;
 import org.gradle.api.internal.changedetection.state.isolation.IsolationException;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.Cast;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 
 import java.io.ByteArrayOutputStream;
@@ -36,19 +40,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class ValueSnapshotter {
+public class ValueSnapshotter implements IsolatableFactory {
     private final ClassLoaderHierarchyHasher classLoaderHasher;
+    private final NamedObjectInstantiator namedObjectInstantiator;
     private final ValueSnapshotStrategy valueSnapshotStrategy;
     private final IsolatableValueSnapshotStrategy isolatedSnapshotStrategy;
 
-    public ValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHasher) {
+    public ValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHasher, NamedObjectInstantiator namedObjectInstantiator) {
         this.classLoaderHasher = classLoaderHasher;
+        this.namedObjectInstantiator = namedObjectInstantiator;
         valueSnapshotStrategy = new ValueSnapshotStrategy(this);
         isolatedSnapshotStrategy = new IsolatableValueSnapshotStrategy(this);
     }
 
     /**
-     * Creates a snapshot of the given value.
+     * Creates a {@link ValueSnapshot} of the given value, that contains a snapshot of the current state of the value. A snapshot represents an immutable fingerprint of the value that can be later used to determine if a value has changed.
+     *
+     * <p>The snapshots must contain no references to the ClassLoader of the value.</p>
      *
      * @throws UncheckedIOException On failure to snapshot the value.
      */
@@ -57,10 +65,21 @@ public class ValueSnapshotter {
     }
 
     /**
-     * Create an {@link Isolatable} {@link Snapshot} of a value.
+     * Create an {@link Isolatable} of a value. An isolatable represents a snapshot of the state of the value that can later be used to recreate the value as a Java object.
+     *
+     * <p>The isolatable may contain references to the ClassLoader of the value.</p>
      *
      * @throws UncheckedIOException On failure to snapshot the value.
      */
+    @Override
+    public <T> Isolatable<T> isolate(T value) {
+        try {
+            return Cast.uncheckedCast(isolatableSnapshot(value));
+        } catch (Throwable t) {
+            throw new IsolationException(value, t);
+        }
+    }
+
     public ValueSnapshot isolatableSnapshot(Object value) throws UncheckedIOException {
         ValueSnapshot possible = processValue(value, isolatedSnapshotStrategy);
         if (possible instanceof Isolatable) {
@@ -143,6 +162,9 @@ public class ValueSnapshotter {
             ValueSnapshot valueSnapshot = strategy.snapshot(provider.get());
             return new ProviderSnapshot(valueSnapshot);
         }
+        if (value instanceof NamedObjectInstantiator.Managed) {
+            return new ManagedNamedTypeSnapshot((Named)value);
+        }
 
         // Fall back to serialization
         return serialize(value);
@@ -162,13 +184,16 @@ public class ValueSnapshotter {
         return new SerializedValueSnapshot(classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader()), outputStream.toByteArray());
     }
 
-    ValueSnapshot wrap(Object value, ValueSnapshot possible) {
+    private ValueSnapshot wrap(Object value, ValueSnapshot possible) {
         if (possible instanceof EnumValueSnapshot) {
             return new IsolatableEnumValueSnapshot((Enum) value);
         }
         if (possible instanceof SerializedValueSnapshot) {
             SerializedValueSnapshot original = (SerializedValueSnapshot) possible;
             return new IsolatableSerializedValueSnapshot(original.getImplementationHash(), original.getValue(), value.getClass());
+        }
+        if (possible instanceof ManagedNamedTypeSnapshot) {
+            return new IsolatedManagedNamedTypeSnapshot((Named) value, namedObjectInstantiator);
         }
         throw new IsolationException(value);
     }

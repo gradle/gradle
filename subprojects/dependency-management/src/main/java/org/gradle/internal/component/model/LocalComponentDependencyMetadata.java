@@ -265,7 +265,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         }
 
         @Override
-        public Set<String> getHierarchy() {
+        public Collection<String> getHierarchy() {
             return delegate.getHierarchy();
         }
 

@@ -28,9 +28,8 @@ import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
+import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 
 import java.util.List;
@@ -40,15 +39,15 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     private final List<Registration> transforms = Lists.newArrayList();
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final TransformedFileCache transformedFileCache;
-    private final ValueSnapshotter valueSnapshotter;
+    private final IsolatableFactory isolatableFactory;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final InstantiatorFactory instantiatorFactory;
 
-    public DefaultVariantTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory immutableAttributesFactory, TransformedFileCache transformedFileCache, ValueSnapshotter valueSnapshotter, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+    public DefaultVariantTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory immutableAttributesFactory, TransformedFileCache transformedFileCache, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         this.instantiatorFactory = instantiatorFactory;
         this.immutableAttributesFactory = immutableAttributesFactory;
         this.transformedFileCache = transformedFileCache;
-        this.valueSnapshotter = valueSnapshotter;
+        this.isolatableFactory = isolatableFactory;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
     }
 
@@ -72,7 +71,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         // TODO - should calculate this lazily
         Object[] parameters = getTransformParameters(reg.config);
 
-        Registration registration = new DefaultVariantTransformRegistration(ImmutableAttributes.of(reg.from), ImmutableAttributes.of(reg.to), reg.type, parameters,  transformedFileCache, valueSnapshotter, classLoaderHierarchyHasher, instantiatorFactory.inject());
+        Registration registration = new DefaultVariantTransformRegistration(reg.from.asImmutable(), reg.to.asImmutable(), reg.type, parameters,  transformedFileCache, isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory.inject());
         transforms.add(registration);
     }
 

@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Modul
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.DisplayName;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -29,7 +30,7 @@ public interface ConfigurationMetadata extends HasAttributes {
     /**
      * The set of configurations that this configuration extends. Includes this configuration.
      */
-    Set<String> getHierarchy();
+    Collection<String> getHierarchy();
 
     String getName();
 

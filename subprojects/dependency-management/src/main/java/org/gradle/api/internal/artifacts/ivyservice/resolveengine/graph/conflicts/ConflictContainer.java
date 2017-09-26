@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -38,10 +38,10 @@ import static java.util.Collections.singletonList;
 class ConflictContainer<K, T> {
 
     final LinkedList<Conflict> conflicts = newLinkedList();
+    private final Map<K, Conflict> conflictsByParticipant = Maps.newHashMap();
 
     private final Map<K, Collection<? extends T>> elements = newHashMap();
     private final Multimap<K, K> targetToSource = LinkedHashMultimap.create();
-    private boolean empty;
 
     /**
      * Adds new element and returns a conflict instance if given element is conflicted. Element is conflicted when:
@@ -94,8 +94,9 @@ class ConflictContainer<K, T> {
         //If we find any matching conflict we have to hook up with it
 
         //Find an existing matching conflict
-        for (Conflict c : conflicts) {
-            if (!Sets.intersection(participants, c.participants).isEmpty()) {
+        for (K participant : participants) {
+            Conflict c = conflictsByParticipant.get(participant);
+            if (c != null) {
                 //there is already registered conflict with at least one matching participant, hook up to this conflict
                 c.candidates = candidates;
                 c.participants.addAll(participants);
@@ -106,6 +107,9 @@ class ConflictContainer<K, T> {
         //No conflict with matching participants found, create new
         Conflict c = new Conflict(participants, candidates);
         conflicts.add(c);
+        for (K participant : participants) {
+            conflictsByParticipant.put(participant, c);
+        }
         return c;
     }
 
@@ -117,13 +121,13 @@ class ConflictContainer<K, T> {
         return conflicts.size();
     }
 
-    public boolean hasConflicts() {
-        return !conflicts.isEmpty();
-    }
-
     public Conflict popConflict() {
         assert !conflicts.isEmpty();
-        return conflicts.pop();
+        Conflict conflict = conflicts.pop();
+        for (K participant : conflict.participants) {
+            conflictsByParticipant.remove(participant);
+        }
+        return conflict;
     }
 
     public boolean isEmpty() {

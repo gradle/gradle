@@ -45,7 +45,8 @@ class BooleanBuildOptionTest extends Specification {
 
         then:
         testSettings.value
-        testSettings.origin == BuildOption.Origin.GRADLE_PROPERTY
+        testSettings.origin instanceof Origin.GradlePropertyOrigin
+        testSettings.origin.source == GRADLE_PROPERTY
     }
 
     def "can configure command line parser"() {
@@ -128,7 +129,8 @@ class BooleanBuildOptionTest extends Specification {
 
         then:
         testSettings.value
-        testSettings.origin == BuildOption.Origin.COMMAND_LINE
+        testSettings.origin instanceof Origin.CommandLineOrigin
+        testSettings.origin.source == LONG_OPTION
 
         when:
         parsedCommandLine.addOption(DISABLED_LONG_OPTION, disabledOption)
@@ -136,7 +138,8 @@ class BooleanBuildOptionTest extends Specification {
 
         then:
         !testSettings.value
-        testSettings.origin == BuildOption.Origin.COMMAND_LINE
+        testSettings.origin instanceof Origin.CommandLineOrigin
+        testSettings.origin.source == DISABLED_LONG_OPTION
     }
 
     static class TestOption extends BooleanBuildOption<TestSettings> {
@@ -150,7 +153,7 @@ class BooleanBuildOptionTest extends Specification {
         }
 
         @Override
-        void applyTo(boolean value, TestSettings settings, BuildOption.Origin origin) {
+        void applyTo(boolean value, TestSettings settings, Origin origin) {
             settings.value = value
             settings.origin = origin
         }
@@ -158,7 +161,7 @@ class BooleanBuildOptionTest extends Specification {
 
     static class TestSettings {
         boolean value
-        BuildOption.Origin origin
+        Origin origin
     }
 }
 

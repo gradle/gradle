@@ -73,7 +73,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         immutable.configurationNames == ["runtime", "default"] as Set
         immutable.getConfiguration("runtime")
         immutable.getConfiguration("default")
-        immutable.getConfiguration("default").hierarchy == ["runtime", "default"] as Set
+        immutable.getConfiguration("default").hierarchy == ["default", "runtime"]
         immutable.getConfiguration("default").transitive
         immutable.getConfiguration("default").visible
 

@@ -43,6 +43,5 @@ class DirectDependencyForcingResolver implements ModuleConflictResolver {
                 }
             }
         }
-        return;
     }
 }

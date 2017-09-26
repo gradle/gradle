@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
@@ -139,12 +140,7 @@ class NodeState implements DependencyGraphNode {
         }
 
         boolean hasIncomingEdges = !incomingEdges.isEmpty();
-        List<EdgeState> transitiveIncoming = hasIncomingEdges ? new ArrayList<EdgeState>() : Collections.<EdgeState>emptyList();
-        for (EdgeState edge : incomingEdges) {
-            if (edge.isTransitive()) {
-                transitiveIncoming.add(edge);
-            }
-        }
+        List<EdgeState> transitiveIncoming = findTransitiveIncomingEdges(hasIncomingEdges);
 
         if (transitiveIncoming.isEmpty() && !isRoot()) {
             if (previousTraversalExclusions != null) {
@@ -180,10 +176,42 @@ class NodeState implements DependencyGraphNode {
         previousTraversalExclusions = resolutionFilter;
     }
 
+    private List<EdgeState> findTransitiveIncomingEdges(boolean hasIncomingEdges) {
+        if (!hasIncomingEdges) {
+            return Collections.emptyList();
+        }
+
+        int size = incomingEdges.size();
+        if (size == 1) {
+            return findSingleIncomingEdge();
+        }
+
+        List<EdgeState> transitiveIncoming = Lists.newArrayListWithCapacity(size);
+        for (EdgeState edge : incomingEdges) {
+            if (edge.isTransitive()) {
+                transitiveIncoming.add(edge);
+            }
+        }
+        return transitiveIncoming;
+
+    }
+
+    private List<EdgeState> findSingleIncomingEdge() {
+        EdgeState edgeState = incomingEdges.iterator().next();
+        if (edgeState.isTransitive()) {
+            return Collections.singletonList(edgeState);
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
     private boolean isExcluded(ModuleExclusion selector, DependencyMetadata dependency) {
         if (!resolveState.getEdgeFilter().isSatisfiedBy(dependency)) {
             LOGGER.debug("{} is filtered.", dependency);
             return true;
+        }
+        if (selector == ModuleExclusions.excludeNone()) {
+            return false;
         }
         ModuleIdentifier targetModuleId = resolveState.getModuleIdentifierFactory().module(dependency.getRequested().getGroup(), dependency.getRequested().getName());
         if (selector.excludeModule(targetModuleId)) {
@@ -239,11 +267,21 @@ class NodeState implements DependencyGraphNode {
         if (component == selected) {
             resolveState.onMoreSelected(this);
         } else {
+            if (!incomingEdges.isEmpty()) {
+                restartIncomingEdges(selected);
+            }
+        }
+    }
+
+    private void restartIncomingEdges(ComponentState selected) {
+        if (incomingEdges.size() == 1) {
+            incomingEdges.iterator().next().restart(selected);
+        } else {
             for (EdgeState dependency : new ArrayList<EdgeState>(incomingEdges)) {
                 dependency.restart(selected);
             }
-            incomingEdges.clear();
         }
+        incomingEdges.clear();
     }
 
     public void deselect() {

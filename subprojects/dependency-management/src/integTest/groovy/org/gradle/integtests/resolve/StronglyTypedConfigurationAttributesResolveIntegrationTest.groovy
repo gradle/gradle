@@ -66,9 +66,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         'attribute(flavor, objects.named(Flavor, "paid"))'
     }
 
-    // This documents the current behavior, not necessarily the one we would want. Maybe
-    // we will prefer failing with an error indicating incompatible types
-    def "selects default when two configurations use the same attribute name with different types"() {
+    def "resolution fails when two configurations use the same attribute name with different types"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
@@ -135,19 +133,15 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause("""Cannot choose between the following configurations of project :b:
-  - bar
-  - foo
-All of them match the consumer attributes:""")
+        failure.assertHasCause("Could not resolve project :b.")
+        failure.assertHasCause("Unexpected type for attribute 'buildType' provided. Expected a value of type BuildType but found a value of type java.lang.String.")
 
         when:
         fails ':a:checkRelease'
 
         then:
-        failure.assertHasCause("""Cannot choose between the following configurations of project :b:
-  - bar
-  - foo
-All of them match the consumer attributes:""")
+        failure.assertHasCause("Could not resolve project :b.")
+        failure.assertHasCause("Unexpected type for attribute 'buildType' provided. Expected a value of type BuildType but found a value of type java.lang.String.")
     }
 
     def "selects best compatible match using consumers disambiguation rules when multiple are compatible"() {

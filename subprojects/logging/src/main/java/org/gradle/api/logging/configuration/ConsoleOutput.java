@@ -35,5 +35,9 @@ public enum ConsoleOutput {
      * Enable color and rich output, regardless of whether the current process is attached to a console or not.
      * When not attached to a console, the color and rich output is encoded using ANSI control characters.
      */
-    Rich
+    Rich,
+    /**
+     * Enable color and rich output like Rich, but output more detailed message.
+     */
+    Verbose
 }

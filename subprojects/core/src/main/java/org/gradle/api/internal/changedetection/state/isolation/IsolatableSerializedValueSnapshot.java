@@ -17,7 +17,10 @@
 package org.gradle.api.internal.changedetection.state.isolation;
 
 import org.gradle.api.internal.changedetection.state.SerializedValueSnapshot;
+import org.gradle.internal.Cast;
 import org.gradle.internal.hash.HashCode;
+
+import javax.annotation.Nullable;
 
 /**
  * Isolates a Serialized value and is a snapshot for that value.
@@ -33,5 +36,17 @@ public class IsolatableSerializedValueSnapshot extends SerializedValueSnapshot i
     @Override
     public Object isolate() {
         return populateClass(originalClass);
+    }
+
+    @Nullable
+    @Override
+    public <S> Isolatable<S> coerce(Class<S> type) {
+        if (type.isAssignableFrom(originalClass)) {
+            return Cast.uncheckedCast(this);
+        }
+        if (type.getName().equals(originalClass.getName())) {
+            return Cast.uncheckedCast(new IsolatableSerializedValueSnapshot(getImplementationHash(), getValue(), type));
+        }
+        return null;
     }
 }

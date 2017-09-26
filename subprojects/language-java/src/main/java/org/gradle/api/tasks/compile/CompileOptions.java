@@ -18,8 +18,11 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
@@ -28,8 +31,10 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -62,7 +67,7 @@ public class CompileOptions extends AbstractOptions {
 
     private ForkOptions forkOptions = new ForkOptions();
 
-    private String bootClasspath;
+    private FileCollection bootstrapClasspath;
 
     private String extensionDirs;
 
@@ -235,18 +240,58 @@ public class CompileOptions extends AbstractOptions {
 
     /**
      * Returns the bootstrap classpath to be used for the compiler process. Defaults to {@code null}.
+     *
+     * @deprecated Use {@link #getBootstrapClasspath()} instead.
      */
-    @Input
-    @Optional
+    @Deprecated
+    @Internal
+    @SuppressWarnings("DeprecatedIsStillUsed")
     public String getBootClasspath() {
-        return bootClasspath;
+        DeprecationLogger.nagUserOfReplacedProperty("CompileOptions.bootClasspath", "CompileOptions.bootstrapClasspath");
+        return bootstrapClasspath == null ? null : bootstrapClasspath.getAsPath();
     }
 
     /**
      * Sets the bootstrap classpath to be used for the compiler process. Defaults to {@code null}.
+     *
+     * @deprecated Use {@link #setBootstrapClasspath(FileCollection)} instead.
      */
+    @Deprecated
     public void setBootClasspath(String bootClasspath) {
-        this.bootClasspath = bootClasspath;
+        DeprecationLogger.nagUserOfReplacedProperty("CompileOptions.bootClasspath", "CompileOptions.bootstrapClasspath");
+        if (bootClasspath == null) {
+            this.bootstrapClasspath = null;
+        } else {
+            String[] paths = StringUtils.split(bootClasspath, File.pathSeparatorChar);
+            List<File> files = Lists.newArrayListWithCapacity(paths.length);
+            for (String path : paths) {
+                files.add(new File(path));
+            }
+            this.bootstrapClasspath = new SimpleFileCollection(files);
+        }
+    }
+
+    /**
+     * Returns the bootstrap classpath to be used for the compiler process. Defaults to {@code null}.
+     *
+     * @since 4.3
+     */
+    // The bootstrap classpath is actually a `@CompileClasspath`, but declaring it so adds a significant amount
+    // of processing time the first time a full Java runtime is encountered. We decided to declare it as
+    // `@Classpath` instead, because the benefits would be sparse anyway.
+    @Optional
+    @Classpath
+    public FileCollection getBootstrapClasspath() {
+        return bootstrapClasspath;
+    }
+
+    /**
+     * Sets the bootstrap classpath to be used for the compiler process. Defaults to {@code null}.
+     *
+     * @since 4.3
+     */
+    public void setBootstrapClasspath(FileCollection bootstrapClasspath) {
+        this.bootstrapClasspath = bootstrapClasspath;
     }
 
     /**

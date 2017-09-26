@@ -144,12 +144,17 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         }
     }
 
+    @Override
     public void attachAnsiConsole(OutputStream outputStream) {
+        attachAnsiConsole(outputStream, false);
+    }
+
+    protected void attachAnsiConsole(OutputStream outputStream, boolean verbose) {
         synchronized (lock) {
-            ConsoleMetaData consoleMetaData = new FallbackConsoleMetaData();
+            ConsoleMetaData consoleMetaData = FallbackConsoleMetaData.INSTANCE;
             OutputStreamWriter writer = new OutputStreamWriter(outputStream);
             Console console = new AnsiConsole(writer, writer, getColourMap(), consoleMetaData, true);
-            addConsole(console, true, true, consoleMetaData);
+            addConsole(console, true, true, consoleMetaData, verbose);
         }
     }
 
@@ -211,6 +216,10 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     public OutputEventRenderer addConsole(Console console, boolean stdout, boolean stderr, ConsoleMetaData consoleMetaData) {
+        return addConsole(console, stdout, stderr, consoleMetaData, false);
+    }
+
+    public OutputEventRenderer addConsole(Console console, boolean stdout, boolean stderr, ConsoleMetaData consoleMetaData, boolean verbose) {
         final OutputEventListener consoleChain = new ThrottlingOutputEventListener(
             new UserInputConsoleRenderer(
                 new BuildStatusRenderer(

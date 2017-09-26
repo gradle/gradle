@@ -25,6 +25,7 @@ import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.ListBuildOption;
 import org.gradle.internal.buildoption.EnabledOnlyBooleanBuildOption;
+import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 
 import java.io.File;
