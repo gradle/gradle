@@ -21,6 +21,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
+import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 
 import java.util.ArrayList;
@@ -56,9 +57,10 @@ public class ParallelismBuildOptionFactory implements Factory<List<BuildOption<P
     public static class MaxWorkersOption extends StringBuildOption<ParallelismConfiguration> {
         public static final String GRADLE_PROPERTY = "org.gradle.workers.max";
         public static final String LONG_OPTION = "max-workers";
+        public static final String HINT = "must be a positive, non-zero, integer";
 
         public MaxWorkersOption() {
-            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create("max-workers", "Configure the number of concurrent workers Gradle is allowed to use.").incubating());
+            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, "Configure the number of concurrent workers Gradle is allowed to use.").incubating());
         }
 
         @Override
@@ -66,24 +68,12 @@ public class ParallelismBuildOptionFactory implements Factory<List<BuildOption<P
             try {
                 int workerCount = Integer.parseInt(value);
                 if (workerCount < 1) {
-                    handleInvalidValue(origin, value);
+                    origin.handleInvalidValue(value, HINT);
                 }
                 settings.setMaxWorkerCount(workerCount);
             } catch (NumberFormatException e) {
-                handleInvalidValue(origin, value);
+                origin.handleInvalidValue(value, HINT);
             }
-        }
-
-        private void handleInvalidValue(Origin origin, String value) {
-            origin.handleInvalidValue(createGradlePropertyFailureMessage(value), createCommandLineFailureMessage(value));
-        }
-
-        private String createGradlePropertyFailureMessage(String value) {
-            return String.format(String.format("Value '%s' given for %s Gradle property is invalid (must be a positive, non-zero, integer)", value, gradleProperty));
-        }
-
-        private String createCommandLineFailureMessage(String value) {
-            return String.format("Argument value '%s' given for --%s option is invalid (must be a positive, non-zero, integer)", value, LONG_OPTION);
         }
     }
 }
