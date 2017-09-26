@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.project.taskfactory;
+package org.gradle.api.tasks;
 
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
-import org.gradle.api.tasks.PropertySnapshotter;
-
-public interface FileSnapshottingPropertyAnnotationHandler extends PropertyAnnotationHandler {
-    Class<? extends PropertySnapshotter> getPropertySnapshotter();
-    Class<? extends FileCollectionSnapshotter> getSnapshotterImplementationType();
+/**
+ * Snapshots a {@link org.gradle.api.file.FileCollection} representing a Java
+ * compile classpath. Compared to {@link GenericPropertySnapshotter} this snapshotter orders files within any sub-tree.
+ * Compared to {@link ClasspathPropertySnapshotter} this snapshotter only snapshots the ABIs of class files,
+ * and ignores any non-class resource.
+ *
+ * @see org.gradle.api.tasks.CompileClasspath
+ * @since 4.3
+ */
+public interface CompileClasspathPropertySnapshotter extends PropertySnapshotter {
 }

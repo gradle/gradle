@@ -18,12 +18,12 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.InputPathNormalizationStrategy;
 import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.tasks.GenericPropertySnapshotter;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.PropertySnapshotter;
 import org.gradle.api.tasks.TaskInputs;
 
 import static org.gradle.api.internal.changedetection.state.InputPathNormalizationStrategy.ABSOLUTE;
@@ -39,7 +39,7 @@ public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSuppo
     private boolean skipWhenEmpty;
     private boolean optional;
     private PathNormalizationStrategy pathNormalizationStrategy = ABSOLUTE;
-    private Class<? extends FileCollectionSnapshotter> snapshotter = GenericFileCollectionSnapshotter.class;
+    private Class<? extends PropertySnapshotter> snapshotter = GenericPropertySnapshotter.class;
 
     public DefaultTaskInputFilePropertySpec(String taskName, FileResolver resolver, ValidatingValue paths, ValidationAction validationAction) {
         this.value = paths;
@@ -110,13 +110,13 @@ public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSuppo
     }
 
     @Override
-    public TaskInputFilePropertyBuilderInternal withSnapshotter(Class<? extends FileCollectionSnapshotter> snapshotter) {
+    public TaskInputFilePropertyBuilderInternal withSnapshotter(Class<? extends PropertySnapshotter> snapshotter) {
         this.snapshotter = snapshotter;
         return this;
     }
 
     @Override
-    public Class<? extends FileCollectionSnapshotter> getSnapshotter() {
+    public Class<? extends PropertySnapshotter> getSnapshotter() {
         return snapshotter;
     }
 

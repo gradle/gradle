@@ -22,13 +22,13 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
-import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.InputPathNormalizationStrategy
 import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec
 import org.gradle.api.internal.tasks.TaskPropertySpec
+import org.gradle.api.tasks.GenericPropertySnapshotter
+import org.gradle.api.tasks.PropertySnapshotter
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal
 import spock.lang.Specification
 
@@ -63,7 +63,7 @@ abstract class AbstractTaskStateChangesTest extends Specification {
         String propertyName
         FileCollection propertyFiles
         PathNormalizationStrategy pathNormalizationStrategy
-        Class<? extends FileCollectionSnapshotter> snapshotter = GenericFileCollectionSnapshotter
+        Class<? extends PropertySnapshotter> snapshotter = GenericPropertySnapshotter
 
         @Override
         int compareTo(TaskPropertySpec o) {

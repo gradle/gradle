@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.UncheckedIOException
 import org.gradle.api.internal.changedetection.rules.AbstractTaskStateChangesTest
+import org.gradle.api.tasks.GenericPropertySnapshotter
 import org.gradle.normalization.internal.InputNormalizationStrategy
 import spock.lang.Issue
 
@@ -37,7 +38,7 @@ class CacheBackedTaskHistoryRepositoryTest extends AbstractTaskStateChangesTest 
         CacheBackedTaskHistoryRepository.snapshotTaskFiles(stubTask, "Input", NORMALIZATION_STRATEGY, fileProperties(prop: "a"), mockInputFileSnapshotterRegistry)
 
         then:
-        1 * mockInputFileSnapshotterRegistry.getSnapshotter(GenericFileCollectionSnapshotter) >> mockInputFileSnapshotter
+        1 * mockInputFileSnapshotterRegistry.getSnapshotter(GenericPropertySnapshotter) >> mockInputFileSnapshotter
         1 * mockInputFileSnapshotter.snapshot(_, ABSOLUTE, NORMALIZATION_STRATEGY) >> { throw cause }
         0 * _
 

@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.tasks.PropertySnapshotter;
+
 import java.util.Collection;
 
 public interface FileCollectionSnapshotterRegistry {
     Collection<FileCollectionSnapshotter> getAllSnapshotters();
-    <T> T getSnapshotter(Class<? extends T> type);
+    FileCollectionSnapshotter getSnapshotter(Class<? extends PropertySnapshotter> type);
 }
