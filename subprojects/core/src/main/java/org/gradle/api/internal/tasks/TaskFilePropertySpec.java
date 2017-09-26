@@ -18,10 +18,10 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
-import org.gradle.api.tasks.PropertySnapshotter;
+import org.gradle.api.tasks.PropertyNormalizer;
 
 public interface TaskFilePropertySpec extends TaskPropertySpec {
     FileCollection getPropertyFiles();
-    Class<? extends PropertySnapshotter> getSnapshotter();
+    Class<? extends PropertyNormalizer> getSnapshotter();
     PathNormalizationStrategy getPathNormalizationStrategy();
 }

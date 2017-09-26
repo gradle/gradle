@@ -19,8 +19,8 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.tasks.GenericPropertySnapshotter;
-import org.gradle.api.tasks.PropertySnapshotter;
+import org.gradle.api.tasks.GenericPropertyNormalizer;
+import org.gradle.api.tasks.PropertyNormalizer;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollectionSnapshotter implements GenericFileCollectionSnapshotter {
@@ -29,8 +29,8 @@ public class DefaultGenericFileCollectionSnapshotter extends AbstractFileCollect
     }
 
     @Override
-    public Class<? extends PropertySnapshotter> getRegisteredType() {
-        return GenericPropertySnapshotter.class;
+    public Class<? extends PropertyNormalizer> getRegisteredType() {
+        return GenericPropertyNormalizer.class;
     }
 
     @Override

@@ -34,7 +34,7 @@ import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
-import org.gradle.api.tasks.GenericPropertySnapshotter;
+import org.gradle.api.tasks.GenericPropertyNormalizer;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.file.FileType;
@@ -225,7 +225,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     }
 
     private static FileCollectionSnapshot snapshotDiscoveredInputs(Task task, InputNormalizationStrategy normalizationStrategy, Collection<File> discoveredInputs, FileCollectionSnapshotterRegistry snapshotterRegistry, FileCollectionFactory fileCollectionFactory) {
-        FileCollectionSnapshotter snapshotter = snapshotterRegistry.getSnapshotter(GenericPropertySnapshotter.class);
+        FileCollectionSnapshotter snapshotter = snapshotterRegistry.getSnapshotter(GenericPropertyNormalizer.class);
         if (discoveredInputs.isEmpty()) {
             LOGGER.debug("No discovered inputs for {}", task);
             return FileCollectionSnapshot.EMPTY;

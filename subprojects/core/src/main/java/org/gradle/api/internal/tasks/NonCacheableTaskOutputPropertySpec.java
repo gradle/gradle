@@ -20,7 +20,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.tasks.PropertySnapshotter;
+import org.gradle.api.tasks.PropertyNormalizer;
 
 @NonNullApi
 public class NonCacheableTaskOutputPropertySpec extends TaskOutputsDeprecationSupport implements TaskOutputFilePropertySpec {
@@ -44,7 +44,7 @@ public class NonCacheableTaskOutputPropertySpec extends TaskOutputsDeprecationSu
     }
 
     @Override
-    public Class<? extends PropertySnapshotter> getSnapshotter() {
+    public Class<? extends PropertyNormalizer> getSnapshotter() {
         return parent.getSnapshotter();
     }
 

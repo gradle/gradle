@@ -129,11 +129,11 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
 
             buildFile = root.file('build.gradle') << """
                 apply plugin: 'base'
-                
+
                 class CustomTask extends DefaultTask {
                     @OutputFile File outputFile = new File(temporaryDir, "output.txt")
                     @Classpath FileCollection classpath = project.files("classpath/dirEntry", "library.jar")
-                    
+
                     @TaskAction void generate() {
                         outputFile.text = "done"
                     } 

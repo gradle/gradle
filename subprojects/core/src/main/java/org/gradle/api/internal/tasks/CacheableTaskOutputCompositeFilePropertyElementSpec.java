@@ -19,8 +19,8 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.api.tasks.GenericPropertySnapshotter;
-import org.gradle.api.tasks.PropertySnapshotter;
+import org.gradle.api.tasks.GenericPropertyNormalizer;
+import org.gradle.api.tasks.PropertyNormalizer;
 
 import java.io.File;
 import java.util.Collections;
@@ -64,8 +64,8 @@ class CacheableTaskOutputCompositeFilePropertyElementSpec implements CacheableTa
     }
 
     @Override
-    public Class<? extends PropertySnapshotter> getSnapshotter() {
-        return GenericPropertySnapshotter.class;
+    public Class<? extends PropertyNormalizer> getSnapshotter() {
+        return GenericPropertyNormalizer.class;
     }
 
     @Override

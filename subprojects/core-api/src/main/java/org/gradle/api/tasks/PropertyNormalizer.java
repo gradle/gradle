@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.tasks;
 
+import org.gradle.api.Incubating;
+
 /**
- * Snapshots a {@link org.gradle.api.file.FileCollection} representing a Java
- * compile classpath. Compared to {@link GenericPropertySnapshotter} this snapshotter orders files within any sub-tree.
- * Compared to {@link ClasspathPropertySnapshotter} this snapshotter only snapshots the ABIs of class files,
- * and ignores any non-class resource.
+ * A normalizer used to remove unwanted noise when considering file inputs.
  *
- * @see org.gradle.api.tasks.CompileClasspath
  * @since 4.3
  */
-public interface CompileClasspathPropertySnapshotter extends PropertySnapshotter {
+@Incubating
+public interface PropertyNormalizer {
 }

@@ -16,15 +16,17 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.api.Incubating;
-
 /**
- * Responsible for snapshotting {@link org.gradle.api.file.FileCollection}s representing a Java runtime classpath.
- * Compared to {@link GenericPropertySnapshotter} this snapshotter orders files within any sub-tree.
+ * Normalizes an input file property that represents a Java compile classpath.
  *
- * @see org.gradle.api.tasks.Classpath
+ * Compared to {@link GenericPropertyNormalizer} this normalizer keeps the order of any root files,
+ * but ignores the order and timestamps of files in directories and ZIP/JAR files.
+ * Compared to {@link ClasspathPropertyNormalizer} this normalizer only snapshots the ABIs of class files,
+ * and ignores any non-class resource.
+ *
+ * @see org.gradle.api.tasks.CompileClasspath
+ *
  * @since 4.3
  */
-@Incubating
-public interface ClasspathPropertySnapshotter extends PropertySnapshotter {
+public interface CompileClasspathPropertyNormalizer extends PropertyNormalizer {
 }

@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.tasks;
 
 import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
 
 /**
- * Marks a class used for snapshotting file collections.
+ * Normalizes an input file property by ignoring the order of files.
  *
  * @since 4.3
  */
 @Incubating
-@HasInternalProtocol
-public interface PropertySnapshotter {
+public interface GenericPropertyNormalizer extends PropertyNormalizer {
 }

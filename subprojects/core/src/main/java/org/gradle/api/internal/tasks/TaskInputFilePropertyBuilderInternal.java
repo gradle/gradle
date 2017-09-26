@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.api.tasks.PropertySnapshotter;
+import org.gradle.api.tasks.PropertyNormalizer;
 import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 
 @NonNullApi
@@ -28,7 +28,7 @@ public interface TaskInputFilePropertyBuilderInternal extends TaskInputFilePrope
     TaskInputFilePropertyBuilderInternal withPathNormalizationStrategy(PathNormalizationStrategy pathNormalizationStrategy);
 
     @Override
-    TaskInputFilePropertyBuilderInternal withSnapshotter(Class<? extends PropertySnapshotter> snapshotter);
+    TaskInputFilePropertyBuilderInternal withNormalizer(Class<? extends PropertyNormalizer> snapshotter);
 
     @Override
     TaskInputFilePropertyBuilderInternal withPropertyName(String propertyName);

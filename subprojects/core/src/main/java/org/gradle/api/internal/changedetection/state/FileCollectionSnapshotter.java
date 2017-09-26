@@ -16,7 +16,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.PropertySnapshotter;
+import org.gradle.api.tasks.PropertyNormalizer;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
 
@@ -24,7 +24,7 @@ public interface FileCollectionSnapshotter {
     /**
      * The type used to refer to this snapshotter in the {@link FileCollectionSnapshotterRegistry}.
      */
-    Class<? extends PropertySnapshotter> getRegisteredType();
+    Class<? extends PropertyNormalizer> getRegisteredType();
 
     /**
      * Registers the serializer(s) that can be used to serialize the {@link FileCollectionSnapshot} implementations produced by this snapshotter.

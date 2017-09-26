@@ -69,11 +69,11 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder, T
     TaskInputFilePropertyBuilder withPathSensitivity(PathSensitivity sensitivity);
 
     /**
-     * Sets the snapshotter to use for this property.
+     * Sets the normalizer to use for this property.
      *
      * @since 4.3
      */
-    TaskInputFilePropertyBuilder withSnapshotter(Class<? extends PropertySnapshotter> snapshotter);
+    TaskInputFilePropertyBuilder withNormalizer(Class<? extends PropertyNormalizer> snapshotter);
 
     /**
      * Throws {@link UnsupportedOperationException}.

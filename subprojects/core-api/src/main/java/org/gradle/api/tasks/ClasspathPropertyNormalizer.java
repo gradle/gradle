@@ -19,10 +19,15 @@ package org.gradle.api.tasks;
 import org.gradle.api.Incubating;
 
 /**
- * Snapshots a generic {@link FileCollection}. Order of elements is ignored.
+ * Normalizes an input file property that represents a Java runtime classpath.
+ *
+ * Compared to {@link GenericPropertyNormalizer} this normalizer keeps the order of any root files,
+ * but ignores the order and timestamps of files in directories and ZIP/JAR files.
+ *
+ * @see org.gradle.api.tasks.Classpath
  *
  * @since 4.3
  */
 @Incubating
-public interface GenericPropertySnapshotter extends PropertySnapshotter {
+public interface ClasspathPropertyNormalizer extends PropertyNormalizer {
 }
