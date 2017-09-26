@@ -61,6 +61,10 @@ public class ModuleExclusions {
     private final Map<List<Exclude>, AbstractModuleExclusion> excludeAnyCache = Maps.newConcurrentMap();
     private final Map<Set<AbstractModuleExclusion>, ImmutableModuleExclusionSet> exclusionSetCache = Maps.newConcurrentMap();
     private final Map<AbstractModuleExclusion[], Map<AbstractModuleExclusion[], MergeOperation>> mergeOperationCache = Maps.newIdentityHashMap();
+    private final Map<ModuleIdentifier, ModuleIdExcludeSpec> moduleIdSpecs = Maps.newConcurrentMap();
+    private final Map<String, ModuleNameExcludeSpec> moduleNameSpecs = Maps.newConcurrentMap();
+    private final Map<String, GroupNameExcludeSpec> groupNameSpecs = Maps.newConcurrentMap();
+
     private final Object mergeOperationLock = new Object();
 
     public ModuleExclusions(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
@@ -136,7 +140,7 @@ public class ModuleExclusions {
         return exclusion;
     }
 
-    private static AbstractModuleExclusion forExclude(Exclude rule) {
+    private AbstractModuleExclusion forExclude(Exclude rule) {
         // For custom ivy pattern matchers, don't inspect the rule any more deeply: this prevents us from doing smart merging later
         if (!PatternMatchers.isExactMatcher(rule.getMatcher())) {
             return new IvyPatternMatcherExcludeRuleSpec(rule);
@@ -151,17 +155,44 @@ public class ModuleExclusions {
         // Build a strongly typed (mergeable) exclude spec for each supplied rule
         if (anyArtifact) {
             if (!anyOrganisation && !anyModule) {
-                return new ModuleIdExcludeSpec(moduleId);
+                return moduleIdExcludeSpec(moduleId);
             } else if (!anyModule) {
-                return new ModuleNameExcludeSpec(moduleId.getName());
+                return moduleNameExcludeSpec(moduleId.getName());
             } else if (!anyOrganisation) {
-                return new GroupNameExcludeSpec(moduleId.getGroup());
+                return groupNameExcludeSpec(moduleId.getGroup());
             } else {
                 return EXCLUDE_ALL_MODULES_SPEC;
             }
         } else {
             return new ArtifactExcludeSpec(moduleId, artifact);
         }
+    }
+
+    private ModuleIdExcludeSpec moduleIdExcludeSpec(ModuleIdentifier id) {
+        ModuleIdExcludeSpec spec = moduleIdSpecs.get(id);
+        if (spec == null) {
+            spec = new ModuleIdExcludeSpec(id);
+            moduleIdSpecs.put(id, spec);
+        }
+        return spec;
+    }
+
+    private ModuleNameExcludeSpec moduleNameExcludeSpec(String id) {
+        ModuleNameExcludeSpec spec = moduleNameSpecs.get(id);
+        if (spec == null) {
+            spec = new ModuleNameExcludeSpec(id);
+            moduleNameSpecs.put(id, spec);
+        }
+        return spec;
+    }
+
+    private GroupNameExcludeSpec groupNameExcludeSpec(String id) {
+        GroupNameExcludeSpec spec = groupNameSpecs.get(id);
+        if (spec == null) {
+            spec = new GroupNameExcludeSpec(id);
+            groupNameSpecs.put(id, spec);
+        }
+        return spec;
     }
 
     /**
@@ -366,7 +397,7 @@ public class ModuleExclusions {
         } else if (spec2 instanceof ModuleNameExcludeSpec) {
             // Intersection of group & module name exclude only excludes module with matching group + name
             ModuleNameExcludeSpec moduleNameExcludeSpec = (ModuleNameExcludeSpec) spec2;
-            merged.add(new ModuleIdExcludeSpec(moduleIdentifierFactory.module(spec1.group, moduleNameExcludeSpec.module)));
+            merged.add(moduleIdExcludeSpec(moduleIdentifierFactory.module(spec1.group, moduleNameExcludeSpec.module)));
         } else if (spec2 instanceof ModuleIdExcludeSpec) {
             // Intersection of group + module id exclude only excludes the module id if the excluded groups match
             ModuleIdExcludeSpec moduleIdExcludeSpec = (ModuleIdExcludeSpec) spec2;
