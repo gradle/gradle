@@ -800,7 +800,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         result.output.contains("Specifying the source path in the CompilerOptions compilerArgs property has been deprecated")
     }
 
-    @Requires(adhoc = { AvailableJavaHomes.getJdks("1.7", "1.8") })
+    @Requires(adhoc = { AvailableJavaHomes.getJdk7() && AvailableJavaHomes.getJdk8() })
     def "bootclasspath can be set"() {
         def jdk7 = AvailableJavaHomes.getJdk7()
         def jdk7bootClasspath = TextUtil.escapeString(jdk7.jre.homeDir.absolutePath) + "/lib/rt.jar"
@@ -845,7 +845,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         succeeds "-Pjava8", "clean", "compileJava"
     }
 
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    @Requires([TestPrecondition.JDK8_OR_EARLIER, TestPrecondition.JDK_ORACLE])
     def "CompileOptions.bootclasspath is deprecated"() {
         def jre = AvailableJavaHomes.getBestJre()
         def bootClasspath = TextUtil.escapeString(jre.absolutePath) + "/lib/rt.jar"
