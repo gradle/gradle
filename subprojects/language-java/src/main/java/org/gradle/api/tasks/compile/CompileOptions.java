@@ -30,6 +30,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -244,7 +245,9 @@ public class CompileOptions extends AbstractOptions {
      */
     @Deprecated
     @Internal
+    @SuppressWarnings("DeprecatedIsStillUsed")
     public String getBootClasspath() {
+        DeprecationLogger.nagUserOfReplacedProperty("CompileOptions.bootClasspath", "CompileOptions.bootstrapClasspath");
         if (bootClasspath == null && bootstrapClasspath != null) {
             return bootstrapClasspath.getAsPath();
         }
@@ -258,6 +261,7 @@ public class CompileOptions extends AbstractOptions {
      */
     @Deprecated
     public void setBootClasspath(String bootClasspath) {
+        DeprecationLogger.nagUserOfReplacedProperty("CompileOptions.bootClasspath", "CompileOptions.bootstrapClasspath");
         this.bootClasspath = bootClasspath;
         this.bootstrapClasspath = null;
     }
