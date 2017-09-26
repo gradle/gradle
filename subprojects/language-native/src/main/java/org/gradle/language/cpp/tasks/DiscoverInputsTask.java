@@ -29,6 +29,8 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RegularFileVar;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputFile;
@@ -73,7 +75,7 @@ public class DiscoverInputsTask extends DefaultTask {
     private final ConfigurableFileCollection includes;
     private final ConfigurableFileCollection source;
     private ImmutableList<String> includePaths;
-    private boolean importsAreIncludes;
+    private PropertyState<Boolean> importsAreIncludes;
     private CSourceParser sourceParser;
     private final FileHasher hasher;
     private final CompilationStateCacheFactory compilationStateCacheFactory;
@@ -89,6 +91,7 @@ public class DiscoverInputsTask extends DefaultTask {
         this.source = getProject().files();
         this.sourceParser = new RegexBackedCSourceParser();
         this.discoveredInputs = newOutputFile();
+        this.importsAreIncludes = getProject().property(Boolean.class);
         dependsOn(includes);
     }
 
@@ -96,7 +99,7 @@ public class DiscoverInputsTask extends DefaultTask {
     public void discoverInputs(IncrementalTaskInputs incrementalTaskInputs) throws IOException {
         final IncrementalTaskInputsInternal inputs = (IncrementalTaskInputsInternal) incrementalTaskInputs;
         PersistentStateCache<CompilationState> compileStateCache = compilationStateCacheFactory.create(getPath());
-        DefaultSourceIncludesParser sourceIncludesParser = new DefaultSourceIncludesParser(sourceParser, importsAreIncludes);
+        DefaultSourceIncludesParser sourceIncludesParser = new DefaultSourceIncludesParser(sourceParser, importsAreIncludes.getOrElse(false));
         List<File> includeRoots = CollectionUtils.toList(includes);
         DefaultSourceIncludesResolver dependencyParser = new DefaultSourceIncludesResolver(includeRoots);
         IncrementalCompileFilesFactory incrementalCompileFilesFactory = new IncrementalCompileFilesFactory(sourceIncludesParser, dependencyParser, hasher);
@@ -177,11 +180,11 @@ public class DiscoverInputsTask extends DefaultTask {
 
     @Input
     public boolean isImportsAreIncludes() {
-        return importsAreIncludes;
+        return importsAreIncludes.getOrElse(false);
     }
 
-    public void setImportsAreIncludes(boolean importsAreIncludes) {
-        this.importsAreIncludes = importsAreIncludes;
+    public void setImportsAreIncludes(Provider<Boolean> importsAreIncludes) {
+        this.importsAreIncludes.set(importsAreIncludes);
     }
 
 }

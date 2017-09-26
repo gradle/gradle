@@ -41,6 +41,8 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
+import org.gradle.nativeplatform.toolchain.Clang;
+import org.gradle.nativeplatform.toolchain.Gcc;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
@@ -58,7 +60,7 @@ import java.util.concurrent.Callable;
 @NonNullApi
 public class CppBasePlugin implements Plugin<ProjectInternal> {
     @Override
-    public void apply(ProjectInternal project) {
+    public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
         project.getPluginManager().apply(StandardToolChainsPlugin.class);
 
@@ -82,7 +84,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 final Names names = Names.of(binary.getName());
 
                 String compileTaskName = names.getCompileTaskName("cpp");
-                CppCompile compile = tasks.create(compileTaskName, CppCompile.class);
+                final CppCompile compile = tasks.create(compileTaskName, CppCompile.class);
                 compile.includes(binary.getCompileIncludePath());
                 compile.source(binary.getCppSource());
                 if (binary.isDebuggable()) {
@@ -103,6 +105,13 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 discoverInputs.source(compile.getSource());
                 discoverInputs.includes(compile.getIncludes());
                 discoverInputs.getDiscoveredInputs().set(buildDirectory.file(discoverInputs.getName() + "/" + names.getDirName() + "inputs.txt"));
+                discoverInputs.setImportsAreIncludes(project.provider(new Callable<Boolean>() {
+                    @Override
+                    public Boolean call() throws Exception {
+                        NativeToolChain toolChain = compile.getToolChain();
+                        return Clang.class.isAssignableFrom(toolChain.getClass()) || Gcc.class.isAssignableFrom(toolChain.getClass());
+                    }
+                }));
                 compile.getDiscoveredInputs().set(discoverInputs.getDiscoveredInputs());
 
                 if (binary instanceof CppExecutable) {
