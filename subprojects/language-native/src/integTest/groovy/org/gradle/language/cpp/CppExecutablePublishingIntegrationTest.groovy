@@ -22,10 +22,7 @@ import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.junit.Assume
 
-class CppExecutablePublishingIntegrationTest extends AbstractNativePublishingIntegrationSpec {
-
-    private static final DEBUG = 'Debug'
-    private static final RELEASE = 'Release'
+class CppExecutablePublishingIntegrationTest extends AbstractNativePublishingIntegrationSpec implements CppTaskNames {
 
     def setup() {
         // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
@@ -55,7 +52,7 @@ class CppExecutablePublishingIntegrationTest extends AbstractNativePublishingInt
         run('publish')
 
         then:
-        result.assertTasksExecuted(*(linkTasks(DEBUG) + linkTasks(RELEASE)), ":generatePomFileForDebugPublication", ":generateMetadataFileForDebugPublication", ":publishDebugPublicationToMavenRepository", ":generatePomFileForMainPublication", ":generateMetadataFileForMainPublication", ":publishMainPublicationToMavenRepository", ":generatePomFileForReleasePublication", ":generateMetadataFileForReleasePublication", ":publishReleasePublicationToMavenRepository", ":publish")
+        result.assertTasksExecuted(*(compileAndLinkTasks(debug) + compileAndLinkTasks(release)), ":generatePomFileForDebugPublication", ":generateMetadataFileForDebugPublication", ":publishDebugPublicationToMavenRepository", ":generatePomFileForMainPublication", ":generateMetadataFileForMainPublication", ":publishMainPublicationToMavenRepository", ":generatePomFileForReleasePublication", ":generateMetadataFileForReleasePublication", ":publishReleasePublicationToMavenRepository", ":publish")
 
         def repo = new MavenFileRepository(file("repo"))
 
@@ -145,14 +142,6 @@ class CppExecutablePublishingIntegrationTest extends AbstractNativePublishingInt
 
         def greeterReleaseModule = repo.module('some.group', 'greeter_release', '1.2')
         greeterReleaseModule.assertPublished()
-    }
-
-    List<String> linkTasks(String project = '', String variant) {
-        ["${project}:discoverInputs${variant}", "${project}:compile${variant}Cpp", "${project}:link${variant}"]
-    }
-
-    List<String> installTasks(String project = '', String variant) {
-        [*linkTasks(project, variant), "${project}:install${variant}"]
     }
 
 }

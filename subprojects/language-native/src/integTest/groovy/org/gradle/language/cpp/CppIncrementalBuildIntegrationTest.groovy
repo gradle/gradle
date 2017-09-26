@@ -22,7 +22,7 @@ import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
 
-class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
 
     private static final String LIBRARY = ':library'
     private static final String APP = ':app'
@@ -89,10 +89,10 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         run installApp
 
         then:
-        skipped compileTasks(LIBRARY)
-        skipped linkTasks(LIBRARY)
-        executedAndNotSkipped compileTasks(APP)
-        executedAndNotSkipped linkTasks(APP)
+        skipped compileTasksDebug(LIBRARY)
+        skipped linkTaskDebug(LIBRARY)
+        executedAndNotSkipped compileTasksDebug(APP)
+        executedAndNotSkipped linkTaskDebug(APP)
         executedAndNotSkipped installApp
 
         and:
@@ -116,10 +116,10 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         run installApp
 
         then:
-        executedAndNotSkipped compileTasks(LIBRARY)
-        executedAndNotSkipped linkTasks(LIBRARY)
-        skipped compileTasks(APP)
-        executedAndNotSkipped linkTasks(APP)
+        executedAndNotSkipped compileTasksDebug(LIBRARY)
+        executedAndNotSkipped linkTaskDebug(LIBRARY)
+        skipped compileTasksDebug(APP)
+        executedAndNotSkipped linkTaskDebug(APP)
         executedAndNotSkipped installApp
 
         and:
@@ -139,16 +139,16 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         run installApp
 
         then:
-        executedAndNotSkipped compileTasks(LIBRARY)
-        executedAndNotSkipped compileTasks(APP)
+        executedAndNotSkipped compileTasksDebug(LIBRARY)
+        executedAndNotSkipped compileTasksDebug(APP)
 
         if (nonDeterministicCompilation()) {
             // Relinking may (or may not) be required after recompiling
-            executed linkTasks(LIBRARY)
-            executed linkTasks(APP), installApp
+            executed linkTaskDebug(LIBRARY)
+            executed linkTaskDebug(APP), installApp
         } else {
-            skipped linkTasks(LIBRARY)
-            skipped linkTasks(APP), installApp
+            skipped linkTaskDebug(LIBRARY)
+            skipped linkTaskDebug(APP), installApp
         }
     }
 
@@ -164,16 +164,16 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         run installApp
 
         then:
-        executedAndNotSkipped compileTasks(LIBRARY)
-        executedAndNotSkipped compileTasks(APP)
+        executedAndNotSkipped compileTasksDebug(LIBRARY)
+        executedAndNotSkipped compileTasksDebug(APP)
 
         if (nonDeterministicCompilation()) {
             // Relinking may (or may not) be required after recompiling
-            executed linkTasks(LIBRARY)
-            executed linkTasks(APP), installApp
+            executed linkTaskDebug(LIBRARY)
+            executed linkTaskDebug(APP), installApp
         } else {
-            skipped linkTasks(LIBRARY)
-            skipped linkTasks(APP), installApp
+            skipped linkTaskDebug(LIBRARY)
+            skipped linkTaskDebug(APP), installApp
         }
     }
 
@@ -212,20 +212,12 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         then:
         fails installApp
         and:
-        executedAndNotSkipped compileTasks(APP)
+        executedAndNotSkipped compileTasksDebug(APP)
     }
 
     private boolean nonDeterministicCompilation() {
         // Visual C++ compiler embeds a timestamp in every object file, and ASLR is non-deterministic
         toolChain.visualCpp || objectiveCWithAslr()
-    }
-
-    String[] compileTasks(String project) {
-        ["${project}:discoverInputs${variant}", "${project}:compile${variant}${sourceType}"] as String[]
-    }
-
-    String linkTasks(String project) {
-        "${project}:link${variant}"
     }
 
     // compiling Objective-C and Objective-Cpp with clang generates

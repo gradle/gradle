@@ -28,8 +28,7 @@ import org.gradle.nativeplatform.fixtures.app.IncrementalCppStaleLinkOutputLib
 import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.junit.Assume
 
-class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    private static final String DEBUG = 'Debug'
+class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
 
     def setup() {
         // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
@@ -54,8 +53,8 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(*installTasks(DEBUG), ":assemble")
-        result.assertTasksNotSkipped(*installTasks(DEBUG), ":assemble")
+        result.assertTasksExecuted(*compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
+        result.assertTasksNotSkipped(*compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
 
         file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.alternate))
         executable("build/exe/main/debug/app").assertExists()
@@ -80,8 +79,8 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(*linkTasks(DEBUG), ":assemble")
-        result.assertTasksNotSkipped(*linkTasks(DEBUG), ":assemble")
+        result.assertTasksExecuted(*compileAndLinkTasks(debug), ":assemble")
+        result.assertTasksNotSkipped(*compileAndLinkTasks(debug), ":assemble")
 
         file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(lib.alternate))
         sharedLibrary("build/lib/main/debug/hello").assertExists()
@@ -104,8 +103,8 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(*installTasks(DEBUG), ":assemble")
-        result.assertTasksSkipped(*installTasks(DEBUG), ":assemble")
+        result.assertTasksExecuted(*compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
+        result.assertTasksSkipped(*compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
 
         executable("build/exe/main/debug/app").assertExists()
         installation("build/install/main/debug").exec().out == app.expectedOutput
@@ -128,8 +127,8 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(*linkTasks(DEBUG), ":assemble")
-        result.assertTasksSkipped(*linkTasks(DEBUG), ":assemble")
+        result.assertTasksExecuted(*compileAndLinkTasks(debug), ":assemble")
+        result.assertTasksSkipped(*compileAndLinkTasks(debug), ":assemble")
 
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
@@ -170,8 +169,8 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
         succeeds "assemble"
 
         then:
-        def skippedTasks = linkTasks(":greeter", DEBUG) + [":greeter:assemble", ":assemble"]
-        def notSkippedTasks = installTasks(":app", DEBUG) + [":app:assemble"]
+        def skippedTasks = compileAndLinkTasks([":greeter"], debug) + [":greeter:assemble", ":assemble"]
+        def notSkippedTasks = compileAndLinkTasks([":app"], debug) + [installTaskDebug(':app'), ":app:assemble"]
         result.assertTasksExecuted(*(skippedTasks + notSkippedTasks))
         result.assertTasksNotSkipped(*notSkippedTasks)
         result.assertTasksSkipped(*skippedTasks)
@@ -210,8 +209,8 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
         succeeds "assemble"
 
         then:
-        result.assertTasksExecuted(*installTasks(DEBUG), ":assemble")
-        result.assertTasksNotSkipped(*installTasks(DEBUG), ":assemble")
+        result.assertTasksExecuted(*compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
+        result.assertTasksNotSkipped(*compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
 
         executable("build/exe/main/debug/app").assertDoesNotExist()
         file("build/exe/main/debug").assertHasDescendants()
@@ -243,8 +242,8 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
         succeeds "assemble"
 
         then:
-        result.assertTasksExecuted(*linkTasks(DEBUG), ":assemble")
-        result.assertTasksNotSkipped(*linkTasks(DEBUG), ":assemble")
+        result.assertTasksExecuted(*compileAndLinkTasks(debug), ":assemble")
+        result.assertTasksNotSkipped(*compileAndLinkTasks(debug), ":assemble")
 
         sharedLibrary("build/lib/main/debug/hello").assertDoesNotExist()
         file("build/lib/main/debug").assertHasDescendants()
@@ -271,14 +270,6 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
 
     def debugFileFor(File sourceFile, String intermediateFilesDir = "build/obj/main/debug") {
         return intermediateFileFor(sourceFile, intermediateFilesDir, ".obj.pdb")
-    }
-
-    List<String> linkTasks(String project = '', String variant) {
-        ["${project}:discoverInputs${variant}", "${project}:compile${variant}Cpp", "${project}:link${variant}"]
-    }
-
-    List<String> installTasks(String project = '', String variant) {
-        [*linkTasks(project, variant), "${project}:install${variant}"]
     }
 
 }

@@ -28,7 +28,7 @@ import org.junit.Assume
 
 import static org.gradle.util.Matchers.containsText
 
-class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
 
     def setup() {
         // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
@@ -43,9 +43,9 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(*installTasks('Debug'), ':assemble')
+        result.assertTasksExecuted(*compileTasksDebug(), linkTaskDebug(), installTaskDebug(), ':assemble')
         // TODO - should skip the task as NO-SOURCE
-        result.assertTasksSkipped(*installTasks('Debug'), ':assemble')
+        result.assertTasksSkipped(*compileTasksDebug(), linkTaskDebug(), installTaskDebug(), ':assemble')
     }
 
     def "build fails when compilation fails"() {
@@ -82,7 +82,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(*installTasks('Debug'), ':assemble')
+        result.assertTasksExecuted(*compileTasksDebug(), linkTaskDebug(), installTaskDebug(), ':assemble')
 
         executable("build/exe/main/debug/app").assertExists()
         installation("build/install/main/debug").exec().out == app.expectedOutput(toolChain)
@@ -103,13 +103,13 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         expect:
         succeeds "installRelease"
-        result.assertTasksExecuted(":discoverInputsRelease", ":compileReleaseCpp", ":linkRelease", ":installRelease")
+        result.assertTasksExecuted(*compileTasksRelease(), linkTaskRelease(), installTaskRelease())
 
         executable("build/exe/main/release/app").assertExists()
         installation("build/install/main/release").exec().out == app.withFeatureEnabled().expectedOutput
 
         succeeds "installDebug"
-        result.assertTasksExecuted(":discoverInputsDebug", ":compileDebugCpp", ":linkDebug", ":installDebug")
+        result.assertTasksExecuted(*compileTasksDebug(), linkTaskDebug(), installTaskDebug())
 
         executable("build/exe/main/debug/app").assertExists()
         installation("build/install/main/debug").exec().out == app.withFeatureDisabled().expectedOutput
@@ -134,7 +134,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":discoverInputsDebug", ":compileDebugCpp", ":linkDebug", ":installDebug", ":assemble")
+        result.assertTasksExecuted(*compileTasksDebug(), linkTaskDebug(), installTaskDebug(), ":assemble")
 
         executable("build/exe/main/debug/app").assertExists()
         installation("build/install/main/debug").exec().out == app.expectedOutput
@@ -161,7 +161,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(*installTasks('Debug'), ':assemble')
+        result.assertTasksExecuted(*compileTasksDebug(), linkTaskDebug(), installTaskDebug(), ':assemble')
 
         file("build/obj/main/debug").assertIsDir()
         executable("build/exe/main/debug/app").assertExists()
@@ -193,7 +193,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(*installTasks('Debug'), ':assemble')
+        result.assertTasksExecuted(*compileTasksDebug(), linkTaskDebug(), installTaskDebug(), ':assemble')
 
         file("build/obj/main/debug").assertIsDir()
         executable("build/exe/main/debug/app").assertExists()
@@ -215,7 +215,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(*installTasks('Debug'), ':assemble')
+        result.assertTasksExecuted(*compileTasksDebug(), linkTaskDebug(), installTaskDebug(), ':assemble')
 
         !file("build").exists()
         file("output/obj/main/debug").assertIsDir()
@@ -237,7 +237,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(*installTasks('Debug'), ':assemble')
+        result.assertTasksExecuted(*compileTasksDebug(), linkTaskDebug(), installTaskDebug(), ':assemble')
 
         file("build/obj/main/debug").assertIsDir()
         executable("build/exe/main/debug/test_app").assertExists()
@@ -261,7 +261,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(*installTasks('Debug'), ':assemble')
+        result.assertTasksExecuted(*compileTasksDebug(), linkTaskDebug(), installTaskDebug(), ':assemble')
 
         file("build/object-files").assertIsDir()
         file("build/exe/some-app.exe").assertIsFile()
@@ -290,7 +290,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         expect:
         succeeds ":app:assemble"
 
-        result.assertTasksExecuted(*linkTasks(':hello', 'Debug'), *installTasks(':app', 'Debug'), ":app:assemble")
+        result.assertTasksExecuted(*compileAndLinkTasks([':hello', ':app'], debug), installTaskDebug(':app'), ":app:assemble")
         executable("app/build/exe/main/debug/app").assertExists()
         sharedLibrary("hello/build/lib/main/debug/hello").assertExists()
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
@@ -319,16 +319,16 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         app.main.writeToProject(file("app"))
 
         expect:
-        succeeds ":app:installRelease"
+        succeeds installTaskRelease(':app')
 
-        result.assertTasksExecuted(":hello:discoverInputsRelease", ":hello:compileReleaseCpp", ":hello:linkRelease", ":app:discoverInputsRelease", ":app:compileReleaseCpp", ":app:linkRelease", ":app:installRelease")
+        result.assertTasksExecuted(*compileAndLinkTasks([':hello', ':app'], release), installTaskRelease(':app'))
         executable("app/build/exe/main/release/app").assertExists()
         sharedLibrary("hello/build/lib/main/release/hello").assertExists()
         installation("app/build/install/main/release").exec().out == app.withFeatureEnabled().expectedOutput
 
         succeeds ":app:installDebug"
 
-        result.assertTasksExecuted(":hello:discoverInputsDebug", ":hello:compileDebugCpp", ":hello:linkDebug", ":app:discoverInputsDebug", ":app:compileDebugCpp", ":app:linkDebug", ":app:installDebug")
+        result.assertTasksExecuted(*compileAndLinkTasks([':hello', ':app'], debug), installTaskDebug(':app'))
 
         executable("app/build/exe/main/debug/app").assertExists()
         sharedLibrary("hello/build/lib/main/debug/hello").assertExists()
@@ -369,7 +369,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         expect:
         succeeds ":app:assemble"
 
-        result.assertTasksExecuted(*(linkTasks(':card', 'Debug') + linkTasks(':deck', 'Debug') + linkTasks(':shuffle', 'Debug') + installTasks(':app', 'Debug')), ":app:assemble")
+        result.assertTasksExecuted(*compileAndLinkTasks([':card', ':deck', ':shuffle', ':app'], debug), installTaskDebug(':app'), ":app:assemble")
         sharedLibrary("deck/build/lib/main/debug/deck").assertExists()
         sharedLibrary("card/build/lib/main/debug/card").assertExists()
         sharedLibrary("shuffle/build/lib/main/debug/shuffle").assertExists()
@@ -410,7 +410,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         expect:
         succeeds ":app:assemble"
 
-        result.assertTasksExecuted(*(linkTasks(':lib1', 'Debug') + linkTasks(":lib2", 'Debug') + installTasks(':app', 'Debug')), ":app:assemble")
+        result.assertTasksExecuted(*compileAndLinkTasks([':lib1', ':lib2', ':app'], debug), installTaskDebug(':app'), ":app:assemble")
 
         !file("lib2/build").exists()
         sharedLibrary("lib1/build/lib/main/debug/lib1").assertExists()
@@ -459,7 +459,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         expect:
         succeeds ":app:assemble"
 
-        result.assertTasksExecuted(*(linkTasks(':lib1', 'Debug') + linkTasks(":lib2", 'Debug') + installTasks(':app', 'Debug')), ":app:assemble")
+        result.assertTasksExecuted(*compileAndLinkTasks([':lib1', ':lib2', ':app'], debug), installTaskDebug(':app'), ":app:assemble")
 
         sharedLibrary("lib1/build/lib/main/debug/lib1").assertExists()
         sharedLibrary("lib2/build/lib/main/debug/lib2").assertExists()
@@ -508,7 +508,7 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(*(linkTasks(':greeter', 'Debug') + linkTasks(":logger", 'Debug') + installTasks(':app', 'Debug')), ":app:assemble")
+        result.assertTasksExecuted(*compileAndLinkTasks([':greeter', ":logger", ':app'], debug), installTaskDebug(':app'), ":app:assemble")
 
         sharedLibrary("greeter/build/lib/main/debug/greeter").assertExists()
         sharedLibrary("logger/build/lib/main/debug/logger").assertExists()
@@ -554,21 +554,13 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
 
         expect:
         succeeds ":assemble"
-        result.assertTasksExecuted(*(linkTasks(':lib1', 'Debug') + linkTasks(":lib2", 'Debug') + installTasks('Debug')), ":assemble")
+        result.assertTasksExecuted(*compileAndLinkTasks([':lib1', ":lib2", ''], debug), installTaskDebug(), ":assemble")
         sharedLibrary("lib1/build/lib/main/debug/lib1").assertExists()
         sharedLibrary("lib2/build/lib/main/debug/lib2").assertExists()
         executable("build/exe/main/debug/app").assertExists()
         installation("build/install/main/debug").exec().out == app.expectedOutput
         sharedLibrary("build/install/main/debug/lib/lib1").file.assertExists()
         sharedLibrary("build/install/main/debug/lib/lib2").file.assertExists()
-    }
-
-    List<String> linkTasks(String project = '', String variant) {
-        ["${project}:discoverInputs${variant}", "${project}:compile${variant}Cpp", "${project}:link${variant}"]
-    }
-
-    List<String> installTasks(String project = '', String variant) {
-        [*linkTasks(project, variant), "${project}:install${variant}"]
     }
 
 }

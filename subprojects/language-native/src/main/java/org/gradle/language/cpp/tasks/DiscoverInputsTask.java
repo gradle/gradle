@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.nativeplatform.tasks;
+package org.gradle.language.cpp.tasks;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;

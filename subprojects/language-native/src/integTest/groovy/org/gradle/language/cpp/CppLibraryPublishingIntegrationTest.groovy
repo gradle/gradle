@@ -23,10 +23,7 @@ import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.junit.Assume
 
-class CppLibraryPublishingIntegrationTest extends AbstractNativePublishingIntegrationSpec {
-
-    private static final DEBUG = 'Debug'
-    private static final RELEASE = 'Release'
+class CppLibraryPublishingIntegrationTest extends AbstractNativePublishingIntegrationSpec implements CppTaskNames {
 
     def setup() {
         // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
@@ -57,7 +54,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractNativePublishingIntegr
         run('publish')
 
         then:
-        result.assertTasksExecuted(*(linkTasks(DEBUG) + linkTasks(RELEASE)), ":generatePomFileForDebugPublication", ":generateMetadataFileForDebugPublication", ":publishDebugPublicationToMavenRepository", ":cppHeaders", ":generatePomFileForMainPublication", ":generateMetadataFileForMainPublication", ":publishMainPublicationToMavenRepository", ":generatePomFileForReleasePublication", ":generateMetadataFileForReleasePublication", ":publishReleasePublicationToMavenRepository", ":publish")
+        result.assertTasksExecuted(*(compileAndLinkTasks(debug) + compileAndLinkTasks(release)), ":generatePomFileForDebugPublication", ":generateMetadataFileForDebugPublication", ":publishDebugPublicationToMavenRepository", ":cppHeaders", ":generatePomFileForMainPublication", ":generateMetadataFileForMainPublication", ":publishMainPublicationToMavenRepository", ":generatePomFileForReleasePublication", ":generateMetadataFileForReleasePublication", ":publishReleasePublicationToMavenRepository", ":publish")
 
         def headersZip = file("build/headers/cpp-api-headers.zip")
         new ZipTestFixture(headersZip).hasDescendants(lib.publicHeaders.files*.name)
@@ -276,14 +273,6 @@ class CppLibraryPublishingIntegrationTest extends AbstractNativePublishingIntegr
         sharedLibrary(consumer.file("build/install/main/debug/lib/card")).file.assertExists()
         sharedLibrary(consumer.file("build/install/main/debug/lib/shuffle")).file.assertExists()
         installation(consumer.file("build/install/main/debug")).exec().out == app.expectedOutput
-    }
-
-    List<String> linkTasks(String project = '', String variant) {
-        ["${project}:discoverInputs${variant}", "${project}:compile${variant}Cpp", "${project}:link${variant}"]
-    }
-
-    List<String> installTasks(String project = '', String variant) {
-        [*linkTasks(project, variant), "${project}:install${variant}"]
     }
 
 }

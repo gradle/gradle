@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp.plugins;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
@@ -33,8 +34,8 @@ import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.tasks.CppCompile;
+import org.gradle.language.cpp.tasks.DiscoverInputsTask;
 import org.gradle.language.nativeplatform.internal.Names;
-import org.gradle.language.nativeplatform.tasks.DiscoverInputsTask;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
@@ -80,7 +81,8 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
             public void execute(final CppBinary binary) {
                 final Names names = Names.of(binary.getName());
 
-                CppCompile compile = tasks.create(names.getCompileTaskName("cpp"), CppCompile.class);
+                String compileTaskName = names.getCompileTaskName("cpp");
+                CppCompile compile = tasks.create(compileTaskName, CppCompile.class);
                 compile.includes(binary.getCompileIncludePath());
                 compile.source(binary.getCppSource());
                 if (binary.isDebuggable()) {
@@ -97,10 +99,10 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 NativeToolChain toolChain = modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
                 compile.setToolChain(toolChain);
 
-                DiscoverInputsTask discoverInputs = tasks.create(names.getTaskName("discoverInputs"), DiscoverInputsTask.class);
+                DiscoverInputsTask discoverInputs = tasks.create("discoverInputsFor" + StringUtils.capitalize(compileTaskName), DiscoverInputsTask.class);
                 discoverInputs.source(compile.getSource());
                 discoverInputs.includes(compile.getIncludes());
-                discoverInputs.getDiscoveredInputs().set(buildDirectory.file("discoveredInputs/" + names.getDirName() + "inputs.txt"));
+                discoverInputs.getDiscoveredInputs().set(buildDirectory.file(discoverInputs.getName() + "/" + names.getDirName() + "inputs.txt"));
                 compile.getDiscoveredInputs().set(discoverInputs.getDiscoveredInputs());
 
                 if (binary instanceof CppExecutable) {
