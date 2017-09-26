@@ -27,9 +27,4 @@ public interface AttributeContainerInternal extends AttributeContainer {
      * @return an immutable view of this container.
      */
     ImmutableAttributes asImmutable();
-
-    /**
-     * Returns a mutable copy of this attribute set.
-     */
-    AttributeContainerInternal copy();
 }

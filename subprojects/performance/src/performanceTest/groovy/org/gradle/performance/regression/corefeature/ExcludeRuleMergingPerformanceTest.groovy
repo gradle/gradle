@@ -18,7 +18,6 @@ package org.gradle.performance.regression.corefeature
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.WithExternalRepository
-import spock.lang.Ignore
 
 class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceTest implements WithExternalRepository {
 
@@ -28,7 +27,6 @@ class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceT
         runner.minimumVersion = '4.0'
     }
 
-    @Ignore
     def "merge exclude rules"() {
         runner.testProject = TEST_PROJECT_NAME
         startServer()
@@ -49,7 +47,6 @@ class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceT
         stopServer()
     }
 
-    @Ignore
     def "merge exclude rules (parallel)"() {
         runner.testProject = TEST_PROJECT_NAME
         startServer()

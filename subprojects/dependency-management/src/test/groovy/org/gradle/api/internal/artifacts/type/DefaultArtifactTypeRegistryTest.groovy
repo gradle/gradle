@@ -17,16 +17,16 @@
 package org.gradle.api.internal.artifacts.type
 
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.component.model.VariantMetadata
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultArtifactTypeRegistryTest extends Specification {
-    def attributesFactory = new DefaultImmutableAttributesFactory()
+    def attributesFactory = TestUtil.attributesFactory()
     def registry = new DefaultArtifactTypeRegistry(DirectInstantiator.INSTANCE, attributesFactory)
 
     def "creates as required and reuses"() {

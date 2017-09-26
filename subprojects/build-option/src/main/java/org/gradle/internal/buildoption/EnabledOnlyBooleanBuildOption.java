@@ -39,7 +39,7 @@ public abstract class EnabledOnlyBooleanBuildOption<T> extends AbstractBuildOpti
     @Override
     public void applyFromProperty(Map<String, String> properties, T settings) {
         if (properties.get(gradleProperty) != null) {
-            applyTo(settings, Origin.GRADLE_PROPERTY);
+            applyTo(settings, Origin.forGradleProperty(gradleProperty));
         }
     }
 
@@ -54,7 +54,7 @@ public abstract class EnabledOnlyBooleanBuildOption<T> extends AbstractBuildOpti
     public void applyFromCommandLine(ParsedCommandLine options, T settings) {
         for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
             if (options.hasOption(config.getLongOption())) {
-                applyTo(settings, Origin.COMMAND_LINE);
+                applyTo(settings, Origin.forCommandLine(config.getLongOption()));
             }
         }
     }

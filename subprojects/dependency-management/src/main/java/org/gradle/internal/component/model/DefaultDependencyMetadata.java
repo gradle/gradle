@@ -68,7 +68,7 @@ public abstract class DefaultDependencyMetadata implements DependencyMetadata {
             return Collections.emptySet();
         }
 
-        Set<String> includedConfigurations = fromConfiguration.getHierarchy();
+        Collection<String> includedConfigurations = fromConfiguration.getHierarchy();
         Set<ComponentArtifactMetadata> artifacts = Sets.newLinkedHashSet();
 
         for (Artifact depArtifact : dependencyArtifacts) {

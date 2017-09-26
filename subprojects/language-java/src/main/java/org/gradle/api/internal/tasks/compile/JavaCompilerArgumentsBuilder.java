@@ -24,8 +24,10 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.ForkOptions;
+import org.gradle.internal.Factory;
 import org.gradle.util.DeprecationLogger;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -111,7 +113,7 @@ public class JavaCompilerArgumentsBuilder {
             return;
         }
 
-        CompileOptions compileOptions = spec.getCompileOptions();
+        final CompileOptions compileOptions = spec.getCompileOptions();
         if (!releaseOptionIsSet(compilerArgs)) {
             String sourceCompatibility = spec.getSourceCompatibility();
             if (sourceCompatibility != null) {
@@ -142,9 +144,17 @@ public class JavaCompilerArgumentsBuilder {
             args.add("-encoding");
             args.add(compileOptions.getEncoding());
         }
-        if (compileOptions.getBootClasspath() != null) { //TODO: move bootclasspath to platform
+        String bootClasspath = DeprecationLogger.whileDisabled(new Factory<String>() {
+            @Nullable
+            @Override
+            @SuppressWarnings("deprecation")
+            public String create() {
+                return compileOptions.getBootClasspath();
+            }
+        });
+        if (bootClasspath != null) { //TODO: move bootclasspath to platform
             args.add("-bootclasspath");
-            args.add(compileOptions.getBootClasspath());
+            args.add(bootClasspath);
         }
         if (compileOptions.getExtensionDirs() != null) {
             args.add("-extdirs");

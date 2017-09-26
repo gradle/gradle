@@ -18,16 +18,15 @@ package org.gradle.api.internal.attributes;
 import org.gradle.api.attributes.Attribute;
 
 public interface ImmutableAttributesFactory {
-    DefaultImmutableAttributesFactory.Builder builder();
-
-    DefaultImmutableAttributesFactory.Builder builder(ImmutableAttributes from);
-
-    ImmutableAttributes of(Attribute<?> key, Object value);
+    /**
+     * Returns an attribute container that contains the given value.
+     */
+    <T> ImmutableAttributes of(Attribute<T> key, T value);
 
     /**
      * Adds the given attribute to the given container. Note: the container _should not_ contain the given attribute.
      */
-    ImmutableAttributes concat(ImmutableAttributes node, Attribute<?> key, Object value);
+    <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, T value);
 
     /**
      * Merges the second container into the first container and returns the result. Values in the second container win.

@@ -18,10 +18,10 @@ package org.gradle.api.internal.tasks.compile
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
-import org.gradle.cache.internal.TestFileContentCacheFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.compile.CompileOptions
+import org.gradle.cache.internal.TestFileContentCacheFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.JarUtils
 import org.junit.Rule

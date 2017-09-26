@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures
 
 import org.fusesource.jansi.Ansi
+import org.gradle.api.logging.configuration.ConsoleOutput
 
 /**
  * A base class for testing the console in rich mode. Executes with a Gradle distribution and {@code "--console=rich"} command line option.
@@ -30,7 +31,7 @@ abstract class AbstractConsoleFunctionalSpec extends AbstractIntegrationSpec {
     public final static String DEFAULT_TEXT = "0;39"
 
     def setup() {
-        executer.withRichConsole()
+        executer.withConsole(ConsoleOutput.Rich)
     }
 
     /**

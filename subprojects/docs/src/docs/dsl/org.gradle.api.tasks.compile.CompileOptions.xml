@@ -53,6 +53,10 @@
                 <td><literal>null</literal></td>
             </tr>
             <tr>
+                <td>bootstrapClasspath</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
                 <td>extensionDirs</td>
                 <td><literal>null</literal></td>
             </tr>

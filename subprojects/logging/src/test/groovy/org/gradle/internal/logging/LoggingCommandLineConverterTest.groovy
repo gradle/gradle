@@ -83,7 +83,7 @@ class LoggingCommandLineConverterTest extends Specification {
 
         then:
         CommandLineArgumentException e = thrown()
-        e.message == /Unrecognized value 'unknown' for console./
+        e.message == /Argument value 'unknown' given for --console option is invalid/
     }
 
     def convertsShowStacktrace() {

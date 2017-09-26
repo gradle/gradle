@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.cli.converter
 
-import org.gradle.api.GradleException
 import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.internal.jvm.Jvm
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptionFactory
@@ -88,7 +87,7 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
         converter.convert([(DaemonBuildOptionFactory.JavaHomeOption.GRADLE_PROPERTY): "/invalid/path"], params)
 
         then:
-        def ex = thrown(GradleException)
+        def ex = thrown(IllegalArgumentException)
         ex.message.contains 'org.gradle.java.home'
         ex.message.contains '/invalid/path'
     }
@@ -99,7 +98,7 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
         converter.convert([(DaemonBuildOptionFactory.JavaHomeOption.GRADLE_PROPERTY): dummyDir.absolutePath], params)
 
         then:
-        def ex = thrown(GradleException)
+        def ex = thrown(IllegalArgumentException)
         ex.message.contains 'org.gradle.java.home'
         ex.message.contains 'foobar'
     }
@@ -109,7 +108,7 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
         converter.convert((DaemonBuildOptionFactory.IdleTimeoutOption.GRADLE_PROPERTY): 'asdf', params)
 
         then:
-        def ex = thrown(GradleException)
+        def ex = thrown(IllegalArgumentException)
         ex.message.contains 'org.gradle.daemon.idletimeout'
         ex.message.contains 'asdf'
     }
@@ -119,7 +118,7 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
         converter.convert((DaemonBuildOptionFactory.HealthCheckOption.GRADLE_PROPERTY): 'bogus', params)
 
         then:
-        def ex = thrown(GradleException)
+        def ex = thrown(IllegalArgumentException)
         ex.message.contains 'org.gradle.daemon.healthcheckinterval'
         ex.message.contains 'bogus'
     }

@@ -21,13 +21,13 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
-import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.internal.Factory;
 import org.gradle.internal.buildoption.AbstractBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
+import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 
 import java.util.ArrayList;
@@ -99,16 +99,16 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
         }
 
         private LogLevel parseLogLevel(String value) {
+            LogLevel logLevel = null;
             try {
-                LogLevel logLevel = LogLevel.valueOf(value.toUpperCase());
+                logLevel = LogLevel.valueOf(value.toUpperCase());
                 if (logLevel == LogLevel.ERROR) {
                     throw new IllegalArgumentException("Log level cannot be set to 'ERROR'.");
                 }
-                return logLevel;
             } catch (IllegalArgumentException e) {
-                String message = String.format("Value '%s' given for %s system property is invalid.  (must be one of quiet, warn, lifecycle, info, or debug)", value, gradleProperty);
-                throw new IllegalArgumentException(message, e);
+                Origin.forGradleProperty(GRADLE_PROPERTY).handleInvalidValue(value, "must be one of quiet, warn, lifecycle, info, or debug)");
             }
+            return logLevel;
         }
     }
 
@@ -152,7 +152,7 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
         public static final String GRADLE_PROPERTY = "org.gradle.console";
 
         public ConsoleOption() {
-            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create("console", "Specifies which type of console output to generate. Values are 'plain', 'auto' (default) or 'rich'."));
+            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, "Specifies which type of console output to generate. Values are 'plain', 'auto' (default), 'rich' or 'verbose'."));
         }
 
         @Override
@@ -162,7 +162,7 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
                 ConsoleOutput consoleOutput = ConsoleOutput.valueOf(consoleValue);
                 settings.setConsoleOutput(consoleOutput);
             } catch (IllegalArgumentException e) {
-                throw new CommandLineArgumentException(String.format("Unrecognized value '%s' for %s.", value, LONG_OPTION));
+                origin.handleInvalidValue(value);
             }
         }
     }

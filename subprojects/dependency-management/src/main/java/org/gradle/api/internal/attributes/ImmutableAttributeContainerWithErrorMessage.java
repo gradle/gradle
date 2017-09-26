@@ -42,11 +42,6 @@ public class ImmutableAttributeContainerWithErrorMessage implements AttributeCon
     }
 
     @Override
-    public AttributeContainerInternal copy() {
-        return delegate.copy();
-    }
-
-    @Override
     public Set<Attribute<?>> keySet() {
         return delegate.keySet();
     }

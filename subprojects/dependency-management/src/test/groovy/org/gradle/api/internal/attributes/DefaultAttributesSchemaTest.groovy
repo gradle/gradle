@@ -23,7 +23,6 @@ import org.gradle.api.attributes.AttributeCompatibilityRule
 import org.gradle.api.attributes.AttributeDisambiguationRule
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
-import org.gradle.api.internal.changedetection.state.SupportedImmutableTypes
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.model.ComponentAttributeMatcher
 import org.gradle.internal.component.model.DefaultCandidateResult
@@ -34,7 +33,7 @@ import spock.lang.Unroll
 
 class DefaultAttributesSchemaTest extends Specification {
     def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
-    def factory = new DefaultImmutableAttributesFactory()
+    def factory = TestUtil.attributesFactory()
 
     @Unroll
     def "can create an attribute of scalar type #type"() {
@@ -46,7 +45,8 @@ class DefaultAttributesSchemaTest extends Specification {
 
         where:
         type << [
-            *SupportedImmutableTypes.SCALAR_TYPES,
+            String,
+            Number,
             MyEnum,
             Flavor
         ]
@@ -62,41 +62,11 @@ class DefaultAttributesSchemaTest extends Specification {
 
         where:
         type << [
-            *SupportedImmutableTypes.SCALAR_TYPES,
+            String,
+            Number,
             MyEnum,
             Flavor
         ]
-    }
-
-    static String getSupportedImmutableDescription() {
-        def sb = new StringBuilder()
-        SupportedImmutableTypes.describeTo(sb)
-        sb.toString()
-    }
-
-    def "cannot create a Named attribute if it's not an interface type"() {
-        when:
-        Attribute.of('attr', ConcreteNamed)
-
-        then:
-        def e = thrown(IllegalArgumentException)
-
-        and:
-        e.message == """Cannot declare a attribute 'attr' with type class org.gradle.api.internal.attributes.DefaultAttributesSchemaTest\$ConcreteNamed. Supported types are: 
-${supportedImmutableDescription}"""
-
-    }
-
-    def "displays a reasonable error message if attribute type is unsupported"() {
-        when:
-        Attribute.of('attr', Date)
-
-        then:
-        def e = thrown(IllegalArgumentException)
-
-        and:
-        e.message == """Cannot declare a attribute 'attr' with type class java.util.Date. Supported types are: 
-${supportedImmutableDescription}"""
     }
 
     def "fails if no strategy is declared for custom type"() {
