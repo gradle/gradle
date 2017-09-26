@@ -123,8 +123,9 @@ public class GcsClient {
     public List<String> list(URI uri) throws ResourceException {
         List<StorageObject> results = new ArrayList<StorageObject>();
 
+        String path = cleanResourcePath(uri);
         try {
-            Storage.Objects.List listRequest = storage.objects().list(uri.getHost());
+            Storage.Objects.List listRequest = storage.objects().list(uri.getHost()).setPrefix(path);
             Objects objects;
 
             // Iterate through each page of results, and add them to our results list.
@@ -141,7 +142,7 @@ public class GcsClient {
         }
 
         List<String> resultStrings = new ArrayList<String>();
-        for(StorageObject result : results) {
+        for (StorageObject result : results) {
             resultStrings.add(result.getName());
         }
 
