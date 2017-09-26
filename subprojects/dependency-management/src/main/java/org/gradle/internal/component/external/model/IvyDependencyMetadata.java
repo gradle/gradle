@@ -107,15 +107,17 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
         boolean matched = false;
         String fromConfigName = fromConfiguration.getName();
         for (String config : fromConfiguration.getHierarchy()) {
-            Set<String> targetPatterns = confs.get(config);
-            if (!targetPatterns.isEmpty()) {
-                matched = true;
-            }
-            for (String targetPattern : targetPatterns) {
-                findMatches(fromComponent, targetComponent, fromConfigName, config, targetPattern, targets);
+            if (confs.containsKey(config)) {
+                Set<String> targetPatterns = confs.get(config);
+                if (!targetPatterns.isEmpty()) {
+                    matched = true;
+                }
+                for (String targetPattern : targetPatterns) {
+                    findMatches(fromComponent, targetComponent, fromConfigName, config, targetPattern, targets);
+                }
             }
         }
-        if (!matched) {
+        if (!matched && confs.containsKey("%")) {
             for (String targetPattern : confs.get("%")) {
                 findMatches(fromComponent, targetComponent, fromConfigName, fromConfigName, targetPattern, targets);
             }
