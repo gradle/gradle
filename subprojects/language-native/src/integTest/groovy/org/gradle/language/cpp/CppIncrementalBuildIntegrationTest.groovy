@@ -89,10 +89,10 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         run installApp
 
         then:
-        skipped compile(LIBRARY)
-        skipped link(LIBRARY)
-        executedAndNotSkipped compile(APP)
-        executedAndNotSkipped link(APP)
+        skipped compileTasks(LIBRARY)
+        skipped linkTasks(LIBRARY)
+        executedAndNotSkipped compileTasks(APP)
+        executedAndNotSkipped linkTasks(APP)
         executedAndNotSkipped installApp
 
         and:
@@ -116,10 +116,10 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         run installApp
 
         then:
-        executedAndNotSkipped compile(LIBRARY)
-        executedAndNotSkipped link(LIBRARY)
-        skipped compile(APP)
-        executedAndNotSkipped link(APP)
+        executedAndNotSkipped compileTasks(LIBRARY)
+        executedAndNotSkipped linkTasks(LIBRARY)
+        skipped compileTasks(APP)
+        executedAndNotSkipped linkTasks(APP)
         executedAndNotSkipped installApp
 
         and:
@@ -135,20 +135,20 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         when:
         headerFile << """
             int unused();
-"""
+        """
         run installApp
 
         then:
-        executedAndNotSkipped compile(LIBRARY)
-        executedAndNotSkipped compile(APP)
+        executedAndNotSkipped compileTasks(LIBRARY)
+        executedAndNotSkipped compileTasks(APP)
 
         if (nonDeterministicCompilation()) {
             // Relinking may (or may not) be required after recompiling
-            executed link(LIBRARY)
-            executed link(APP), installApp
+            executed linkTasks(LIBRARY)
+            executed linkTasks(APP), installApp
         } else {
-            skipped link(LIBRARY)
-            skipped link(APP), installApp
+            skipped linkTasks(LIBRARY)
+            skipped linkTasks(APP), installApp
         }
     }
 
@@ -164,16 +164,16 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         run installApp
 
         then:
-        executedAndNotSkipped compile(LIBRARY)
-        executedAndNotSkipped compile(APP)
+        executedAndNotSkipped compileTasks(LIBRARY)
+        executedAndNotSkipped compileTasks(APP)
 
         if (nonDeterministicCompilation()) {
             // Relinking may (or may not) be required after recompiling
-            executed link(LIBRARY)
-            executed link(APP), installApp
+            executed linkTasks(LIBRARY)
+            executed linkTasks(APP), installApp
         } else {
-            skipped link(LIBRARY)
-            skipped link(APP), installApp
+            skipped linkTasks(LIBRARY)
+            skipped linkTasks(APP), installApp
         }
     }
 
@@ -212,7 +212,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         then:
         fails installApp
         and:
-        executedAndNotSkipped compile(APP)
+        executedAndNotSkipped compileTasks(APP)
     }
 
     private boolean nonDeterministicCompilation() {
@@ -220,11 +220,11 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         toolChain.visualCpp || objectiveCWithAslr()
     }
 
-    String[] compile(String project) {
+    String[] compileTasks(String project) {
         ["${project}:discoverInputs${variant}", "${project}:compile${variant}${sourceType}"] as String[]
     }
 
-    String link(String project) {
+    String linkTasks(String project) {
         "${project}:link${variant}"
     }
 

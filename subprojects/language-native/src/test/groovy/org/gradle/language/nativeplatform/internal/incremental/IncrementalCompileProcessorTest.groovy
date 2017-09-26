@@ -19,6 +19,8 @@ import org.gradle.cache.PersistentStateCache
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.Hashing
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
+import org.gradle.language.nativeplatform.internal.IncludeType
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultIncludeDirectives
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -368,6 +370,21 @@ class IncrementalCompileProcessorTest extends Specification {
 
         then:
         checkCompile recompiled: [source2], removed: []
+    }
+
+    def "discovers if macro includes have been used"() {
+        given:
+        def includes = new DefaultIncludeDirectives([new DefaultInclude("MACRO_DEF", false, IncludeType.MACRO)])
+
+        when:
+        def result = incrementalCompileProcessor.processSourceFiles([source1])
+
+        then:
+        1 * includesParser.parseIncludes(source1) >> includes
+        1 * dependencyParser.resolveIncludes(source1, includes) >> resolveDeps([new ResolvedInclude("MACRO_DEF", null)] as Set)
+
+        result.sourceFilesUseMacroIncludes
+
     }
 
     def checkCompile(Map<String, List<File>> args) {

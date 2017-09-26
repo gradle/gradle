@@ -380,14 +380,6 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         sharedLibrary("app/build/install/main/debug/lib/shuffle").file.assertExists()
     }
 
-    List<String> linkTasks(String project = '', String variant) {
-        ["${project}:discoverInputs${variant}", "${project}:compile${variant}Cpp", "${project}:link${variant}"]
-    }
-
-    List<String> installTasks(String project = '', String variant) {
-        [*linkTasks(project, variant), "${project}:install${variant}"]
-    }
-
     def "honors changes to library buildDir"() {
         settingsFile << "include 'app', 'lib1', 'lib2'"
         def app = new CppAppWithLibraries()
@@ -570,4 +562,13 @@ class CppExecutableIntegrationTest extends AbstractInstalledToolChainIntegration
         sharedLibrary("build/install/main/debug/lib/lib1").file.assertExists()
         sharedLibrary("build/install/main/debug/lib/lib2").file.assertExists()
     }
+
+    List<String> linkTasks(String project = '', String variant) {
+        ["${project}:discoverInputs${variant}", "${project}:compile${variant}Cpp", "${project}:link${variant}"]
+    }
+
+    List<String> installTasks(String project = '', String variant) {
+        [*linkTasks(project, variant), "${project}:install${variant}"]
+    }
+
 }
