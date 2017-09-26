@@ -23,6 +23,8 @@ TBD: `PropertyState<Directory>` and `PropertyState<RegularFile>` can be set usin
 
 Gradle 4.3 introduces some changes that bring task inputs and outputs registered via task annotations (e.g. `@InputFile` and `@OutputDirectory` etc.) and the runtime API (think `task.inputs.file(...)` and `task.outputs.dir(...)` etc.) closer to each other.
 
+#### Output directory creation
+
 For task outputs declared via annotations like `@OutputDirectory` and `@OutputFile`, Gradle always ensured that the necessary directory exists before executing the task. Starting with version 4.3 Gradle will also create directories for outputs that were registered via the runtime API (e.g. by calling methods like `task.outputs.file()` and `dir()`).
 
 ```
@@ -35,6 +37,8 @@ task customTask {
     }
 }
 ```
+
+#### Input/output validation
 
 Task inputs and outputs declared via task property annotations have always been validated by Gradle. If a task declared a non-optional (`@Optional`) input that was `null`, Gradle would fail the build with the message:
 
@@ -51,6 +55,32 @@ Starting with Gradle 4.3, these validations also happen for properties registere
 ```text
 A problem was found with the configuration of task ':test'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated and is scheduled to be removed in Gradle 5.0.
  - No value has been specified for property 'inputDirectory'.
+```
+
+#### Declaring classpath properties
+
+The `@Classpath` annotation was introduced in Gradle 3.2 to mark task input properties that should represent a runtime classpath. Gradle 3.4 added `@CompileClasspath`. However, it was not possible to declare a similar property via the runtime API. With Gradle 4.3 this is now possible. The following examples declare equivalent inputs for `customTask`.
+
+Using the annotations API:
+
+```
+class CustomTask {
+    @Classpath FileCollection classpath
+
+    // ...
+}
+
+task customTask(type: CustomTask) {
+    classpath = files("lib1.jar", "lib2.jar")
+}
+```
+
+Using the runtime API:
+
+```
+task customTask {
+    inputs.files("lib1.jar", "lib2.jar").withNormalizer(ClasspathNormalizer)
+}
 ```
 
 ### Force rich or plain console with `org.gradle.console`
