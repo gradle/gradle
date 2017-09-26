@@ -845,6 +845,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         succeeds "-Pjava8", "clean", "compileJava"
     }
 
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "CompileOptions.bootclasspath is deprecated"() {
         def jre = AvailableJavaHomes.getBestJre()
         def bootClasspath = TextUtil.escapeString(jre.absolutePath) + "/lib/rt.jar"
