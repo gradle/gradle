@@ -861,5 +861,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         executer.withFullDeprecationStackTraceDisabled()
         executer.expectDeprecationWarning()
         succeeds "compileJava"
+        output.contains "The CompileOptions.bootClasspath property has been deprecated and is scheduled to be removed in Gradle 5.0. Please use the CompileOptions.bootstrapClasspath property instead."
     }
 }
