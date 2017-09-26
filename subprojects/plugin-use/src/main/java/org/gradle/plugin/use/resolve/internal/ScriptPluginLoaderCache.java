@@ -27,6 +27,8 @@ import org.gradle.cache.internal.CacheKeyBuilder;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.resource.TextResourceLoader;
+import org.gradle.internal.scripts.ScriptingLanguages;
+import org.gradle.scripts.ScriptingLanguage;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -44,15 +46,17 @@ public class ScriptPluginLoaderCache {
     private final ProjectRegistry<ProjectInternal> projectRegistry;
     private final CacheRepository cacheRepository;
     private final CacheKeyBuilder cacheKeyBuilder;
+    private final ScriptingLanguages scriptingLanguages;
     private final TextResourceLoader textResourceLoader;
     private final ScriptPluginLoaderClassGenerator generator;
 
     private final Map<String, ScriptPluginLoader> buildScopedMemoryCache = new HashMap<String, ScriptPluginLoader>();
 
-    public ScriptPluginLoaderCache(ProjectRegistry<ProjectInternal> projectRegistry, CacheRepository cacheRepository, CacheKeyBuilder cacheKeyBuilder, TextResourceLoader textResourceLoader) {
+    public ScriptPluginLoaderCache(ProjectRegistry<ProjectInternal> projectRegistry, CacheRepository cacheRepository, CacheKeyBuilder cacheKeyBuilder, ScriptingLanguages scriptingLanguages, TextResourceLoader textResourceLoader) {
         this.projectRegistry = projectRegistry;
         this.cacheRepository = cacheRepository;
         this.cacheKeyBuilder = cacheKeyBuilder;
+        this.scriptingLanguages = scriptingLanguages;
         this.textResourceLoader = textResourceLoader;
         this.generator = new ScriptPluginLoaderClassGenerator();
     }
@@ -64,15 +68,16 @@ public class ScriptPluginLoaderCache {
 
         ScriptPluginLoader scriptPluginLoader = buildScopedMemoryCache.get(scriptContentHash);
         if (scriptPluginLoader == null) {
-            scriptPluginLoader = createScriptPluginLoader(displayName, scriptContent, scriptContentHash);
+            String scriptFileExtension = scriptFileExtensionFor(pluginRequest);
+            scriptPluginLoader = createScriptPluginLoader(displayName, scriptContent, scriptContentHash, scriptFileExtension);
             buildScopedMemoryCache.put(scriptContentHash, scriptPluginLoader);
         }
         return scriptPluginLoader;
     }
 
-    private ScriptPluginLoader createScriptPluginLoader(final String displayName, final String scriptContent, final String scriptContentHash) {
+    private ScriptPluginLoader createScriptPluginLoader(final String displayName, final String scriptContent, final String scriptContentHash, String scriptFileExtension) {
 
-        final ScriptPluginLoaderSpec loaderSpec = new ScriptPluginLoaderSpec(displayName, scriptContent, scriptContentHash);
+        final ScriptPluginLoaderSpec loaderSpec = new ScriptPluginLoaderSpec(displayName, scriptContent, scriptContentHash, scriptFileExtension);
 
         CacheKeyBuilder.CacheKeySpec cacheKeySpec = CacheKeyBuilder.CacheKeySpec
             .withPrefix("script-plugin-loaders")
@@ -119,5 +124,20 @@ public class ScriptPluginLoaderCache {
 
     private String scriptContentFor(ContextAwarePluginRequest pluginRequest) {
         return textResourceLoader.loadUri("script plugin", pluginRequest.getScriptUri()).getText();
+    }
+
+    private String scriptFileExtensionFor(ContextAwarePluginRequest pluginRequest) {
+        String defaultScriptFileExtension = ".gradle";
+        String scriptUriPath = pluginRequest.getScriptUri().getPath();
+        if (scriptUriPath.endsWith(defaultScriptFileExtension)) {
+            return defaultScriptFileExtension;
+        }
+        for (ScriptingLanguage scriptingLanguage : scriptingLanguages) {
+            String scriptingLanguageExtension = scriptingLanguage.getExtension();
+            if (scriptUriPath.endsWith(scriptingLanguageExtension)) {
+                return scriptingLanguageExtension;
+            }
+        }
+        return defaultScriptFileExtension;
     }
 }

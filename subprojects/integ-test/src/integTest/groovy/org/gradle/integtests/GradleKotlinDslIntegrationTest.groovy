@@ -124,6 +124,97 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
         result.output.contains("Hello!")
     }
 
+    def "Groovy script can request Kotlin script using the plugins block"() {
+
+        given:
+        settingsFile.text = ""
+
+        and:
+        file("other.gradle.kts") << """
+
+            val hello by tasks.creating {
+                doLast {
+                    println("Hello!") 
+                }
+            }
+
+        """.stripIndent()
+
+        and:
+        buildFile.delete()
+        file("build.gradle") << """
+
+            plugins {
+                script 'other.gradle.kts'
+            }
+
+        """.stripIndent()
+
+        when:
+        succeeds "hello"
+
+        then:
+        output.contains("Hello!")
+    }
+
+    def "Kotlin script can request Groovy script using the plugins block"() {
+
+        given:
+        file("other.gradle") << """
+
+            task(hello) {
+                doLast {
+                    println("Hello!") 
+                }
+            }
+
+        """.stripIndent()
+
+        and:
+        buildFile << """
+
+            plugins {
+                script("other.gradle")
+            }
+
+        """.stripIndent()
+
+        when:
+        succeeds "hello"
+
+        then:
+        output.contains("Hello!")
+    }
+
+    def "Kotlin script can request Kotlin script using the plugins block"() {
+
+        given:
+        file("other.gradle.kts") << """
+
+            val hello by tasks.creating {
+                doLast {
+                    println("Hello!") 
+                }
+            }
+
+        """.stripIndent()
+
+        and:
+        buildFile << """
+
+            plugins {
+                script("other.gradle.kts")
+            }
+
+        """.stripIndent()
+
+        when:
+        succeeds "hello"
+
+        then:
+        output.contains("Hello!")
+    }
+
     def 'can query KotlinBuildScriptModel'() {
         given:
         // This test breaks encapsulation a bit in the interest of ensuring Gradle Kotlin DSL use

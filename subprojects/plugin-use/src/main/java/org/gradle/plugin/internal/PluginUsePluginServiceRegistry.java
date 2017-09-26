@@ -42,6 +42,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.resource.transport.http.SslContextFactory;
+import org.gradle.internal.scripts.ScriptingLanguages;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.plugin.management.PluginManagementSpec;
@@ -119,8 +120,8 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
             return new PluginResolutionServiceResolver(pluginResolutionServiceClient, versionSelectorScheme, startParameter, classLoaderScopeRegistry.getCoreScope(), dependencyResolutionServicesFactory, pluginInspector);
         }
 
-        ScriptPluginLoaderCache createScriptPluginLoaderCache(ProjectRegistry<ProjectInternal> projectRegistry, CacheRepository cacheRepository, CacheKeyBuilder cacheKeyBuilder, TextResourceLoader textResourceLoader) {
-            return new ScriptPluginLoaderCache(projectRegistry, cacheRepository, cacheKeyBuilder, textResourceLoader);
+        ScriptPluginLoaderCache createScriptPluginLoaderCache(ProjectRegistry<ProjectInternal> projectRegistry, CacheRepository cacheRepository, CacheKeyBuilder cacheKeyBuilder, ScriptingLanguages scriptingLanguages, TextResourceLoader textResourceLoader) {
+            return new ScriptPluginLoaderCache(projectRegistry, cacheRepository, cacheKeyBuilder, scriptingLanguages, textResourceLoader);
         }
 
         PluginResolverFactory createPluginResolverFactory(PluginRegistry pluginRegistry, DocumentationRegistry documentationRegistry, PluginResolutionServiceResolver pluginResolutionServiceResolver,

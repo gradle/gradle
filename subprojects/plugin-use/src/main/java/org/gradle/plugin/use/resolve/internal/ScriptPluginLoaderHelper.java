@@ -33,6 +33,7 @@ public class ScriptPluginLoaderHelper {
     public ScriptPlugin load(String scriptContent,
                              String scriptIdentifier,
                              String scriptDisplayName,
+                             String scriptFileExtension,
                              ProjectRegistry<ProjectInternal> projectRegistry,
                              ScriptHandler scriptHandler,
                              ScriptPluginFactory scriptPluginFactory) {
@@ -40,7 +41,7 @@ public class ScriptPluginLoaderHelper {
         ClassLoaderScope buildSrcScope = ScriptPluginsScope.from(projectRegistry);
         ClassLoaderScope scriptPluginScope = buildSrcScope.createChild("script-plugin-" + scriptIdentifier);
 
-        ScriptSource scriptSource = new StringScriptSource(scriptDisplayName, scriptContent);
+        ScriptSource scriptSource = new StringScriptSource(scriptDisplayName, scriptContent, scriptFileExtension);
         return scriptPluginFactory.create(scriptSource, scriptHandler, scriptPluginScope, buildSrcScope, false);
     }
 }

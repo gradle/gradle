@@ -20,15 +20,17 @@ public class ScriptPluginLoaderSpec {
     private final String displayName;
     private final String scriptContent;
     private final String scriptContentHash;
+    private final String scriptFileExtension;
 
     private final String loaderClassSimpleName;
     private final String loaderClassBinaryName;
     private final String loaderClassFilePath;
 
-    public ScriptPluginLoaderSpec(String displayName, String scriptContent, String scriptContentHash) {
+    public ScriptPluginLoaderSpec(String displayName, String scriptContent, String scriptContentHash, String scriptFileExtension) {
         this.displayName = displayName;
         this.scriptContent = scriptContent;
         this.scriptContentHash = scriptContentHash;
+        this.scriptFileExtension = scriptFileExtension;
 
         loaderClassSimpleName = ScriptPluginLoaderClassGenerator.SYNTHETIC_LOADER_CLASSNAME_PREFIX + scriptContentHash;
         loaderClassBinaryName = ScriptPluginLoaderClassGenerator.SYNTHETIC_LOADER_PACKAGE_NAME + "." + loaderClassSimpleName;
@@ -45,6 +47,10 @@ public class ScriptPluginLoaderSpec {
 
     public String getScriptContentHash() {
         return scriptContentHash;
+    }
+
+    public String getScriptFileExtension() {
+        return scriptFileExtension;
     }
 
     public String getLoaderClassSimpleName() {

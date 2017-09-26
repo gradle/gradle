@@ -56,7 +56,7 @@ public class ScriptPluginLoaderClassGenerator {
 
     private static final Type SCRIPT_PLUGIN_LOADER_TYPE = Type.getType(ScriptPluginLoaderHelper.class);
     private static final Type SCRIPT_PLUGIN_LOADER_LOAD_METHOD = Type.getMethodType(SCRIPT_PLUGIN_TYPE,
-        STRING_TYPE, STRING_TYPE, STRING_TYPE, PROJECT_REGISTRY_TYPE, SCRIPT_HANDLER_TYPE, SCRIPT_PLUGIN_FACTORY_TYPE);
+        STRING_TYPE, STRING_TYPE, STRING_TYPE, STRING_TYPE, PROJECT_REGISTRY_TYPE, SCRIPT_HANDLER_TYPE, SCRIPT_PLUGIN_FACTORY_TYPE);
 
     private static final String PROJECT_REGISTRY_FIELD_NAME = "projectRegistry";
     private static final String SCRIPT_HANDLER_FIELD_NAME = "scriptHandler";
@@ -71,7 +71,7 @@ public class ScriptPluginLoaderClassGenerator {
 
         defineInstanceMembers(cw);
         defineConstructor(cw, syntheticLoaderInternalName);
-        defineApplyMethod(cw, syntheticLoaderInternalName, loaderSpec.getScriptContent(), loaderSpec.getScriptContentHash(), loaderSpec.getDisplayName());
+        defineApplyMethod(cw, syntheticLoaderInternalName, loaderSpec);
         defineToStringMethod(cw, loaderSpec.getDisplayName());
 
         cw.visitEnd();
@@ -104,17 +104,18 @@ public class ScriptPluginLoaderClassGenerator {
         ctor.visitEnd();
     }
 
-    private void defineApplyMethod(ClassWriter cw, String syntheticLoaderInternalName, String scriptContent, String scriptContentHash, String displayName) {
+    private void defineApplyMethod(ClassWriter cw, String syntheticLoaderInternalName, ScriptPluginLoaderSpec loaderSpec) {
         MethodVisitor apply = cw.visitMethod(ACC_PUBLIC, "apply", APPLY_TO_OBJECT_METHOD.getDescriptor(), null, null);
-        apply.visitMaxs(7, 4);
+        apply.visitMaxs(8, 4);
         apply.visitTypeInsn(NEW, SCRIPT_PLUGIN_LOADER_TYPE.getInternalName());
         apply.visitInsn(DUP);
         apply.visitMethodInsn(INVOKESPECIAL, SCRIPT_PLUGIN_LOADER_TYPE.getInternalName(), "<init>", VOID_NO_ARG_METHOD.getDescriptor(), false);
         apply.visitVarInsn(ASTORE, 2);
         apply.visitVarInsn(ALOAD, 2);
-        apply.visitLdcInsn(scriptContent);
-        apply.visitLdcInsn(scriptContentHash);
-        apply.visitLdcInsn(displayName);
+        apply.visitLdcInsn(loaderSpec.getScriptContent());
+        apply.visitLdcInsn(loaderSpec.getScriptContentHash());
+        apply.visitLdcInsn(loaderSpec.getDisplayName());
+        apply.visitLdcInsn(loaderSpec.getScriptFileExtension());
         apply.visitVarInsn(ALOAD, 0);
         apply.visitFieldInsn(GETFIELD, syntheticLoaderInternalName, PROJECT_REGISTRY_FIELD_NAME, PROJECT_REGISTRY_TYPE.getDescriptor());
         apply.visitVarInsn(ALOAD, 0);
