@@ -17,7 +17,7 @@ if ((milestoneNumber != null && rcNumber != null) ||
 ext.baseVersion = rootProject.file("version.txt").text.trim()
 
 File incomingBuildReceiptDir = file("incoming-distributions")
-if (new File(incomingBuildReceiptDir, BuildReceipt.BUILD_RECEIPT_FILE_NAME).exists()) {
+if (!project.hasProperty("ignoreIncomingBuildReceipt") && new File(incomingBuildReceiptDir, BuildReceipt.BUILD_RECEIPT_FILE_NAME).exists()) {
     def incomingDistributionsBuildReceipt = BuildReceipt.readBuildReceipt(incomingBuildReceiptDir)
     ext.buildTimestamp = incomingDistributionsBuildReceipt.buildTimestamp
     println "Using timestamp from incoming build receipt: $buildTimestamp"
