@@ -166,7 +166,11 @@ class NodeState implements DependencyGraphNode {
         }
 
         boolean isOptionalConfiguration = "optional".equals(metaData.getName());
-        OptionalDependenciesHandler optionalDependenciesHandler = new OptionalDependenciesHandler(resolveState.getOptionalDependencies(), resolveState.getDependencySubstitutionApplicator(), isOptionalConfiguration);
+        OptionalDependenciesHandler optionalDependenciesHandler = new OptionalDependenciesHandler(
+            resolveState.getOptionalDependencies(),
+            resolveState.getModuleIdentifierFactory(),
+            resolveState.getDependencySubstitutionApplicator(),
+            isOptionalConfiguration);
         for (DependencyMetadata dependency : metaData.getDependencies()) {
             if (isExcluded(resolutionFilter, dependency)) {
                 continue;

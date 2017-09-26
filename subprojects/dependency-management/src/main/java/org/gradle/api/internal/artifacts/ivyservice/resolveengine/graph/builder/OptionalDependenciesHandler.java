@@ -20,8 +20,8 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.internal.component.model.DependencyMetadata;
 
@@ -41,15 +41,18 @@ import java.util.Map;
  */
 public class OptionalDependenciesHandler {
     private final Map<ModuleIdentifier, PendingOptionalDependencies> optionalDependencies;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final DependencySubstitutionApplicator dependencySubstitutionApplicator;
     private final boolean isOptionalConfiguration;
     private List<PendingOptionalDependencies> noLongerOptional;
 
     public OptionalDependenciesHandler(Map<ModuleIdentifier, PendingOptionalDependencies> optionalDependencies,
+                                       ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                        DependencySubstitutionApplicator dependencySubstitutionApplicator,
                                        boolean isOptionalConfiguration) {
 
         this.optionalDependencies = optionalDependencies;
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.dependencySubstitutionApplicator = dependencySubstitutionApplicator;
         this.isOptionalConfiguration = isOptionalConfiguration;
     }
@@ -61,15 +64,15 @@ public class OptionalDependenciesHandler {
             ComponentSelector target = details.getTarget();
             if (target instanceof ModuleComponentSelector) {
                 ModuleComponentSelector selector = (ModuleComponentSelector) target;
-                return DefaultModuleIdentifier.newId(selector.getGroup(), selector.getModule());
+                return moduleIdentifierFactory.module(selector.getGroup(), selector.getModule());
             }
         }
         return dependencyMetadataToModuleIdentifier(dependency);
     }
 
-    private static ModuleIdentifier dependencyMetadataToModuleIdentifier(DependencyMetadata dependency) {
+    private ModuleIdentifier dependencyMetadataToModuleIdentifier(DependencyMetadata dependency) {
         ModuleVersionSelector requested = dependency.getRequested();
-        return DefaultModuleIdentifier.newId(requested.getGroup(), requested.getName());
+        return moduleIdentifierFactory.module(requested.getGroup(), requested.getName());
     }
 
     boolean maybeAddAsOptionalDependency(NodeState node, DependencyMetadata dependency) {
