@@ -29,7 +29,7 @@ class BuildOptionTest extends Specification {
     @Unroll
     def "can handle invalid value for Gradle property with empty #hint"() {
         when:
-        Origin.withGradleProperty(GRADLE_PROPERTY).handleInvalidValue(VALUE, hint)
+        Origin.forGradleProperty(GRADLE_PROPERTY).handleInvalidValue(VALUE, hint)
 
         then:
         Throwable t = thrown(IllegalArgumentException)
@@ -41,7 +41,7 @@ class BuildOptionTest extends Specification {
 
     def "can handle invalid value for Gradle property with concrete hint"() {
         when:
-        Origin.withGradleProperty(GRADLE_PROPERTY).handleInvalidValue(VALUE, HINT)
+        Origin.forGradleProperty(GRADLE_PROPERTY).handleInvalidValue(VALUE, HINT)
 
         then:
         Throwable t = thrown(IllegalArgumentException)
@@ -50,7 +50,7 @@ class BuildOptionTest extends Specification {
 
     def "can handle invalid value for command line option with concrete hint"() {
         when:
-        Origin.withCommandLine(OPTION).handleInvalidValue(VALUE, HINT)
+        Origin.forCommandLine(OPTION).handleInvalidValue(VALUE, HINT)
 
         then:
         Throwable t = thrown(CommandLineArgumentException)

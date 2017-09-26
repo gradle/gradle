@@ -106,7 +106,7 @@ public class LoggingConfigurationBuildOptionFactory implements Factory<List<Buil
                     throw new IllegalArgumentException("Log level cannot be set to 'ERROR'.");
                 }
             } catch (IllegalArgumentException e) {
-                Origin.withGradleProperty(GRADLE_PROPERTY).handleInvalidValue(value, "must be one of quiet, warn, lifecycle, info, or debug)");
+                Origin.forGradleProperty(GRADLE_PROPERTY).handleInvalidValue(value, "must be one of quiet, warn, lifecycle, info, or debug)");
             }
             return logLevel;
         }

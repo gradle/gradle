@@ -22,11 +22,11 @@ import org.gradle.cli.CommandLineArgumentException;
 public abstract class Origin {
     protected String source;
 
-    public static Origin withGradleProperty(String gradleProperty) {
+    public static Origin forGradleProperty(String gradleProperty) {
         return new GradlePropertyOrigin(gradleProperty);
     }
 
-    public static Origin withCommandLine(String commandLineOption) {
+    public static Origin forCommandLine(String commandLineOption) {
         return new CommandLineOrigin(commandLineOption);
     }
 

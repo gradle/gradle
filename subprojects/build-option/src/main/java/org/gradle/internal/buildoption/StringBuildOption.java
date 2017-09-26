@@ -41,7 +41,7 @@ public abstract class StringBuildOption<T> extends AbstractBuildOption<T> {
         String value = properties.get(gradleProperty);
 
         if (value != null) {
-            applyTo(value, settings, Origin.withGradleProperty(gradleProperty));
+            applyTo(value, settings, Origin.forGradleProperty(gradleProperty));
         }
     }
 
@@ -57,7 +57,7 @@ public abstract class StringBuildOption<T> extends AbstractBuildOption<T> {
         for (CommandLineOptionConfiguration config : commandLineOptionConfigurations) {
             if (options.hasOption(config.getLongOption())) {
                 String value = options.option(config.getLongOption()).getValue();
-                applyTo(value, settings, Origin.withCommandLine(config.getLongOption()));
+                applyTo(value, settings, Origin.forCommandLine(config.getLongOption()));
             }
         }
     }
