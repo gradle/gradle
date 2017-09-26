@@ -24,6 +24,9 @@ import java.io.Reader;
 
 public class DefaultUserInputReader implements UserInputReader {
 
+    private static final char UNIX_NEW_LINE = '\n';
+    private static final char WINDOWS_NEW_LINE = '\r';
+
     @Override
     public String readInput() {
         Reader br = new InputStreamReader(System.in);
@@ -33,13 +36,13 @@ public class DefaultUserInputReader implements UserInputReader {
             try {
                 int c = br.read();
 
-                if (c == 4 || c == -1) {
+                if (isEOF(c)) {
                     return null;
                 }
 
-                out.append((char)c);
-
-                if ((c == '\n') || (c == '\r')) {
+                if (!isLineSeparator((char)c)) {
+                    out.append((char)c);
+                } else {
                     break;
                 }
             } catch (IOException e) {
@@ -48,5 +51,13 @@ public class DefaultUserInputReader implements UserInputReader {
         }
 
         return out.toString();
+    }
+
+    private boolean isEOF(int c) {
+        return c == 4 || c == -1;
+    }
+
+    private boolean isLineSeparator(char c) {
+        return c == UNIX_NEW_LINE || c == WINDOWS_NEW_LINE;
     }
 }

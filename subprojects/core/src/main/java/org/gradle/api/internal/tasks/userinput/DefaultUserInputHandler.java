@@ -38,8 +38,12 @@ public class DefaultUserInputHandler implements UserInputHandler {
             while (true) {
                 String input = userInputReader.readInput();
 
-                if (input == null) {
+                if (isInputCancelled(input)) {
                     return null;
+                }
+
+                if (isInputDefaultValue(inputRequest, input)) {
+                    return inputRequest.getDefaultValue();
                 }
 
                 String sanitizedInput = sanitizeInput(input);
@@ -53,11 +57,15 @@ public class DefaultUserInputHandler implements UserInputHandler {
         }
     }
 
-    private String sanitizeInput(String input) {
-        if (input != null) {
-            return CharMatcher.JAVA_ISO_CONTROL.removeFrom(StringUtils.trim(input));
-        }
+    private boolean isInputCancelled(String input) {
+        return input == null;
+    }
 
-        return input;
+    private boolean isInputDefaultValue(InputRequest inputRequest, String input) {
+        return inputRequest.getDefaultValue() != null && "".equals(input);
+    }
+
+    private String sanitizeInput(String input) {
+        return CharMatcher.JAVA_ISO_CONTROL.removeFrom(StringUtils.trim(input));
     }
 }

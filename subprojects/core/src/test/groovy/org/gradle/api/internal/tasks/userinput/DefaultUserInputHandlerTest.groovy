@@ -41,6 +41,7 @@ class DefaultUserInputHandlerTest extends Specification {
 
         where:
         enteredUserInput | sanitizedUserInput
+        null             | null
         'foobar'         | 'foobar'
         'Hello World'    | 'Hello World'
         '   abc   '      | 'abc'
@@ -61,22 +62,48 @@ class DefaultUserInputHandlerTest extends Specification {
         input == 'valid'
     }
 
+    def "can handle default value input"() {
+        given:
+        def defaultValue = 'foobar'
+
+        when:
+        def input = userInputHandler.getInput(new TestInputRequest('Enter username:', defaultValue))
+
+        then:
+        1 * outputEventRenderer.onOutput(_ as UserInputRequestEvent)
+        1 * outputEventRenderer.onOutput(_ as UserInputResumeEvent)
+        0 * outputEventRenderer._
+        1 * userInputReader.readInput() >> ''
+        input == defaultValue
+    }
+
     private static class TestInputRequest implements InputRequest {
 
         private final String prompt
+        private final String defaultValue
 
         TestInputRequest(String prompt) {
+            this(prompt, null)
+        }
+
+        TestInputRequest(String prompt, String defaultValue) {
             this.prompt = prompt
+            this.defaultValue = defaultValue
         }
 
         @Override
         String getPrompt() {
-            prompt
+            "$prompt ($defaultValue)"
         }
 
         @Override
         boolean isValid(String input) {
             input == 'valid' ? true : false
+        }
+
+        @Override
+        String getDefaultValue() {
+            defaultValue
         }
     }
 }

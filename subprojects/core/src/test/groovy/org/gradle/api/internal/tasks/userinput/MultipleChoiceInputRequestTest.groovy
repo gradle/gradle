@@ -52,6 +52,7 @@ class MultipleChoiceInputRequestTest extends Specification {
 
         then:
         inputRequest.prompt == "$PROMPT [yes, no]"
+        !inputRequest.defaultValue
         inputRequest.isValid(input)
 
         where:
@@ -64,6 +65,19 @@ class MultipleChoiceInputRequestTest extends Specification {
 
         then:
         inputRequest.prompt == "$PROMPT [yes, no]"
+        !inputRequest.defaultValue
         !inputRequest.isValid('other')
+    }
+
+    def "can provide default value"() {
+        given:
+        def defaultValue = 'no'
+
+        when:
+        def inputRequest = new MultipleChoiceInputRequest(PROMPT, ['yes', 'no'], defaultValue)
+
+        then:
+        inputRequest.prompt == "$PROMPT [yes, no] ($defaultValue)"
+        inputRequest.defaultValue == defaultValue
     }
 }

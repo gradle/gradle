@@ -18,14 +18,20 @@ package org.gradle.api.internal.tasks.userinput;
 
 import org.apache.commons.lang.StringUtils;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class MultipleChoiceInputRequest implements InputRequest {
 
     private final String prompt;
+    private final String defaultValue;
     private final List<String> choices;
 
     public MultipleChoiceInputRequest(String prompt, List<String> choices) {
+        this(prompt, choices, null);
+    }
+
+    public MultipleChoiceInputRequest(String prompt, List<String> choices, String defaultValue) {
         if (StringUtils.isBlank(prompt)) {
             throw new IllegalArgumentException("Prompt maybe not be null, empty or whitespace");
         }
@@ -34,7 +40,12 @@ public class MultipleChoiceInputRequest implements InputRequest {
             throw new IllegalArgumentException("At least two choices need to be provided");
         }
 
+        if (defaultValue != null && !choices.contains(defaultValue)) {
+            throw new IllegalArgumentException("Default value needs to be one of possible choices");
+        }
+
         this.prompt = prompt;
+        this.defaultValue = defaultValue;
         this.choices = choices;
     }
 
@@ -45,7 +56,20 @@ public class MultipleChoiceInputRequest implements InputRequest {
         descriptivePrompt.append(" [");
         descriptivePrompt.append(StringUtils.join(choices, ", "));
         descriptivePrompt.append("]");
+
+        if (defaultValue != null) {
+            descriptivePrompt.append(" (");
+            descriptivePrompt.append(defaultValue);
+            descriptivePrompt.append(")");
+        }
+
         return descriptivePrompt.toString();
+    }
+
+    @Nullable
+    @Override
+    public String getDefaultValue() {
+        return defaultValue;
     }
 
     @Override

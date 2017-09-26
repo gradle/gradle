@@ -20,7 +20,7 @@ import spock.lang.Specification
 
 class DefaultInputRequestTest extends Specification {
 
-    private static final String PROMPT = 'Please provide information:'
+    private static final String PROMPT = 'Please state your age.'
 
     def "throws exception if invalid prompt is provided"() {
         when:
@@ -40,6 +40,7 @@ class DefaultInputRequestTest extends Specification {
 
         then:
         inputRequest.prompt == PROMPT
+        !inputRequest.defaultValue
         inputRequest.isValid(input)
 
         where:
@@ -52,6 +53,19 @@ class DefaultInputRequestTest extends Specification {
 
         then:
         inputRequest.prompt == PROMPT
+        !inputRequest.defaultValue
         !inputRequest.isValid(null)
+    }
+
+    def "can provide default value"() {
+        given:
+        def defaultValue = '25'
+
+        when:
+        def inputRequest = new DefaultInputRequest(PROMPT, defaultValue)
+
+        then:
+        inputRequest.prompt == "$PROMPT ($defaultValue)"
+        inputRequest.defaultValue == defaultValue
     }
 }

@@ -28,7 +28,7 @@ import static org.gradle.util.TextUtil.getPlatformLineSeparator
 class DefaultUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String USER_INPUT_REQUEST_TASK_NAME = 'userInputRequest'
-    private static final String PROMPT = 'Enter your response'
+    private static final String PROMPT = 'Enter your response:'
     private static final String HELLO_WORLD_USER_INPUT = 'Hello World'
 
     @Unroll
@@ -54,10 +54,31 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
+    def "can accept default value when capturing user input [daemon enabled: #useDaemon, rich console: #richConsole]"() {
+        given:
+        interactiveExecution()
+        buildFile << userInputRequestedTask(PROMPT, HELLO_WORLD_USER_INPUT, HELLO_WORLD_USER_INPUT)
+
+        when:
+        executer.withTasks(USER_INPUT_REQUEST_TASK_NAME)
+        withDaemon(useDaemon)
+        withRichConsole(richConsole)
+        def gradleHandle = executer.start()
+
+        then:
+        gradleHandle.stdinPipe.write(getPlatformLineSeparator().bytes)
+        gradleHandle.waitForFinish()
+        gradleHandle.standardOutput.contains("$PROMPT ($HELLO_WORLD_USER_INPUT)")
+
+        where:
+        [useDaemon, richConsole] << [[false, true], [false, true]].combinations()
+    }
+
+    @Unroll
     def "use of ctrl-d when capturing user input returns null [daemon enabled: #useDaemon, rich console: #richConsole]"() {
         given:
         interactiveExecution()
-        buildFile << userInputRequestedTask(PROMPT, null)
+        buildFile << userInputRequestedTask(PROMPT, null, null)
 
         when:
         executer.withTasks(USER_INPUT_REQUEST_TASK_NAME)
@@ -134,20 +155,24 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    static String userInputRequestedTask(String prompt = PROMPT, String expectedInput = HELLO_WORLD_USER_INPUT) {
+    static String userInputRequestedTask(String prompt = PROMPT, String defaultValue = null, String expectedInput = HELLO_WORLD_USER_INPUT) {
         """
             task $USER_INPUT_REQUEST_TASK_NAME {
                 doLast {
-                    ${verifyUserInput(prompt, expectedInput)}
+                    ${verifyUserInput(prompt, defaultValue, expectedInput)}
                 }
             }
         """
     }
 
     static String verifyUserInput(String prompt, String expectedInput) {
+        verifyUserInput(prompt, null, expectedInput)
+    }
+
+    static String verifyUserInput(String prompt, String defaultValue, String expectedInput) {
         """
             ${createUserInputHandler()}
-            def inputRequest = new ${DefaultInputRequest.class.getName()}('$prompt:')
+            ${createInputRequest(prompt, defaultValue)}
             def response = userInputHandler.getInput(inputRequest)
             assert response == ${formatExpectedInput(expectedInput)}
         """
@@ -157,6 +182,19 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
         """
             def userInputHandler = project.services.get(${DefaultUserInputHandler.class.getName()})
         """
+    }
+
+    static String createInputRequest(String prompt, String defaultValue) {
+        StringBuilder inputRequest = new StringBuilder()
+        inputRequest.append("def inputRequest = new ${DefaultInputRequest.class.getName()}")
+
+        if (defaultValue) {
+            inputRequest.append("('$prompt', '$defaultValue')")
+        } else {
+            inputRequest.append("('$prompt')")
+        }
+
+        inputRequest.toString()
     }
 
     static String formatExpectedInput(String input) {
