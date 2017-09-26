@@ -17,7 +17,6 @@
 package org.gradle.internal.component.model;
 
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 
@@ -26,7 +25,7 @@ import java.util.Collection;
 import java.util.List;
 
 public interface AttributeMatcher {
-    boolean isMatching(AttributeContainer candidate, AttributeContainer requested);
+    boolean isMatching(AttributeContainerInternal candidate, AttributeContainerInternal requested);
 
     <T> boolean isMatching(Attribute<T> attribute, T candidate, T requested);
 

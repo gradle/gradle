@@ -18,8 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 
-import java.util.Collection;
-
 public class VersionSelectionReasonResolver implements ModuleConflictResolver {
 
     private final ModuleConflictResolver delegate;
@@ -28,9 +26,12 @@ public class VersionSelectionReasonResolver implements ModuleConflictResolver {
         this.delegate = delegate;
     }
 
-    public <T extends ComponentResolutionState> T select(Collection<? extends T> candidates) {
-        T selected = delegate.select(candidates);
-        selected.setSelectionReason(VersionSelectionReasons.withConflictResolution(selected.getSelectionReason()));
-        return selected;
+    @Override
+    public <T extends ComponentResolutionState> void select(ConflictResolverDetails<T> details) {
+        delegate.select(details);
+        if (!details.hasFailure()) {
+            T selected = details.getSelected();
+            selected.setSelectionReason(VersionSelectionReasons.withConflictResolution(selected.getSelectionReason()));
+        }
     }
 }

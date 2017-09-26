@@ -95,6 +95,56 @@ class ModelObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         outputContains("thing1: thing1")
     }
 
+    def "named instance can be used as task input property"() {
+        buildFile << """
+            interface Thing extends Named { }
+            
+            class ThingTask extends DefaultTask {
+                @Input
+                Thing thing
+                
+                @OutputFile
+                RegularFile outputFile 
+                
+                @TaskAction def go() {
+                    outputFile.asFile.text = thing.name
+                }
+            }
+            
+            task a(type: ThingTask) {
+                thing = objects.named(Thing, System.getProperty("name") ?: "a")
+                outputFile = layout.projectDirectory.file("out.txt")
+            }
+"""
+
+        when:
+        run("a")
+
+        then:
+        file("out.txt").text == "a"
+
+        when:
+        run("a")
+
+        then:
+        result.assertTaskSkipped(":a")
+
+        when:
+        executer.withArgument("-Dname=b")
+        run("a")
+
+        then:
+        result.assertTaskNotSkipped(":a")
+        file("out.txt").text == "b"
+
+        when:
+        executer.withArgument("-Dname=b")
+        run("a")
+
+        then:
+        result.assertTaskSkipped(":a")
+    }
+
     def "cannot mutate named instance from groovy"() {
         buildFile << """
             interface Thing extends Named { }

@@ -53,9 +53,9 @@
         <title>Writing Gradle build scripts</title>
         <xi:include href='../../../build/asciidoc/userguide/buildScriptsTutorial.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/buildInitPlugin.xml'/>
-        <xi:include href='writingBuildScripts.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/writingBuildScripts.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/tasks.xml'/>
-        <xi:include href='workingWithFiles.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/workingWithFiles.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/ant.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/buildLifecycle.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/wrapperPlugin.xml'/>
@@ -91,7 +91,7 @@
         <xi:include href='../../../build/asciidoc/userguide/javaPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/javaLibraryPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/webTutorial.xml'/>
-        <xi:include href='warPlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/warPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/earPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/jettyPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/applicationPlugin.xml'/>

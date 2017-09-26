@@ -18,6 +18,7 @@ package org.gradle.api.internal.attributes;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,12 +26,14 @@ import java.util.Map;
 
 public class DefaultImmutableAttributesFactory implements ImmutableAttributesFactory {
     private final ImmutableAttributes root;
-    private final Map<ImmutableAttributes, List<ImmutableAttributes>> children;
+    private final Map<ImmutableAttributes, List<DefaultImmutableAttributes>> children;
+    private final IsolatableFactory isolatableFactory;
 
-    public DefaultImmutableAttributesFactory() {
-        this.root = new ImmutableAttributes(this);
+    public DefaultImmutableAttributesFactory(IsolatableFactory isolatableFactory) {
+        this.isolatableFactory = isolatableFactory;
+        this.root = ImmutableAttributes.EMPTY;
         this.children = Maps.newHashMap();
-        children.put(root, new ArrayList<ImmutableAttributes>());
+        children.put(root, new ArrayList<DefaultImmutableAttributes>());
     }
 
     public int size() {
@@ -38,33 +41,23 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
     }
 
     @Override
-    public Builder builder() {
-        return root.builder;
-    }
-
-    @Override
-    public Builder builder(ImmutableAttributes from) {
-        return from.builder != null ? from.builder : new Builder(from);
-    }
-
-    @Override
-    public ImmutableAttributes of(Attribute<?> key, Object value) {
+    public <T> ImmutableAttributes of(Attribute<T> key, T value) {
         return concat(root, key, value);
     }
 
     @Override
-    public synchronized ImmutableAttributes concat(ImmutableAttributes node, Attribute<?> key, Object value) {
-        List<ImmutableAttributes> nodeChildren = children.get(node);
+    public synchronized <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, T value) {
+        List<DefaultImmutableAttributes> nodeChildren = children.get(node);
         if (nodeChildren == null) {
             nodeChildren = Lists.newArrayList();
             children.put(node, nodeChildren);
         }
-        for (ImmutableAttributes child : nodeChildren) {
-            if (child.attribute.equals(key) && child.value.equals(value)) {
+        for (DefaultImmutableAttributes child : nodeChildren) {
+            if (child.attribute.equals(key) && child.value.isolate().equals(value)) {
                 return child;
             }
         }
-        ImmutableAttributes child = new ImmutableAttributes(node, key, value, this);
+        DefaultImmutableAttributes child = new DefaultImmutableAttributes((DefaultImmutableAttributes) node, key, isolatableFactory.isolate(value));
         nodeChildren.add(child);
         return child;
     }
@@ -75,30 +68,12 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
 
     @Override
     public ImmutableAttributes concat(ImmutableAttributes attributes1, ImmutableAttributes attributes2) {
-        Builder builder = new Builder(attributes2);
-        for (Attribute<?> attribute : attributes1.keySet()) {
-            builder = builder.addAttribute(attribute, attributes1.getAttribute(attribute));
-        }
-        return builder.get();
-    }
-
-    public class Builder {
-        private final ImmutableAttributes node;
-
-        public Builder(ImmutableAttributes from) {
-            node = from;
-        }
-
-        public Builder addAttribute(Attribute<?> attribute, Object value) {
-            ImmutableAttributes cur = node;
-            if (!cur.contains(attribute)) {
-                cur = concat(cur, attribute, value);
+        ImmutableAttributes current = attributes2;
+        for (Attribute attribute : attributes1.keySet()) {
+            if (!current.contains(attribute)) {
+                current = concat(current, attribute, attributes1.getAttribute(attribute));
             }
-            return cur.builder;
         }
-
-        public ImmutableAttributes get() {
-            return node;
-        }
+        return current;
     }
 }

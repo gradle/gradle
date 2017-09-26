@@ -18,26 +18,42 @@ package org.gradle.internal.buildoption
 
 import org.gradle.cli.CommandLineArgumentException
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class BuildOptionTest extends Specification {
-    private static final String GRADLE_PROPERTY_FAILURE_MESSAGE = 'Invalid Gradle property value'
-    private static final String COMMAND_LINE_FAILUE_MESSAGE = 'Invalid command line option value'
+    private static final String VALUE = '0'
+    private static final String HINT = 'must be positive'
+    private static final String GRADLE_PROPERTY = 'org.gradle.property'
+    private static final String OPTION = 'option'
 
-    def "can handle invalid value for Gradle property"() {
+    @Unroll
+    def "can handle invalid value for Gradle property with empty #hint"() {
         when:
-        BuildOption.Origin.GRADLE_PROPERTY.handleInvalidValue(GRADLE_PROPERTY_FAILURE_MESSAGE, COMMAND_LINE_FAILUE_MESSAGE)
+        Origin.forGradleProperty(GRADLE_PROPERTY).handleInvalidValue(VALUE, hint)
 
         then:
         Throwable t = thrown(IllegalArgumentException)
-        t.message == GRADLE_PROPERTY_FAILURE_MESSAGE
+        t.message == "Value '0' given for org.gradle.property Gradle property is invalid"
+
+        where:
+        hint << ['', ' ', null]
     }
 
-    def "can handle invalid value for command line option"() {
+    def "can handle invalid value for Gradle property with concrete hint"() {
         when:
-        BuildOption.Origin.COMMAND_LINE.handleInvalidValue(GRADLE_PROPERTY_FAILURE_MESSAGE, COMMAND_LINE_FAILUE_MESSAGE)
+        Origin.forGradleProperty(GRADLE_PROPERTY).handleInvalidValue(VALUE, HINT)
+
+        then:
+        Throwable t = thrown(IllegalArgumentException)
+        t.message == "Value '0' given for org.gradle.property Gradle property is invalid (must be positive)"
+    }
+
+    def "can handle invalid value for command line option with concrete hint"() {
+        when:
+        Origin.forCommandLine(OPTION).handleInvalidValue(VALUE, HINT)
 
         then:
         Throwable t = thrown(CommandLineArgumentException)
-        t.message == COMMAND_LINE_FAILUE_MESSAGE
+        t.message == "Argument value '0' given for --option option is invalid (must be positive)"
     }
 }

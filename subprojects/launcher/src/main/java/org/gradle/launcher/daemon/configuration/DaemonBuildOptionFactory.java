@@ -16,12 +16,12 @@
 
 package org.gradle.launcher.daemon.configuration;
 
-import org.gradle.api.GradleException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.EnabledOnlyBooleanBuildOption;
+import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.internal.jvm.JavaHomeException;
 import org.gradle.internal.jvm.JavaInfo;
@@ -66,7 +66,7 @@ public class DaemonBuildOptionFactory implements Factory<List<BuildOption<Daemon
             try {
                 settings.setIdleTimeout(new Integer(value));
             } catch (NumberFormatException e) {
-                throw new GradleException(String.format("Unable to parse %s property. The value should be an int but is: %s", gradleProperty, value));
+                origin.handleInvalidValue(value, "the value should be an int");
             }
         }
     }
@@ -83,7 +83,7 @@ public class DaemonBuildOptionFactory implements Factory<List<BuildOption<Daemon
             try {
                 settings.setPeriodicCheckInterval(new Integer(value));
             } catch (NumberFormatException e) {
-                throw new GradleException(String.format("Unable to parse %s property. Expected an int but got: %s", gradleProperty, value), e);
+                origin.handleInvalidValue(value, "the value should be an int");
             }
         }
     }
@@ -125,15 +125,15 @@ public class DaemonBuildOptionFactory implements Factory<List<BuildOption<Daemon
         public void applyTo(String value, DaemonParameters settings, Origin origin) {
             File javaHome = new File(value);
             if (!javaHome.isDirectory()) {
-                throw new GradleException(String.format("Java home supplied via '%s' is invalid. Invalid directory: %s", gradleProperty, value));
+                origin.handleInvalidValue(value, "Java home supplied is invalid");
             }
             JavaInfo jvm;
             try {
                 jvm = Jvm.forHome(javaHome);
+                settings.setJvm(jvm);
             } catch (JavaHomeException e) {
-                throw new GradleException(String.format("Java home supplied via '%s' seems to be invalid: %s", gradleProperty, value));
+                origin.handleInvalidValue(value, "Java home supplied seems to be invalid");
             }
-            settings.setJvm(jvm);
         }
     }
 

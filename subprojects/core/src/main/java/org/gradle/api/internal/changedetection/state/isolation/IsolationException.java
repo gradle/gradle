@@ -16,17 +16,20 @@
 
 package org.gradle.api.internal.changedetection.state.isolation;
 
+import org.gradle.internal.exceptions.Contextual;
+
 /**
  * Represents a problem while attempting to isolate an instance.
  */
+@Contextual
 public class IsolationException extends RuntimeException {
     private static final String MSG_FORMAT="Could not isolate value: [%s] of type: [%s]";
 
-    public IsolationException(String msg) {
-        super(msg);
-    }
-
     public IsolationException(Object value) {
         super(String.format(MSG_FORMAT, value, value.getClass()));
+    }
+
+    public IsolationException(Object value, Throwable cause) {
+        super(String.format(MSG_FORMAT, value, value.getClass()), cause);
     }
 }

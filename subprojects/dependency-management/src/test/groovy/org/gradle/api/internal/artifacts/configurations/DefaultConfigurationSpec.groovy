@@ -48,7 +48,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Selec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
-import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
@@ -61,6 +60,7 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.util.Path
+import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -79,7 +79,7 @@ class DefaultConfigurationSpec extends Specification {
     def resolutionStrategy = Mock(ResolutionStrategyInternal)
     def projectAccessListener = Mock(ProjectAccessListener)
     def projectFinder = Mock(ProjectFinder)
-    def immutableAttributesFactory = new DefaultImmutableAttributesFactory()
+    def immutableAttributesFactory = TestUtil.attributesFactory()
     def moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
     def rootComponentMetadataBuilder = Mock(RootComponentMetadataBuilder)
 
@@ -1426,8 +1426,8 @@ class DefaultConfigurationSpec extends Specification {
         def buildType = Attribute.of(BuildType) // infer the name from the type
 
         when:
-        conf.getAttributes().attribute(flavor, Mock(Flavor) { getName() >> 'free'} )
-        conf.getAttributes().attribute(buildType, Mock(BuildType){ getName() >> 'release'})
+        conf.getAttributes().attribute(flavor, new FlavorImpl(name: 'free'))
+        conf.getAttributes().attribute(buildType, new BuildTypeImpl(name: 'release'))
 
         then:
         !conf.attributes.isEmpty()
@@ -1440,7 +1440,7 @@ class DefaultConfigurationSpec extends Specification {
         def flavor = Attribute.of('flavor', Flavor)
 
         when:
-        conf.getAttributes().attribute(flavor, Mock(Flavor) { getName() >> 'free'} )
+        conf.getAttributes().attribute(flavor, new FlavorImpl(name: 'free') )
         conf.getAttributes().attribute(Attribute.of('flavor', String.class), 'paid')
 
         then:
@@ -1451,10 +1451,10 @@ class DefaultConfigurationSpec extends Specification {
     def "can overwrite a configuration attribute"() {
         def conf = conf()
         def flavor = Attribute.of(Flavor)
-        conf.getAttributes().attribute(flavor, Mock(Flavor) { getName() >> 'free'})
+        conf.getAttributes().attribute(flavor, new FlavorImpl(name: 'free'))
 
         when:
-        conf.getAttributes().attribute(flavor, Mock(Flavor) { getName() >> 'paid'} )
+        conf.getAttributes().attribute(flavor, new FlavorImpl(name: 'paid') )
 
         then:
         conf.attributes.getAttribute(flavor).name == 'paid'
@@ -1632,7 +1632,13 @@ All Artifacts:
     }
 
     interface Flavor extends Named {}
+    static class FlavorImpl implements Flavor, Serializable {
+        String name
+    }
     interface BuildType extends Named {}
+    static class BuildTypeImpl implements BuildType, Serializable {
+        String name
+    }
     enum Platform {
         JAVA6,
         JAVA7

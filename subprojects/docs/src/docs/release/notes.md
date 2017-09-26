@@ -92,6 +92,9 @@ All Command line options that allow to enable a feature now also have an equival
 
 ## Fixed issues
 
+### Version ranges are now handled properly
+
+Gradle will now honor version ranges correctly when multiple ranges are intersecting. For example, if a dependency on `some-module` is found with a range of versions `[3,6]` and that the same dependency is found transitively with a range of `[4,8]`, Gradle now selects version `6`, which is the highest version within both ranges. Previous releases of Gradle used to select version `8`.
 
 ## Deprecations
 

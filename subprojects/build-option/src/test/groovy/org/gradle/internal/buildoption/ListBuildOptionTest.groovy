@@ -46,7 +46,8 @@ class ListBuildOptionTest extends Specification {
 
         then:
         testSettings.values == SAMPLE_VALUES
-        testSettings.origin == BuildOption.Origin.GRADLE_PROPERTY
+        testSettings.origin instanceof Origin.GradlePropertyOrigin
+        testSettings.origin.source == GRADLE_PROPERTY
     }
 
     def "can configure command line parser"() {
@@ -130,7 +131,8 @@ class ListBuildOptionTest extends Specification {
 
         then:
         testSettings.values == SAMPLE_VALUES
-        testSettings.origin == BuildOption.Origin.COMMAND_LINE
+        testSettings.origin instanceof Origin.CommandLineOrigin
+        testSettings.origin.source == LONG_OPTION
     }
 
     static class TestOption extends ListBuildOption<TestSettings> {
@@ -144,7 +146,7 @@ class ListBuildOptionTest extends Specification {
         }
 
         @Override
-        void applyTo(List<String> values, TestSettings settings, BuildOption.Origin origin) {
+        void applyTo(List<String> values, TestSettings settings, Origin origin) {
             settings.values.addAll(values)
             settings.origin = origin
         }
@@ -152,7 +154,7 @@ class ListBuildOptionTest extends Specification {
 
     static class TestSettings {
         List<String> values = []
-        BuildOption.Origin origin
+        Origin origin
     }
 }
 

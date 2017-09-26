@@ -17,6 +17,7 @@
 package org.gradle.test.fixtures.server.http
 
 import com.google.common.collect.Sets
+import org.gradle.util.ports.FixedAvailablePortAllocator
 import org.mortbay.jetty.Connector
 import org.mortbay.jetty.Handler
 import org.mortbay.jetty.HttpHeaders
@@ -41,6 +42,7 @@ trait HttpServerFixture {
     private boolean logRequests = true
     private final Set<String> authenticationAttempts = Sets.newLinkedHashSet()
     private boolean configured
+    private boolean enablePortAllocator
 
     Server getServer() {
         server
@@ -88,6 +90,10 @@ trait HttpServerFixture {
         this.authenticationScheme = authenticationScheme
     }
 
+    void enablePortAllocator() {
+        this.enablePortAllocator = true
+    }
+
     void start() {
         if (!configured) {
             HandlerCollection handlers = new HandlerCollection()
@@ -99,7 +105,7 @@ trait HttpServerFixture {
         }
 
         connector = new SocketConnector()
-        connector.port = 0
+        connector.port = enablePortAllocator ? FixedAvailablePortAllocator.instance.assignPort() : 0
         server.addConnector(connector)
         server.start()
         for (int i = 0; i < 5; i++) {

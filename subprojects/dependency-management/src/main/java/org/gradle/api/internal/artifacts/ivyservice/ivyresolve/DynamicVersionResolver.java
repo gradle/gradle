@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
@@ -24,13 +25,13 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.ComponentSelectionContext;
@@ -52,7 +53,7 @@ import java.util.Set;
 import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult.State.Failed;
 import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult.State.Resolved;
 
-public class DynamicVersionResolver implements DependencyToComponentIdResolver {
+public class DynamicVersionResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamicVersionResolver.class);
 
     private final List<ModuleComponentRepository> repositories = new ArrayList<ModuleComponentRepository>();
@@ -70,14 +71,14 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
         repositoryNames.add(repository.getName());
     }
 
-    public void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result) {
+    public void resolve(DependencyMetadata dependency, VersionSelector versionSelector, BuildableComponentIdResolveResult result) {
         ModuleVersionSelector requested = dependency.getRequested();
         LOGGER.debug("Attempting to resolve version for {} using repositories {}", requested, repositoryNames);
         List<Throwable> errors = new ArrayList<Throwable>();
 
-        List<RepositoryResolveState> resolveStates = new ArrayList<RepositoryResolveState>();
+        List<RepositoryResolveState> resolveStates = Lists.newArrayListWithCapacity(repositories.size());
         for (ModuleComponentRepository repository : repositories) {
-            resolveStates.add(new RepositoryResolveState(versionedComponentChooser, dependency, repository));
+            resolveStates.add(new RepositoryResolveState(versionedComponentChooser, dependency, repository, versionSelector));
         }
 
         final RepositoryChainModuleResolution latestResolved = findLatestModule(resolveStates, errors);
@@ -187,7 +188,6 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
      *
      * 1. selecting a version, thanks to the versioned component chooser, for a specific version selector
      * 2. once the selection is done, fetch metadata for this component
-     *
      */
     private static class RepositoryResolveState implements ComponentSelectionContext {
         private final VersionedComponentChooser versionedComponentChooser;
@@ -199,12 +199,12 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
         private final ModuleComponentRepository repository;
         private final AttemptCollector attemptCollector;
         private final DependencyMetadata dependency;
-        private final ModuleVersionSelector selector;
+        private final VersionSelector versionSelector;
 
-        public RepositoryResolveState(VersionedComponentChooser versionedComponentChooser, DependencyMetadata dependency, ModuleComponentRepository repository) {
+        public RepositoryResolveState(VersionedComponentChooser versionedComponentChooser, DependencyMetadata dependency, ModuleComponentRepository repository, VersionSelector versionSelector) {
             this.versionedComponentChooser = versionedComponentChooser;
             this.dependency = dependency;
-            this.selector = dependency.getRequested();
+            this.versionSelector = versionSelector;
             this.repository = repository;
             this.attemptCollector = new AttemptCollector();
             versionListingResult = new VersionListResult(dependency, repository);
@@ -232,13 +232,14 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
 
         private void selectMatchingVersionAndResolve() {
             // TODO - reuse metaData if it was already fetched to select the component from the version list
-            versionedComponentChooser.selectNewestMatchingComponent(candidates(), this, selector);
+            versionedComponentChooser.selectNewestMatchingComponent(candidates(), this, versionSelector);
         }
 
         @Override
         public void matches(ModuleComponentIdentifier moduleComponentIdentifier) {
-            CandidateResult candidateResult = candidateComponents.get(moduleComponentIdentifier.getVersion());
-            candidateResult.resolve(resolvedVersionMetadata);
+            String version = moduleComponentIdentifier.getVersion();
+            CandidateResult candidateResult = candidateComponents.get(version);
+            candidateResult.tryResolveMetadata(resolvedVersionMetadata);
         }
 
         @Override
@@ -344,23 +345,24 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
         /**
          * Once a version has been selected, this tries to resolve metadata for this specific version. If it can it
          * will copy the result to the target builder
+         *
          * @param target where to put metadata
          */
-        public void resolve(BuildableModuleComponentMetaDataResolveResult target) {
+        private void tryResolveMetadata(BuildableModuleComponentMetaDataResolveResult target) {
             BuildableModuleComponentMetaDataResolveResult result = resolve();
             switch (result.getState()) {
                 case Resolved:
                     target.resolved(result.getMetaData());
-                    break;
+                    return;
                 case Missing:
                     result.applyTo(target);
                     target.missing();
-                    break;
+                    return;
                 case Failed:
                     target.failed(result.getFailure());
-                    break;
+                    return;
                 case Unknown:
-                    break;
+                    return;
                 default:
                     throw new IllegalStateException();
             }
@@ -413,4 +415,5 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
             moduleAccess.listModuleVersions(dynamicVersionDependency, result);
         }
     }
+
 }

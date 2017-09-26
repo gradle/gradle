@@ -16,8 +16,12 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import org.gradle.api.Named
+import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.provider.Provider
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
+import org.gradle.internal.classloader.ClasspathUtil
+import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.hash.HashCode
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Specification
@@ -26,7 +30,7 @@ class ValueSnapshotterTest extends Specification {
     def classLoaderHasher = Stub(ClassLoaderHierarchyHasher) {
         getClassLoaderHash(_) >> HashCode.fromInt(123)
     }
-    def snapshotter = new ValueSnapshotter(classLoaderHasher)
+    def snapshotter = new ValueSnapshotter(classLoaderHasher, NamedObjectInstantiator.INSTANCE)
 
     def "creates snapshot for string"() {
         expect:
@@ -34,6 +38,22 @@ class ValueSnapshotterTest extends Specification {
         snapshot instanceof StringValueSnapshot
         snapshot == snapshotter.snapshot("abc")
         snapshot != snapshotter.snapshot("other")
+    }
+
+    def "creates isolated string"() {
+        expect:
+        def isolated = snapshotter.isolate("abc")
+        isolated instanceof StringValueSnapshot
+        isolated.isolate() == "abc"
+    }
+
+    def "can coerce string value"() {
+        expect:
+        def isolated = snapshotter.isolate("abc")
+        isolated.coerce(String).is(isolated)
+        isolated.coerce(CharSequence).is(isolated)
+        isolated.coerce(Object).is(isolated)
+        isolated.coerce(Number) == null
     }
 
     def "creates snapshot for integer"() {
@@ -47,6 +67,24 @@ class ValueSnapshotterTest extends Specification {
         snapshot != snapshotter.snapshot(123 as BigDecimal)
     }
 
+    def "creates isolated integer"() {
+        expect:
+        def isolated = snapshotter.isolate(123)
+        isolated instanceof IntegerValueSnapshot
+        isolated.isolate() == 123
+    }
+
+    def "can coerce integer value"() {
+        expect:
+        def isolated = snapshotter.isolate(123)
+        isolated.coerce(Integer).is(isolated)
+        isolated.coerce(Number).is(isolated)
+        isolated.coerce(Long) == null
+        isolated.coerce(Short) == null
+        isolated.coerce(Byte) == null
+        isolated.coerce(String) == null
+    }
+
     def "creates snapshot for long"() {
         expect:
         def snapshot = snapshotter.snapshot(123L)
@@ -56,6 +94,24 @@ class ValueSnapshotterTest extends Specification {
         snapshot != snapshotter.snapshot(123)
         snapshot != snapshotter.snapshot(123 as short)
         snapshot != snapshotter.snapshot(123 as BigDecimal)
+    }
+
+    def "creates isolated long"() {
+        expect:
+        def isolated = snapshotter.isolate(123L)
+        isolated instanceof LongValueSnapshot
+        isolated.isolate() == 123L
+    }
+
+    def "can coerce long value"() {
+        expect:
+        def isolated = snapshotter.isolate(123L)
+        isolated.coerce(Long).is(isolated)
+        isolated.coerce(Number).is(isolated)
+        isolated.coerce(Integer) == null
+        isolated.coerce(Short) == null
+        isolated.coerce(Byte) == null
+        isolated.coerce(String) == null
     }
 
     def "creates snapshot for short"() {
@@ -69,15 +125,55 @@ class ValueSnapshotterTest extends Specification {
         snapshot != snapshotter.snapshot(123 as BigDecimal)
     }
 
+    def "creates isolated short"() {
+        expect:
+        def isolated = snapshotter.isolate(123 as short)
+        isolated instanceof ShortValueSnapshot
+        isolated.isolate() == 123 as short
+    }
+
+    def "can coerce short value"() {
+        expect:
+        def isolated = snapshotter.isolate(123 as short)
+        isolated.coerce(Short).is(isolated)
+        isolated.coerce(Number).is(isolated)
+        isolated.coerce(Integer) == null
+        isolated.coerce(Byte) == null
+        isolated.coerce(String) == null
+    }
+
     def "creates snapshot for boolean"() {
         expect:
         snapshotter.snapshot(true).is BooleanValueSnapshot.TRUE
         snapshotter.snapshot(false).is BooleanValueSnapshot.FALSE
     }
 
+    def "creates isolated boolean"() {
+        expect:
+        snapshotter.isolate(true).isolate()
+        !snapshotter.isolate(false).isolate()
+    }
+
+    def "can coerce boolean value"() {
+        expect:
+        snapshotter.isolate(true).coerce(Boolean).is BooleanValueSnapshot.TRUE
+        snapshotter.isolate(false).coerce(Boolean).is BooleanValueSnapshot.FALSE
+        snapshotter.isolate(false).coerce(String) == null
+    }
+
     def "creates snapshot for null value"() {
         expect:
         snapshotter.snapshot(null).is NullValueSnapshot.INSTANCE
+    }
+
+    def "creates isolated null value"() {
+        expect:
+        snapshotter.isolate(null).isolate() == null
+    }
+
+    def "can coerce null value"() {
+        expect:
+        snapshotter.isolate(null).coerce(String).is NullValueSnapshot.INSTANCE
     }
 
     def "creates snapshot for array"() {
@@ -100,6 +196,17 @@ class ValueSnapshotterTest extends Specification {
         snapshot2 != snapshot1
     }
 
+    def "creates isolated array"() {
+        expect:
+        def isolated1 = snapshotter.isolate([] as String[])
+        isolated1 instanceof ArrayValueSnapshot
+        isolated1.isolate() == [] as String[]
+
+        def isolated2 = snapshotter.isolate(["123"] as String[])
+        isolated2 instanceof ArrayValueSnapshot
+        isolated2.isolate() == ["123"] as String[]
+    }
+
     def "creates snapshot for list"() {
         expect:
         def snapshot1 = snapshotter.snapshot([])
@@ -111,6 +218,17 @@ class ValueSnapshotterTest extends Specification {
         snapshot2 instanceof ListValueSnapshot
         snapshot2 == snapshotter.snapshot(["123"])
         snapshot2 != snapshot1
+    }
+
+    def "creates isolated list"() {
+        expect:
+        def isolated1 = snapshotter.isolate([])
+        isolated1 instanceof ListValueSnapshot
+        isolated1.isolate() == []
+
+        def isolated2 = snapshotter.isolate(["123"])
+        isolated2 instanceof ListValueSnapshot
+        isolated2.isolate() == ["123"]
     }
 
     def "creates snapshot for list from empty list"() {
@@ -138,6 +256,17 @@ class ValueSnapshotterTest extends Specification {
         snapshot2 != snapshot1
     }
 
+    def "creates isolated set"() {
+        expect:
+        def isolated1 = snapshotter.isolate([] as Set)
+        isolated1 instanceof SetValueSnapshot
+        isolated1.isolate() == [] as Set
+
+        def isolated2 = snapshotter.isolate(["123"] as Set)
+        isolated2 instanceof SetValueSnapshot
+        isolated2.isolate() == ["123"] as Set
+    }
+
     def "creates snapshot for map"() {
         expect:
         def snapshot1 = snapshotter.snapshot([:])
@@ -155,8 +284,15 @@ class ValueSnapshotterTest extends Specification {
         snapshot2 != snapshot1
     }
 
-    enum Type1 {
-        ONE, TWO
+    def "creates isolated map"() {
+        expect:
+        def isolated1 = snapshotter.isolate([:])
+        isolated1 instanceof MapValueSnapshot
+        isolated1.isolate() == [:]
+
+        def isolated2 = snapshotter.isolate([a: "123"])
+        isolated2 instanceof MapValueSnapshot
+        isolated2.isolate() == [a: "123"]
     }
 
     enum Type2 {
@@ -173,6 +309,31 @@ class ValueSnapshotterTest extends Specification {
         snapshot != snapshotter.snapshot(new Bean(prop: "value2"))
     }
 
+    def "creates isolated enum value"() {
+        expect:
+        def isolated = snapshotter.isolate(Type1.TWO)
+        isolated instanceof EnumValueSnapshot
+        isolated.isolate() == Type1.TWO
+    }
+
+    def "can coerce enum value"() {
+        def loader = new GroovyClassLoader(getClass().getClassLoader().parent)
+        loader.addURL(ClasspathUtil.getClasspathForClass(GroovyObject).toURI().toURL())
+        def cl = loader.parseClass("package ${Type1.package.name}; enum Type1 { TWO, THREE } ")
+        assert cl != Type1
+        assert cl.name == Type1.name
+
+        expect:
+        def isolated = snapshotter.isolate(Type1.TWO)
+        isolated.coerce(Type1).is(isolated)
+        isolated.coerce(Type2) == null
+        isolated.coerce(String) == null
+
+        def v = isolated.coerce(cl).isolate()
+        cl.isInstance(v)
+        v.name() == "TWO"
+    }
+
     def "creates snapshot for file"() {
         expect:
         def snapshot = snapshotter.snapshot(new File("abc"))
@@ -184,6 +345,20 @@ class ValueSnapshotterTest extends Specification {
 
         // Not subclasses of `File`
         snapshotter.snapshot(new TestFile("abc")) != snapshot
+    }
+
+    def "creates isolated file"() {
+        expect:
+        def isolated = snapshotter.isolate(new File("abc"))
+        isolated instanceof FileValueSnapshot
+        isolated.isolate() == new File("abc")
+    }
+
+    def "can coerce file value"() {
+        expect:
+        def isolated = snapshotter.isolate(new File("abc"))
+        isolated.coerce(File).is(isolated)
+        isolated.coerce(String) == null
     }
 
     def "creates snapshot for provider type"() {
@@ -202,6 +377,58 @@ class ValueSnapshotterTest extends Specification {
         snapshot != snapshotter.snapshot(value3)
     }
 
+    def "creates snapshot for named managed type"() {
+        def instantiator = NamedObjectInstantiator.INSTANCE
+        def value = instantiator.named(Thing, "value1")
+        def value1 = instantiator.named(Thing, "value1")
+        def value2 = instantiator.named(Thing, "value2")
+        def value3 = instantiator.named(Named, "value1")
+
+        expect:
+        def snapshot = snapshotter.snapshot(value)
+        snapshot instanceof ManagedNamedTypeSnapshot
+        snapshot == snapshotter.snapshot(value)
+        snapshot == snapshotter.snapshot(value1)
+        snapshot != snapshotter.snapshot(value2)
+        snapshot != snapshotter.snapshot(value3)
+    }
+
+    def "creates isolated named managed type"() {
+        def instantiator = NamedObjectInstantiator.INSTANCE
+        def value = instantiator.named(Thing, "value1")
+
+        expect:
+        def isolated = snapshotter.isolate(value)
+        isolated instanceof ManagedNamedTypeSnapshot
+        isolated.isolate() == value
+    }
+
+    def "can coerce named managed type"() {
+        def instantiator = NamedObjectInstantiator.INSTANCE
+        def value = instantiator.named(Thing, "value1")
+
+        def spec = new FilteringClassLoader.Spec()
+        spec.allowClass(Named)
+        spec.allowPackage("org.gradle.api.internal.model") // mixed into the implementation
+        def filter = new FilteringClassLoader(getClass().classLoader, spec)
+        def loader = new GroovyClassLoader(filter)
+        loader.addURL(ClasspathUtil.getClasspathForClass(GroovyObject).toURI().toURL())
+        def cl = loader.parseClass("package ${Thing.package.name}; interface Thing extends ${Named.name} { }")
+        assert cl != Thing
+        assert Named.isAssignableFrom(cl)
+        assert cl.name == Thing.name
+
+        expect:
+        def isolated = snapshotter.isolate(value)
+        isolated.coerce(Thing).is(isolated)
+        isolated.coerce(Named).is(isolated)
+        isolated.coerce(String) == null
+
+        def v = isolated.coerce(cl).isolate()
+        cl.isInstance(v)
+        v.name == "value1"
+    }
+
     def "creates snapshot for serializable type"() {
         def value = new Bean()
 
@@ -211,6 +438,35 @@ class ValueSnapshotterTest extends Specification {
         snapshot == snapshotter.snapshot(value)
         snapshot == snapshotter.snapshot(new Bean())
         snapshot != snapshotter.snapshot(new Bean(prop: "value2"))
+    }
+
+    def "creates isolated serializable type"() {
+        def value = new Bean(prop: "123")
+
+        def loader = new GroovyClassLoader(getClass().classLoader)
+        loader.addURL(ClasspathUtil.getClasspathForClass(GroovyObject).toURI().toURL())
+        def cl = loader.parseClass("package ${Bean.package.name}; class Bean implements Serializable { String prop }")
+        assert cl != Bean
+        assert cl.name == Bean.name
+
+        expect:
+        def isolated = snapshotter.isolate(value)
+        isolated instanceof SerializedValueSnapshot
+        def other = isolated.isolate()
+        other.prop == "123"
+        !other.is(value)
+
+        def v = isolated.coerce(cl).isolate()
+        v.prop == "123"
+    }
+
+    def "can coerce serializable value"() {
+        def value = new Bean(prop: "123")
+
+        expect:
+        def isolated = snapshotter.isolate(value)
+        isolated.coerce(Bean).is(isolated)
+        isolated.coerce(String) == null
     }
 
     def "creates snapshot for string from candidate"() {
@@ -439,6 +695,22 @@ class ValueSnapshotterTest extends Specification {
         def snapshot = snapshotter.snapshot(value)
         areTheSame(snapshot, value2)
         areNotTheSame(snapshot, value3)
+        areNotTheSame(snapshot, "123")
+    }
+
+    def "creates snapshot for named managed type from candidate"() {
+        def instantiator = NamedObjectInstantiator.INSTANCE
+        def value = instantiator.named(Thing, "value")
+        def value1 = instantiator.named(Thing, "value")
+        def value2 = instantiator.named(Thing, "value2")
+        def value3 = instantiator.named(Named, "value2")
+
+        expect:
+        def snapshot = snapshotter.snapshot(value)
+        areTheSame(snapshot, value1)
+        areNotTheSame(snapshot, value2)
+        areNotTheSame(snapshot, value3)
+        areNotTheSame(snapshot, "value")
     }
 
     def "creates snapshot for serializable type from candidate"() {
@@ -464,9 +736,5 @@ class ValueSnapshotterTest extends Specification {
         def sn1 = snapshotter.snapshot(value, snapshot)
         def sn2 = snapshotter.snapshot(value)
         assert sn1 == sn2
-    }
-
-    static class Bean implements Serializable {
-        String prop
     }
 }

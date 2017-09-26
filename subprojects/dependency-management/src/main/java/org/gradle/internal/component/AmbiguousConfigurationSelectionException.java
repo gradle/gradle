@@ -20,10 +20,11 @@ import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributeValue;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -31,7 +32,9 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.text.TreeFormatter;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 public class AmbiguousConfigurationSelectionException extends RuntimeException {
     private static final Function<ConfigurationMetadata, String> CONFIG_NAME = new Function<ConfigurationMetadata, String>() {
@@ -41,14 +44,14 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
         }
     };
 
-    public AmbiguousConfigurationSelectionException(AttributeContainer fromConfigurationAttributes,
+    public AmbiguousConfigurationSelectionException(AttributeContainerInternal fromConfigurationAttributes,
                                                     AttributeMatcher attributeMatcher,
                                                     List<? extends ConfigurationMetadata> matches,
                                                     ComponentResolveMetadata targetComponent) {
         super(generateMessage(fromConfigurationAttributes, attributeMatcher, matches, targetComponent));
     }
 
-    private static String generateMessage(AttributeContainer fromConfigurationAttributes, AttributeMatcher attributeMatcher, List<? extends ConfigurationMetadata> matches, ComponentResolveMetadata targetComponent) {
+    private static String generateMessage(AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, List<? extends ConfigurationMetadata> matches, ComponentResolveMetadata targetComponent) {
         Set<String> ambiguousConfigurations = Sets.newTreeSet(Lists.transform(matches, CONFIG_NAME));
         TreeFormatter formatter = new TreeFormatter();
         formatter.node("Cannot choose between the following configurations of ");
@@ -69,7 +72,7 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
         return formatter.toString();
     }
 
-    static void formatConfiguration(TreeFormatter formatter, AttributeContainer consumerAttributes, AttributeMatcher attributeMatcher, List<? extends ConfigurationMetadata> matches, final String conf) {
+    static void formatConfiguration(TreeFormatter formatter, AttributeContainerInternal consumerAttributes, AttributeMatcher attributeMatcher, List<? extends ConfigurationMetadata> matches, final String conf) {
         Optional<? extends ConfigurationMetadata> match = Iterables.tryFind(matches, new Predicate<ConfigurationMetadata>() {
             @Override
             public boolean apply(ConfigurationMetadata input) {
@@ -77,7 +80,7 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
             }
         });
         if (match.isPresent()) {
-            AttributeContainer producerAttributes = match.get().getAttributes();
+            AttributeContainerInternal producerAttributes = match.get().getAttributes();
             formatter.node("Configuration '");
             formatter.append(conf);
             formatter.append("'");
@@ -85,25 +88,32 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
         }
     }
 
-    public static void formatAttributeMatches(TreeFormatter formatter, AttributeContainer consumerAttributes, AttributeMatcher attributeMatcher, AttributeContainer producerAttributes) {
-        Set<Attribute<?>> allAttributes = Sets.union(consumerAttributes.keySet(), producerAttributes.keySet());
-        List<Attribute<?>> sortedAttributes = Ordering.usingToString().sortedCopy(allAttributes);
+    public static void formatAttributeMatches(TreeFormatter formatter, AttributeContainerInternal consumerAttributes, AttributeMatcher attributeMatcher, AttributeContainerInternal producerAttributes) {
+        Map<String, Attribute<?>> allAttributes = new TreeMap<String, Attribute<?>>();
+        for (Attribute<?> attribute : producerAttributes.keySet()) {
+            allAttributes.put(attribute.getName(), attribute);
+        }
+        for (Attribute<?> attribute : consumerAttributes.keySet()) {
+            allAttributes.put(attribute.getName(), attribute);
+        }
+        ImmutableAttributes immmutableConsumer = consumerAttributes.asImmutable();
+        ImmutableAttributes immutableProducer = producerAttributes.asImmutable();
         formatter.startChildren();
-        for (Attribute<?> attribute : sortedAttributes) {
+        for (Attribute<?> attribute : allAttributes.values()) {
+            Attribute<Object> untyped = Cast.uncheckedCast(attribute);
             String attributeName = attribute.getName();
-            if (consumerAttributes.contains(attribute) && producerAttributes.contains(attribute)) {
-                Object consumerValue = consumerAttributes.getAttribute(attribute);
-                Object producerValue = producerAttributes.getAttribute(attribute);
-                Attribute<Object> untyped = Cast.uncheckedCast(attribute);
-                if (attributeMatcher.isMatching(untyped, producerValue, consumerValue)) {
-                    formatter.node("Required " + attributeName + " '" + consumerValue + "' and found compatible value '" + producerValue + "'.");
+            AttributeValue<Object> consumerValue = immmutableConsumer.findEntry(untyped);
+            AttributeValue<?> producerValue = immutableProducer.findEntry(attribute.getName());
+            if (consumerValue.isPresent() && producerValue.isPresent()) {
+                if (attributeMatcher.isMatching(untyped, producerValue.get(), consumerValue.get())) {
+                    formatter.node("Required " + attributeName + " '" + consumerValue.get() + "' and found compatible value '" + producerValue.get() + "'.");
                 } else {
-                    formatter.node("Required " + attributeName + " '" + consumerValue + "' and found incompatible value '" + producerValue + "'.");
+                    formatter.node("Required " + attributeName + " '" + consumerValue.get() + "' and found incompatible value '" + producerValue.get() + "'.");
                 }
-            } else if (consumerAttributes.contains(attribute)) {
-                formatter.node("Required " + attributeName + " '" + consumerAttributes.getAttribute(attribute) + "' but no value provided.");
+            } else if (consumerValue.isPresent()) {
+                formatter.node("Required " + attributeName + " '" + consumerValue.get() + "' but no value provided.");
             } else {
-                formatter.node("Found " + attributeName + " '" + producerAttributes.getAttribute(attribute) + "' but wasn't required.");
+                formatter.node("Found " + attributeName + " '" + producerValue.get() + "' but wasn't required.");
             }
         }
         formatter.endChildren();
