@@ -47,12 +47,12 @@ public class ComponentAttributeMatcher {
     /**
      * Determines whether the given candidate is compatible with the requested criteria, according to the given schema.
      */
-    public boolean isMatching(AttributeSelectionSchema schema, AttributeContainer candidate, AttributeContainer requested) {
+    public boolean isMatching(AttributeSelectionSchema schema, AttributeContainerInternal candidate, AttributeContainerInternal requested) {
         if (requested.isEmpty() || candidate.isEmpty()) {
             return true;
         }
 
-        ImmutableAttributes requestedAttributes = ((AttributeContainerInternal) requested).asImmutable();
+        ImmutableAttributes requestedAttributes = requested.asImmutable();
 
         MatchDetails details = new MatchDetails<AttributeContainer>(candidate);
         doMatchCandidate(schema, details.candidateAttributes, requestedAttributes, details);
@@ -62,9 +62,9 @@ public class ComponentAttributeMatcher {
     /**
      * Selects the candidates from the given set that are compatible with the requested criteria, according to the given schema.
      */
-    public <T extends HasAttributes> List<T> match(AttributeSelectionSchema schema, Collection<? extends T> candidates, AttributeContainer requested, @Nullable T fallback) {
+    public <T extends HasAttributes> List<T> match(AttributeSelectionSchema schema, Collection<? extends T> candidates, AttributeContainerInternal requested, @Nullable T fallback) {
         if (candidates.size() == 0) {
-            if (fallback != null && isMatching(schema, fallback.getAttributes(), requested)) {
+            if (fallback != null && isMatching(schema, (AttributeContainerInternal) fallback.getAttributes(), requested)) {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("No candidates for {}, selected matching fallback {}", requested, fallback);
                 }
@@ -78,7 +78,7 @@ public class ComponentAttributeMatcher {
 
         if (candidates.size() == 1) {
             T candidate = candidates.iterator().next();
-            if (isMatching(schema, candidate.getAttributes(), requested)) {
+            if (isMatching(schema, (AttributeContainerInternal) candidate.getAttributes(), requested)) {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Selected match {} from candidates {} for {}", candidate, candidates, requested);
                 }
@@ -90,7 +90,7 @@ public class ComponentAttributeMatcher {
             return ImmutableList.of();
         }
 
-        ImmutableAttributes requestedAttributes = ((AttributeContainerInternal) requested).asImmutable();
+        ImmutableAttributes requestedAttributes = requested.asImmutable();
 
         List<T> matches = new Matcher<T>(schema, candidates, requestedAttributes).getMatches();
         if (LOGGER.isDebugEnabled()) {

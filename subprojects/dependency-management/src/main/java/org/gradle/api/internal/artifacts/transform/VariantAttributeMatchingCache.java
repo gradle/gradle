@@ -102,7 +102,7 @@ public class VariantAttributeMatchingCache {
         return cache;
     }
 
-    private boolean matchAttributes(AttributeContainer actual, AttributeContainer requested) {
+    private boolean matchAttributes(AttributeContainerInternal actual, AttributeContainerInternal requested) {
         AttributeMatcher schemaToMatchOn = schema.matcher();
         Map<AttributeContainer, Boolean> cache = getCache(requested).ignoreExtraActual;
         Boolean match = cache.get(actual);

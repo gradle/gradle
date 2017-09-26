@@ -132,6 +132,8 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         buildFile << """
             enum SomeEnum { free, paid }
             interface Thing extends Named { }
+            @groovy.transform.EqualsAndHashCode
+            class OtherThing implements Thing, Serializable { String name }
 
             def flavor = Attribute.of('flavor', $type)
             allprojects {
@@ -175,6 +177,8 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         file('includedBuild/build.gradle') << """
             enum SomeEnum { free, paid }
             interface Thing extends Named { }
+            @groovy.transform.EqualsAndHashCode
+            class OtherThing implements Thing, Serializable { String name }
 
             group = 'com.acme.external'
             version = '2.0-SNAPSHOT'
@@ -220,9 +224,237 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         notExecuted ':external:fooJar'
 
         where:
-        type       | freeValue                      | paidValue
-        'SomeEnum' | 'SomeEnum.free'                | 'SomeEnum.paid'
-        'Thing'    | 'objects.named(Thing, "free")' | 'objects.named(Thing, "paid")'
+        type         | freeValue                      | paidValue
+        'SomeEnum'   | 'SomeEnum.free'                | 'SomeEnum.paid'
+        'Thing'      | 'objects.named(Thing, "free")' | 'objects.named(Thing, "paid")'
+        'OtherThing' | 'new OtherThing(name: "free")' | 'new OtherThing(name: "paid")'
+    }
+
+    def "compatibility and disambiguation rules can be defined by consumer"() {
+        given:
+        file('settings.gradle') << """
+            include 'a', 'b'
+            includeBuild 'includedBuild'
+        """
+        buildFile << """
+            interface Thing extends Named { }
+            
+            class CompatRule implements AttributeCompatibilityRule<Thing> {
+                void execute(CompatibilityCheckDetails<Thing> details) {
+                    if (details.consumerValue.name == 'paid' && details.producerValue.name == 'blue') {
+                        details.compatible()
+                    } else if (details.producerValue.name == 'red') {
+                        details.compatible()
+                    }
+                }
+            }
+
+            class DisRule implements AttributeDisambiguationRule<Thing> {
+                void execute(MultipleCandidatesDetails<Thing> details) {
+                    for (Thing t: details.candidateValues) {
+                        if (t.name == 'blue') {
+                            details.closestMatch(t)
+                            return
+                        }
+                    }
+                }
+            }
+
+            def flavor = Attribute.of('flavor', Thing)
+            allprojects {
+                dependencies {
+                    attributesSchema {
+                        attribute(flavor).compatibilityRules.add(CompatRule)
+                        attribute(flavor).disambiguationRules.add(DisRule)
+                    }
+                }
+            }
+            project(':a') {
+                configurations {
+                    _compileFree.attributes { attribute(flavor, objects.named(Thing, 'free')) }
+                    _compilePaid.attributes { attribute(flavor, objects.named(Thing, 'paid')) }
+                }
+                dependencies {
+                    _compileFree project(':b')
+                    _compilePaid project(':b')
+                }
+                task checkFree(dependsOn: configurations._compileFree) {
+                    doLast {
+                       assert configurations._compileFree.collect { it.name } == ['b-transitive.jar', 'c-foo.jar']
+                    }
+                }
+                task checkPaid(dependsOn: configurations._compilePaid) {
+                    doLast {
+                       assert configurations._compilePaid.collect { it.name } == ['b-transitive.jar', 'c-bar.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations.create('default')
+                artifacts {
+                    'default' file('b-transitive.jar')
+                }
+                dependencies {
+                    'default'('com.acme.external:external:1.0')
+                }
+            }
+        """
+
+        file('includedBuild/build.gradle') << """
+            interface Thing extends Named { }
+
+            group = 'com.acme.external'
+            version = '2.0-SNAPSHOT'
+
+            def flavor = Attribute.of('flavor', Thing)
+            dependencies {
+                attributesSchema {
+                    attribute(flavor)
+                }
+            }
+
+            configurations {
+                foo.attributes { attribute(flavor, objects.named(Thing, 'red')) }
+                bar.attributes { attribute(flavor, objects.named(Thing, 'blue')) }
+            }
+            task fooJar(type: Jar) {
+               baseName = 'c-foo'
+            }
+            task barJar(type: Jar) {
+               baseName = 'c-bar'
+            }
+            artifacts {
+                foo fooJar
+                bar barJar
+            }
+        """
+        file('includedBuild/settings.gradle') << '''
+            rootProject.name = 'external'
+        '''
+
+        when:
+        run ':a:checkFree'
+
+        then:
+        executedAndNotSkipped ':external:fooJar'
+        notExecuted ':external:barJar'
+
+        when:
+        run ':a:checkPaid'
+
+        then:
+        executedAndNotSkipped ':external:barJar'
+        notExecuted ':external:fooJar'
+    }
+
+    def "reports failure to resolve due to incompatible attribute values"() {
+        given:
+        file('settings.gradle') << """
+            include 'a', 'b'
+            includeBuild 'includedBuild'
+        """
+        buildFile << """
+            interface Thing extends Named { }
+            
+            class CompatRule implements AttributeCompatibilityRule<Thing> {
+                void execute(CompatibilityCheckDetails<Thing> details) {
+                    if (details.consumerValue.name == 'paid') {
+                        details.compatible()
+                    }
+                }
+            }
+
+            def flavor = Attribute.of('flavor', Thing)
+            allprojects {
+                dependencies {
+                    attributesSchema {
+                        attribute(flavor).compatibilityRules.add(CompatRule)
+                    }
+                }
+            }
+            project(':a') {
+                configurations {
+                    _compileFree.attributes { attribute(flavor, objects.named(Thing, 'free')) }
+                    _compilePaid.attributes { attribute(flavor, objects.named(Thing, 'paid')) }
+                }
+                dependencies {
+                    _compileFree project(':b')
+                    _compilePaid project(':b')
+                }
+                task checkFree(dependsOn: configurations._compileFree) {
+                    doLast {
+                       assert configurations._compileFree.collect { it.name } == ['b-transitive.jar', 'c-foo.jar']
+                    }
+                }
+                task checkPaid(dependsOn: configurations._compilePaid) {
+                    doLast {
+                       assert configurations._compilePaid.collect { it.name } == ['b-transitive.jar', 'c-bar.jar']
+                    }
+                }
+            }
+            project(':b') {
+                configurations.create('default')
+                artifacts {
+                    'default' file('b-transitive.jar')
+                }
+                dependencies {
+                    'default'('com.acme.external:external:1.0')
+                }
+            }
+        """
+
+        file('includedBuild/build.gradle') << """
+            interface Thing extends Named { }
+
+            group = 'com.acme.external'
+            version = '2.0-SNAPSHOT'
+
+            def flavor = Attribute.of('flavor', Thing)
+            dependencies {
+                attributesSchema {
+                    attribute(flavor)
+                }
+            }
+
+            configurations {
+                foo.attributes { attribute(flavor, objects.named(Thing, 'red')) }
+                bar.attributes { attribute(flavor, objects.named(Thing, 'blue')) }
+            }
+            task fooJar(type: Jar) {
+               baseName = 'c-foo'
+            }
+            task barJar(type: Jar) {
+               baseName = 'c-bar'
+            }
+            artifacts {
+                foo fooJar
+                bar barJar
+            }
+        """
+        file('includedBuild/settings.gradle') << '''
+            rootProject.name = 'external'
+        '''
+
+        when:
+        fails ':a:checkFree'
+
+        then:
+        failure.assertHasCause("Could not resolve com.acme.external:external:1.0.")
+        failure.assertHasCause("""Unable to find a matching configuration of project :external:
+  - Configuration 'bar': Required flavor 'free' and found incompatible value 'blue'.
+  - Configuration 'foo': Required flavor 'free' and found incompatible value 'red'.""")
+
+        when:
+        fails ':a:checkPaid'
+
+        then:
+        failure.assertHasCause("Could not resolve com.acme.external:external:1.0.")
+        failure.assertHasCause("""Cannot choose between the following configurations of project :external:
+  - bar
+  - foo
+All of them match the consumer attributes:
+  - Configuration 'bar': Required flavor 'paid' and found compatible value 'blue'.
+  - Configuration 'foo': Required flavor 'paid' and found compatible value 'red'.""")
     }
 
     @Unroll("context travels down to transitive dependencies with typed attributes using plugin [#v1, #v2, pluginsDSL=#usePluginsDSL]")

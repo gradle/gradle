@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component;
 
-import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -30,13 +30,13 @@ import static org.gradle.internal.component.AmbiguousConfigurationSelectionExcep
 
 public class NoMatchingConfigurationSelectionException extends RuntimeException {
     public NoMatchingConfigurationSelectionException(
-        AttributeContainer fromConfigurationAttributes,
+        AttributeContainerInternal fromConfigurationAttributes,
         AttributeMatcher attributeMatcher,
         ComponentResolveMetadata targetComponent) {
         super(generateMessage(fromConfigurationAttributes, attributeMatcher, targetComponent));
     }
 
-    private static String generateMessage(AttributeContainer fromConfigurationAttributes, AttributeMatcher attributeMatcher, ComponentResolveMetadata targetComponent) {
+    private static String generateMessage(AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, ComponentResolveMetadata targetComponent) {
         TreeSet<String> configurationNames = new TreeSet<String>(targetComponent.getConfigurationNames());
         List<ConfigurationMetadata> configurations = new ArrayList<ConfigurationMetadata>(configurationNames.size());
         for (String name : configurationNames) {
