@@ -267,7 +267,9 @@ public class CompileOptions extends AbstractOptions {
      *
      * @since 4.3
      */
-    // TODO This could be a @CompileClasspath, but that would require a lot of processing
+    // The bootstrap classpath is actually a `@CompileClasspath`, but declaring it so adds a significant amount
+    // of processing time the first time a full Java runtime is encountered. We decided to declare it as
+    // `@Classpath` instead, because the benefits would be sparse anyway.
     @Optional
     @Classpath
     public FileCollection getBootstrapClasspath() {
