@@ -55,7 +55,7 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTe
             }
 
             private void cleanupCache(File userHomeDir) {
-                ['modules-2/metadata-2.24/descriptors', 'modules-2/files-2.1', 'external-resources'].each {
+                ['modules-2/metadata-2.25/descriptors', 'modules-2/files-2.1', 'external-resources'].each {
                     new File("$userHomeDir/caches/$it").deleteDir()
                 }
             }
