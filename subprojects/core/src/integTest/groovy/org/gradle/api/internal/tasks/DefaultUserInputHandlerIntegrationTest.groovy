@@ -47,7 +47,7 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
         then:
         gradleHandle.stdinPipe.write(HELLO_WORLD_USER_INPUT.bytes)
         gradleHandle.stdinPipe.write(getPlatformLineSeparator().bytes)
-        gradleHandle.stdinPipe.flush()
+        gradleHandle.stdinPipe.close()
         gradleHandle.waitForFinish()
         gradleHandle.standardOutput.contains(PROMPT)
 
@@ -69,7 +69,7 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         gradleHandle.stdinPipe.write(getPlatformLineSeparator().bytes)
-        gradleHandle.stdinPipe.flush()
+        gradleHandle.stdinPipe.close()
         gradleHandle.waitForFinish()
         gradleHandle.standardOutput.contains("$PROMPT ($HELLO_WORLD_USER_INPUT)")
 
@@ -92,7 +92,7 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
         then:
         gradleHandle.stdinPipe.write(4)
         gradleHandle.stdinPipe.write(getPlatformLineSeparator().bytes)
-        gradleHandle.stdinPipe.flush()
+        gradleHandle.stdinPipe.close()
         gradleHandle.waitForFinish()
         gradleHandle.standardOutput.contains(PROMPT)
 
@@ -132,7 +132,7 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
         then:
         gradleHandle.stdinPipe.write(HELLO_WORLD_USER_INPUT.bytes)
         gradleHandle.stdinPipe.write(getPlatformLineSeparator().bytes)
-        gradleHandle.stdinPipe.flush()
+        gradleHandle.stdinPipe.close()
         gradleHandle.waitForFinish()
         gradleHandle.standardOutput.contains(PROMPT)
         gradleHandle.standardOutput.contains("You entered '$HELLO_WORLD_USER_INPUT'")
