@@ -180,7 +180,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         def options = builder.build()
 
         then:
-        options == ["-bootclasspath", "/lib/lib1.jar${File.pathSeparator}/lib/lib2.jar"] + defaultOptions
+        options == ["-bootclasspath", new File("/lib/lib1.jar").path + File.pathSeparator + new File("/lib/lib2.jar").path] + defaultOptions
     }
 
     def "generates -extdirs option"() {
