@@ -399,7 +399,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
                 if (allExcludes.isEmpty()) {
                     configurationExclude = ModuleExclusions.excludeNone();
                 } else {
-                    List<Exclude> filtered = Lists.newArrayList();
+                    ImmutableList.Builder<Exclude> filtered = ImmutableList.builder();
                     for (Exclude exclude : allExcludes) {
                         for (String config : exclude.getConfigurations()) {
                             if (hierarchy.contains(config)) {
@@ -408,7 +408,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
                             }
                         }
                     }
-                    configurationExclude = moduleExclusions.excludeAny(filtered);
+                    configurationExclude = moduleExclusions.excludeAny(filtered.build());
                 }
             }
             return configurationExclude;
