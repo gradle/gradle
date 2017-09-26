@@ -18,13 +18,10 @@ package org.gradle.api.internal.tasks.userinput;
 
 import org.apache.commons.lang.StringUtils;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
-public class MultipleChoiceInputRequest implements InputRequest {
+public class MultipleChoiceInputRequest extends DefaultInputRequest {
 
-    private final String prompt;
-    private final String defaultValue;
     private final List<String> choices;
 
     public MultipleChoiceInputRequest(String prompt, List<String> choices) {
@@ -32,20 +29,12 @@ public class MultipleChoiceInputRequest implements InputRequest {
     }
 
     public MultipleChoiceInputRequest(String prompt, List<String> choices, String defaultValue) {
-        if (StringUtils.isBlank(prompt)) {
-            throw new IllegalArgumentException("Prompt maybe not be null, empty or whitespace");
-        }
+        super(prompt, defaultValue);
 
         if (choices == null || choices.size() < 2) {
             throw new IllegalArgumentException("At least two choices need to be provided");
         }
 
-        if (defaultValue != null && !choices.contains(defaultValue)) {
-            throw new IllegalArgumentException("Default value needs to be one of possible choices");
-        }
-
-        this.prompt = prompt;
-        this.defaultValue = defaultValue;
         this.choices = choices;
     }
 
@@ -64,12 +53,6 @@ public class MultipleChoiceInputRequest implements InputRequest {
         }
 
         return descriptivePrompt.toString();
-    }
-
-    @Nullable
-    @Override
-    public String getDefaultValue() {
-        return defaultValue;
     }
 
     @Override

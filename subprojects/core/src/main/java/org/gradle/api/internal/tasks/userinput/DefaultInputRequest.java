@@ -22,8 +22,8 @@ import javax.annotation.Nullable;
 
 public class DefaultInputRequest implements InputRequest {
 
-    private final String prompt;
-    private final String defaultValue;
+    protected final String prompt;
+    protected final String defaultValue;
 
     public DefaultInputRequest(String prompt) {
         this(prompt, null);
