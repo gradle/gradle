@@ -147,6 +147,16 @@
             "type": "org.gradle.api.specs.AndSpec",
             "member": "Method org.gradle.api.specs.AndSpec.and(org.gradle.api.specs.Spec)",
             "acceptation": "Added overload to help with generics"
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getBootstrapClasspath()",
+            "acceptation": "Replaces bootClasspath property"
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.setBootstrapClasspath(org.gradle.api.file.FileCollection)",
+            "acceptation": "Replaces bootClasspath property"
         }
     ]
 }

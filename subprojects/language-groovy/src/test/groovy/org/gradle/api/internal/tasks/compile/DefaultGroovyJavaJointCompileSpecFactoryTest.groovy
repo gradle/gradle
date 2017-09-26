@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.compile
 import org.gradle.api.tasks.compile.CompileOptions
 import spock.lang.Specification
 
-
 class DefaultGroovyJavaJointCompileSpecFactoryTest extends Specification {
     def "produces correct spec type" () {
         CompileOptions options = new CompileOptions()

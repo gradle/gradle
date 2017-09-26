@@ -45,7 +45,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     }
 
     def "generates -source option when current Jvm Version is used"() {
-        spec.sourceCompatibility = JavaVersion.current().toString();
+        spec.sourceCompatibility = JavaVersion.current().toString()
 
         expect:
         builder.build() == ["-source", JavaVersion.current().toString()] + defaultOptions
@@ -66,7 +66,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     }
 
     def "generates -target option when current Jvm Version is used"() {
-        spec.targetCompatibility = JavaVersion.current().toString();
+        spec.targetCompatibility = JavaVersion.current().toString()
 
         expect:
         builder.build() == ["-target", JavaVersion.current().toString()] + defaultOptions
@@ -167,10 +167,20 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     }
 
     def "generates -bootclasspath option"() {
-        spec.compileOptions.bootClasspath = "/lib/lib1.jar:/lib/lib2.jar"
+        spec.compileOptions.bootstrapClasspath = new SimpleFileCollection([new File("lib1.jar"), new File("lib2.jar")])
 
         expect:
-        builder.build() == ["-bootclasspath", "/lib/lib1.jar:/lib/lib2.jar"] + defaultOptions
+        builder.build() == ["-bootclasspath", "lib1.jar${File.pathSeparator}lib2.jar"] + defaultOptions
+    }
+
+    @SuppressWarnings("GrDeprecatedAPIUsage")
+    def "generates -bootclasspath option via deprecated property"() {
+        when:
+        spec.compileOptions.bootClasspath = "/lib/lib1.jar${File.pathSeparator}/lib/lib2.jar"
+        def options = builder.build()
+
+        then:
+        options == ["-bootclasspath", new File("/lib/lib1.jar").path + File.pathSeparator + new File("/lib/lib2.jar").path] + defaultOptions
     }
 
     def "generates -extdirs option"() {
