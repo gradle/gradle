@@ -34,7 +34,14 @@ model {
         main(NativeExecutableSpec) {
             binaries.all {
                 lib library: 'hello', linkage: 'api'
-                linker.args '-Lbuild/libs/hello/static', '-lhello'
+
+                def librarySearchPath = 'build/libs/hello/static'
+                def libraryName = 'hello'
+                if (toolChain in VisualCpp) {
+                    linker.args "/LIBPATH:\${librarySearchPath}", "\${libraryName}.lib}"
+                } else {
+                    linker.args "-L\${librarySearchPath}", "-l\${libraryName}"
+                }
             }
         }
         hello(NativeLibrarySpec)
