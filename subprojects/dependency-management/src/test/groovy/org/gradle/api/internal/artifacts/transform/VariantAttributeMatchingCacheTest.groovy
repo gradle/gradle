@@ -22,8 +22,8 @@ import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.VariantTransformRegistry
+import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
-import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
 import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -324,8 +324,8 @@ class VariantAttributeMatchingCacheTest extends Specification {
         0 * matcher._
     }
 
-    private DefaultMutableAttributeContainer attributes() {
-        new DefaultMutableAttributeContainer(immutableAttributesFactory)
+    private AttributeContainerInternal attributes() {
+        immutableAttributesFactory.mutable()
     }
 
     private VariantTransformRegistry.Registration registration(AttributeContainer from, AttributeContainer to, Transformer transformer) {
