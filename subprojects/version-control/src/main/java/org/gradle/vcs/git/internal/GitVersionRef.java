@@ -25,7 +25,6 @@ import org.gradle.vcs.VersionRef;
 import java.util.List;
 
 public class GitVersionRef implements VersionRef {
-    private static final String NL = System.getProperty("line.separator");
     private final String version;
     private final String canonicalId;
 
