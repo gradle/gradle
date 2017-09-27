@@ -79,7 +79,9 @@ Using the runtime API:
 
 ```
 task customTask {
-    inputs.files("lib1.jar", "lib2.jar").withNormalizer(ClasspathNormalizer)
+    inputs.files("lib1.jar", "lib2.jar")
+        .withNormalizer(ClasspathNormalizer)
+        .withPropertyName("classpath")
 }
 ```
 
