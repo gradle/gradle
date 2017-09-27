@@ -55,12 +55,16 @@ public class DefaultGitVersionControlSpec implements GitVersionControlSpec {
         if (host == null) {
             host = "local";
         }
-        return host + "/" + url.getPath();
+        return host + url.getPath();
     }
 
     @Override
     public String getRepoName() {
         String[] pathParts = url.getPath().split("/");
-        return pathParts[pathParts.length-1];
+        String repoPart = pathParts[pathParts.length-1];
+        if (repoPart.endsWith(".git")) {
+            repoPart = repoPart.substring(0, repoPart.indexOf(".git"));
+        }
+        return repoPart;
     }
 }
