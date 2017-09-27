@@ -27,22 +27,22 @@ public class JavaSystemPropertiesHttpTimeoutSettings implements HttpTimeoutSetti
     public static final String SOCKET_TIMEOUT_SYSTEM_PROPERTY = "http.socketTimeout";
     public static final int DEFAULT_CONNECTION_TIMEOUT = 10000;
     public static final int DEFAULT_SOCKET_TIMEOUT = 30000;
-    private final int connectionTimeout;
-    private final int socketTimeout;
+    private final int connectionTimeoutMs;
+    private final int socketTimeoutMs;
 
     public JavaSystemPropertiesHttpTimeoutSettings() {
-        this.connectionTimeout = initTimeout(CONNECTION_TIMEOUT_SYSTEM_PROPERTY, DEFAULT_CONNECTION_TIMEOUT);
-        this.socketTimeout = initTimeout(SOCKET_TIMEOUT_SYSTEM_PROPERTY, DEFAULT_SOCKET_TIMEOUT);
+        this.connectionTimeoutMs = initTimeout(CONNECTION_TIMEOUT_SYSTEM_PROPERTY, DEFAULT_CONNECTION_TIMEOUT);
+        this.socketTimeoutMs = initTimeout(SOCKET_TIMEOUT_SYSTEM_PROPERTY, DEFAULT_SOCKET_TIMEOUT);
     }
 
     @Override
-    public int getConnectionTimeout() {
-        return connectionTimeout;
+    public int getConnectionTimeoutMs() {
+        return connectionTimeoutMs;
     }
 
     @Override
-    public int getSocketTimeout() {
-        return socketTimeout;
+    public int getSocketTimeoutMs() {
+        return socketTimeoutMs;
     }
 
     private int initTimeout(String propertyName, int defaultValue) {

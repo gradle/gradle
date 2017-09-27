@@ -18,6 +18,7 @@ package org.gradle.internal.resource.transport.http;
 
 public interface HttpTimeoutSettings {
 
-    int getConnectionTimeout();
-    int getSocketTimeout();
+    int getConnectionTimeoutMs();
+
+    int getSocketTimeoutMs();
 }

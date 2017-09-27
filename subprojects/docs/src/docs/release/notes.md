@@ -6,6 +6,38 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
+### Timeouts for HTTP requests
+
+Previous versions of Gradle did not define a timeout for any HTTP requests. Under certain conditions e.g. network problems, unresponsive or overloaded servers this behavior could lead to hanging connections.
+Gradle now defines connection and socket timeouts for all HTTP requests. In the event of a timeout (or any `IOException`s which are not caused by error HTTP status code), Gradle will skip subsequent connections to the same repository for the duration of the build. 
+The output of a build clearly indicates which request was skipped.
+
+```
+* What went wrong:
+Could not resolve all files for configuration ':deps'.
+> Could not resolve group:a:1.0.
+  Required by:
+      project :
+   > Could not resolve group:a:1.0.
+      > Could not get resource 'http://localhost:54347/repo/group/a/1.0/a-1.0.pom'.
+         > Could not GET 'http://localhost:54347/repo/group/a/1.0/a-1.0.pom'.
+            > Read timed out
+> Could not resolve group:b:1.0.
+  Required by:
+      project :
+   > Skipped due to earlier error
+```
+
+The timeouts are also effective for connections to an [HTTP build cache](dsl/org.gradle.caching.http.HttpBuildCache.html#org.gradle.caching.http.HttpBuildCache).
+If connections to the build cache time out then it will be disabled for the rest of the build.
+
+    :compileJava
+    Could not load entry 2b308a0ad9cbd0ad048d4ea84c186f71 for task ':compileJava' from remote build cache: Unable to load entry from 'https://example.com/cache/2b308a0ad9cbd0ad048d4ea84c186f71': Read timed out
+    
+    BUILD SUCCESSFUL in 4s
+    1 actionable task: 1 executed
+    The remote build cache was disabled during the build due to errors.
+
 ### Improvements for plugin authors
 
 In Gradle 4.1, we added APIs that allow a specific task output directory or output file to be wired in as an input for another task, in a way that allows the task dependencies to be inferred and that deals with later changes to the configured locations of those outputs. It is intended to be a more robust, performant and descriptive alternative to using `File` property types and calls to `Task.dependsOn`.

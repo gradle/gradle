@@ -30,8 +30,8 @@ class JavaSystemPropertiesHttpTimeoutSettingsTest extends Specification {
         JavaSystemPropertiesHttpTimeoutSettings settings = new JavaSystemPropertiesHttpTimeoutSettings()
 
         expect:
-        settings.connectionTimeout == DEFAULT_CONNECTION_TIMEOUT
-        settings.socketTimeout == DEFAULT_SOCKET_TIMEOUT
+        settings.connectionTimeoutMs == DEFAULT_CONNECTION_TIMEOUT
+        settings.socketTimeoutMs == DEFAULT_SOCKET_TIMEOUT
     }
 
     def "can parse custom value from system property"() {
@@ -40,8 +40,8 @@ class JavaSystemPropertiesHttpTimeoutSettingsTest extends Specification {
         JavaSystemPropertiesHttpTimeoutSettings settings = new JavaSystemPropertiesHttpTimeoutSettings()
 
         expect:
-        settings.connectionTimeout == 111
-        settings.socketTimeout == 222
+        settings.connectionTimeoutMs == 111
+        settings.socketTimeoutMs == 222
     }
 
     def "uses default value if provided connection timeout is not valid"() {
@@ -49,7 +49,7 @@ class JavaSystemPropertiesHttpTimeoutSettingsTest extends Specification {
         JavaSystemPropertiesHttpTimeoutSettings settings = new JavaSystemPropertiesHttpTimeoutSettings()
 
         expect:
-        settings.connectionTimeout == DEFAULT_CONNECTION_TIMEOUT
+        settings.connectionTimeoutMs == DEFAULT_CONNECTION_TIMEOUT
 
         where:
         timeout << ["", "abc"]
@@ -60,7 +60,7 @@ class JavaSystemPropertiesHttpTimeoutSettingsTest extends Specification {
         JavaSystemPropertiesHttpTimeoutSettings settings = new JavaSystemPropertiesHttpTimeoutSettings()
 
         expect:
-        settings.socketTimeout == DEFAULT_SOCKET_TIMEOUT
+        settings.socketTimeoutMs == DEFAULT_SOCKET_TIMEOUT
 
         where:
         timeout << ["", "abc"]

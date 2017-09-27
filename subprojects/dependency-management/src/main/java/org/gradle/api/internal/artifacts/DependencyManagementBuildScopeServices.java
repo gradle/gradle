@@ -28,8 +28,6 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBackedModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConnectionInterruptionRepositoryBlacklister;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryBlacklister;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
@@ -266,16 +264,12 @@ class DependencyManagementBuildScopeServices {
             fileResourceRepository);
     }
 
-    RepositoryBlacklister createRepositoryBlacklister() {
-        return new ConnectionInterruptionRepositoryBlacklister();
-    }
-
     ResolveIvyFactory createResolveIvyFactory(StartParameter startParameter, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache, ModuleArtifactsCache moduleArtifactsCache,
                                               ArtifactAtRepositoryCachedArtifactIndex artifactAtRepositoryCachedArtifactIndex,
                                               BuildCommencedTimeProvider buildCommencedTimeProvider, InMemoryCachedRepositoryFactory inMemoryCachedRepositoryFactory,
                                               VersionSelectorScheme versionSelectorScheme,
                                               VersionComparator versionComparator,
-                                              ImmutableModuleIdentifierFactory moduleIdentifierFactory, RepositoryBlacklister repositoryBlacklister) {
+                                              ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         StartParameterResolutionOverride startParameterResolutionOverride = new StartParameterResolutionOverride(startParameter);
         return new ResolveIvyFactory(
             moduleVersionsCache,
@@ -286,8 +280,7 @@ class DependencyManagementBuildScopeServices {
             buildCommencedTimeProvider,
             inMemoryCachedRepositoryFactory,
             versionSelectorScheme,
-            versionComparator, moduleIdentifierFactory,
-            repositoryBlacklister);
+            versionComparator, moduleIdentifierFactory);
     }
 
     ArtifactDependencyResolver createArtifactDependencyResolver(ResolveIvyFactory resolveIvyFactory,

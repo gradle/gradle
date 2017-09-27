@@ -199,8 +199,8 @@ public class HttpClientConfigurer {
     private void configureRequestConfig(HttpClientBuilder builder) {
         HttpTimeoutSettings timeoutSettings = httpSettings.getTimeoutSettings();
         RequestConfig config = RequestConfig.custom()
-            .setConnectTimeout(timeoutSettings.getConnectionTimeout())
-            .setSocketTimeout(timeoutSettings.getSocketTimeout())
+            .setConnectTimeout(timeoutSettings.getConnectionTimeoutMs())
+            .setSocketTimeout(timeoutSettings.getSocketTimeoutMs())
             .build();
         builder.setDefaultRequestConfig(config);
     }
