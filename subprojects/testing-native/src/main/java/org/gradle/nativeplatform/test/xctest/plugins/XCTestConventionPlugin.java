@@ -45,8 +45,6 @@ import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.internal.MacOSSdkPlatformPathLocator;
 import org.gradle.nativeplatform.test.xctest.tasks.XcTest;
 import org.gradle.util.GUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -60,7 +58,6 @@ import java.util.concurrent.Callable;
  */
 @Incubating
 public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(XCTestConventionPlugin.class);
     private final MacOSSdkPlatformPathLocator sdkPlatformPathLocator;
     private final ObjectFactory objectFactory;
 
