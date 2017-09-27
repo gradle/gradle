@@ -21,7 +21,7 @@ import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.tasks.TaskPropertyValue;
 import org.gradle.api.tasks.Classpath;
-import org.gradle.api.tasks.ClasspathPropertyNormalizer;
+import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.api.tasks.InputFiles;
 
 import java.lang.annotation.Annotation;
@@ -48,7 +48,7 @@ public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnn
             public void update(TaskInternal task, TaskPropertyValue futureValue) {
                 task.getInputs().files(futureValue)
                     .withPropertyName(context.getName())
-                    .withNormalizer(ClasspathPropertyNormalizer.class)
+                    .withNormalizer(ClasspathNormalizer.class)
                     .optional(context.isOptional());
             }
         });

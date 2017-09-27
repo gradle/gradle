@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.tasks.PropertyNormalizer;
+import org.gradle.api.tasks.FileNormalizer;
 
 import java.util.Collection;
 
 public interface FileCollectionSnapshotterRegistry {
     Collection<FileCollectionSnapshotter> getAllSnapshotters();
-    FileCollectionSnapshotter getSnapshotter(Class<? extends PropertyNormalizer> type);
+    FileCollectionSnapshotter getSnapshotter(Class<? extends FileNormalizer> type);
 }

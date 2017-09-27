@@ -19,10 +19,15 @@ package org.gradle.api.tasks;
 import org.gradle.api.Incubating;
 
 /**
- * Normalizes an input file property by ignoring the order of files.
+ * Normalizes file input that represents a Java runtime classpath.
+ *
+ * Compared to the default behavior this normalizer keeps the order of any root files,
+ * but ignores the order and timestamps of files in directories and ZIP/JAR files.
+ *
+ * @see org.gradle.api.tasks.Classpath
  *
  * @since 4.3
  */
 @Incubating
-public interface GenericPropertyNormalizer extends PropertyNormalizer {
+public interface ClasspathNormalizer extends FileNormalizer {
 }

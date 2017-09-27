@@ -19,8 +19,7 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.api.tasks.GenericPropertyNormalizer;
-import org.gradle.api.tasks.PropertyNormalizer;
+import org.gradle.api.tasks.FileNormalizer;
 
 import java.io.File;
 import java.util.Collections;
@@ -64,8 +63,8 @@ class CacheableTaskOutputCompositeFilePropertyElementSpec implements CacheableTa
     }
 
     @Override
-    public Class<? extends PropertyNormalizer> getNormalizer() {
-        return GenericPropertyNormalizer.class;
+    public Class<? extends FileNormalizer> getNormalizer() {
+        return GenericFileNormalizer.class;
     }
 
     @Override

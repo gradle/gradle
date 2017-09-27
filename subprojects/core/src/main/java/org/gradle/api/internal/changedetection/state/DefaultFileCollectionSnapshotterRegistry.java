@@ -19,18 +19,18 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import org.gradle.api.tasks.PropertyNormalizer;
+import org.gradle.api.tasks.FileNormalizer;
 
 import java.util.Collection;
 import java.util.Map;
 
 public class DefaultFileCollectionSnapshotterRegistry implements FileCollectionSnapshotterRegistry {
-    private final Map<Class<? extends PropertyNormalizer>, FileCollectionSnapshotter> snapshotters;
+    private final Map<Class<? extends FileNormalizer>, FileCollectionSnapshotter> snapshotters;
 
     public DefaultFileCollectionSnapshotterRegistry(Collection<FileCollectionSnapshotter> snapshotters) {
-        this.snapshotters = ImmutableMap.copyOf(Maps.uniqueIndex(snapshotters, new Function<FileCollectionSnapshotter, Class<? extends PropertyNormalizer>>() {
+        this.snapshotters = ImmutableMap.copyOf(Maps.uniqueIndex(snapshotters, new Function<FileCollectionSnapshotter, Class<? extends FileNormalizer>>() {
             @Override
-            public Class<? extends PropertyNormalizer> apply(FileCollectionSnapshotter snapshotter) {
+            public Class<? extends FileNormalizer> apply(FileCollectionSnapshotter snapshotter) {
                 return snapshotter.getRegisteredType();
             }
         }));
@@ -42,7 +42,7 @@ public class DefaultFileCollectionSnapshotterRegistry implements FileCollectionS
     }
 
     @Override
-    public FileCollectionSnapshotter getSnapshotter(Class<? extends PropertyNormalizer> type) {
+    public FileCollectionSnapshotter getSnapshotter(Class<? extends FileNormalizer> type) {
         FileCollectionSnapshotter snapshotter = snapshotters.get(type);
         if (snapshotter == null) {
             throw new IllegalStateException(String.format("No snapshotter registered with type '%s'", type.getName()));

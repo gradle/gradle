@@ -73,7 +73,7 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder, T
      *
      * @since 4.3
      */
-    TaskInputFilePropertyBuilder withNormalizer(Class<? extends PropertyNormalizer> snapshotter);
+    TaskInputFilePropertyBuilder withNormalizer(Class<? extends FileNormalizer> normalizer);
 
     /**
      * Throws {@link UnsupportedOperationException}.

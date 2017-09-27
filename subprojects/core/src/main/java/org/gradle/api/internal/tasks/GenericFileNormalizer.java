@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks;
 
-import org.gradle.api.Incubating;
+package org.gradle.api.internal.tasks;
+
+import org.gradle.api.tasks.FileNormalizer;
 
 /**
- * A normalizer used to remove unwanted noise when considering file inputs.
- *
- * @since 4.3
+ * Normalizes file input by ignoring the order of files.
  */
-@Incubating
-public interface PropertyNormalizer {
+public interface GenericFileNormalizer extends FileNormalizer {
 }

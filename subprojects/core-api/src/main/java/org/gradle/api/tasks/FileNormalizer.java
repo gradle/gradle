@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.tasks;
 
+import org.gradle.api.Incubating;
+
 /**
- * Normalizes an input file property that represents a Java compile classpath.
+ * A normalizer used to remove unwanted noise when considering file inputs.
+ * The default behavior without specifying a normalizer is to ignore the order of the files.
  *
- * Compared to {@link GenericPropertyNormalizer} this normalizer keeps the order of any root files,
- * but ignores the order and timestamps of files in directories and ZIP/JAR files.
- * Compared to {@link ClasspathPropertyNormalizer} this normalizer only snapshots the ABIs of class files,
- * and ignores any non-class resource.
- *
- * @see org.gradle.api.tasks.CompileClasspath
+ * @see TaskInputFilePropertyBuilder#withNormalizer(Class)
  *
  * @since 4.3
  */
-public interface CompileClasspathPropertyNormalizer extends PropertyNormalizer {
+@Incubating
+public interface FileNormalizer {
 }

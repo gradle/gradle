@@ -19,8 +19,7 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.changedetection.state.OutputPathNormalizationStrategy;
 import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
-import org.gradle.api.tasks.GenericPropertyNormalizer;
-import org.gradle.api.tasks.PropertyNormalizer;
+import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 
 import static org.gradle.api.internal.tasks.TaskPropertyUtils.checkPropertyName;
@@ -66,8 +65,8 @@ abstract class AbstractTaskOutputPropertySpec extends TaskOutputsDeprecationSupp
         return getPropertyName() + " (OUTPUT)";
     }
 
-    public Class<? extends PropertyNormalizer> getNormalizer() {
-        return GenericPropertyNormalizer.class;
+    public Class<? extends FileNormalizer> getNormalizer() {
+        return GenericFileNormalizer.class;
     }
 
     @Override
