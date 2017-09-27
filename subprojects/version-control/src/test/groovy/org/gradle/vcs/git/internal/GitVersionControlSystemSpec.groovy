@@ -16,8 +16,11 @@
 
 package org.gradle.vcs.git.internal
 
+import com.google.common.collect.Maps
+import org.eclipse.jgit.revwalk.RevCommit
 import org.gradle.api.GradleException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.vcs.VersionRef
 import org.gradle.vcs.fixtures.GitRepository
 import org.gradle.vcs.git.GitVersionControlSpec
 import org.junit.Rule
@@ -25,6 +28,8 @@ import spock.lang.Specification
 
 class GitVersionControlSystemSpec extends Specification {
     private GitVersionControlSystem gitVcs
+    private RevCommit c1
+    private RevCommit c2
 
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -41,9 +46,13 @@ class GitVersionControlSystemSpec extends Specification {
         // Commit a file to the repository
         def textFile = repo.workTree.file("source.txt")
         textFile << "Hello world!"
+        c1 = repo.commit("Initial commit", textFile)
+        repo.createBranch("release")
+        repo.createLightWeightTag("1.0.1")
+        repo.createAnnotatedTag("v1.0.1", "Release 1.0.1")
         def anotherSource = repo.workTree.file("dir/another.txt")
         anotherSource << "Goodbye world!"
-        repo.commit("Initial Commit", textFile, anotherSource)
+        c2 = repo.commit("Second Commit", anotherSource)
     }
 
     def "clone a repository"() {
@@ -137,5 +146,23 @@ class GitVersionControlSystemSpec extends Specification {
 
         then:
         thrown GradleException
+    }
+
+    def "can get versions"() {
+        given:GitVersionControlSpec spec = new DefaultGitVersionControlSpec()
+        spec.url = repo.url
+        def versions = gitVcs.getAvailableVersions(spec)
+        HashMap<String, String> versionMap = Maps.newHashMap()
+        for (VersionRef ref : versions) {
+            versionMap.put(ref.version, ref.canonicalId)
+        }
+
+        expect:
+        versions.size() == 5
+        versionMap['release'] == c1.id.name
+        versionMap['1.0.1'] == c1.id.name
+        versionMap['v1.0.1'] == c1.id.name
+        versionMap['HEAD'] == c2.id.name
+        versionMap['master'] == c2.id.name
     }
 }

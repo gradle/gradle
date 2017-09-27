@@ -22,10 +22,9 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.lib.Config;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.gradle.api.GradleException;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.VersionControlSystem;
 import org.gradle.vcs.VersionRef;
@@ -34,6 +33,8 @@ import org.gradle.vcs.git.GitVersionControlSpec;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -41,14 +42,9 @@ import java.util.Set;
  * A Git {@link VersionControlSystem} implementation.
  */
 public class GitVersionControlSystem implements VersionControlSystem {
-    private static final Logger LOGGER = Logging.getLogger(GitVersionControlSystem.class);
-
     @Override
     public void populate(File workingDir, VersionRef ref, VersionControlSpec spec) {
-        if (!(spec instanceof GitVersionControlSpec)) {
-            throw new IllegalArgumentException("The GitVersionControlSystem can only handle GitVersionControlSpec instances.");
-        }
-        GitVersionControlSpec gitSpec = (GitVersionControlSpec) spec;
+        GitVersionControlSpec gitSpec = cast(spec);
 
         // TODO: Assuming the default branch for the repository
         File dbDir = new File(workingDir, ".git");
@@ -65,10 +61,21 @@ public class GitVersionControlSystem implements VersionControlSystem {
 
     @Override
     public Set<VersionRef> getAvailableVersions(VersionControlSpec spec) {
-        return Sets.<VersionRef>newHashSet(new DefaultVersionRef());
+        GitVersionControlSpec gitSpec = cast(spec);
+        Set<VersionRef> versions = Sets.newHashSet();
+        Collection<Ref> refs = Collections.emptyList();
+        try {
+            refs = Git.lsRemoteRepository().setRemote(safeRepositoryUrl(gitSpec.getUrl())).call();
+        } catch (GitAPIException e) {
+            throw wrapGitCommandException("ls-remote", gitSpec.getUrl(), null, e);
+        }
+        for (Ref ref : refs) {
+            versions.add(GitVersionRef.from(ref));
+        }
+        return versions;
     }
 
-    private void cloneRepo(File workingDir, GitVersionControlSpec gitSpec) {
+    private static void cloneRepo(File workingDir, GitVersionControlSpec gitSpec) {
         CloneCommand clone = Git.cloneRepository().setURI(gitSpec.getUrl().toString()).setDirectory(workingDir);
         Git git = null;
         try {
@@ -84,7 +91,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
         }
     }
 
-    private void updateRepo(File workingDir, GitVersionControlSpec gitSpec) {
+    private static void updateRepo(File workingDir, GitVersionControlSpec gitSpec) {
         Git git = null;
         try {
             git = Git.open(workingDir);
@@ -102,7 +109,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
         }
     }
 
-    private String getRemoteForUrl(Repository repository, URI url) {
+    private static String getRemoteForUrl(Repository repository, URI url) {
         Config config = repository.getConfig();
         Set<String> remotes = config.getSubsections("remote");
         Set<String> foundUrls = new HashSet<String>();
@@ -119,7 +126,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
     }
 
     // This is a horrible hack to work around a bug in how jgit stores and expects file urls for remotes.
-    private String safeRepositoryUrl(URI url) {
+    private static String safeRepositoryUrl(URI url) {
         String urlString = url.toString();
         if (urlString.startsWith("file:/") && !urlString.startsWith("file:///")) {
             return urlString.replace("file:/", "file:///");
@@ -127,7 +134,14 @@ public class GitVersionControlSystem implements VersionControlSystem {
         return urlString;
     }
 
-    private GradleException wrapGitCommandException(String commandName, URI repoUrl, File workingDir, Exception e) {
+    private static GitVersionControlSpec cast(VersionControlSpec spec) {
+        if (!(spec instanceof GitVersionControlSpec)) {
+            throw new IllegalArgumentException("The GitVersionControlSystem can only handle GitVersionControlSpec instances.");
+        }
+        return (GitVersionControlSpec) spec;
+    }
+
+    private static GradleException wrapGitCommandException(String commandName, URI repoUrl, File workingDir, Exception e) {
         return new GradleException(String.format("Could not %s: %s from %s", commandName, repoUrl, workingDir), e);
     }
 }
