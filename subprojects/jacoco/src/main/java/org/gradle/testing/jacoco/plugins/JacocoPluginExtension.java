@@ -26,7 +26,6 @@ import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskCollection;
-import org.gradle.internal.Cast;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.JavaForkOptions;
 
@@ -164,11 +163,11 @@ public class JacocoPluginExtension {
      *
      * @param tasks the tasks to apply Jacoco to
      */
-    public <T extends Task & JavaForkOptions> void applyTo(TaskCollection tasks) {
-        tasks.withType(JavaForkOptions.class, new Action<JavaForkOptions>() {
+    public <T extends Task & JavaForkOptions> void applyTo(TaskCollection<T> tasks) {
+        ((TaskCollection) tasks).withType(JavaForkOptions.class, new Action<T>() {
             @Override
-            public void execute(JavaForkOptions task) {
-                applyTo(Cast.<T>uncheckedCast(task));
+            public void execute(T task) {
+                applyTo(task);
             }
         });
     }
