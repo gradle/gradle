@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.internal.component.external.model.FixedComponentArtifacts
 import org.gradle.internal.component.external.model.MavenModuleResolveMetadata
@@ -31,7 +32,7 @@ import spock.lang.Specification
 class MavenResolverTest extends Specification {
     def module = Mock(MavenModuleResolveMetadata)
     def result = Mock(BuildableComponentArtifactsResolveResult)
-    def resolver = new MavenResolver("repo", new URI("http://localhost"), Stub(RepositoryTransport), Stub(LocallyAvailableResourceFinder), Stub(FileStore), Stub(MetaDataParser), Stub(ImmutableModuleIdentifierFactory), Stub(CacheAwareExternalResourceAccessor), Stub(FileStore), Stub(FileResourceRepository), false)
+    def resolver = new MavenResolver("repo", new URI("http://localhost"), Stub(RepositoryTransport), Stub(LocallyAvailableResourceFinder), Stub(FileStore), Stub(MetaDataParser), Stub(ModuleMetadataParser), Stub(ImmutableModuleIdentifierFactory), Stub(CacheAwareExternalResourceAccessor), Stub(FileStore), Stub(FileResourceRepository), false)
 
     def "has useful string representation"() {
         expect:

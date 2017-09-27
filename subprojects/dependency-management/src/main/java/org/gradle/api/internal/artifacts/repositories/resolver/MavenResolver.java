@@ -66,7 +66,8 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     private final URI root;
     private final List<URI> artifactRoots = new ArrayList<URI>();
     private final MavenMetadataLoader mavenMetaDataLoader;
-    private final MetaDataParser<MutableMavenModuleResolveMetadata> metaDataParser;
+    private final MetaDataParser<MutableMavenModuleResolveMetadata> pomParser;
+    private final ModuleMetadataParser metadataParser;
     private final boolean preferGradleMetadata;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
@@ -78,6 +79,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
                          LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                          FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                          MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
+                         ModuleMetadataParser metadataParser,
                          ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                          CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor,
                          FileStore<String> resourcesFileStore,
@@ -91,7 +93,8 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
                 artifactFileStore,
                 moduleIdentifierFactory,
                 fileResourceRepository);
-        this.metaDataParser = pomParser;
+        this.pomParser = pomParser;
+        this.metadataParser = metadataParser;
         this.preferGradleMetadata = preferGradleMetadata;
         this.mavenMetaDataLoader = new MavenMetadataLoader(cacheAwareExternalResourceAccessor, resourcesFileStore);
         this.root = rootUri;
@@ -160,8 +163,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
         if (preferGradleMetadata) {
             LocallyAvailableExternalResource resource = artifactResolver.resolveArtifact(new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, new DefaultIvyArtifactName(moduleComponentIdentifier.getModule(), "json", "json", "module")), result);
             if (resource != null) {
-                // TODO - inject this
-                new ModuleMetadataParser().parse(resource);
+                metadataParser.parse(resource, metadata);
             }
         }
         return metadata;
@@ -251,7 +253,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     }
 
     protected MutableMavenModuleResolveMetadata parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {
-        MutableMavenModuleResolveMetadata metaData = metaDataParser.parseMetaData(context, cachedResource);
+        MutableMavenModuleResolveMetadata metaData = pomParser.parseMetaData(context, cachedResource);
         if (moduleComponentIdentifier instanceof MavenUniqueSnapshotComponentIdentifier) {
             // Snapshot POMs use -SNAPSHOT instead of the timestamp as version, so validate against the expected id
             MavenUniqueSnapshotComponentIdentifier snapshotComponentIdentifier = (MavenUniqueSnapshotComponentIdentifier) moduleComponentIdentifier;

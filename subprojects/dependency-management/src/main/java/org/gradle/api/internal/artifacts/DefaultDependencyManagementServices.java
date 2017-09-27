@@ -46,6 +46,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ShortCircuitEmptyConfigurati
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.publisher.DefaultIvyDependencyPublisher;
@@ -133,6 +134,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                           VersionSelectorScheme versionSelectorScheme,
                                                           AuthenticationSchemeRegistry authenticationSchemeRegistry,
                                                           IvyContextManager ivyContextManager,
+                                                          ImmutableAttributesFactory attributesFactory,
                                                           ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                           ModuleExclusions moduleExclusions,
                                                           InstantiatorFactory instantiatorFactory,
@@ -145,6 +147,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 artifactIdentifierFileStore,
                 externalResourceFileStore,
                 new GradlePomModuleDescriptorParser(versionSelectorScheme, moduleIdentifierFactory, moduleExclusions, fileResourceRepository),
+                new ModuleMetadataParser(attributesFactory),
                 authenticationSchemeRegistry,
                 ivyContextManager,
                 moduleIdentifierFactory,
