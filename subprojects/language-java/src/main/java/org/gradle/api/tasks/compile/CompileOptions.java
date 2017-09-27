@@ -22,7 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
@@ -276,11 +276,8 @@ public class CompileOptions extends AbstractOptions {
      *
      * @since 4.3
      */
-    // The bootstrap classpath is actually a `@CompileClasspath`, but declaring it so adds a significant amount
-    // of processing time the first time a full Java runtime is encountered. We decided to declare it as
-    // `@Classpath` instead, because the benefits would be sparse anyway.
     @Optional
-    @Classpath
+    @CompileClasspath
     public FileCollection getBootstrapClasspath() {
         return bootstrapClasspath;
     }
