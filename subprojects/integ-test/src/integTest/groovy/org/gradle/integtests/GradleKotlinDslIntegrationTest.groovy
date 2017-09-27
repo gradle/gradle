@@ -184,9 +184,9 @@ task("dumpKotlinBuildScriptModelClassPath") {
         output.contains("${PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX}v${BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION}")
     }
 
-    private void settingsBuildFileName() {
+    private String settingsBuildFileName() {
         """
-            "rootProject.buildFileName = '$defaultBuildFileName'"
+            rootProject.buildFileName = '$defaultBuildFileName'
         """
     }
 }
