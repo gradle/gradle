@@ -27,18 +27,20 @@ import org.junit.rules.ExternalResource;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.Collection;
 
-public class TemporaryGitRepository extends ExternalResource {
+public class GitRepository extends ExternalResource {
     private final String repoName;
     private final TestDirectoryProvider temporaryFolder;
     private Git git;
 
-    public TemporaryGitRepository(String repoName, TestDirectoryProvider temporaryFolder) {
+    public GitRepository(String repoName, TestDirectoryProvider temporaryFolder) {
         this.repoName = repoName;
         this.temporaryFolder = temporaryFolder;
     }
 
-    public TemporaryGitRepository(TestDirectoryProvider temporaryFolder) {
+    public GitRepository(TestDirectoryProvider temporaryFolder) {
         this("repo", temporaryFolder);
     }
 
@@ -52,13 +54,17 @@ public class TemporaryGitRepository extends ExternalResource {
         git.close();
     }
 
-    public void commit(String message, File... files) throws GitAPIException {
+    public void commit(String message, Collection<File> files) throws GitAPIException {
         AddCommand add = git.add();
         for (File file : files) {
             add.addFilepattern(relativePath(file));
         }
         add.call();
         git.commit().setMessage(message).call();
+    }
+
+    public void commit(String message, File... files) throws GitAPIException {
+        commit(message, Arrays.asList(files));
     }
 
     public TestFile getWorkTree() {

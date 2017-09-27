@@ -36,4 +36,14 @@ public class DirectoryRepository implements VersionControlSpec {
     public void setSourceDir(File sourceDir) {
         this.sourceDir = sourceDir;
     }
+
+    @Override
+    public String getRepositoryId() {
+        return sourceDir.getAbsolutePath();
+    }
+
+    @Override
+    public String getRepoName() {
+        return sourceDir.getName();
+    }
 }

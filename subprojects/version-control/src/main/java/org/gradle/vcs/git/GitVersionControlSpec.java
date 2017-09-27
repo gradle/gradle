@@ -16,13 +16,17 @@
 
 package org.gradle.vcs.git;
 
+import org.gradle.api.Incubating;
+import org.gradle.internal.UncheckedException;
 import org.gradle.vcs.VersionControlSpec;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * A specification of a Git repository.
  */
+@Incubating
 public class GitVersionControlSpec implements VersionControlSpec {
     private URI url;
 
@@ -46,8 +50,34 @@ public class GitVersionControlSpec implements VersionControlSpec {
         this.url = url;
     }
 
+    /**
+     * Sets the URL of the repository.
+     */
+    public void setUrl(String url) {
+        try {
+            setUrl(new URI(url));
+        } catch (URISyntaxException e) {
+            throw new UncheckedException(e);
+        }
+    }
+
     @Override
     public String getDisplayName() {
         return "Git Repository at " + getUrl();
+    }
+
+    @Override
+    public String getRepositoryId() {
+        String host = url.getHost();
+        if (host == null) {
+            host = "local";
+        }
+        return host + "/" + url.getPath();
+    }
+
+    @Override
+    public String getRepoName() {
+        String[] pathParts = url.getPath().split("/");
+        return pathParts[pathParts.length-1];
     }
 }

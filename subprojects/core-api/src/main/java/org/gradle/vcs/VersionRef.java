@@ -13,28 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.vcs;
 
 import org.gradle.api.Incubating;
 
-import java.io.File;
-import java.util.Set;
-
 /**
- * Allows the user to perform generic version control operations in ways
- * specified by the underlying implementations.
- *
+ * Version ref
  * @since 4.3
  */
 @Incubating
-public interface VersionControlSystem {
-
-    Set<VersionRef> getAvailableVersions(VersionControlSpec spec);
-
-    /**
-     * Populates the {@code workingDir} with the latest state of the
-     * version control repostory from the {@code spec}.
-     */
-    void populate(File workingDir, VersionRef ref, VersionControlSpec spec);
-
+public interface VersionRef {
+    // TODO: Better types
+    String getVersion();
+    String getCanonicalId();
 }

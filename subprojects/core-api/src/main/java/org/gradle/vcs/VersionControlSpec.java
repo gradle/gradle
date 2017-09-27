@@ -25,4 +25,7 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface VersionControlSpec extends Describable {
+    String getRepositoryId();
+
+    String getRepoName();
 }
