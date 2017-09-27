@@ -248,7 +248,6 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      *
      * Example: ignoreFailures = true
      */
-    @Input
     public boolean getIgnoreFailures() {
         return ignoreFailures;
     }
