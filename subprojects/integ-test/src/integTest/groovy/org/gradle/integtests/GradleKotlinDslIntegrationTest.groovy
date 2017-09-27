@@ -17,22 +17,14 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.scan.config.fixtures.BuildScanAutoApplyFixture
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.Requires
-import org.gradle.util.ToBeImplemented
-import spock.lang.Ignore
 
-import static org.gradle.initialization.StartParameterBuildOptionFactory.BuildScanOption
-import static org.gradle.internal.scan.config.BuildScanPluginAutoApply.BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION
-import static org.gradle.internal.scan.config.fixtures.BuildScanAutoApplyFixture.PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 import static org.gradle.util.TestPrecondition.NOT_WINDOWS
 
 @Requires([KOTLIN_SCRIPT, NOT_WINDOWS])
 class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
-
-    private final BuildScanAutoApplyFixture fixture = new BuildScanAutoApplyFixture(testDirectory, mavenRepo)
 
     @Override
     protected String getDefaultBuildFileName() {
@@ -40,7 +32,7 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def setup() {
-        settingsFile << settingsBuildFileName()
+        settingsFile << "rootProject.buildFileName = '$defaultBuildFileName'"
     }
 
     def 'can run a simple task'() {
@@ -159,34 +151,5 @@ task("dumpKotlinBuildScriptModelClassPath") {
 
         then:
         result.output.contains("gradle-kotlin-dsl!")
-    }
-
-    @ToBeImplemented
-    @Ignore
-    def "can automatically apply build scan plugin when --scan is provided on command-line"() {
-        given:
-        buildFile << """
-            task("dummy")
-        """
-
-        settingsFile.text = """
-            ${fixture.pluginManagement()}
-            ${settingsBuildFileName()}
-        """
-
-        fixture.publishDummyBuildScanPlugin(BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION, executer)
-
-        when:
-        args("--${BuildScanOption.LONG_OPTION}")
-        succeeds('dummy')
-
-        then:
-        output.contains("${PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX}${BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION}")
-    }
-
-    private String settingsBuildFileName() {
-        """
-            rootProject.buildFileName = '$defaultBuildFileName'
-        """
     }
 }
