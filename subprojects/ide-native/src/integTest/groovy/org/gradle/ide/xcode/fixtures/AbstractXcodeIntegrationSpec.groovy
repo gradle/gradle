@@ -17,7 +17,12 @@
 package org.gradle.ide.xcode.fixtures
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.launcher.daemon.client.DaemonStartupMessage
 import org.gradle.test.fixtures.file.TestFile
 
 class AbstractXcodeIntegrationSpec extends AbstractIntegrationSpec {
@@ -79,9 +84,10 @@ rootProject.name = "${rootProjectName}"
     }
 
     void useXcodebuildTool() {
-        executer.requireGradleDistribution().requireOwnGradleUserHomeDir()
+        executer.requireGradleDistribution().requireIsolatedDaemons()
 
-        buildFile << XcodebuildExecuter.configurationProbeBuildScriptSnippet
+        buildFile << XcodebuildExecuter.probeBaselineDaemonBuildLogicSnippet
+        buildFile << XcodebuildExecuter.probeCurrentDaemonBuildLogicSnippet
     }
 
     void assertTargetIsUnitTest(ProjectFile.PBXTarget target, String expectedProductName, String expectedBinaryName = expectedProductName) {

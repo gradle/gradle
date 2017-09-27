@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import static org.junit.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 public class XcodebuildExecuter {
@@ -49,9 +50,10 @@ public class XcodebuildExecuter {
             return this.name().toLowerCase();
         }
     }
-    private static final String DAEMON_PROPERTIES_FILENAME = "daemon.properties";
+    private static final String BASELINE_DAEMON_PROPERTIES_FILENAME = "baseline-daemon.properties";
+    private static final String CURRENT_DAEMON_PROPERTIES_FILENAME = "current-daemon.properties";
     private final List<String> args = new ArrayList<String>();
-    private final File testDirectory;
+    private final TestFile testDirectory;
 
     public XcodebuildExecuter(TestFile testDirectory) {
         this(testDirectory, testDirectory.file(".xcode-derived"));
@@ -62,7 +64,7 @@ public class XcodebuildExecuter {
         this.testDirectory = testDirectory;
     }
 
-    public static String getConfigurationProbeBuildScriptSnippet() {
+    public static String getProbeBaselineDaemonBuildLogicSnippet() {
         return "allprojects {\n"
             + "    def xcodeTask = tasks.findByName('xcode')\n"
             + "    if (xcodeTask != null) {\n"
@@ -70,18 +72,26 @@ public class XcodebuildExecuter {
             + "        if (task == null) {\n"
             + "            task = rootProject.tasks.create('probeDaemonConfigurations') {\n"
             + "                doLast {\n"
-            + "                   project.file('" + DAEMON_PROPERTIES_FILENAME + "').text = \"\"\"\n"
-            + "                    JAVA_HOME = ${System.getenv('JAVA_HOME')}\n"
-            + "                    GRADLE_USER_HOME = ${project.gradle.gradleUserHomeDir}\n"
-            + "                    GRADLE_OPTS = ${System.getenv('GRADLE_OPTS')}\n"
-            + "                   \"\"\"\n"
+            + "                   " + getConfigurationProbeBuildLogicSnippet(BASELINE_DAEMON_PROPERTIES_FILENAME)
             + "                }\n"
             + "            }\n"
             + "        }\n"
             + "        "
             + "        xcodeTask.dependsOn task\n"
             + "    }\n"
-            + "}";
+            + "}\n";
+    }
+
+    public static String getProbeCurrentDaemonBuildLogicSnippet() {
+        return getConfigurationProbeBuildLogicSnippet(CURRENT_DAEMON_PROPERTIES_FILENAME);
+    }
+
+    public static String getConfigurationProbeBuildLogicSnippet(String destinationPath) {
+        return "project.file('" + destinationPath + "').text = \"\"\"\n"
+            + "JAVA_HOME = ${System.getenv('JAVA_HOME')}\n"
+            + "GRADLE_USER_HOME = ${project.gradle.gradleUserHomeDir}\n"
+            + "GRADLE_OPTS = ${System.getenv('GRADLE_OPTS')}\n"
+            + "\"\"\"\n";
     }
 
     public XcodebuildExecuter withProject(XcodeProjectPackage xcodeProject) {
@@ -122,6 +132,7 @@ public class XcodebuildExecuter {
         withArgument(action.toString());
         ExecOutput result = findXcodeBuild().execute(args, buildEnvironment());
         System.out.println(result.getOut());
+        assertOnlyOneDaemonUsed();
         return new OutputScrapingExecutionResult(result.getOut(), result.getError());
     }
 
@@ -136,22 +147,48 @@ public class XcodebuildExecuter {
         // the error output only if xcodebuild failed most likely due to Gradle.
         System.out.println(result.getOut());
         System.out.println(result.getError());
+        assertOnlyOneDaemonUsed();
         return new OutputScrapingExecutionFailure(result.getOut(), result.getOut() + "\n" + result.getError());
+    }
+
+    private void assertOnlyOneDaemonUsed() {
+        try {
+            Properties baseline = loadDaemonProperties(testDirectory.file(BASELINE_DAEMON_PROPERTIES_FILENAME));
+            Properties current = loadDaemonProperties(testDirectory.file(CURRENT_DAEMON_PROPERTIES_FILENAME));
+
+            assertEquals(baseline.size(), current.size());
+            for (Map.Entry<Object, Object> entry : baseline.entrySet()) {
+                if (entry.getKey().equals("GRADLE_OPTS")) {
+                    assertTrue(current.getProperty("GRADLE_OPTS").startsWith(entry.getValue().toString()));
+                } else {
+                    assertEquals(entry.getValue(), current.get(entry.getKey()));
+                }
+            }
+        } catch (FileNotFoundException ex) {
+            // Ignore if the files doesn't exists
+        }
+    }
+
+    private Properties loadDaemonProperties(File daemonProperties) throws FileNotFoundException {
+        try {
+            Properties result = new Properties();
+            result.load(new FileInputStream(daemonProperties));
+            return result;
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
     }
 
     private List<String> buildEnvironment() {
         Map<String, String> envvars = Maps.newHashMap();
         envvars.putAll(System.getenv());
         try {
-            Properties props = new Properties();
-            props.load(new FileInputStream(testDirectory.getAbsolutePath() + "/" + DAEMON_PROPERTIES_FILENAME));
+            Properties props = loadDaemonProperties(testDirectory.file(BASELINE_DAEMON_PROPERTIES_FILENAME));
             for (Map.Entry<Object, Object> entry : props.entrySet()) {
                 envvars.put(entry.getKey().toString(), entry.getValue().toString());
             }
         } catch (FileNotFoundException ex) {
-            // Ignore if the file isn't there
-        } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
+            // Ignore if the file doesn't exists
         }
 
 

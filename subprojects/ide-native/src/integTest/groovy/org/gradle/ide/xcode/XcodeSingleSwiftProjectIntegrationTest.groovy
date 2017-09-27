@@ -18,6 +18,7 @@ package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.ide.xcode.fixtures.XcodebuildExecuter
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithXCTest
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
@@ -250,7 +251,6 @@ apply plugin: 'swift-library'
         then:
         !resultDebugWithXCTest.error.contains("Scheme Greeter SharedLibrary is not currently configured for the test action.")
         lib.assertTestCasesRan(resultDebugWithXCTest.output)
-
     }
 
     @Requires(TestPrecondition.XCODE)
