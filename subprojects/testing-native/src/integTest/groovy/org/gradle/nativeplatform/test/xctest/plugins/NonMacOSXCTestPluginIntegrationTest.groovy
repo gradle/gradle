@@ -26,11 +26,9 @@ class NonMacOSXCTestPluginIntegrationTest extends AbstractIntegrationSpec {
         buildFile << "apply plugin: 'xctest'"
     }
 
-    def "logs a warning to the output when applying the plugin under OS other than macOS"() {
-        succeeds "tasks"
-
+    def "can execute tasks task when applying the plugin under OS other than macOS"() {
         expect:
-        result.assertOutputContains("XCTest integration cannot be used because 'xctest' plugin was applied under unsupported condition.")
+        succeeds "tasks"
     }
 
     def "supports the 'test' lifecycle task when xctest plugin cannot be used"() {
@@ -39,7 +37,6 @@ class NonMacOSXCTestPluginIntegrationTest extends AbstractIntegrationSpec {
         expect:
         result.assertTasksExecuted(":test")
         result.assertTasksSkipped(":test")
-        result.assertOutputContains("XCTest integration cannot be used because 'xctest' plugin was applied under unsupported condition.")
     }
 
     def "supports the 'check' lifecycle task when xctest plugin cannot be used"() {
@@ -48,6 +45,5 @@ class NonMacOSXCTestPluginIntegrationTest extends AbstractIntegrationSpec {
         expect:
         result.assertTasksExecuted(":test", ":check")
         result.assertTasksSkipped(":test", ":check")
-        result.assertOutputContains("XCTest integration cannot be used because 'xctest' plugin was applied under unsupported condition.")
     }
 }

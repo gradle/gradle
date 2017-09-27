@@ -50,6 +50,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.List;
+import java.util.concurrent.Callable;
 
 /**
  * A plugin that sets up the infrastructure for testing native binaries with XCTest test framework. It also adds conventions on top of it.
@@ -70,76 +72,84 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
     @Override
     public void apply(final ProjectInternal project) {
+        project.getPluginManager().apply(SwiftBasePlugin.class);
+
+        // TODO - Add dependency on main component when Swift plugins are applied
+
+        final DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
+        ConfigurationContainer configurations = project.getConfigurations();
         TaskContainer tasks = project.getTasks();
 
+        // TODO - Reuse logic from Swift*Plugin
+        // TODO - component name and extension name aren't the same
+        // TODO - should use `src/xctext/swift` as the convention?
+        // Add the component extension
+        SwiftXCTestSuite component = objectFactory.newInstance(DefaultSwiftXCTestSuite.class, "test", configurations);
+        project.getExtensions().add(SwiftXCTestSuite.class, "xctest", component);
+        project.getComponents().add(component);
+        project.getComponents().add(component.getBundle());
+
+        // Setup component
+        final PropertyState<String> module = component.getModule();
+        module.set(GUtil.toCamelCase(project.getName() + "Test"));
+
+        // Configure compile task
+        SwiftCompile compile = (SwiftCompile) tasks.getByName("compileTestSwift");
+        compile.getCompilerArgs().set(project.provider(new Callable<List<String>>() {
+            @Override
+            public List<String> call() throws Exception {
+                File frameworkDir = new File(sdkPlatformPathLocator.find(), "Developer/Library/Frameworks");
+                return Lists.newArrayList("-g", "-F" + frameworkDir.getAbsolutePath());
+            }
+        }));
+
+        // Add a link task
+        LinkMachOBundle link = (LinkMachOBundle) tasks.getByName("linkTest");
+        link.getLinkerArgs().set(project.provider(new Callable<List<String>>() {
+            @Override
+            public List<String> call() throws Exception {
+                File frameworkDir = new File(sdkPlatformPathLocator.find(), "Developer/Library/Frameworks");
+                return Lists.newArrayList("-F" + frameworkDir.getAbsolutePath(), "-framework", "XCTest", "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks", "-Xlinker", "-rpath", "-Xlinker", "@loader_path/../Frameworks");
+            }
+        }));
+
+        configureTestedComponent(project);
+
+        CreateSwiftBundle bundle = (CreateSwiftBundle) tasks.getByName("bundleSwiftTest");
+
+        final XcTest xcTest = tasks.create("xcTest", XcTest.class);
+        // TODO - should respect changes to build directory
+        xcTest.setBinResultsDir(project.file("build/results/test/bin"));
+        xcTest.setTestBundleDir(bundle.getOutputDir());
+        xcTest.setWorkingDir(buildDirectory.dir("bundle/test"));
+        // TODO - should respect changes to reports dir
+        xcTest.getReports().getHtml().setDestination(buildDirectory.dir("reports/test").map(new Transformer<File, Directory>() {
+            @Override
+            public File transform(Directory directory) {
+                return directory.getAsFile();
+            }
+        }));
+        xcTest.getReports().getJunitXml().setDestination(buildDirectory.dir("reports/test/xml").map(new Transformer<File, Directory>() {
+            @Override
+            public File transform(Directory directory) {
+                return directory.getAsFile();
+            }
+        }));
+        xcTest.onlyIf(new Spec<Task>() {
+            @Override
+            public boolean isSatisfiedBy(Task element) {
+                return xcTest.getTestBundleDir().exists();
+            }
+        });
+
         Task test = tasks.create("test");
-        Task check = tasks.getByName("check");
-        check.dependsOn(test);
 
         if (OperatingSystem.current().isMacOsX()) {
-            project.getPluginManager().apply(SwiftBasePlugin.class);
-
-            // TODO - Add dependency on main component when Swift plugins are applied
-
-            final DirectoryVar buildDirectory = project.getLayout().getBuildDirectory();
-            ConfigurationContainer configurations = project.getConfigurations();
-
-            // TODO - Reuse logic from Swift*Plugin
-            // TODO - component name and extension name aren't the same
-            // TODO - should use `src/xctext/swift` as the convention?
-            // Add the component extension
-            SwiftXCTestSuite component = objectFactory.newInstance(DefaultSwiftXCTestSuite.class, "test", configurations);
-            project.getExtensions().add(SwiftXCTestSuite.class, "xctest", component);
-            project.getComponents().add(component);
-            project.getComponents().add(component.getBundle());
-
-            // Setup component
-            final PropertyState<String> module = component.getModule();
-            module.set(GUtil.toCamelCase(project.getName() + "Test"));
-
-            // Configure compile task
-            SwiftCompile compile = (SwiftCompile) tasks.getByName("compileTestSwift");
-            File frameworkDir = new File(sdkPlatformPathLocator.find(), "Developer/Library/Frameworks");
-            compile.getCompilerArgs().set(Lists.newArrayList("-g", "-F" + frameworkDir.getAbsolutePath()));
-
-            // Add a link task
-            LinkMachOBundle link = (LinkMachOBundle) tasks.getByName("linkTest");
-            link.getLinkerArgs().set(Lists.newArrayList("-F" + frameworkDir.getAbsolutePath(), "-framework", "XCTest", "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks", "-Xlinker", "-rpath", "-Xlinker", "@loader_path/../Frameworks"));
-
-            configureTestedComponent(project);
-
-            CreateSwiftBundle bundle = (CreateSwiftBundle) tasks.getByName("bundleSwiftTest");
-
-            final XcTest xcTest = tasks.create("xcTest", XcTest.class);
-            // TODO - should respect changes to build directory
-            xcTest.setBinResultsDir(project.file("build/results/test/bin"));
-            xcTest.setTestBundleDir(bundle.getOutputDir());
-            xcTest.setWorkingDir(buildDirectory.dir("bundle/test"));
-            // TODO - should respect changes to reports dir
-            xcTest.getReports().getHtml().setDestination(buildDirectory.dir("reports/test").map(new Transformer<File, Directory>() {
-                @Override
-                public File transform(Directory directory) {
-                    return directory.getAsFile();
-                }
-            }));
-            xcTest.getReports().getJunitXml().setDestination(buildDirectory.dir("reports/test/xml").map(new Transformer<File, Directory>() {
-                @Override
-                public File transform(Directory directory) {
-                    return directory.getAsFile();
-                }
-            }));
-            xcTest.onlyIf(new Spec<Task>() {
-                @Override
-                public boolean isSatisfiedBy(Task element) {
-                    return xcTest.getTestBundleDir().exists();
-                }
-            });
-
-
             test.dependsOn(xcTest);
-        } else {
-            LOGGER.warn("XCTest integration cannot be used because 'xctest' plugin was applied under unsupported condition.");
         }
+
+        Task check = tasks.getByName("check");
+        check.dependsOn(test);
     }
 
     private void configureTestedComponent(final Project project) {
