@@ -58,6 +58,11 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
     }
 
     @Override
+    public String getBranch() {
+        return getDescriptor().getBranch();
+    }
+
+    @Override
     public IvyModuleResolveMetadata asImmutable() {
         return new DefaultIvyModuleResolveMetadata(this);
     }
