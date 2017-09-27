@@ -281,7 +281,6 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      *
      * @return true if failures should be ignored
      */
-    @Input
     public boolean getIgnoreFailures() {
         return ignoreFailures;
     }
