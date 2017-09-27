@@ -17,31 +17,26 @@
 package org.gradle.internal.scan.config
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.plugin.PluginBuilder
+import org.gradle.internal.scan.config.fixtures.BuildScanAutoApplyFixture
 import org.gradle.util.VersionNumber
 import spock.lang.Unroll
 
 import static org.gradle.initialization.StartParameterBuildOptionFactory.BuildScanOption
 import static org.gradle.internal.scan.config.BuildScanPluginAutoApply.BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION
+import static org.gradle.internal.scan.config.fixtures.BuildScanAutoApplyFixture.BUILD_SCAN_PLUGIN_ID
+import static org.gradle.internal.scan.config.fixtures.BuildScanAutoApplyFixture.PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX
 
 class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
     private static final String BUILD_SCAN_PLUGIN_MINIMUM_VERSION = BuildScanPluginCompatibilityEnforcer.MIN_SUPPORTED_VERSION.toString()
     private static final String BUILD_SCAN_PLUGIN_NEWER_VERSION = newerThanAutoApplyPluginVersion()
-    private static final String BUILD_SCAN_PLUGIN_ID = BuildScanPluginAutoApply.BUILD_SCAN_PLUGIN_ID.id
+    private final BuildScanAutoApplyFixture fixture = new BuildScanAutoApplyFixture(testDirectory, mavenRepo)
 
     def setup() {
         buildFile << """
             task dummy {}
         """
-        settingsFile << """
-            pluginManagement {
-                repositories {
-                    maven { url '${mavenRepo.uri}' }
-                }
-            }
-        """
-
-        publishDummyBuildScanPlugin(BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION)
+        settingsFile << fixture.pluginManagement()
+        fixture.publishDummyBuildScanPlugin(BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION, executer)
     }
 
     def "automatically applies build scan plugin when --scan is provided on command-line"() {
@@ -119,7 +114,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
     def "uses #sequence version of plugin when explicit in plugins block"() {
         when:
         if (version != BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION) {
-            publishDummyBuildScanPlugin(version)
+            fixture.publishDummyBuildScanPlugin(version, executer)
         }
         pluginsRequest "id '$BUILD_SCAN_PLUGIN_ID' version '$version'"
 
@@ -140,7 +135,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
     def "uses #sequence version of plugin when added to buildscript classpath"() {
         when:
         if (version != BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION) {
-            publishDummyBuildScanPlugin(version)
+            fixture.publishDummyBuildScanPlugin(version, executer)
         }
         buildscriptApply "com.gradle:build-scan-plugin:$version"
 
@@ -168,21 +163,6 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         buildScanPluginNotApplied()
     }
 
-    private void publishDummyBuildScanPlugin(String version) {
-        def builder = new PluginBuilder(testDirectory.file('plugin-' + version))
-        builder.addPlugin("""
-            def gradle = project.gradle
-            
-            org.gradle.internal.scan.config.BuildScanPluginMetadata buildScanPluginMetadata = { "${version}" } as org.gradle.internal.scan.config.BuildScanPluginMetadata
-            gradle.services.get(org.gradle.internal.scan.config.BuildScanConfigProvider).collect(buildScanPluginMetadata)
-            
-            gradle.buildFinished {
-                println 'PUBLISHING BUILD SCAN v${version}'
-            }
-""", BUILD_SCAN_PLUGIN_ID, "DummyBuildScanPlugin")
-        builder.publishAs("com.gradle:build-scan-plugin:${version}", mavenRepo, executer)
-    }
-
     private void runBuildWithScanRequest() {
         args("--${BuildScanOption.LONG_OPTION}")
         succeeds("dummy")
@@ -193,11 +173,11 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private void buildScanPluginApplied(String version) {
-        assert output.contains("PUBLISHING BUILD SCAN v${version}")
+        assert output.contains("${PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX}${version}")
     }
 
     private void buildScanPluginNotApplied() {
-        assert !output.contains("PUBLISHING BUILD SCAN")
+        assert !output.contains(PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX)
     }
 
     private void pluginsRequest(String request) {
@@ -205,7 +185,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
             plugins {
                 ${request}
             }
-""" + buildFile.text
+        """ + buildFile.text
     }
 
     private void buildscriptApply(String coordinates) {
@@ -219,7 +199,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
             apply plugin: '$BUILD_SCAN_PLUGIN_ID'
-""" + buildFile.text
+        """ + buildFile.text
     }
 
     static String newerThanAutoApplyPluginVersion() {
