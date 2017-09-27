@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
 
 buildscript {
     dependencies {
-        classpath(kotlin("gradle-plugin"))
+        classpath(kotlin("gradle-plugin", "1.1.50"))
     }
     repositories {
         jcenter()
