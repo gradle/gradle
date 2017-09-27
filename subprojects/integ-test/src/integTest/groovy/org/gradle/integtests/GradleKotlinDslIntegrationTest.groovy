@@ -181,7 +181,7 @@ task("dumpKotlinBuildScriptModelClassPath") {
         succeeds('dummy')
 
         then:
-        output.contains("${PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX}v${BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION}")
+        output.contains("${PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX}${BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION}")
     }
 
     private String settingsBuildFileName() {
