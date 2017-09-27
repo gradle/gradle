@@ -33,7 +33,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             include 'app', 'greeter'
         """
 
-        executer.requireGradleDistribution().requireOwnGradleUserHomeDir()
+        useXcodebuildTool()
     }
 
     def "can create xcode project for Swift executable"() {

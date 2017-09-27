@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -153,7 +154,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     final CreateSwiftBundle bundle = tasks.create(names.getTaskName("bundleSwift"), CreateSwiftBundle.class);
                     bundle.getExecutableFile().set(link.getBinaryFile());
                     bundle.getInformationFile().set(((SwiftBundle) binary).getInformationPropertyList());
-                    Provider<RegularFile> bundleLocation = buildDirectory.file(providers.provider(new Callable<String>() {
+                    Provider<Directory> bundleLocation = buildDirectory.dir(providers.provider(new Callable<String>() {
                         @Override
                         public String call() throws Exception {
                             return "bundle/" + names.getDirName() + binary.getModule().get() + ".xctest";

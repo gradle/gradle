@@ -90,7 +90,7 @@ apply plugin: 'cpp-library'
 
     @Requires(TestPrecondition.XCODE)
     def "returns meaningful errors from xcode when C++ executable product doesn't have test configured"() {
-        executer.requireGradleDistribution().requireOwnGradleUserHomeDir()
+        useXcodebuildTool()
 
         given:
         buildFile << """
@@ -133,7 +133,7 @@ apply plugin: 'cpp-executable'
 
     @Requires(TestPrecondition.XCODE)
     def "returns meaningful errors from xcode when C++ library doesn't have test configured"() {
-        executer.requireGradleDistribution().requireOwnGradleUserHomeDir()
+        useXcodebuildTool()
 
         given:
         buildFile << """
@@ -176,7 +176,7 @@ apply plugin: 'cpp-library'
 
     @Requires(TestPrecondition.XCODE)
     def "can build C++ executable from Xcode"() {
-        executer.requireGradleDistribution().requireOwnGradleUserHomeDir()
+        useXcodebuildTool()
         def app = new CppApp()
 
         given:
@@ -215,7 +215,7 @@ apply plugin: 'cpp-executable'
 
     @Requires(TestPrecondition.XCODE)
     def "can build C++ library from Xcode"() {
-        executer.requireGradleDistribution().requireOwnGradleUserHomeDir()
+        useXcodebuildTool()
         def lib = new CppLib()
 
         given:

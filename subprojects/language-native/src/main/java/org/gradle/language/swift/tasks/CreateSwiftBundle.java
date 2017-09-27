@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.RegularFileVar;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
@@ -44,14 +45,14 @@ import java.nio.charset.Charset;
 public class CreateSwiftBundle extends DefaultTask {
     private final RegularFileVar informationFile;
     private final RegularFileVar executableFile;
-    private final RegularFileVar outputDir;
+    private final DirectoryVar outputDir;
     private final SwiftStdlibToolLocator swiftStdlibToolLocator;
 
     @Inject
     public CreateSwiftBundle(SwiftStdlibToolLocator swiftStdlibToolLocator) {
         this.informationFile = newInputFile();
         this.executableFile = newInputFile();
-        this.outputDir = newOutputFile();
+        this.outputDir = newOutputDirectory();
         this.swiftStdlibToolLocator = swiftStdlibToolLocator;
 
     }
@@ -73,7 +74,7 @@ public class CreateSwiftBundle extends DefaultTask {
         });
 
         File inputFile = getInformationFileIfExists();
-        File outputFile = new File(getOutputDir().getAsFile().get(), "Contents/Info.plist");
+        File outputFile = getOutputDir().file("Contents/Info.plist").get().getAsFile();
         if (inputFile == null) {
             Files.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                 + "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
@@ -88,21 +89,20 @@ public class CreateSwiftBundle extends DefaultTask {
             @Override
             public void execute(ExecSpec execSpec) {
                 execSpec.executable(swiftStdlibToolLocator.find());
-                File bundleDir = outputDir.getAsFile().get();
                 execSpec.args(
                     "--copy",
                     "--scan-executable", executableFile.getAsFile().get().getAbsolutePath(),
-                    "--destination", new File(bundleDir, "Contents/Frameworks").getAbsolutePath(),
+                    "--destination", outputDir.dir("Contents/Frameworks").get().getAsFile().getAbsolutePath(),
                     "--platform", "macosx",
-                    "--resource-destination", new File(bundleDir, "Contents/Resources").getAbsolutePath(),
-                    "--scan-folder", new File(bundleDir, "Contents/Frameworks").getAbsolutePath()
+                    "--resource-destination", outputDir.dir("Contents/Resources").get().getAsFile().getAbsolutePath(),
+                    "--scan-folder", outputDir.dir("Contents/Frameworks").get().getAsFile().getAbsolutePath()
                 );
             }
         }).assertNormalExitValue();
     }
 
     @OutputDirectory
-    public RegularFileVar getOutputDir() {
+    public DirectoryVar getOutputDir() {
         return outputDir;
     }
 
@@ -111,7 +111,7 @@ public class CreateSwiftBundle extends DefaultTask {
         return executableFile;
     }
 
-    @Internal("Covered by inputFileIfExists")
+    @Internal("Covered by informationFileIfExists")
     public RegularFileVar getInformationFile() {
         return informationFile;
     }

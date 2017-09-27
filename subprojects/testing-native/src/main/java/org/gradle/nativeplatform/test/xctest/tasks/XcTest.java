@@ -19,8 +19,6 @@ package org.gradle.nativeplatform.test.xctest.tasks;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryVar;
-import org.gradle.api.file.RegularFile;
-import org.gradle.api.file.RegularFileVar;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.InputDirectory;
@@ -42,7 +40,7 @@ public class XcTest extends Test {
     public XcTest(ObjectFactory objectFactory) {
         setTestExecuter(objectFactory.newInstance(NativeTestExecuter.class));
 
-        getExtensions().getExtraProperties().set("testBundleDir", newInputFile());
+        getExtensions().getExtraProperties().set("testBundleDir", newInputDirectory());
         getExtensions().getExtraProperties().set("workingDir", newOutputDirectory());
         setExecutable("java");
         setTestClassesDirs(getProject().files());
@@ -52,15 +50,15 @@ public class XcTest extends Test {
 
     @InputDirectory
     public File getTestBundleDir() {
-        return ((RegularFileVar) getExtensions().getExtraProperties().get("testBundleDir")).getAsFile().get();
+        return ((DirectoryVar) getExtensions().getExtraProperties().get("testBundleDir")).getAsFile().get();
     }
 
     public void setTestBundleDir(File testBundleDir) {
-        ((RegularFileVar) getExtensions().getExtraProperties().get("testBundleDir")).set(testBundleDir);
+        ((DirectoryVar) getExtensions().getExtraProperties().get("testBundleDir")).set(testBundleDir);
     }
 
-    public void setTestBundleDir(Provider<? extends RegularFile> testBundleDir) {
-        ((RegularFileVar) getExtensions().getExtraProperties().get("testBundleDir")).set(testBundleDir);
+    public void setTestBundleDir(Provider<? extends Directory> testBundleDir) {
+        ((DirectoryVar) getExtensions().getExtraProperties().get("testBundleDir")).set(testBundleDir);
     }
 
     @Internal

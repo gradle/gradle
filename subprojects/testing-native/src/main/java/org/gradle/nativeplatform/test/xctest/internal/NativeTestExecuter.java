@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.test.xctest.internal;
 
 import org.gradle.api.file.DirectoryVar;
-import org.gradle.api.file.RegularFileVar;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.DefaultTestMethodDescriptor;
@@ -80,7 +79,7 @@ public class NativeTestExecuter implements TestExecuter {
     @Override
     public void execute(Test testTask, TestResultProcessor testResultProcessor) {
         ObjectFactory objectFactory = getObjectFactory();
-        File executable = ((RegularFileVar)testTask.getExtensions().getExtraProperties().get("testBundleDir")).getAsFile().get();
+        File executable = ((DirectoryVar)testTask.getExtensions().getExtraProperties().get("testBundleDir")).getAsFile().get();
         File workingDir = ((DirectoryVar)testTask.getExtensions().getExtraProperties().get("workingDir")).getAsFile().get();
         TestClassProcessor processor = objectFactory.newInstance(NativeTestClassProcessor.class, executable, workingDir, getExecHandleBuilder(), getIdGenerator());
 

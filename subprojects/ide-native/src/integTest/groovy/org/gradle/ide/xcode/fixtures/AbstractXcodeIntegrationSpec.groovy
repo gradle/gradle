@@ -75,7 +75,13 @@ rootProject.name = "${rootProjectName}"
     protected XcodebuildExecuter getXcodebuild() {
         // Gradle needs to be isolated so the xcodebuild does not leave behind daemons
         assert executer.isRequiresGradleDistribution()
-        new XcodebuildExecuter(executer.getGradleUserHomeDir(), testDirectory.file(".xcode-derived"))
+        new XcodebuildExecuter(testDirectory)
+    }
+
+    void useXcodebuildTool() {
+        executer.requireGradleDistribution().requireOwnGradleUserHomeDir()
+
+        buildFile << XcodebuildExecuter.configurationProbeBuildScriptSnippet
     }
 
     void assertTargetIsUnitTest(ProjectFile.PBXTarget target, String expectedProductName, String expectedBinaryName = expectedProductName) {

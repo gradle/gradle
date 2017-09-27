@@ -26,8 +26,10 @@ import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectLocalComponentProvider;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
@@ -87,14 +89,16 @@ import static org.gradle.internal.component.local.model.DefaultProjectComponentI
 public class XcodePlugin extends IdePlugin {
     private final GidGenerator gidGenerator;
     private final ObjectFactory objectFactory;
+    private final ProjectLayout projectLayout;
     private DefaultXcodeExtension xcode;
     private GenerateXcodeWorkspaceFileTask workspaceTask;
     private GenerateXcodeProjectFileTask projectTask;
 
     @Inject
-    public XcodePlugin(GidGenerator gidGenerator, ObjectFactory objectFactory) {
+    public XcodePlugin(GidGenerator gidGenerator, ObjectFactory objectFactory, ProjectLayout projectLayout) {
         this.gidGenerator = gidGenerator;
         this.objectFactory = objectFactory;
+        this.projectLayout = projectLayout;
     }
 
     @Override
@@ -208,7 +212,7 @@ public class XcodePlugin extends IdePlugin {
         });
     }
 
-    private void configureXcodeForXCTest(Project project, PBXTarget.ProductType productType) {
+    private void configureXcodeForXCTest(final Project project, PBXTarget.ProductType productType) {
         SwiftXCTestSuite component = project.getExtensions().getByType(SwiftXCTestSuite.class);
         FileCollection sources = component.getSwiftSource();
         xcode.getProject().getSources().from(sources);
@@ -221,17 +225,20 @@ public class XcodePlugin extends IdePlugin {
         final Sync syncTask = project.getTasks().create("sync" + GUtil.toCamelCase(component.getName()) + "BundleToXcodeBuiltProductDir", Sync.class, new Action<Sync>() {
             @Override
             public void execute(Sync task) {
-                task.dependsOn(bundleDebug);
-
-                final String buildProductsDir = System.getenv("BUILT_PRODUCTS_DIR");
+                final DirectoryVar builtProductsDir = getBuiltProductsDir();
                 task.onlyIf(new Spec<Task>() {
                     @Override
                     public boolean isSatisfiedBy(Task element) {
-                        return buildProductsDir != null;
+                        return builtProductsDir.isPresent();
                     }
                 });
                 task.from(bundleDebug);
-                task.into(buildProductsDir + "/" + bundleDebug.getOutputDir().getAsFile().get().getName());
+                task.into(builtProductsDir.dir(project.provider(new Callable<CharSequence>() {
+                    @Override
+                    public CharSequence call() throws Exception {
+                        return bundleDebug.getOutputDir().getAsFile().get().getName();
+                    }
+                })));
             }
         });
 
@@ -250,6 +257,15 @@ public class XcodePlugin extends IdePlugin {
         XcodeTarget target = newTarget(component.getModule().get() + " " + toString(productType), component.getModule().get(), productType, toGradleCommand(project.getRootProject()), taskName, bundleDebug.getOutputDir(), bundleDebug.getOutputDir(), sources);
         target.getImportPaths().from(component.getDevelopmentBinary().getCompileImportPath());
         xcode.getProject().getTargets().add(target);
+    }
+
+    private DirectoryVar getBuiltProductsDir() {
+        DirectoryVar result = projectLayout.newDirectoryVar();
+        String builtProductsPath = System.getenv("BUILT_PRODUCTS_DIR");
+        if (builtProductsPath != null) {
+            result.set(new File(builtProductsPath));
+        }
+        return result;
     }
 
     private void configureXcodeForSwift(Project project, PBXTarget.ProductType productType) {
@@ -340,7 +356,7 @@ public class XcodePlugin extends IdePlugin {
         return gradleWrapperPath.or("gradle");
     }
 
-    private XcodeTarget newTarget(String name, String productName, PBXTarget.ProductType productType, String gradleCommand, String taskName, Provider<? extends RegularFile> debugBinaryFile, Provider<? extends RegularFile> releaseBinaryFile, FileCollection sources) {
+    private XcodeTarget newTarget(String name, String productName, PBXTarget.ProductType productType, String gradleCommand, String taskName, Provider<? extends FileSystemLocation> debugBinaryFile, Provider<? extends FileSystemLocation> releaseBinaryFile, FileCollection sources) {
         String id = gidGenerator.generateGid("PBXLegacyTarget", name.hashCode());
         XcodeTarget target = objectFactory.newInstance(XcodeTarget.class, name, id);
         target.getDebugOutputFile().set(debugBinaryFile);

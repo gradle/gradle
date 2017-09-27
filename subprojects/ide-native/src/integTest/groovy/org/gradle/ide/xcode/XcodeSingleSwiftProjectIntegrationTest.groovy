@@ -142,7 +142,7 @@ apply plugin: 'xctest'
 
     @Requires(TestPrecondition.XCODE)
     def "returns meaningful errors from xcode when Swift executable product doesn't have test configured"() {
-        executer.requireGradleDistribution().requireOwnGradleUserHomeDir()
+        useXcodebuildTool()
 
         given:
         buildFile << """
@@ -185,7 +185,7 @@ apply plugin: 'swift-executable'
 
     @Requires(TestPrecondition.XCODE)
     def "returns meaningful errors from xcode when Swift library doesn't have test configured"() {
-        executer.requireGradleDistribution().requireOwnGradleUserHomeDir()
+        useXcodebuildTool()
 
         given:
         buildFile << """
@@ -218,7 +218,7 @@ apply plugin: 'swift-library'
 
     @Requires(TestPrecondition.XCODE)
     def "can configure test only when xctest plugin is applied"() {
-        executer.requireGradleDistribution().requireOwnGradleUserHomeDir()
+        useXcodebuildTool()
 
         given:
         settingsFile.text = "rootProject.name = 'greeter'"
@@ -255,7 +255,7 @@ apply plugin: 'swift-library'
 
     @Requires(TestPrecondition.XCODE)
     def "can run tests for Swift library from xcode"() {
-        executer.requireGradleDistribution().requireOwnGradleUserHomeDir()
+        useXcodebuildTool()
         def lib = new SwiftLibWithXCTest()
 
         given:
@@ -282,7 +282,7 @@ apply plugin: 'xctest'
 
     @Requires(TestPrecondition.XCODE)
     def "can run tests for Swift executable from xcode"() {
-        executer.requireGradleDistribution().requireOwnGradleUserHomeDir()
+        useXcodebuildTool()
         def app = new SwiftAppWithXCTest()
 
         given:
@@ -311,7 +311,7 @@ apply plugin: 'xctest'
 
     @Requires(TestPrecondition.XCODE)
     def "can build Swift executable from xcode"() {
-        executer.requireGradleDistribution().requireOwnGradleUserHomeDir()
+        useXcodebuildTool()
         def app = new SwiftApp()
 
         given:
@@ -350,7 +350,7 @@ apply plugin: 'swift-executable'
 
     @Requires(TestPrecondition.XCODE)
     def "can build Swift library from xcode"() {
-        executer.requireGradleDistribution().requireOwnGradleUserHomeDir()
+        useXcodebuildTool()
         def lib = new SwiftLib()
 
         given:
