@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorBuilder;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -95,4 +96,7 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
         return JAR_PACKAGINGS.contains(packaging);
     }
 
+    @Override
+    public void addVariant(String variantName, ImmutableAttributes attributes) {
+    }
 }
