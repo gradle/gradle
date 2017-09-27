@@ -41,6 +41,6 @@ class AssemblerWithCHelloWorldApp extends MixedLanguageHelloWorldApp {
                     printf("%d", sum(5, 7));
                     return 0;
                 }
-            """);
+            """)
     }
 }

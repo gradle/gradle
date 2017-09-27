@@ -16,9 +16,9 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
-import org.gradle.integtests.fixtures.SourceFile;
+import org.gradle.integtests.fixtures.SourceFile
 
-public class CCallingMixedCAndCppHelloWorldApp extends HelloWorldApp {
+class CCallingMixedCAndCppHelloWorldApp extends HelloWorldApp {
     @Override
     List<String> getPluginList() {
         return ['c', 'cpp']

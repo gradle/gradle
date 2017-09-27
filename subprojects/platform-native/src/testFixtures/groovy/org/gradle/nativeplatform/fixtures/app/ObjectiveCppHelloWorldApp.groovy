@@ -34,7 +34,7 @@ class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
                 printf("%d", sum(7, 5));
                 return 0;
             }
-        """);
+        """)
     }
 
     @Override
@@ -58,11 +58,11 @@ class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
             #endif
 
             #endif
-        """);
+        """)
     }
 
     @Override
-    def SourceFile getCommonHeader() {
+    SourceFile getCommonHeader() {
         sourceFile("headers", "common.h", """
             #ifndef COMMON_H
             #define COMMON_H
@@ -121,7 +121,7 @@ class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
                 std::cout << "${HELLO_WORLD} ${HELLO_WORLD}" << std::endl;
                 return 0;
             }
-        """);
+        """)
     }
 
     String alternateOutput = "${HELLO_WORLD} ${HELLO_WORLD}\n"
@@ -150,7 +150,7 @@ class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
 
     String alternateLibraryOutput = "${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}\n12"
 
-    public String getExtraConfiguration(String binaryName = null) {
+    String getExtraConfiguration(String binaryName = null) {
         return """
             model {
                 binaries {
@@ -172,7 +172,7 @@ class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
         ['objective-cpp']
     }
 
-    public SourceFile getBrokenFile() {
+    SourceFile getBrokenFile() {
         return sourceFile("objcpp", "broken.mm", """'broken""")
     }
 
