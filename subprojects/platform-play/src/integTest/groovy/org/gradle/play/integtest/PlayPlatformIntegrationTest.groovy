@@ -105,6 +105,26 @@ model {
         "play: '2.4.5', scala: '2.11'" | '2.4.5'     | '2.11'
         "play: '2.4.8', scala: '2.11'" | '2.4.8'     | '2.11'
         "play: '2.5.4', scala: '2.11'" | '2.5.4'     | '2.11'
+        "play: '2.6.5', scala: '2.11'" | '2.6.5'     | '2.11'
+        "play: '2.6.5', scala: '2.12'" | '2.6.5'     | '2.12'
+    }
+
+    def "fails when trying to build a Play 2.6.x application with Scala 2.10.x"() {
+        when:
+        buildFile << """
+model {
+    components {
+        play {
+            platform play: '2.6.5', scala: '2.10'
+        }
+    }
+}
+"""
+        then:
+        fails "assemble"
+
+        and:
+        failure.assertHasCause "Play versions 2.6.x are not compatible with Scala platform 2.10. Compatible Scala platforms are [2.12, 2.11]."
     }
 
 
@@ -162,7 +182,7 @@ model {
         fails "assemble"
 
         and:
-        failure.assertHasCause "Not a supported Scala platform identifier X. Supported values are: ['2.10', '2.11']."
+        failure.assertHasCause "Not a supported Scala platform identifier X. Supported values are: ['2.10', '2.11', '2.12']."
     }
 
     def "fails when trying to build for multiple play platforms"() {
