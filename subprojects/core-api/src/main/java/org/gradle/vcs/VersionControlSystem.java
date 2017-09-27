@@ -28,7 +28,11 @@ import java.util.Set;
  */
 @Incubating
 public interface VersionControlSystem {
-
+    /**
+     * Returns a {@link Set} of {@link VersionRef}s representing
+     * versions of a software package as they are known to the version
+     * control system.
+     */
     Set<VersionRef> getAvailableVersions(VersionControlSpec spec);
 
     /**

@@ -46,7 +46,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
     @Override
     public void populate(File workingDir, VersionRef ref, VersionControlSpec spec) {
         if (!(spec instanceof GitVersionControlSpec)) {
-            throw new IllegalArgumentException("The GitVersionControlSystem can only handle GitVersionConrolSpec instances.");
+            throw new IllegalArgumentException("The GitVersionControlSystem can only handle GitVersionControlSpec instances.");
         }
         GitVersionControlSpec gitSpec = (GitVersionControlSpec) spec;
 
@@ -57,6 +57,15 @@ public class GitVersionControlSystem implements VersionControlSystem {
         } else {
             cloneRepo(workingDir, gitSpec);
         }
+    }
+
+    public void populate(File workingDir, VersionControlSpec spec) {
+        populate(workingDir, new DefaultVersionRef(), spec);
+    }
+
+    @Override
+    public Set<VersionRef> getAvailableVersions(VersionControlSpec spec) {
+        return Sets.<VersionRef>newHashSet(new DefaultVersionRef());
     }
 
     private void cloneRepo(File workingDir, GitVersionControlSpec gitSpec) {
@@ -121,10 +130,4 @@ public class GitVersionControlSystem implements VersionControlSystem {
     private GradleException wrapGitCommandException(String commandName, URI repoUrl, File workingDir, Exception e) {
         return new GradleException(String.format("Could not %s: %s from %s", commandName, repoUrl, workingDir), e);
     }
-
-    @Override
-    public Set<VersionRef> getAvailableVersions(VersionControlSpec spec) {
-        return Sets.<VersionRef>newHashSet(new DefaultVersionRef());
-    }
-
 }

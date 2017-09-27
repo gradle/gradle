@@ -19,12 +19,21 @@ package org.gradle.vcs;
 import org.gradle.api.Incubating;
 
 /**
- * Version ref
+ * Represents how a version of a software component is referred to in a version
+ * control system.
+ *
  * @since 4.3
  */
 @Incubating
 public interface VersionRef {
-    // TODO: Better types
+    /**
+     * Returns a human-readable version of the software component.
+     */
     String getVersion();
+
+    /**
+     * Returns a canonical representation of this version of the software
+     * component, which may be different from the human-readable version.
+     */
     String getCanonicalId();
 }

@@ -49,7 +49,7 @@ class GitVersionControlSystemSpec extends Specification {
     def "clone a repository"() {
         given:
         def target = tmpDir.file("workingDir")
-        GitVersionControlSpec spec = new GitVersionControlSpec()
+        GitVersionControlSpec spec = new DefaultGitVersionControlSpec()
         spec.url = repo.url
 
         when:
@@ -65,7 +65,7 @@ class GitVersionControlSystemSpec extends Specification {
         given:
         def target = tmpDir.file("workingDir")
         target.mkdir()
-        GitVersionControlSpec spec = new GitVersionControlSpec()
+        GitVersionControlSpec spec = new DefaultGitVersionControlSpec()
         spec.url = repo.url
 
         when:
@@ -80,7 +80,7 @@ class GitVersionControlSystemSpec extends Specification {
     def "update a cloned repository"() {
         given:
         def target = tmpDir.file("workingDir")
-        GitVersionControlSpec spec = new GitVersionControlSpec()
+        GitVersionControlSpec spec = new DefaultGitVersionControlSpec()
         spec.url = repo.url
         gitVcs.populate(target, spec)
         def newFile = repo.workTree.file("newFile.txt")
@@ -100,7 +100,7 @@ class GitVersionControlSystemSpec extends Specification {
     def "error if working dir is not a repository"() {
         given:
         def target = tmpDir.file("workingdir")
-        GitVersionControlSpec spec = new GitVersionControlSpec()
+        GitVersionControlSpec spec = new DefaultGitVersionControlSpec()
         spec.url = repo.url
         target.mkdirs()
         target.file("child.txt").createNewFile()
@@ -122,7 +122,7 @@ class GitVersionControlSystemSpec extends Specification {
     def "error if working dir repo is missing the remote"() {
         given:
         def target = tmpDir.file("workingDir")
-        GitVersionControlSpec spec = new GitVersionControlSpec()
+        GitVersionControlSpec spec = new DefaultGitVersionControlSpec()
         spec.url = repo.url
         gitVcs.populate(target, spec)
 
