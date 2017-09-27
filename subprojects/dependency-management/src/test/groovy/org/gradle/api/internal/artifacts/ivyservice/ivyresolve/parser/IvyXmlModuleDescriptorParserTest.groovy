@@ -30,7 +30,6 @@ import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Resources
-import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
@@ -331,10 +330,6 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         md != null
         md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
         md.status == "integration"
-        md.publicationDate == new GregorianCalendar(2004, 10, 1, 11, 0, 0).getTime()
-
-        TextUtil.normaliseLineSeparators(md.getDescription()) ==
-            "This module is <b>great</b> !<br/>\n\tYou can use it especially with myconf1 and myconf2, and myconf4 is not too bad too."
 
         md.extraInfo.size() == 1
         md.extraInfo.get(new NamespaceId("http://ant.apache.org/ivy/extra", "someExtra")) == "56576"

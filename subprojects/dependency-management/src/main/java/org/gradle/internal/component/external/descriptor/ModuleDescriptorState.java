@@ -23,7 +23,6 @@ import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,15 +38,11 @@ public class ModuleDescriptorState {
     private final String status;
     private final boolean generated;
     private final Map<NamespaceId, String> extraInfo;
-    protected String description;
     protected String branch;
-    protected Date publicationDate;
 
     public ModuleDescriptorState(ModuleComponentIdentifier componentIdentifier, String status, boolean generated) {
         this.componentIdentifier = componentIdentifier;
         branch = null;
-        description = null;
-        publicationDate = new Date();
         this.status = status;
         this.generated = generated;
         extraInfo = Maps.newHashMap();
@@ -56,13 +51,6 @@ public class ModuleDescriptorState {
 
     public ModuleComponentIdentifier getComponentIdentifier() {
         return componentIdentifier;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-    public Date getPublicationDate() {
-        return publicationDate;
     }
 
     public Map<NamespaceId, String> getExtraInfo() {

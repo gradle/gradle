@@ -30,7 +30,7 @@ import org.gradle.internal.component.model.ModuleSource
 class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModuleComponentResolveMetadataTest {
     @Override
     AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor, List<Configuration> configurations, List<DependencyMetadata> dependencies) {
-        return new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, moduleDescriptor, "jar", false, dependencies)
+        return new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, moduleDescriptor, dependencies)
     }
 
     @Override
@@ -42,7 +42,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
         def descriptor = new MutableModuleDescriptorState(id, "2", true)
 
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, descriptor, "packaging", true, [])
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, descriptor, [])
 
         expect:
         def immutable = metadata.asImmutable()
@@ -76,8 +76,9 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         def descriptor = new MutableModuleDescriptorState(id, "2", true)
 
         def vid = Mock(ModuleVersionIdentifier)
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(vid, id, descriptor, [])
+
         expect:
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(vid, id, descriptor, "packaging", true, [])
         metadata.componentId == id
         metadata.id == vid
         metadata.status == "2"
@@ -87,7 +88,8 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         !metadata.changing
         metadata.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         metadata.snapshotTimestamp == null
-        metadata.packaging == "packaging"
+        metadata.packaging == "jar"
+        !metadata.relocated
         metadata.descriptor == descriptor
 
         and:
@@ -101,8 +103,8 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         immutable.generated
         !immutable.changing
         immutable.snapshotTimestamp == null
-        immutable.packaging == "packaging"
-        immutable.relocated
+        immutable.packaging == "jar"
+        !immutable.relocated
 
         and:
         def copy = immutable.asMutable()
@@ -114,8 +116,8 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         copy.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         !copy.changing
         copy.snapshotTimestamp == null
-        copy.packaging == "packaging"
-        copy.relocated
+        copy.packaging == "jar"
+        !copy.relocated
     }
 
     def "can override values from descriptor"() {
@@ -125,14 +127,17 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         def source = Stub(ModuleSource)
 
         def vid = Mock(ModuleVersionIdentifier)
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(vid, id, descriptor, [])
+
         when:
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(vid, id, descriptor, "jar", false, [])
         metadata.componentId = newId
         metadata.source = source
         metadata.status = "3"
         metadata.changing = true
         metadata.statusScheme = ["1", "2", "3"]
         metadata.snapshotTimestamp = "123"
+        metadata.packaging = "pom"
+        metadata.relocated = true
 
         then:
         metadata.componentId == newId
@@ -142,6 +147,8 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         metadata.status == "3"
         metadata.statusScheme == ["1", "2", "3"]
         metadata.snapshotTimestamp == "123"
+        metadata.packaging == "pom"
+        metadata.relocated
 
         def immutable = metadata.asImmutable()
         immutable != metadata
@@ -152,6 +159,8 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         immutable.changing
         immutable.statusScheme == ["1", "2", "3"]
         immutable.snapshotTimestamp == "123"
+        immutable.packaging == "pom"
+        immutable.relocated
 
         def copy = immutable.asMutable()
         copy != metadata
@@ -162,6 +171,8 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         copy.changing
         copy.statusScheme == ["1", "2", "3"]
         copy.snapshotTimestamp == "123"
+        copy.packaging == "pom"
+        copy.relocated
     }
 
     def "making changes to copy does not affect original"() {
@@ -169,9 +180,9 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         def descriptor = new MutableModuleDescriptorState(id, "2", true)
         def newId = DefaultModuleComponentIdentifier.newId("group", "module", "1.2")
         def source = Stub(ModuleSource)
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, descriptor, [])
 
         when:
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, descriptor, "jar", false, [])
         def immutable = metadata.asImmutable()
         def copy = immutable.asMutable()
         copy.componentId = newId
@@ -180,6 +191,8 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         copy.status = "3"
         copy.statusScheme = ["2", "3"]
         copy.snapshotTimestamp = "123"
+        copy.packaging = "pom"
+        copy.relocated = true
         def immutableCopy = copy.asImmutable()
 
         then:
@@ -189,6 +202,8 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         metadata.status == "2"
         metadata.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         metadata.snapshotTimestamp == null
+        metadata.packaging == "jar"
+        !metadata.relocated
 
         immutable.componentId == id
         immutable.source == null
@@ -196,6 +211,8 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         immutable.status == "2"
         immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         immutable.snapshotTimestamp == null
+        immutable.packaging == "jar"
+        !immutable.relocated
 
         copy.componentId == newId
         copy.source == source
@@ -203,6 +220,8 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         copy.status == "3"
         copy.statusScheme == ["2", "3"]
         copy.snapshotTimestamp == "123"
+        copy.packaging == "pom"
+        copy.relocated
 
         immutableCopy.componentId == newId
         immutableCopy.source == source
@@ -210,6 +229,8 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         immutableCopy.status == "3"
         immutableCopy.statusScheme == ["2", "3"]
         immutableCopy.snapshotTimestamp == "123"
+        immutableCopy.packaging == "pom"
+        immutableCopy.relocated
     }
 
     def "making changes to original does not affect copy"() {
@@ -217,9 +238,9 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         def descriptor = new MutableModuleDescriptorState(id, "2", true)
         def newId = DefaultModuleComponentIdentifier.newId("group", "module", "1.2")
         def source = Stub(ModuleSource)
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, descriptor, [])
 
         when:
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, descriptor, "packaging", false, [])
         def immutable = metadata.asImmutable()
 
         metadata.componentId = newId
@@ -228,6 +249,8 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         metadata.status = "3"
         metadata.statusScheme = ["1", "2"]
         metadata.snapshotTimestamp = "123"
+        metadata.packaging = "pom"
+        metadata.relocated = true
 
         def immutableCopy = metadata.asImmutable()
 
@@ -238,6 +261,8 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         metadata.status == "3"
         metadata.statusScheme == ["1", "2"]
         metadata.snapshotTimestamp == "123"
+        metadata.packaging == "pom"
+        metadata.relocated
 
         immutable.componentId == id
         immutable.source == null
@@ -245,6 +270,8 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         immutable.status == "2"
         immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         immutable.snapshotTimestamp == null
+        immutable.packaging == "jar"
+        !immutable.relocated
 
         immutableCopy.componentId == newId
         immutableCopy.source == source
@@ -252,5 +279,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         immutableCopy.status == "3"
         immutableCopy.statusScheme == ["1", "2"]
         immutableCopy.snapshotTimestamp == "123"
+        immutableCopy.packaging == "pom"
+        immutableCopy.relocated
     }
 }

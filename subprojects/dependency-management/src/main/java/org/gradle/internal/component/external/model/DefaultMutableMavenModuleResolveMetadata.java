@@ -34,7 +34,7 @@ import static org.gradle.internal.component.external.model.DefaultMavenModuleRes
 import static org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata.POM_PACKAGING;
 
 public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableModuleComponentResolveMetadata implements MutableMavenModuleResolveMetadata {
-    private String packaging;
+    private String packaging = "jar";
     private boolean relocated;
     private String snapshotTimestamp;
 
@@ -42,17 +42,15 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
      * Creates default metadata given a set of artifacts.
      */
     public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> artifacts) {
-        this(id, componentIdentifier, MutableModuleDescriptorState.createModuleDescriptor(componentIdentifier, artifacts), "jar", false, ImmutableList.<DependencyMetadata>of());
+        this(id, componentIdentifier, MutableModuleDescriptorState.createModuleDescriptor(componentIdentifier, artifacts), ImmutableList.<DependencyMetadata>of());
     }
 
-    public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleDescriptorState moduleDescriptor, String packaging, boolean relocated, Collection<DependencyMetadata> dependencies) {
-        this(id, moduleDescriptor.getComponentIdentifier(), moduleDescriptor, packaging, relocated, dependencies);
+    public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleDescriptorState moduleDescriptor, Collection<DependencyMetadata> dependencies) {
+        this(id, moduleDescriptor.getComponentIdentifier(), moduleDescriptor, dependencies);
     }
 
-    public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState descriptor, String packaging, boolean relocated, Collection<? extends DependencyMetadata> dependencies) {
+    public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState descriptor, Collection<? extends DependencyMetadata> dependencies) {
         super(id, componentIdentifier, descriptor, GradlePomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS, ImmutableList.copyOf(dependencies));
-        this.packaging = packaging;
-        this.relocated = relocated;
     }
 
     DefaultMutableMavenModuleResolveMetadata(MavenModuleResolveMetadata metadata) {
@@ -84,14 +82,26 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     }
 
     @Override
+    public void setRelocated(boolean relocated) {
+        this.relocated = relocated;
+    }
+
+    @Override
     public String getPackaging() {
         return packaging;
     }
 
+    @Override
+    public void setPackaging(String packaging) {
+        this.packaging = packaging;
+    }
+
+    @Override
     public boolean isPomPackaging() {
         return POM_PACKAGING.equals(packaging);
     }
 
+    @Override
     public boolean isKnownJarPackaging() {
         return JAR_PACKAGINGS.contains(packaging);
     }

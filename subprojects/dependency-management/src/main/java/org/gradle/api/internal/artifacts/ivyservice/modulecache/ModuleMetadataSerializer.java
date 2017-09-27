@@ -124,8 +124,6 @@ public class ModuleMetadataSerializer {
             writeString(md.getStatus());
             writeBoolean(md.isGenerated());
 
-            writeNullableString(md.getDescription());
-            writeNullableDate(md.getPublicationDate());
             writeNullableString(md.getBranch());
 
             writeExtraInfo(md.getExtraInfo());
@@ -311,7 +309,9 @@ public class ModuleMetadataSerializer {
             String snapshotTimestamp = readNullableString();
             String packaging = readNullableString();
             boolean relocated = readBoolean();
-            DefaultMutableMavenModuleResolveMetadata metadata = new DefaultMutableMavenModuleResolveMetadata(mvi, id, md, packaging, relocated, dependencies);
+            DefaultMutableMavenModuleResolveMetadata metadata = new DefaultMutableMavenModuleResolveMetadata(mvi, id, md, dependencies);
+            metadata.setPackaging(packaging);
+            metadata.setRelocated(relocated);
             metadata.setSnapshotTimestamp(snapshotTimestamp);
             return metadata;
         }
@@ -333,8 +333,6 @@ public class ModuleMetadataSerializer {
 
             md = new MutableModuleDescriptorState(componentIdentifier, status, generated);
 
-            md.setDescription(readNullableString());
-            md.setPublicationDate(readNullableDate());
             md.setBranch(readNullableString());
             mvi = moduleIdentifierFactory.moduleWithVersion(componentIdentifier.getGroup(), componentIdentifier.getModule(), componentIdentifier.getVersion());
 

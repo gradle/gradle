@@ -68,8 +68,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
 
         writer.attribute("xmlns:" + IvyModulePublishMetadata.IVY_MAVEN_NAMESPACE_PREFIX, IvyModulePublishMetadata.IVY_MAVEN_NAMESPACE);
 
-        ModuleDescriptorState descriptor = metadata.getModuleDescriptor();
-        printInfoTag(descriptor, writer);
+        printInfoTag(metadata, writer);
         printConfigurations(metadata, writer);
         printPublications(metadata.getArtifacts(), writer);
         printDependencies(metadata, writer);
@@ -77,7 +76,8 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         writer.endElement();
     }
 
-    private static void printInfoTag(ModuleDescriptorState descriptor, SimpleXmlWriter writer) throws IOException {
+    private static void printInfoTag(IvyModulePublishMetadata metadata, SimpleXmlWriter writer) throws IOException {
+        ModuleDescriptorState descriptor = metadata.getModuleDescriptor();
         ModuleComponentIdentifier id = descriptor.getComponentIdentifier();
         writer.startElement("info");
 
@@ -94,7 +94,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
             writer.attribute("default", "true");
         }
 
-        printUnusedContent(descriptor, writer);
+        printUnusedContent(metadata, writer);
 
         for (Map.Entry<NamespaceId, String> entry : descriptor.getExtraInfo().entrySet()) {
             if (entry.getValue() == null || entry.getValue().length() == 0) {
@@ -109,22 +109,13 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
 
         writer.endElement();
     }
+
     /**
-     * These values are written to the desriptor, but never used. They remain here so that the checksum of the descriptor
-     * changes when these values change: thie behaviour is utilized in integration tests.
+     * These values are written to the descriptor, but never used by Gradle.
      */
-    private static void printUnusedContent(ModuleDescriptorState descriptor, SimpleXmlWriter writer) throws IOException {
+    private static void printUnusedContent(IvyModulePublishMetadata metadata, SimpleXmlWriter writer) throws IOException {
         SimpleDateFormat ivyDateFormat = new SimpleDateFormat(IVY_DATE_PATTERN);
-        Date publicationDate = descriptor.getPublicationDate();
-        if (publicationDate != null) {
-            writer.attribute("publication", ivyDateFormat.format(publicationDate));
-        }
-        String description = descriptor.getDescription();
-        if (description != null && description.trim().length() > 0) {
-            writer.startElement("description");
-            writer.characters(description);
-            writer.endElement();
-        }
+        writer.attribute("publication", ivyDateFormat.format(new Date()));
     }
 
     private void printConfigurations(IvyModulePublishMetadata metadata, SimpleXmlWriter writer) throws IOException {

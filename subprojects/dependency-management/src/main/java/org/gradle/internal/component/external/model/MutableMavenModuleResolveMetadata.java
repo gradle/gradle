@@ -31,7 +31,11 @@ public interface MutableMavenModuleResolveMetadata extends MutableModuleComponen
     String getSnapshotTimestamp();
 
     String getPackaging();
+    void setPackaging(String packaging);
+
     boolean isPomPackaging();
     boolean isKnownJarPackaging();
+
     boolean isRelocated();
+    void setRelocated(boolean relocated);
 }
