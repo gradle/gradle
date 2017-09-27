@@ -20,31 +20,45 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.internal.id.UniqueId;
 
-public class DefaultTaskExecution extends TaskExecution {
+import javax.annotation.Nullable;
+
+@NonNullApi
+public class CurrentTaskExecution extends AbstractTaskExecution {
     private ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot;
     private final ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot;
     private FileCollectionSnapshot discoveredInputFilesSnapshot;
+    private final OverlappingOutputs detectedOverlappingOutputs;
+    private Boolean successful;
 
-    public DefaultTaskExecution(
+    public CurrentTaskExecution(
         UniqueId buildInvocationId,
         ImplementationSnapshot taskImplementation,
         ImmutableList<ImplementationSnapshot> taskActionImplementations,
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
         ImmutableSortedSet<String> outputPropertyNames,
         ImmutableSet<String> declaredOutputFilePaths,
-        OverlappingOutputs detectedOverlappingOutputs,
+        @Nullable OverlappingOutputs detectedOverlappingOutputs,
         ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot,
         FileCollectionSnapshot discoveredInputFilesSnapshot,
-        ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot,
-        Boolean successful
+        ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot
     ) {
-        super(buildInvocationId, taskImplementation, taskActionImplementations, inputProperties, outputPropertyNames, declaredOutputFilePaths, successful, detectedOverlappingOutputs);
+        super(buildInvocationId, taskImplementation, taskActionImplementations, inputProperties, outputPropertyNames, declaredOutputFilePaths);
+        this.detectedOverlappingOutputs = detectedOverlappingOutputs;
         this.outputFilesSnapshot = outputFilesSnapshot;
         this.inputFilesSnapshot = inputFilesSnapshot;
         this.discoveredInputFilesSnapshot = discoveredInputFilesSnapshot;
+    }
+
+    public boolean isSuccessful() {
+        return successful;
+    }
+
+    public void setSuccessful(boolean successful) {
+        this.successful = successful;
     }
 
     @Override
@@ -52,7 +66,6 @@ public class DefaultTaskExecution extends TaskExecution {
         return outputFilesSnapshot;
     }
 
-    @Override
     public void setOutputFilesSnapshot(ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot) {
         this.outputFilesSnapshot = outputFilesSnapshot;
     }
@@ -67,8 +80,27 @@ public class DefaultTaskExecution extends TaskExecution {
         return discoveredInputFilesSnapshot;
     }
 
-    @Override
     public void setDiscoveredInputFilesSnapshot(FileCollectionSnapshot discoveredInputFilesSnapshot) {
         this.discoveredInputFilesSnapshot = discoveredInputFilesSnapshot;
+    }
+
+    @Nullable
+    public OverlappingOutputs getDetectedOverlappingOutputs() {
+        return detectedOverlappingOutputs;
+    }
+
+    public TaskExecutionSnapshot snapshot() {
+        return new TaskExecutionSnapshot(
+            successful,
+            getBuildInvocationId(),
+            getTaskImplementation(),
+            getTaskActionImplementations(),
+            getOutputPropertyNamesForCacheKey(),
+            getDeclaredOutputFilePaths(),
+            getInputProperties(),
+            inputFilesSnapshot,
+            discoveredInputFilesSnapshot,
+            outputFilesSnapshot
+        );
     }
 }

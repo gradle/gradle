@@ -20,73 +20,44 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.id.UniqueId;
 
 /**
  * Immutable snapshot of the state of a task when it was executed.
  */
-public class TaskExecutionSnapshot {
-    private final UniqueId buildInvocationId;
+@NonNullApi
+public class TaskExecutionSnapshot extends AbstractTaskExecution {
     private final boolean successful;
-    private final ImplementationSnapshot taskImplementation;
-    private final ImmutableList<ImplementationSnapshot> taskActionsImplementations;
-    private final ImmutableSortedMap<String, ValueSnapshot> inputProperties;
-    private final ImmutableSortedSet<String> cacheableOutputProperties;
-    private final ImmutableSet<String> declaredOutputFilePaths;
-    private final ImmutableSortedMap<String, Long> inputFilesSnapshotIds;
-    private final ImmutableSortedMap<String, Long> outputFilesSnapshotIds;
-    private final Long discoveredFilesSnapshotId;
+    private final ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot;
+    private final FileCollectionSnapshot discoveredInputFilesSnapshot;
+    private final ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot;
 
-    public TaskExecutionSnapshot(boolean successful, UniqueId buildInvocationId, ImplementationSnapshot taskImplementation, ImmutableList<ImplementationSnapshot> taskActionsImplementations, ImmutableSortedSet<String> cacheableOutputProperties, ImmutableSet<String> declaredOutputFilePaths, ImmutableSortedMap<String, ValueSnapshot> inputProperties, ImmutableSortedMap<String, Long> inputFilesSnapshotIds, Long discoveredFilesSnapshotId, ImmutableSortedMap<String, Long> outputFilesSnapshotIds) {
+    public TaskExecutionSnapshot(boolean successful, UniqueId buildInvocationId, ImplementationSnapshot taskImplementation, ImmutableList<ImplementationSnapshot> taskActionsImplementations, ImmutableSortedSet<String> cacheableOutputProperties, ImmutableSet<String> declaredOutputFilePaths, ImmutableSortedMap<String, ValueSnapshot> inputProperties, ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot, FileCollectionSnapshot discoveredInputFilesSnapshot, ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot) {
+        super(buildInvocationId, taskImplementation, taskActionsImplementations, inputProperties, cacheableOutputProperties, declaredOutputFilePaths);
         this.successful = successful;
-        this.buildInvocationId = buildInvocationId;
-        this.taskImplementation = taskImplementation;
-        this.taskActionsImplementations = taskActionsImplementations;
-        this.cacheableOutputProperties = cacheableOutputProperties;
-        this.declaredOutputFilePaths = declaredOutputFilePaths;
-        this.inputProperties = inputProperties;
-        this.inputFilesSnapshotIds = inputFilesSnapshotIds;
-        this.discoveredFilesSnapshotId = discoveredFilesSnapshotId;
-        this.outputFilesSnapshotIds = outputFilesSnapshotIds;
+        this.inputFilesSnapshot = inputFilesSnapshot;
+        this.discoveredInputFilesSnapshot = discoveredInputFilesSnapshot;
+        this.outputFilesSnapshot = outputFilesSnapshot;
     }
 
+    @Override
     public boolean isSuccessful() {
         return successful;
     }
 
-    public UniqueId getBuildInvocationId() {
-        return buildInvocationId;
+    @Override
+    public ImmutableSortedMap<String, FileCollectionSnapshot> getInputFilesSnapshot() {
+        return inputFilesSnapshot;
     }
 
-    public ImplementationSnapshot getTaskImplementation() {
-        return taskImplementation;
+    @Override
+    public FileCollectionSnapshot getDiscoveredInputFilesSnapshot() {
+        return discoveredInputFilesSnapshot;
     }
 
-    public ImmutableList<ImplementationSnapshot> getTaskActionsImplementations() {
-        return taskActionsImplementations;
-    }
-
-    public ImmutableSortedSet<String> getCacheableOutputProperties() {
-        return cacheableOutputProperties;
-    }
-
-    public ImmutableSet<String> getDeclaredOutputFilePaths() {
-        return declaredOutputFilePaths;
-    }
-
-    public Long getDiscoveredFilesSnapshotId() {
-        return discoveredFilesSnapshotId;
-    }
-
-    public ImmutableSortedMap<String, Long> getInputFilesSnapshotIds() {
-        return inputFilesSnapshotIds;
-    }
-
-    public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
-        return inputProperties;
-    }
-
-    public ImmutableSortedMap<String, Long> getOutputFilesSnapshotIds() {
-        return outputFilesSnapshotIds;
+    @Override
+    public ImmutableSortedMap<String, FileCollectionSnapshot> getOutputFilesSnapshot() {
+        return outputFilesSnapshot;
     }
 }
