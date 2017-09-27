@@ -28,7 +28,11 @@ import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
+import static com.google.gson.stream.JsonToken.END_ARRAY;
 import static com.google.gson.stream.JsonToken.END_OBJECT;
 
 public class ModuleMetadataParser {
@@ -92,18 +96,49 @@ public class ModuleMetadataParser {
         reader.beginObject();
         String variantName = null;
         ImmutableAttributes attributes = ImmutableAttributes.EMPTY;
+        List<ModuleFile> files = Collections.emptyList();
         while (reader.peek() != END_OBJECT) {
             String name = reader.nextName();
             if (name.equals("name")) {
                 variantName = reader.nextString();
             } else if (name.equals("attributes")) {
                 attributes = consumeAttributes(reader);
+            } else if (name.equals("files")) {
+                files = consumeFiles(reader);
             } else {
                 consumeAny(reader);
             }
         }
         reader.endObject();
-        metadata.addVariant(variantName, attributes);
+
+        MutableModuleMetadata.Variant variant = metadata.addVariant(variantName, attributes);
+        for (ModuleFile file : files) {
+            variant.addFile(file.name, file.uri);
+        }
+    }
+
+    private List<ModuleFile> consumeFiles(JsonReader reader) throws IOException {
+        List<ModuleFile> files = new ArrayList<ModuleFile>();
+        reader.beginArray();
+        while (reader.peek() != END_ARRAY) {
+            reader.beginObject();
+            String fileName = null;
+            String fileUri = null;
+            while (reader.peek() != END_OBJECT) {
+                String name = reader.nextName();
+                if (name.equals("name")) {
+                    fileName = reader.nextString();
+                } else if (name.equals("url")) {
+                    fileUri = reader.nextString();
+                } else {
+                    consumeAny(reader);
+                }
+            }
+            reader.endObject();
+            files.add(new ModuleFile(fileName, fileUri));
+        }
+        reader.endArray();
+        return files;
     }
 
     private ImmutableAttributes consumeAttributes(JsonReader reader) throws IOException {
@@ -121,4 +156,15 @@ public class ModuleMetadataParser {
     private void consumeAny(JsonReader reader) throws IOException {
         reader.skipValue();
     }
+
+    class ModuleFile {
+        final String name;
+        final String uri;
+
+        public ModuleFile(String name, String uri) {
+            this.name = name;
+            this.uri = uri;
+        }
+    }
+
 }

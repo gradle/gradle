@@ -39,6 +39,7 @@ class ModuleMetadataParserTest extends Specification {
 
     def "parses content with variant"() {
         def metadata = Mock(MutableModuleMetadata)
+        def variant = Mock(MutableModuleMetadata.Variant)
 
         when:
         parser.parse(resource('''
@@ -56,12 +57,15 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes(usage: "compile"))
-        0 * metadata._
+        1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant
+        1 * variant.addFile("a.zip", "a.zop")
+        0 * _
     }
 
     def "parses content with variants"() {
         def metadata = Mock(MutableModuleMetadata)
+        def variant1 = Mock(MutableModuleMetadata.Variant)
+        def variant2 = Mock(MutableModuleMetadata.Variant)
 
         when:
         parser.parse(resource('''
@@ -81,13 +85,55 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes(usage: "compile"))
-        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip"))
-        0 * metadata._
+        1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
+        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
+        0 * _
     }
 
-    def "parses variant with no attributes"() {
+    def "parses content with files"() {
         def metadata = Mock(MutableModuleMetadata)
+        def variant1 = Mock(MutableModuleMetadata.Variant)
+        def variant2 = Mock(MutableModuleMetadata.Variant)
+
+        when:
+        parser.parse(resource('''
+    { 
+        "formatVersion": "0.1", 
+        "variants": [
+            {
+                "name": "api",
+                "files": [ 
+                    { "name": "api.zip", "url": "api.zop" },
+                    { "name": "api-2.zip", "url": "api-2.zop" }
+                ],
+                "attributes": { "usage": "compile" }
+            },
+            {
+                "attributes": { "usage": "runtime", "packaging": "zip" },
+                "files": [ 
+                    { "name": "api.zip", "url": "api.zop" },
+                    { "name": "runtime.zip", "url": "runtime.zop" }
+                ],
+                "name": "runtime"
+            }
+        ]
+    }
+'''), metadata)
+
+        then:
+        1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
+        1 * variant1.addFile("api.zip", "api.zop")
+        1 * variant1.addFile("api-2.zip", "api-2.zop")
+        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
+        1 * variant2.addFile("api.zip", "api.zop")
+        1 * variant2.addFile("runtime.zip", "runtime.zop")
+        0 * _
+    }
+
+    def "parses minimal variant"() {
+        def metadata = Mock(MutableModuleMetadata)
+        def variant1 = Mock(MutableModuleMetadata.Variant)
+        def variant2 = Mock(MutableModuleMetadata.Variant)
 
         when:
         parser.parse(resource('''
@@ -99,6 +145,7 @@ class ModuleMetadataParserTest extends Specification {
             },
             {
                 "attributes": { },
+                "files": [],
                 "name": "runtime"
             }
         ]
@@ -106,9 +153,9 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes())
-        1 * metadata.addVariant("runtime", attributes())
-        0 * metadata._
+        1 * metadata.addVariant("api", attributes()) >> variant1
+        1 * metadata.addVariant("runtime", attributes()) >> variant2
+        0 * _
     }
 
     def "fails on badly formed content"() {
@@ -163,6 +210,37 @@ class ModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.addVariant("api", attributes())
+        0 * metadata._
+    }
+
+    def "ignores unknown file values"() {
+        def metadata = Mock(MutableModuleMetadata)
+        def variant = Mock(MutableModuleMetadata.Variant)
+
+        when:
+        parser.parse(resource('''
+    { 
+        "formatVersion": "0.1", 
+        "variants": [
+            {
+                "name": "api",
+                "files": [{
+                    "name": "file",
+                    "url": "file",
+                    "otherString": "string",
+                    "otherNumber": 123,
+                    "otherBoolean": true,
+                    "otherNull": null,
+                    "otherObject": { "a": 1, "b": "ignore-me", "c": [], "d": { } },
+                    "otherArray": [ "a", 123, false, [], null, { } ]
+                }]
+            }
+        ]
+    }
+'''), metadata)
+
+        then:
+        1 * metadata.addVariant("api", attributes()) >> variant
         0 * metadata._
     }
 
@@ -225,7 +303,7 @@ class ModuleMetadataParserTest extends Specification {
     def attributes(Map<String, String> values) {
         def attrs = ImmutableAttributes.EMPTY
         if (values) {
-            values.forEach { String key, String value ->
+            values.each { String key, String value ->
                 attrs = TestUtil.attributesFactory().concat(attrs, Attribute.of(key, String), value)
             }
         }

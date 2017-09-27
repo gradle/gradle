@@ -22,5 +22,9 @@ public interface MutableModuleMetadata {
     /**
      * Adds a variant to this module.
      */
-    void addVariant(String variantName, ImmutableAttributes attributes);
+    Variant addVariant(String variantName, ImmutableAttributes attributes);
+
+    interface Variant {
+        void addFile(String name, String uri);
+    }
 }

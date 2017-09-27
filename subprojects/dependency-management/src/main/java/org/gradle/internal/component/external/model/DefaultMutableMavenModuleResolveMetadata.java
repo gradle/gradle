@@ -97,6 +97,11 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     }
 
     @Override
-    public void addVariant(String variantName, ImmutableAttributes attributes) {
+    public Variant addVariant(String variantName, ImmutableAttributes attributes) {
+        return new Variant() {
+            @Override
+            public void addFile(String name, String uri) {
+            }
+        };
     }
 }
