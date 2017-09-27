@@ -57,6 +57,10 @@ A problem was found with the configuration of task ':test'. Registering invalid 
 
 You may now force Gradle to use rich or plain [build output](userguide/console.html#sec:console_build_output) by setting [`org.gradle.console`](userguide/build_environment.html#sec:gradle_configuration_properties) in your `gradle.properties`.
 
+### Plugin library upgrades
+
+The JaCoCo plugin has been upgraded to use [JaCoCo version 0.7.9](http://www.jacoco.org/jacoco/trunk/doc/changes.html) by default.
+
 <!--
 ### Example new and noteworthy
 -->
