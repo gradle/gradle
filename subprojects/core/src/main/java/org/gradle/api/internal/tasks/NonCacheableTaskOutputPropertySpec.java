@@ -44,8 +44,8 @@ public class NonCacheableTaskOutputPropertySpec extends TaskOutputsDeprecationSu
     }
 
     @Override
-    public Class<? extends PropertyNormalizer> getSnapshotter() {
-        return parent.getSnapshotter();
+    public Class<? extends PropertyNormalizer> getNormalizer() {
+        return parent.getNormalizer();
     }
 
     @Override

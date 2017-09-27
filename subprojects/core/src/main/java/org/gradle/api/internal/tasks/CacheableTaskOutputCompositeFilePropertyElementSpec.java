@@ -64,7 +64,7 @@ class CacheableTaskOutputCompositeFilePropertyElementSpec implements CacheableTa
     }
 
     @Override
-    public Class<? extends PropertyNormalizer> getSnapshotter() {
+    public Class<? extends PropertyNormalizer> getNormalizer() {
         return GenericPropertyNormalizer.class;
     }
 

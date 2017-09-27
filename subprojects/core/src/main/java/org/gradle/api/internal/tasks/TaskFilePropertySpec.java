@@ -22,6 +22,6 @@ import org.gradle.api.tasks.PropertyNormalizer;
 
 public interface TaskFilePropertySpec extends TaskPropertySpec {
     FileCollection getPropertyFiles();
-    Class<? extends PropertyNormalizer> getSnapshotter();
+    Class<? extends PropertyNormalizer> getNormalizer();
     PathNormalizationStrategy getPathNormalizationStrategy();
 }

@@ -338,7 +338,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         for (TaskFilePropertySpec propertySpec : fileProperties) {
             FileCollectionSnapshot result;
             try {
-                FileCollectionSnapshotter snapshotter = snapshotterRegistry.getSnapshotter(propertySpec.getSnapshotter());
+                FileCollectionSnapshotter snapshotter = snapshotterRegistry.getSnapshotter(propertySpec.getNormalizer());
                 LOGGER.debug("Snapshotting property {} for {}", propertySpec, task);
                 result = snapshotter.snapshot(propertySpec.getPropertyFiles(), propertySpec.getPathNormalizationStrategy(), normalizationStrategy);
             } catch (Exception e) {

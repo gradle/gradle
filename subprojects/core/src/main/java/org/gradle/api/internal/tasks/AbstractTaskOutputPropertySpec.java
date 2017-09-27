@@ -66,7 +66,7 @@ abstract class AbstractTaskOutputPropertySpec extends TaskOutputsDeprecationSupp
         return getPropertyName() + " (OUTPUT)";
     }
 
-    public Class<? extends PropertyNormalizer> getSnapshotter() {
+    public Class<? extends PropertyNormalizer> getNormalizer() {
         return GenericPropertyNormalizer.class;
     }
 

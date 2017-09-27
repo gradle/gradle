@@ -39,7 +39,7 @@ public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSuppo
     private boolean skipWhenEmpty;
     private boolean optional;
     private PathNormalizationStrategy pathNormalizationStrategy = ABSOLUTE;
-    private Class<? extends PropertyNormalizer> snapshotter = GenericPropertyNormalizer.class;
+    private Class<? extends PropertyNormalizer> normalizer = GenericPropertyNormalizer.class;
 
     public DefaultTaskInputFilePropertySpec(String taskName, FileResolver resolver, ValidatingValue paths, ValidationAction validationAction) {
         this.value = paths;
@@ -110,14 +110,14 @@ public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSuppo
     }
 
     @Override
-    public TaskInputFilePropertyBuilderInternal withNormalizer(Class<? extends PropertyNormalizer> snapshotter) {
-        this.snapshotter = snapshotter;
+    public TaskInputFilePropertyBuilderInternal withNormalizer(Class<? extends PropertyNormalizer> normalizer) {
+        this.normalizer = normalizer;
         return this;
     }
 
     @Override
-    public Class<? extends PropertyNormalizer> getSnapshotter() {
-        return snapshotter;
+    public Class<? extends PropertyNormalizer> getNormalizer() {
+        return normalizer;
     }
 
     @Override
