@@ -16,34 +16,50 @@
 package org.gradle.language.cpp.plugins;
 
 import com.google.common.collect.Maps;
+import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
+import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.cpp.CppSourceSet;
 import org.gradle.language.cpp.internal.DefaultCppSourceSet;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.cpp.tasks.CppPreCompiledHeaderCompile;
+import org.gradle.language.cpp.tasks.DiscoverInputsTask;
 import org.gradle.language.nativeplatform.internal.DependentSourceSetInternal;
 import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
 import org.gradle.language.nativeplatform.internal.PCHCompileTaskConfig;
 import org.gradle.language.nativeplatform.internal.SourceCompileTaskConfig;
+import org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
+import org.gradle.nativeplatform.ObjectFile;
 import org.gradle.nativeplatform.internal.DefaultPreprocessingTool;
+import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.internal.pch.PchEnabledLanguageTransform;
+import org.gradle.nativeplatform.toolchain.Clang;
+import org.gradle.nativeplatform.toolchain.Gcc;
+import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
 
 import java.util.Map;
+import java.util.concurrent.Callable;
+
+import static org.apache.commons.lang.StringUtils.capitalize;
 
 /**
  * Adds core C++ language support.
  */
 @Incubating
+@NonNullApi
 public class CppLangPlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
@@ -84,12 +100,38 @@ public class CppLangPlugin implements Plugin<Project> {
 
         @Override
         public SourceTransformTaskConfig getTransformTask() {
-            return new SourceCompileTaskConfig(this, CppCompile.class);
+            return new CppSourceTransformTaskConfig(this, CppCompile.class);
         }
 
         @Override
         public SourceTransformTaskConfig getPchTransformTask() {
             return new PCHCompileTaskConfig(this, CppPreCompiledHeaderCompile.class);
+        }
+    }
+
+    private static class CppSourceTransformTaskConfig extends SourceCompileTaskConfig {
+
+        private CppSourceTransformTaskConfig(LanguageTransform<? extends LanguageSourceSet, ObjectFile> languageTransform, Class<? extends DefaultTask> taskType) {
+            super(languageTransform, taskType);
+        }
+
+        @Override
+        protected void configureCompileTask(final AbstractNativeCompileTask compile, NativeBinarySpecInternal binary, LanguageSourceSetInternal sourceSet) {
+            super.configureCompileTask(compile, binary, sourceSet);
+            Project project = compile.getProject();
+            DiscoverInputsTask discoverInputs = project.getTasks().create("discoverInputsFor" + capitalize(compile.getName()), DiscoverInputsTask.class);
+            discoverInputs.source(compile.getSource());
+            discoverInputs.includes(compile.getIncludes());
+            discoverInputs.getDiscoveredInputs().set(project.getLayout().getBuildDirectory().file(discoverInputs.getName() + "/" + "inputs.txt"));
+            discoverInputs.setImportsAreIncludes(project.provider(new Callable<Boolean>() {
+                @Override
+                public Boolean call() throws Exception {
+                    NativeToolChain toolChain = compile.getToolChain();
+                    return Clang.class.isAssignableFrom(toolChain.getClass()) || Gcc.class.isAssignableFrom(toolChain.getClass());
+                }
+            }));
+            compile.getDiscoveredInputs().set(discoverInputs.getDiscoveredInputs());
+
         }
     }
 }
