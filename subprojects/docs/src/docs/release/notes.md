@@ -6,27 +6,10 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
-### Timeouts for HTTP requests
+### Timeouts for HTTP/HTTPS requests
 
-Previous versions of Gradle did not define a timeout for any HTTP requests. Under certain conditions e.g. network problems, unresponsive or overloaded servers this behavior could lead to hanging connections.
-Gradle now defines connection and socket timeouts for all HTTP requests. In the event of a timeout (or any `IOException`s which are not caused by error HTTP status code), Gradle will skip subsequent connections to the same repository for the duration of the build. 
-The output of a build clearly indicates which request was skipped.
-
-```
-* What went wrong:
-Could not resolve all files for configuration ':deps'.
-> Could not resolve group:a:1.0.
-  Required by:
-      project :
-   > Could not resolve group:a:1.0.
-      > Could not get resource 'http://localhost:54347/repo/group/a/1.0/a-1.0.pom'.
-         > Could not GET 'http://localhost:54347/repo/group/a/1.0/a-1.0.pom'.
-            > Read timed out
-> Could not resolve group:b:1.0.
-  Required by:
-      project :
-   > Skipped due to earlier error
-```
+Previous versions of Gradle did not define a timeout for any HTTP/HTTPS requests. Under certain conditions e.g. network problems, unresponsive or overloaded servers this behavior could lead to hanging connections.
+Gradle now defines connection and socket timeouts for all HTTP/HTTPS requests.
 
 The timeouts are also effective for connections to an [HTTP build cache](dsl/org.gradle.caching.http.HttpBuildCache.html#org.gradle.caching.http.HttpBuildCache).
 If connections to the build cache time out then it will be disabled for the rest of the build.

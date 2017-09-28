@@ -36,6 +36,7 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.DateUtils;
 import org.apache.http.config.RegistryBuilder;
+import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.util.PublicSuffixMatcher;
 import org.apache.http.conn.util.PublicSuffixMatcherLoader;
@@ -93,6 +94,7 @@ public class HttpClientConfigurer {
         configureUserAgent(builder);
         configureCookieSpecRegistry(builder);
         configureRequestConfig(builder);
+        configureSocketConfig(builder);
         builder.setDefaultCredentialsProvider(credentialsProvider);
         builder.setMaxConnTotal(MAX_HTTP_CONNECTIONS);
         builder.setMaxConnPerRoute(MAX_HTTP_CONNECTIONS);
@@ -203,6 +205,11 @@ public class HttpClientConfigurer {
             .setSocketTimeout(timeoutSettings.getSocketTimeoutMs())
             .build();
         builder.setDefaultRequestConfig(config);
+    }
+
+    private void configureSocketConfig(HttpClientBuilder builder) {
+        HttpTimeoutSettings timeoutSettings = httpSettings.getTimeoutSettings();
+        builder.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(timeoutSettings.getSocketTimeoutMs()).build());
     }
 
     private PasswordCredentials getPasswordCredentials(Authentication authentication) {

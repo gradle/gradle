@@ -26,7 +26,7 @@ public class JavaSystemPropertiesHttpTimeoutSettings implements HttpTimeoutSetti
     public static final String CONNECTION_TIMEOUT_SYSTEM_PROPERTY = "http.connectionTimeout";
     public static final String SOCKET_TIMEOUT_SYSTEM_PROPERTY = "http.socketTimeout";
     public static final int DEFAULT_CONNECTION_TIMEOUT = 10000;
-    public static final int DEFAULT_SOCKET_TIMEOUT = 30000;
+    public static final int DEFAULT_SOCKET_TIMEOUT = 10000;
     private final int connectionTimeoutMs;
     private final int socketTimeoutMs;
 

@@ -122,7 +122,7 @@ public class HttpClientConfigurerTest extends Specification {
         1 * httpSettings.proxySettings >> proxySettings
         1 * httpSettings.sslContextFactory >> sslContextFactory
         1 * timeoutSettings.connectionTimeoutMs >> 10000
-        1 * timeoutSettings.socketTimeoutMs >> 30000
+        2 * timeoutSettings.socketTimeoutMs >> 30000
         httpClientBuilder.defaultRequestConfig.connectTimeout == 10000
         httpClientBuilder.defaultRequestConfig.socketTimeout == 30000
     }
