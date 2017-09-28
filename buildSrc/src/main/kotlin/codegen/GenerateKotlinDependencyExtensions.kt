@@ -77,7 +77,7 @@ fun RepositoryHandler.gradleScriptKotlin(): ArtifactRepository =
  * @param version optional desired version, unspecified if null.
  */
 fun DependencyHandler.kotlin(module: String, version: String? = null): Any =
-    "org.jetbrains.kotlin:kotlin-${'$'}module${'$'}{if(version == null) "" else ":${'$'}version"}"
+    "org.jetbrains.kotlin:kotlin-${'$'}module${'$'}{version?.let { ":${'$'}version" } ?: ""}"
 
 
 @Deprecated("Will be removed in 1.0", ReplaceWith("kotlin(module, version)"))
