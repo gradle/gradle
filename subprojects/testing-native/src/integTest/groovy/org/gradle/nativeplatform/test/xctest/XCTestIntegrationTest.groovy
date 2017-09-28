@@ -22,6 +22,7 @@ import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftXCTestRemoveDiscov
 import org.gradle.nativeplatform.fixtures.app.SwiftFailingXCTestBundle
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTest
 import org.gradle.nativeplatform.fixtures.app.SwiftXCTestBundle
+import org.gradle.nativeplatform.fixtures.app.SwiftXCTestBundleWithoutInfoPlist
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
@@ -61,6 +62,20 @@ apply plugin: 'xctest'
 
     def "succeeds when test cases pass"() {
         def testBundle = new SwiftXCTestBundle()
+
+        given:
+        testBundle.writeToProject(testDirectory)
+
+        when:
+        succeeds("test")
+
+        then:
+        result.assertTasksExecuted(":compileTestSwift", ":linkTest", ":bundleSwiftTest", ":xcTest", ":test")
+        testBundle.assertTestCasesRan(output)
+    }
+
+    def "can build xctest bundle when Info.plist is missing"() {
+        def testBundle = new SwiftXCTestBundleWithoutInfoPlist()
 
         given:
         testBundle.writeToProject(testDirectory)

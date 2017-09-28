@@ -73,7 +73,7 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         project.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(BUILD_DEBUG);
         project.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(BUILD_RELEASE);
 
-        for (File source : xcodeProject.getSources()) {
+        for (File source : xcodeProject.getSources().getAsFileTree()) {
             PBXFileReference fileReference = toFileReference(source);
             pathToFileReference.put(source.getAbsolutePath(), fileReference);
             project.getMainGroup().getChildren().add(fileReference);
