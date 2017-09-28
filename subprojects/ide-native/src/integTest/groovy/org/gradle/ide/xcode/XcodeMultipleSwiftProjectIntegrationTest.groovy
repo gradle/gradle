@@ -17,8 +17,11 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
+import org.gradle.ide.xcode.fixtures.XcodebuildExecuter
+import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
+import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraryTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -31,10 +34,10 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             include 'app', 'greeter'
         """
 
-        executer.requireGradleDistribution()
+        useXcodebuildTool()
     }
 
-    def "create xcode project Swift executable"() {
+    def "can create xcode project for Swift executable"() {
         given:
         buildFile << """
             project(':app') {
@@ -79,7 +82,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         def resultReleaseApp = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
             .withScheme('App Executable')
-            .withConfiguration('Release')
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .succeeds()
 
         then:
@@ -87,7 +90,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             ':app:compileReleaseSwift', ':app:linkRelease')
     }
 
-    def "create xcode project Swift executable with transitive dependencies"() {
+    def "can create xcode project for Swift executable with transitive dependencies"() {
         def app = new SwiftAppWithLibraries()
 
         given:
@@ -147,7 +150,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         def resultReleaseHello = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
             .withScheme('Hello SharedLibrary')
-            .withConfiguration('Release')
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .succeeds()
 
         then:
@@ -155,7 +158,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             ':log:compileReleaseSwift', ':log:linkRelease')
     }
 
-    def "create xcode project Swift executable inside composite build"() {
+    def "can create xcode project for Swift executable inside composite build"() {
         given:
         settingsFile.text = """
             includeBuild 'greeter'
@@ -208,10 +211,42 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         def resultReleaseGreeter = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
             .withScheme('Greeter SharedLibrary')
-            .withConfiguration('Release')
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .succeeds()
 
         then:
         resultReleaseGreeter.assertTasksExecuted(':compileReleaseSwift', ':linkRelease')
+    }
+
+    def "can run tests for Swift library within multi-project from xcode"() {
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-executable'
+                dependencies {
+                    implementation project(':greeter')
+                }
+            }
+            project(':greeter') {
+                apply plugin: 'swift-library'
+                apply plugin: 'xctest'
+            }
+        """
+        def app = new SwiftAppWithLibraryTest()
+        app.library.writeToProject(file("greeter"))
+        app.executable.writeToProject(file("app"))
+        succeeds("xcode")
+
+        when:
+        def resultTestRunner = xcodebuild
+            .withWorkspace(rootXcodeWorkspace)
+            .withScheme('Greeter SharedLibrary')
+            .succeeds(XcodebuildExecuter.XcodeAction.TEST)
+
+        then:
+        resultTestRunner.assertTasksExecuted(':greeter:compileDebugSwift', ':greeter:compileTestSwift', ':greeter:linkTest',
+            ':greeter:bundleSwiftTest', ':greeter:syncTestBundleToXcodeBuiltProductDir', ':greeter:buildXcodeTestProduct')
+        app.library.assertTestCasesRan(resultTestRunner.output)
+
     }
 }

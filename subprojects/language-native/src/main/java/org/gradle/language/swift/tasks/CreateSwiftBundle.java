@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift.tasks;
 
+import com.google.common.io.Files;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
@@ -23,12 +24,17 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.RegularFileVar;
 import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.language.swift.internal.SwiftStdlibToolLocator;
 import org.gradle.process.ExecSpec;
 
 import javax.inject.Inject;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
 
 /**
  * Creates Apple bundle from compiled Swift code.
@@ -48,11 +54,10 @@ public class CreateSwiftBundle extends DefaultTask {
         this.executableFile = newInputFile();
         this.outputDir = newOutputDirectory();
         this.swiftStdlibToolLocator = swiftStdlibToolLocator;
-
     }
 
     @TaskAction
-    void createBundle() {
+    void createBundle() throws IOException {
         getProject().copy(new Action<CopySpec>() {
             @Override
             public void execute(CopySpec copySpec) {
@@ -63,16 +68,20 @@ public class CreateSwiftBundle extends DefaultTask {
                     }
                 });
 
-                copySpec.from(getInformationFile(), new Action<CopySpec>() {
-                    @Override
-                    public void execute(CopySpec copySpec) {
-                        copySpec.into("Contents");
-                    }
-                });
-
                 copySpec.into(getOutputDir());
             }
         });
+
+        File outputFile = getOutputDir().file("Contents/Info.plist").get().getAsFile();
+        if (!informationFile.isPresent()) {
+            Files.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
+                + "<plist version=\"1.0\">\n"
+                + "<dict/>\n"
+                + "</plist>", outputFile, Charset.forName("UTF-8"));
+        } else {
+            Files.copy(informationFile.get().getAsFile(), outputFile);
+        }
 
         getProject().exec(new Action<ExecSpec>() {
             @Override
@@ -100,7 +109,8 @@ public class CreateSwiftBundle extends DefaultTask {
         return executableFile;
     }
 
-    @InputFile
+    @Optional
+    @InputFiles
     public RegularFileVar getInformationFile() {
         return informationFile;
     }
