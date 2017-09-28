@@ -55,7 +55,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URI;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Map;
 import java.util.SortedSet;
@@ -68,6 +68,7 @@ import static org.gradle.caching.internal.tasks.TaskOutputPackerUtils.makeDirect
 /**
  * Packages task output to a POSIX TAR file.
  */
+@SuppressWarnings("Since15")
 public class TarTaskOutputPacker implements TaskOutputPacker {
     private static final String METADATA_PATH = "METADATA";
     private static final Pattern PROPERTY_PATH = Pattern.compile("(missing-)?property-([^/]+)(?:/(.*))?");
@@ -169,7 +170,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         entries++;
 
         String rootAbsolutePath = directory.getAbsolutePath();
-        URI rootUri = directory.toURI();
+        Path rootPath = directory.toPath();
 
         for (Map.Entry<String, FileContentSnapshot> entry : outputSnapshots.entrySet()) {
             String absolutePath = entry.getKey();
@@ -178,7 +179,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
                 continue;
             }
             File file = new File(absolutePath);
-            String relativePath = rootUri.relativize(file.toURI()).toString();
+            String relativePath = rootPath.relativize(file.toPath()).toString();
             String targetPath = propertyRoot + relativePath;
             int mode = fileSystem.getUnixMode(file);
             switch (entry.getValue().getType()) {
