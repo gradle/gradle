@@ -37,7 +37,7 @@ import spock.lang.Unroll
 class NameValidatorTest extends Specification {
     static forbiddenCharacters = NameValidator.FORBIDDEN_CHARACTERS
     static forbiddenLeadingAndTrailingCharacter = NameValidator.FORBIDDEN_LEADING_AND_TRAILING_CHARACTER
-    static invalidNames = forbiddenCharacters.collect { "a${it}b"} + ["${forbiddenLeadingAndTrailingCharacter}ab", "ab${forbiddenLeadingAndTrailingCharacter}"]
+    static invalidNames = forbiddenCharacters.collect { "a${it}b"} + ["${forbiddenLeadingAndTrailingCharacter}ab", "ab${forbiddenLeadingAndTrailingCharacter}"] + ['']
 
     @Shared
     def domainObjectContainersWithValidation = [
@@ -84,8 +84,18 @@ class NameValidatorTest extends Specification {
         [name, objectType, domainObjectContainer] << [invalidNames, domainObjectContainersWithValidation].combinations().collect { [it[0], it[1][0], it[1][1]] }
     }
 
+    def "can handle empty names"() {
+        when:
+        NameValidator.validate('')
+
+        then:
+        noExceptionThrown()
+    }
+
     void assertForbidden(name, message) {
-        if (name.contains("" + forbiddenLeadingAndTrailingCharacter)) {
+        if (name == '') {
+            assert message == "The name is empty. This has been deprecated and is scheduled to be removed in Gradle 5.0"
+        } else if (name.contains("" + forbiddenLeadingAndTrailingCharacter)) {
             assert message == """The name '${name}' starts or ends with a '.'. This has been deprecated and is scheduled to be removed in Gradle 5.0"""
         } else {
             assert message == """The name '${name}' contains at least one of the following characters: [ , /, \\, :, <, >, ", ?, *, |]. This has been deprecated and is scheduled to be removed in Gradle 5.0"""
