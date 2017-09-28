@@ -112,6 +112,20 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
         assertPrintsForbiddenStartOrEndCharacterDeprecationMessage('.folder  name')
     }
 
+    def "does not print deprecation warning when project name overrides an invalid folder name"() {
+        given:
+        def buildFolder = file(".folder  name")
+        inDirectory(buildFolder)
+        buildFolder.file('settings.gradle') << "rootProject.name = 'customName'"
+        buildFolder.file("build.gradle") << "println rootProject.name"
+
+        when:
+        succeeds 'help'
+
+        then:
+        output.contains("customName")
+    }
+
     @Requires(TestPrecondition.UNIX_DERIVATIVE)
     def "does not assign an invalid project name from unix folder names"() {
         given:

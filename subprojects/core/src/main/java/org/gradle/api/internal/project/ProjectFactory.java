@@ -24,6 +24,7 @@ import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.resource.BasicTextResourceLoader;
+import org.gradle.util.NameValidator;
 
 import java.io.File;
 
@@ -41,6 +42,7 @@ public class ProjectFactory implements IProjectFactory {
         File buildFile = projectDescriptor.getBuildFile();
         TextResource resource = resourceLoader.loadFile("build file", buildFile);
         ScriptSource source = new TextResourceScriptSource(resource);
+        NameValidator.validate(projectDescriptor.getName());
         DefaultProject project = instantiator.newInstance(DefaultProject.class,
                 projectDescriptor.getName(),
                 parent,

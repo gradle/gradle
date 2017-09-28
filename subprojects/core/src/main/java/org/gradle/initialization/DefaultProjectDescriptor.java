@@ -53,7 +53,6 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     public DefaultProjectDescriptor(DefaultProjectDescriptor parent, String name, File dir,
                                     ProjectDescriptorRegistry projectDescriptorRegistry, PathToFileResolver fileResolver,
                                     @Nullable ScriptFileResolver scriptFileResolver) {
-        NameValidator.validate(name);
         this.parent = parent;
         this.name = name;
         this.fileResolver = fileResolver;
