@@ -18,7 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.smoketests.fixtures.AndroidConfiguration
 
-import static org.gradle.smoketests.AndroidPluginsSmokeTest.assertAndroidHomeSet
+import static org.gradle.smoketests.fixtures.AndroidSmokeTestFixture.assertAndroidHomeSet
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class KotlinPluginSmokeTest extends AbstractSmokeTest {
