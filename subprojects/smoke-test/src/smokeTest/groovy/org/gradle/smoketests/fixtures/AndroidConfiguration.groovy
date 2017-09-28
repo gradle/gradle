@@ -21,7 +21,7 @@ class AndroidConfiguration {
     static final AndroidConfiguration BETA
 
     static {
-        STABLE = new AndroidConfiguration('2.3.1', '25.0.0', new Sdk(22, 22, 23))
+        STABLE = new AndroidConfiguration('2.3.3', '26.0.1', new Sdk(22, 22, 23))
         BETA = new AndroidConfiguration('3.0.0-beta6', '26.0.1', new Sdk(26, 19, 26))
     }
 
