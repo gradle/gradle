@@ -33,12 +33,23 @@ public class HistoricTaskExecution extends AbstractTaskExecution {
     private final FileCollectionSnapshot discoveredInputFilesSnapshot;
     private final ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot;
 
-    public HistoricTaskExecution(boolean successful, UniqueId buildInvocationId, ImplementationSnapshot taskImplementation, ImmutableList<ImplementationSnapshot> taskActionsImplementations, ImmutableSortedSet<String> cacheableOutputProperties, ImmutableSet<String> declaredOutputFilePaths, ImmutableSortedMap<String, ValueSnapshot> inputProperties, ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot, FileCollectionSnapshot discoveredInputFilesSnapshot, ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot) {
-        super(buildInvocationId, taskImplementation, taskActionsImplementations, inputProperties, cacheableOutputProperties, declaredOutputFilePaths);
-        this.successful = successful;
+    public HistoricTaskExecution(
+        UniqueId buildInvocationId,
+        ImplementationSnapshot taskImplementation,
+        ImmutableList<ImplementationSnapshot> taskActionsImplementations,
+        ImmutableSortedMap<String, ValueSnapshot> inputProperties,
+        ImmutableSortedSet<String> outputPropertyNames,
+        ImmutableSet<String> declaredOutputFilePaths,
+        ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot,
+        FileCollectionSnapshot discoveredInputFilesSnapshot,
+        ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot,
+        boolean successful
+    ) {
+        super(buildInvocationId, taskImplementation, taskActionsImplementations, inputProperties, outputPropertyNames, declaredOutputFilePaths);
         this.inputFilesSnapshot = inputFilesSnapshot;
         this.discoveredInputFilesSnapshot = discoveredInputFilesSnapshot;
         this.outputFilesSnapshot = outputFilesSnapshot;
+        this.successful = successful;
     }
 
     @Override

@@ -79,16 +79,16 @@ public class TaskExecutionSnapshotSerializer extends AbstractSerializer<Historic
         ImmutableSortedMap<String, ValueSnapshot> inputProperties = inputPropertiesSerializer.read(decoder);
 
         return new HistoricTaskExecution(
-            successful,
             buildId,
             taskImplementation,
             taskActionImplementations,
+            inputProperties,
             cacheableOutputProperties,
             declaredOutputFilePaths,
-            inputProperties,
             inputFilesSnapshots,
             discoveredFilesSnapshot,
-            outputFilesSnapshots
+            outputFilesSnapshots,
+            successful
         );
     }
 

@@ -41,16 +41,16 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
         ImmutableSortedSet<String> outputPropertyNames,
         ImmutableSet<String> declaredOutputFilePaths,
-        @Nullable OverlappingOutputs detectedOverlappingOutputs,
         ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot,
         FileCollectionSnapshot discoveredInputFilesSnapshot,
-        ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot
+        ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot,
+        @Nullable OverlappingOutputs detectedOverlappingOutputs
     ) {
         super(buildInvocationId, taskImplementation, taskActionImplementations, inputProperties, outputPropertyNames, declaredOutputFilePaths);
-        this.detectedOverlappingOutputs = detectedOverlappingOutputs;
         this.outputFilesSnapshot = outputFilesSnapshot;
         this.inputFilesSnapshot = inputFilesSnapshot;
         this.discoveredInputFilesSnapshot = discoveredInputFilesSnapshot;
+        this.detectedOverlappingOutputs = detectedOverlappingOutputs;
     }
 
     public boolean isSuccessful() {
@@ -91,16 +91,16 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
 
     public HistoricTaskExecution archive() {
         return new HistoricTaskExecution(
-            successful,
             getBuildInvocationId(),
             getTaskImplementation(),
             getTaskActionImplementations(),
+            getInputProperties(),
             getOutputPropertyNamesForCacheKey(),
             getDeclaredOutputFilePaths(),
-            getInputProperties(),
             inputFilesSnapshot,
             discoveredInputFilesSnapshot,
-            outputFilesSnapshot
+            outputFilesSnapshot,
+            successful
         );
     }
 }

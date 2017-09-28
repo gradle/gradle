@@ -171,10 +171,10 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             inputProperties,
             outputPropertyNames,
             declaredOutputFilePaths,
-            overlappingOutputs,
             inputFiles,
             discoveredInputs,
-            outputFiles
+            outputFiles,
+            overlappingOutputs
         );
     }
 
