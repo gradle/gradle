@@ -73,7 +73,7 @@ public class CreateSwiftBundle extends DefaultTask {
         });
 
         File outputFile = getOutputDir().file("Contents/Info.plist").get().getAsFile();
-        if (!informationFile.isPresent()) {
+        if (!informationFile.isPresent() || !informationFile.get().getAsFile().exists()) {
             Files.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                 + "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
                 + "<plist version=\"1.0\">\n"

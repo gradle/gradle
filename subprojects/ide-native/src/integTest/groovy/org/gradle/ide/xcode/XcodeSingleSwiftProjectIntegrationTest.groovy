@@ -23,6 +23,7 @@ import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithXCTest
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTest
+import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTestWithoutInfoPlist
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -119,6 +120,36 @@ apply plugin: 'swift-library'
 apply plugin: 'xctest'
 """
         def lib = new SwiftLibWithXCTest()
+        lib.writeToProject(testDirectory)
+
+        when:
+        succeeds("xcode")
+
+        then:
+        executedAndNotSkipped(":xcodeProject", ":xcodeSchemeAppSharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
+
+        def project = rootXcodeProject.projectFile
+        project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
+        project.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE, DefaultXcodeProject.TEST_DEBUG]
+
+        project.targets.size() == 4
+        assertTargetIsDynamicLibrary(project.targets[0], 'App')
+        assertTargetIsUnitTest(project.targets[1], 'AppTest')
+        assertTargetIsIndexer(project.targets[2], 'App')
+        assertTargetIsIndexer(project.targets[3], 'AppTest')
+
+        project.products.children.size() == 1
+        project.products.children[0].path == sharedLib("build/lib/main/debug/App").absolutePath
+    }
+
+    @Requires(TestPrecondition.MAC_OS_X)
+    def "can create xcode project for xctest enabled component without Info.plist"() {
+        given:
+        buildFile << """
+apply plugin: 'swift-library'
+apply plugin: 'xctest'
+"""
+        def lib = new SwiftLibWithXCTestWithoutInfoPlist()
         lib.writeToProject(testDirectory)
 
         when:

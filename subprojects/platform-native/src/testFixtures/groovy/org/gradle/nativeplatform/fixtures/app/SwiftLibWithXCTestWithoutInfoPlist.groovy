@@ -17,10 +17,19 @@
 package org.gradle.nativeplatform.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
+import org.gradle.test.fixtures.file.TestFile
 
-class SwiftXCTestBundle extends SwiftXCTestBundleWithoutInfoPlist {
+class SwiftLibWithXCTestWithoutInfoPlist extends XCTestSourceElement {
+    final main = new SwiftLib()
+    final test = new SwiftLibTestWithoutInfoPlist(main.greeter, main.sum, main.multiply)
+
+    List<XCTestSourceFileElement> testSuites = test.testSuites
+
+    List<SourceFile> files = main.files + test.files
+
     @Override
-    List<SourceFile> getFiles() {
-        super.files + [emptyInfoPlist()]
+    void writeToProject(TestFile projectDir) {
+        main.writeToProject(projectDir)
+        test.writeToProject(projectDir)
     }
 }
