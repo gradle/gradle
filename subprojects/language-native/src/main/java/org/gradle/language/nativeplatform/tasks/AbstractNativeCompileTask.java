@@ -22,8 +22,10 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryVar;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileVar;
 import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
@@ -53,6 +55,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -301,9 +304,17 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     @Optional
     @InputFiles
     @PathSensitive(PathSensitivity.NAME_ONLY)
-    public List<String> getDiscoveredInputFiles() throws IOException {
-        File inputFile = discoveredInputs.getAsFile().getOrElse(null);
-        return inputFile == null ? null
-            : inputFile.isFile() ? Files.readLines(inputFile, Charsets.UTF_8) : null;
+    public FileCollection getDiscoveredInputFiles() throws IOException {
+        File inputFile = discoveredInputs.getAsFile().getOrNull();
+        if (inputFile == null || !inputFile.isFile()) {
+            return null;
+        }
+
+        List<String> lines = Files.readLines(inputFile, Charsets.UTF_8);
+        Set<File> files = new HashSet<File>();
+        for (String line : lines) {
+            files.add(new File(line));
+        }
+        return new SimpleFileCollection(files);
     }
 }
