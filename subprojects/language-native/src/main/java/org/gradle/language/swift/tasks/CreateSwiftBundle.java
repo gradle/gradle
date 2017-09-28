@@ -24,7 +24,7 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.RegularFileVar;
 import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
@@ -54,7 +54,6 @@ public class CreateSwiftBundle extends DefaultTask {
         this.executableFile = newInputFile();
         this.outputDir = newOutputDirectory();
         this.swiftStdlibToolLocator = swiftStdlibToolLocator;
-
     }
 
     @TaskAction
@@ -73,16 +72,15 @@ public class CreateSwiftBundle extends DefaultTask {
             }
         });
 
-        File inputFile = getInformationFileIfExists();
         File outputFile = getOutputDir().file("Contents/Info.plist").get().getAsFile();
-        if (inputFile == null) {
+        if (!informationFile.isPresent()) {
             Files.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                 + "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
                 + "<plist version=\"1.0\">\n"
                 + "<dict/>\n"
                 + "</plist>", outputFile, Charset.forName("UTF-8"));
         } else {
-            Files.copy(inputFile, outputFile);
+            Files.copy(informationFile.get().getAsFile(), outputFile);
         }
 
         getProject().exec(new Action<ExecSpec>() {
@@ -111,19 +109,9 @@ public class CreateSwiftBundle extends DefaultTask {
         return executableFile;
     }
 
-    @Internal("Covered by informationFileIfExists")
+    @Optional
+    @InputFiles
     public RegularFileVar getInformationFile() {
         return informationFile;
-    }
-
-    // Workaround for when the task is given an input file that doesn't exist
-    @Optional
-    @InputFile
-    public File getInformationFileIfExists() {
-        File inputFile = this.informationFile.getAsFile().getOrNull();
-        if (inputFile != null && inputFile.exists()) {
-            return inputFile;
-        }
-        return null;
     }
 }
