@@ -126,7 +126,7 @@ final class AndroidSmokeTestFixture {
     }
 
     /**
-     * Copied from https://github.com/googlesamples/android-testing/tree/master/unit/BasicSample.
+     * Copied from <a href="https://github.com/googlesamples/android-testing/tree/master/unit/BasicSample">Google Samples</a>.
      */
     static String emailValidatorJavaSourceFile() {
         """
@@ -181,7 +181,7 @@ final class AndroidSmokeTestFixture {
     }
 
     /**
-     * Copied from https://github.com/googlesamples/android-testing/tree/master/unit/BasicSample.
+     * Copied from <a href="https://github.com/googlesamples/android-testing/tree/master/unit/BasicSample">Google Samples</a>.
      */
     static String emailValidatorUnitTest() {
         """
