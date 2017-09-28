@@ -45,6 +45,22 @@ final class AndroidSmokeTestFixture {
         """.stripIndent()
     }
 
+    static String googleRepository() {
+        """
+            repositories {
+                google()
+            }
+        """
+    }
+
+    static String activityDependency() {
+        """
+            dependencies {
+                compile 'joda-time:joda-time:2.7'
+            }
+        """
+    }
+
     static String androidPluginConfiguration(AndroidConfiguration androidConfiguration) {
         """
             android {
@@ -70,7 +86,15 @@ final class AndroidSmokeTestFixture {
         """.stripIndent()
     }
 
-    static String androidInstrumentedTestConfiguration() {
+    static String unitTestSetup() {
+        """
+            dependencies {
+                testCompile 'junit:junit:4.12'
+            }
+        """
+    }
+
+    static String instrumentedTestSetup() {
         """
             dependencies {
                 androidTestImplementation 'com.android.support:support-annotations:26.1.0'
@@ -101,18 +125,106 @@ final class AndroidSmokeTestFixture {
         """
     }
 
-    static String googleRepository() {
+    /**
+     * Copied from https://github.com/googlesamples/android-testing/tree/master/unit/BasicSample.
+     */
+    static String emailValidatorJavaSourceFile() {
         """
-            repositories {
-                google()
+            import android.text.Editable;
+            import android.text.TextWatcher;
+            
+            import java.util.regex.Pattern;
+
+            public class EmailValidator implements TextWatcher {
+            
+                /**
+                 * Email validation pattern.
+                 */
+                public static final Pattern EMAIL_PATTERN = Pattern.compile(
+                        "[a-zA-Z0-9\\\\+\\\\.\\\\_\\\\%\\\\-\\\\+]{1,256}" +
+                                "\\\\@" +
+                                "[a-zA-Z0-9][a-zA-Z0-9\\\\-]{0,64}" +
+                                "(" +
+                                "\\\\." +
+                                "[a-zA-Z0-9][a-zA-Z0-9\\\\-]{0,25}" +
+                                ")+"
+                );
+            
+                private boolean mIsValid = false;
+            
+                public boolean isValid() {
+                    return mIsValid;
+                }
+            
+                /**
+                 * Validates if the given input is a valid email address.
+                 *
+                 * @param email        The email to validate.
+                 * @return {@code true} if the input is a valid email. {@code false} otherwise.
+                 */
+                public static boolean isValidEmail(CharSequence email) {
+                    return email != null && EMAIL_PATTERN.matcher(email).matches();
+                }
+            
+                @Override
+                final public void afterTextChanged(Editable editableText) {
+                    mIsValid = isValidEmail(editableText);
+                }
+            
+                @Override
+                final public void beforeTextChanged(CharSequence s, int start, int count, int after) {/*No-op*/}
+            
+                @Override
+                final public void onTextChanged(CharSequence s, int start, int before, int count) {/*No-op*/}
             }
         """
     }
 
-    static String activityDependency() {
+    /**
+     * Copied from https://github.com/googlesamples/android-testing/tree/master/unit/BasicSample.
+     */
+    static String emailValidatorUnitTest() {
         """
-            dependencies {
-                compile 'joda-time:joda-time:2.7'
+            import org.junit.Test;
+
+            import static org.junit.Assert.assertFalse;
+            import static org.junit.Assert.assertTrue;
+
+            public class EmailValidatorTest {
+                @Test
+                public void emailValidator_CorrectEmailSimple_ReturnsTrue() {
+                    assertTrue(EmailValidator.isValidEmail("name@email.com"));
+                }
+            
+                @Test
+                public void emailValidator_CorrectEmailSubDomain_ReturnsTrue() {
+                    assertTrue(EmailValidator.isValidEmail("name@email.co.uk"));
+                }
+            
+                @Test
+                public void emailValidator_InvalidEmailNoTld_ReturnsFalse() {
+                    assertFalse(EmailValidator.isValidEmail("name@email"));
+                }
+            
+                @Test
+                public void emailValidator_InvalidEmailDoubleDot_ReturnsFalse() {
+                    assertFalse(EmailValidator.isValidEmail("name@email..com"));
+                }
+            
+                @Test
+                public void emailValidator_InvalidEmailNoUsername_ReturnsFalse() {
+                    assertFalse(EmailValidator.isValidEmail("@email.com"));
+                }
+            
+                @Test
+                public void emailValidator_EmptyString_ReturnsFalse() {
+                    assertFalse(EmailValidator.isValidEmail(""));
+                }
+            
+                @Test
+                public void emailValidator_NullEmail_ReturnsFalse() {
+                    assertFalse(EmailValidator.isValidEmail(null));
+                }
             }
         """
     }

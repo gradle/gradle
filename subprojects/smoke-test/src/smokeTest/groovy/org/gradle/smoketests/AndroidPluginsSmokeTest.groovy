@@ -57,6 +57,20 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':app:compileReleaseJavaWithJavac').outcome == TaskOutcome.SUCCESS
     }
 
+    def "android unit tests"() {
+        given:
+        setupAndroidApplication()
+        file('src/main/java/EmailValidator.java') << emailValidatorJavaSourceFile()
+        file('src/test/java/EmailValidatorTest.java') << emailValidatorUnitTest()
+        buildFile << unitTestSetup()
+
+        when:
+        def result = runner('test').build()
+
+        then:
+        result.task(':test').outcome == TaskOutcome.SUCCESS
+    }
+
     // TODO: Requires automated set up and tear down of headless emulator
     @Ignore
     @Requires(adhoc = { !System.getenv().containsKey('CI') })
@@ -64,7 +78,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         given:
         setupAndroidApplication(AndroidConfiguration.BETA)
         file('src/androidTest/java/SampleTest.java') << instrumentedTest()
-        buildFile << androidInstrumentedTestConfiguration()
+        buildFile << instrumentedTestSetup()
 
         when:
         def result = runner('connectedAndroidTest').forwardOutput().build()
