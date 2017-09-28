@@ -51,6 +51,10 @@ public class DefaultXcodeProject implements XcodeProject {
         return targets;
     }
 
+    public void addTarget(XcodeTarget target) {
+        targets.add(target);
+    }
+
     public File getLocationDir() {
         return locationDir;
     }

@@ -256,7 +256,7 @@ public class XcodePlugin extends IdePlugin {
         String taskName = project.getPath() + ":${ACTION}Xcode" + GUtil.toCamelCase(component.getName());
         XcodeTarget target = newTarget(component.getModule().get() + " " + toString(productType), component.getModule().get(), productType, toGradleCommand(project.getRootProject()), taskName, bundleDebug.getOutputDir(), bundleDebug.getOutputDir(), sources);
         target.getImportPaths().from(component.getDevelopmentBinary().getCompileImportPath());
-        xcode.getProject().getTargets().add(target);
+        xcode.getProject().addTarget(target);
     }
 
     private DirectoryVar getBuiltProductsDir() {
@@ -283,7 +283,7 @@ public class XcodePlugin extends IdePlugin {
         String taskName = project.getPath() + ":link$(CONFIGURATION)";
         XcodeTarget target = newTarget(component.getModule().get() + " " + toString(productType), component.getModule().get(), productType, toGradleCommand(project.getRootProject()), taskName, linkDebug.getBinaryFile(), linkRelease.getBinaryFile(), sources);
         target.getImportPaths().from(component.getDevelopmentBinary().getCompileImportPath());
-        xcode.getProject().getTargets().add(target);
+        xcode.getProject().addTarget(target);
 
         getProjectTask().dependsOn(createSchemeTask(project.getTasks(), component.getModule().get() + " " + toString(productType), xcode.getProject()));
     }
@@ -323,7 +323,7 @@ public class XcodePlugin extends IdePlugin {
         String taskName = project.getPath() + ":link$(CONFIGURATION)";
         XcodeTarget target = newTarget(targetName + " " + toString(productType), targetName, productType, toGradleCommand(project.getRootProject()), taskName, linkDebug.getBinaryFile(), linkRelease.getBinaryFile(), sources);
         target.getHeaderSearchPaths().from(component.getDevelopmentBinary().getCompileIncludePath());
-        xcode.getProject().getTargets().add(target);
+        xcode.getProject().addTarget(target);
 
         getProjectTask().dependsOn(createSchemeTask(project.getTasks(), targetName + " " + toString(productType), xcode.getProject()));
     }
