@@ -652,7 +652,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
     @Issue("https://github.com/gradle/gradle/issues/3043")
     def "URL-quoted characters in file names are handled properly"() {
-        def weirdOutputPath = 'build/bad&dir/bad! <Dezső> %20.txt'
+        def weirdOutputPath = 'build/bad&dir/bad! Dezső %20.txt'
         def expectedOutput = file(weirdOutputPath)
         buildFile << """
             task weirdOutput {

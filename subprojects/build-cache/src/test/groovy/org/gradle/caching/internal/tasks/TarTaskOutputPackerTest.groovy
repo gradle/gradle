@@ -31,6 +31,8 @@ import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -182,6 +184,7 @@ class TarTaskOutputPackerTest extends Specification {
         "unicode" | "prop-dezső"
     }
 
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
     @Unroll
     def "can pack output directory with files having #type characters in name"() {
         def sourceOutputDir = temporaryFolder.file("source").createDir()
