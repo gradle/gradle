@@ -27,9 +27,7 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
-import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.local.DefaultPathKeyFileStore;
-import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -101,10 +99,10 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         return cacheLockingManager.useCache(new Factory<CachedMetaData>() {
             @Override
             public CachedMetaData create() {
-                LocallyAvailableResource resource = moduleMetadataStore.putModuleDescriptor(key, metadata);
-                ModuleMetadataCacheEntry entry = createEntry(metadata, resource.getSha1());
+                moduleMetadataStore.putModuleDescriptor(key, metadata);
+                ModuleMetadataCacheEntry entry = createEntry(metadata);
                 getCache().put(key, entry);
-                return new DefaultCachedMetaData(entry, null, timeProvider);
+                return new DefaultCachedMetaData(entry, metadata, timeProvider);
             }
         });
     }
@@ -113,8 +111,8 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         return new ModuleComponentAtRepositoryKey(repository.getId(), id);
     }
 
-    private ModuleMetadataCacheEntry createEntry(ModuleComponentResolveMetadata metaData, HashValue moduleDescriptorHash) {
-        return ModuleMetadataCacheEntry.forMetaData(metaData, timeProvider.getCurrentTime(), moduleDescriptorHash.asBigInteger());
+    private ModuleMetadataCacheEntry createEntry(ModuleComponentResolveMetadata metaData) {
+        return ModuleMetadataCacheEntry.forMetaData(metaData, timeProvider.getCurrentTime());
     }
 
     private static class RevisionKeySerializer extends AbstractSerializer<ModuleComponentAtRepositoryKey> {

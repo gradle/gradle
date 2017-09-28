@@ -44,6 +44,7 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
@@ -104,6 +105,7 @@ public class ModuleMetadataSerializer {
         }
 
         private void writeSharedInfo(ModuleComponentResolveMetadata metadata) throws IOException {
+            encoder.writeBinary(metadata.getContentHash().asByteArray());
             ModuleDescriptorState md = metadata.getDescriptor();
             writeArtifacts(md.getArtifacts());
             writeExcludeRules(md.getExcludes());
@@ -279,6 +281,7 @@ public class ModuleMetadataSerializer {
         private MutableModuleDescriptorState md;
         private ModuleComponentIdentifier id;
         private ModuleVersionIdentifier mvi;
+        private HashValue contentHash;
 
         private Reader(Decoder decoder, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
             this.decoder = decoder;
@@ -298,6 +301,7 @@ public class ModuleMetadataSerializer {
         }
 
         private void readSharedInfo() throws IOException {
+            contentHash = new HashValue(decoder.readBinary());
             readArtifacts();
             readAllExcludes();
         }
@@ -313,6 +317,7 @@ public class ModuleMetadataSerializer {
             metadata.setPackaging(packaging);
             metadata.setRelocated(relocated);
             metadata.setSnapshotTimestamp(snapshotTimestamp);
+            metadata.setContentHash(contentHash);
             return metadata;
         }
 
@@ -321,7 +326,9 @@ public class ModuleMetadataSerializer {
             List<Configuration> configurations = readConfigurations();
             List<DependencyMetadata> dependencies = readDependencies();
             readSharedInfo();
-            return new DefaultMutableIvyModuleResolveMetadata(mvi, id, md, configurations, dependencies);
+            DefaultMutableIvyModuleResolveMetadata metadata = new DefaultMutableIvyModuleResolveMetadata(mvi, id, md, configurations, dependencies);
+            metadata.setContentHash(contentHash);
+            return metadata;
         }
 
         private void readInfoSection() throws IOException {

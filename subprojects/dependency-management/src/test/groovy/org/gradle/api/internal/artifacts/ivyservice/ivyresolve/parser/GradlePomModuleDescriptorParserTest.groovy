@@ -19,6 +19,7 @@ import groovy.transform.NotYetImplemented
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata
+import org.gradle.internal.hash.HashUtil
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -55,6 +56,9 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         def dependency = single(metaData.dependencies)
         dependency.requested == moduleId('group-two', 'artifact-two', 'version-two')
         hasDefaultDependencyArtifact(dependency)
+
+        metaData.contentHash == HashUtil.createHash(pomFile, "MD5")
+
         parser.typeName == 'POM'
         parser.toString() == 'gradle pom parser'
     }

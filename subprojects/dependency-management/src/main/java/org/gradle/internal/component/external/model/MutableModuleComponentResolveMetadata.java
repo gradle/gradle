@@ -21,6 +21,7 @@ import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -46,6 +47,12 @@ public interface MutableModuleComponentResolveMetadata {
      * Sets the component id and legacy module version id
      */
     void setComponentId(ModuleComponentIdentifier componentId);
+
+    /**
+     * Returns the hash of the resource(s) from which this metadata was created.
+     */
+    HashValue getContentHash();
+    void setContentHash(HashValue hash);
 
     boolean isChanging();
     void setChanging(boolean changing);

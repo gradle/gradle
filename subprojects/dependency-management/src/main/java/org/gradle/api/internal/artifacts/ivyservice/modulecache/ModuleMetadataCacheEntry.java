@@ -19,8 +19,6 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 
-import java.math.BigInteger;
-
 class ModuleMetadataCacheEntry {
     static final byte TYPE_MISSING = 0;
     static final byte TYPE_PRESENT = 1;
@@ -29,22 +27,20 @@ class ModuleMetadataCacheEntry {
     final boolean isChanging;
     final long createTimestamp;
     final ModuleSource moduleSource;
-    final BigInteger moduleDescriptorHash;
 
-    ModuleMetadataCacheEntry(byte type, boolean isChanging, long createTimestamp, BigInteger moduleDescriptorHash, ModuleSource moduleSource) {
+    ModuleMetadataCacheEntry(byte type, boolean isChanging, long createTimestamp, ModuleSource moduleSource) {
         this.type = type;
         this.isChanging = isChanging;
         this.createTimestamp = createTimestamp;
         this.moduleSource = moduleSource;
-        this.moduleDescriptorHash = moduleDescriptorHash;
     }
 
     public static ModuleMetadataCacheEntry forMissingModule(long createTimestamp) {
         return new MissingModuleCacheEntry(createTimestamp);
     }
 
-    public static ModuleMetadataCacheEntry forMetaData(ModuleComponentResolveMetadata metaData, long createTimestamp, BigInteger moduleDescriptorHash) {
-        return new ModuleMetadataCacheEntry(TYPE_PRESENT, metaData.isChanging(), createTimestamp, moduleDescriptorHash, metaData.getSource());
+    public static ModuleMetadataCacheEntry forMetaData(ModuleComponentResolveMetadata metaData, long createTimestamp) {
+        return new ModuleMetadataCacheEntry(TYPE_PRESENT, metaData.isChanging(), createTimestamp, metaData.getSource());
     }
 
     public boolean isMissing() {

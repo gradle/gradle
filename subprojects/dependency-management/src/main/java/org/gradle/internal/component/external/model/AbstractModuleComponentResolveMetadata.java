@@ -41,6 +41,7 @@ import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.component.model.VariantMetadata;
+import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -68,6 +69,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final List<ModuleComponentArtifactMetadata> artifacts;
     private final List<? extends DependencyMetadata> dependencies;
     private final List<Exclude> excludes;
+    private final HashValue contentHash;
 
     protected AbstractModuleComponentResolveMetadata(MutableModuleComponentResolveMetadata metadata) {
         this.descriptor = metadata.getDescriptor();
@@ -87,6 +89,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         } else {
             populateArtifactsFromDescriptor();
         }
+        contentHash = metadata.getContentHash();
     }
 
     protected AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, @Nullable ModuleSource source) {
@@ -102,6 +105,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         excludes = metadata.excludes;
         artifacts = metadata.artifacts;
         configurations = metadata.configurations;
+        contentHash = metadata.getContentHash();
     }
 
     @Nullable
@@ -113,6 +117,11 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     @Override
     public ModuleDescriptorState getDescriptor() {
         return descriptor;
+    }
+
+    @Override
+    public HashValue getContentHash() {
+        return contentHash;
     }
 
     @Override

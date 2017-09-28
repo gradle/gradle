@@ -26,6 +26,7 @@ import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.component.model.ModuleSource
+import org.gradle.internal.hash.HashValue
 
 class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModuleComponentResolveMetadataTest {
     @Override
@@ -125,6 +126,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         def descriptor = new MutableModuleDescriptorState(id, "2", true)
         def newId = DefaultModuleComponentIdentifier.newId("group", "module", "1.2")
         def source = Stub(ModuleSource)
+        def contentHash = new HashValue("123")
 
         def vid = Mock(ModuleVersionIdentifier)
         def metadata = new DefaultMutableMavenModuleResolveMetadata(vid, id, descriptor, [])
@@ -138,6 +140,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         metadata.snapshotTimestamp = "123"
         metadata.packaging = "pom"
         metadata.relocated = true
+        metadata.contentHash = contentHash
 
         then:
         metadata.componentId == newId
@@ -149,6 +152,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         metadata.snapshotTimestamp == "123"
         metadata.packaging == "pom"
         metadata.relocated
+        metadata.contentHash == contentHash
 
         def immutable = metadata.asImmutable()
         immutable != metadata
@@ -161,6 +165,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         immutable.snapshotTimestamp == "123"
         immutable.packaging == "pom"
         immutable.relocated
+        immutable.contentHash == contentHash
 
         def copy = immutable.asMutable()
         copy != metadata
@@ -173,6 +178,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         copy.snapshotTimestamp == "123"
         copy.packaging == "pom"
         copy.relocated
+        copy.contentHash == contentHash
     }
 
     def "making changes to copy does not affect original"() {
