@@ -18,7 +18,6 @@ package org.gradle.ide.xcode.fixtures;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Transformer;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.integtests.fixtures.executer.ExecutionFailure;
 import org.gradle.integtests.fixtures.executer.ExecutionResult;
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure;
@@ -26,18 +25,15 @@ import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult;
 import org.gradle.test.fixtures.file.ExecOutput;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.junit.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 public class XcodebuildExecuter {
@@ -50,8 +46,7 @@ public class XcodebuildExecuter {
             return this.name().toLowerCase();
         }
     }
-    private static final String BASELINE_DAEMON_PROPERTIES_FILENAME = "baseline-daemon.properties";
-    private static final String CURRENT_DAEMON_PROPERTIES_FILENAME = "current-daemon.properties";
+
     private final List<String> args = new ArrayList<String>();
     private final TestFile testDirectory;
 
@@ -59,39 +54,9 @@ public class XcodebuildExecuter {
         this(testDirectory, testDirectory.file(".xcode-derived"));
     }
 
-    public XcodebuildExecuter(TestFile testDirectory, File derivedData) {
+    private XcodebuildExecuter(TestFile testDirectory, File derivedData) {
         addArguments("-derivedDataPath", derivedData.getAbsolutePath());
         this.testDirectory = testDirectory;
-    }
-
-    public static String getProbeBaselineDaemonBuildLogicSnippet() {
-        return "allprojects {\n"
-            + "    def xcodeTask = tasks.findByName('xcode')\n"
-            + "    if (xcodeTask != null) {\n"
-            + "        def task = rootProject.tasks.findByName('probeDaemonConfigurations')\n"
-            + "        if (task == null) {\n"
-            + "            task = rootProject.tasks.create('probeDaemonConfigurations') {\n"
-            + "                doLast {\n"
-            + "                   " + getConfigurationProbeBuildLogicSnippet(BASELINE_DAEMON_PROPERTIES_FILENAME)
-            + "                }\n"
-            + "            }\n"
-            + "        }\n"
-            + "        "
-            + "        xcodeTask.dependsOn task\n"
-            + "    }\n"
-            + "}\n";
-    }
-
-    public static String getProbeCurrentDaemonBuildLogicSnippet() {
-        return getConfigurationProbeBuildLogicSnippet(CURRENT_DAEMON_PROPERTIES_FILENAME);
-    }
-
-    public static String getConfigurationProbeBuildLogicSnippet(String destinationPath) {
-        return "project.file('" + destinationPath + "').text = \"\"\"\n"
-            + "JAVA_HOME = ${System.getenv('JAVA_HOME')}\n"
-            + "GRADLE_USER_HOME = ${project.gradle.gradleUserHomeDir}\n"
-            + "GRADLE_OPTS = ${System.getenv('GRADLE_OPTS')}\n"
-            + "\"\"\"\n";
     }
 
     public XcodebuildExecuter withProject(XcodeProjectPackage xcodeProject) {
@@ -132,7 +97,6 @@ public class XcodebuildExecuter {
         withArgument(action.toString());
         ExecOutput result = findXcodeBuild().execute(args, buildEnvironment());
         System.out.println(result.getOut());
-        assertOnlyOneDaemonUsed();
         return new OutputScrapingExecutionResult(result.getOut(), result.getError());
     }
 
@@ -147,50 +111,28 @@ public class XcodebuildExecuter {
         // the error output only if xcodebuild failed most likely due to Gradle.
         System.out.println(result.getOut());
         System.out.println(result.getError());
-        assertOnlyOneDaemonUsed();
         return new OutputScrapingExecutionFailure(result.getOut(), result.getOut() + "\n" + result.getError());
-    }
-
-    private void assertOnlyOneDaemonUsed() {
-        try {
-            Properties baseline = loadDaemonProperties(testDirectory.file(BASELINE_DAEMON_PROPERTIES_FILENAME));
-            Properties current = loadDaemonProperties(testDirectory.file(CURRENT_DAEMON_PROPERTIES_FILENAME));
-
-            assertEquals(baseline.size(), current.size());
-            for (Map.Entry<Object, Object> entry : baseline.entrySet()) {
-                if (entry.getKey().equals("GRADLE_OPTS")) {
-                    assertTrue(current.getProperty("GRADLE_OPTS").startsWith(entry.getValue().toString()));
-                } else {
-                    assertEquals(entry.getValue(), current.get(entry.getKey()));
-                }
-            }
-        } catch (FileNotFoundException ex) {
-            // Ignore if the files doesn't exists
-        }
-    }
-
-    private Properties loadDaemonProperties(File daemonProperties) throws FileNotFoundException {
-        try {
-            Properties result = new Properties();
-            result.load(new FileInputStream(daemonProperties));
-            return result;
-        } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
-        }
     }
 
     private List<String> buildEnvironment() {
         Map<String, String> envvars = Maps.newHashMap();
         envvars.putAll(System.getenv());
-        try {
-            Properties props = loadDaemonProperties(testDirectory.file(BASELINE_DAEMON_PROPERTIES_FILENAME));
-            for (Map.Entry<Object, Object> entry : props.entrySet()) {
-                envvars.put(entry.getKey().toString(), entry.getValue().toString());
-            }
-        } catch (FileNotFoundException ex) {
-            // Ignore if the file doesn't exists
-        }
 
+        Properties props = GUtil.loadProperties(testDirectory.file("gradle-environment"));
+        assert !props.isEmpty();
+
+        for (Map.Entry<Object, Object> entry : props.entrySet()) {
+            if (entry.getKey().toString().equals("GRADLE_OPTS")) {
+                // macOS adds Xdock properties in a funky way that makes us duplicate them on the command-line
+                String value = entry.getValue().toString();
+                int lastIndex = value.lastIndexOf("\"-Xdock:name=Gradle\"");
+                if (lastIndex > 0) {
+                    envvars.put(entry.getKey().toString(), value.substring(0, lastIndex-1));
+                    continue;
+                }
+            }
+            envvars.put(entry.getKey().toString(), entry.getValue().toString());
+        }
 
         return CollectionUtils.toList(CollectionUtils.collect(envvars.entrySet(), new Transformer<String, Map.Entry<String, String>>() {
             @Override
