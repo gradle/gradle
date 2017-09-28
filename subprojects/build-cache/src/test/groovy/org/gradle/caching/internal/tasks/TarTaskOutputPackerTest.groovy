@@ -182,6 +182,42 @@ class TarTaskOutputPackerTest extends Specification {
         "unicode" | "prop-dezső"
     }
 
+    @Unroll
+    def "can pack output directory with files having #type characters in name"() {
+        def sourceOutputDir = temporaryFolder.file("source").createDir()
+        def sourceOutputFile = sourceOutputDir.file(fileName) << "output"
+        def targetOutputDir = temporaryFolder.file("target")
+        def targetOutputFile = targetOutputDir.file(fileName)
+        def output = new ByteArrayOutputStream()
+        when:
+        pack output, prop(DIRECTORY, sourceOutputDir)
+
+        then:
+        noExceptionThrown()
+        1 * fileSystem.getUnixMode(sourceOutputFile) >> 0644
+        0 * _
+
+        when:
+        def input = new ByteArrayInputStream(output.toByteArray())
+        unpack input, prop(DIRECTORY, targetOutputDir)
+
+        then:
+        1 * fileSystem.chmod(targetOutputDir, 0755)
+        1 * fileSystem.chmod(targetOutputFile, 0644)
+        then:
+        targetOutputFile.text == "output"
+        0 * _
+
+        where:
+        type          | fileName
+        "ascii-only"  | "input-file.txt"
+        "chinese"     | "输入文件.txt"
+        "hungarian"   | "Dezső.txt"
+        "space"       | "input file.txt"
+        "zwnj"        | "input\u200cfile.txt"
+        "url-quoted"  | "input%<file>#2.txt"
+    }
+
     def "can pack task output with all optional, null outputs"() {
         def output = new ByteArrayOutputStream()
         when:
