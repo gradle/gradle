@@ -16,6 +16,7 @@
 
 package org.gradle.ide.xcode.fixtures
 
+import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
@@ -134,8 +135,8 @@ Actual: ${actual[key]}
         assert target.productName == expectedProductName
         assert target.name == "$expectedProductName XCTestBundle"
         assert target.productReference.path == xctest("build/bundle/test/$expectedBinaryName").absolutePath
-        assert target.buildConfigurationList.buildConfigurations.name == ["Debug", "Release", "__GradleTestRunner_Debug"]
-        assert target.buildConfigurationList.buildConfigurations.every { it.buildSettings.PRODUCT_NAME == expectedProductName }
+        assert target.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE, DefaultXcodeProject.TEST_DEBUG]
+            assert target.buildConfigurationList.buildConfigurations.every { it.buildSettings.PRODUCT_NAME == expectedProductName }
         assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[0].buildSettings)
         assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[1].buildSettings)
         assertUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[2].buildSettings)
@@ -146,7 +147,7 @@ Actual: ${actual[key]}
         assert target.productName == expectedProductName
         assert target.name == "$expectedProductName SharedLibrary"
         assert target.productReference.path == sharedLib("build/lib/main/debug/$expectedBinaryName").absolutePath
-        assert target.buildConfigurationList.buildConfigurations.name == ["Debug", "Release"]
+        assert target.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
         assert target.buildConfigurationList.buildConfigurations.every { it.buildSettings.PRODUCT_NAME == expectedProductName }
         assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[0].buildSettings)
         assert target.buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/debug").absolutePath
@@ -159,7 +160,7 @@ Actual: ${actual[key]}
         assert target.productName == expectedProductName
         assert target.name == "$expectedProductName Executable"
         assert target.productReference.path == exe("build/exe/main/debug/$expectedBinaryName").absolutePath
-        assert target.buildConfigurationList.buildConfigurations.name == ["Debug", "Release"]
+        assert target.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
         assert target.buildConfigurationList.buildConfigurations.every { it.buildSettings.PRODUCT_NAME == expectedProductName }
         assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[0].buildSettings)
         assert target.buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("build/exe/main/debug").absolutePath
@@ -186,7 +187,7 @@ Actual: ${actual[key]}
     void assertTargetIsIndexer(ProjectFile.PBXTarget target, String expectedProductName) {
         assert target.productName == expectedProductName
         assert target.name.startsWith("[INDEXING ONLY] $expectedProductName")
-        assert target.buildConfigurationList.buildConfigurations.name == ["Debug"]
+        assert target.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG]
         assert target.buildConfigurationList.buildConfigurations[0].buildSettings.PRODUCT_NAME == expectedProductName
         assert target.buildConfigurationList.buildConfigurations[0].buildSettings.SWIFT_INCLUDE_PATHS == null
     }

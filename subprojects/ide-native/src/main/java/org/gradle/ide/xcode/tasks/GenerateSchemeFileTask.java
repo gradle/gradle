@@ -28,6 +28,9 @@ import org.gradle.plugins.ide.api.XmlGeneratorTask;
 
 import java.io.File;
 
+import static org.gradle.ide.xcode.internal.DefaultXcodeProject.BUILD_DEBUG;
+import static org.gradle.ide.xcode.internal.DefaultXcodeProject.TEST_DEBUG;
+
 /**
  * Task for generating a scheme file.
  *
@@ -73,11 +76,11 @@ public class GenerateSchemeFileTask extends XmlGeneratorTask<XcodeSchemeFile> {
     }
 
     private void configureTestAction(XcodeSchemeFile.TestAction action) {
-        action.setBuildConfiguration("Debug");
+        action.setBuildConfiguration(BUILD_DEBUG);
 
         for (final XcodeTarget xcodeTarget : xcodeProject.getTargets()) {
             if (PBXTarget.ProductType.UNIT_TEST.equals(xcodeTarget.getProductType())) {
-                action.setBuildConfiguration("__GradleTestRunner_Debug");
+                action.setBuildConfiguration(TEST_DEBUG);
                 action.entry(new Action<XcodeSchemeFile.TestableEntry>() {
                     @Override
                     public void execute(XcodeSchemeFile.TestableEntry testableEntry) {
@@ -91,7 +94,7 @@ public class GenerateSchemeFileTask extends XmlGeneratorTask<XcodeSchemeFile> {
     }
 
     private void configureLaunchAction(XcodeSchemeFile.LaunchAction action) {
-        action.setBuildConfiguration("Debug");
+        action.setBuildConfiguration(BUILD_DEBUG);
         for (XcodeTarget xcodeTarget : xcodeProject.getTargets()) {
             XcodeSchemeFile.BuildableReference buildableReference = toBuildableReference(xcodeTarget);
             action.setBuildableProductRunnable(buildableReference);
@@ -101,15 +104,15 @@ public class GenerateSchemeFileTask extends XmlGeneratorTask<XcodeSchemeFile> {
     }
 
     private void configureArchiveAction(XcodeSchemeFile.ArchiveAction action) {
-        action.setBuildConfiguration("Debug");
+        action.setBuildConfiguration(BUILD_DEBUG);
     }
 
     private void configureProfileAction(XcodeSchemeFile.ProfileAction action) {
-        action.setBuildConfiguration("Debug");
+        action.setBuildConfiguration(BUILD_DEBUG);
     }
 
     private void configureAnalyzeAction(XcodeSchemeFile.AnalyzeAction action) {
-        action.setBuildConfiguration("Debug");
+        action.setBuildConfiguration(BUILD_DEBUG);
     }
 
     @Override

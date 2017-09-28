@@ -18,6 +18,7 @@ package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.ide.xcode.fixtures.XcodebuildExecuter
+import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraryTest
@@ -81,7 +82,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         def resultReleaseApp = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
             .withScheme('App Executable')
-            .withConfiguration('Release')
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .succeeds()
 
         then:
@@ -149,7 +150,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         def resultReleaseHello = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
             .withScheme('Hello SharedLibrary')
-            .withConfiguration('Release')
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .succeeds()
 
         then:
@@ -210,7 +211,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         def resultReleaseGreeter = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
             .withScheme('Greeter SharedLibrary')
-            .withConfiguration('Release')
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .succeeds()
 
         then:

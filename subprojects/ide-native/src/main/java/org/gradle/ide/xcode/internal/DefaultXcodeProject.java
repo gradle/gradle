@@ -26,6 +26,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultXcodeProject implements XcodeProject {
+    public static final String BUILD_DEBUG = "Debug";
+    public static final String BUILD_RELEASE = "Release";
+    public static final String TEST_DEBUG = "__GradleTestRunner_Debug";
+
     private final ConfigurableFileCollection sources;
     private List<XcodeTarget> targets = new ArrayList<XcodeTarget>();
     private File locationDir;

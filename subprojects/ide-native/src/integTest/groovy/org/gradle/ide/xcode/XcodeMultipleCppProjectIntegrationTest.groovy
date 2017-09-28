@@ -17,6 +17,7 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
+import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.util.Requires
@@ -79,7 +80,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         def resultReleaseApp = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
             .withScheme('App Executable')
-            .withConfiguration('Release')
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .succeeds()
 
         then:
@@ -155,7 +156,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         def resultReleaseHello = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
             .withScheme('Deck SharedLibrary')
-            .withConfiguration('Release')
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .succeeds()
 
         then:
@@ -217,7 +218,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         def resultReleaseGreeter = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
             .withScheme('Greeter SharedLibrary')
-            .withConfiguration('Release')
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .succeeds()
 
         then:

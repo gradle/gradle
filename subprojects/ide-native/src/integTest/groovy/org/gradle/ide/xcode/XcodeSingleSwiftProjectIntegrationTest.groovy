@@ -18,6 +18,7 @@ package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.ide.xcode.fixtures.XcodebuildExecuter
+import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithXCTest
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
@@ -43,7 +44,7 @@ apply plugin: 'swift-executable'
 
         def project = rootXcodeProject.projectFile
         project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
-        project.buildConfigurationList.buildConfigurations.name == ["Debug", "Release"]
+        project.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
 
         project.targets.size() == 2
         assertTargetIsTool(project.targets[0], 'App')
@@ -69,7 +70,7 @@ apply plugin: 'swift-library'
 
         def project = rootXcodeProject.projectFile
         project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
-        project.buildConfigurationList.buildConfigurations.name == ["Debug", "Release"]
+        project.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
 
         project.targets.size() == 2
         assertTargetIsDynamicLibrary(project.targets[0], 'App')
@@ -98,7 +99,7 @@ apply plugin: 'xctest'
 
         def project = rootXcodeProject.projectFile
         project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
-        project.buildConfigurationList.buildConfigurations.name == ["Debug", "Release", "__GradleTestRunner_Debug"]
+        project.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE, DefaultXcodeProject.TEST_DEBUG]
 
         project.targets.size() == 4
         assertTargetIsTool(project.targets[0], 'App')
@@ -128,7 +129,7 @@ apply plugin: 'xctest'
 
         def project = rootXcodeProject.projectFile
         project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
-        project.buildConfigurationList.buildConfigurations.name == ["Debug", "Release", "__GradleTestRunner_Debug"]
+        project.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE, DefaultXcodeProject.TEST_DEBUG]
 
         project.targets.size() == 4
         assertTargetIsDynamicLibrary(project.targets[0], 'App')
@@ -166,7 +167,7 @@ apply plugin: 'swift-executable'
         def resultRelease = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme("App Executable")
-            .withConfiguration("Release")
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .fails(XcodebuildExecuter.XcodeAction.TEST)
 
         then:
@@ -176,7 +177,7 @@ apply plugin: 'swift-executable'
         def resultRunner = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme("App Executable")
-            .withConfiguration("__GradleTestRunner_Debug")
+            .withConfiguration(DefaultXcodeProject.TEST_DEBUG)
             .fails(XcodebuildExecuter.XcodeAction.TEST)
 
         then:
@@ -209,7 +210,7 @@ apply plugin: 'swift-library'
         def resultRelease = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme("App SharedLibrary")
-            .withConfiguration("Release")
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .fails(XcodebuildExecuter.XcodeAction.TEST)
 
         then:
@@ -338,7 +339,7 @@ apply plugin: 'swift-executable'
         def resultRelease = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme('App Executable')
-            .withConfiguration('Release')
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .succeeds()
 
         then:
@@ -377,7 +378,7 @@ apply plugin: 'swift-library'
         def resultRelease = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme('App SharedLibrary')
-            .withConfiguration('Release')
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .succeeds()
 
         then:

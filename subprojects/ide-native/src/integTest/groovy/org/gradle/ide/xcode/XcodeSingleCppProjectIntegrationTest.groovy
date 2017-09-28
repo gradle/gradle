@@ -18,6 +18,7 @@ package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.ide.xcode.fixtures.XcodebuildExecuter
+import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.util.Requires
@@ -46,7 +47,7 @@ apply plugin: 'cpp-executable'
 
         def project = rootXcodeProject.projectFile
         project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + app.files*.name)
-        project.buildConfigurationList.buildConfigurations.name == ["Debug", "Release"]
+        project.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
 
         project.targets.size() == 2
         assertTargetIsTool(project.targets[0], 'App', 'app')
@@ -77,7 +78,7 @@ apply plugin: 'cpp-library'
 
         def project = rootXcodeProject.projectFile
         project.mainGroup.assertHasChildren(['Products', 'build.gradle'] + lib.files*.name)
-        project.buildConfigurationList.buildConfigurations.name == ["Debug", "Release"]
+        project.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
 
         project.targets.size() == 2
         assertTargetIsDynamicLibrary(project.targets[0], 'App', 'app')
@@ -114,7 +115,7 @@ apply plugin: 'cpp-executable'
         def resultRelease = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme("App Executable")
-            .withConfiguration("Release")
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .fails(XcodebuildExecuter.XcodeAction.TEST)
 
         then:
@@ -124,7 +125,7 @@ apply plugin: 'cpp-executable'
         def resultRunner = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme("App Executable")
-            .withConfiguration("__GradleTestRunner_Debug")
+            .withConfiguration(DefaultXcodeProject.TEST_DEBUG)
             .fails(XcodebuildExecuter.XcodeAction.TEST)
 
         then:
@@ -157,7 +158,7 @@ apply plugin: 'cpp-library'
         def resultRelease = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme("App SharedLibrary")
-            .withConfiguration("Release")
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .fails(XcodebuildExecuter.XcodeAction.TEST)
 
         then:
@@ -167,7 +168,7 @@ apply plugin: 'cpp-library'
         def resultRunner = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme("App SharedLibrary")
-            .withConfiguration("__GradleTestRunner_Debug")
+            .withConfiguration(DefaultXcodeProject.TEST_DEBUG)
             .fails(XcodebuildExecuter.XcodeAction.TEST)
 
         then:
@@ -204,7 +205,7 @@ apply plugin: 'cpp-executable'
         def resultRelease = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme('App Executable')
-            .withConfiguration('Release')
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .succeeds()
 
         then:
@@ -243,7 +244,7 @@ apply plugin: 'cpp-library'
         def resultRelease = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme('App SharedLibrary')
-            .withConfiguration('Release')
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .succeeds()
 
         then:
@@ -374,7 +375,7 @@ executable.baseName = 'test_app'
 
         project.targets[0].name == 'App Executable'
         project.targets[0].productReference.path == exe("output/exe/main/debug/test_app").absolutePath
-        project.targets[0].buildConfigurationList.buildConfigurations.name == ["Debug", "Release"]
+        project.targets[0].buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
         project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("output/exe/main/debug").absolutePath
         project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("output/exe/main/release").absolutePath
 
@@ -404,7 +405,7 @@ library.baseName = 'test_lib'
 
         project.targets[0].name == 'App SharedLibrary'
         project.targets[0].productReference.path == sharedLib("output/lib/main/debug/test_lib").absolutePath
-        project.targets[0].buildConfigurationList.buildConfigurations.name == ["Debug", "Release"]
+        project.targets[0].buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
         project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("output/lib/main/debug").absolutePath
         project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("output/lib/main/release").absolutePath
 

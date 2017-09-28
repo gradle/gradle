@@ -44,6 +44,9 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.gradle.ide.xcode.internal.DefaultXcodeProject.BUILD_DEBUG;
+import static org.gradle.ide.xcode.internal.DefaultXcodeProject.BUILD_RELEASE;
+import static org.gradle.ide.xcode.internal.DefaultXcodeProject.TEST_DEBUG;
 import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList;
 
 /**
@@ -67,8 +70,8 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
     protected void configure(XcodeProjectFile projectFile) {
         PBXProject project = new PBXProject(getProject().getPath());
 
-        project.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked("Debug");
-        project.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked("Release");
+        project.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(BUILD_DEBUG);
+        project.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(BUILD_RELEASE);
 
         for (File source : xcodeProject.getSources()) {
             PBXFileReference fileReference = toFileReference(source);
@@ -82,7 +85,7 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
 
             if (PBXTarget.ProductType.UNIT_TEST.equals(target.getProductType())) {
                 // Creates XCTest configuration only if XCTest are present.
-                project.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked("__GradleTestRunner_Debug");
+                project.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(TEST_DEBUG);
             } else {
                 File debugOutputFile = target.getDebugOutputFile().get().getAsFile();
                 PBXFileReference fileReference = new PBXFileReference(debugOutputFile.getName(), debugOutputFile.getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE);
@@ -123,8 +126,8 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         PBXLegacyTarget target = new PBXLegacyTarget(xcodeTarget.getName(), xcodeTarget.getProductType());
         target.setProductName(xcodeTarget.getProductName());
 
-        NSDictionary debugSettings = target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked("Debug").getBuildSettings();
-        NSDictionary releaseSettings = target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked("Release").getBuildSettings();
+        NSDictionary debugSettings = target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(BUILD_DEBUG).getBuildSettings();
+        NSDictionary releaseSettings = target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(BUILD_RELEASE).getBuildSettings();
 
         target.setBuildToolPath(xcodeTarget.getGradleCommand());
         target.setBuildArgumentsString(xcodeTarget.getTaskName());
@@ -177,9 +180,9 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         target.getBuildPhases().add(gradleBuildPhase);
         File outputFile = xcodeTarget.getDebugOutputFile().get().getAsFile();
         target.setProductReference(new PBXFileReference(outputFile.getName(), outputFile.getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE));
-        NSDictionary debugSettings = target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked("Debug").getBuildSettings();
-        NSDictionary releaseSettings = target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked("Release").getBuildSettings();
-        NSDictionary testRunnerSettings = target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked("__GradleTestRunner_Debug").getBuildSettings();
+        NSDictionary debugSettings = target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(BUILD_DEBUG).getBuildSettings();
+        NSDictionary releaseSettings = target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(BUILD_RELEASE).getBuildSettings();
+        NSDictionary testRunnerSettings = target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(TEST_DEBUG).getBuildSettings();
 
         testRunnerSettings.put("SWIFT_VERSION", "3.0");  // TODO - Choose the right version for swift
         testRunnerSettings.put("PRODUCT_NAME", target.getProductName());
@@ -220,7 +223,7 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
             buildSettings.put("SWIFT_INCLUDE_PATHS", toSpaceSeparatedList(xcodeTarget.getImportPaths()));
         }
 
-        target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked("Debug").setBuildSettings(buildSettings);
+        target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(BUILD_DEBUG).setBuildSettings(buildSettings);
         target.getBuildPhases().add(buildPhase);
 
         return target;
