@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.vcs.git.internal;
+package org.gradle.vcs.internal;
 
 import org.gradle.vcs.VersionRef;
 

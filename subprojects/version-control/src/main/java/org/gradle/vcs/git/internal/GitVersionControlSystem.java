@@ -24,6 +24,7 @@ import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.transport.URIish;
 import org.gradle.api.GradleException;
 import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.VersionControlSystem;
@@ -33,8 +34,8 @@ import org.gradle.vcs.git.GitVersionControlSpec;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -55,20 +56,18 @@ public class GitVersionControlSystem implements VersionControlSystem {
         }
     }
 
-    public void populate(File workingDir, VersionControlSpec spec) {
-        populate(workingDir, new DefaultVersionRef(), spec);
-    }
-
     @Override
     public Set<VersionRef> getAvailableVersions(VersionControlSpec spec) {
         GitVersionControlSpec gitSpec = cast(spec);
-        Set<VersionRef> versions = Sets.newHashSet();
-        Collection<Ref> refs = Collections.emptyList();
+        Collection<Ref> refs;
         try {
-            refs = Git.lsRemoteRepository().setRemote(safeRepositoryUrl(gitSpec.getUrl())).call();
+            refs = Git.lsRemoteRepository().setRemote(normalizeUri(gitSpec.getUrl())).call();
+        } catch (URISyntaxException e) {
+            throw wrapGitCommandException("update", gitSpec.getUrl(), null, e);
         } catch (GitAPIException e) {
             throw wrapGitCommandException("ls-remote", gitSpec.getUrl(), null, e);
         }
+        Set<VersionRef> versions = Sets.newHashSet();
         for (Ref ref : refs) {
             versions.add(GitVersionRef.from(ref));
         }
@@ -98,6 +97,8 @@ public class GitVersionControlSystem implements VersionControlSystem {
             git.pull().setRemote(getRemoteForUrl(git.getRepository(), gitSpec.getUrl())).call();
         } catch (IOException e) {
             throw wrapGitCommandException("update", gitSpec.getUrl(), workingDir, e);
+        } catch (URISyntaxException e) {
+            throw wrapGitCommandException("update", gitSpec.getUrl(), workingDir, e);
         } catch (GitAPIException e) {
             throw wrapGitCommandException("update", gitSpec.getUrl(), workingDir, e);
         } catch (JGitInternalException e) {
@@ -109,14 +110,16 @@ public class GitVersionControlSystem implements VersionControlSystem {
         }
     }
 
-    private static String getRemoteForUrl(Repository repository, URI url) {
+    // This method is only necessary until https://bugs.eclipse.org/bugs/show_bug.cgi?id=525300 is fixed.
+    private static String getRemoteForUrl(Repository repository, URI url) throws URISyntaxException {
         Config config = repository.getConfig();
         Set<String> remotes = config.getSubsections("remote");
         Set<String> foundUrls = new HashSet<String>();
+        String normalizedUrl = normalizeUri(url);
 
         for (String remote : remotes) {
             String remoteUrl = config.getString("remote", remote, "url");
-            if (remoteUrl.equals(safeRepositoryUrl(url))) {
+            if (remoteUrl.equals(normalizedUrl)) {
                 return remote;
             } else {
                 foundUrls.add(remoteUrl);
@@ -125,13 +128,10 @@ public class GitVersionControlSystem implements VersionControlSystem {
         throw new GradleException(String.format("Could not find remote with url: %s. Found: %s", url, foundUrls));
     }
 
-    // This is a horrible hack to work around a bug in how jgit stores and expects file urls for remotes.
-    private static String safeRepositoryUrl(URI url) {
-        String urlString = url.toString();
-        if (urlString.startsWith("file:/") && !urlString.startsWith("file:///")) {
-            return urlString.replace("file:/", "file:///");
-        }
-        return urlString;
+    private static String normalizeUri(URI uri) throws URISyntaxException {
+        // We have to go through URIish and back to deal with differences between how
+        // Java File and Git implement file URIs.
+        return new URIish(uri.toString()).toString();
     }
 
     private static GitVersionControlSpec cast(VersionControlSpec spec) {

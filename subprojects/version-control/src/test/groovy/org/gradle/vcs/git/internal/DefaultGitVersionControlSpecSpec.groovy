@@ -16,6 +16,7 @@
 
 package org.gradle.vcs.git.internal
 
+import org.gradle.util.Path
 import org.gradle.vcs.git.GitVersionControlSpec
 import spock.lang.Specification
 
@@ -27,7 +28,7 @@ class DefaultGitVersionControlSpecSpec extends Specification {
 
         expect:
         spec.repoName == 'foo'
-        spec.repositoryId == 'local/tmp/repos/foo'
+        spec.uniquePath == Path.path('local/tmp/repos/foo')
         spec.displayName == 'Git Repository at file:/tmp/repos/foo'
     }
 
@@ -38,7 +39,7 @@ class DefaultGitVersionControlSpecSpec extends Specification {
 
         expect:
         spec.repoName == 'gradle-checksum'
-        spec.repositoryId == 'github.com/gradle/gradle-checksum'
+        spec.uniquePath == Path.path('github.com/gradle/gradle-checksum')
         spec.displayName == 'Git Repository at https://github.com/gradle/gradle-checksum'
     }
 
@@ -49,7 +50,7 @@ class DefaultGitVersionControlSpecSpec extends Specification {
 
         expect:
         spec.repoName == 'gradle-checksum'
-        spec.repositoryId == 'github.com/gradle/gradle-checksum.git'
+        spec.uniquePath == Path.path('github.com/gradle/gradle-checksum.git')
         spec.displayName == 'Git Repository at https://github.com/gradle/gradle-checksum.git'
 
     }

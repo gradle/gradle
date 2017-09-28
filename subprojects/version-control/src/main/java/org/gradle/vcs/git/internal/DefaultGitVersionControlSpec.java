@@ -17,6 +17,7 @@
 package org.gradle.vcs.git.internal;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.util.Path;
 import org.gradle.vcs.git.GitVersionControlSpec;
 
 import java.net.URI;
@@ -50,12 +51,12 @@ public class DefaultGitVersionControlSpec implements GitVersionControlSpec {
     }
 
     @Override
-    public String getRepositoryId() {
+    public Path getUniquePath() {
         String host = url.getHost();
         if (host == null) {
             host = "local";
         }
-        return host + url.getPath();
+        return Path.path(host + url.getPath());
     }
 
     @Override

@@ -28,6 +28,8 @@ import spock.lang.Specification
 
 class GitVersionControlSystemSpec extends Specification {
     private GitVersionControlSystem gitVcs
+    private GitVersionControlSpec repoSpec
+    private VersionRef repoHead
     private RevCommit c1
     private RevCommit c2
 
@@ -53,16 +55,17 @@ class GitVersionControlSystemSpec extends Specification {
         def anotherSource = repo.workTree.file("dir/another.txt")
         anotherSource << "Goodbye world!"
         c2 = repo.commit("Second Commit", anotherSource)
+        repoHead = GitVersionRef.from(repo.head)
+        repoSpec = new DefaultGitVersionControlSpec()
+        repoSpec.url = repo.url
     }
 
     def "clone a repository"() {
         given:
         def target = tmpDir.file("workingDir")
-        GitVersionControlSpec spec = new DefaultGitVersionControlSpec()
-        spec.url = repo.url
 
         when:
-        gitVcs.populate(target, spec)
+        gitVcs.populate(target, repoHead, repoSpec)
 
         then:
         target.file( ".git").assertIsDir()
@@ -74,11 +77,9 @@ class GitVersionControlSystemSpec extends Specification {
         given:
         def target = tmpDir.file("workingDir")
         target.mkdir()
-        GitVersionControlSpec spec = new DefaultGitVersionControlSpec()
-        spec.url = repo.url
 
         when:
-        gitVcs.populate(target, spec)
+        gitVcs.populate(target, repoHead, repoSpec)
 
         then:
         target.file( ".git").assertIsDir()
@@ -89,18 +90,17 @@ class GitVersionControlSystemSpec extends Specification {
     def "update a cloned repository"() {
         given:
         def target = tmpDir.file("workingDir")
-        GitVersionControlSpec spec = new DefaultGitVersionControlSpec()
-        spec.url = repo.url
-        gitVcs.populate(target, spec)
+        gitVcs.populate(target, repoHead, repoSpec)
         def newFile = repo.workTree.file("newFile.txt")
         newFile << "I'm new!"
         repo.commit("Add newFile.txt", newFile)
+        repoHead = GitVersionRef.from(repo.head)
 
         expect:
         !target.file("newFile.txt").exists()
 
         when:
-        gitVcs.populate(target, spec)
+        gitVcs.populate(target, repoHead, repoSpec)
 
         then:
         target.file("newFile.txt").exists()
@@ -109,20 +109,18 @@ class GitVersionControlSystemSpec extends Specification {
     def "error if working dir is not a repository"() {
         given:
         def target = tmpDir.file("workingdir")
-        GitVersionControlSpec spec = new DefaultGitVersionControlSpec()
-        spec.url = repo.url
         target.mkdirs()
         target.file("child.txt").createNewFile()
 
         when:
-        gitVcs.populate(target, spec)
+        gitVcs.populate(target, repoHead, repoSpec)
 
         then:
         thrown GradleException
 
         when:
         target.file(".git").mkdir()
-        gitVcs.populate(target, spec)
+        gitVcs.populate(target, repoHead, repoSpec)
 
         then:
         thrown GradleException
@@ -131,27 +129,25 @@ class GitVersionControlSystemSpec extends Specification {
     def "error if working dir repo is missing the remote"() {
         given:
         def target = tmpDir.file("workingDir")
-        GitVersionControlSpec spec = new DefaultGitVersionControlSpec()
-        spec.url = repo.url
-        gitVcs.populate(target, spec)
+        gitVcs.populate(target, repoHead, repoSpec)
 
         // Commit a file to the repository
         def textFile = repo2.workTree.file("other.txt")
         textFile << "Hello world!"
         repo2.commit("Initial Commit", textFile)
-        spec.url = repo2.url
+        repoSpec.url = repo2.url
+        repoHead = GitVersionRef.from(repo2.head)
 
         when:
-        gitVcs.populate(target, spec)
+        gitVcs.populate(target, repoHead, repoSpec)
 
         then:
         thrown GradleException
     }
 
     def "can get versions"() {
-        given:GitVersionControlSpec spec = new DefaultGitVersionControlSpec()
-        spec.url = repo.url
-        def versions = gitVcs.getAvailableVersions(spec)
+        given:
+        def versions = gitVcs.getAvailableVersions(repoSpec)
         HashMap<String, String> versionMap = Maps.newHashMap()
         for (VersionRef ref : versions) {
             versionMap.put(ref.version, ref.canonicalId)

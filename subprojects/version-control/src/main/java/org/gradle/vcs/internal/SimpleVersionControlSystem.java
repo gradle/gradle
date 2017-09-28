@@ -22,7 +22,6 @@ import org.gradle.util.GFileUtils;
 import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.VersionControlSystem;
 import org.gradle.vcs.VersionRef;
-import org.gradle.vcs.git.internal.DefaultVersionRef;
 
 import java.io.File;
 import java.io.IOException;

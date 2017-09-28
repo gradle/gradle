@@ -27,6 +27,7 @@ import org.gradle.test.fixtures.file.TestFile;
 import org.junit.rules.ExternalResource;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -79,6 +80,10 @@ public class GitRepository extends ExternalResource {
 
     public Ref createAnnotatedTag(String tagName, String message) throws GitAPIException {
         return git.tag().setName(tagName).setAnnotated(true).setMessage(message).call();
+    }
+
+    public Ref getHead() throws IOException {
+        return git.getRepository().findRef("HEAD");
     }
 
     public TestFile getWorkTree() {

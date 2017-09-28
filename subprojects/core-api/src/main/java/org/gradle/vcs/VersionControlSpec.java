@@ -17,6 +17,7 @@ package org.gradle.vcs;
 
 import org.gradle.api.Describable;
 import org.gradle.api.Incubating;
+import org.gradle.util.Path;
 
 /**
  * Captures user-provided information about a version control system.
@@ -25,7 +26,15 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface VersionControlSpec extends Describable {
-    String getRepositoryId();
+    /**
+     * Returns a relative {@link org.gradle.util.Path} which will be unique to
+     * this version control specification among other version control
+     * specifications which may be used to populate a shared root directory.
+     */
+    Path getUniquePath();
 
+    /**
+     * Returns the name of the repository.
+     */
     String getRepoName();
 }
