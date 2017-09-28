@@ -56,7 +56,6 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
             tasks {
                 "assertions" {
                     doLast {
-                        repositories["Embedded Kotlin Repository"]
                         val requiredLibs = listOf("kotlin-stdlib-$embeddedKotlinVersion.jar", "kotlin-reflect-$embeddedKotlinVersion.jar")
                         listOf("compileOnly", "testCompileOnly").forEach { configuration ->
                             require(configurations[configuration].files.map { it.name }.containsAll(requiredLibs), {
