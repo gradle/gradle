@@ -350,7 +350,7 @@ Searched in the following locations:
         file('libs').assertHasDescendants('projectA-1.1.jar')
     }
 
-    def "dynamic version ignores broken module in one repository when available in another repository"() {
+    def "dynamic version fails on broken module in one repository"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
         def repo2 = mavenHttpRepo("repo2")
@@ -376,16 +376,17 @@ Searched in the following locations:
         when:
         repo1.getModuleMetaData("group", "projectA").expectGet()
         projectA1.pom.expectGet()
-        projectA1.getArtifact().expectGet()
 
         repo2.getModuleMetaData("group", "projectA").expectGet()
         projectA2.pom.expectGetBroken()
 
         and:
-        run 'retrieve'
+        fails 'retrieve'
 
         then:
-        file('libs').assertHasDescendants('projectA-1.1.jar')
+        failure.assertHasCause('Could not resolve group:projectA:1.+')
+        failure.assertHasCause('Could not resolve group:projectA:1.5')
+        failure.assertHasCause("Could not GET '${repo2.uri}/group/projectA/1.5/projectA-1.5.pom'")
 
         when:
         server.resetExpectations()
@@ -393,7 +394,7 @@ Searched in the following locations:
         projectA2.artifact.expectGet()
 
         and:
-        run 'retrieve'
+        succeeds 'retrieve'
 
         then:
         file('libs').assertHasDescendants('projectA-1.5.jar')

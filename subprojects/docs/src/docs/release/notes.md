@@ -20,6 +20,26 @@ If connections to the build cache time out then it will be disabled for the rest
     BUILD SUCCESSFUL in 4s
     1 actionable task: 1 executed
     The remote build cache was disabled during the build due to errors.
+    
+### Blacklist repository in case of repository failures 
+
+Upon the event of a timeout (or any repository failures which are not caused by error HTTP status code), Gradle will skip subsequent dependency request to the same repository for the duration of the build. 
+
+```
+* What went wrong:
+Could not resolve all files for configuration ':deps'.
+> Could not resolve group:a:1.0.
+  Required by:
+      project :
+   > Could not resolve group:a:1.0.
+      > Could not get resource 'http://localhost:54347/repo/group/a/1.0/a-1.0.pom'.
+         > Could not GET 'http://localhost:54347/repo/group/a/1.0/a-1.0.pom'.
+            > Read timed out
+> Could not resolve group:b:1.0.
+  Required by:
+      project :
+   > Skipped due to earlier error
+```       
 
 ### Improvements for plugin authors
 
@@ -281,6 +301,11 @@ The default output location in [EclipseClasspath](dsl/org.gradle.plugins.ide.ecl
 For output properties annotated with [`@OutputFiles`](javadoc/org/gradle/api/tasks/OutputFiles.html) or [`@OutputDirectories`](javadoc/org/gradle/api/tasks/OutputDirectories.html) that evaluate to an `Iterable`, the order of the declared files is now important.
 In other words, if the property changes from `[file1, file2]` to `[file2, file1]` the task will not be up-to-date. 
 Prefer annotating individual properties with [`@OutputFile`](javadoc/org/gradle/api/tasks/OutputFile.html) and [`@OutputDirectory`](javadoc/org/gradle/api/tasks/OutputDirectory.html) if you can, or return a `Map` annotated with [`@OutputFiles`](javadoc/org/gradle/api/tasks/OutputFiles.html) or [`@OutputDirectories`](javadoc/org/gradle/api/tasks/OutputDirectories.html).
+
+### Avoid checking other repositories when dependency resolution in one repository fails
+
+Previous versions of Gradle would fall through to the next repository if resolution in one repository failed.
+This behaviour might cause potentially nondeterministic resolution result. Now Gradle will explicitly rethrow exceptions which occur in dependency resolution instead of quietly continue to the next repository.
 
 ## External contributions
 

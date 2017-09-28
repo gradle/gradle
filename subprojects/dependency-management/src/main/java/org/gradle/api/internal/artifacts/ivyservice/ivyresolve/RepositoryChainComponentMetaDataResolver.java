@@ -114,6 +114,9 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
 
         // A first pass to do local resolves only
         RepositoryChainModuleResolution best = findBestMatch(queue, failures, missing);
+        if (!failures.isEmpty()) {
+            return null;
+        }
         if (best != null) {
             return best;
         }
@@ -138,6 +141,7 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
             switch (metaDataResolveResult.getState()) {
                 case Failed:
                     failures.add(metaDataResolveResult.getFailure());
+                    queue.clear();
                     break;
                 case Missing:
                     // Queue this up for checking again later
