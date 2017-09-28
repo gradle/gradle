@@ -57,6 +57,10 @@ A problem was found with the configuration of task ':test'. Registering invalid 
 
 You may now force Gradle to use rich or plain [build output](userguide/console.html#sec:console_build_output) by setting [`org.gradle.console`](userguide/build_environment.html#sec:gradle_configuration_properties) in your `gradle.properties`.
 
+### Plugin library upgrades
+
+The JaCoCo plugin has been upgraded to use [JaCoCo version 0.7.9](http://www.jacoco.org/jacoco/trunk/doc/changes.html) by default.
+
 ### Script plugins can be applied using the `plugins` block
 
 You can now configure the project using an external build script by applying it using the `plugins` block:
@@ -143,6 +147,10 @@ task myTask {
 In this release we deprecate calling `TaskInternal.execute()`. Calling `task.execute()` should never be necessary.
 There are better ways for re-using task logic, for example by using [task dependencies](userguide/more_about_tasks.html#sec:adding_dependencies_to_tasks), [task rules](userguide/more_about_tasks.html#sec:task_rules), extracting a re-usable piece of logic from your task which can be called on its own (e.g. `project.copy` vs. the `Copy` task) or using the [worker API](userguide/custom_tasks.html#worker_api).
 
+### Other deprecations
+
+* `CompileOptions.bootClasspath` is deprecated in favor of the new `bootstrapClasspath` property.
+
 ## Potential breaking changes
 
 ### Changes to incubating native compile and link tasks
@@ -163,6 +171,7 @@ We would like to thank the following community members for making contributions 
 - [Tomáš Polešovský](https://github.com/topolik) - Support for FindBugs JVM arguments (gradle/gradle#781)
 - [Juan Martín Sotuyo Dodero](https://github.com/jsotuyod) - Support PMD's analysis cache (gradle/gradle#2223)
 - [zosrothko](https://github.com/zosrothko) - Make the Gradle build import into Eclipse again (gradle/gradle#2899)
+- [Evgeny Mandrikov](https://github.com/Godin) - JaCoCo plugin uses version 0.7.9 by default (gradle/gradle#2892)
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)

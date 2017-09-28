@@ -16,6 +16,7 @@
 
 package org.gradle.ide.xcode.fixtures
 
+import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
@@ -42,6 +43,10 @@ rootProject.name = "${rootProjectName}"
 
     protected TestFile sharedLib(String str) {
         file(OperatingSystem.current().getSharedLibraryName(str))
+    }
+
+    protected TestFile xctest(String str) {
+        file(str + ".xctest")
     }
 
     protected XcodeProjectPackage xcodeProject(String path) {
@@ -71,6 +76,119 @@ rootProject.name = "${rootProjectName}"
     protected XcodebuildExecuter getXcodebuild() {
         // Gradle needs to be isolated so the xcodebuild does not leave behind daemons
         assert executer.isRequiresGradleDistribution()
-        new XcodebuildExecuter(executer.getGradleUserHomeDir(), testDirectory.file(".xcode-derived"))
+        assert !executer.usesSharedDaemons()
+        new XcodebuildExecuter(testDirectory)
+    }
+
+    void useXcodebuildTool() {
+        executer.requireGradleDistribution().requireIsolatedDaemons()
+
+        buildFile << '''
+            gradle.startParameter.showStacktrace = ShowStacktrace.ALWAYS_FULL
+            Properties gatherEnvironment() {
+                Properties properties = new Properties()
+                properties.JAVA_HOME = String.valueOf(System.getenv('JAVA_HOME'))
+                properties.GRADLE_USER_HOME = String.valueOf(gradle.gradleUserHomeDir.absolutePath)
+                properties.GRADLE_OPTS = String.valueOf(System.getenv('GRADLE_OPTS'))
+                return properties
+            }
+            
+            void assertEquals(key, expected, actual) {
+                assert expected[key] == actual[key]
+                if (expected[key] != actual[key]) {
+                    throw new GradleException("""
+Environment's $key did not match! 
+Expected: ${expected[key]} 
+Actual: ${actual[key]} 
+""")
+                }
+            }
+            
+            def gradleEnvironment = file("gradle-environment")
+            def xcodeTask = tasks.findByName('xcode')
+            if (xcodeTask) {
+                xcodeTask.doLast {
+                    def writer = gradleEnvironment.newOutputStream()
+                    gatherEnvironment().store(writer, null)
+                    writer.close()
+                }
+            }
+            gradle.buildFinished {
+                if (!gradleEnvironment.exists()) {
+                    throw new GradleException("could not determine if xcodebuild is using the correct environment, did xcode task run?")
+                } else {
+                    def expectedEnvironment = new Properties()
+                    expectedEnvironment.load(gradleEnvironment.newInputStream())
+                    
+                    def actualEnvironment = gatherEnvironment()
+                    
+                    assertEquals('JAVA_HOME', expectedEnvironment, actualEnvironment)
+                    assertEquals('GRADLE_USER_HOME', expectedEnvironment, actualEnvironment)
+                    assertEquals('GRADLE_OPTS', expectedEnvironment, actualEnvironment)
+                }
+            }
+        '''
+    }
+
+    void assertTargetIsUnitTest(ProjectFile.PBXTarget target, String expectedProductName, String expectedBinaryName = expectedProductName) {
+        target.assertIsUnitTest()
+        assert target.productName == expectedProductName
+        assert target.name == "$expectedProductName XCTestBundle"
+        assert target.productReference.path == xctest("build/bundle/test/$expectedBinaryName").absolutePath
+        assert target.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE, DefaultXcodeProject.TEST_DEBUG]
+            assert target.buildConfigurationList.buildConfigurations.every { it.buildSettings.PRODUCT_NAME == expectedProductName }
+        assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[0].buildSettings)
+        assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[1].buildSettings)
+        assertUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[2].buildSettings)
+    }
+
+    void assertTargetIsDynamicLibrary(ProjectFile.PBXTarget target, String expectedProductName, String expectedBinaryName = expectedProductName) {
+        target.assertIsDynamicLibrary()
+        assert target.productName == expectedProductName
+        assert target.name == "$expectedProductName SharedLibrary"
+        assert target.productReference.path == sharedLib("build/lib/main/debug/$expectedBinaryName").absolutePath
+        assert target.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
+        assert target.buildConfigurationList.buildConfigurations.every { it.buildSettings.PRODUCT_NAME == expectedProductName }
+        assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[0].buildSettings)
+        assert target.buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/debug").absolutePath
+        assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[1].buildSettings)
+        assert target.buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/release").absolutePath
+    }
+
+    void assertTargetIsTool(ProjectFile.PBXTarget target, String expectedProductName, String expectedBinaryName = expectedProductName) {
+        target.assertIsTool()
+        assert target.productName == expectedProductName
+        assert target.name == "$expectedProductName Executable"
+        assert target.productReference.path == exe("build/exe/main/debug/$expectedBinaryName").absolutePath
+        assert target.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
+        assert target.buildConfigurationList.buildConfigurations.every { it.buildSettings.PRODUCT_NAME == expectedProductName }
+        assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[0].buildSettings)
+        assert target.buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("build/exe/main/debug").absolutePath
+        assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[1].buildSettings)
+        assert target.buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("build/exe/main/release").absolutePath
+    }
+
+    void assertUnitTestBuildSettings(Map<String, String> buildSettings) {
+        assert buildSettings.OTHER_CFLAGS == "-help"
+        assert buildSettings.OTHER_LDFLAGS == "-help"
+        assert buildSettings.OTHER_SWIFT_FLAGS == "-help"
+        assert buildSettings.SWIFT_INSTALL_OBJC_HEADER == "NO"
+        assert buildSettings.SWIFT_OBJC_INTERFACE_HEADER_NAME == "\$(PRODUCT_NAME).h"
+    }
+
+    void assertNotUnitTestBuildSettings(Map<String, String> buildSettings) {
+        assert buildSettings.OTHER_CFLAGS == null
+        assert buildSettings.OTHER_LDFLAGS == null
+        assert buildSettings.OTHER_SWIFT_FLAGS == null
+        assert buildSettings.SWIFT_INSTALL_OBJC_HEADER == null
+        assert buildSettings.SWIFT_OBJC_INTERFACE_HEADER_NAME == null
+    }
+
+    void assertTargetIsIndexer(ProjectFile.PBXTarget target, String expectedProductName) {
+        assert target.productName == expectedProductName
+        assert target.name.startsWith("[INDEXING ONLY] $expectedProductName")
+        assert target.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG]
+        assert target.buildConfigurationList.buildConfigurations[0].buildSettings.PRODUCT_NAME == expectedProductName
+        assert target.buildConfigurationList.buildConfigurations[0].buildSettings.SWIFT_INCLUDE_PATHS == null
     }
 }

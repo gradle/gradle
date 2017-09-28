@@ -44,7 +44,7 @@ int main () {
 #endif
 
 void DLL_FUNC outputLibraryPlatform();
-        """);
+        """)
     }
 
 

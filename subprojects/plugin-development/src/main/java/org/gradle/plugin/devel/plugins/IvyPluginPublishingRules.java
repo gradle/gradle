@@ -65,7 +65,7 @@ class IvyPluginPublishingRules extends RuleSource {
     }
 
     private void createIvyPluginPublication(SoftwareComponent component, PublicationContainer publications) {
-        IvyPublication publication = publications.create("pluginIvy", IvyPublication.class);
+        IvyPublication publication = publications.maybeCreate("pluginIvy", IvyPublication.class);
         publication.from(component);
     }
 

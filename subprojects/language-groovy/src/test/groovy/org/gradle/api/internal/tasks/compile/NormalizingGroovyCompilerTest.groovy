@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.tasks.compile
+
 import groovy.transform.InheritConstructors
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.compile.CompileOptions

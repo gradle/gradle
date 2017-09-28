@@ -439,7 +439,6 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     /**
      * Whether to allow the build to continue if there are warnings.
      */
-    @Input
     @Override
     public boolean getIgnoreFailures() {
         return ignoreFailures;

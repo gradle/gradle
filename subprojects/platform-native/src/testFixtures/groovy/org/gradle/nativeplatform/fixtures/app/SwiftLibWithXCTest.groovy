@@ -20,16 +20,16 @@ import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.test.fixtures.file.TestFile
 
 class SwiftLibWithXCTest extends XCTestSourceElement {
-    final lib = new SwiftLib()
-    final test = new SwiftLibTest(lib.greeter, lib.sum, lib.multiply)
+    final main = new SwiftLib()
+    final test = new SwiftLibTest(main.greeter, main.sum, main.multiply)
 
     List<XCTestSourceFileElement> testSuites = test.testSuites
 
-    List<SourceFile> files = lib.files + test.files
+    List<SourceFile> files = main.files + test.files
 
     @Override
     void writeToProject(TestFile projectDir) {
-        lib.writeToProject(projectDir)
+        main.writeToProject(projectDir)
         test.writeToProject(projectDir)
     }
 }

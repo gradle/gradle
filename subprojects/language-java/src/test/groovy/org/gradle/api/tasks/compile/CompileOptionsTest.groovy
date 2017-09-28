@@ -16,135 +16,200 @@
 
 package org.gradle.api.tasks.compile
 
-import org.junit.Before
-import org.junit.Test
+import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.internal.file.collections.SimpleFileCollection
+import spock.lang.Specification
+import spock.lang.Unroll
 
-import static org.gradle.util.Matchers.isEmpty
-import static org.junit.Assert.*
-
-class CompileOptionsTest {
-    static final Map TEST_DEBUG_OPTION_MAP = [someDebugOption: 'someDebugOptionValue']
-    static final Map TEST_FORK_OPTION_MAP = [someForkOption: 'someForkOptionValue']
+class CompileOptionsTest extends Specification {
+    static final TEST_DEBUG_OPTION_MAP = [someDebugOption: 'someDebugOptionValue']
+    static final TEST_FORK_OPTION_MAP = [someForkOption: 'someForkOptionValue']
 
     CompileOptions compileOptions
 
-    @Before public void setUp()  {
+    def setup()  {
         compileOptions = new CompileOptions()
         compileOptions.debugOptions = [optionMap: {TEST_DEBUG_OPTION_MAP}] as DebugOptions
         compileOptions.forkOptions = [optionMap: {TEST_FORK_OPTION_MAP}] as ForkOptions
     }
 
-    @Test public void testCompileOptions() {
-        assertTrue(compileOptions.debug)
-        assertTrue(compileOptions.failOnError)
-        assertTrue(compileOptions.warnings)
+    @SuppressWarnings("GrDeprecatedAPIUsage")
+    def "default compile options"() {
+        expect:
+        compileOptions.debug
+        compileOptions.failOnError
+        compileOptions.warnings
 
-        assertFalse(compileOptions.deprecation)
-        assertFalse(compileOptions.listFiles)
-        assertFalse(compileOptions.verbose)
-        assertFalse(compileOptions.fork)
+        !compileOptions.deprecation
+        !compileOptions.listFiles
+        !compileOptions.verbose
+        !compileOptions.fork
 
-        assertThat(compileOptions.compilerArgs, isEmpty())
-        assertNull(compileOptions.encoding)
-        assertNull(compileOptions.bootClasspath)
-        assertNull(compileOptions.extensionDirs)
+        compileOptions.compilerArgs.empty
+        compileOptions.encoding == null
+        compileOptions.bootClasspath == null
+        compileOptions.bootstrapClasspath == null
+        compileOptions.extensionDirs == null
 
-        assertNotNull(compileOptions.forkOptions)
-        assertNotNull(compileOptions.debugOptions)
+        compileOptions.forkOptions != null
+        compileOptions.debugOptions != null
     }
 
-    @Test public void testOptionMapForDebugOptions() {
+    def "option map for debug options"() {
         Map optionMap = compileOptions.optionMap()
-        assertEquals(optionMap.subMap(TEST_DEBUG_OPTION_MAP.keySet()), TEST_DEBUG_OPTION_MAP)
-        assertEquals(optionMap.subMap(TEST_FORK_OPTION_MAP.keySet()), TEST_FORK_OPTION_MAP)
+        expect:
+        optionMap.subMap(TEST_DEBUG_OPTION_MAP.keySet()) == TEST_DEBUG_OPTION_MAP
+        optionMap.subMap(TEST_FORK_OPTION_MAP.keySet()) == TEST_FORK_OPTION_MAP
     }
 
-    @Test public void testOptionMapWithNullables() {
-        Map optionMap = compileOptions.optionMap()
-        Map nullables = [
-                encoding: 'encoding',
-                bootClasspath: 'bootClasspath',
-                extensionDirs: 'extdirs'
-        ]
-        nullables.each {String field, String antProperty ->
-            assertFalse(optionMap.keySet().contains(antProperty))
-        }
+    @Unroll
+    def "option map with nullable #option"() {
+        expect:
+        !compileOptions.optionMap().keySet().contains(option)
 
-        nullables.keySet().each {compileOptions."$it" = "${it}Value"}
+        when:
+        compileOptions."$property" = "${property}Value"
+
+        then:
+        compileOptions.optionMap()[option] == "${property}Value"
+
+        where:
+        property             | option
+        "encoding"           | "encoding"
+        "extensionDirs"      | "extdirs"
+    }
+
+    @Unroll
+    def "option map with true/false #property"() {
+        when:
+        compileOptions."$property" = true
+        Map optionMap = compileOptions.optionMap()
+
+        then:
+        optionMap[option] == !(option == "nowarn")
+
+        when:
+        compileOptions."$property" = false
         optionMap = compileOptions.optionMap()
-        nullables.each {String field, String antProperty ->
-            assertEquals("${field}Value" as String, optionMap[antProperty])
-        }
+
+        then:
+        optionMap[option] == (option == "nowarn")
+
+        where:
+        property      | option
+        "failOnError" | "failOnError"
+        "verbose"     | "verbose"
+        "listFiles"   | "listFiles"
+        "deprecation" | "deprecation"
+        "warnings"    | "nowarn"
+        "debug"       | "debug"
+
     }
 
-    @Test public void testOptionMapWithTrueFalseValues() {
-        Map booleans = [
-                failOnError: 'failOnError',
-                verbose: 'verbose',
-                listFiles: 'listFiles',
-                deprecation: 'deprecation',
-                warnings: 'nowarn',
-                debug: 'debug'
-        ]
-        booleans.keySet().each {compileOptions."$it" = true}
-        Map optionMap = compileOptions.optionMap()
-        booleans.values().each {
-            if (it.equals('nowarn')) {
-                assertEquals(false, optionMap[it])
-            } else {
-                assertEquals(true, optionMap[it])
-            }
-        }
-        booleans.keySet().each {compileOptions."$it" = false}
-        optionMap = compileOptions.optionMap()
-        booleans.values().each {
-            if (it.equals('nowarn')) {
-                assertEquals(true, optionMap[it])
-            } else {
-                assertEquals(false, optionMap[it])
-            }
-        }
+    @Unroll
+    def "with exclude #option from option map"() {
+        compileOptions.compilerArgs = ["-value=something"]
+
+        expect:
+        !compileOptions.optionMap().containsKey(option)
+
+        where:
+        option << ['debugOptions', 'forkOptions', 'compilerArgs']
     }
 
-    @Test public void testWithExcludeFieldsFromOptionMap() {
-      compileOptions.compilerArgs = [[value: 'something']]
-        Map optionMap = compileOptions.optionMap()
-        ['debugOptions', 'forkOptions', 'compilerArgs'].each {
-            assertFalse(optionMap.containsKey(it))
-        }
-    }
-
-    @Test public void testFork() {
+    def "fork"() {
         compileOptions.fork = false
         boolean forkUseCalled = false
+
         compileOptions.forkOptions = [define: {Map args ->
             forkUseCalled = true
-            assertEquals(TEST_FORK_OPTION_MAP, args)
+            assert args == TEST_FORK_OPTION_MAP
         }] as ForkOptions
-        assert compileOptions.fork(TEST_FORK_OPTION_MAP).is(compileOptions)
-        assertTrue(compileOptions.fork)
-        assertTrue(forkUseCalled)
+
+        expect:
+        compileOptions.fork(TEST_FORK_OPTION_MAP).is(compileOptions)
+        compileOptions.fork
+        forkUseCalled
     }
 
-    @Test public void testDebug() {
+    def "debug"() {
         compileOptions.debug = false
         boolean debugUseCalled = false
+
         compileOptions.debugOptions = [define: {Map args ->
             debugUseCalled = true
-            assertEquals(TEST_DEBUG_OPTION_MAP, args)
+            args == TEST_DEBUG_OPTION_MAP
         }] as DebugOptions
+
+        expect:
         assert compileOptions.debug(TEST_DEBUG_OPTION_MAP).is(compileOptions)
-        assertTrue(compileOptions.debug)
-        assertTrue(debugUseCalled)
+        compileOptions.debug
+        debugUseCalled
     }
 
-    @Test public void testDefine() {
+    @SuppressWarnings("GrDeprecatedAPIUsage")
+    def "define"() {
         compileOptions.debug = false
         compileOptions.bootClasspath = 'xxxx'
         compileOptions.fork = false
         compileOptions.define(debug: true, bootClasspath: null)
-        assertTrue(compileOptions.debug)
-        assertNull(compileOptions.bootClasspath)
-        assertFalse(compileOptions.fork)
+
+        expect:
+        compileOptions.debug
+        compileOptions.bootClasspath == null
+        compileOptions.bootstrapClasspath == null
+        !compileOptions.fork
+    }
+
+    @SuppressWarnings("GrDeprecatedAPIUsage")
+    def "boot classpath is reflected via deprecated property"() {
+        def bootstrapClasspath = Mock(FileCollectionInternal)
+
+        when:
+        compileOptions.bootstrapClasspath = bootstrapClasspath
+
+        then:
+        compileOptions.bootstrapClasspath == bootstrapClasspath
+
+        when:
+        def deprecatedPath = compileOptions.bootClasspath
+
+        then:
+        deprecatedPath == "resolved"
+        1 * bootstrapClasspath.getAsPath() >> "resolved"
+        0 * _
+    }
+
+    @SuppressWarnings("GrDeprecatedAPIUsage")
+    def "setting deprecated bootClasspath resets bootstrapClasspath"() {
+        given:
+        compileOptions.bootstrapClasspath = new SimpleFileCollection(new File("lib1.jar"))
+
+        when:
+        compileOptions.bootClasspath = "lib2.jar"
+
+        then:
+        compileOptions.bootClasspath == "lib2.jar"
+    }
+
+    @SuppressWarnings("GrDeprecatedAPIUsage")
+    def "setting deprecated bootClasspath sets bootstrapClasspath"() {
+        given:
+        compileOptions.bootClasspath = "lib2.jar"
+
+        expect:
+        compileOptions.bootstrapClasspath.files as List == [new File("lib2.jar")]
+    }
+
+    @SuppressWarnings("GrDeprecatedAPIUsage")
+    def "setting bootstrapClasspath sets deprecated bootClasspath"() {
+        given:
+        compileOptions.bootClasspath = "lib1.jar"
+
+        when:
+        compileOptions.bootstrapClasspath = new SimpleFileCollection(new File("lib2.jar"))
+
+        then:
+        compileOptions.bootClasspath == "lib2.jar"
     }
 }

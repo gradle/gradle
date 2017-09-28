@@ -20,7 +20,7 @@ package org.gradle.nativeplatform.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 
-public class ExeWithDiamondDependencyHelloWorldApp extends ExeWithLibraryUsingLibraryHelloWorldApp {
+class ExeWithDiamondDependencyHelloWorldApp extends ExeWithLibraryUsingLibraryHelloWorldApp {
 
     @Override
     String getEnglishOutput() {

@@ -42,7 +42,7 @@ trait HttpServerFixture {
     private boolean logRequests = true
     private final Set<String> authenticationAttempts = Sets.newLinkedHashSet()
     private boolean configured
-    private boolean enablePortAllocator
+    private boolean portAllocatorEnabled
 
     Server getServer() {
         server
@@ -91,7 +91,7 @@ trait HttpServerFixture {
     }
 
     void enablePortAllocator() {
-        this.enablePortAllocator = true
+        this.portAllocatorEnabled = true
     }
 
     void start() {
@@ -105,7 +105,7 @@ trait HttpServerFixture {
         }
 
         connector = new SocketConnector()
-        connector.port = enablePortAllocator ? FixedAvailablePortAllocator.instance.assignPort() : 0
+        connector.port = portAllocatorEnabled ? FixedAvailablePortAllocator.instance.assignPort() : 0
         server.addConnector(connector)
         server.start()
         for (int i = 0; i < 5; i++) {

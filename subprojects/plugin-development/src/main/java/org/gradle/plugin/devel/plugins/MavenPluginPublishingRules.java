@@ -63,7 +63,7 @@ class MavenPluginPublishingRules extends RuleSource {
         }
     }
     private void createMavenPluginPublication(SoftwareComponent component, PublicationContainer publications) {
-        MavenPublication publication = publications.create("pluginMaven", MavenPublication.class);
+        MavenPublication publication = publications.maybeCreate("pluginMaven", MavenPublication.class);
         publication.from(component);
     }
 

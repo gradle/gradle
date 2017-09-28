@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,15 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
-import org.gradle.integtests.fixtures.SourceFile
-
-
-abstract class CommonHeaderHelloWorldApp extends HelloWorldApp {
-    abstract SourceFile getCommonHeader()
-
-    abstract String getSourceSetType()
+/**
+ * A Swift app composed of 2 modules: an executable and a library.
+ */
+class SwiftAppWithLibraryTest implements AppElement {
+    final library = new SwiftLibWithXCTest()
+    final executable = new SwiftAppWithDep(library.main, library.main)
 
     @Override
-    TestNativeComponent getLibrary() {
-        return new TestNativeComponent() {
-            @Override
-            List<SourceFile> getSourceFiles() {
-                return getLibrarySources()
-            }
-
-            @Override
-            List<SourceFile> getHeaderFiles() {
-                return Arrays.asList(getLibraryHeader(), getCommonHeader())
-            }
-        }
+    String getExpectedOutput() {
+        return executable.expectedOutput
     }
 }

@@ -25,7 +25,7 @@ import static org.gradle.util.Matchers.containsText
 class XcodeErrorIntegrationTest extends AbstractXcodeIntegrationSpec {
     @Requires(TestPrecondition.XCODE)
     def "fails to build when project code is broken"() {
-        executer.requireGradleDistribution()
+        useXcodebuildTool()
 
         given:
         buildFile << """

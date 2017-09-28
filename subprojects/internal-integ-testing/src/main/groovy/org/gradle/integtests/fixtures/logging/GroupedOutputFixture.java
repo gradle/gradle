@@ -55,14 +55,14 @@ public class GroupedOutputFixture {
     /**
      * Pattern to extract task output.
      */
-    private static final Pattern TASK_OUTPUT_PATTERN;
+    private static final String TASK_OUTPUT_PATTERN;
 
     static {
-        String precompiledPattern = "(?ms)";
-        precompiledPattern += TASK_HEADER;
+        String pattern = "(?ms)";
+        pattern += TASK_HEADER;
         // Capture all output, lazily up until two new lines and an END_OF_TASK designation
-        precompiledPattern += "((.|\\n)*?(?=[^\\n]*?" + END_OF_TASK_OUTPUT + "))";
-        TASK_OUTPUT_PATTERN = Pattern.compile(precompiledPattern);
+        pattern += "([\\s\\S]*?(?=[^\\n]*?" + END_OF_TASK_OUTPUT + "))";
+        TASK_OUTPUT_PATTERN = pattern;
     }
 
 
@@ -79,7 +79,7 @@ public class GroupedOutputFixture {
         tasks = new HashMap<String, GroupedTaskFixture>();
 
         String strippedOutput = stripAnsiCodes(stripWorkInProgressArea(output));
-        Matcher matcher = TASK_OUTPUT_PATTERN.matcher(strippedOutput);
+        Matcher matcher = Pattern.compile(TASK_OUTPUT_PATTERN).matcher(strippedOutput);
         while (matcher.find()) {
             String taskName = matcher.group(1);
             String taskOutput = matcher.group(2);

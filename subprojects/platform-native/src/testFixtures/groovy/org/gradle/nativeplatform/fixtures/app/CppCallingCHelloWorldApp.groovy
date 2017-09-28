@@ -16,9 +16,9 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
-import org.gradle.integtests.fixtures.SourceFile;
+import org.gradle.integtests.fixtures.SourceFile
 
-public class CppCallingCHelloWorldApp extends HelloWorldApp {
+class CppCallingCHelloWorldApp extends HelloWorldApp {
     @Override
     List<String> getPluginList() {
         return ['c', 'cpp']
@@ -51,7 +51,7 @@ public class CppCallingCHelloWorldApp extends HelloWorldApp {
 
             void DLL_FUNC sayHello();
             int DLL_FUNC sum(int a, int b);
-        """);
+        """)
     }
 
     List<SourceFile> librarySources = [
