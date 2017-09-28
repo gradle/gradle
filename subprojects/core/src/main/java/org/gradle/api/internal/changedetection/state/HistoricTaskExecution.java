@@ -24,16 +24,16 @@ import org.gradle.api.NonNullApi;
 import org.gradle.internal.id.UniqueId;
 
 /**
- * Immutable snapshot of the state of a task when it was executed.
+ * State of a task when it was executed.
  */
 @NonNullApi
-public class TaskExecutionSnapshot extends AbstractTaskExecution {
+public class HistoricTaskExecution extends AbstractTaskExecution {
     private final boolean successful;
     private final ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot;
     private final FileCollectionSnapshot discoveredInputFilesSnapshot;
     private final ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot;
 
-    public TaskExecutionSnapshot(boolean successful, UniqueId buildInvocationId, ImplementationSnapshot taskImplementation, ImmutableList<ImplementationSnapshot> taskActionsImplementations, ImmutableSortedSet<String> cacheableOutputProperties, ImmutableSet<String> declaredOutputFilePaths, ImmutableSortedMap<String, ValueSnapshot> inputProperties, ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot, FileCollectionSnapshot discoveredInputFilesSnapshot, ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot) {
+    public HistoricTaskExecution(boolean successful, UniqueId buildInvocationId, ImplementationSnapshot taskImplementation, ImmutableList<ImplementationSnapshot> taskActionsImplementations, ImmutableSortedSet<String> cacheableOutputProperties, ImmutableSet<String> declaredOutputFilePaths, ImmutableSortedMap<String, ValueSnapshot> inputProperties, ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot, FileCollectionSnapshot discoveredInputFilesSnapshot, ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot) {
         super(buildInvocationId, taskImplementation, taskActionsImplementations, inputProperties, cacheableOutputProperties, declaredOutputFilePaths);
         this.successful = successful;
         this.inputFilesSnapshot = inputFilesSnapshot;

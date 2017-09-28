@@ -61,7 +61,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CacheBackedTaskHistoryRepository.class);
 
-    private final PersistentIndexedCache<String, TaskExecutionSnapshot> taskHistoryCache;
+    private final PersistentIndexedCache<String, HistoricTaskExecution> taskHistoryCache;
     private final StringInterner stringInterner;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ValueSnapshotter valueSnapshotter;
@@ -95,11 +95,11 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
         return new History() {
             private boolean previousExecutionLoadAttempted;
-            private TaskExecutionSnapshot previousExecution;
+            private HistoricTaskExecution previousExecution;
             private CurrentTaskExecution currentExecution;
 
             @Override
-            public TaskExecutionSnapshot getPreviousExecution() {
+            public HistoricTaskExecution getPreviousExecution() {
                 if (!previousExecutionLoadAttempted) {
                     previousExecutionLoadAttempted = true;
                     previousExecution = loadPreviousExecution(task);
@@ -127,13 +127,13 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
             @Override
             public void persist() {
-                taskHistoryCache.put(task.getPath(), getCurrentExecution().snapshot());
+                taskHistoryCache.put(task.getPath(), getCurrentExecution().archive());
             }
 
         };
     }
 
-    private CurrentTaskExecution createExecution(TaskInternal task, @Nullable TaskExecutionSnapshot previousExecution, InputNormalizationStrategy normalizationStrategy) {
+    private CurrentTaskExecution createExecution(TaskInternal task, @Nullable HistoricTaskExecution previousExecution, InputNormalizationStrategy normalizationStrategy) {
         Class<? extends TaskInternal> taskClass = task.getClass();
         List<ContextAwareTaskAction> taskActions = task.getTaskActions();
         ImplementationSnapshot taskImplementation = new ImplementationSnapshot(taskClass.getName(), classLoaderHierarchyHasher.getClassLoaderHash(taskClass.getClassLoader()));
@@ -178,7 +178,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         );
     }
 
-    private void updateExecution(@Nullable final TaskExecutionSnapshot previousExecution, CurrentTaskExecution currentExecution, TaskInternal task, IncrementalTaskInputsInternal taskInputs, InputNormalizationStrategy normalizationStrategy) {
+    private void updateExecution(@Nullable final HistoricTaskExecution previousExecution, CurrentTaskExecution currentExecution, TaskInternal task, IncrementalTaskInputsInternal taskInputs, InputNormalizationStrategy normalizationStrategy) {
         final ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesAfter = snapshotTaskFiles(task, "Output", normalizationStrategy, task.getOutputs().getFileProperties(), snapshotterRegistry);
 
         ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot;
@@ -364,7 +364,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     }
 
     @Nullable
-    private TaskExecutionSnapshot loadPreviousExecution(TaskInternal task) {
+    private HistoricTaskExecution loadPreviousExecution(TaskInternal task) {
         return taskHistoryCache.get(task.getPath());
     }
 
