@@ -18,7 +18,6 @@ package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.ide.xcode.fixtures.XcodebuildExecuter
-import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithXCTest
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
