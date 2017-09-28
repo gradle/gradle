@@ -16,13 +16,15 @@
 
 package org.gradle.smoketests
 
+import org.gradle.smoketests.fixtures.AndroidConfiguration
+
 import static org.gradle.smoketests.AndroidPluginsSmokeTest.assertAndroidHomeSet
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class KotlinPluginSmokeTest extends AbstractSmokeTest {
     private kotlinVersion = '1.1.1'
-    private androidPluginVersion = AndroidPluginsSmokeTest.ANDROID_PLUGIN_VERSION
-    private androidBuildToolsVersion = AndroidPluginsSmokeTest.ANDROID_BUILD_TOOLS_VERSION
+    private androidPluginVersion = AndroidConfiguration.STABLE.pluginVersion
+    private androidBuildToolsVersion = AndroidConfiguration.STABLE.buildToolsVersion
 
     def 'kotlin plugin'() {
         given:

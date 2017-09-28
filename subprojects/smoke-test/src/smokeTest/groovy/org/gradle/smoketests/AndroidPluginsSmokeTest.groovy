@@ -16,66 +16,25 @@
 
 package org.gradle.smoketests
 
+import org.gradle.smoketests.fixtures.AndroidConfiguration
 import org.gradle.testkit.runner.TaskOutcome
+import org.gradle.util.Requires
+import spock.lang.Ignore
+
+import static org.gradle.smoketests.fixtures.AndroidSmokeTestFixture.*
 
 /**
  * For these tests to run you need to set ANDROID_HOME to your Android SDK directory
  */
 class AndroidPluginsSmokeTest extends AbstractSmokeTest {
-    public static final ANDROID_PLUGIN_VERSION = '2.3.1'
-    public static final ANDROID_BUILD_TOOLS_VERSION = '25.0.0'
 
     def setup() {
         assertAndroidHomeSet()
     }
 
-    static void assertAndroidHomeSet() {
-        assert System.getenv().containsKey('ANDROID_HOME'): '''
-            In order to run these tests the ANDROID_HOME directory must be set.
-            It is not necessary to install the whole android SDK via Android Studio - it is enough if there is a $ANDROID_HOME/licenses/android-sdk-license containing the license keys from an Android Studio installation.
-            The Gradle Android plugin will then download the SDK by itself, see https://developer.android.com/studio/intro/update.html#download-with-gradle
-        '''.stripIndent()
-    }
-
     def "android application plugin"() {
         given:
-
-        def basedir='.'
-
-        def packageName = 'org.gradle.android.example'
-        def activity = 'MyActivity'
-        writeActivity(basedir, packageName, activity)
-
-        file("${basedir}/src/main/res/values/strings.xml") << '''<?xml version="1.0" encoding="utf-8"?>
-            <resources>
-                <string name="app_name">Android Gradle</string>
-            </resources>'''.stripIndent()
-
-
-        file('src/main/AndroidManifest.xml') << """<?xml version="1.0" encoding="utf-8"?>
-            <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-                package="${packageName}">
-
-                <application android:label="@string/app_name" >
-                    <activity
-                        android:name=".${activity}"
-                        android:label="@string/app_name" >
-                        <intent-filter>
-                            <action android:name="android.intent.action.MAIN" />
-                            <category android:name="android.intent.category.LAUNCHER" />
-                        </intent-filter>
-                    </activity>
-                </application>
-
-            </manifest>""".stripIndent()
-
-        buildFile << buildscript() << """
-            apply plugin: 'com.android.application'
-
-           ${jcenterRepository()}
-
-            android.defaultConfig.applicationId "org.gradle.android.myapplication"
-        """.stripIndent() << androidPluginConfiguration() << activityDependency()
+        setupAndroidApplication()
 
         when:
         def result = runner('androidDependencies', 'build', '-x', 'lint').build()
@@ -87,72 +46,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
 
     def "android library plugin"() {
         given:
-
-        def app = 'app'
-        def appPackage = 'org.gradle.android.example.app'
-        def appActivity = 'AppActivity'
-
-        def library = 'library'
-        def libPackage = 'org.gradle.android.example.library'
-        def libraryActivity = 'LibraryActivity'
-
-        writeActivity(library, libPackage, libraryActivity)
-        file("${library}/src/main/AndroidManifest.xml") << """<?xml version="1.0" encoding="utf-8"?>
-            <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-                package="${libPackage}">
-            </manifest>""".stripIndent()
-
-        writeActivity(app, appPackage, appActivity)
-        file("${app}/src/main/AndroidManifest.xml") << """<?xml version="1.0" encoding="utf-8"?>
-            <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-                package="${appPackage}">
-
-                <application android:label="@string/app_name" >
-                    <activity
-                        android:name=".${appActivity}"
-                        android:label="@string/app_name" >
-                        <intent-filter>
-                            <action android:name="android.intent.action.MAIN" />
-                            <category android:name="android.intent.category.LAUNCHER" />
-                        </intent-filter>
-                    </activity>
-                    <activity
-                        android:name="${libPackage}.${libraryActivity}">
-                    </activity>
-                </application>
-
-            </manifest>""".stripIndent()
-        file("${app}/src/main/res/values/strings.xml") << '''<?xml version="1.0" encoding="utf-8"?>
-            <resources>
-                <string name="app_name">Android Gradle</string>
-            </resources>'''.stripIndent()
-
-        file('settings.gradle') << """
-            include ':${app}'
-            include ':${library}'
-        """
-
-        file('build.gradle') << buildscript() << """
-            subprojects {
-                ${jcenterRepository()}
-            }
-        """
-
-        file("${app}/build.gradle") << """
-            apply plugin: 'com.android.application'
-
-            android.defaultConfig.applicationId "org.gradle.android.myapplication"
-
-        """.stripIndent() << androidPluginConfiguration() << activityDependency() <<
-        """
-            dependencies {
-                compile project(':${library}')
-            }
-        """.stripIndent()
-
-        file("${library}/build.gradle") << """
-            apply plugin: 'com.android.library'
-            """.stripIndent() << androidPluginConfiguration() << activityDependency()
+        setupAndroidLibrary()
 
         when:
         def result = runner('build', '-x', 'lint').build()
@@ -163,27 +57,20 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':app:compileReleaseJavaWithJavac').outcome == TaskOutcome.SUCCESS
     }
 
-    private String activityDependency() {
-        """
-            dependencies {
-                compile 'joda-time:joda-time:2.7'
-            }
-        """
-    }
+    // TODO: Requires automated set up and tear down of headless emulator
+    @Ignore
+    @Requires(adhoc = { !System.getenv().containsKey('CI') })
+    def "android instrumented tests"() {
+        given:
+        setupAndroidApplication(AndroidConfiguration.BETA)
+        file('src/androidTest/java/SampleTest.java') << instrumentedTest()
+        buildFile << androidInstrumentedTestConfiguration()
 
-    private String buildscript() {
-        """
-            buildscript {
-                ${jcenterRepository()}
+        when:
+        def result = runner('connectedAndroidTest').forwardOutput().build()
 
-
-                dependencies {
-                    classpath 'com.android.tools.build:gradle:${ANDROID_PLUGIN_VERSION}'
-                }
-            }
-
-            System.properties['com.android.build.gradle.overrideVersionCheck'] = 'true'
-        """.stripIndent()
+        then:
+        result.task(':connectedAndroidTest').outcome == TaskOutcome.SUCCESS
     }
 
     private writeActivity(String basedir, String packageName, String className) {
@@ -230,28 +117,110 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
             </LinearLayout>'''.stripIndent()
     }
 
-    def androidPluginConfiguration() {
-        """
-            android {
-                compileSdkVersion 22
-                buildToolsVersion "${ANDROID_BUILD_TOOLS_VERSION}"
+    private void setupAndroidApplication(AndroidConfiguration androidConfiguration = AndroidConfiguration.STABLE) {
+        def basedir='.'
+        def packageName = 'org.gradle.android.example'
+        def activity = 'MyActivity'
+        writeActivity(basedir, packageName, activity)
 
-                defaultConfig {
-                    minSdkVersion 22
-                    targetSdkVersion 23
-                    versionCode 1
-                    versionName "1.0"
-                }
-                compileOptions {
-                    sourceCompatibility JavaVersion.VERSION_1_7
-                    targetCompatibility JavaVersion.VERSION_1_7
-                }
-                buildTypes {
-                    release {
-                        minifyEnabled false
-                    }
-                }
+        file("${basedir}/src/main/res/values/strings.xml") << '''<?xml version="1.0" encoding="utf-8"?>
+            <resources>
+                <string name="app_name">Android Gradle</string>
+            </resources>'''.stripIndent()
+
+
+        file('src/main/AndroidManifest.xml') << """<?xml version="1.0" encoding="utf-8"?>
+            <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+                package="${packageName}">
+
+                <application android:label="@string/app_name" >
+                    <activity
+                        android:name=".${activity}"
+                        android:label="@string/app_name" >
+                        <intent-filter>
+                            <action android:name="android.intent.action.MAIN" />
+                            <category android:name="android.intent.category.LAUNCHER" />
+                        </intent-filter>
+                    </activity>
+                </application>
+
+            </manifest>""".stripIndent()
+
+        buildFile << buildscript(androidConfiguration.pluginVersion) << """
+            apply plugin: 'com.android.application'
+
+            ${googleRepository()}
+            ${jcenterRepository()}
+
+            android.defaultConfig.applicationId "org.gradle.android.myapplication"
+        """.stripIndent() << androidPluginConfiguration(androidConfiguration) << activityDependency()
+    }
+
+    private void setupAndroidLibrary(AndroidConfiguration androidConfiguration = AndroidConfiguration.STABLE) {
+        def app = 'app'
+        def appPackage = 'org.gradle.android.example.app'
+        def appActivity = 'AppActivity'
+
+        def library = 'library'
+        def libPackage = 'org.gradle.android.example.library'
+        def libraryActivity = 'LibraryActivity'
+
+        writeActivity(library, libPackage, libraryActivity)
+        file("${library}/src/main/AndroidManifest.xml") << """<?xml version="1.0" encoding="utf-8"?>
+            <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+                package="${libPackage}">
+            </manifest>""".stripIndent()
+
+        writeActivity(app, appPackage, appActivity)
+        file("${app}/src/main/AndroidManifest.xml") << """<?xml version="1.0" encoding="utf-8"?>
+            <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+                package="${appPackage}">
+
+                <application android:label="@string/app_name" >
+                    <activity
+                        android:name=".${appActivity}"
+                        android:label="@string/app_name" >
+                        <intent-filter>
+                            <action android:name="android.intent.action.MAIN" />
+                            <category android:name="android.intent.category.LAUNCHER" />
+                        </intent-filter>
+                    </activity>
+                    <activity
+                        android:name="${libPackage}.${libraryActivity}">
+                    </activity>
+                </application>
+
+            </manifest>""".stripIndent()
+        file("${app}/src/main/res/values/strings.xml") << '''<?xml version="1.0" encoding="utf-8"?>
+            <resources>
+                <string name="app_name">Android Gradle</string>
+            </resources>'''.stripIndent()
+
+        file('settings.gradle') << """
+            include ':${app}'
+            include ':${library}'
+        """
+
+        file('build.gradle') << buildscript(androidConfiguration.pluginVersion) << """
+            subprojects {
+                ${jcenterRepository()}
+            }
+        """
+
+        file("${app}/build.gradle") << """
+            apply plugin: 'com.android.application'
+
+            android.defaultConfig.applicationId "org.gradle.android.myapplication"
+
+        """.stripIndent() << androidPluginConfiguration(androidConfiguration) << activityDependency() <<
+            """
+            dependencies {
+                compile project(':${library}')
             }
         """.stripIndent()
+
+        file("${library}/build.gradle") << """
+            apply plugin: 'com.android.library'
+            """.stripIndent() << androidPluginConfiguration(androidConfiguration) << activityDependency()
     }
 }
