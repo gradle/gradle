@@ -102,8 +102,6 @@ The JaCoCo plugin has been upgraded to use [JaCoCo version 0.7.9](http://www.jac
 
 The `eclipse` plugin now defines separate output directories for each source folders. Also, each source folders and dependencies define an additional `gradle_source_sets` classpath attribute. The attribute contains a comma-separated list of source sets which contains the element. Future [Buildship](http://eclipse.org/buildship) versions will use this information to separate source sets when launching Java applications within Eclipse.
 
-TODO (donat) add a potential breaking change: `eclipse` plugin default output location changed to `bin/default`
-
 <!--
 ### Example new and noteworthy
 -->
@@ -187,6 +185,10 @@ There are better ways for re-using task logic, for example by using [task depend
 - `AbstractNativeCompileTask.compilerArgs` changed type to `ListProperty<String>` from `List<String>`.
 - `AbstractNativeCompileTask.objectFileDir` changed type to `DirectoryVar` from `File`.
 - `AbstractLinkTask.linkerArgs` changed type to `ListProperty<String>` from `List<String>`.
+
+## Changes in the `eclipse` plugin
+
+The default output location in [EclipseClasspath](dsl/org.gradle.plugins.ide.eclipse.model.EclipseClasspath.html#org.gradle.plugins.ide.eclipse.model.EclipseClasspath:defaultOutputDir) changed from `${project.projectDir}/bin` to `${project.projectDir}/bin/default`.
 
 ## External contributions
 
