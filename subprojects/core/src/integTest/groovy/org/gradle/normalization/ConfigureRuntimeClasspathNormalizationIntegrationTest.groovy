@@ -22,8 +22,8 @@ import spock.lang.Unroll
 
 @Unroll
 class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractIntegrationSpec {
-    def "can ignore files on runtime classpath in #tree"() {
-        def project = new ProjectWithRuntimeClasspathNormalization().withFilesIgnored()
+    def "can ignore files on runtime classpath in #tree (using runtime API: #useRuntimeApi)"() {
+        def project = new ProjectWithRuntimeClasspathNormalization(useRuntimeApi).withFilesIgnored()
 
         def ignoredResource = project[ignoredResourceName]
         def notIgnoredResource = project[notIgnoredResourceName]
@@ -65,14 +65,16 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         skippedTasks.contains(project.customTask)
 
         where:
-        tree          | ignoredResourceName          | notIgnoredResourceName
-        'directories' | 'ignoredResourceInDirectory' | 'notIgnoredResourceInDirectory'
-        'jars'        | 'ignoredResourceInJar'       | 'notIgnoredResourceInJar'
+        tree          | ignoredResourceName          | notIgnoredResourceName          | useRuntimeApi
+        'directories' | 'ignoredResourceInDirectory' | 'notIgnoredResourceInDirectory' | true
+        'jars'        | 'ignoredResourceInJar'       | 'notIgnoredResourceInJar'       | true
+        'directories' | 'ignoredResourceInDirectory' | 'notIgnoredResourceInDirectory' | false
+        'jars'        | 'ignoredResourceInJar'       | 'notIgnoredResourceInJar'       | false
     }
 
-    def "can configure ignore rules per project"() {
-        def projectWithIgnores = new ProjectWithRuntimeClasspathNormalization('a').withFilesIgnored()
-        def projectWithoutIgnores = new ProjectWithRuntimeClasspathNormalization('b')
+    def "can configure ignore rules per project (using runtime API: #useRuntimeApi)"() {
+        def projectWithIgnores = new ProjectWithRuntimeClasspathNormalization('a', useRuntimeApi).withFilesIgnored()
+        def projectWithoutIgnores = new ProjectWithRuntimeClasspathNormalization('b', useRuntimeApi)
         def allProjects = [projectWithoutIgnores, projectWithIgnores]
         settingsFile << "include 'a', 'b'"
 
@@ -88,10 +90,13 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         then:
         skippedTasks.contains(projectWithIgnores.customTask)
         nonSkippedTasks.contains(projectWithoutIgnores.customTask)
+
+        where:
+        useRuntimeApi << [true, false]
     }
 
-    def "runtime classpath normalization cannot be changed after first usage"() {
-        def project = new ProjectWithRuntimeClasspathNormalization()
+    def "runtime classpath normalization cannot be changed after first usage (using runtime API: #useRuntimeApi)"() {
+        def project = new ProjectWithRuntimeClasspathNormalization(useRuntimeApi)
         project.buildFile << """ 
             task configureNormalization() {
                 dependsOn '${project.customTask}'
@@ -110,6 +115,9 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
 
         then:
         failureHasCause 'Cannot configure input normalization after execution started.'
+
+        where:
+        useRuntimeApi << [true, false]
     }
 
     class ProjectWithRuntimeClasspathNormalization {
@@ -123,24 +131,15 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         private final String projectName
         final TestFile buildFile
 
-        ProjectWithRuntimeClasspathNormalization(String projectName = null) {
+        ProjectWithRuntimeClasspathNormalization(String projectName = null, boolean useRuntimeApi) {
             this.projectName = projectName
             this.root = projectName ? file(projectName) : temporaryFolder.testDirectory
 
             buildFile = root.file('build.gradle') << """
                 apply plugin: 'base'
+            """
 
-                class CustomTask extends DefaultTask {
-                    @OutputFile File outputFile = new File(temporaryDir, "output.txt")
-                    @Classpath FileCollection classpath = project.files("classpath/dirEntry", "library.jar")
-
-                    @TaskAction void generate() {
-                        outputFile.text = "done"
-                    } 
-                }
-                
-                task customTask(type: CustomTask)
-            """.stripIndent()
+            buildFile << declareCustomTask(useRuntimeApi)
 
             root.file('classpath/dirEntry').create {
                 ignoredResourceInDirectory = new TestResource(file("ignored.txt") << "This should be ignored")
@@ -153,6 +152,38 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
             }
             libraryJar = root.file('library.jar')
             createJar()
+        }
+
+        String declareCustomTask(boolean useRuntimeApi) {
+            if (useRuntimeApi) {
+                return """
+                    task customTask {
+                        def outputFile = file("\$temporaryDir/output.txt")
+                        inputs.files("classpath/dirEntry", "library.jar")
+                            .withPropertyName("classpath")
+                            .withNormalizer(ClasspathNormalizer)
+                        outputs.file(outputFile)
+                            .withPropertyName("outputFile")
+
+                        doLast {
+                            outputFile.text = "done"
+                        }
+                    }
+                """
+            } else {
+                return """
+                    class CustomTask extends DefaultTask {
+                        @OutputFile File outputFile = new File(temporaryDir, "output.txt")
+                        @Classpath FileCollection classpath = project.files("classpath/dirEntry", "library.jar")
+    
+                        @TaskAction void generate() {
+                            outputFile.text = "done"
+                        } 
+                    }
+                    
+                    task customTask(type: CustomTask)
+                """
+            }
         }
 
         void createJar() {
