@@ -6,6 +6,7 @@ import org.gradle.testkit.runner.BuildResult
 
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
+
 import org.junit.Assert.assertThat
 import org.junit.Assume.assumeThat
 import org.junit.Assume.assumeTrue
@@ -18,18 +19,20 @@ import java.io.File
 
 
 @RunWith(Parameterized::class)
-class SamplesSmokeTest(val sampleDir: File) : AbstractIntegrationTest() {
+class SamplesSmokeTest(
+    private val sampleName: String,
+    private val sampleDir: File) : AbstractIntegrationTest() {
 
     companion object {
         @Parameterized.Parameters(name = "{0}")
         @JvmStatic
-        fun testCases(): Iterable<File> =
-            samplesRootDir.listFiles().filter { it.isDirectory }
+        fun testCases(): Iterable<Array<Any>> =
+            samplesRootDir.listFiles().filter { it.isDirectory }.map { arrayOf(it.name, it) }
     }
 
     @Before
     fun populateProjectRootWithSample() {
-        assumeThat(sampleDir.name, not(containsString("android")))
+        assumeThat(sampleName, not(containsString("android")))
         copySampleProject(from = sampleDir, to = projectRoot)
     }
 
