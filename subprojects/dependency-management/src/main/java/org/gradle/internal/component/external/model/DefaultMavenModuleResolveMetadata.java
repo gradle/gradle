@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.component.model.ModuleSource;
 
 import javax.annotation.Nullable;
@@ -28,12 +29,14 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     private final String packaging;
     private final boolean relocated;
     private final String snapshotTimestamp;
+    private final ImmutableList<? extends ComponentVariant> variants;
 
     DefaultMavenModuleResolveMetadata(MutableMavenModuleResolveMetadata metadata) {
         super(metadata);
         packaging = metadata.getPackaging();
         relocated = metadata.isRelocated();
         snapshotTimestamp = metadata.getSnapshotTimestamp();
+        variants = metadata.getVariants();
     }
 
     private DefaultMavenModuleResolveMetadata(DefaultMavenModuleResolveMetadata metadata, ModuleSource source) {
@@ -41,6 +44,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
         packaging = metadata.getPackaging();
         relocated = metadata.isRelocated();
         snapshotTimestamp = metadata.getSnapshotTimestamp();
+        variants = metadata.getVariants();
     }
 
     @Override
@@ -72,5 +76,10 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     @Nullable
     public String getSnapshotTimestamp() {
         return snapshotTimestamp;
+    }
+
+    @Override
+    public ImmutableList<? extends ComponentVariant> getVariants() {
+        return variants;
     }
 }

@@ -16,15 +16,6 @@
 
 package org.gradle.internal.component.external.model;
 
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-
-public interface MutableModuleMetadata {
-    /**
-     * Adds a variant to this module.
-     */
-    Variant addVariant(String variantName, ImmutableAttributes attributes);
-
-    interface Variant {
-        void addFile(String name, String uri);
-    }
+public interface MutableComponentVariant {
+    void addFile(String name, String uri);
 }

@@ -311,7 +311,16 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         def file = moduleDir.file("$artifactId-${publishArtifactVersion}-module.json")
         file.text = '''
             { 
-            "formatVersion": "0.1" 
+                "formatVersion": "0.1", 
+                "builtBy": { "gradle": { } },
+                "variants": [
+                    { 
+                        "name": "java-compile"
+                    },
+                    { 
+                        "name": "java-runtime" 
+                    }
+                ]
             }
         '''
     }

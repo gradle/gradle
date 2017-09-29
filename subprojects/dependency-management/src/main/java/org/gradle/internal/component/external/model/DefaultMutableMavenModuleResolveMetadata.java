@@ -27,7 +27,9 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import static org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata.JAR_PACKAGINGS;
@@ -37,6 +39,8 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     private String packaging = "jar";
     private boolean relocated;
     private String snapshotTimestamp;
+    private List<MutableVariantImpl> addedVariants;
+    private ImmutableList<? extends ComponentVariant> variants;
 
     /**
      * Creates default metadata given a set of artifacts.
@@ -58,6 +62,7 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
         this.packaging = metadata.getPackaging();
         this.relocated = metadata.isRelocated();
         this.snapshotTimestamp = metadata.getSnapshotTimestamp();
+        variants = metadata.getVariants();
     }
 
     @Override
@@ -107,11 +112,93 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     }
 
     @Override
-    public Variant addVariant(String variantName, ImmutableAttributes attributes) {
-        return new Variant() {
-            @Override
-            public void addFile(String name, String uri) {
-            }
-        };
+    public MutableComponentVariant addVariant(String variantName, ImmutableAttributes attributes) {
+        MutableVariantImpl variant = new MutableVariantImpl(variantName, attributes);
+        if (addedVariants == null) {
+            addedVariants = new ArrayList<MutableVariantImpl>();
+        }
+        addedVariants.add(variant);
+        return variant;
+    }
+
+    @Override
+    public ImmutableList<? extends ComponentVariant> getVariants() {
+        if (variants == null && addedVariants == null) {
+            return ImmutableList.of();
+        }
+        if (variants != null && addedVariants == null) {
+            return variants;
+        }
+        ImmutableList.Builder<ComponentVariant> builder = new ImmutableList.Builder<ComponentVariant>();
+        if (variants != null) {
+            builder.addAll(variants);
+        }
+        for (MutableVariantImpl variant : addedVariants) {
+            builder.add(new ImmutableVariantImpl(variant.name, variant.attributes, ImmutableList.copyOf(variant.files)));
+        }
+        return builder.build();
+    }
+
+    private static class MutableVariantImpl implements MutableComponentVariant {
+        private final String name;
+        private final ImmutableAttributes attributes;
+        private final List<FileImpl> files = new ArrayList<FileImpl>();
+
+        MutableVariantImpl(String name, ImmutableAttributes attributes) {
+            this.name = name;
+            this.attributes = attributes;
+        }
+
+        @Override
+        public void addFile(String name, String uri) {
+            files.add(new FileImpl(name, uri));
+        }
+    }
+
+    private static class FileImpl implements ComponentVariant.File {
+        private final String name;
+        private final String uri;
+
+        FileImpl(String name, String uri) {
+            this.name = name;
+            this.uri = uri;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public String getUri() {
+            return uri;
+        }
+    }
+
+    private static class ImmutableVariantImpl implements ComponentVariant {
+        private final String name;
+        private final ImmutableAttributes attributes;
+        private final ImmutableList<FileImpl> files;
+
+        ImmutableVariantImpl(String name, ImmutableAttributes attributes, ImmutableList<FileImpl> files) {
+            this.name = name;
+            this.attributes = attributes;
+            this.files = files;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public ImmutableAttributes getAttributes() {
+            return attributes;
+        }
+
+        @Override
+        public ImmutableList<? extends File> getFiles() {
+            return files;
+        }
     }
 }

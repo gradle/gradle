@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,28 +18,6 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 
-import javax.annotation.Nullable;
-
-public interface MutableMavenModuleResolveMetadata extends MutableModuleComponentResolveMetadata, MutableComponentVariantResolveMetadata {
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    MavenModuleResolveMetadata asImmutable();
-
-    void setSnapshotTimestamp(@Nullable String snapshotTimestamp);
-
-    @Nullable
-    String getSnapshotTimestamp();
-
-    String getPackaging();
-    void setPackaging(String packaging);
-
-    boolean isPomPackaging();
-    boolean isKnownJarPackaging();
-
-    boolean isRelocated();
-    void setRelocated(boolean relocated);
-
+public interface ComponentVariantResolveMetadata {
     ImmutableList<? extends ComponentVariant> getVariants();
 }

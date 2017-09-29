@@ -64,12 +64,14 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         expect:
         metadata.packaging == 'jar'
         !metadata.relocated
+        metadata.snapshotTimestamp == null
 
         def immutable = metadata.asImmutable()
         immutable.generated
         immutable.packaging == 'jar'
         !immutable.relocated
         immutable.configurationNames == ["compile", "runtime", "test", "provided", "system", "optional", "master", "default", "javadoc", "sources"] as Set
+        immutable.variants.empty
     }
 
     def "initialises values from descriptor state and defaults"() {
@@ -179,6 +181,47 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         copy.packaging == "pom"
         copy.relocated
         copy.contentHash == contentHash
+    }
+
+    def "can attach variants"() {
+        def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
+        def descriptor = new MutableModuleDescriptorState(id, "2", true)
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, descriptor, [])
+
+        given:
+        def v1 = metadata.addVariant("api", attributes(usage: "compile"))
+        v1.addFile("f1", "dir/f1")
+        v1.addFile("f2.jar", "f2-1.2.jar")
+        def v2 = metadata.addVariant("runtime", attributes(usage: "runtime"))
+        v2.addFile("f1", "dir/f1")
+
+        def immutable = metadata.asImmutable()
+
+        expect:
+        immutable.variants.size() == 2
+        immutable.variants[0].name == "api"
+        immutable.variants[0].attributes == attributes(usage: "compile")
+        immutable.variants[0].files.size() == 2
+        immutable.variants[0].files[0].name == "f1"
+        immutable.variants[0].files[0].uri == "dir/f1"
+        immutable.variants[1].name == "runtime"
+        immutable.variants[1].attributes == attributes(usage: "runtime")
+        immutable.variants[1].files.size() == 1
+
+        def immutable2 = immutable.asMutable().asImmutable()
+        immutable2.variants.size() == 2
+        immutable2.variants[0].name == "api"
+        immutable2.variants[1].name == "runtime"
+
+        def copy = immutable.asMutable()
+        copy.addVariant("link", attributes())
+
+        def immutable3 = copy.asImmutable()
+        immutable3.variants.size() == 3
+        immutable3.variants[0].name == "api"
+        immutable3.variants[1].name == "runtime"
+        immutable3.variants[2].name == "link"
+        immutable3.variants[2].files.empty
     }
 
     def "making changes to copy does not affect original"() {
