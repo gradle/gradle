@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.tasks;
 
-import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
-import org.gradle.api.tasks.TaskFilePropertyBuilder;
+import org.gradle.api.Incubating;
 
-@NonNullApi
-public interface TaskFilePropertyBuilderInternal extends TaskFilePropertyBuilder {
-    TaskFilePropertyBuilderInternal withPathNormalizationStrategy(PathNormalizationStrategy pathNormalizationStrategy);
-
-    @Override
-    TaskFilePropertyBuilderInternal withPropertyName(String propertyName);
+/**
+ * Normalizes file input that represents a Java runtime classpath.
+ *
+ * Compared to the default behavior this normalizer keeps the order of any root files,
+ * but ignores the order and timestamps of files in directories and ZIP/JAR files.
+ *
+ * @see org.gradle.api.tasks.Classpath
+ *
+ * @since 4.3
+ */
+@Incubating
+public interface ClasspathNormalizer extends FileNormalizer {
 }

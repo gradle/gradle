@@ -69,6 +69,13 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder, T
     TaskInputFilePropertyBuilder withPathSensitivity(PathSensitivity sensitivity);
 
     /**
+     * Sets the normalizer to use for this property.
+     *
+     * @since 4.3
+     */
+    TaskInputFilePropertyBuilder withNormalizer(Class<? extends FileNormalizer> normalizer);
+
+    /**
      * Throws {@link UnsupportedOperationException}.
      *
      * @deprecated Use {@link TaskInputs#getHasInputs()} directly instead.

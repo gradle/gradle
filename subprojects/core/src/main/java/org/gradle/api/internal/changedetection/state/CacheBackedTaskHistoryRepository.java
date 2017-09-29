@@ -33,6 +33,7 @@ import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInte
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
+import org.gradle.api.internal.tasks.GenericFileNormalizer;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.cache.PersistentIndexedCache;
@@ -212,7 +213,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     }
 
     private static FileCollectionSnapshot snapshotDiscoveredInputs(Task task, InputNormalizationStrategy normalizationStrategy, Collection<File> discoveredInputs, FileCollectionSnapshotterRegistry snapshotterRegistry, FileCollectionFactory fileCollectionFactory) {
-        GenericFileCollectionSnapshotter snapshotter = snapshotterRegistry.getSnapshotter(GenericFileCollectionSnapshotter.class);
+        FileCollectionSnapshotter snapshotter = snapshotterRegistry.getSnapshotter(GenericFileNormalizer.class);
         if (discoveredInputs.isEmpty()) {
             LOGGER.debug("No discovered inputs for {}", task);
             return FileCollectionSnapshot.EMPTY;
@@ -325,7 +326,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         for (TaskFilePropertySpec propertySpec : fileProperties) {
             FileCollectionSnapshot result;
             try {
-                FileCollectionSnapshotter snapshotter = snapshotterRegistry.getSnapshotter(propertySpec.getSnapshotter());
+                FileCollectionSnapshotter snapshotter = snapshotterRegistry.getSnapshotter(propertySpec.getNormalizer());
                 LOGGER.debug("Snapshotting property {} for {}", propertySpec, task);
                 result = snapshotter.snapshot(propertySpec.getPropertyFiles(), propertySpec.getPathNormalizationStrategy(), normalizationStrategy);
             } catch (Exception e) {

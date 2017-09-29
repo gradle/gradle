@@ -151,12 +151,12 @@ public class TaskExecutionServices {
 
     FileCollectionSnapshotterRegistry createFileCollectionSnapshotterRegistry(ServiceRegistry serviceRegistry) {
         List<FileSnapshottingPropertyAnnotationHandler> handlers = serviceRegistry.getAll(FileSnapshottingPropertyAnnotationHandler.class);
-        ImmutableList.Builder<FileCollectionSnapshotter> snapshotters = ImmutableList.builder();
-        snapshotters.add(serviceRegistry.get(GenericFileCollectionSnapshotter.class));
+        ImmutableList.Builder<FileCollectionSnapshotter> snapshotterImplementations = ImmutableList.builder();
+        snapshotterImplementations.add(serviceRegistry.get(GenericFileCollectionSnapshotter.class));
         for (FileSnapshottingPropertyAnnotationHandler handler : handlers) {
-            snapshotters.add(serviceRegistry.get(handler.getSnapshotterType()));
+            snapshotterImplementations.add(serviceRegistry.get(handler.getSnapshotterImplementationType()));
         }
-        return new DefaultFileCollectionSnapshotterRegistry(snapshotters.build());
+        return new DefaultFileCollectionSnapshotterRegistry(snapshotterImplementations.build());
     }
 
     TaskHistoryRepository createTaskHistoryRepository(
