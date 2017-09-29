@@ -22,6 +22,7 @@ class BuildScanUserInputHandlerIntegrationTest extends AbstractUserInputHandlerI
 
     private static final String YES = 'yes'
     private static final String NO = 'no'
+    private static final String DUMMY_TASK_NAME = 'doSomething'
 
     @Unroll
     def "can ask for license acceptance from plugin and handle input '#input'"() {
@@ -44,12 +45,12 @@ class BuildScanUserInputHandlerIntegrationTest extends AbstractUserInputHandlerI
         buildFile << """
             apply plugin: BuildScanPlugin
             
-            task doSomething
+            task $DUMMY_TASK_NAME
         """
         interactiveExecution()
 
         when:
-        def gradleHandle = executer.withTasks('doSomething').start()
+        def gradleHandle = executer.withTasks(DUMMY_TASK_NAME).start()
 
         then:
         writeToStdInAndClose(gradleHandle, stdin)
