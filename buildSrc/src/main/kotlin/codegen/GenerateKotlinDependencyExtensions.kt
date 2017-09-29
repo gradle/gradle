@@ -71,13 +71,22 @@ fun RepositoryHandler.gradleScriptKotlin(): ArtifactRepository =
 
 
 /**
+ * Builds the dependency notation for the named Kotlin [module] at the embedded version (currently _${embeddedKotlinVersion}_).
+ *
+ * @param module simple name of the Kotlin module, for example "reflect".
+ */
+fun DependencyHandler.embeddedKotlin(module: String): Any =
+    kotlin(module, embeddedKotlinVersion)
+
+
+/**
  * Builds the dependency notation for the named Kotlin [module] at the given [version].
  *
  * @param module simple name of the Kotlin module, for example "reflect".
- * @param version optional desired version, null implies [embeddedKotlinVersion].
+ * @param version optional desired version, unspecified if null.
  */
 fun DependencyHandler.kotlin(module: String, version: String? = null): Any =
-    "org.jetbrains.kotlin:kotlin-${'$'}module:${'$'}{version ?: embeddedKotlinVersion}"
+    "org.jetbrains.kotlin:kotlin-${'$'}module${'$'}{version?.let { ":${'$'}version" } ?: ""}"
 
 
 @Deprecated("Will be removed in 1.0", ReplaceWith("kotlin(module, version)"))
