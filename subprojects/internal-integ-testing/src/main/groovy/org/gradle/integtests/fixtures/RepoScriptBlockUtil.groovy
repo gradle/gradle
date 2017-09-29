@@ -29,6 +29,10 @@ class RepoScriptBlockUtil {
         return "repositories { ${mavenCentralRepositoryDefinition()} }"
     }
 
+    static String googleRepository() {
+        return "repositories { google() }"
+    }
+
     static String jcenterRepositoryDefinition() {
         String repoUrl = System.getProperty('org.gradle.integtest.mirrors.jcenter')
         if (repoUrl) {
