@@ -20,7 +20,6 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.eclipse.model.Link;
@@ -34,9 +33,8 @@ import java.util.Set;
 public class LinkedResourcesCreator {
     public Set<Link> links(final Project project) {
         SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
-        // TODO (donat) there must be a better way to obtain the current/default value
         EclipseClasspath classpath = project.getExtensions().getByType(EclipseModel.class).getClasspath();
-        File defaultOutputDir = classpath == null ? project.file("bin/default") : classpath.getDefaultOutputDir();
+        File defaultOutputDir = classpath == null ? project.file(EclipsePluginConstants.DEFAULT_PROJECT_OUTPUT_PATH) : classpath.getDefaultOutputDir();
         List<SourceFolder> sourceFolders = new SourceFoldersCreator().getExternalSourceFolders(sourceSets, new Function<File, String>() {
             @Override
             public String apply(File dir) {
