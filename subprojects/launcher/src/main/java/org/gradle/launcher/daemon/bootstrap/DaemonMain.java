@@ -67,21 +67,17 @@ public class DaemonMain extends EntryPoint {
     @Override
     protected void doAction(String[] args, ExecutionListener listener) {
         //The first argument is not really used but it is very useful in diagnosing, i.e. running 'jps -m'
-        if (args.length < 1) {
+        if (args.length != 1) {
             invalidArgs("Following arguments are required: <gradle-version>");
         }
 
-        if (args.length == 2 && !args[1].equals(SINGLE_USE_FLAG)){
-            invalidArgs("Only '--single-use' flag is allowed as 2nd argument");
-        }
-
         // Read configuration from stdin
-
         List<String> startupOpts;
         File gradleHomeDir;
         File daemonBaseDir;
         int idleTimeoutMs;
         int periodicCheckIntervalMs;
+        boolean singleUse;
         String daemonUid;
         List<File> additionalClassPath;
 
@@ -91,6 +87,7 @@ public class DaemonMain extends EntryPoint {
             daemonBaseDir = new File(decoder.readString());
             idleTimeoutMs = decoder.readSmallInt();
             periodicCheckIntervalMs = decoder.readSmallInt();
+            singleUse = decoder.readBoolean();
             daemonUid = decoder.readString();
             int argCount = decoder.readSmallInt();
             startupOpts = new ArrayList<String>(argCount);
@@ -107,11 +104,11 @@ public class DaemonMain extends EntryPoint {
         }
 
         NativeServices.initialize(gradleHomeDir);
-        DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, startupOpts);
+        DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, singleUse, startupOpts);
         LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newCommandLineProcessLogging();
         LoggingManagerInternal loggingManager = loggingRegistry.newInstance(LoggingManagerInternal.class);
 
-        DaemonServices daemonServices = new DaemonServices(parameters, loggingRegistry, loggingManager, new DefaultClassPath(additionalClassPath), isSingleUseDaemon(args));
+        DaemonServices daemonServices = new DaemonServices(parameters, loggingRegistry, loggingManager, new DefaultClassPath(additionalClassPath));
         File daemonLog = daemonServices.getDaemonLogFile();
 
         // Any logging prior to this point will not end up in the daemon log file.
@@ -138,13 +135,9 @@ public class DaemonMain extends EntryPoint {
             CompositeStoppable.stoppable(daemonServices.get(GradleUserHomeScopeServiceRegistry.class)).stop();
         }
     }
-
-    private boolean isSingleUseDaemon(String[] args) {
-        return args.length == 2 && args[1].equals(SINGLE_USE_FLAG);
-    }
-
+    
     private static void invalidArgs(String message) {
-        System.out.println("USAGE: <gradle version> [--single-use]");
+        System.out.println("USAGE: <gradle version>");
         System.out.println(message);
         System.exit(1);
     }

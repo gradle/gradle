@@ -47,9 +47,9 @@ public interface DaemonScanInfo {
     int getNumberOfRunningDaemons();
 
     /**
-     * @return true if daemon is single run daemon, false otherwise
+     * @return true if daemon is single use daemon, false otherwise
      */
-    boolean isSingleRun();
+    boolean isSingleUse();
 
     /**
      * Invokes the given action when the Daemon becomes unhealthy in way that requires it be terminated at the end of the build.

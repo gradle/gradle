@@ -164,12 +164,12 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         daemons.daemon.stops()
     }
 
-    static String captureTask(String name, int buildCount, int daemonCount, boolean singleRun = false) {
+    static String captureTask(String name, int buildCount, int daemonCount, boolean singleUse = false) {
         """
     task $name {
         doLast {
             DaemonScanInfo info = project.getServices().get(DaemonScanInfo)
-            ${assertInfo(buildCount, daemonCount, singleRun)}
+            ${assertInfo(buildCount, daemonCount, singleUse)}
         }
     }
     """
@@ -182,13 +182,13 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
            """
     }
 
-    static String assertInfo(int numberOfBuilds, int numDaemons, boolean singleRun = false) {
+    static String assertInfo(int numberOfBuilds, int numDaemons, boolean singleUse = false) {
         return """
            assert info.getNumberOfBuilds() == ${numberOfBuilds}
            assert info.getNumberOfRunningDaemons() == ${numDaemons}
            assert info.getIdleTimeout() == 120000
            assert info.getStartedAt() <= System.currentTimeMillis() + 1000 //accept slight clock adjustments while the test is running
-           assert info.isSingleRun() == ${singleRun}
+           assert info.isSingleUse() == ${singleUse}
         """
     }
 

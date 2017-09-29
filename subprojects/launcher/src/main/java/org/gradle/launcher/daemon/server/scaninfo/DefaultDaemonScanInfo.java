@@ -65,7 +65,7 @@ public class DefaultDaemonScanInfo implements DaemonScanInfo {
     }
 
     @Override
-    public boolean isSingleRun() {
+    public boolean isSingleUse() {
         return singleRun;
     }
 

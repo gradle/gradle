@@ -34,11 +34,11 @@ class DaemonServicesTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
 
-    final DaemonServices services = new DaemonServices(new DefaultDaemonServerConfiguration("uid", tmp.testDirectory, 100, 50, asList()),
-        LoggingServiceRegistry.newEmbeddableLogging(), Mock(LoggingManagerInternal), Stub(ClassPath), false)
+    final DaemonServices services = new DaemonServices(new DefaultDaemonServerConfiguration("uid", tmp.testDirectory, 100, 50, false, asList()),
+        LoggingServiceRegistry.newEmbeddableLogging(), Mock(LoggingManagerInternal), Stub(ClassPath))
 
-    final DaemonServices singleRunServices = new DaemonServices(new DefaultDaemonServerConfiguration("uid", tmp.testDirectory, 200, 50, asList()),
-        LoggingServiceRegistry.newEmbeddableLogging(), Mock(LoggingManagerInternal), Stub(ClassPath), true)
+    final DaemonServices singleRunServices = new DaemonServices(new DefaultDaemonServerConfiguration("uid", tmp.testDirectory, 200, 50, true, asList()),
+        LoggingServiceRegistry.newEmbeddableLogging(), Mock(LoggingManagerInternal), Stub(ClassPath))
 
 
     def "makes a DaemonDir available"() {
@@ -59,13 +59,12 @@ class DaemonServicesTest extends Specification {
     def "makes a DaemonScanInfo available"() {
         expect:
         services.get(DaemonScanInfo.class) != null
-        services.get(DaemonScanInfo.class).singleRun == false
+        services.get(DaemonScanInfo.class).singleUse == false
         services.get(DaemonScanInfo.class).idleTimeout == 100
 
         and:
         singleRunServices.get(DaemonScanInfo.class) != null
-        singleRunServices.get(DaemonScanInfo.class).singleRun == true
+        singleRunServices.get(DaemonScanInfo.class).singleUse == true
         singleRunServices.get(DaemonScanInfo.class).idleTimeout == 200
-
     }
 }

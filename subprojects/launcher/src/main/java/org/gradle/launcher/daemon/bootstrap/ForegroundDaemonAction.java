@@ -41,7 +41,7 @@ public class ForegroundDaemonAction implements Runnable {
         LoggingManagerInternal loggingManager = loggingRegistry.newInstance(LoggingManagerInternal.class);
         loggingManager.start();
 
-        DaemonServices daemonServices = new DaemonServices(configuration, loggingRegistry, loggingManager, new DefaultClassPath(), false);
+        DaemonServices daemonServices = new DaemonServices(configuration, loggingRegistry, loggingManager, new DefaultClassPath());
         Daemon daemon = daemonServices.get(Daemon.class);
         DaemonRegistry daemonRegistry = daemonServices.get(DaemonRegistry.class);
         DaemonExpirationStrategy expirationStrategy = daemonServices.get(MasterExpirationStrategy.class);
