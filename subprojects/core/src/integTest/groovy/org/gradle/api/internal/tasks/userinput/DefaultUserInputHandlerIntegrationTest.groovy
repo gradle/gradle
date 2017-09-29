@@ -30,12 +30,12 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractUserInputHandlerInt
     def "can capture user input for interactive build [daemon enabled: #useDaemon, rich console: #richConsole]"() {
         given:
         interactiveExecution()
+        withDaemon(useDaemon)
+        withRichConsole(richConsole)
         buildFile << userInputRequestedTask()
 
         when:
         executer.withTasks(USER_INPUT_REQUEST_TASK_NAME)
-        withDaemon(useDaemon)
-        withRichConsole(richConsole)
         def gradleHandle = executer.start()
 
         then:
@@ -51,12 +51,12 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractUserInputHandlerInt
     def "use of ctrl-d when capturing user input returns null [daemon enabled: #useDaemon, rich console: #richConsole]"() {
         given:
         interactiveExecution()
+        withDaemon(useDaemon)
+        withRichConsole(richConsole)
         buildFile << userInputRequestedTask(PROMPT, null, null)
 
         when:
         executer.withTasks(USER_INPUT_REQUEST_TASK_NAME)
-        withDaemon(useDaemon)
-        withRichConsole(richConsole)
         def gradleHandle = executer.start()
 
         then:
