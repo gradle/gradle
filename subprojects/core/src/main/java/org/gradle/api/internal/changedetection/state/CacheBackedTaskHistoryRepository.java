@@ -150,9 +150,9 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         ImmutableSortedSet<String> outputPropertyNames = getOutputPropertyNamesForCacheKey(task);
         ImmutableSet<String> declaredOutputFilePaths = getDeclaredOutputFilePaths(task, stringInterner);
 
-        ImmutableSortedMap<String, FileCollectionSnapshot> inputFiles = snapshotTaskFiles(task, "Input",  normalizationStrategy, task.getInputs().getFileProperties(), snapshotterRegistry);
+        ImmutableSortedMap<String, FileCollectionSnapshot> inputFiles = snapshotTaskFiles(task, "Input", normalizationStrategy, task.getInputs().getFileProperties(), snapshotterRegistry);
 
-        ImmutableSortedMap<String, FileCollectionSnapshot> outputFiles = snapshotTaskFiles(task, "Output",  normalizationStrategy, task.getOutputs().getFileProperties(), snapshotterRegistry);
+        ImmutableSortedMap<String, FileCollectionSnapshot> outputFiles = snapshotTaskFiles(task, "Output", normalizationStrategy, task.getOutputs().getFileProperties(), snapshotterRegistry);
 
         FileCollectionSnapshot previousDiscoveredInputs = previousExecution == null ? null : previousExecution.getDiscoveredInputFilesSnapshot();
         FileCollectionSnapshot discoveredInputs;
@@ -337,7 +337,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     }
 
     @Nullable
-    private static OverlappingOutputs detectOverlappingOutputs(ImmutableSortedMap<String, FileCollectionSnapshot> taskOutputs, @Nullable AbstractTaskExecution previousExecution) {
+    private static OverlappingOutputs detectOverlappingOutputs(ImmutableSortedMap<String, FileCollectionSnapshot> taskOutputs, @Nullable HistoricalTaskExecution previousExecution) {
         for (Map.Entry<String, FileCollectionSnapshot> entry : taskOutputs.entrySet()) {
             String propertyName = entry.getKey();
             FileCollectionSnapshot beforeExecution = entry.getValue();
@@ -350,14 +350,12 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         return null;
     }
 
-    private static FileCollectionSnapshot getSnapshotAfterPreviousExecution(@Nullable AbstractTaskExecution previousExecution, String propertyName) {
+    private static FileCollectionSnapshot getSnapshotAfterPreviousExecution(@Nullable HistoricalTaskExecution previousExecution, String propertyName) {
         if (previousExecution != null) {
             Map<String, FileCollectionSnapshot> previousSnapshots = previousExecution.getOutputFilesSnapshot();
-            if (previousSnapshots != null) {
-                FileCollectionSnapshot afterPreviousExecution = previousSnapshots.get(propertyName);
-                if (afterPreviousExecution != null) {
-                    return afterPreviousExecution;
-                }
+            FileCollectionSnapshot afterPreviousExecution = previousSnapshots.get(propertyName);
+            if (afterPreviousExecution != null) {
+                return afterPreviousExecution;
             }
         }
         return FileCollectionSnapshot.EMPTY;
