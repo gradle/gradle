@@ -147,7 +147,7 @@ public final class BuildOperationDescriptor {
             return parent;
         }
 
-        BuildOperationDescriptor build(@Nullable Object id, @Nullable Object defaultParentId) {
+        public BuildOperationDescriptor build(@Nullable Object id, @Nullable Object defaultParentId) {
             return new BuildOperationDescriptor(id, parent == null ? defaultParentId : parent.getId(), name, displayName, progressDisplayName, details, operationType);
         }
     }
