@@ -25,7 +25,7 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractUserInputHandlerInt
     private static final String USER_INPUT_REQUEST_TASK_NAME = 'userInputRequest'
     private static final String PROMPT = 'Enter your response:'
     private static final String HELLO_WORLD_USER_INPUT = 'Hello World'
-    private static final List<Boolean> TEXTUAL_BOOLEAN_CHOICES = [false, true]
+    private static final List<Boolean> VALID_BOOLEAN_CHOICES = [false, true]
 
     @Unroll
     def "can capture user input for interactive build [daemon enabled: #daemon, parallel enabled: #parallel, rich console: #richConsole]"() {
@@ -46,7 +46,7 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractUserInputHandlerInt
         gradleHandle.standardOutput.contains(PROMPT)
 
         where:
-        [daemon, parallel, richConsole] << [TEXTUAL_BOOLEAN_CHOICES, TEXTUAL_BOOLEAN_CHOICES, TEXTUAL_BOOLEAN_CHOICES].combinations()
+        [daemon, parallel, richConsole] << [VALID_BOOLEAN_CHOICES, VALID_BOOLEAN_CHOICES, VALID_BOOLEAN_CHOICES].combinations()
     }
 
     @Unroll
@@ -68,7 +68,7 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractUserInputHandlerInt
         gradleHandle.standardOutput.contains(PROMPT)
 
         where:
-        [daemon, parallel, richConsole] << [TEXTUAL_BOOLEAN_CHOICES, TEXTUAL_BOOLEAN_CHOICES, TEXTUAL_BOOLEAN_CHOICES].combinations()
+        [daemon, parallel, richConsole] << [VALID_BOOLEAN_CHOICES, VALID_BOOLEAN_CHOICES, VALID_BOOLEAN_CHOICES].combinations()
     }
 
     def "can capture user input from plugin"() {
