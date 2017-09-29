@@ -30,7 +30,7 @@ class RepoScriptBlockUtil {
     }
 
     static String googleRepository() {
-        return "repositories { google() }"
+        return "repositories { ${googleRepositoryDefinition()} }"
     }
 
     static String jcenterRepositoryDefinition() {
@@ -88,6 +88,15 @@ class RepoScriptBlockUtil {
                     layout 'ivy'
                 }
             """
+        }
+    }
+
+    static String googleRepositoryDefinition() {
+        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.google')
+        if (repoUrl) {
+            return "maven { name 'Google'; url '${repoUrl}' }"
+        } else {
+            return 'google()'
         }
     }
 }

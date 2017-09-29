@@ -24,11 +24,7 @@ import org.gradle.util.TestPrecondition
 class MavenGoogleDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     def setup() {
-        buildFile << """
-            repositories {
-                google()
-            }
-        """
+        buildFile << googleRepository()
     }
 
     def "can query for human-readable repository name"() {
