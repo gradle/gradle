@@ -102,6 +102,10 @@ The JaCoCo plugin has been upgraded to use [JaCoCo version 0.7.9](http://www.jac
 
 The `eclipse` plugin now defines separate output directories for each source folders. Also, each source folders and dependencies define an additional `gradle_source_sets` classpath attribute. The attribute contains a comma-separated list of source sets which contains the element. Future [Buildship](http://eclipse.org/buildship) versions will use this information to separate source sets when launching Java applications within Eclipse.
 
+TODO (donat) add a potential breaking change: `eclipse` plugin default output location changed to `bin/default`
+
+TODO (donat) change the default output location in the eclipse plugin documentation
+
 <!--
 ### Example new and noteworthy
 -->

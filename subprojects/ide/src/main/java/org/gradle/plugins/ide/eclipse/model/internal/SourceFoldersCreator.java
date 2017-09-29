@@ -19,6 +19,8 @@ package org.gradle.plugins.ide.eclipse.model.internal;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.internal.DynamicObjectUtil;
 import org.gradle.api.specs.Spec;
@@ -35,10 +37,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 
 public class SourceFoldersCreator {
+
+    // TODO (donat) add coverage: custom source set has name 'default'
+    // TODO (donat) add coverage: custom source sets have names 'default' and 'default_'
+    // TODO (donat) test linked resources creation on non-java projects
 
     public List<ClasspathEntry> createSourceFolders(final EclipseClasspath classpath) {
         List<ClasspathEntry> entries = Lists.newArrayList();
@@ -48,8 +55,8 @@ public class SourceFoldersCreator {
                 return classpath.getProject().relativePath(input);
             }
         };
-        List<SourceFolder> regulars = getRegularSourceFolders(classpath.getSourceSets(), provideRelativePath);
-        List<SourceFolder> trimmedExternals = getExternalSourceFolders(classpath.getSourceSets(), provideRelativePath);
+        List<SourceFolder> regulars = getRegularSourceFolders(classpath.getSourceSets(), provideRelativePath, classpath.getDefaultOutputDir());
+        List<SourceFolder> trimmedExternals = getExternalSourceFolders(classpath.getSourceSets(), provideRelativePath, classpath.getDefaultOutputDir());
         entries.addAll(regulars);
         entries.addAll(trimmedExternals);
         return entries;
@@ -61,8 +68,8 @@ public class SourceFoldersCreator {
      *
      * @return source folders that live inside the project
      */
-    public List<SourceFolder> getRegularSourceFolders(Iterable<SourceSet> sourceSets, Function<File, String> provideRelativePath) {
-        List<SourceFolder> sourceFolders = projectRelativeFolders(sourceSets, provideRelativePath);
+    public List<SourceFolder> getRegularSourceFolders(Iterable<SourceSet> sourceSets, Function<File, String> provideRelativePath, File defaultOutputDir) {
+        List<SourceFolder> sourceFolders = projectRelativeFolders(sourceSets, provideRelativePath, defaultOutputDir);
         return CollectionUtils.filter(sourceFolders, new Spec<SourceFolder>() {
             @Override
             public boolean isSatisfiedBy(SourceFolder element) {
@@ -76,15 +83,15 @@ public class SourceFoldersCreator {
      *
      * @return source folders that live outside of the project
      */
-    public List<SourceFolder> getExternalSourceFolders(Iterable<SourceSet> sourceSets, Function<File, String> provideRelativePath) {
-        List<SourceFolder> sourceFolders = projectRelativeFolders(sourceSets, provideRelativePath);
+    public List<SourceFolder> getExternalSourceFolders(Iterable<SourceSet> sourceSets, Function<File, String> provideRelativePath, File defaultOutputDir) {
+        List<SourceFolder> sourceFolders = projectRelativeFolders(sourceSets, provideRelativePath, defaultOutputDir);
         List<SourceFolder> externalSourceFolders = CollectionUtils.filter(sourceFolders, new Spec<SourceFolder>() {
             @Override
             public boolean isSatisfiedBy(SourceFolder element) {
                 return element.getPath().contains("..");
             }
         });
-        List<SourceFolder> regularSourceFolders = getRegularSourceFolders(sourceSets, provideRelativePath);
+        List<SourceFolder> regularSourceFolders = getRegularSourceFolders(sourceSets, provideRelativePath, defaultOutputDir);
         List<String> sources = Lists.newArrayList(Lists.transform(regularSourceFolders, new Function<SourceFolder, String>() {
             @Override
             public String apply(SourceFolder sourceFolder) {
@@ -112,9 +119,11 @@ public class SourceFoldersCreator {
         return trimmedSourceFolders;
     }
 
-    private List<SourceFolder> projectRelativeFolders(Iterable<SourceSet> sourceSets, Function<File, String> provideRelativePath) {
+    private List<SourceFolder> projectRelativeFolders(Iterable<SourceSet> sourceSets, Function<File, String> provideRelativePath, File defaultOutputDir) {
+        final String defaultOutputPath = provideRelativePath.apply(defaultOutputDir);
         ArrayList<SourceFolder> entries = Lists.newArrayList();
         List<SourceSet> sortedSourceSets = sortSourceSetsAsPerUsualConvention(sourceSets);
+        Map<SourceSet, String> sourceSetOutputPaths = collectSourceSetOutputPaths(sortedSourceSets, defaultOutputPath);
         for (SourceSet sourceSet : sortedSourceSets) {
             List<DirectoryTree> sortedSourceDirs = sortSourceDirsAsPerUsualConvention(sourceSet.getAllSource().getSrcDirTrees());
             for (DirectoryTree tree : sortedSourceDirs) {
@@ -126,7 +135,7 @@ public class SourceFoldersCreator {
                     folder.setName(dir.getName());
                     folder.setIncludes(getIncludesForTree(sourceSet, tree));
                     folder.setExcludes(getExcludesForTree(sourceSet, tree));
-                    folder.setOutput("output/" + relativePath.replaceAll("\\\\", "/"));
+                    folder.setOutput(sourceSetOutputPaths.get(sourceSet));
 
                     folder.getEntryAttributes().put("gradle_source_sets", sourceSet.getName().replaceAll(",", ""));
                     entries.add(folder);
@@ -134,6 +143,23 @@ public class SourceFoldersCreator {
             }
         }
         return entries;
+    }
+
+    private Map<SourceSet, String> collectSourceSetOutputPaths(List<SourceSet> sourceSets, String outputDir) {
+        Set<String> existingPaths = Sets.newHashSet(outputDir);
+        Map<SourceSet, String> result = Maps.newHashMap();
+        for (SourceSet sourceSet : sourceSets) {
+            String path = collectSourceSetOutputPath(sourceSet.getName(), existingPaths, "");
+            existingPaths.add(path);
+            result.put(sourceSet, path);
+        }
+
+        return result;
+    }
+
+    private String collectSourceSetOutputPath(String sourceSetName, Set<String> existingPaths, String suffix) {
+        String path = "bin/" + sourceSetName + suffix;
+        return existingPaths.contains(path) ? collectSourceSetOutputPath(sourceSetName, existingPaths, suffix + "_") : path;
     }
 
     private List<String> getExcludesForTree(SourceSet sourceSet, DirectoryTree directoryTree) {

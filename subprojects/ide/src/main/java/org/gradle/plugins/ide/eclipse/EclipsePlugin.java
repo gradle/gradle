@@ -206,7 +206,7 @@ public class EclipsePlugin extends IdePlugin {
         ((IConventionAware) model.getClasspath()).getConventionMapping().map("defaultOutputDir", new Callable<File>() {
             @Override
             public File call() {
-                return new File(project.getProjectDir(), "bin");
+                return new File(project.getProjectDir(), "bin/default");
             }
 
         });
