@@ -25,12 +25,14 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractUserInputHandlerInt
     private static final String USER_INPUT_REQUEST_TASK_NAME = 'userInputRequest'
     private static final String PROMPT = 'Enter your response:'
     private static final String HELLO_WORLD_USER_INPUT = 'Hello World'
+    private static final List<Boolean> ENABLED_DISABLED = [false, true]
 
     @Unroll
-    def "can capture user input for interactive build [daemon enabled: #useDaemon, rich console: #richConsole]"() {
+    def "can capture user input for interactive build [daemon enabled: #daemon, parallel enabled: #parallel, rich console: #richConsole]"() {
         given:
         interactiveExecution()
-        withDaemon(useDaemon)
+        withDaemon(daemon)
+        withParallel(parallel)
         withRichConsole(richConsole)
         buildFile << userInputRequestedTask()
 
@@ -44,14 +46,15 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractUserInputHandlerInt
         gradleHandle.standardOutput.contains(PROMPT)
 
         where:
-        [useDaemon, richConsole] << [[false, true], [false, true]].combinations()
+        [daemon, parallel, richConsole] << [ENABLED_DISABLED, ENABLED_DISABLED, ENABLED_DISABLED].combinations()
     }
 
     @Unroll
-    def "use of ctrl-d when capturing user input returns null [daemon enabled: #useDaemon, rich console: #richConsole]"() {
+    def "use of ctrl-d when capturing user input returns null [daemon enabled: #daemon, parallel enabled: #parallel, rich console: #richConsole]"() {
         given:
         interactiveExecution()
-        withDaemon(useDaemon)
+        withDaemon(daemon)
+        withParallel(parallel)
         withRichConsole(richConsole)
         buildFile << userInputRequestedTask(PROMPT, null, null)
 
@@ -65,7 +68,7 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractUserInputHandlerInt
         gradleHandle.standardOutput.contains(PROMPT)
 
         where:
-        [useDaemon, richConsole] << [[false, true], [false, true]].combinations()
+        [daemon, parallel, richConsole] << [ENABLED_DISABLED, ENABLED_DISABLED, ENABLED_DISABLED].combinations()
     }
 
     def "can capture user input from plugin"() {

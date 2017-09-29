@@ -42,6 +42,12 @@ class AbstractUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    protected void withParallel(boolean enabled) {
+        if (enabled) {
+            executer.withArgument('--parallel')
+        }
+    }
+
     static void writeToStdInAndClose(GradleHandle gradleHandle, input) {
         gradleHandle.stdinPipe.write(input)
         writeLineSeparatorToStdInAndClose(gradleHandle)
