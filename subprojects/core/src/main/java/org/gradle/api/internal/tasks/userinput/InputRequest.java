@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.userinput;
 
 public interface InputRequest {
 
+    String getText();
     String getPrompt();
     boolean isValid(String input);
 }

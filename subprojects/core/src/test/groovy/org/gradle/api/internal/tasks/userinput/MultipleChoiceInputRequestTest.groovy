@@ -20,7 +20,7 @@ import spock.lang.Specification
 
 class MultipleChoiceInputRequestTest extends Specification {
 
-    private static final String PROMPT = 'Accept license?'
+    private static final String TEXT = 'Accept license?'
 
     def "throws exception if invalid prompt is provided"() {
         when:
@@ -28,7 +28,7 @@ class MultipleChoiceInputRequestTest extends Specification {
 
         then:
         def t = thrown(IllegalArgumentException)
-        t.message == 'Prompt maybe not be null, empty or whitespace'
+        t.message == 'Text maybe not be null, empty or whitespace'
 
         where:
         prompt << [null, '', ' ']
@@ -36,7 +36,7 @@ class MultipleChoiceInputRequestTest extends Specification {
 
     def "throws exception if invalid choices are provided"() {
         when:
-        new MultipleChoiceInputRequest(PROMPT, choices)
+        new MultipleChoiceInputRequest(TEXT, choices)
 
         then:
         def t = thrown(IllegalArgumentException)
@@ -48,10 +48,11 @@ class MultipleChoiceInputRequestTest extends Specification {
 
     def "can handle valid input"() {
         when:
-        def inputRequest = new MultipleChoiceInputRequest(PROMPT, ['yes', 'no'])
+        def inputRequest = new MultipleChoiceInputRequest(TEXT, ['yes', 'no'])
 
         then:
-        inputRequest.prompt == "$PROMPT [yes, no]"
+        inputRequest.text == TEXT
+        inputRequest.prompt == "$TEXT [yes, no]"
         inputRequest.isValid(input)
 
         where:
@@ -60,10 +61,11 @@ class MultipleChoiceInputRequestTest extends Specification {
 
     def "can handle invalid input"() {
         when:
-        def inputRequest = new MultipleChoiceInputRequest(PROMPT, ['yes', 'no'])
+        def inputRequest = new MultipleChoiceInputRequest(TEXT, ['yes', 'no'])
 
         then:
-        inputRequest.prompt == "$PROMPT [yes, no]"
+        inputRequest.text == TEXT
+        inputRequest.prompt == "$TEXT [yes, no]"
         !inputRequest.isValid('other')
     }
 }

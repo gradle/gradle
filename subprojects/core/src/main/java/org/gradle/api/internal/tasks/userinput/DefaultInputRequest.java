@@ -20,19 +20,24 @@ import org.apache.commons.lang.StringUtils;
 
 public class DefaultInputRequest implements InputRequest {
 
-    protected final String prompt;
+    protected final String text;
 
-    public DefaultInputRequest(String prompt) {
-        if (StringUtils.isBlank(prompt)) {
-            throw new IllegalArgumentException("Prompt maybe not be null, empty or whitespace");
+    public DefaultInputRequest(String text) {
+        if (StringUtils.isBlank(text)) {
+            throw new IllegalArgumentException("Text maybe not be null, empty or whitespace");
         }
 
-        this.prompt = prompt;
+        this.text = text;
+    }
+
+    @Override
+    public String getText() {
+        return text;
     }
 
     @Override
     public String getPrompt() {
-        return prompt;
+        return getText();
     }
 
     @Override

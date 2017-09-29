@@ -20,12 +20,13 @@ import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
 
-public class MultipleChoiceInputRequest extends DefaultInputRequest {
+public class MultipleChoiceInputRequest implements InputRequest {
 
+    private final InputRequest delegate;
     private final List<String> choices;
 
-    public MultipleChoiceInputRequest(String prompt, List<String> choices) {
-        super(prompt);
+    public MultipleChoiceInputRequest(String text, List<String> choices) {
+        delegate = new DefaultInputRequest(text);
 
         if (choices == null || choices.size() < 2) {
             throw new IllegalArgumentException("At least two choices need to be provided");
@@ -35,9 +36,14 @@ public class MultipleChoiceInputRequest extends DefaultInputRequest {
     }
 
     @Override
+    public String getText() {
+        return delegate.getText();
+    }
+
+    @Override
     public String getPrompt() {
         StringBuilder descriptivePrompt = new StringBuilder();
-        descriptivePrompt.append(prompt);
+        descriptivePrompt.append(getText());
         descriptivePrompt.append(" [");
         descriptivePrompt.append(StringUtils.join(choices, ", "));
         descriptivePrompt.append("]");

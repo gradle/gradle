@@ -20,7 +20,7 @@ import spock.lang.Specification
 
 class DefaultInputRequestTest extends Specification {
 
-    private static final String PROMPT = 'Please state your age.'
+    private static final String TEXT = 'Please state your age.'
 
     def "throws exception if invalid prompt is provided"() {
         when:
@@ -28,7 +28,7 @@ class DefaultInputRequestTest extends Specification {
 
         then:
         def t = thrown(IllegalArgumentException)
-        t.message == 'Prompt maybe not be null, empty or whitespace'
+        t.message == 'Text maybe not be null, empty or whitespace'
 
         where:
         prompt << [null, '', ' ']
@@ -36,10 +36,11 @@ class DefaultInputRequestTest extends Specification {
 
     def "can handle valid input"() {
         when:
-        def inputRequest = new DefaultInputRequest(PROMPT)
+        def inputRequest = new DefaultInputRequest(TEXT)
 
         then:
-        inputRequest.prompt == PROMPT
+        inputRequest.text == TEXT
+        inputRequest.prompt == TEXT
         inputRequest.isValid(input)
 
         where:
@@ -48,10 +49,11 @@ class DefaultInputRequestTest extends Specification {
 
     def "can handle invalid input"() {
         when:
-        def inputRequest = new DefaultInputRequest(PROMPT)
+        def inputRequest = new DefaultInputRequest(TEXT)
 
         then:
-        inputRequest.prompt == PROMPT
+        inputRequest.text == TEXT
+        inputRequest.prompt == TEXT
         !inputRequest.isValid(null)
     }
 }

@@ -24,13 +24,14 @@ import spock.lang.Subject
 
 class DefaultUserInputHandlerTest extends Specification {
 
+    private static final String TEXT = 'Enter username:'
     def outputEventRenderer = Mock(OutputEventRenderer)
     def userInputReader = Mock(UserInputReader)
     @Subject def userInputHandler = new DefaultUserInputHandler(outputEventRenderer, userInputReader)
 
     def "can read valid user input"() {
         when:
-        def input = userInputHandler.getInput(new DefaultInputRequest('Enter username:'))
+        def input = userInputHandler.getInput(new DefaultInputRequest(TEXT))
 
         then:
         1 * outputEventRenderer.onOutput(_ as UserInputRequestEvent)
@@ -51,7 +52,7 @@ class DefaultUserInputHandlerTest extends Specification {
 
     def "re-requests user input if invalid"() {
         when:
-        def input = userInputHandler.getInput(new TestInputRequest('Enter username:'))
+        def input = userInputHandler.getInput(new TestInputRequest(TEXT))
 
         then:
         1 * outputEventRenderer.onOutput(_ as UserInputRequestEvent)
@@ -64,15 +65,20 @@ class DefaultUserInputHandlerTest extends Specification {
 
     private static class TestInputRequest implements InputRequest {
 
-        private final String prompt
+        private final String text
 
-        TestInputRequest(String prompt) {
-            this.prompt = prompt
+        TestInputRequest(String text) {
+            this.text = text
+        }
+
+        @Override
+        String getText() {
+            text
         }
 
         @Override
         String getPrompt() {
-            prompt
+            getText()
         }
 
         @Override
