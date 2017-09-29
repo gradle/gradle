@@ -46,24 +46,29 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    fun `adds stdlib and reflect as compile dependencies`() {
+    fun `adds stdlib and reflect as compile only dependencies`() {
         withBuildScript("""
 
             plugins {
                 `embedded-kotlin`
             }
 
-            println(repositories.map { it.name })
-            configurations["compileClasspath"].files.map { println(it) }
+            tasks {
+                "assertions" {
+                    doLast {
+                        val requiredLibs = listOf("kotlin-stdlib-$embeddedKotlinVersion.jar", "kotlin-reflect-$embeddedKotlinVersion.jar")
+                        listOf("compileOnly", "testCompileOnly").forEach { configuration ->
+                            require(configurations[configuration].files.map { it.name }.containsAll(requiredLibs), {
+                                "Embedded Kotlin libraries not found in ${'$'}configuration"
+                            })
+                        }
+                    }
+                }
+            }
 
         """)
 
-        val result = buildWithPlugin("dependencies")
-
-        assertThat(result.output, containsString("Embedded Kotlin Repository"))
-        listOf("stdlib", "reflect").forEach {
-            assertThat(result.output, containsString("kotlin-$it-$embeddedKotlinVersion.jar"))
-        }
+        buildWithPlugin("assertions")
     }
 
     @Test
