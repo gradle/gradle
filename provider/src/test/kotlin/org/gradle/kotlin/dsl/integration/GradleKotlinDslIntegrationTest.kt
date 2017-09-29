@@ -6,7 +6,9 @@ import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.rootProjectDir
 
+import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
+import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Assume.assumeTrue
@@ -352,6 +354,38 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
         withFile("settings.gradle", "rootProject.buildFileName = \"does-not-exist.gradle.kts\"")
 
         build("help")
+    }
+
+    @Test
+    fun `optional null extra property requested as a non nullable type throws NPE`() {
+
+        withBuildScript("""
+            val myTask = task("myTask") {
+
+                val foo: Int? by extra { null }
+
+                doLast {
+                    println("Optional extra property value: ${'$'}foo")
+                }
+            }
+
+            val foo: Int by myTask.extra
+
+            afterEvaluate {
+                try {
+                    println("myTask.foo = ${'$'}foo")
+                    require(false, { "Should not happen as `foo`, requested as a Int is effectively null" })
+                } catch (ex: NullPointerException) {
+                    // expected
+                }
+            }
+        """)
+
+        assertThat(
+            build("myTask").output,
+            allOf(
+                containsString("Optional extra property value: null"),
+                not(containsString("myTask.foo"))))
     }
 
     @Test

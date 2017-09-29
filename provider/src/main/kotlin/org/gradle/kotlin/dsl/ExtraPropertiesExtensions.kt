@@ -34,18 +34,11 @@ val ExtensionAware.extra: ExtraPropertiesExtension
     get() = extensions.extraProperties
 
 
-operator fun ExtraPropertiesExtension.setValue(receiver: Any?, property: KProperty<*>, value: Any) =
+operator fun <T> ExtraPropertiesExtension.setValue(receiver: Any?, property: KProperty<*>, value: T) =
     set(property.name, value)
 
 
 operator fun <T> ExtraPropertiesExtension.getValue(receiver: Any?, property: KProperty<*>): T =
-    /* We would like to be able to express optional properties via nullability of the return type
-       but Kotlin won't let us reflect on `property.returnType` here and complain with:
-           Not supported for local property reference.
-    uncheckedCast(
-        if (property.returnType.isMarkedNullable && !has(property.name)) null
-        else get(property.name))
-    */
     uncheckedCast(get(property.name))
 
 
@@ -56,7 +49,7 @@ operator fun <T> ExtraPropertiesExtension.getValue(receiver: Any?, property: KPr
  * Usage: `val answer by extra { 42 }`
  */
 inline
-operator fun <T : Any> ExtraPropertiesExtension.invoke(initialValueProvider: () -> T): ExtraPropertyDelegateProvider<T> =
+operator fun <T> ExtraPropertiesExtension.invoke(initialValueProvider: () -> T): ExtraPropertyDelegateProvider<T> =
     invoke(initialValueProvider())
 
 
@@ -65,11 +58,11 @@ operator fun <T : Any> ExtraPropertiesExtension.invoke(initialValueProvider: () 
  *
  * Usage: `val answer by extra(42)`
  */
-operator fun <T : Any> ExtraPropertiesExtension.invoke(initialValue: T): ExtraPropertyDelegateProvider<T> =
+operator fun <T> ExtraPropertiesExtension.invoke(initialValue: T): ExtraPropertyDelegateProvider<T> =
     ExtraPropertyDelegateProvider(this, initialValue)
 
 
-class ExtraPropertyDelegateProvider<T : Any>(
+class ExtraPropertyDelegateProvider<T>(
     val extra: ExtraPropertiesExtension,
     val initialValue: T) {
 
@@ -83,7 +76,7 @@ class ExtraPropertyDelegateProvider<T : Any>(
 /**
  * Enables typed access to extra properties.
  */
-class ExtraPropertyDelegate<T : Any>(val extra: ExtraPropertiesExtension) {
+class ExtraPropertyDelegate<T>(val extra: ExtraPropertiesExtension) {
 
     operator fun setValue(receiver: Any?, property: kotlin.reflect.KProperty<*>, value: T) =
         extra.set(property.name, value)
