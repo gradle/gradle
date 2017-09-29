@@ -24,13 +24,11 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.IvyArtifactName;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import static org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata.JAR_PACKAGINGS;
 import static org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata.POM_PACKAGING;
@@ -45,8 +43,8 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     /**
      * Creates default metadata given a set of artifacts.
      */
-    public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> artifacts) {
-        this(id, componentIdentifier, MutableModuleDescriptorState.createModuleDescriptor(componentIdentifier, artifacts), ImmutableList.<DependencyMetadata>of());
+    public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier) {
+        this(id, componentIdentifier, MutableModuleDescriptorState.createModuleDescriptor(componentIdentifier), ImmutableList.<DependencyMetadata>of());
     }
 
     public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleDescriptorState moduleDescriptor, Collection<DependencyMetadata> dependencies) {

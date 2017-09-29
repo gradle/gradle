@@ -47,7 +47,6 @@ import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
 import java.net.URI;
-import java.util.Set;
 
 public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetadata, MutableIvyModuleResolveMetadata> implements PatternBasedResolver {
 
@@ -93,6 +92,7 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
         return dynamicResolve;
     }
 
+    @Override
     protected boolean isMetaDataArtifact(ArtifactType artifactType) {
         return artifactType == ArtifactType.IVY_DESCRIPTOR;
     }
@@ -106,39 +106,47 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
         return m2Compatible;
     }
 
+    @Override
     public void setM2compatible(boolean m2compatible) {
         this.m2Compatible = m2compatible;
     }
 
+    @Override
     public void addArtifactLocation(URI baseUri, String pattern) {
         addArtifactPattern(toResourcePattern(baseUri, pattern));
     }
 
+    @Override
     public void addDescriptorLocation(URI baseUri, String pattern) {
         addIvyPattern(toResourcePattern(baseUri, pattern));
     }
 
-    protected ResourcePattern toResourcePattern(URI baseUri, String pattern) {
+    private ResourcePattern toResourcePattern(URI baseUri, String pattern) {
         return isM2compatible() ? new M2ResourcePattern(baseUri, pattern) : new IvyResourcePattern(baseUri, pattern);
     }
 
+    @Override
     public ModuleComponentRepositoryAccess getLocalAccess() {
         return localRepositoryAccess;
     }
 
+    @Override
     public ModuleComponentRepositoryAccess getRemoteAccess() {
         return remoteRepositoryAccess;
     }
 
+    @Override
     public ComponentMetadataSupplier createMetadataSupplier() {
         return componentMetadataSupplierFactory.create();
     }
 
-    protected MutableIvyModuleResolveMetadata createDefaultComponentResolveMetaData(ModuleComponentIdentifier moduleComponentIdentifier, Set<IvyArtifactName> artifacts) {
+    @Override
+    protected MutableIvyModuleResolveMetadata createDefaultComponentResolveMetaData(ModuleComponentIdentifier moduleComponentIdentifier) {
         ModuleVersionIdentifier mvi = moduleIdentifierFactory.moduleWithVersion(moduleComponentIdentifier.getGroup(), moduleComponentIdentifier.getModule(), moduleComponentIdentifier.getVersion());
-        return new DefaultMutableIvyModuleResolveMetadata(mvi, moduleComponentIdentifier, artifacts);
+        return new DefaultMutableIvyModuleResolveMetadata(mvi, moduleComponentIdentifier);
     }
 
+    @Override
     protected MutableIvyModuleResolveMetadata parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {
         MutableIvyModuleResolveMetadata metaData = metaDataParser.parseMetaData(context, cachedResource);
         checkMetadataConsistency(moduleComponentIdentifier, metaData);

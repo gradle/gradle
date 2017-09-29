@@ -412,14 +412,14 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     }
 
     private DefaultMutableIvyModuleResolveMetadata ivyMetadata() {
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(DefaultModuleVersionIdentifier.newId("group", "module", "version"), DefaultModuleComponentIdentifier.newId("group", "module", "version"), [] as Set)
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(DefaultModuleVersionIdentifier.newId("group", "module", "version"), DefaultModuleComponentIdentifier.newId("group", "module", "version"))
         metadata.status = "integration"
         metadata.statusScheme = ["integration", "release"]
         return metadata
     }
 
     private DefaultMutableMavenModuleResolveMetadata mavenMetadata() {
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(DefaultModuleVersionIdentifier.newId("group", "module", "version"), DefaultModuleComponentIdentifier.newId("group", "module", "version"), [] as Set)
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(DefaultModuleVersionIdentifier.newId("group", "module", "version"), DefaultModuleComponentIdentifier.newId("group", "module", "version"))
         metadata.status = "integration"
         metadata.statusScheme = ["integration", "release"]
         return metadata

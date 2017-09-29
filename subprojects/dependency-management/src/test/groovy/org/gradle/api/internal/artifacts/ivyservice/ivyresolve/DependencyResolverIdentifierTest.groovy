@@ -95,7 +95,7 @@ public class DependencyResolverIdentifierTest extends Specification {
         }
 
         @Override
-        protected MutableModuleComponentResolveMetadata createDefaultComponentResolveMetaData(ModuleComponentIdentifier moduleComponentIdentifier, Set artifacts) {
+        protected MutableModuleComponentResolveMetadata createDefaultComponentResolveMetaData(ModuleComponentIdentifier moduleComponentIdentifier) {
             throw new UnsupportedOperationException()
         }
 

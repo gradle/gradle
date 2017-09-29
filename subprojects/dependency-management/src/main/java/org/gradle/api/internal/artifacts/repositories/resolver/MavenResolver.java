@@ -58,7 +58,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -164,7 +163,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
             LocallyAvailableExternalResource resource = artifactResolver.resolveArtifact(new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, new DefaultIvyArtifactName(moduleComponentIdentifier.getModule(), "json", "json", "module")), result);
             if (resource != null) {
                 // Use default empty metadata when the POM isn't present
-                metadata = createDefaultComponentResolveMetaData(moduleComponentIdentifier, Collections.<IvyArtifactName>emptySet());
+                metadata = createDefaultComponentResolveMetaData(moduleComponentIdentifier);
                 metadataParser.parse(resource, metadata);
             }
         }
@@ -249,9 +248,9 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     }
 
     @Override
-    protected MutableMavenModuleResolveMetadata createDefaultComponentResolveMetaData(ModuleComponentIdentifier moduleComponentIdentifier, Set<IvyArtifactName> artifacts) {
+    protected MutableMavenModuleResolveMetadata createDefaultComponentResolveMetaData(ModuleComponentIdentifier moduleComponentIdentifier) {
         ModuleVersionIdentifier mvi = moduleIdentifierFactory.moduleWithVersion(moduleComponentIdentifier.getGroup(), moduleComponentIdentifier.getModule(), moduleComponentIdentifier.getVersion());
-        return processMetaData(new DefaultMutableMavenModuleResolveMetadata(mvi, moduleComponentIdentifier, artifacts));
+        return processMetaData(new DefaultMutableMavenModuleResolveMetadata(mvi, moduleComponentIdentifier));
     }
 
     protected MutableMavenModuleResolveMetadata parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {

@@ -35,8 +35,8 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
     }
 
     @Override
-    AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, Set<IvyArtifactName> artifacts) {
-        return new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, artifacts)
+    AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id) {
+        return new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id)
     }
 
     def "defines configurations for maven scopes and several usage buckets"() {
@@ -59,7 +59,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
 
     def "default metadata"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [] as Set)
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id)
 
         expect:
         metadata.packaging == 'jar'

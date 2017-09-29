@@ -26,7 +26,6 @@ import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.DependencyMetadata
-import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -40,7 +39,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
 
     abstract AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor, List<Configuration> configurations, List<DependencyMetadata> dependencies)
 
-    abstract AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, Set<IvyArtifactName> artifacts);
+    abstract AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id);
 
     MutableModuleComponentResolveMetadata getMetadata() {
         return createMetadata(id, moduleDescriptor, configurations, dependencies)
@@ -87,10 +86,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
     }
 
     def "can create default metadata"() {
-        def artifact1 = Stub(IvyArtifactName)
-        def artifact2 = Stub(IvyArtifactName)
-
-        def metadata = createMetadata(id, [artifact1, artifact2] as Set)
+        def metadata = createMetadata(id)
 
         expect:
         metadata.componentId == id
@@ -100,7 +96,11 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         immutable.componentId == id
         immutable.generated
         immutable.getConfiguration("default")
-        immutable.getConfiguration("default").artifacts.collect { it.name } == [artifact1, artifact2]
+        immutable.getConfiguration("default").artifacts.size() == 1
+        immutable.getConfiguration("default").artifacts.first().name.name == id.module
+        immutable.getConfiguration("default").artifacts.first().name.classifier == null
+        immutable.getConfiguration("default").artifacts.first().name.extension == 'jar'
+        immutable.getConfiguration("default").artifacts.first().name.extension == 'jar'
         immutable.dependencies.empty
     }
 

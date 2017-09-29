@@ -22,7 +22,6 @@ import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Collections;
-import java.util.Set;
 
 public class MutableModuleDescriptorState extends ModuleDescriptorState {
 
@@ -34,18 +33,10 @@ public class MutableModuleDescriptorState extends ModuleDescriptorState {
         super(componentIdentifier, status, generated);
     }
 
-    public static MutableModuleDescriptorState createModuleDescriptor(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> componentArtifacts) {
+    public static MutableModuleDescriptorState createModuleDescriptor(ModuleComponentIdentifier componentIdentifier) {
         MutableModuleDescriptorState moduleDescriptorState = new MutableModuleDescriptorState(componentIdentifier);
-
-        for (IvyArtifactName artifactName : componentArtifacts) {
-            moduleDescriptorState.addArtifact(artifactName, Collections.singleton(org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION));
-        }
-
-        if (componentArtifacts.isEmpty()) {
-            IvyArtifactName defaultArtifact = new DefaultIvyArtifactName(componentIdentifier.getModule(), "jar", "jar");
-            moduleDescriptorState.addArtifact(defaultArtifact, Collections.singleton(org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION));
-        }
-
+        IvyArtifactName defaultArtifact = new DefaultIvyArtifactName(componentIdentifier.getModule(), "jar", "jar");
+        moduleDescriptorState.addArtifact(defaultArtifact, Collections.singleton(org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION));
         return moduleDescriptorState;
     }
 

@@ -33,7 +33,7 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResol
     def "copy with different source"() {
         given:
         def source = Stub(ModuleSource)
-        def mutable = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [] as Set)
+        def mutable = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id)
         mutable.packaging = "other"
         mutable.relocated = true
         mutable.snapshotTimestamp = "123"
@@ -51,7 +51,7 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResol
 
     def "recognises pom packaging"() {
         when:
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [] as Set)
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id)
         metadata.packaging = packaging
 
         then:
