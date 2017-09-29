@@ -18,6 +18,7 @@ package org.gradle.internal.operations;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Action;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.BuildOperationState;
 
@@ -72,4 +73,6 @@ public interface BuildOperationExecutor {
      * @throws IllegalStateException When the current thread is not executing an operation.
      */
     BuildOperationState getCurrentOperation();
+
+    BuildOperationExecHandle start(BuildOperationDescriptor.Builder description);
 }

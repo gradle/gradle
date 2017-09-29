@@ -518,7 +518,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     @TaskAction
     public void executeTests() {
-
         JavaVersion javaVersion = getJavaVersion();
         if (!javaVersion.isJava6Compatible()) {
             throw new UnsupportedJavaRuntimeException("Support for test execution using Java 5 or earlier was removed in Gradle 3.0.");

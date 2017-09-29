@@ -55,6 +55,11 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
         };
     }
 
+    @Override
+    public BuildOperationExecHandle start(BuildOperationDescriptor.Builder description) {
+        return null;
+    }
+
     public List<BuildOperationDescriptor> getOperations() {
         return log.getDescriptors();
     }

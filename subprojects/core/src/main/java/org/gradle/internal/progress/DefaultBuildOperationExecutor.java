@@ -34,19 +34,8 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.internal.operations.BuildOperation;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.BuildOperationIdFactory;
-import org.gradle.internal.operations.BuildOperationIdentifierRegistry;
-import org.gradle.internal.operations.BuildOperationQueue;
-import org.gradle.internal.operations.BuildOperationQueueFactory;
-import org.gradle.internal.operations.BuildOperationQueueFailure;
-import org.gradle.internal.operations.BuildOperationWorker;
-import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
-import org.gradle.internal.operations.MultipleBuildOperationFailures;
-import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.operations.*;
+import org.gradle.internal.operations.BuildOperationExecHandle;
 import org.gradle.internal.resources.ResourceDeadlockException;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.time.Clock;
@@ -102,6 +91,39 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
             throw new IllegalStateException("No operation is currently running.");
         }
         return current;
+    }
+
+    @Override
+    public BuildOperationExecHandle start(BuildOperationDescriptor.Builder descriptorBuilder) {
+        failIfInResourceLockTransform();
+
+        DefaultBuildOperationState parent = (DefaultBuildOperationState) descriptorBuilder.getParentState();
+        if (parent == null) {
+            parent = currentOperation.get();
+        }
+
+        BuildOperationDescriptor descriptor = createDescriptor(descriptorBuilder, parent);
+        DefaultBuildOperationState currentOperation = new DefaultBuildOperationState(descriptor, clock.getCurrentTime());
+        assertParentRunning("Cannot start operation (%s) as parent operation (%s) has already completed.", descriptor, parent);
+        currentOperation.setRunning(true);
+
+        listener.started(descriptor, new OperationStartEvent(currentOperation.getStartTime()));
+        ProgressLogger progressLogger = createProgressLogger(currentOperation);
+        LOGGER.debug("Build operation '{}' started", descriptor.getDisplayName());
+
+        return new DefaultBuildOperationExecHandle(buildOperationIdFactory, progressLoggerFactory, listener, clock, descriptor, parent, currentOperation, progressLogger);
+//            LOGGER.debug("Completing Build operation '{}'", descriptor.getDisplayName());
+//
+//            progressLogger.completed(context.status, context.failure != null);
+//            listener.finished(descriptor, new OperationFinishEvent(currentOperation.getStartTime(), clock.getCurrentTime(), context.failure, context.result));
+//
+//            assertParentRunning("Parent operation (%2$s) completed before this operation (%1$s).", descriptor, parent);
+//
+//            if (failure != null) {
+//                throw UncheckedException.throwAsUncheckedException(failure, true);
+//            }
+
+//            LOGGER.debug("Build operation '{}' completed", descriptor.getDisplayName());
     }
 
     @Override
@@ -298,7 +320,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         fixedSizePool.stop();
     }
 
-    private static class DefaultBuildOperationContext implements BuildOperationContext {
+    static class DefaultBuildOperationContext implements BuildOperationContext {
         Throwable failure;
         Object result;
         private String status;
@@ -379,12 +401,12 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         }
     }
 
-    private static class DefaultBuildOperationState implements BuildOperationState {
+    static class DefaultBuildOperationState implements BuildOperationState {
         private final BuildOperationDescriptor description;
         private final AtomicBoolean running = new AtomicBoolean();
         private final long startTime;
 
-        private DefaultBuildOperationState(BuildOperationDescriptor descriptor, long startTime) {
+        DefaultBuildOperationState(BuildOperationDescriptor descriptor, long startTime) {
             this.startTime = startTime;
             this.description = descriptor;
         }
