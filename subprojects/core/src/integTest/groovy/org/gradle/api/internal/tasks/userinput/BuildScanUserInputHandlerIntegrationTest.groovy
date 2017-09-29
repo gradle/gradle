@@ -61,6 +61,6 @@ class BuildScanUserInputHandlerIntegrationTest extends AbstractUserInputHandlerI
         input    | stdin     | accepted
         YES      | YES.bytes | true
         NO       | NO.bytes  | false
-        'ctrl-d' | 4         | null
+        'ctrl-d' | EOF       | null
     }
 }

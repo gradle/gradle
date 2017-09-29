@@ -81,7 +81,7 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractUserInputHandlerInt
         def gradleHandle = executer.start()
 
         then:
-        writeToStdInAndClose(gradleHandle, 4)
+        writeToStdInAndClose(gradleHandle, EOF)
         gradleHandle.waitForFinish()
         gradleHandle.standardOutput.contains(PROMPT)
 

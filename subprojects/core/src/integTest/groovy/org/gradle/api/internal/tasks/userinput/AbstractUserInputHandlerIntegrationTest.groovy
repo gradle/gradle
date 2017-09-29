@@ -24,6 +24,8 @@ import static org.gradle.util.TextUtil.getPlatformLineSeparator
 
 class AbstractUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
 
+    protected static final int EOF = 4
+
     protected void interactiveExecution() {
         executer.withStdinPipe().withForceInteractive(true)
     }
