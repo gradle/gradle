@@ -22,7 +22,6 @@ import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.TaskArtifactState
-import org.gradle.api.internal.changedetection.state.CacheBackedFileSnapshotRepository
 import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository
 import org.gradle.api.internal.changedetection.state.DefaultFileCollectionSnapshotterRegistry
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror
@@ -44,7 +43,6 @@ import org.gradle.internal.classloader.ConfigurableClassLoaderHierarchyHasher
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestFileHasher
-import org.gradle.internal.id.RandomLongIdGenerator
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
@@ -103,7 +101,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         def snapshotterRegistry = new DefaultFileCollectionSnapshotterRegistry([fileCollectionSnapshotter])
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(
             cacheAccess,
-            new CacheBackedFileSnapshotRepository(cacheAccess, serializerRegistry.build(FileCollectionSnapshot), new RandomLongIdGenerator()),
+            serializerRegistry.build(FileCollectionSnapshot),
             stringInterner,
             classLoaderHierarchyHasher,
             TestUtil.valueSnapshotter(),
