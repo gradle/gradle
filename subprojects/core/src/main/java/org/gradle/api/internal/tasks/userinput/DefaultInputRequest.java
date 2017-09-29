@@ -20,7 +20,7 @@ import org.apache.commons.lang.StringUtils;
 
 public class DefaultInputRequest implements InputRequest {
 
-    protected final String text;
+    private final String text;
 
     public DefaultInputRequest(String text) {
         if (StringUtils.isBlank(text)) {
