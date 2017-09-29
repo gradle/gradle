@@ -80,4 +80,8 @@ abstract class AbstractSmokeTest extends Specification {
     protected static String mavenCentralRepository() {
         RepoScriptBlockUtil.mavenCentralRepository()
     }
+
+    protected static String googleRepository() {
+        RepoScriptBlockUtil.googleRepository()
+    }
 }
