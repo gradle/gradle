@@ -104,8 +104,6 @@ The `eclipse` plugin now defines separate output directories for each source fol
 
 TODO (donat) add a potential breaking change: `eclipse` plugin default output location changed to `bin/default`
 
-TODO (donat) change the default output location in the eclipse plugin documentation
-
 <!--
 ### Example new and noteworthy
 -->
