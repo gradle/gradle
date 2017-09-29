@@ -16,7 +16,7 @@
 
 package org.gradle.testing.performance.generator.tasks
 
-import org.gradle.testing.performance.generator.*
+import org.gradle.testing.performance.generator.TestProject
 
 /**
  * Generates native projects with prebuilt library dependencies, using a non-standard layout
@@ -73,8 +73,7 @@ class MonolithicNativeProjectGeneratorTask extends AbstractProjectGeneratorTask 
     void generateProjectSource(File projectDir, String sourceLang, TestProject testProject, Map args) {
         testProject.sourceFiles.times { sourceIdx ->
             def fileArgs = args + [ sourceIdx: sourceIdx, offset: (sourceIdx+1)*args.functionCount ]
-            generateWithTemplate(destDir, "modules/${testProject.name}/src/src${sourceIdx}_${sourceLang}.${sourceLang}", "native-monolithic/src/src.${sourceLang}", fileArgs)
-            generateWithTemplate(destDir, "modules/${testProject.name}/src/unused${sourceIdx}.${sourceLang}", "native-monolithic/src/unused.c", fileArgs)
+            generateWithTemplate(destDir, "modules/${testProject.name}/src/${sourceLang}/src${sourceIdx}_${sourceLang}.${sourceLang}", "native-monolithic/src/src.${sourceLang}", fileArgs)
         }
     }
 }

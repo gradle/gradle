@@ -4,26 +4,18 @@ model {
             sources {
                 cpp_srcs(CppSourceSet) {
                     source {
-                        srcDirs "\$rootDir/modules/\${project.name}"
-                        <% includedSourceCount.times { %>
-                        include "src/src${it}_cpp.cpp"
-                        <% } %>
+                        srcDirs "\$rootDir/modules/\${project.name}/src/cpp"
                     }
                     exportedHeaders {
-                        srcDirs "\$rootDir/modules/\${project.name}/src"
-                        include "**/*.h"
+                        srcDirs "\$rootDir/modules/\${project.name}/src/h"
                     }
                 }
                 c_srcs(CSourceSet) {
                     source {
-                        srcDirs "\$rootDir/modules/\${project.name}"
-                        <% includedSourceCount.times { %>
-                        include "src/src${it}_c.c"
-                        <% } %>
+                        srcDirs "\$rootDir/modules/\${project.name}/src/c"
                     }
                     exportedHeaders {
-                        srcDirs "\$rootDir/modules/\${project.name}/src"
-                        include "**/*.h"
+                        srcDirs "\$rootDir/modules/\${project.name}/src/h"
                     }
                 }
             }
