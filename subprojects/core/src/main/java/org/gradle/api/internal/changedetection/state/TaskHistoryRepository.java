@@ -26,7 +26,7 @@ public interface TaskHistoryRepository {
 
     interface History {
         @Nullable
-        HistoricTaskExecution getPreviousExecution();
+        HistoricalTaskExecution getPreviousExecution();
 
         CurrentTaskExecution getCurrentExecution();
 

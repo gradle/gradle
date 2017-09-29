@@ -27,13 +27,13 @@ import org.gradle.internal.id.UniqueId;
  * State of a task when it was executed.
  */
 @NonNullApi
-public class HistoricTaskExecution extends AbstractTaskExecution {
+public class HistoricalTaskExecution extends AbstractTaskExecution {
     private final boolean successful;
     private final ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot;
     private final FileCollectionSnapshot discoveredInputFilesSnapshot;
     private final ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot;
 
-    public HistoricTaskExecution(
+    public HistoricalTaskExecution(
         UniqueId buildInvocationId,
         ImplementationSnapshot taskImplementation,
         ImmutableList<ImplementationSnapshot> taskActionsImplementations,

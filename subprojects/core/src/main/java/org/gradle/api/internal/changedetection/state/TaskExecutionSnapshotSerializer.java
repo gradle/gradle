@@ -31,7 +31,7 @@ import org.gradle.internal.serialize.Serializer;
 import java.io.IOException;
 import java.util.Map;
 
-public class TaskExecutionSnapshotSerializer extends AbstractSerializer<HistoricTaskExecution> {
+public class TaskExecutionSnapshotSerializer extends AbstractSerializer<HistoricalTaskExecution> {
     private final InputPropertiesSerializer inputPropertiesSerializer;
     private final StringInterner stringInterner;
     private final Serializer<FileCollectionSnapshot> fileCollectionSnapshotSerializer;
@@ -42,7 +42,7 @@ public class TaskExecutionSnapshotSerializer extends AbstractSerializer<Historic
         this.stringInterner = stringInterner;
     }
 
-    public HistoricTaskExecution read(Decoder decoder) throws Exception {
+    public HistoricalTaskExecution read(Decoder decoder) throws Exception {
         boolean successful = decoder.readBoolean();
 
         UniqueId buildId = UniqueId.from(decoder.readString());
@@ -78,7 +78,7 @@ public class TaskExecutionSnapshotSerializer extends AbstractSerializer<Historic
 
         ImmutableSortedMap<String, ValueSnapshot> inputProperties = inputPropertiesSerializer.read(decoder);
 
-        return new HistoricTaskExecution(
+        return new HistoricalTaskExecution(
             buildId,
             taskImplementation,
             taskActionImplementations,
@@ -92,7 +92,7 @@ public class TaskExecutionSnapshotSerializer extends AbstractSerializer<Historic
         );
     }
 
-    public void write(Encoder encoder, HistoricTaskExecution execution) throws Exception {
+    public void write(Encoder encoder, HistoricalTaskExecution execution) throws Exception {
         encoder.writeBoolean(execution.isSuccessful());
         encoder.writeString(execution.getBuildInvocationId().asString());
         writeSnapshots(encoder, execution.getInputFilesSnapshot());

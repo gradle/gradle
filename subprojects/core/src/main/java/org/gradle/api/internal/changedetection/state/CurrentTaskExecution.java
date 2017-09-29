@@ -89,8 +89,8 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
         return detectedOverlappingOutputs;
     }
 
-    public HistoricTaskExecution archive() {
-        return new HistoricTaskExecution(
+    public HistoricalTaskExecution archive() {
+        return new HistoricalTaskExecution(
             getBuildInvocationId(),
             getTaskImplementation(),
             getTaskActionImplementations(),

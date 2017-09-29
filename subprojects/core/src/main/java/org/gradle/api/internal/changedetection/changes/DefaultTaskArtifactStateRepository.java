@@ -33,7 +33,7 @@ import org.gradle.api.internal.changedetection.rules.TaskUpToDateState;
 import org.gradle.api.internal.changedetection.state.CurrentTaskExecution;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
-import org.gradle.api.internal.changedetection.state.HistoricTaskExecution;
+import org.gradle.api.internal.changedetection.state.HistoricalTaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
@@ -124,7 +124,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         @Override
         public Set<File> getOutputFiles() {
-            HistoricTaskExecution previousExecution = history.getPreviousExecution();
+            HistoricalTaskExecution previousExecution = history.getPreviousExecution();
             if (previousExecution == null) {
                 return Collections.emptySet();
             }
@@ -155,7 +155,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         @Nullable
         @Override
         public UniqueId getOriginBuildInvocationId() {
-            HistoricTaskExecution previousExecution = history.getPreviousExecution();
+            HistoricalTaskExecution previousExecution = history.getPreviousExecution();
             if (previousExecution == null) {
                 return null;
             } else {
@@ -196,7 +196,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         private TaskUpToDateState getStates() {
             if (states == null) {
-                HistoricTaskExecution previousExecution = history.getPreviousExecution();
+                HistoricalTaskExecution previousExecution = history.getPreviousExecution();
                 // Calculate initial state - note this is potentially expensive
                 CurrentTaskExecution currentExecution = history.getCurrentExecution();
                 states = new TaskUpToDateState(previousExecution, currentExecution, task);
