@@ -43,8 +43,6 @@ import java.util.Set;
 
 public class SourceFoldersCreator {
 
-    // TODO (donat) add coverage: custom source set has name 'default'
-    // TODO (donat) add coverage: custom source sets have names 'default' and 'default_'
     // TODO (donat) test linked resources creation on non-java projects
 
     public List<ClasspathEntry> createSourceFolders(final EclipseClasspath classpath) {
