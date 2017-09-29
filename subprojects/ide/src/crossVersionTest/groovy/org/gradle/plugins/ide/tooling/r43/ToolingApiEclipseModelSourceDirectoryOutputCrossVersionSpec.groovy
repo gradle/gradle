@@ -25,7 +25,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 @TargetGradleVersion(">=4.3")
 class ToolingApiEclipseModelSourceDirectoryOutputCrossVersionSpec extends ToolingApiSpecification {
 
-    def "Source directory has default output"() {
+    def "Source directories have default output"() {
         setup:
         settingsFile << 'rootProject.name = "root"'
         buildFile << "apply plugin: 'java'"
@@ -36,7 +36,7 @@ class ToolingApiEclipseModelSourceDirectoryOutputCrossVersionSpec extends Toolin
 
         then:
         project.sourceDirectories.size() == 1
-        project.sourceDirectories[0].output == 'output/src/main/java'
+        project.sourceDirectories[0].output == 'bin/main'
     }
 
     def "Source directory has custom output"() {
