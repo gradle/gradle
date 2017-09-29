@@ -19,8 +19,10 @@ package org.gradle.nativeplatform.fixtures
 import org.gradle.api.internal.file.BaseDirFileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.time.Time
+import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.runner.RunWith
@@ -111,16 +113,32 @@ allprojects { p ->
         return toolChain.resourceOnlyLibrary(file(path))
     }
 
+    def NativeBinaryFixture machOBundle(Object path) {
+        return new NativeBinaryFixture(file(path), toolChain)
+    }
+
     def objectFileFor(File sourceFile, String rootObjectFilesDir = "build/objs/main/main${sourceType}") {
         return intermediateFileFor(sourceFile, rootObjectFilesDir, OperatingSystem.current().isWindows() ? ".obj" : ".o")
     }
 
     def intermediateFileFor(File sourceFile, String intermediateFilesDir, String intermediateFileSuffix) {
-        File objectFile = new CompilerOutputFileNamingSchemeFactory(new BaseDirFileResolver(TestFiles.fileSystem(), testDirectory, TestFiles.getPatternSetFactory())).create()
+        File intermediateFile = new CompilerOutputFileNamingSchemeFactory(new BaseDirFileResolver(TestFiles.fileSystem(), testDirectory, TestFiles.getPatternSetFactory())).create()
             .withObjectFileNameSuffix(intermediateFileSuffix)
             .withOutputBaseFolder(file(intermediateFilesDir))
             .map(file(sourceFile))
-        return file(getTestDirectory().toURI().relativize(objectFile.toURI()))
+        return file(getTestDirectory().toURI().relativize(intermediateFile.toURI()))
+    }
+
+    List<NativeBinaryFixture> objectFiles(SourceElement sourceElement, String rootObjectFilesDir = "build/obj/${sourceElement.sourceSetName}/debug") {
+        List<NativeBinaryFixture> result = new ArrayList<NativeBinaryFixture>()
+
+        String sourceSetName = sourceElement.getSourceSetName()
+        for (SourceFile sourceFile : sourceElement.getFiles()) {
+            def swiftFile = file("src", sourceSetName, sourceFile.path, sourceFile.name)
+            result.add(new NativeBinaryFixture(objectFileFor(swiftFile, rootObjectFilesDir), toolChain))
+        }
+
+        return result
     }
 
     protected void maybeWait() {

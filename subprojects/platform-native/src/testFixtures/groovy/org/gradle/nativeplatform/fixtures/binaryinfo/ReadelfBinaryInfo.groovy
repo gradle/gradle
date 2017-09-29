@@ -52,6 +52,12 @@ class ReadelfBinaryInfo implements BinaryInfo {
         return lines
     }
 
+    List<String> listSymbols() {
+        def process = ['nm', binaryFile.absolutePath].execute()
+        def lines = process.inputStream.readLines()
+        return lines.collect { it.split(' ').last() }
+    }
+
     String getSoName() {
         def process = ['readelf', '-d', binaryFile.absolutePath].execute()
         List<String> lines = process.inputStream.readLines()

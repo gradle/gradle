@@ -99,6 +99,10 @@ class DumpbinBinaryInfo implements BinaryInfo {
         return process.inputStream.readLines()
     }
 
+    List<String> listSymbols() {
+        throw new UnsupportedOperationException("Not yet implemented")
+    }
+
     String getSoName() {
         throw new UnsupportedOperationException("soname is not relevant on windows")
     }
