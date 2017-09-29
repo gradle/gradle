@@ -135,8 +135,6 @@ dependencies {
 
         m.pom.expectGetMissing()
         m.moduleMetadata.expectGet()
-        // TODO - should not need this
-        m.artifact.expectHead()
         m.artifact.expectGet()
 
         when:

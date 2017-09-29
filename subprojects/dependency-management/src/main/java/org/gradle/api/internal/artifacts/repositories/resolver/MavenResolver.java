@@ -164,9 +164,8 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
             LocallyAvailableExternalResource resource = artifactResolver.resolveArtifact(new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, new DefaultIvyArtifactName(moduleComponentIdentifier.getModule(), "json", "json", "module")), result);
             if (resource != null) {
                 // Use default empty metadata when the POM isn't present
-                // TODO - should consider the module present at this point, regardless of whether the pom is present or not
-                MutableMavenModuleResolveMetadata metadataToReceiveVariants = metadata != null ? metadata : new DefaultMutableMavenModuleResolveMetadata(null, moduleComponentIdentifier, Collections.<IvyArtifactName>emptySet());
-                metadataParser.parse(resource, metadataToReceiveVariants);
+                metadata = createDefaultComponentResolveMetaData(moduleComponentIdentifier, Collections.<IvyArtifactName>emptySet());
+                metadataParser.parse(resource, metadata);
             }
         }
         return metadata;
