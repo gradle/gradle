@@ -26,13 +26,13 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractUserInputHandlerInt
     private static final String PROMPT = 'Enter your response:'
     private static final String HELLO_WORLD_USER_INPUT = 'Hello World'
     private static final List<Boolean> VALID_BOOLEAN_CHOICES = [false, true]
+    private static final String DUMMY_TASK_NAME = 'doSomething'
 
     @Unroll
-    def "can capture user input for interactive build [daemon enabled: #daemon, parallel enabled: #parallel, rich console: #richConsole]"() {
+    def "can capture user input for interactive build [daemon enabled: #daemon, rich console: #richConsole]"() {
         given:
         interactiveExecution()
         withDaemon(daemon)
-        withParallel(parallel)
         withRichConsole(richConsole)
         buildFile << userInputRequestedTask()
 
@@ -46,17 +46,16 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractUserInputHandlerInt
         gradleHandle.standardOutput.contains(PROMPT)
 
         where:
-        [daemon, parallel, richConsole] << [VALID_BOOLEAN_CHOICES, VALID_BOOLEAN_CHOICES, VALID_BOOLEAN_CHOICES].combinations()
+        [daemon, richConsole] << [VALID_BOOLEAN_CHOICES, VALID_BOOLEAN_CHOICES].combinations()
     }
 
     @Unroll
-    def "use of ctrl-d when capturing user input returns null [daemon enabled: #daemon, parallel enabled: #parallel, rich console: #richConsole]"() {
+    def "use of ctrl-d when capturing user input returns null [daemon enabled: #daemon, rich console: #richConsole]"() {
         given:
         interactiveExecution()
         withDaemon(daemon)
-        withParallel(parallel)
         withRichConsole(richConsole)
-        buildFile << userInputRequestedTask(PROMPT, null, null)
+        buildFile << userInputRequestedTask(PROMPT, null)
 
         when:
         executer.withTasks(USER_INPUT_REQUEST_TASK_NAME)
@@ -68,7 +67,29 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractUserInputHandlerInt
         gradleHandle.standardOutput.contains(PROMPT)
 
         where:
-        [daemon, parallel, richConsole] << [VALID_BOOLEAN_CHOICES, VALID_BOOLEAN_CHOICES, VALID_BOOLEAN_CHOICES].combinations()
+        [daemon, richConsole] << [VALID_BOOLEAN_CHOICES, VALID_BOOLEAN_CHOICES].combinations()
+    }
+
+    def "can capture user input when executed in parallel"() {
+        given:
+        interactiveExecution()
+        withParallel()
+        buildFile << verifyUserInput(PROMPT, HELLO_WORLD_USER_INPUT)
+        buildFile << """
+            subprojects {
+                task $DUMMY_TASK_NAME
+            }
+        """
+        settingsFile << "include 'a', 'b', 'c'"
+
+        when:
+        executer.withTasks(DUMMY_TASK_NAME)
+        def gradleHandle = executer.start()
+
+        then:
+        writeToStdInAndClose(gradleHandle, HELLO_WORLD_USER_INPUT.bytes)
+        gradleHandle.waitForFinish()
+        gradleHandle.standardOutput.contains(PROMPT)
     }
 
     def "can capture user input from plugin"() {
@@ -95,12 +116,12 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractUserInputHandlerInt
         buildFile << """
             apply plugin: UserInputPlugin
             
-            task doSomething
+            task $DUMMY_TASK_NAME
         """
         interactiveExecution()
 
         when:
-        def gradleHandle = executer.withTasks('doSomething').start()
+        def gradleHandle = executer.withTasks(DUMMY_TASK_NAME).start()
 
         then:
         writeToStdInAndClose(gradleHandle, HELLO_WORLD_USER_INPUT.bytes)
@@ -123,20 +144,20 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractUserInputHandlerInt
         failure.assertHasCause('Console does not support capturing input')
     }
 
-    static String userInputRequestedTask(String prompt = PROMPT, String defaultValue = null, String expectedInput = HELLO_WORLD_USER_INPUT) {
+    static String userInputRequestedTask(String prompt = PROMPT, String expectedInput = HELLO_WORLD_USER_INPUT) {
         """
             task $USER_INPUT_REQUEST_TASK_NAME {
                 doLast {
-                    ${verifyUserInput(prompt, defaultValue, expectedInput)}
+                    ${verifyUserInput(prompt, expectedInput)}
                 }
             }
         """
     }
 
-    static String verifyUserInput(String prompt, String defaultValue, String expectedInput) {
+    static String verifyUserInput(String prompt, String expectedInput) {
         """
             ${createUserInputHandler()}
-            ${createInputRequest(prompt, defaultValue)}
+            ${createInputRequest(prompt)}
             def response = userInputHandler.getInput(inputRequest)
             assert response == ${formatExpectedInput(expectedInput)}
         """
@@ -148,16 +169,10 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractUserInputHandlerInt
         """
     }
 
-    static String createInputRequest(String prompt, String defaultValue) {
+    static String createInputRequest(String prompt) {
         StringBuilder inputRequest = new StringBuilder()
         inputRequest.append("def inputRequest = new ${DefaultInputRequest.class.getName()}")
-
-        if (defaultValue) {
-            inputRequest.append("('$prompt', '$defaultValue')")
-        } else {
-            inputRequest.append("('$prompt')")
-        }
-
+        inputRequest.append("('$prompt')")
         inputRequest.toString()
     }
 
