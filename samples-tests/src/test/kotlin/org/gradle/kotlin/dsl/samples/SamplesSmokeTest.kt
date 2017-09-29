@@ -2,7 +2,6 @@ package org.gradle.kotlin.dsl.samples
 
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
-import org.gradle.testkit.runner.BuildResult
 
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
@@ -42,29 +41,36 @@ class SamplesSmokeTest(
     }
 
     @Test
-    fun `uses the right Kotlin Gradle Plugin version`() {
+    fun `uses the right Kotlin Gradle Plugin version on `() {
 
-        var kgpFound = false
+        val projectPaths = listOf(":") + listSubProjectPaths().map { "$it:" }
+        val projectBuilds = projectPaths.map { buildSpec("${it}buildEnvironment") }
+        val buildsToCheck =
+            if (File(sampleDir, "buildSrc").isDirectory) {
+                projectBuilds + listOf(buildSpec("-p", "buildSrc", "buildEnvironment"))
+                // TODO:pm delete once `kotlin-dsl` plugin is published
+                projectBuilds
+            } else
+                projectBuilds
 
-        fun assertKotlinGradlePluginVersion(result: BuildResult) {
-            if (result.output.contains(":kotlin-gradle-plugin:")) {
-                kgpFound = true
-                assertThat(result.output, containsString(":kotlin-gradle-plugin:$embeddedKotlinVersion"))
-            }
-        }
+        val foundKotlinGradlePlugin = buildsToCheck.map(this::assertKotlinGradlePluginVersion)
 
-        if (File(sampleDir, "buildSrc").isDirectory) {
-            // TODO:pm uncomment once `kotlin-dsl` plugin is published
-            // assertKotlinGradlePluginVersion(build("-p", "buildSrc", "buildEnvironment", "-q"))
-        }
-        assertKotlinGradlePluginVersion(build("buildEnvironment", "-q"))
-        listSubProjectPaths().forEach { projectPath ->
-            assertKotlinGradlePluginVersion(build("$projectPath:buildEnvironment", "-q"))
-        }
-
-        // Mark that test as ignored if not using the KGP
-        assumeTrue(kgpFound)
+        // Mark that test as ignored if not using the kotlin-gradle-plugin
+        assumeTrue(foundKotlinGradlePlugin.any { it })
     }
+
+    private
+    fun buildSpec(vararg arguments: String) = arguments
+
+    private
+    fun assertKotlinGradlePluginVersion(buildSpec: Array<out String>): Boolean =
+        build("-q", *buildSpec).run {
+            if (output.contains(":kotlin-gradle-plugin:")) {
+                assertThat(output, containsString(":kotlin-gradle-plugin:$embeddedKotlinVersion"))
+                true
+            } else
+                false
+        }
 
     private
     val extractSubProjectPaths = Regex("""Project '(:.*)'""")
@@ -72,6 +78,5 @@ class SamplesSmokeTest(
     private
     fun listSubProjectPaths() =
         build("projects", "-q").output.lines()
-            .filter { extractSubProjectPaths.containsMatchIn(it) }
-            .map { extractSubProjectPaths.find(it)!!.groupValues[1] }
+            .mapNotNull { extractSubProjectPaths.find(it)?.run { groupValues[1] } }
 }
