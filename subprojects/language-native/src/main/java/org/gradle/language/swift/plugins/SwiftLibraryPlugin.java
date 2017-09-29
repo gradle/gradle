@@ -38,7 +38,6 @@ import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
