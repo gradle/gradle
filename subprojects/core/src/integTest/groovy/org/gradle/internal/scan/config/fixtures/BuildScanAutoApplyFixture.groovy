@@ -22,10 +22,14 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
+import static org.gradle.test.fixtures.plugin.PluginBuilder.packageName
+
 class BuildScanAutoApplyFixture {
 
     public static final String BUILD_SCAN_PLUGIN_ID = BuildScanPluginAutoApply.BUILD_SCAN_PLUGIN_ID.id
     public static final String PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX = 'PUBLISHING BUILD SCAN v'
+    public static final String DUMMY_BUILD_SCAN_PLUGIN_IMPL_CLASS = 'DummyBuildScanPlugin'
+    public static final String FULLY_QUALIFIED_DUMMY_BUILD_SCAN_PLUGIN_IMPL_CLASS = "${packageName}.${DUMMY_BUILD_SCAN_PLUGIN_IMPL_CLASS}"
     private final TestFile projectDir
     private final MavenFileRepository mavenRepo
 
@@ -55,7 +59,7 @@ class BuildScanAutoApplyFixture {
             gradle.buildFinished {
                 println '${PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX}${version}'
             }
-""", BUILD_SCAN_PLUGIN_ID, "DummyBuildScanPlugin")
+""", BUILD_SCAN_PLUGIN_ID, DUMMY_BUILD_SCAN_PLUGIN_IMPL_CLASS)
         builder.publishAs("com.gradle:build-scan-plugin:${version}", mavenRepo, executer)
     }
 }

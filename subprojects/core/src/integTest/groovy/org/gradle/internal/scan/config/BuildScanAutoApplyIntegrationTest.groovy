@@ -23,8 +23,7 @@ import spock.lang.Unroll
 
 import static org.gradle.initialization.StartParameterBuildOptionFactory.BuildScanOption
 import static org.gradle.internal.scan.config.BuildScanPluginAutoApply.BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION
-import static org.gradle.internal.scan.config.fixtures.BuildScanAutoApplyFixture.BUILD_SCAN_PLUGIN_ID
-import static org.gradle.internal.scan.config.fixtures.BuildScanAutoApplyFixture.PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX
+import static org.gradle.internal.scan.config.fixtures.BuildScanAutoApplyFixture.*
 
 class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
     private static final String BUILD_SCAN_PLUGIN_MINIMUM_VERSION = BuildScanPluginCompatibilityEnforcer.MIN_SUPPORTED_VERSION.toString()
@@ -152,6 +151,27 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         "newer"  | BUILD_SCAN_PLUGIN_NEWER_VERSION
     }
 
+    @Unroll
+    def "uses #sequence version of plugin when added to initscript classpath"() {
+        when:
+        if (version != BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION) {
+            fixture.publishDummyBuildScanPlugin(version, executer)
+        }
+        initScriptApply "com.gradle:build-scan-plugin:$version"
+
+        and:
+        runBuildWithScanRequest('-I', 'init.gradle')
+
+        then:
+        buildScanPluginApplied(version)
+
+        where:
+        sequence | version
+        "older"  | BUILD_SCAN_PLUGIN_MINIMUM_VERSION
+        "same"   | BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION
+        "newer"  | BUILD_SCAN_PLUGIN_NEWER_VERSION
+    }
+
     def "does not auto-apply build scan plugin when explicitly requested and not applied"() {
         when:
         pluginsRequest "id '$BUILD_SCAN_PLUGIN_ID' version '${BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION}' apply false"
@@ -163,9 +183,15 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         buildScanPluginNotApplied()
     }
 
-    private void runBuildWithScanRequest() {
-        args("--${BuildScanOption.LONG_OPTION}")
-        succeeds("dummy")
+    private void runBuildWithScanRequest(String... additionalArgs) {
+        List<String> allArgs = ["--${BuildScanOption.LONG_OPTION}"]
+
+        if (additionalArgs) {
+            allArgs.addAll(additionalArgs)
+        }
+
+        args(allArgs as String[])
+        runBuildWithoutScanRequest()
     }
 
     private void runBuildWithoutScanRequest() {
@@ -200,6 +226,24 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
             }
             apply plugin: '$BUILD_SCAN_PLUGIN_ID'
         """ + buildFile.text
+    }
+
+    private void initScriptApply(String coordinates) {
+        file('init.gradle') << """
+            initscript {
+                repositories {
+                    maven { url '${mavenRepo.uri}' }
+                }
+            
+                dependencies {
+                    classpath '${coordinates}'
+                }
+            }
+            
+            rootProject {
+                apply plugin: $FULLY_QUALIFIED_DUMMY_BUILD_SCAN_PLUGIN_IMPL_CLASS
+            }
+        """
     }
 
     static String newerThanAutoApplyPluginVersion() {

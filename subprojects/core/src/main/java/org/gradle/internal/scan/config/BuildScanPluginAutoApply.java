@@ -92,6 +92,11 @@ public class BuildScanPluginAutoApply implements PluginRequestsTransformer {
     }
 
     private static boolean isPluginAlreadyRequested(PluginRequests requests, Project project) {
+        // Build scan plugin applied via init script
+        if (project.getPlugins().hasPlugin(BUILD_SCAN_PLUGIN_ID.getId())) {
+            return true;
+        }
+
         for (PluginRequestInternal request : requests) {
             if (BUILD_SCAN_PLUGIN_ID.equals(request.getId())) {
                 // Build scan plugin already requested in `plugins`
