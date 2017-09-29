@@ -62,11 +62,9 @@ class ExtraPropertiesExtensionsTest {
     @Test
     fun `can initialize extra property to null using lambda expression`() {
 
-        val extra = mock<ExtraPropertiesExtension> {
-            on { get("property") } doReturn (null as Int?)
-        }
+        val extra = mock<ExtraPropertiesExtension>()
 
-        val property by extra { null }
+        val property by extra { null as Int? }
 
         // property is set eagerly
         verify(extra).set("property", null)
