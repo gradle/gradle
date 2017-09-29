@@ -40,7 +40,6 @@ class DefaultInputRequestTest extends Specification {
 
         then:
         inputRequest.prompt == PROMPT
-        !inputRequest.defaultValue
         inputRequest.isValid(input)
 
         where:
@@ -53,19 +52,6 @@ class DefaultInputRequestTest extends Specification {
 
         then:
         inputRequest.prompt == PROMPT
-        !inputRequest.defaultValue
         !inputRequest.isValid(null)
-    }
-
-    def "can provide default value"() {
-        given:
-        def defaultValue = '25'
-
-        when:
-        def inputRequest = new DefaultInputRequest(PROMPT, defaultValue)
-
-        then:
-        inputRequest.prompt == "$PROMPT ($defaultValue)"
-        inputRequest.defaultValue == defaultValue
     }
 }

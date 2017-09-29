@@ -42,10 +42,6 @@ public class DefaultUserInputHandler implements UserInputHandler {
                     return null;
                 }
 
-                if (isInputDefaultValue(inputRequest, input)) {
-                    return inputRequest.getDefaultValue();
-                }
-
                 String sanitizedInput = sanitizeInput(input);
 
                 if (inputRequest.isValid(sanitizedInput)) {
@@ -59,10 +55,6 @@ public class DefaultUserInputHandler implements UserInputHandler {
 
     private boolean isInputCancelled(String input) {
         return input == null;
-    }
-
-    private boolean isInputDefaultValue(InputRequest inputRequest, String input) {
-        return inputRequest.getDefaultValue() != null && "".equals(input);
     }
 
     private String sanitizeInput(String input) {

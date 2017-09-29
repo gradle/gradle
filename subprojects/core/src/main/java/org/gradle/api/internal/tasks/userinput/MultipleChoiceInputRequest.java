@@ -25,11 +25,7 @@ public class MultipleChoiceInputRequest extends DefaultInputRequest {
     private final List<String> choices;
 
     public MultipleChoiceInputRequest(String prompt, List<String> choices) {
-        this(prompt, choices, null);
-    }
-
-    public MultipleChoiceInputRequest(String prompt, List<String> choices, String defaultValue) {
-        super(prompt, defaultValue);
+        super(prompt);
 
         if (choices == null || choices.size() < 2) {
             throw new IllegalArgumentException("At least two choices need to be provided");
@@ -45,13 +41,6 @@ public class MultipleChoiceInputRequest extends DefaultInputRequest {
         descriptivePrompt.append(" [");
         descriptivePrompt.append(StringUtils.join(choices, ", "));
         descriptivePrompt.append("]");
-
-        if (defaultValue != null) {
-            descriptivePrompt.append(" (");
-            descriptivePrompt.append(defaultValue);
-            descriptivePrompt.append(")");
-        }
-
         return descriptivePrompt.toString();
     }
 

@@ -48,27 +48,6 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractUserInputHandlerInt
     }
 
     @Unroll
-    def "can accept default value when capturing user input [daemon enabled: #useDaemon, rich console: #richConsole]"() {
-        given:
-        interactiveExecution()
-        buildFile << userInputRequestedTask(PROMPT, HELLO_WORLD_USER_INPUT, HELLO_WORLD_USER_INPUT)
-
-        when:
-        executer.withTasks(USER_INPUT_REQUEST_TASK_NAME)
-        withDaemon(useDaemon)
-        withRichConsole(richConsole)
-        def gradleHandle = executer.start()
-
-        then:
-        writeLineSeparatorToStdInAndClose(gradleHandle)
-        gradleHandle.waitForFinish()
-        gradleHandle.standardOutput.contains("$PROMPT ($HELLO_WORLD_USER_INPUT)")
-
-        where:
-        [useDaemon, richConsole] << [[false, true], [false, true]].combinations()
-    }
-
-    @Unroll
     def "use of ctrl-d when capturing user input returns null [daemon enabled: #useDaemon, rich console: #richConsole]"() {
         given:
         interactiveExecution()

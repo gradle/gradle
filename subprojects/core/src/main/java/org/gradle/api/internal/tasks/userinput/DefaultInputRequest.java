@@ -18,44 +18,21 @@ package org.gradle.api.internal.tasks.userinput;
 
 import org.apache.commons.lang.StringUtils;
 
-import javax.annotation.Nullable;
-
 public class DefaultInputRequest implements InputRequest {
 
     protected final String prompt;
-    protected final String defaultValue;
 
     public DefaultInputRequest(String prompt) {
-        this(prompt, null);
-    }
-
-    public DefaultInputRequest(String prompt, String defaultValue) {
         if (StringUtils.isBlank(prompt)) {
             throw new IllegalArgumentException("Prompt maybe not be null, empty or whitespace");
         }
 
         this.prompt = prompt;
-        this.defaultValue = defaultValue;
     }
 
     @Override
     public String getPrompt() {
-        StringBuilder descriptivePrompt = new StringBuilder();
-        descriptivePrompt.append(prompt);
-
-        if (defaultValue != null) {
-            descriptivePrompt.append(" (");
-            descriptivePrompt.append(defaultValue);
-            descriptivePrompt.append(")");
-        }
-
-        return descriptivePrompt.toString();
-    }
-
-    @Nullable
-    @Override
-    public String getDefaultValue() {
-        return defaultValue;
+        return prompt;
     }
 
     @Override

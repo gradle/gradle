@@ -16,11 +16,8 @@
 
 package org.gradle.api.internal.tasks.userinput;
 
-import javax.annotation.Nullable;
-
 public interface InputRequest {
 
     String getPrompt();
-    @Nullable String getDefaultValue();
     boolean isValid(String input);
 }
