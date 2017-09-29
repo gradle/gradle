@@ -34,11 +34,11 @@ val ExtensionAware.extra: ExtraPropertiesExtension
     get() = extensions.extraProperties
 
 
-operator fun ExtraPropertiesExtension.setValue(receiver: Any?, property: KProperty<*>, value: Any?) =
+operator fun <T> ExtraPropertiesExtension.setValue(receiver: Any?, property: KProperty<*>, value: T) =
     set(property.name, value)
 
 
-operator fun <T : Any?> ExtraPropertiesExtension.getValue(receiver: Any?, property: KProperty<*>): T =
+operator fun <T> ExtraPropertiesExtension.getValue(receiver: Any?, property: KProperty<*>): T =
     uncheckedCast(get(property.name))
 
 
@@ -49,7 +49,7 @@ operator fun <T : Any?> ExtraPropertiesExtension.getValue(receiver: Any?, proper
  * Usage: `val answer by extra { 42 }`
  */
 inline
-operator fun <T : Any?> ExtraPropertiesExtension.invoke(initialValueProvider: () -> T): ExtraPropertyDelegateProvider<T> =
+operator fun <T> ExtraPropertiesExtension.invoke(initialValueProvider: () -> T): ExtraPropertyDelegateProvider<T> =
     invoke(initialValueProvider())
 
 
@@ -58,11 +58,11 @@ operator fun <T : Any?> ExtraPropertiesExtension.invoke(initialValueProvider: ()
  *
  * Usage: `val answer by extra(42)`
  */
-operator fun <T : Any?> ExtraPropertiesExtension.invoke(initialValue: T): ExtraPropertyDelegateProvider<T> =
+operator fun <T> ExtraPropertiesExtension.invoke(initialValue: T): ExtraPropertyDelegateProvider<T> =
     ExtraPropertyDelegateProvider(this, initialValue)
 
 
-class ExtraPropertyDelegateProvider<T : Any?>(
+class ExtraPropertyDelegateProvider<T>(
     val extra: ExtraPropertiesExtension,
     val initialValue: T) {
 
@@ -76,7 +76,7 @@ class ExtraPropertyDelegateProvider<T : Any?>(
 /**
  * Enables typed access to extra properties.
  */
-class ExtraPropertyDelegate<T : Any?>(val extra: ExtraPropertiesExtension) {
+class ExtraPropertyDelegate<T>(val extra: ExtraPropertiesExtension) {
 
     operator fun setValue(receiver: Any?, property: kotlin.reflect.KProperty<*>, value: T) =
         extra.set(property.name, value)
