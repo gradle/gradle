@@ -85,9 +85,14 @@ task customTask {
 }
 ```
 
-### Force rich or plain console with `org.gradle.console`
+### Force console type with `org.gradle.console`
 
-You may now force Gradle to use rich or plain [build output](userguide/console.html#sec:console_build_output) by setting [`org.gradle.console`](userguide/build_environment.html#sec:gradle_configuration_properties) in your `gradle.properties`.
+You may now force Gradle to use specific console type in [build output](userguide/console.html#sec:console_build_output) by setting [`org.gradle.console`](userguide/build_environment.html#sec:gradle_configuration_properties) in your `gradle.properties`.
+
+### New `verbose` console type
+
+Since Gradle 4.0, task header and outcome won't be displayed by default, which may be confusing. Now you can use `--console=verbose` command line argument 
+or set [`org.gradle.console`](userguide/build_environment.html#sec:gradle_configuration_properties) in your `gradle.properties` to enable task header and outcome output.
 
 ### Plugin library upgrades
 

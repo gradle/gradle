@@ -20,6 +20,7 @@ import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 
 public class PrettyPrefixedLogHeaderFormatter implements LogHeaderFormatter {
@@ -27,11 +28,24 @@ public class PrettyPrefixedLogHeaderFormatter implements LogHeaderFormatter {
     public List<StyledTextOutputEvent.Span> format(@Nullable String header, String description, @Nullable String shortDescription, @Nullable String status, boolean failed) {
         final String message = header != null ? header : description;
         if (message != null) {
-            StyledTextOutput.Style messageStyle = failed ? StyledTextOutput.Style.FailureHeader : StyledTextOutput.Style.Header;
             // Visually indicate group by adding surrounding lines
-            return Lists.newArrayList(new StyledTextOutputEvent.Span(EOL), new StyledTextOutputEvent.Span(messageStyle, "> " + message), new StyledTextOutputEvent.Span(EOL));
+            return Lists.newArrayList(eol(), header(message, failed), status(status, failed), eol());
         } else {
-            return Lists.newArrayList();
+            return Collections.emptyList();
         }
+    }
+
+    private StyledTextOutputEvent.Span eol() {
+        return new StyledTextOutputEvent.Span(EOL);
+    }
+
+    private StyledTextOutputEvent.Span header(String message, boolean failed) {
+        StyledTextOutput.Style messageStyle = failed ? StyledTextOutput.Style.FailureHeader : StyledTextOutput.Style.Header;
+        return new StyledTextOutputEvent.Span(messageStyle, "> " + message);
+    }
+
+    private StyledTextOutputEvent.Span status(String status, boolean failed) {
+        StyledTextOutput.Style statusStyle = failed ? StyledTextOutput.Style.Failure : StyledTextOutput.Style.Info;
+        return new StyledTextOutputEvent.Span(statusStyle, " " + status);
     }
 }
