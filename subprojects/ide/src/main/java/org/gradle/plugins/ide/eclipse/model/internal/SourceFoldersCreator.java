@@ -43,8 +43,6 @@ import java.util.Set;
 
 public class SourceFoldersCreator {
 
-    // TODO (donat) test linked resources creation on non-java projects
-
     public List<ClasspathEntry> createSourceFolders(final EclipseClasspath classpath) {
         List<ClasspathEntry> entries = Lists.newArrayList();
         Function<File, String> provideRelativePath = new Function<File, String>() {
