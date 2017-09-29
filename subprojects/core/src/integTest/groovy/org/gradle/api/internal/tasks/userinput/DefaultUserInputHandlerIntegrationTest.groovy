@@ -16,15 +16,11 @@
 
 package org.gradle.api.internal.tasks.userinput
 
-import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.ToBeImplemented
 import spock.lang.Ignore
 import spock.lang.Unroll
 
-import static org.gradle.util.TextUtil.getPlatformLineSeparator
-
-class DefaultUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
+class DefaultUserInputHandlerIntegrationTest extends AbstractUserInputHandlerIntegrationTest {
 
     private static final String USER_INPUT_REQUEST_TASK_NAME = 'userInputRequest'
     private static final String PROMPT = 'Enter your response:'
@@ -43,9 +39,7 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
         def gradleHandle = executer.start()
 
         then:
-        gradleHandle.stdinPipe.write(HELLO_WORLD_USER_INPUT.bytes)
-        gradleHandle.stdinPipe.write(getPlatformLineSeparator().bytes)
-        gradleHandle.stdinPipe.close()
+        writeToStdInAndClose(gradleHandle, HELLO_WORLD_USER_INPUT.bytes)
         gradleHandle.waitForFinish()
         gradleHandle.standardOutput.contains(PROMPT)
 
@@ -66,8 +60,7 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
         def gradleHandle = executer.start()
 
         then:
-        gradleHandle.stdinPipe.write(getPlatformLineSeparator().bytes)
-        gradleHandle.stdinPipe.close()
+        writeLineSeparatorToStdInAndClose(gradleHandle)
         gradleHandle.waitForFinish()
         gradleHandle.standardOutput.contains("$PROMPT ($HELLO_WORLD_USER_INPUT)")
 
@@ -88,9 +81,7 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
         def gradleHandle = executer.start()
 
         then:
-        gradleHandle.stdinPipe.write(4)
-        gradleHandle.stdinPipe.write(getPlatformLineSeparator().bytes)
-        gradleHandle.stdinPipe.close()
+        writeToStdInAndClose(gradleHandle, 4)
         gradleHandle.waitForFinish()
         gradleHandle.standardOutput.contains(PROMPT)
 
@@ -130,9 +121,7 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
         def gradleHandle = executer.withTasks('doSomething').start()
 
         then:
-        gradleHandle.stdinPipe.write(HELLO_WORLD_USER_INPUT.bytes)
-        gradleHandle.stdinPipe.write(getPlatformLineSeparator().bytes)
-        gradleHandle.stdinPipe.close()
+        writeToStdInAndClose(gradleHandle, HELLO_WORLD_USER_INPUT.bytes)
         gradleHandle.waitForFinish()
         gradleHandle.standardOutput.contains(PROMPT)
         gradleHandle.standardOutput.contains("You entered '$HELLO_WORLD_USER_INPUT'")
@@ -150,22 +139,6 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
         then:
         def failure = gradleHandle.waitForFailure()
         failure.assertHasCause('Console does not support capturing input')
-    }
-
-    private void interactiveExecution() {
-        executer.withStdinPipe().withForceInteractive(true)
-    }
-
-    private void withDaemon(boolean enabled) {
-        if (enabled) {
-            executer.requireDaemon().requireIsolatedDaemons()
-        }
-    }
-
-    private void withRichConsole(boolean enabled) {
-        if (enabled) {
-            executer.withConsole(ConsoleOutput.Rich)
-        }
     }
 
     static String userInputRequestedTask(String prompt = PROMPT, String defaultValue = null, String expectedInput = HELLO_WORLD_USER_INPUT) {
