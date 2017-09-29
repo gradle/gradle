@@ -20,9 +20,9 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftXCTestAddDiscoveryBundle
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftXCTestRemoveDiscoveryBundle
 import org.gradle.nativeplatform.fixtures.app.SwiftFailingXCTestBundle
-import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTest
+import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTestWithInfoPlist
+import org.gradle.nativeplatform.fixtures.app.SwiftXCTestBundleWithInfoPlist
 import org.gradle.nativeplatform.fixtures.app.SwiftXCTestBundle
-import org.gradle.nativeplatform.fixtures.app.SwiftXCTestBundleWithoutInfoPlist
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
@@ -61,7 +61,7 @@ apply plugin: 'xctest'
     }
 
     def "succeeds when test cases pass"() {
-        def testBundle = new SwiftXCTestBundle()
+        def testBundle = new SwiftXCTestBundleWithInfoPlist()
 
         given:
         testBundle.writeToProject(testDirectory)
@@ -75,7 +75,7 @@ apply plugin: 'xctest'
     }
 
     def "can build xctest bundle when Info.plist is missing"() {
-        def testBundle = new SwiftXCTestBundleWithoutInfoPlist()
+        def testBundle = new SwiftXCTestBundle()
 
         given:
         testBundle.writeToProject(testDirectory)
@@ -90,7 +90,7 @@ apply plugin: 'xctest'
 
     @Unroll
     def "runs tests when #task lifecycle task executes"() {
-        def testBundle = new SwiftXCTestBundle()
+        def testBundle = new SwiftXCTestBundleWithInfoPlist()
 
         given:
         testBundle.writeToProject(testDirectory)
@@ -151,7 +151,7 @@ apply plugin: 'xctest'
     }
 
     def "skips test tasks as up-to-date when nothing changes between invocation"() {
-        def testBundle = new SwiftXCTestBundle()
+        def testBundle = new SwiftXCTestBundleWithInfoPlist()
 
         given:
         testBundle.writeToProject(testDirectory)
@@ -166,7 +166,7 @@ apply plugin: 'xctest'
     }
 
     def "can specify a test dependency on another library"() {
-        def lib = new SwiftLibWithXCTest()
+        def lib = new SwiftLibWithXCTestWithInfoPlist()
 
         given:
         settingsFile << """
@@ -206,7 +206,7 @@ dependencies {
     }
 
     def "build logic can change source layout convention"() {
-        def testBundle = new SwiftXCTestBundle()
+        def testBundle = new SwiftXCTestBundleWithInfoPlist()
 
         given:
         testBundle.writeToSourceDir(file("Tests"))

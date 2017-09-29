@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.test.xctest
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithXCTest
-import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTest
+import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTestWithInfoPlist
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -45,7 +45,7 @@ apply plugin: 'swift-library'
     }
 
     def "can test public and internal features of a Swift library"() {
-        def lib = new SwiftLibWithXCTest()
+        def lib = new SwiftLibWithXCTestWithInfoPlist()
 
         given:
         settingsFile << "rootProject.name = 'greeter'"
