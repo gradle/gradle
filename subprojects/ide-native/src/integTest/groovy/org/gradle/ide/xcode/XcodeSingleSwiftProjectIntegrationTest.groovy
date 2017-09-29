@@ -22,8 +22,8 @@ import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithXCTest
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
+import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTestWithInfoPlist
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTest
-import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTestWithoutInfoPlist
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -119,7 +119,7 @@ apply plugin: 'xctest'
 apply plugin: 'swift-library'
 apply plugin: 'xctest'
 """
-        def lib = new SwiftLibWithXCTest()
+        def lib = new SwiftLibWithXCTestWithInfoPlist()
         lib.writeToProject(testDirectory)
 
         when:
@@ -149,7 +149,7 @@ apply plugin: 'xctest'
 apply plugin: 'swift-library'
 apply plugin: 'xctest'
 """
-        def lib = new SwiftLibWithXCTestWithoutInfoPlist()
+        def lib = new SwiftLibWithXCTest()
         lib.writeToProject(testDirectory)
 
         when:
@@ -258,7 +258,7 @@ apply plugin: 'swift-library'
 apply plugin: 'swift-library'
 """
 
-        def lib = new SwiftLibWithXCTest()
+        def lib = new SwiftLibWithXCTestWithInfoPlist()
         lib.writeToProject(testDirectory)
         succeeds("xcode")
 
@@ -287,7 +287,7 @@ apply plugin: 'swift-library'
     @Requires(TestPrecondition.XCODE)
     def "can run tests for Swift library from xcode"() {
         useXcodebuildTool()
-        def lib = new SwiftLibWithXCTest()
+        def lib = new SwiftLibWithXCTestWithInfoPlist()
 
         given:
         settingsFile.text = "rootProject.name = 'greeter'"
