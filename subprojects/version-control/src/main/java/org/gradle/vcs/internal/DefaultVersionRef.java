@@ -13,26 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.vcs;
 
-import org.gradle.api.Describable;
-import org.gradle.api.Incubating;
+package org.gradle.vcs.internal;
 
-/**
- * Captures user-provided information about a version control system.
- *
- * @since 4.3
- */
-@Incubating
-public interface VersionControlSpec extends Describable {
-    /**
-     * Returns a {@link String} identifier which will be unique to this version
-     * control specification among other version control specifications.
-     */
-    String getUniqueId();
+import org.gradle.vcs.VersionRef;
 
-    /**
-     * Returns the name of the repository.
-     */
-    String getRepoName();
+public class DefaultVersionRef implements VersionRef {
+    @Override
+    public String getVersion() {
+        return "master";
+    }
+
+    @Override
+    public String getCanonicalId() {
+        return "abcdef";
+    }
 }

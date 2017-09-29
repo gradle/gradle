@@ -19,26 +19,31 @@ package org.gradle.vcs.fixtures;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.gradle.internal.UncheckedException;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.junit.rules.ExternalResource;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.Collection;
 
-public class TemporaryGitRepository extends ExternalResource {
+public class GitRepository extends ExternalResource {
     private final String repoName;
     private final TestDirectoryProvider temporaryFolder;
     private Git git;
 
-    public TemporaryGitRepository(String repoName, TestDirectoryProvider temporaryFolder) {
+    public GitRepository(String repoName, TestDirectoryProvider temporaryFolder) {
         this.repoName = repoName;
         this.temporaryFolder = temporaryFolder;
     }
 
-    public TemporaryGitRepository(TestDirectoryProvider temporaryFolder) {
+    public GitRepository(TestDirectoryProvider temporaryFolder) {
         this("repo", temporaryFolder);
     }
 
@@ -52,13 +57,33 @@ public class TemporaryGitRepository extends ExternalResource {
         git.close();
     }
 
-    public void commit(String message, File... files) throws GitAPIException {
+    public RevCommit commit(String message, Collection<File> files) throws GitAPIException {
         AddCommand add = git.add();
         for (File file : files) {
             add.addFilepattern(relativePath(file));
         }
         add.call();
-        git.commit().setMessage(message).call();
+        return git.commit().setMessage(message).call();
+    }
+
+    public RevCommit commit(String message, File... files) throws GitAPIException {
+        return commit(message, Arrays.asList(files));
+    }
+
+    public Ref createBranch(String branchName) throws GitAPIException {
+        return git.branchCreate().setName(branchName).call();
+    }
+
+    public Ref createLightWeightTag(String tagName) throws GitAPIException {
+        return git.tag().setName(tagName).call();
+    }
+
+    public Ref createAnnotatedTag(String tagName, String message) throws GitAPIException {
+        return git.tag().setName(tagName).setAnnotated(true).setMessage(message).call();
+    }
+
+    public Ref getHead() throws IOException {
+        return git.getRepository().findRef("HEAD");
     }
 
     public TestFile getWorkTree() {

@@ -29,7 +29,7 @@ import org.gradle.internal.HasInternalProtocol;
  *         url = "..."
  *     }
  *   }
- *   addRule("rule for group") { details ->
+ *   addRule("rule for group") { details -&gt;
  *       if (details.requested.group == "group") {
  *           from vcs(GitVcs) {
  *               url = "..."

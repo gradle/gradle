@@ -13,26 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.vcs;
-
-import org.gradle.api.Describable;
-import org.gradle.api.Incubating;
 
 /**
- * Captures user-provided information about a version control system.
+ * The API for dealing with Version Control Systems in Gradle.
  *
  * @since 4.3
  */
-@Incubating
-public interface VersionControlSpec extends Describable {
-    /**
-     * Returns a {@link String} identifier which will be unique to this version
-     * control specification among other version control specifications.
-     */
-    String getUniqueId();
-
-    /**
-     * Returns the name of the repository.
-     */
-    String getRepoName();
-}
+package org.gradle.vcs.git;
