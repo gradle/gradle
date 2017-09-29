@@ -116,7 +116,7 @@ public class SourceFoldersCreator {
     }
 
     private List<SourceFolder> projectRelativeFolders(Iterable<SourceSet> sourceSets, Function<File, String> provideRelativePath, File defaultOutputDir) {
-        final String defaultOutputPath = provideRelativePath.apply(defaultOutputDir);
+        String defaultOutputPath = provideRelativePath.apply(defaultOutputDir);
         ArrayList<SourceFolder> entries = Lists.newArrayList();
         List<SourceSet> sortedSourceSets = sortSourceSetsAsPerUsualConvention(sourceSets);
         Map<SourceSet, String> sourceSetOutputPaths = collectSourceSetOutputPaths(sortedSourceSets, defaultOutputPath);
@@ -141,8 +141,8 @@ public class SourceFoldersCreator {
         return entries;
     }
 
-    private Map<SourceSet, String> collectSourceSetOutputPaths(List<SourceSet> sourceSets, String outputDir) {
-        Set<String> existingPaths = Sets.newHashSet(outputDir);
+    private Map<SourceSet, String> collectSourceSetOutputPaths(List<SourceSet> sourceSets, String defaultOutputPath) {
+        Set<String> existingPaths = Sets.newHashSet(defaultOutputPath);
         Map<SourceSet, String> result = Maps.newHashMap();
         for (SourceSet sourceSet : sourceSets) {
             String path = collectSourceSetOutputPath(sourceSet.getName(), existingPaths, "");
