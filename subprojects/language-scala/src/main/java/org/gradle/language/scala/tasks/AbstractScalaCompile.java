@@ -31,6 +31,7 @@ import org.gradle.api.internal.tasks.scala.ScalaCompileSpec;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Nested;
@@ -51,9 +52,11 @@ import java.util.Set;
 public abstract class AbstractScalaCompile extends AbstractCompile {
     protected static final Logger LOGGER = Logging.getLogger(AbstractScalaCompile.class);
     private final BaseScalaCompileOptions scalaCompileOptions;
-    private final CompileOptions compileOptions = new CompileOptions();
+    private final CompileOptions compileOptions;
 
     protected AbstractScalaCompile(BaseScalaCompileOptions scalaCompileOptions) {
+        CompileOptions compileOptions = getServices().get(ObjectFactory.class).newInstance(CompileOptions.class);
+        this.compileOptions = compileOptions;
         this.scalaCompileOptions = scalaCompileOptions;
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
     }

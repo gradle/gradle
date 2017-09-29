@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks.compile
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -36,7 +37,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
     def setup() {
         spec.tempDir = tempDir.file("tmp")
-        spec.compileOptions = new CompileOptions()
+        spec.compileOptions = new CompileOptions(new DefaultProviderFactory())
     }
 
     def "generates options for an unconfigured spec"() {
@@ -206,6 +207,16 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
         expect:
         builder.build() == ["-g", "-sourcepath", "", "-processorpath", "$file1$File.pathSeparator$file2", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
+    }
+
+    def "generates -s option"() {
+        def outputDir = new File("build/generated-sources")
+        spec.compileOptions.annotationProcessorGeneratedSourcesDirectory = outputDir
+
+        when:
+        def args = builder.build()
+        then:
+        args == ["-s", outputDir.path] + defaultOptions
     }
 
     def "adds custom compiler args last"() {

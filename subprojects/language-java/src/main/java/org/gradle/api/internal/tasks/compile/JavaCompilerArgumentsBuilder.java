@@ -160,6 +160,10 @@ public class JavaCompilerArgumentsBuilder {
             args.add("-extdirs");
             args.add(compileOptions.getExtensionDirs());
         }
+        if (compileOptions.getAnnotationProcessorGeneratedSourcesDirectory() != null) {
+            args.add("-s");
+            args.add(compileOptions.getAnnotationProcessorGeneratedSourcesDirectory().getPath());
+        }
 
         if (compileOptions.isDebug()) {
             if (compileOptions.getDebugOptions().getDebugLevel() != null) {
