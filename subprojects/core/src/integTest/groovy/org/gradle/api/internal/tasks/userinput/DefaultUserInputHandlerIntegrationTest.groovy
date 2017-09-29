@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks
+package org.gradle.api.internal.tasks.userinput
 
-import org.gradle.api.internal.tasks.userinput.DefaultInputRequest
-import org.gradle.api.internal.tasks.userinput.DefaultUserInputHandler
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.ToBeImplemented
@@ -106,14 +104,16 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.Plugin;
 
             import org.gradle.api.internal.project.ProjectInternal;
+            import org.gradle.api.internal.tasks.userinput.UserInputHandler;
             import org.gradle.api.internal.tasks.userinput.DefaultUserInputHandler;
+            import org.gradle.api.internal.tasks.userinput.InputRequest;
             import org.gradle.api.internal.tasks.userinput.DefaultInputRequest;
 
             public class UserInputPlugin implements Plugin<Project> {
                 @Override
                 public void apply(Project project) {
-                    DefaultUserInputHandler userInputHandler = ((ProjectInternal) project).getServices().get(DefaultUserInputHandler.class);
-                    DefaultInputRequest inputRequest = new DefaultInputRequest("$PROMPT");
+                    UserInputHandler userInputHandler = ((ProjectInternal) project).getServices().get(UserInputHandler.class);
+                    InputRequest inputRequest = new DefaultInputRequest("$PROMPT");
                     String response = userInputHandler.getInput(inputRequest);
                     System.out.println("You entered '" + response + "'");
                 }
@@ -189,7 +189,7 @@ class DefaultUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
 
     static String createUserInputHandler() {
         """
-            def userInputHandler = project.services.get(${DefaultUserInputHandler.class.getName()})
+            def userInputHandler = project.services.get(${UserInputHandler.class.getName()})
         """
     }
 
