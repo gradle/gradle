@@ -97,7 +97,7 @@ Print out the full (very verbose) stacktrace for any exceptions. See <<logging>>
 `-s`, `--stacktrace`::
 Print out the stacktrace also for user exceptions (e.g. compile error). See <<logging>>.
 `--scan (incubating)`::
-Creates a build scan. Gradle will emit a warning if the build scan plugin has not been applied. For more information about build scans, please visit https://gradle.com/build-scans[https://gradle.com/build-scans].
+Creates a build scan. Gradle will auto-apply the build scan plugin with a compatible version. For more information about build scans, please visit https://gradle.com/build-scans[https://gradle.com/build-scans].
 `--no-scan (incubating)`::
 Disables the creation of a build scan. For more information about build scans, please visit https://gradle.com/build-scans[https://gradle.com/build-scans].
 `-t`, `--continuous (incubating)`::
