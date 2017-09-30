@@ -57,8 +57,8 @@ registryCredentials {
 
 Plugins fetched from another source than the [Gradle Plugin Portal](https://plugins.gradle.org) may or may not be usable
 with the `plugins {}` block depending on how they have been published. If you're publishing plugins, please use
-the Gradle built-in `java-gradle-plugin` plugin that automate publication of supplementary data to make your plugins
-usable with the `plugins {}` block.
+the Gradle built-in [`java-gradle-plugin`](https://docs.gradle.org/current/userguide/javaGradle_plugin.html) plugin
+that automates publication of supplementary data to make your plugins usable with the `plugins {}` block.
 
 For example, the Android Gradle Plugin 2.x plugins are not published to the Gradle Plugin Portal and the metadata
 required to resolve plugin identifiers to resolvable artifacts
