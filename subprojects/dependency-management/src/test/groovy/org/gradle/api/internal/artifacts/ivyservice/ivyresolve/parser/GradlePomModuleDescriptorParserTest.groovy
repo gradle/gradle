@@ -1396,7 +1396,6 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         def metaData = parseMetaData()
 
         then:
-        metaData.descriptor.artifacts.empty
         metaData.packaging == 'pom'
     }
 
@@ -1420,7 +1419,6 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         def metaData = parseMetaData()
 
         then:
-        metaData.descriptor.artifacts.empty
         metaData.packaging == 'war'
     }
 
@@ -1462,7 +1460,6 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         def metaData = parseMetaData()
 
         then:
-        metaData.descriptor.artifacts.empty
         metaData.packaging == 'war'
     }
 
@@ -1810,9 +1807,6 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         dep.requested == moduleId('group-relocated', 'relocated', 'version-one')
         dep.confMappings.keySet() == ['default', 'master', 'compile', 'provided', 'runtime', 'system', 'sources', 'javadoc', 'optional'] as Set
         hasDefaultDependencyArtifact(dep)
-
-        and:
-        descriptor.artifacts.empty
     }
 
     @Issue("GRADLE-2931")

@@ -21,11 +21,9 @@ import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.component.model.Exclude;
-import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Pieces of an ivy module descriptor, which are here as we migrate away from the Ivy model
@@ -34,7 +32,6 @@ public class ModuleDescriptorState {
     // The identifier extracted from the descriptor itself. May be different to the id of the containing module
     private final ModuleComponentIdentifier componentIdentifier;
     protected final List<Exclude> excludes;
-    private final List<Artifact> artifacts = Lists.newArrayList();
     private final String status;
     private final boolean generated;
     private final Map<NamespaceId, String> extraInfo;
@@ -67,29 +64,6 @@ public class ModuleDescriptorState {
 
     public String getStatus() {
         return status;
-    }
-
-    public List<Artifact> getArtifacts() {
-        return artifacts;
-    }
-
-    public void addArtifact(IvyArtifactName newArtifact, Set<String> configurations) {
-        if (configurations.isEmpty()) {
-            throw new IllegalArgumentException("Artifact should be attached to at least one configuration.");
-        }
-        Artifact artifact = findOrCreate(newArtifact);
-        artifact.getConfigurations().addAll(configurations);
-    }
-
-    private Artifact findOrCreate(IvyArtifactName artifactName) {
-        for (Artifact existingArtifact : artifacts) {
-            if (existingArtifact.getArtifactName().equals(artifactName)) {
-                return existingArtifact;
-            }
-        }
-        Artifact newArtifact = new Artifact(artifactName);
-        artifacts.add(newArtifact);
-        return newArtifact;
     }
 
     public List<Exclude> getExcludes() {

@@ -19,10 +19,12 @@ package org.gradle.internal.component.external.model
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.model.ComponentResolveMetadata
+import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.hash.HashValue
@@ -30,7 +32,7 @@ import org.gradle.internal.hash.HashValue
 class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleComponentResolveMetadataTest {
     @Override
     AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor, List<Configuration> configurations, List<DependencyMetadata> dependencies) {
-        return new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, moduleDescriptor, configurations, dependencies)
+        return new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, moduleDescriptor, configurations, dependencies, [])
     }
 
     @Override
@@ -38,17 +40,21 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         return new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id)
     }
 
+    List<Artifact> artifacts = []
+
     def "initialises values from descriptor state and defaults"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
         def descriptor = new MutableModuleDescriptorState(id, "2", true)
         descriptor.branch = "b"
         configuration("runtime", [])
         configuration("default", ["runtime"])
+        artifact("runtime.jar", "runtime")
+        artifact("api.jar", "default")
 
         def vid = Mock(ModuleVersionIdentifier)
 
         expect:
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(vid, id, descriptor, configurations, [])
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(vid, id, descriptor, configurations, [], artifacts)
         metadata.componentId == id
         metadata.id == vid
         metadata.status == "2"
@@ -59,6 +65,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         !metadata.changing
         metadata.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         metadata.descriptor == descriptor
+        metadata.artifactDefinitions.size() == 2
 
         and:
         def immutable = metadata.asImmutable()
@@ -73,10 +80,12 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         !immutable.changing
         immutable.configurationNames == ["runtime", "default"] as Set
         immutable.getConfiguration("runtime")
+        immutable.getConfiguration("runtime").artifacts.size() == 1
         immutable.getConfiguration("default")
         immutable.getConfiguration("default").hierarchy == ["default", "runtime"]
         immutable.getConfiguration("default").transitive
         immutable.getConfiguration("default").visible
+        immutable.getConfiguration("default").artifacts.size() == 2
 
         and:
         def copy = immutable.asMutable()
@@ -87,6 +96,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         copy.status == "2"
         copy.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         !copy.changing
+        copy.artifactDefinitions.size() == 2
     }
 
     def "can override values from descriptor"() {
@@ -97,7 +107,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def contentHash = new HashValue("123")
 
         when:
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, descriptor, [], [])
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, descriptor, [], [], [])
         metadata.componentId = newId
         metadata.source = source
         metadata.status = "3"
@@ -142,7 +152,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def source = Stub(ModuleSource)
 
         when:
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, descriptor, [], [])
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, descriptor, [], [], [])
         def immutable = metadata.asImmutable()
         def copy = immutable.asMutable()
         copy.componentId = newId
@@ -185,7 +195,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def source = Stub(ModuleSource)
 
         when:
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, descriptor, [], [])
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, descriptor, [], [], [])
         def immutable = metadata.asImmutable()
 
         metadata.componentId = newId
@@ -214,5 +224,9 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         immutableCopy.changing
         immutableCopy.status == "3"
         immutableCopy.statusScheme == ["1", "2"]
+    }
+
+    def artifact(String name, String... confs) {
+        artifacts.add(new Artifact(new DefaultIvyArtifactName(name, "type", "ext", "classifier"), confs as Set<String>))
     }
 }

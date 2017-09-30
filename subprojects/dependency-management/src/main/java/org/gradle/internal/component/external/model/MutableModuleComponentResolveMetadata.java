@@ -74,6 +74,9 @@ public interface MutableModuleComponentResolveMetadata {
      */
     ModuleDescriptorState getDescriptor();
 
+    /**
+     * Returns the dependency declarations of this component.
+     */
     List<? extends DependencyMetadata> getDependencies();
 
     /**
@@ -86,13 +89,16 @@ public interface MutableModuleComponentResolveMetadata {
      */
     Map<String, Configuration> getConfigurationDefinitions();
 
+    /**
+     * Returns the artifacts to apply to all configurations. Is null when there are no such artifacts.
+     */
     @Nullable
-    List<ModuleComponentArtifactMetadata> getArtifacts();
+    List<? extends ModuleComponentArtifactMetadata> getArtifactOverrides();
 
     /**
-     * Replaces the artifacts of this module version.
+     * Replaces the artifacts of this module version. The artifacts are attached to all configurations.
      */
-    void setArtifacts(Iterable<? extends ModuleComponentArtifactMetadata> artifacts);
+    void setArtifactOverrides(Iterable<? extends ModuleComponentArtifactMetadata> artifacts);
 
     /**
      * Creates an artifact for this module. Does not mutate this metadata.

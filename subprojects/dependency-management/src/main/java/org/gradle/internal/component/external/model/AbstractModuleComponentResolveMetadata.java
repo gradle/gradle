@@ -65,13 +65,14 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final ModuleSource moduleSource;
     private final Map<String, Configuration> configurationDefinitions;
     private final Map<String, DefaultConfigurationMetadata> configurations;
+    // This should live in a decorator rather than here
     @Nullable
-    private final List<ModuleComponentArtifactMetadata> artifacts;
+    private final List<? extends ModuleComponentArtifactMetadata> artifactOverrides;
     private final List<? extends DependencyMetadata> dependencies;
     private final List<Exclude> excludes;
     private final HashValue contentHash;
 
-    protected AbstractModuleComponentResolveMetadata(MutableModuleComponentResolveMetadata metadata) {
+    protected AbstractModuleComponentResolveMetadata(MutableModuleComponentResolveMetadata metadata, Iterable<Artifact> artifacts) {
         this.descriptor = metadata.getDescriptor();
         this.componentIdentifier = metadata.getComponentId();
         this.moduleVersionIdentifier = metadata.getId();
@@ -82,16 +83,19 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         configurationDefinitions = metadata.getConfigurationDefinitions();
         dependencies = metadata.getDependencies();
         excludes = descriptor.getExcludes();
-        artifacts = metadata.getArtifacts();
+        artifactOverrides = metadata.getArtifactOverrides();
         configurations = populateConfigurationsFromDescriptor();
-        if (artifacts != null) {
-            populateArtifacts(artifacts);
+        if (artifactOverrides != null) {
+            populateArtifactsFromOverrides(artifactOverrides);
         } else {
-            populateArtifactsFromDescriptor();
+            populateArtifacts(artifacts);
         }
         contentHash = metadata.getContentHash();
     }
 
+    /**
+     * Creates a copy of the given metadata
+     */
     protected AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, @Nullable ModuleSource source) {
         this.descriptor = metadata.getDescriptor();
         this.componentIdentifier = metadata.getComponentId();
@@ -103,7 +107,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         configurationDefinitions = metadata.getConfigurationDefinitions();
         dependencies = metadata.getDependencies();
         excludes = metadata.excludes;
-        artifacts = metadata.artifacts;
+        artifactOverrides = metadata.artifactOverrides;
         configurations = metadata.configurations;
         contentHash = metadata.getContentHash();
     }
@@ -180,14 +184,14 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         return new DefaultModuleComponentArtifactMetadata(getComponentId(), ivyArtifactName);
     }
 
-    private void populateArtifacts(List<ModuleComponentArtifactMetadata> artifacts) {
+    private void populateArtifactsFromOverrides(List<? extends ModuleComponentArtifactMetadata> artifacts) {
         for (DefaultConfigurationMetadata configuration : configurations.values()) {
             configuration.artifacts.addAll(artifacts);
         }
     }
 
-    private void populateArtifactsFromDescriptor() {
-        for (Artifact artifact : descriptor.getArtifacts()) {
+    private void populateArtifacts(Iterable<Artifact> artifacts) {
+        for (Artifact artifact : artifacts) {
             ModuleComponentArtifactMetadata artifactMetadata = new DefaultModuleComponentArtifactMetadata(componentIdentifier, artifact.getArtifactName());
             for (String configuration : artifact.getConfigurations()) {
                 configurations.get(configuration).artifacts.add(artifactMetadata);
@@ -201,8 +205,8 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
 
     @Nullable
     @Override
-    public List<ModuleComponentArtifactMetadata> getArtifacts() {
-        return artifacts;
+    public List<? extends ModuleComponentArtifactMetadata> getArtifactOverrides() {
+        return artifactOverrides;
     }
 
     @Override

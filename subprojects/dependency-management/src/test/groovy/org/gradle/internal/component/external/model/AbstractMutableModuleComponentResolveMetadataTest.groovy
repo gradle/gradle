@@ -24,7 +24,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
-import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -125,19 +124,18 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
     def "can replace the artifacts for the module version"() {
         when:
         configuration("runtime")
-        artifact("ignore-me", "runtime")
         def metadata = getMetadata()
         def a1 = metadata.artifact("jar", "jar", null)
         def a2 = metadata.artifact("pom", "pom", null)
-        metadata.artifacts = [a1, a2]
+        metadata.artifactOverrides = [a1, a2]
 
         then:
         def immutable = metadata.asImmutable()
-        immutable.artifacts == [a1, a2]
+        immutable.artifactOverrides == [a1, a2]
         immutable.getConfiguration("runtime").artifacts == [a1, a2] as Set
 
         def copy = immutable.asMutable()
-        copy.artifacts == [a1, a2]
+        copy.artifactOverrides == [a1, a2]
     }
 
     def dependency(String org, String module, String version) {
@@ -146,10 +144,6 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
 
     def configuration(String name, List<String> extendsFrom = []) {
         configurations.add(new Configuration(name, true, true, extendsFrom))
-    }
-
-    def artifact(String name, String... confs) {
-        moduleDescriptor.addArtifact(new DefaultIvyArtifactName(name, "type", "ext", "classifier"), confs as Set<String>)
     }
 
     def attributes(Map<String, String> values) {

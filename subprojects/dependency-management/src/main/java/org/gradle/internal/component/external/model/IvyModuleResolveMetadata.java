@@ -15,7 +15,9 @@
  */
 package org.gradle.internal.component.external.model;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
+import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.model.ModuleSource;
 
 import java.util.Map;
@@ -42,6 +44,11 @@ public interface IvyModuleResolveMetadata extends ModuleComponentResolveMetadata
      * @return the branch attribute for the module
      */
     String getBranch();
+
+    /**
+     * Returns the Ivy definitions for artifacts of this module.
+     */
+    ImmutableList<Artifact> getArtifactDefinitions();
 
     /**
      * Returns the extra info for the module.

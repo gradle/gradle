@@ -17,11 +17,7 @@
 package org.gradle.internal.component.external.descriptor;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.Exclude;
-import org.gradle.internal.component.model.IvyArtifactName;
-
-import java.util.Collections;
 
 public class MutableModuleDescriptorState extends ModuleDescriptorState {
 
@@ -34,10 +30,7 @@ public class MutableModuleDescriptorState extends ModuleDescriptorState {
     }
 
     public static MutableModuleDescriptorState createModuleDescriptor(ModuleComponentIdentifier componentIdentifier) {
-        MutableModuleDescriptorState moduleDescriptorState = new MutableModuleDescriptorState(componentIdentifier);
-        IvyArtifactName defaultArtifact = new DefaultIvyArtifactName(componentIdentifier.getModule(), "jar", "jar");
-        moduleDescriptorState.addArtifact(defaultArtifact, Collections.singleton(org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION));
-        return moduleDescriptorState;
+        return new MutableModuleDescriptorState(componentIdentifier);
     }
 
     public void setBranch(String branch) {

@@ -15,18 +15,24 @@
  */
 package org.gradle.internal.component.external.model;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
+import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.model.ModuleSource;
 
 import java.util.Map;
 
 public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements IvyModuleResolveMetadata {
+    private final ImmutableList<Artifact> artifacts;
+
     DefaultIvyModuleResolveMetadata(MutableIvyModuleResolveMetadata metadata) {
-        super(metadata);
+        super(metadata, metadata.getArtifactDefinitions());
+        this.artifacts = metadata.getArtifactDefinitions();
     }
 
     private DefaultIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, ModuleSource source) {
         super(metadata, source);
+        this.artifacts = metadata.artifacts;
     }
 
     @Override
@@ -37,6 +43,11 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
     @Override
     public MutableIvyModuleResolveMetadata asMutable() {
         return new DefaultMutableIvyModuleResolveMetadata(this);
+    }
+
+    @Override
+    public ImmutableList<Artifact> getArtifactDefinitions() {
+        return artifacts;
     }
 
     public String getBranch() {

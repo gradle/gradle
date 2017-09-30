@@ -65,7 +65,7 @@ class ClientModuleResolverTest extends Specification {
         1 * dependencyDescriptorFactory.createDependencyDescriptor("config", null, dep) >> dependencyMetaData
         1 * mutableMetaData.setDependencies([dependencyMetaData])
         1 * mutableMetaData.artifact('jar', 'jar', null) >> artifact
-        1 * mutableMetaData.setArtifacts({
+        1 * mutableMetaData.setArtifactOverrides({
             (it as List) == [artifact]
         })
         1 * mutableMetaData.asImmutable() >> updatedMetaData

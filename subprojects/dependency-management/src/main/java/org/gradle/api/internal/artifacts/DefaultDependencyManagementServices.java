@@ -52,7 +52,6 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.Configuratio
 import org.gradle.api.internal.artifacts.ivyservice.publisher.DefaultIvyDependencyPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.publisher.IvyBackedArtifactPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.publisher.IvyXmlModuleDescriptorWriter;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
@@ -136,7 +135,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                           IvyContextManager ivyContextManager,
                                                           ImmutableAttributesFactory attributesFactory,
                                                           ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                                          ModuleExclusions moduleExclusions,
                                                           InstantiatorFactory instantiatorFactory,
                                                           FileResourceRepository fileResourceRepository) {
             return new DefaultBaseRepositoryFactory(
@@ -146,7 +144,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 locallyAvailableResourceFinder,
                 artifactIdentifierFileStore,
                 externalResourceFileStore,
-                new GradlePomModuleDescriptorParser(versionSelectorScheme, moduleIdentifierFactory, moduleExclusions, fileResourceRepository),
+                new GradlePomModuleDescriptorParser(versionSelectorScheme, moduleIdentifierFactory, fileResourceRepository),
                 new ModuleMetadataParser(attributesFactory),
                 authenticationSchemeRegistry,
                 ivyContextManager,

@@ -41,7 +41,7 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     private ImmutableList<? extends ComponentVariant> variants;
 
     /**
-     * Creates default metadata given a set of artifacts.
+     * Creates default metadata for a Maven module with no POM.
      */
     public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier) {
         this(id, componentIdentifier, MutableModuleDescriptorState.createModuleDescriptor(componentIdentifier), ImmutableList.<DependencyMetadata>of());

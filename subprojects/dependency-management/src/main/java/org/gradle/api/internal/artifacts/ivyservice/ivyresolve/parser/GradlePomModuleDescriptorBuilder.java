@@ -28,7 +28,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
@@ -85,14 +84,12 @@ public class GradlePomModuleDescriptorBuilder {
     private List<DependencyMetadata> dependencies = Lists.newArrayList();
     private final PomReader pomReader;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final ModuleExclusions moduleExclusions;
 
-    public GradlePomModuleDescriptorBuilder(PomReader pomReader, VersionSelectorScheme gradleVersionSelectorScheme, VersionSelectorScheme mavenVersionSelectorScheme, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions) {
+    public GradlePomModuleDescriptorBuilder(PomReader pomReader, VersionSelectorScheme gradleVersionSelectorScheme, VersionSelectorScheme mavenVersionSelectorScheme, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.defaultVersionSelectorScheme = gradleVersionSelectorScheme;
         this.mavenVersionSelectorScheme = mavenVersionSelectorScheme;
         this.pomReader = pomReader;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
-        this.moduleExclusions = moduleExclusions;
     }
 
     public List<DependencyMetadata> getDependencies() {

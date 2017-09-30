@@ -48,7 +48,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     private Map<String, Configuration> configurationDefinitions;
     private HashValue contentHash = EMPTY_CONTENT;
     @Nullable
-    private List<ModuleComponentArtifactMetadata> artifacts;
+    private List<? extends ModuleComponentArtifactMetadata> artifacts;
 
     protected AbstractMutableModuleComponentResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState moduleDescriptor, Map<String, Configuration> configurations, List<? extends DependencyMetadata> dependencies) {
         this.descriptor = moduleDescriptor;
@@ -68,7 +68,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         this.statusScheme = metadata.getStatusScheme();
         this.moduleSource = metadata.getSource();
         this.configurationDefinitions = metadata.getConfigurationDefinitions();
-        this.artifacts = metadata.getArtifacts();
+        this.artifacts = metadata.getArtifactOverrides();
         this.dependencies = metadata.getDependencies();
         this.contentHash = metadata.getContentHash();
     }
@@ -157,12 +157,12 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
 
     @Nullable
     @Override
-    public List<ModuleComponentArtifactMetadata> getArtifacts() {
+    public List<? extends ModuleComponentArtifactMetadata> getArtifactOverrides() {
         return artifacts;
     }
 
     @Override
-    public void setArtifacts(Iterable<? extends ModuleComponentArtifactMetadata> artifacts) {
+    public void setArtifactOverrides(Iterable<? extends ModuleComponentArtifactMetadata> artifacts) {
         this.artifacts = ImmutableList.copyOf(artifacts);
     }
 

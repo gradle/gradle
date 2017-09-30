@@ -53,7 +53,7 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
     ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier);
 
     @Nullable
-    List<ModuleComponentArtifactMetadata> getArtifacts();
+    List<? extends ModuleComponentArtifactMetadata> getArtifactOverrides();
 
     /**
      * Returns the hash of the resource(s) from which this metadata was created.

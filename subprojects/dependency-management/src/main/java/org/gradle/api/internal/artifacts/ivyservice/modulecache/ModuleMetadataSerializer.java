@@ -140,13 +140,13 @@ public class ModuleMetadataSerializer {
             writeInfoSection(metadata);
             writeConfigurations(metadata.getConfigurationDefinitions().values());
             writeDependencies(metadata.getDependencies());
+            writeArtifacts(metadata.getArtifactDefinitions());
             writeSharedInfo(metadata);
         }
 
         private void writeSharedInfo(ModuleComponentResolveMetadata metadata) throws IOException {
             encoder.writeBinary(metadata.getContentHash().asByteArray());
             ModuleDescriptorState md = metadata.getDescriptor();
-            writeArtifacts(md.getArtifacts());
             writeExcludeRules(md.getExcludes());
         }
 
@@ -343,7 +343,6 @@ public class ModuleMetadataSerializer {
 
         private void readSharedInfo() throws IOException {
             contentHash = new HashValue(decoder.readBinary());
-            readArtifacts();
             readAllExcludes();
         }
 
@@ -395,8 +394,9 @@ public class ModuleMetadataSerializer {
             readInfoSection();
             List<Configuration> configurations = readConfigurations();
             List<DependencyMetadata> dependencies = readDependencies();
+            List<Artifact> artifacts = readArtifacts();
             readSharedInfo();
-            DefaultMutableIvyModuleResolveMetadata metadata = new DefaultMutableIvyModuleResolveMetadata(mvi, id, md, configurations, dependencies);
+            DefaultMutableIvyModuleResolveMetadata metadata = new DefaultMutableIvyModuleResolveMetadata(mvi, id, md, configurations, dependencies, artifacts);
             metadata.setContentHash(contentHash);
             return metadata;
         }
@@ -447,12 +447,14 @@ public class ModuleMetadataSerializer {
             return new Configuration(name, transitive, visible, extendsFrom);
         }
 
-        private void readArtifacts() throws IOException {
+        private List<Artifact> readArtifacts() throws IOException {
             int size = readCount();
+            List<Artifact> result = Lists.newArrayListWithCapacity(size);
             for (int i = 0; i < size; i++) {
                 IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(readString(), readString(), readNullableString(), readNullableString());
-                md.addArtifact(ivyArtifactName, readStringSet());
+                result.add(new Artifact(ivyArtifactName, readStringSet()));
             }
+            return result;
         }
 
         private List<DependencyMetadata> readDependencies() throws IOException {

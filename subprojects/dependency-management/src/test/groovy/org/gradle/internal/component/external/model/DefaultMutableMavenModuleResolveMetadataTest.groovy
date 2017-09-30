@@ -24,7 +24,6 @@ import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
-import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.hash.HashValue
 

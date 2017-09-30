@@ -25,7 +25,6 @@ import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
-import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.ModuleSource
 import spock.lang.Specification
@@ -82,50 +81,6 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
         compile.dependencies.is(compile.dependencies)
     }
 
-    def "builds and caches artifacts for a configuration"() {
-        given:
-        configuration("runtime")
-        artifact("one", ["runtime"])
-        artifact("two", ["runtime"])
-
-        when:
-        def runtime = metadata.getConfiguration("runtime")
-
-        then:
-        runtime.artifacts*.name.name == ["one", "two"]
-        runtime.artifacts.is(runtime.artifacts)
-    }
-
-    def "each configuration contains a single variant containing no attributes and the artifacts of the configuration"() {
-        given:
-        configuration("runtime")
-        artifact("one", ["runtime"])
-        artifact("two", ["runtime"])
-
-        when:
-        def runtime = metadata.getConfiguration("runtime")
-
-        then:
-        runtime.variants.size() == 1
-        runtime.variants.first().attributes.empty
-        runtime.variants.first().artifacts*.name.name == ["one", "two"]
-    }
-
-    def "artifacts include union of those inherited from other configurations"() {
-        given:
-        configuration("compile")
-        configuration("runtime", ["compile"])
-        artifact("one", ["runtime"])
-        artifact("two", ["runtime", "compile"])
-        artifact("three", ["compile"])
-
-        when:
-        def artifacts = metadata.getConfiguration("runtime").artifacts
-
-        then:
-        artifacts*.name.name == ["one", "two", "three"]
-    }
-
     def "builds and caches exclude rules for a configuration"() {
         given:
         def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
@@ -169,10 +124,6 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
 
     def dependency(String org, String module, String version, String fromConf, String toConf) {
         dependencies.add(new IvyDependencyMetadata(newSelector(org, module, version), ImmutableListMultimap.of(fromConf, toConf)))
-    }
-
-    def artifact(String name, List<String> confs = []) {
-        moduleDescriptor.addArtifact(new DefaultIvyArtifactName(name, "type", "ext", "classifier"), confs as Set<String>)
     }
 
     def exclude(String name, List<String> confs = []) {

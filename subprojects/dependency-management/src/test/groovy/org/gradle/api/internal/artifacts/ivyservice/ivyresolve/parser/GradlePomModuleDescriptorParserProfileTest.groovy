@@ -1659,7 +1659,6 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         def metaData = parseMetaData()
 
         then:
-        metaData.descriptor.artifacts.empty
         metaData.packaging == 'war'
     }
 
@@ -1709,7 +1708,6 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         def metaData = parseMetaData()
 
         then:
-        metaData.descriptor.artifacts.empty
         metaData.packaging == 'war'
     }
 }

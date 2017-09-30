@@ -22,6 +22,7 @@ import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.IvyDependencyMetadata
@@ -343,7 +344,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         assertConf("myconf4", "desc 4", true, ["myconf1", "myconf2"].toArray(new String[2]))
         assertConf("myoldconf", "my old desc", true, new String[0])
 
-        md.artifacts.size() == 4
+        metadata.artifactDefinitions.size() == 4
         assertArtifacts("myconf1", ["myartifact1", "myartifact2", "myartifact3", "myartifact4"])
         assertArtifacts("myconf2", ["myartifact1", "myartifact3"])
         assertArtifacts("myconf3", ["myartifact1", "myartifact3", "myartifact4"])
@@ -695,13 +696,13 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         md = metadata.descriptor
     }
 
-    private artifact() {
-        assert md.artifacts.size() == 1
-        md.artifacts[0]
+    private Artifact artifact() {
+        assert metadata.artifactDefinitions.size() == 1
+        metadata.artifactDefinitions[0]
     }
 
-    private artifacts(String conf) {
-        md.artifacts.findAll { it.configurations.contains(conf) }
+    private List<Artifact> artifacts(String conf) {
+        metadata.artifactDefinitions.findAll { it.configurations.contains(conf) }
     }
 
     static componentId(String group, String module, String version) {
@@ -709,7 +710,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     }
 
     void assertArtifact(String name, String extension, String type, String classifier) {
-        def artifactName = md.artifacts*.artifactName.find({it.name == name})
+        def artifactName = metadata.artifactDefinitions*.artifactName.find({it.name == name})
         assert artifactName.name == name
         assert artifactName.type == type
         assert artifactName.extension == extension

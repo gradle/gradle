@@ -16,12 +16,20 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.collect.ImmutableList;
+import org.gradle.internal.component.external.descriptor.Artifact;
+
 public interface MutableIvyModuleResolveMetadata extends MutableModuleComponentResolveMetadata {
     /**
      * {@inheritDoc}
      */
     @Override
     IvyModuleResolveMetadata asImmutable();
+
+    /**
+     * Returns the Ivy-like definitions for artifacts of this module. This method is here to allow us to migrate away from the Ivy model and will be removed.
+     */
+    ImmutableList<Artifact> getArtifactDefinitions();
 
     String getBranch();
 }

@@ -45,7 +45,22 @@ class IvyModuleResolveMetaDataBuilder {
     }
 
     public void addArtifact(IvyArtifactName newArtifact, Set<String> configurations) {
-        artifacts.add(new Artifact(newArtifact, configurations));
+        if (configurations.isEmpty()) {
+            throw new IllegalArgumentException("Artifact should be attached to at least one configuration.");
+        }
+        Artifact artifact = findOrCreate(newArtifact);
+        artifact.getConfigurations().addAll(configurations);
+    }
+
+    private Artifact findOrCreate(IvyArtifactName artifactName) {
+        for (Artifact existingArtifact : artifacts) {
+            if (existingArtifact.getArtifactName().equals(artifactName)) {
+                return existingArtifact;
+            }
+        }
+        Artifact newArtifact = new Artifact(artifactName);
+        artifacts.add(newArtifact);
+        return newArtifact;
     }
 
     public List<Artifact> getArtifacts() {
@@ -54,13 +69,10 @@ class IvyModuleResolveMetaDataBuilder {
 
     public MutableIvyModuleResolveMetadata build() {
         ModuleDescriptorState descriptorState = converter.forIvyModuleDescriptor(ivyDescriptor);
-        for (Artifact artifact : artifacts) {
-            descriptorState.addArtifact(artifact.getArtifactName(), artifact.getConfigurations());
-        }
         List<Configuration> configurations = converter.extractConfigurations(ivyDescriptor);
         List<IvyDependencyMetadata> dependencies = converter.extractDependencies(ivyDescriptor);
         ModuleComponentIdentifier cid = descriptorState.getComponentIdentifier();
         ModuleVersionIdentifier mvi = moduleIdentifierFactory.moduleWithVersion(cid.getGroup(), cid.getModule(), cid.getVersion());
-        return new DefaultMutableIvyModuleResolveMetadata(mvi, cid, descriptorState, configurations, dependencies);
+        return new DefaultMutableIvyModuleResolveMetadata(mvi, cid, descriptorState, configurations, dependencies, artifacts);
     }
 }

@@ -30,6 +30,37 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResol
         return new DefaultMavenModuleResolveMetadata(new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, moduleDescriptor, dependencies))
     }
 
+    def "builds and caches artifacts for a configuration"() {
+        when:
+        def runtime = metadata.getConfiguration("runtime")
+
+        then:
+        runtime.artifacts*.name.name == ["module"]
+        runtime.artifacts*.name.extension == ["jar"]
+        runtime.artifacts.is(runtime.artifacts)
+    }
+
+    def "each configuration contains a single variant containing no attributes and the artifacts of the configuration"() {
+        when:
+        def runtime = metadata.getConfiguration("runtime")
+
+        then:
+        runtime.variants.size() == 1
+        runtime.variants.first().attributes.empty
+        runtime.variants.first().artifacts == runtime.artifacts
+    }
+
+    def "artifacts include union of those inherited from other configurations"() {
+        when:
+        def compileArtifacts = metadata.getConfiguration("compile").artifacts
+        def runtimeArtifacts = metadata.getConfiguration("runtime").artifacts
+        def defaultArtifacts = metadata.getConfiguration("default").artifacts
+
+        then:
+        runtimeArtifacts.size() == compileArtifacts.size()
+        defaultArtifacts.size() == runtimeArtifacts.size()
+    }
+
     def "copy with different source"() {
         given:
         def source = Stub(ModuleSource)
