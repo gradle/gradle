@@ -74,15 +74,18 @@ public class IvyModuleDescriptorConverter {
         ModuleComponentIdentifier componentIdentifier = DefaultModuleComponentIdentifier.newId(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
         MutableModuleDescriptorState state = new MutableModuleDescriptorState(componentIdentifier, ivyDescriptor.getStatus(), ivyDescriptor.isDefault());
 
-        state.setBranch(moduleRevisionId.getBranch());
         Map<NamespaceId, String> extraInfo = Cast.uncheckedCast(ivyDescriptor.getExtraInfo());
         state.getExtraInfo().putAll(extraInfo);
 
-        for (ExcludeRule excludeRule : ivyDescriptor.getAllExcludeRules()) {
-            addExcludeRule(state, excludeRule);
-        }
-
         return state;
+    }
+
+    public List<Exclude> extractExcludes(ModuleDescriptor ivyDescriptor) {
+        List<Exclude> result = Lists.newArrayListWithCapacity(ivyDescriptor.getAllExcludeRules().length);
+        for (ExcludeRule excludeRule : ivyDescriptor.getAllExcludeRules()) {
+            result.add(forIvyExclude(excludeRule));
+        }
+        return result;
     }
 
     public List<IvyDependencyMetadata> extractDependencies(ModuleDescriptor ivyDescriptor) {
@@ -107,10 +110,6 @@ public class IvyModuleDescriptorConverter {
         boolean visible = configuration.getVisibility() == org.apache.ivy.core.module.descriptor.Configuration.Visibility.PUBLIC;
         List<String> extendsFrom = Lists.newArrayList(configuration.getExtends());
         result.add(new Configuration(name, transitive, visible, extendsFrom));
-    }
-
-    private void addExcludeRule(MutableModuleDescriptorState state, ExcludeRule excludeRule) {
-        state.addExclude(forIvyExclude(excludeRule));
     }
 
     private void addDependency(List<IvyDependencyMetadata> result, DependencyDescriptor dependencyDescriptor) {

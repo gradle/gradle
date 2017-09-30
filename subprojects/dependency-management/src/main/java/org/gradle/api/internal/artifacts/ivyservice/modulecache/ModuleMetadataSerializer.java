@@ -25,7 +25,6 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.external.descriptor.Artifact;
@@ -58,7 +57,6 @@ import org.gradle.internal.serialize.Encoder;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -73,7 +71,7 @@ public class ModuleMetadataSerializer {
         this.attributesFactory = attributesFactory;
     }
 
-    public MutableModuleComponentResolveMetadata read(Decoder decoder, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ModuleExclusions moduleExclusions) throws IOException {
+    public MutableModuleComponentResolveMetadata read(Decoder decoder, ImmutableModuleIdentifierFactory moduleIdentifierFactory) throws IOException {
         return new Reader(decoder, moduleIdentifierFactory, attributesFactory).read();
     }
 
@@ -141,13 +139,14 @@ public class ModuleMetadataSerializer {
             writeConfigurations(metadata.getConfigurationDefinitions().values());
             writeDependencies(metadata.getDependencies());
             writeArtifacts(metadata.getArtifactDefinitions());
+            writeExcludeRules(metadata.getExcludes());
             writeSharedInfo(metadata);
+            writeNullableString(metadata.getBranch());
         }
 
         private void writeSharedInfo(ModuleComponentResolveMetadata metadata) throws IOException {
             encoder.writeBinary(metadata.getContentHash().asByteArray());
             ModuleDescriptorState md = metadata.getDescriptor();
-            writeExcludeRules(md.getExcludes());
         }
 
         private void writeId(ModuleComponentIdentifier componentIdentifier) throws IOException {
@@ -164,8 +163,6 @@ public class ModuleMetadataSerializer {
             writeId(componentIdentifier);
             writeString(md.getStatus());
             writeBoolean(md.isGenerated());
-
-            writeNullableString(md.getBranch());
 
             writeExtraInfo(md.getExtraInfo());
         }
@@ -280,18 +277,6 @@ public class ModuleMetadataSerializer {
             encoder.writeBoolean(b);
         }
 
-        private void writeNullableDate(Date publicationDate) throws IOException {
-            if (publicationDate == null) {
-                writeLong(-1);
-            } else {
-                writeLong(publicationDate.getTime());
-            }
-        }
-
-        private void writeLong(long l) throws IOException {
-            encoder.writeLong(l);
-        }
-
         private void writeStringArray(String[] values) throws IOException {
             writeCount(values.length);
             for (String configuration : values) {
@@ -343,7 +328,6 @@ public class ModuleMetadataSerializer {
 
         private void readSharedInfo() throws IOException {
             contentHash = new HashValue(decoder.readBinary());
-            readAllExcludes();
         }
 
         private MutableModuleComponentResolveMetadata readMaven() throws IOException {
@@ -395,9 +379,13 @@ public class ModuleMetadataSerializer {
             List<Configuration> configurations = readConfigurations();
             List<DependencyMetadata> dependencies = readDependencies();
             List<Artifact> artifacts = readArtifacts();
+            List<Exclude> excludes = readAllExcludes();
             readSharedInfo();
             DefaultMutableIvyModuleResolveMetadata metadata = new DefaultMutableIvyModuleResolveMetadata(mvi, id, md, configurations, dependencies, artifacts);
+            String branch = readNullableString();
+            metadata.setBranch(branch);
             metadata.setContentHash(contentHash);
+            metadata.setExcludes(excludes);
             return metadata;
         }
 
@@ -409,8 +397,6 @@ public class ModuleMetadataSerializer {
             boolean generated = readBoolean();
 
             md = new MutableModuleDescriptorState(componentIdentifier, status, generated);
-
-            md.setBranch(readNullableString());
             mvi = moduleIdentifierFactory.moduleWithVersion(componentIdentifier.getGroup(), componentIdentifier.getModule(), componentIdentifier.getVersion());
 
             readExtraInfo();
@@ -533,11 +519,13 @@ public class ModuleMetadataSerializer {
             return new DefaultExclude(moduleIdentifierFactory.module(moduleOrg, moduleName), artifact, type, ext, confs, matcher);
         }
 
-        private void readAllExcludes() throws IOException {
+        private List<Exclude> readAllExcludes() throws IOException {
             int len = readCount();
+            List<Exclude> result = new ArrayList<Exclude>(len);
             for (int i = 0; i < len; i++) {
-                md.addExclude(readExcludeRule());
+                result.add(readExcludeRule());
             }
+            return result;
         }
 
         private int readCount() throws IOException {
@@ -554,19 +542,6 @@ public class ModuleMetadataSerializer {
 
         private boolean readBoolean() throws IOException {
             return decoder.readBoolean();
-        }
-
-        private Date readNullableDate() throws IOException {
-            long value = readLong();
-            if (value == -1) {
-                return null;
-            } else {
-                return new Date(value);
-            }
-        }
-
-        private long readLong() throws IOException {
-            return decoder.readLong();
         }
 
         private String[] readStringArray() throws IOException {

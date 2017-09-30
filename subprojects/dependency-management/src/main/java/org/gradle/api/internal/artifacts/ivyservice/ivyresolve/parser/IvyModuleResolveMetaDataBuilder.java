@@ -27,6 +27,7 @@ import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.IvyDependencyMetadata;
 import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.List;
@@ -71,8 +72,12 @@ class IvyModuleResolveMetaDataBuilder {
         ModuleDescriptorState descriptorState = converter.forIvyModuleDescriptor(ivyDescriptor);
         List<Configuration> configurations = converter.extractConfigurations(ivyDescriptor);
         List<IvyDependencyMetadata> dependencies = converter.extractDependencies(ivyDescriptor);
+        List<Exclude> excludes = converter.extractExcludes(ivyDescriptor);
         ModuleComponentIdentifier cid = descriptorState.getComponentIdentifier();
         ModuleVersionIdentifier mvi = moduleIdentifierFactory.moduleWithVersion(cid.getGroup(), cid.getModule(), cid.getVersion());
-        return new DefaultMutableIvyModuleResolveMetadata(mvi, cid, descriptorState, configurations, dependencies, artifacts);
+        DefaultMutableIvyModuleResolveMetadata metadata = new DefaultMutableIvyModuleResolveMetadata(mvi, cid, descriptorState, configurations, dependencies, artifacts);
+        metadata.setExcludes(excludes);
+        metadata.setBranch(ivyDescriptor.getModuleRevisionId().getBranch());
+        return metadata;
     }
 }

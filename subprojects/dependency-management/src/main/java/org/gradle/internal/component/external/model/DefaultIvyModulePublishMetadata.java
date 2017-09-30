@@ -32,6 +32,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -46,6 +47,7 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
     private final Map<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetadata> artifactsById = new LinkedHashMap<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetadata>();
     private final Map<String, Configuration> configurations = new LinkedHashMap<String, Configuration>();
     private final Set<LocalOriginDependencyMetadata> dependencies = new LinkedHashSet<LocalOriginDependencyMetadata>();
+    private final List<Exclude> excludes = new ArrayList<Exclude>();
 
     public DefaultIvyModulePublishMetadata(ModuleComponentIdentifier id, String status) {
         this.id = id;
@@ -76,6 +78,11 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
     }
 
     @Override
+    public Collection<Exclude> getExcludes() {
+        return excludes;
+    }
+
+    @Override
     public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, AttributeContainerInternal attributes, boolean canBeConsumed, boolean canBeResolved) {
         List<String> sortedExtends = Lists.newArrayList(extendsFrom);
         Collections.sort(sortedExtends);
@@ -85,7 +92,7 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
 
     @Override
     public void addExclude(Exclude exclude) {
-        descriptor.addExclude(exclude);
+        excludes.add(exclude);
     }
 
     @Override

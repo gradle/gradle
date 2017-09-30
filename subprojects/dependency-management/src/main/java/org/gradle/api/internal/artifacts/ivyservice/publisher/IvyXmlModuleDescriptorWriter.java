@@ -83,10 +83,6 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
 
         writer.attribute("organisation", id.getGroup());
         writer.attribute("module", id.getModule());
-        String branch = descriptor.getBranch();
-        if (branch != null) {
-            writer.attribute("branch", branch);
-        }
         writer.attribute("revision", id.getVersion());
         writer.attribute("status", descriptor.getStatus());
 
@@ -207,7 +203,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     }
 
     private static void printAllExcludes(IvyModulePublishMetadata metadata, SimpleXmlWriter writer) throws IOException {
-        List<Exclude> excludes = metadata.getModuleDescriptor().getExcludes();
+        Collection<Exclude> excludes = metadata.getExcludes();
         for (Exclude exclude : excludes) {
             writer.startElement("exclude");
             writer.attribute("org", exclude.getModuleId().getGroup());

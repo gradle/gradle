@@ -19,6 +19,7 @@ package org.gradle.internal.component.external.model;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
 import java.util.Collection;
@@ -38,4 +39,6 @@ public interface IvyModulePublishMetadata {
     Collection<IvyModuleArtifactPublishMetadata> getArtifacts();
 
     Collection<LocalOriginDependencyMetadata> getDependencies();
+
+    Collection<Exclude> getExcludes();
 }

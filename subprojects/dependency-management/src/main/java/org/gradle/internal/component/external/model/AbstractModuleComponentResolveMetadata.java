@@ -69,10 +69,9 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     @Nullable
     private final List<? extends ModuleComponentArtifactMetadata> artifactOverrides;
     private final List<? extends DependencyMetadata> dependencies;
-    private final List<Exclude> excludes;
     private final HashValue contentHash;
 
-    protected AbstractModuleComponentResolveMetadata(MutableModuleComponentResolveMetadata metadata, Iterable<Artifact> artifacts) {
+    protected AbstractModuleComponentResolveMetadata(MutableModuleComponentResolveMetadata metadata, Iterable<Artifact> artifacts, ImmutableList<Exclude> excludes) {
         this.descriptor = metadata.getDescriptor();
         this.componentIdentifier = metadata.getComponentId();
         this.moduleVersionIdentifier = metadata.getId();
@@ -82,9 +81,8 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         moduleSource = metadata.getSource();
         configurationDefinitions = metadata.getConfigurationDefinitions();
         dependencies = metadata.getDependencies();
-        excludes = descriptor.getExcludes();
         artifactOverrides = metadata.getArtifactOverrides();
-        configurations = populateConfigurationsFromDescriptor();
+        configurations = populateConfigurationsFromDescriptor(excludes);
         if (artifactOverrides != null) {
             populateArtifactsFromOverrides(artifactOverrides);
         } else {
@@ -106,7 +104,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         moduleSource = source;
         configurationDefinitions = metadata.getConfigurationDefinitions();
         dependencies = metadata.getDependencies();
-        excludes = metadata.excludes;
         artifactOverrides = metadata.artifactOverrides;
         configurations = metadata.configurations;
         contentHash = metadata.getContentHash();
@@ -224,17 +221,17 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         return configurations.get(name);
     }
 
-    private Map<String, DefaultConfigurationMetadata> populateConfigurationsFromDescriptor() {
+    private Map<String, DefaultConfigurationMetadata> populateConfigurationsFromDescriptor(List<Exclude> excludes) {
         Set<String> configurationsNames = configurationDefinitions.keySet();
         Map<String, DefaultConfigurationMetadata> configurations = new HashMap<String, DefaultConfigurationMetadata>(configurationsNames.size());
         for (String configName : configurationsNames) {
-            DefaultConfigurationMetadata configuration = populateConfigurationFromDescriptor(configName, configurationDefinitions, configurations);
+            DefaultConfigurationMetadata configuration = populateConfigurationFromDescriptor(configName, configurationDefinitions, configurations, excludes);
             configuration.populateDependencies(dependencies);
         }
         return configurations;
     }
 
-    private DefaultConfigurationMetadata populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions, Map<String, DefaultConfigurationMetadata> configurations) {
+    private DefaultConfigurationMetadata populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions, Map<String, DefaultConfigurationMetadata> configurations, List<Exclude> excludes) {
         DefaultConfigurationMetadata populated = configurations.get(name);
         if (populated != null) {
             return populated;
@@ -255,7 +252,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
                 name,
                 transitive,
                 visible,
-                Collections.singletonList(populateConfigurationFromDescriptor(extendsFrom.get(0), configurationDefinitions, configurations)),
+                Collections.singletonList(populateConfigurationFromDescriptor(extendsFrom.get(0), configurationDefinitions, configurations, excludes)),
                 excludes
             );
             configurations.put(name, populated);
@@ -263,7 +260,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         }
         List<DefaultConfigurationMetadata> hierarchy = new ArrayList<DefaultConfigurationMetadata>(extendsFrom.size());
         for (String confName : extendsFrom) {
-            hierarchy.add(populateConfigurationFromDescriptor(confName, configurationDefinitions, configurations));
+            hierarchy.add(populateConfigurationFromDescriptor(confName, configurationDefinitions, configurations, excludes));
         }
         populated = new DefaultConfigurationMetadata(
             componentIdentifier,

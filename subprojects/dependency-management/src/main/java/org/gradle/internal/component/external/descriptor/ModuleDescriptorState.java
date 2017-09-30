@@ -16,13 +16,10 @@
 
 package org.gradle.internal.component.external.descriptor;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
-import org.gradle.internal.component.model.Exclude;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -31,19 +28,15 @@ import java.util.Map;
 public class ModuleDescriptorState {
     // The identifier extracted from the descriptor itself. May be different to the id of the containing module
     private final ModuleComponentIdentifier componentIdentifier;
-    protected final List<Exclude> excludes;
     private final String status;
     private final boolean generated;
     private final Map<NamespaceId, String> extraInfo;
-    protected String branch;
 
     public ModuleDescriptorState(ModuleComponentIdentifier componentIdentifier, String status, boolean generated) {
         this.componentIdentifier = componentIdentifier;
-        branch = null;
         this.status = status;
         this.generated = generated;
         extraInfo = Maps.newHashMap();
-        excludes = Lists.newArrayList();
     }
 
     public ModuleComponentIdentifier getComponentIdentifier() {
@@ -54,19 +47,11 @@ public class ModuleDescriptorState {
         return extraInfo;
     }
 
-    public String getBranch() {
-        return branch;
-    }
-
     public boolean isGenerated() {
         return generated;
     }
 
     public String getStatus() {
         return status;
-    }
-
-    public List<Exclude> getExcludes() {
-        return excludes;
     }
 }

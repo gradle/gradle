@@ -18,6 +18,9 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.component.external.descriptor.Artifact;
+import org.gradle.internal.component.model.Exclude;
+
+import javax.annotation.Nullable;
 
 public interface MutableIvyModuleResolveMetadata extends MutableModuleComponentResolveMetadata {
     /**
@@ -31,5 +34,18 @@ public interface MutableIvyModuleResolveMetadata extends MutableModuleComponentR
      */
     ImmutableList<Artifact> getArtifactDefinitions();
 
+    /**
+     * Returns the Ivy-like excludes of this component. This method is here to allow us to migrate away from the Ivy types and will be removed.
+     */
+    ImmutableList<Exclude> getExcludes();
+
+    /**
+     * Replaces the excludes of this component.
+     */
+    void setExcludes(Iterable<? extends Exclude> excludes);
+
+    @Nullable
     String getBranch();
+
+    void setBranch(@Nullable String branch);
 }

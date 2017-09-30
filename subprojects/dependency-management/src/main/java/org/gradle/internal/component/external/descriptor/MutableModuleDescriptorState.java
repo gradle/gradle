@@ -17,7 +17,6 @@
 package org.gradle.internal.component.external.descriptor;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.component.model.Exclude;
 
 public class MutableModuleDescriptorState extends ModuleDescriptorState {
 
@@ -31,13 +30,5 @@ public class MutableModuleDescriptorState extends ModuleDescriptorState {
 
     public static MutableModuleDescriptorState createModuleDescriptor(ModuleComponentIdentifier componentIdentifier) {
         return new MutableModuleDescriptorState(componentIdentifier);
-    }
-
-    public void setBranch(String branch) {
-        this.branch = branch;
-    }
-
-    public void addExclude(Exclude exclude) {
-        excludes.add(exclude);
     }
 }

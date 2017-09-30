@@ -358,7 +358,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
         verifyFullDependencies(metadata.dependencies)
 
-        def rules = md.excludes
+        def rules = metadata.excludes
         rules.size() == 2
         rules[0].matcher == PatternMatcher.GLOB
         rules[0].configurations as List == ["myconf1"]

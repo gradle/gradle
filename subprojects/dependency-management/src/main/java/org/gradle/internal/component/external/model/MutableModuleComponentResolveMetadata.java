@@ -67,8 +67,7 @@ public interface MutableModuleComponentResolveMetadata {
     void setSource(ModuleSource source);
 
     /**
-     * Returns this module version as an Ivy-like ModuleDescriptor. This method is here to allow us to migrate away from the Ivy types
-     * and will be removed.
+     * Returns this module version as an Ivy-like ModuleDescriptor. This method is here to allow us to migrate away from the Ivy types and will be removed.
      *
      * <p>You should avoid using this method.
      */

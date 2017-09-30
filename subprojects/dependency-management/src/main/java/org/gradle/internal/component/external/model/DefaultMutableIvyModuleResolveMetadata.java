@@ -27,7 +27,9 @@ import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.Exclude;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
 
@@ -35,6 +37,8 @@ import static org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION;
 
 public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModuleComponentResolveMetadata implements MutableIvyModuleResolveMetadata {
     private final ImmutableList<Artifact> artifacts;
+    private ImmutableList<Exclude> excludes;
+    private String branch;
 
     /**
      * Creates default metadata for an Ivy module version with no ivy.xml descriptor.
@@ -50,11 +54,14 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
     public DefaultMutableIvyModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState descriptor, Collection<Configuration> configurations, Collection<? extends DependencyMetadata> dependencies, Collection<? extends Artifact> artifacts) {
         super(id, componentIdentifier, descriptor, toMap(configurations), ImmutableList.copyOf(dependencies));
         this.artifacts = ImmutableList.copyOf(artifacts);
+        this.excludes = ImmutableList.of();
     }
 
     public DefaultMutableIvyModuleResolveMetadata(IvyModuleResolveMetadata metadata) {
         super(metadata);
         this.artifacts = metadata.getArtifactDefinitions();
+        this.excludes = metadata.getExcludes();
+        this.branch = metadata.getBranch();
     }
 
     private static Map<String, Configuration> toMap(Collection<Configuration> configurations) {
@@ -71,8 +78,24 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
     }
 
     @Override
+    public ImmutableList<Exclude> getExcludes() {
+        return excludes;
+    }
+
+    @Override
+    public void setExcludes(Iterable<? extends Exclude> excludes) {
+        this.excludes = ImmutableList.copyOf(excludes);
+    }
+
+    @Nullable
+    @Override
     public String getBranch() {
-        return getDescriptor().getBranch();
+        return branch;
+    }
+
+    @Override
+    public void setBranch(String branch) {
+        this.branch = branch;
     }
 
     @Override

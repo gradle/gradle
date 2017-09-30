@@ -18,9 +18,11 @@ package org.gradle.internal.component.external.model
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.descriptor.Configuration
+import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.model.ComponentResolveMetadata
@@ -45,7 +47,6 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
     def "initialises values from descriptor state and defaults"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
         def descriptor = new MutableModuleDescriptorState(id, "2", true)
-        descriptor.branch = "b"
         configuration("runtime", [])
         configuration("default", ["runtime"])
         artifact("runtime.jar", "runtime")
@@ -58,6 +59,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         metadata.componentId == id
         metadata.id == vid
         metadata.status == "2"
+        metadata.branch == null
 
         and:
         metadata.contentHash == AbstractMutableModuleComponentResolveMetadata.EMPTY_CONTENT
@@ -66,6 +68,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         metadata.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         metadata.descriptor == descriptor
         metadata.artifactDefinitions.size() == 2
+        metadata.excludes.empty
 
         and:
         def immutable = metadata.asImmutable()
@@ -76,8 +79,9 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         immutable.status == "2"
         immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         immutable.generated
-        immutable.branch == "b"
+        immutable.branch == null
         !immutable.changing
+        immutable.excludes.empty
         immutable.configurationNames == ["runtime", "default"] as Set
         immutable.getConfiguration("runtime")
         immutable.getConfiguration("runtime").artifacts.size() == 1
@@ -95,8 +99,10 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         copy.id == vid
         copy.status == "2"
         copy.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
+        copy.branch == null
         !copy.changing
         copy.artifactDefinitions.size() == 2
+        copy.excludes.empty
     }
 
     def "can override values from descriptor"() {
@@ -105,15 +111,18 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def newId = DefaultModuleComponentIdentifier.newId("group", "module", "1.2")
         def source = Stub(ModuleSource)
         def contentHash = new HashValue("123")
+        def excludes = [new DefaultExclude(new DefaultModuleIdentifier("group", "name"))]
 
         when:
         def metadata = new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, descriptor, [], [], [])
         metadata.componentId = newId
         metadata.source = source
         metadata.status = "3"
+        metadata.branch = "release"
         metadata.changing = true
         metadata.statusScheme = ["1", "2", "3"]
         metadata.contentHash = contentHash
+        metadata.excludes = excludes
 
         then:
         metadata.componentId == newId
@@ -121,8 +130,10 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         metadata.source == source
         metadata.changing
         metadata.status == "3"
+        metadata.branch == "release"
         metadata.statusScheme == ["1", "2", "3"]
         metadata.contentHash == contentHash
+        metadata.excludes == excludes
 
         def immutable = metadata.asImmutable()
         immutable != metadata
@@ -130,9 +141,11 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         immutable.id == DefaultModuleVersionIdentifier.newId(newId)
         immutable.source == source
         immutable.status == "3"
+        immutable.branch == "release"
         immutable.changing
         immutable.statusScheme == ["1", "2", "3"]
         immutable.contentHash == contentHash
+        immutable.excludes == excludes
 
         def copy = immutable.asMutable()
         copy != metadata
@@ -140,9 +153,11 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         copy.id == DefaultModuleVersionIdentifier.newId(newId)
         copy.source == source
         copy.status == "3"
+        copy.branch == "release"
         copy.changing
         copy.statusScheme == ["1", "2", "3"]
         copy.contentHash == contentHash
+        copy.excludes == excludes
     }
 
     def "making changes to copy does not affect original"() {

@@ -269,7 +269,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         def id2 = new NamespaceId('namespace', 'info2')
         metadata.descriptor.extraInfo[id1] = "info1 value"
         metadata.descriptor.extraInfo[id2] = "info2 value"
-        metadata.descriptor.branch = "someBranch"
+        metadata.branch = "someBranch"
 
         def capturedDescriptor = null
         handler.all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
@@ -295,7 +295,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         def id2 = new NamespaceId('namespace', 'info2')
         metadata.descriptor.extraInfo[id1] = "info1 value"
         metadata.descriptor.extraInfo[id2] = "info2 value"
-        metadata.descriptor.branch = "someBranch"
+        metadata.branch = "someBranch"
 
         def capturedDescriptor = null
         handler.all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
@@ -356,7 +356,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         def id2 = new NamespaceId('namespace', 'info2')
         metadata.descriptor.extraInfo[id1] = "info1 value"
         metadata.descriptor.extraInfo[id2] = "info2 value"
-        metadata.descriptor.branch = "someBranch"
+        metadata.branch = "someBranch"
 
         def capturedDetails1 = null
         def capturedDescriptor1 = null

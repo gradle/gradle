@@ -18,11 +18,7 @@ package org.gradle.internal.component.external.model
 
 import com.google.common.collect.ImmutableListMultimap
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.internal.component.external.descriptor.Configuration
-import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.model.DependencyMetadata
@@ -81,23 +77,6 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
         compile.dependencies.is(compile.dependencies)
     }
 
-    def "builds and caches exclude rules for a configuration"() {
-        given:
-        def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
-        configuration("compile")
-        configuration("runtime", ["compile"])
-        def rule1 = exclude("one", ["runtime"])
-        def rule2 = exclude("two", ["compile"])
-        def rule3 = exclude("three", ["other"])
-
-        expect:
-        def config = metadata.getConfiguration("runtime")
-
-        def exclusions = config.getExclusions(moduleExclusions)
-        exclusions == moduleExclusions.excludeAny(rule1, rule2)
-        exclusions.is(config.getExclusions(moduleExclusions))
-    }
-
     def "can make a copy with different source"() {
         given:
         configuration("compile")
@@ -125,11 +104,4 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
     def dependency(String org, String module, String version, String fromConf, String toConf) {
         dependencies.add(new IvyDependencyMetadata(newSelector(org, module, version), ImmutableListMultimap.of(fromConf, toConf)))
     }
-
-    def exclude(String name, List<String> confs = []) {
-        def exclude = new DefaultExclude(DefaultModuleIdentifier.newId("group", name), confs as String[], "exact")
-        moduleDescriptor.addExclude(exclude)
-        exclude
-    }
-
 }
