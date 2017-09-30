@@ -163,7 +163,9 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
             LocallyAvailableExternalResource resource = artifactResolver.resolveArtifact(new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, new DefaultIvyArtifactName(moduleComponentIdentifier.getModule(), "json", "json", "module")), result);
             if (resource != null) {
                 // Use default empty metadata when the POM isn't present
-                metadata = createDefaultComponentResolveMetaData(moduleComponentIdentifier);
+                if (metadata == null) {
+                    metadata = createDefaultComponentResolveMetaData(moduleComponentIdentifier);
+                }
                 metadataParser.parse(resource, metadata);
             }
         }
