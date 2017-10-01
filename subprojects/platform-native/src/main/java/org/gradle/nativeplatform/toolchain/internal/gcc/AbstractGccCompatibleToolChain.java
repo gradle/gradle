@@ -80,8 +80,6 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         this.compilerOutputFileNamingSchemeFactory = compilerOutputFileNamingSchemeFactory;
         this.workerLeaseService = workerLeaseService;
 
-        target(new Intel32Architecture());
-        target(new Intel64Architecture());
         configInsertLocation = 0;
     }
 
@@ -119,7 +117,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         target(new DefaultTargetPlatformConfiguration(platformNames, action));
     }
 
-    private void target(TargetPlatformConfiguration targetPlatformConfiguration) {
+    protected void target(TargetPlatformConfiguration targetPlatformConfiguration) {
         platformConfigs.add(configInsertLocation, targetPlatformConfiguration);
         configInsertLocation++;
     }
@@ -210,55 +208,6 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             }
         }
         return null;
-    }
-
-    private class Intel32Architecture implements TargetPlatformConfiguration {
-
-        @Override
-        public boolean supportsPlatform(NativePlatformInternal targetPlatform) {
-            return targetPlatform.getOperatingSystem().isCurrent() && targetPlatform.getArchitecture().isI386();
-        }
-
-        @Override
-        public void apply(DefaultGccPlatformToolChain gccToolChain) {
-            gccToolChain.compilerProbeArgs("-m32");
-            Action<List<String>> m32args = new Action<List<String>>() {
-                public void execute(List<String> args) {
-                    args.add("-m32");
-                }
-            };
-            gccToolChain.getCppCompiler().withArguments(m32args);
-            gccToolChain.getcCompiler().withArguments(m32args);
-            gccToolChain.getObjcCompiler().withArguments(m32args);
-            gccToolChain.getObjcppCompiler().withArguments(m32args);
-            gccToolChain.getLinker().withArguments(m32args);
-            gccToolChain.getAssembler().withArguments(m32args);
-
-        }
-    }
-
-    private class Intel64Architecture implements TargetPlatformConfiguration {
-        @Override
-        public boolean supportsPlatform(NativePlatformInternal targetPlatform) {
-            return targetPlatform.getOperatingSystem().isCurrent()
-                    && targetPlatform.getArchitecture().isAmd64();
-        }
-
-        @Override
-        public void apply(DefaultGccPlatformToolChain gccToolChain) {
-            gccToolChain.compilerProbeArgs("-m64");
-            Action<List<String>> m64args = new Action<List<String>>() {
-                public void execute(List<String> args) {
-                    args.add("-m64");
-                }
-            };
-            gccToolChain.getCppCompiler().withArguments(m64args);
-            gccToolChain.getcCompiler().withArguments(m64args);
-            gccToolChain.getObjcCompiler().withArguments(m64args);
-            gccToolChain.getObjcppCompiler().withArguments(m64args);
-            gccToolChain.getLinker().withArguments(m64args);
-            gccToolChain.getAssembler().withArguments(m64args);
-        }
     }
 
     private static class DefaultTargetPlatformConfiguration implements TargetPlatformConfiguration {

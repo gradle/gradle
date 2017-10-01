@@ -25,6 +25,8 @@ import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.toolchain.Clang;
 import org.gradle.nativeplatform.toolchain.internal.gcc.AbstractGccCompatibleToolChain;
 import org.gradle.nativeplatform.toolchain.internal.gcc.DefaultGccPlatformToolChain;
+import org.gradle.nativeplatform.toolchain.internal.gcc.GccIntel32Architecture;
+import org.gradle.nativeplatform.toolchain.internal.gcc.GccIntel64Architecture;
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProviderFactory;
 import org.gradle.process.internal.ExecActionFactory;
 
@@ -33,6 +35,11 @@ public class ClangToolChain extends AbstractGccCompatibleToolChain implements Cl
 
     public ClangToolChain(String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CompilerMetaDataProviderFactory metaDataProviderFactory, Instantiator instantiator, WorkerLeaseService workerLeaseService) {
         super(name, buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, metaDataProviderFactory.clang(), instantiator, workerLeaseService);
+
+        if (name.equals(DEFAULT_NAME)) {
+            target(new GccIntel32Architecture());
+            target(new GccIntel64Architecture());
+        }
     }
 
     @Override
