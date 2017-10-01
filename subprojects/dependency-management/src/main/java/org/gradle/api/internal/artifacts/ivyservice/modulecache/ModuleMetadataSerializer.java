@@ -57,6 +57,7 @@ import org.gradle.internal.serialize.Encoder;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -136,6 +137,7 @@ public class ModuleMetadataSerializer {
         private void write(IvyModuleResolveMetadata metadata) throws IOException {
             encoder.writeByte(TYPE_IVY);
             writeInfoSection(metadata);
+            writeExtraInfo(metadata.getExtraAttributes());
             writeConfigurations(metadata.getConfigurationDefinitions().values());
             writeDependencies(metadata.getDependencies());
             writeArtifacts(metadata.getArtifactDefinitions());
@@ -163,8 +165,6 @@ public class ModuleMetadataSerializer {
             writeId(componentIdentifier);
             writeString(md.getStatus());
             writeBoolean(md.isGenerated());
-
-            writeExtraInfo(md.getExtraInfo());
         }
 
         private void writeExtraInfo(Map<NamespaceId, String> extraInfo) throws IOException {
@@ -376,6 +376,7 @@ public class ModuleMetadataSerializer {
 
         private MutableModuleComponentResolveMetadata readIvy() throws IOException {
             readInfoSection();
+            Map<NamespaceId, String> extraAttributes = readExtraInfo();
             List<Configuration> configurations = readConfigurations();
             List<DependencyMetadata> dependencies = readDependencies();
             List<Artifact> artifacts = readArtifacts();
@@ -385,6 +386,7 @@ public class ModuleMetadataSerializer {
             String branch = readNullableString();
             metadata.setBranch(branch);
             metadata.setContentHash(contentHash);
+            metadata.setExtraAttributes(extraAttributes);
             metadata.setExcludes(excludes);
             return metadata;
         }
@@ -398,21 +400,21 @@ public class ModuleMetadataSerializer {
 
             md = new MutableModuleDescriptorState(componentIdentifier, status, generated);
             mvi = moduleIdentifierFactory.moduleWithVersion(componentIdentifier.getGroup(), componentIdentifier.getModule(), componentIdentifier.getVersion());
-
-            readExtraInfo();
         }
 
         private ModuleComponentIdentifier readId() throws IOException {
             return DefaultModuleComponentIdentifier.newId(readString(), readString(), readString());
         }
 
-        private void readExtraInfo() throws IOException {
+        private Map<NamespaceId, String> readExtraInfo() throws IOException {
             int len = readCount();
+            Map<NamespaceId, String> result = new LinkedHashMap<NamespaceId, String>(len);
             for (int i = 0; i < len; i++) {
                 NamespaceId namespaceId = new NamespaceId(readString(), readString());
                 String value = readString();
-                md.getExtraInfo().put(namespaceId, value);
+                result.put(namespaceId, value);
             }
+            return result;
         }
 
         private List<Configuration> readConfigurations() throws IOException {

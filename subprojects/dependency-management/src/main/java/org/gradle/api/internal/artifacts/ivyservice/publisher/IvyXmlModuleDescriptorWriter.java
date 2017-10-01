@@ -20,7 +20,6 @@ import com.google.common.base.Joiner;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetadata;
@@ -91,17 +90,6 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         }
 
         printUnusedContent(metadata, writer);
-
-        for (Map.Entry<NamespaceId, String> entry : descriptor.getExtraInfo().entrySet()) {
-            if (entry.getValue() == null || entry.getValue().length() == 0) {
-                continue;
-            }
-            NamespaceId namespaceId = entry.getKey();
-            writer.startElement("ns:" + namespaceId.getName());
-            writer.attribute("xmlns:ns", namespaceId.getNamespace());
-            writer.characters(entry.getValue());
-            writer.endElement();
-        }
 
         writer.endElement();
     }

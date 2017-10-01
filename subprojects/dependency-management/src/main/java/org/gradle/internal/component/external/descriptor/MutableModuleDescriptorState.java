@@ -27,8 +27,4 @@ public class MutableModuleDescriptorState extends ModuleDescriptorState {
     public MutableModuleDescriptorState(ModuleComponentIdentifier componentIdentifier, String status, boolean generated) {
         super(componentIdentifier, status, generated);
     }
-
-    public static MutableModuleDescriptorState createModuleDescriptor(ModuleComponentIdentifier componentIdentifier) {
-        return new MutableModuleDescriptorState(componentIdentifier);
-    }
 }

@@ -79,7 +79,7 @@ public class MetadataProvider {
         ModuleComponentResolveMetadata metaData = getMetaData();
         if (metaData instanceof IvyModuleResolveMetadata) {
             IvyModuleResolveMetadata ivyMetadata = (IvyModuleResolveMetadata) metaData;
-            return new DefaultIvyModuleDescriptor(ivyMetadata.getExtraInfo(), ivyMetadata.getBranch(), ivyMetadata.getStatus());
+            return new DefaultIvyModuleDescriptor(ivyMetadata.getExtraAttributes(), ivyMetadata.getBranch(), ivyMetadata.getStatus());
         }
         return null;
     }

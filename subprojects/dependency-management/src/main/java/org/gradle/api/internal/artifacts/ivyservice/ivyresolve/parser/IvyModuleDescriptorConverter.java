@@ -72,12 +72,11 @@ public class IvyModuleDescriptorConverter {
     public ModuleDescriptorState forIvyModuleDescriptor(ModuleDescriptor ivyDescriptor) {
         ModuleRevisionId moduleRevisionId = ivyDescriptor.getModuleRevisionId();
         ModuleComponentIdentifier componentIdentifier = DefaultModuleComponentIdentifier.newId(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
-        MutableModuleDescriptorState state = new MutableModuleDescriptorState(componentIdentifier, ivyDescriptor.getStatus(), ivyDescriptor.isDefault());
+        return new MutableModuleDescriptorState(componentIdentifier, ivyDescriptor.getStatus(), ivyDescriptor.isDefault());
+    }
 
-        Map<NamespaceId, String> extraInfo = Cast.uncheckedCast(ivyDescriptor.getExtraInfo());
-        state.getExtraInfo().putAll(extraInfo);
-
-        return state;
+    public Map<NamespaceId, String> extractExtraAttributes(ModuleDescriptor ivyDescriptor) {
+        return Cast.uncheckedCast(ivyDescriptor.getExtraInfo());
     }
 
     public List<Exclude> extractExcludes(ModuleDescriptor ivyDescriptor) {

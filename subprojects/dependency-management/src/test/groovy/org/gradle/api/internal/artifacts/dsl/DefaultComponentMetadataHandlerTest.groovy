@@ -267,8 +267,10 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         def metadata = ivyMetadata()
         def id1 = new NamespaceId('namespace', 'info1')
         def id2 = new NamespaceId('namespace', 'info2')
-        metadata.descriptor.extraInfo[id1] = "info1 value"
-        metadata.descriptor.extraInfo[id2] = "info2 value"
+        def extraAttrs = [:]
+        extraAttrs[id1] = "info1 value"
+        extraAttrs[id2] = "info2 value"
+        metadata.extraAttributes = extraAttrs
         metadata.branch = "someBranch"
 
         def capturedDescriptor = null
@@ -293,8 +295,10 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         def metadata = ivyMetadata()
         def id1 = new NamespaceId('namespace', 'info1')
         def id2 = new NamespaceId('namespace', 'info2')
-        metadata.descriptor.extraInfo[id1] = "info1 value"
-        metadata.descriptor.extraInfo[id2] = "info2 value"
+        def extraAttrs = [:]
+        extraAttrs[id1] = "info1 value"
+        extraAttrs[id2] = "info2 value"
+        metadata.extraAttributes = extraAttrs
         metadata.branch = "someBranch"
 
         def capturedDescriptor = null
@@ -354,8 +358,10 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         def metadata = ivyMetadata()
         def id1 = new NamespaceId('namespace', 'info1')
         def id2 = new NamespaceId('namespace', 'info2')
-        metadata.descriptor.extraInfo[id1] = "info1 value"
-        metadata.descriptor.extraInfo[id2] = "info2 value"
+        def extraAttrs = [:]
+        extraAttrs[id1] = "info1 value"
+        extraAttrs[id2] = "info2 value"
+        metadata.extraAttributes = extraAttrs
         metadata.branch = "someBranch"
 
         def capturedDetails1 = null

@@ -16,13 +16,13 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ModuleSource;
 
 import javax.annotation.Nullable;
-import java.util.Map;
 
 /**
  * Meta-data for a module version resolved from an Ivy repository.
@@ -63,5 +63,5 @@ public interface IvyModuleResolveMetadata extends ModuleComponentResolveMetadata
      *
      * @return the extra info for the module
      */
-    Map<NamespaceId, String> getExtraInfo();
+    ImmutableMap<NamespaceId, String> getExtraAttributes();
 }

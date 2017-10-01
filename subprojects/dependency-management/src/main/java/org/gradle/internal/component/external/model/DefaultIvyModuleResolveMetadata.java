@@ -16,16 +16,16 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ModuleSource;
 
-import java.util.Map;
-
 public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements IvyModuleResolveMetadata {
     private final ImmutableList<Artifact> artifacts;
     private final ImmutableList<Exclude> excludes;
+    private final ImmutableMap<NamespaceId, String> extraAttributes;
     private final String branch;
 
     DefaultIvyModuleResolveMetadata(MutableIvyModuleResolveMetadata metadata) {
@@ -33,6 +33,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
         this.branch = metadata.getBranch();
         this.artifacts = metadata.getArtifactDefinitions();
         this.excludes = metadata.getExcludes();
+        this.extraAttributes = metadata.getExtraAttributes();
     }
 
     private DefaultIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, ModuleSource source) {
@@ -40,6 +41,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
         this.branch = metadata.branch;
         this.artifacts = metadata.artifacts;
         this.excludes = metadata.excludes;
+        this.extraAttributes = metadata.extraAttributes;
     }
 
     @Override
@@ -66,7 +68,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
         return branch;
     }
 
-    public Map<NamespaceId, String> getExtraInfo() {
-        return getDescriptor().getExtraInfo();
+    public ImmutableMap<NamespaceId, String> getExtraAttributes() {
+        return extraAttributes;
     }
 }

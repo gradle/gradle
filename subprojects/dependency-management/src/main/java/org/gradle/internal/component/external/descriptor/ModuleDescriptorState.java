@@ -16,11 +16,7 @@
 
 package org.gradle.internal.component.external.descriptor;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
-
-import java.util.Map;
 
 /**
  * Pieces of an ivy module descriptor, which are here as we migrate away from the Ivy model
@@ -30,21 +26,15 @@ public class ModuleDescriptorState {
     private final ModuleComponentIdentifier componentIdentifier;
     private final String status;
     private final boolean generated;
-    private final Map<NamespaceId, String> extraInfo;
 
     public ModuleDescriptorState(ModuleComponentIdentifier componentIdentifier, String status, boolean generated) {
         this.componentIdentifier = componentIdentifier;
         this.status = status;
         this.generated = generated;
-        extraInfo = Maps.newHashMap();
     }
 
     public ModuleComponentIdentifier getComponentIdentifier() {
         return componentIdentifier;
-    }
-
-    public Map<NamespaceId, String> getExtraInfo() {
-        return extraInfo;
     }
 
     public boolean isGenerated() {

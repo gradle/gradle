@@ -334,8 +334,8 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
         md.status == "integration"
 
-        md.extraInfo.size() == 1
-        md.extraInfo.get(new NamespaceId("http://ant.apache.org/ivy/extra", "someExtra")) == "56576"
+        metadata.extraAttributes.size() == 1
+        metadata.extraAttributes.get(new NamespaceId("http://ant.apache.org/ivy/extra", "someExtra")) == "56576"
 
         metadata.configurationDefinitions.size() == 5
         assertConf("myconf1", "desc 1", true, new String[0])
@@ -686,9 +686,9 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
         then:
         md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
-        md.extraInfo.size() == 2
-        md.extraInfo[new NamespaceId("namespace-b", "a")] == "info 1"
-        md.extraInfo[new NamespaceId("namespace-c", "a")] == "info 2"
+        metadata.extraAttributes.size() == 2
+        metadata.extraAttributes[new NamespaceId("namespace-b", "a")] == "info 1"
+        metadata.extraAttributes[new NamespaceId("namespace-c", "a")] == "info 2"
     }
 
     private void parse(DescriptorParseContext parseContext, TestFile file) {
