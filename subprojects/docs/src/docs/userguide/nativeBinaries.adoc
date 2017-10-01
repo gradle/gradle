@@ -783,24 +783,30 @@ When a platform does not define an architecture or operating system, the default
 
 The core Gradle tool chains are able to target the following architectures out of the box. In each case, the tool chain will target the current operating system. See the next section for information on cross-compiling for other operating systems.
 
-[cols="a,a", options="header"]
+[cols="a,a,a", options="header"]
 |===
 | Tool Chain
+| Default Name
 | Architectures
 
 | GCC
+| gcc
 | x86, x86_64
 
 | Clang
+| clang
 | x86, x86_64
 
 | Visual C++
+| visualCpp
 | x86, x86_64, ia-64
 |===
 
 So for GCC running on linux, the supported target platforms are 'linux/x86' and 'linux/x86_64'. For GCC running on Windows via Cygwin, platforms 'windows/x86' and 'windows/x86_64' are supported. (The Cygwin POSIX runtime is not yet modelled as part of the platform, but will be in the future.)
 
 If no target platforms are defined for a project, then all binaries are built to target a default platform named 'current'. This default platform does not specify any `architecture` or `operatingSystem` value, hence using the default values of the first available tool chain.
+
+If a default tool chain is not defined or configured in the model, a default tool chain of that type is created with reference to the table above. When this default tool chain is created, or if a tool chain sharing the same default name is configured in the model, the default platforms are added to this toolchain. For tool chains that do not use the default name, it will not respond to any platforms by default.
 
 Gradle provides a _hook_ that allows the build author to control the exact set of arguments passed to a tool chain executable. This enables the build author to work around any limitations in Gradle, or assumptions that Gradle makes. The arguments hook should be seen as a 'last-resort' mechanism, with preference given to truly modelling the underlying domain.
 
@@ -814,7 +820,7 @@ Gradle provides a _hook_ that allows the build author to control the exact set o
 [[sec:crosscompiling_with_gcc]]
 ==== Cross-compiling with GCC
 
-Cross-compiling is possible with the api:org.gradle.nativeplatform.toolchain.Gcc[] and api:org.gradle.nativeplatform.toolchain.Clang[] tool chains, by adding support for additional target platforms. This is done by specifying a target platform for a toolchain. For each target platform a custom configuration can be specified.
+Cross-compiling is possible with the api:org.gradle.nativeplatform.toolchain.Gcc[] and api:org.gradle.nativeplatform.toolchain.Clang[] tool chains, by adding support for target platforms. This is done by specifying a target platform for a toolchain. For each target platform a custom configuration can be specified.
 
 ++++
 <sample id="targetPlatforms" dir="native-binaries/target-platforms" title="Defining target platforms">
@@ -822,6 +828,7 @@ Cross-compiling is possible with the api:org.gradle.nativeplatform.toolchain.Gcc
             </sample>
 ++++
 
+Note that, since the toolchain in the above example is named the default `gcc`, it will also respond to `x86` and `x86_64` platforms.
 
 [[native_binaries:visual_studio]]
 === Visual Studio IDE integration
