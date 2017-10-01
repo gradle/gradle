@@ -63,11 +63,21 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     def workerLeaseService = Stub(WorkerLeaseService)
 
     def instantiator = DirectInstantiator.INSTANCE
+    def toolChainDefault = new TestDefaultNativeToolChain("testDefault", buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, toolSearchPath, metaDataProvider, instantiator, workerLeaseService)
     def toolChain = new TestNativeToolChain("test", buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, toolSearchPath, metaDataProvider, instantiator, workerLeaseService)
     def platform = Stub(NativePlatformInternal)
 
     def dummyOs = new DefaultOperatingSystem("currentOS", OperatingSystem.current())
     def dummyArch = Architectures.forInput("x86_64")
+
+    def "non-default toolchain does not respond to default architectures"() {
+        given:
+        platform.operatingSystem >> dummyOs
+        platform.architecture >> dummyArch
+
+        expect:
+        !toolChain.select(platform).available
+    }
 
     def "is unavailable when platform is not known and is not the default platform"() {
         given:
@@ -96,7 +106,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         toolSearchPath.locate(ToolType.OBJECTIVECPP_COMPILER, "g++") >> missing
 
         expect:
-        def platformToolChain = toolChain.select(platform)
+        def platformToolChain = toolChainDefault.select(platform)
         !platformToolChain.available
         getMessage(platformToolChain) == "c compiler not found"
     }
@@ -116,7 +126,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         metaDataProvider.getGccMetaData(_, _) >> wrongCompiler
 
         expect:
-        def platformToolChain = toolChain.select(platform)
+        def platformToolChain = toolChainDefault.select(platform)
         !platformToolChain.available
         getMessage(platformToolChain) == "c compiler is not gcc"
     }
@@ -134,7 +144,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         and:
 
         expect:
-        toolChain.select(platform).available
+        toolChainDefault.select(platform).available
     }
 
     def "is available when platform configuration registered for platform and tools are available"() {
@@ -192,10 +202,10 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         toolSearchPath.locate(_, _) >> tool
         platform.getOperatingSystem() >> dummyOs
         platform.getArchitecture() >> dummyArch
-        toolChain.eachPlatform(action)
+        toolChainDefault.eachPlatform(action)
 
         when:
-        toolChain.select(platform)
+        toolChainDefault.select(platform)
 
         then:
         1 * action.execute(_) >> { GccPlatformToolChain platformToolChain ->
@@ -216,10 +226,10 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         toolSearchPath.locate(_, _) >> tool
         platform.operatingSystem >> dummyOs
         platform.architecture >> Architectures.forInput(arch)
-        toolChain.eachPlatform(action)
+        toolChainDefault.eachPlatform(action)
 
         when:
-        toolChain.select(platform)
+        toolChainDefault.select(platform)
 
         then:
         1 * action.execute(_) >> { GccPlatformToolChain platformToolChain ->
@@ -318,10 +328,10 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         platform.architecture >> dummyArch
 
         def action = Mock(Action)
-        toolChain.eachPlatform(action)
+        toolChainDefault.eachPlatform(action)
 
         when:
-        toolChain.select(platform)
+        toolChainDefault.select(platform)
 
         then:
         1 * action.execute(_) >> { GccPlatformToolChain platformToolChain ->
@@ -339,6 +349,19 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         def formatter = new TreeFormatter()
         result.explain(formatter)
         return formatter.toString()
+    }
+
+    static class TestDefaultNativeToolChain extends AbstractGccCompatibleToolChain {
+        TestDefaultNativeToolChain(String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, ToolSearchPath tools, CompilerMetaDataProvider metaDataProvider, Instantiator instantiator, WorkerLeaseService workerLeaseService) {
+            super(name, buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, tools, metaDataProvider, instantiator, workerLeaseService)
+            target(new GccIntel32Architecture())
+            target(new GccIntel64Architecture())
+        }
+
+        @Override
+        protected String getTypeName() {
+            return "TestDefault"
+        }
     }
 
     static class TestNativeToolChain extends AbstractGccCompatibleToolChain {
