@@ -21,7 +21,6 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.descriptor.Configuration;
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetadata;
 import org.gradle.internal.component.external.model.IvyModulePublishMetadata;
 import org.gradle.internal.component.model.Exclude;
@@ -76,14 +75,13 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     }
 
     private static void printInfoTag(IvyModulePublishMetadata metadata, SimpleXmlWriter writer) throws IOException {
-        ModuleDescriptorState descriptor = metadata.getModuleDescriptor();
-        ModuleComponentIdentifier id = descriptor.getComponentIdentifier();
+        ModuleComponentIdentifier id = metadata.getId();
         writer.startElement("info");
 
         writer.attribute("organisation", id.getGroup());
         writer.attribute("module", id.getModule());
         writer.attribute("revision", id.getVersion());
-        writer.attribute("status", descriptor.getStatus());
+        writer.attribute("status", metadata.getStatus());
 
         printUnusedContent(metadata, writer);
 

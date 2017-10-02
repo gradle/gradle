@@ -82,6 +82,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         ModuleComponentIdentifier cid = moduleDescriptor.getComponentIdentifier();
         ModuleVersionIdentifier id = moduleIdentifierFactory.moduleWithVersion(cid.getGroup(), cid.getModule(), cid.getVersion());
         MutableMavenModuleResolveMetadata metadata = new DefaultMutableMavenModuleResolveMetadata(id, moduleDescriptor, dependencies);
+        metadata.setStatus(mdBuilder.getStatus());
         if (pomReader.getRelocation() != null) {
             metadata.setPackaging("pom");
             metadata.setRelocated(true);

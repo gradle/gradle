@@ -149,6 +149,7 @@ public class ModuleMetadataSerializer {
         private void writeSharedInfo(ModuleComponentResolveMetadata metadata) throws IOException {
             encoder.writeBinary(metadata.getContentHash().asByteArray());
             encoder.writeBoolean(metadata.isMissing());
+            encoder.writeString(metadata.getStatus());
         }
 
         private void writeId(ModuleComponentIdentifier componentIdentifier) throws IOException {
@@ -163,7 +164,6 @@ public class ModuleMetadataSerializer {
             ModuleDescriptorState md = metadata.getDescriptor();
             ModuleComponentIdentifier componentIdentifier = md.getComponentIdentifier();
             writeId(componentIdentifier);
-            writeString(md.getStatus());
         }
 
         private void writeExtraInfo(Map<NamespaceId, String> extraInfo) throws IOException {
@@ -327,6 +327,7 @@ public class ModuleMetadataSerializer {
         private void readSharedInfo(MutableModuleComponentResolveMetadata metadata) throws IOException {
             metadata.setContentHash(new HashValue(decoder.readBinary()));
             metadata.setMissing(decoder.readBoolean());
+            metadata.setStatus(decoder.readString());
         }
 
         private MutableModuleComponentResolveMetadata readMaven() throws IOException {
@@ -389,9 +390,8 @@ public class ModuleMetadataSerializer {
             id = readId();
 
             ModuleComponentIdentifier componentIdentifier = readId();
-            String status = readString();
 
-            md = new MutableModuleDescriptorState(componentIdentifier, status);
+            md = new MutableModuleDescriptorState(componentIdentifier);
             mvi = moduleIdentifierFactory.moduleWithVersion(componentIdentifier.getGroup(), componentIdentifier.getModule(), componentIdentifier.getVersion());
         }
 

@@ -18,7 +18,6 @@ package org.gradle.internal.component.external.model;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.descriptor.Configuration;
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
@@ -30,7 +29,7 @@ public interface IvyModulePublishMetadata {
     String IVY_MAVEN_NAMESPACE_PREFIX = "m";
     String IVY_EXTRA_NAMESPACE = "http://ant.apache.org/ivy/extra";
 
-    ModuleDescriptorState getModuleDescriptor();
+    String getStatus();
 
     ModuleComponentIdentifier getId();
 

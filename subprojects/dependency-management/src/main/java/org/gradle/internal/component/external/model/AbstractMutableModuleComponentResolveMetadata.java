@@ -42,7 +42,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     private ModuleVersionIdentifier id;
     private boolean changing;
     private boolean missing;
-    private String status;
+    private String status = "integration";
     private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
     private ModuleSource moduleSource;
     private List<? extends DependencyMetadata> dependencies;
@@ -55,7 +55,6 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         this.descriptor = moduleDescriptor;
         this.componentId = componentIdentifier;
         this.id = id;
-        this.status = moduleDescriptor.getStatus();
         this.dependencies = dependencies;
         this.configurationDefinitions = configurations;
     }

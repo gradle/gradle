@@ -84,6 +84,7 @@ public class GradlePomModuleDescriptorBuilder {
     private List<DependencyMetadata> dependencies = Lists.newArrayList();
     private final PomReader pomReader;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private String status;
 
     public GradlePomModuleDescriptorBuilder(PomReader pomReader, VersionSelectorScheme gradleVersionSelectorScheme, VersionSelectorScheme mavenVersionSelectorScheme, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.defaultVersionSelectorScheme = gradleVersionSelectorScheme;
@@ -100,6 +101,10 @@ public class GradlePomModuleDescriptorBuilder {
         return descriptor;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
     public void setModuleRevId(String group, String module, String version) {
         String effectiveVersion = version;
         if (version != null) {
@@ -109,9 +114,9 @@ public class GradlePomModuleDescriptorBuilder {
             }
         }
 
-        String status = effectiveVersion != null && effectiveVersion.endsWith("SNAPSHOT") ? "integration" : "release";
+        status = effectiveVersion != null && effectiveVersion.endsWith("SNAPSHOT") ? "integration" : "release";
 
-        descriptor = new MutableModuleDescriptorState(DefaultModuleComponentIdentifier.newId(group, module, effectiveVersion), status);
+        descriptor = new MutableModuleDescriptorState(DefaultModuleComponentIdentifier.newId(group, module, effectiveVersion));
     }
 
     public void addDependency(PomDependencyData dep) {

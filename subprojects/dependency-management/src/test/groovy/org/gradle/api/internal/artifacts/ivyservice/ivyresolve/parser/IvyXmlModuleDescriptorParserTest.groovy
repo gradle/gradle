@@ -67,7 +67,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         then:
         md != null
         md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
-        md.status == "integration"
+        metadata.status == "integration"
         metadata.configurationDefinitions.keySet() == ["default"] as Set
         metadata.dependencies.empty
         metadata.contentHash == HashUtil.createHash(file, "MD5")
@@ -94,7 +94,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         then:
         md != null
         md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
-        md.status == "integration"
+        metadata.status == "integration"
         metadata.configurationDefinitions.keySet() == ["default"] as Set
         metadata.dependencies.empty
 
@@ -123,7 +123,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         then:
         md != null
         md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
-        md.status == "integration"
+        metadata.status == "integration"
         metadata.configurationDefinitions.keySet() == ["A", "B"] as Set
         metadata.dependencies.empty
 
@@ -332,7 +332,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         then:
         md != null
         md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
-        md.status == "integration"
+        metadata.status == "status"
 
         metadata.extraAttributes.size() == 1
         metadata.extraAttributes.get(new NamespaceId("http://ant.apache.org/ivy/extra", "someExtra")) == "56576"
@@ -400,7 +400,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         then:
         md != null
         md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
-        md.status == "integration"
+        metadata.status == "integration"
         metadata.configurationDefinitions.keySet() == ["default"] as Set
 
         metadata.dependencies.size() == 1

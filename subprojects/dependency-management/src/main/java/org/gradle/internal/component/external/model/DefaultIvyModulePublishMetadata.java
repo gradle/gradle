@@ -22,8 +22,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.component.external.descriptor.Configuration;
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
-import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
@@ -43,7 +41,7 @@ import java.util.Set;
 
 public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublishMetadata, BuildableLocalComponentMetadata {
     private final ModuleComponentIdentifier id;
-    private final MutableModuleDescriptorState descriptor;
+    private final String status;
     private final Map<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetadata> artifactsById = new LinkedHashMap<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetadata>();
     private final Map<String, Configuration> configurations = new LinkedHashMap<String, Configuration>();
     private final Set<LocalOriginDependencyMetadata> dependencies = new LinkedHashSet<LocalOriginDependencyMetadata>();
@@ -51,20 +49,21 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
 
     public DefaultIvyModulePublishMetadata(ModuleComponentIdentifier id, String status) {
         this.id = id;
-        this.descriptor = new MutableModuleDescriptorState(id, status);
+        this.status = status;
     }
 
-    public DefaultIvyModulePublishMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor) {
-        this.id = id;
-        this.descriptor = (MutableModuleDescriptorState) moduleDescriptor;
+    public DefaultIvyModulePublishMetadata(IvyModulePublishMetadata metadata) {
+        this.id = metadata.getId();
+        this.status = metadata.getStatus();
     }
 
     public ModuleComponentIdentifier getId() {
         return id;
     }
 
-    public MutableModuleDescriptorState getModuleDescriptor() {
-        return descriptor;
+    @Override
+    public String getStatus() {
+        return status;
     }
 
     @Override

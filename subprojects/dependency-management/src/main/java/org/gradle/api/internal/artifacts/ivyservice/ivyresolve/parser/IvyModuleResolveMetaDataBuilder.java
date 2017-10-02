@@ -79,6 +79,7 @@ class IvyModuleResolveMetaDataBuilder {
         ModuleComponentIdentifier cid = descriptorState.getComponentIdentifier();
         ModuleVersionIdentifier mvi = moduleIdentifierFactory.moduleWithVersion(cid.getGroup(), cid.getModule(), cid.getVersion());
         DefaultMutableIvyModuleResolveMetadata metadata = new DefaultMutableIvyModuleResolveMetadata(mvi, cid, descriptorState, configurations, dependencies, artifacts);
+        metadata.setStatus(ivyDescriptor.getStatus());
         metadata.setExcludes(excludes);
         metadata.setExtraAttributes(extraAttributes);
         metadata.setBranch(ivyDescriptor.getModuleRevisionId().getBranch());

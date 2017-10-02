@@ -24,6 +24,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
+import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.hash.HashValue
 import org.gradle.util.TestUtil
@@ -94,12 +95,16 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         metadata.dependencies.empty
         !metadata.changing
         !metadata.missing
+        metadata.status == "integration"
+        metadata.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         metadata.contentHash == EMPTY_CONTENT
 
         def immutable = metadata.asImmutable()
         immutable.componentId == id
         !immutable.changing
         !immutable.missing
+        immutable.status == "integration"
+        immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         immutable.contentHash == EMPTY_CONTENT
         immutable.getConfiguration("default")
         immutable.getConfiguration("default").artifacts.size() == 1
@@ -118,23 +123,59 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         given:
         metadata.changing = true
         metadata.missing = true
+        metadata.status = "broken"
         metadata.contentHash = contentHash
 
         expect:
         def immutable = metadata.asImmutable()
         immutable.changing
         immutable.missing
+        immutable.status == "broken"
         immutable.contentHash == contentHash
 
         def copy = immutable.asMutable()
         copy.changing
         copy.missing
+        copy.status == "broken"
         copy.contentHash == contentHash
 
         def immutable2 = copy.asImmutable()
         immutable2.changing
         immutable2.missing
+        immutable2.status == "broken"
         immutable2.contentHash == contentHash
+    }
+
+    def "can changes to mutable metadata does not affect copies"() {
+        def contentHash = new HashValue("123")
+        def newContentHash = new HashValue("234")
+
+        def metadata = createMetadata(id)
+
+        given:
+        metadata.changing = true
+        metadata.missing = true
+        metadata.status = "broken"
+        metadata.contentHash = contentHash
+
+        def immutable = metadata.asImmutable()
+
+        metadata.changing = false
+        metadata.missing = false
+        metadata.status = "ok"
+        metadata.contentHash = newContentHash
+
+        expect:
+        immutable.changing
+        immutable.missing
+        immutable.status == "broken"
+        immutable.contentHash == contentHash
+
+        def copy = immutable.asMutable()
+        copy.changing
+        copy.missing
+        copy.status == "broken"
+        copy.contentHash == contentHash
     }
 
     def "can replace the dependencies for the module"() {

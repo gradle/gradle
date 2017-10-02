@@ -24,18 +24,12 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 public class ModuleDescriptorState {
     // The identifier extracted from the descriptor itself. May be different to the id of the containing module
     private final ModuleComponentIdentifier componentIdentifier;
-    private final String status;
 
-    public ModuleDescriptorState(ModuleComponentIdentifier componentIdentifier, String status) {
+    public ModuleDescriptorState(ModuleComponentIdentifier componentIdentifier) {
         this.componentIdentifier = componentIdentifier;
-        this.status = status;
     }
 
     public ModuleComponentIdentifier getComponentIdentifier() {
         return componentIdentifier;
-    }
-
-    public String getStatus() {
-        return status;
     }
 }

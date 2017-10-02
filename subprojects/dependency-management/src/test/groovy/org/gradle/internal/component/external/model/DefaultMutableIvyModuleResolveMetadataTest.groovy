@@ -46,7 +46,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
 
     def "initialises values from descriptor state and defaults"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-        def descriptor = new MutableModuleDescriptorState(id, "2")
+        def descriptor = new MutableModuleDescriptorState(id)
         configuration("runtime", [])
         configuration("default", ["runtime"])
         artifact("runtime.jar", "runtime")
@@ -58,15 +58,11 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def metadata = new DefaultMutableIvyModuleResolveMetadata(vid, id, descriptor, configurations, [], artifacts)
         metadata.componentId == id
         metadata.id == vid
-        metadata.status == "2"
         metadata.branch == null
 
         and:
         metadata.contentHash == AbstractMutableModuleComponentResolveMetadata.EMPTY_CONTENT
         metadata.source == null
-        !metadata.changing
-        !metadata.missing
-        metadata.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         metadata.descriptor == descriptor
         metadata.artifactDefinitions.size() == 2
         metadata.excludes.empty
@@ -77,10 +73,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         immutable.componentId == id
         immutable.source == null
         immutable.id == vid
-        immutable.status == "2"
         immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
-        !immutable.changing
-        !immutable.missing
         immutable.branch == null
         immutable.excludes.empty
         immutable.configurationNames == ["runtime", "default"] as Set
@@ -98,11 +91,8 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         copy.componentId == id
         copy.source == null
         copy.id == vid
-        copy.status == "2"
         copy.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         copy.branch == null
-        !copy.changing
-        !copy.missing
         copy.artifactDefinitions.size() == 2
         copy.excludes.empty
     }
@@ -168,7 +158,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
 
     def "making changes to copy does not affect original"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-        def descriptor = new MutableModuleDescriptorState(id, "2")
+        def descriptor = new MutableModuleDescriptorState(id)
         def newId = DefaultModuleComponentIdentifier.newId("group", "module", "1.2")
         def source = Stub(ModuleSource)
 
@@ -178,40 +168,30 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def copy = immutable.asMutable()
         copy.componentId = newId
         copy.source = source
-        copy.changing = true
-        copy.status = "3"
         copy.statusScheme = ["2", "3"]
         def immutableCopy = copy.asImmutable()
 
         then:
         metadata.componentId == id
         metadata.source == null
-        !metadata.changing
-        metadata.status == "2"
         metadata.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
 
         immutable.componentId == id
         immutable.source == null
-        !immutable.changing
-        immutable.status == "2"
         immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
 
         copy.componentId == newId
         copy.source == source
-        copy.changing
-        copy.status == "3"
         copy.statusScheme == ["2", "3"]
 
         immutableCopy.componentId == newId
         immutableCopy.source == source
-        immutableCopy.changing
-        immutableCopy.status == "3"
         immutableCopy.statusScheme == ["2", "3"]
     }
 
     def "making changes to original does not affect copy"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-        def descriptor = new MutableModuleDescriptorState(id, "2")
+        def descriptor = new MutableModuleDescriptorState(id)
         def newId = DefaultModuleComponentIdentifier.newId("group", "module", "1.2")
         def source = Stub(ModuleSource)
 
@@ -221,8 +201,6 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
 
         metadata.componentId = newId
         metadata.source = source
-        metadata.changing = true
-        metadata.status = "3"
         metadata.statusScheme = ["1", "2"]
 
         def immutableCopy = metadata.asImmutable()
@@ -230,20 +208,14 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         then:
         metadata.componentId == newId
         metadata.source == source
-        metadata.changing
-        metadata.status == "3"
         metadata.statusScheme == ["1", "2"]
 
         immutable.componentId == id
         immutable.source == null
-        !immutable.changing
-        immutable.status == "2"
         immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
 
         immutableCopy.componentId == newId
         immutableCopy.source == source
-        immutableCopy.changing
-        immutableCopy.status == "3"
         immutableCopy.statusScheme == ["1", "2"]
     }
 
