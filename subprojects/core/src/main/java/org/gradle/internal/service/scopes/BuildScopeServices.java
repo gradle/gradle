@@ -68,6 +68,7 @@ import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsListener;
 import org.gradle.api.internal.tasks.userinput.BuildScanUserInputHandler;
+import org.gradle.api.internal.tasks.userinput.DefaultBuildScanUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.DefaultUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.DefaultUserInputReader;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
@@ -450,6 +451,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected BuildScanUserInputHandler createBuildScanUserInputHandler(UserInputHandler userInputHandler) {
-        return new BuildScanUserInputHandler(userInputHandler);
+        return new DefaultBuildScanUserInputHandler(userInputHandler);
     }
 }

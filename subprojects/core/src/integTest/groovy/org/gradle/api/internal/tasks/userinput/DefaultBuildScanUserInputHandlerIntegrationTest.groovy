@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.userinput
 
 import spock.lang.Unroll
 
-class BuildScanUserInputHandlerIntegrationTest extends AbstractUserInputHandlerIntegrationTest {
+class DefaultBuildScanUserInputHandlerIntegrationTest extends AbstractUserInputHandlerIntegrationTest {
 
     private static final String YES = 'yes'
     private static final String NO = 'no'
