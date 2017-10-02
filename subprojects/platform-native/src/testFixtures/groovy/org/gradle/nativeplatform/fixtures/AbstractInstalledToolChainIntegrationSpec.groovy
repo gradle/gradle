@@ -22,11 +22,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.time.Time
-import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.runner.RunWith
-
 /**
  * Runs a test separately for each installed tool chain.
  */
@@ -129,7 +127,7 @@ allprojects { p ->
         return file(getTestDirectory().toURI().relativize(intermediateFile.toURI()))
     }
 
-    List<NativeBinaryFixture> objectFiles(SourceElement sourceElement, String rootObjectFilesDir = "build/obj/${sourceElement.sourceSetName}/debug") {
+    List<NativeBinaryFixture> objectFiles(def sourceElement, String rootObjectFilesDir = "build/obj/${sourceElement.sourceSetName}/debug") {
         List<NativeBinaryFixture> result = new ArrayList<NativeBinaryFixture>()
 
         String sourceSetName = sourceElement.getSourceSetName()
