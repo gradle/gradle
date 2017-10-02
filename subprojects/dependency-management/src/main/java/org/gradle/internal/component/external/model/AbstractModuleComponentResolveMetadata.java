@@ -62,7 +62,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final List<String> statusScheme;
     @Nullable
     private final ModuleSource moduleSource;
-    private final Map<String, Configuration> configurationDefinitions;
     private final Map<String, DefaultConfigurationMetadata> configurations;
     // This should live in a decorator rather than here
     @Nullable
@@ -70,7 +69,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final List<? extends DependencyMetadata> dependencies;
     private final HashValue contentHash;
 
-    protected AbstractModuleComponentResolveMetadata(MutableModuleComponentResolveMetadata metadata, Iterable<Artifact> artifacts, ImmutableList<Exclude> excludes) {
+    protected AbstractModuleComponentResolveMetadata(MutableModuleComponentResolveMetadata metadata, Map<String, Configuration> configurationDefinitions, Iterable<Artifact> artifacts, ImmutableList<Exclude> excludes) {
         this.componentIdentifier = metadata.getComponentId();
         this.moduleVersionIdentifier = metadata.getId();
         changing = metadata.isChanging();
@@ -78,10 +77,9 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         status = metadata.getStatus();
         statusScheme = metadata.getStatusScheme();
         moduleSource = metadata.getSource();
-        configurationDefinitions = metadata.getConfigurationDefinitions();
         dependencies = metadata.getDependencies();
         artifactOverrides = metadata.getArtifactOverrides();
-        configurations = populateConfigurationsFromDescriptor(excludes);
+        configurations = populateConfigurationsFromDescriptor(configurationDefinitions, excludes);
         if (artifactOverrides != null) {
             populateArtifactsFromOverrides(artifactOverrides);
         } else {
@@ -101,7 +99,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         status = metadata.getStatus();
         statusScheme = metadata.getStatusScheme();
         moduleSource = source;
-        configurationDefinitions = metadata.getConfigurationDefinitions();
         dependencies = metadata.getDependencies();
         artifactOverrides = metadata.artifactOverrides;
         configurations = metadata.configurations;
@@ -206,16 +203,11 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     @Override
-    public Map<String, Configuration> getConfigurationDefinitions() {
-        return configurationDefinitions;
-    }
-
-    @Override
     public DefaultConfigurationMetadata getConfiguration(final String name) {
         return configurations.get(name);
     }
 
-    private Map<String, DefaultConfigurationMetadata> populateConfigurationsFromDescriptor(List<Exclude> excludes) {
+    private Map<String, DefaultConfigurationMetadata> populateConfigurationsFromDescriptor(Map<String, Configuration> configurationDefinitions, List<Exclude> excludes) {
         Set<String> configurationsNames = configurationDefinitions.keySet();
         Map<String, DefaultConfigurationMetadata> configurations = new HashMap<String, DefaultConfigurationMetadata>(configurationsNames.size());
         for (String configName : configurationsNames) {

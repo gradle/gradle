@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -30,7 +29,6 @@ import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Map;
 
 import static org.gradle.internal.component.model.ComponentResolveMetadata.DEFAULT_STATUS_SCHEME;
 
@@ -44,16 +42,14 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
     private ModuleSource moduleSource;
     private List<? extends DependencyMetadata> dependencies;
-    private Map<String, Configuration> configurationDefinitions;
     private HashValue contentHash = EMPTY_CONTENT;
     @Nullable
     private List<? extends ModuleComponentArtifactMetadata> artifacts;
 
-    protected AbstractMutableModuleComponentResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Map<String, Configuration> configurations, List<? extends DependencyMetadata> dependencies) {
+    protected AbstractMutableModuleComponentResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, List<? extends DependencyMetadata> dependencies) {
         this.componentId = componentIdentifier;
         this.id = id;
         this.dependencies = dependencies;
-        this.configurationDefinitions = configurations;
     }
 
     protected AbstractMutableModuleComponentResolveMetadata(ModuleComponentResolveMetadata metadata) {
@@ -64,7 +60,6 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         this.status = metadata.getStatus();
         this.statusScheme = metadata.getStatusScheme();
         this.moduleSource = metadata.getSource();
-        this.configurationDefinitions = metadata.getConfigurationDefinitions();
         this.artifacts = metadata.getArtifactOverrides();
         this.dependencies = metadata.getDependencies();
         this.contentHash = metadata.getContentHash();
@@ -144,11 +139,6 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     @Override
     public void setSource(ModuleSource source) {
         this.moduleSource = source;
-    }
-
-    @Override
-    public Map<String, Configuration> getConfigurationDefinitions() {
-        return configurationDefinitions;
     }
 
     @Override

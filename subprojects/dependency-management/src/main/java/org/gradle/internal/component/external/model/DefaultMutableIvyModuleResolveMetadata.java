@@ -36,6 +36,7 @@ import static org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION;
 
 public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModuleComponentResolveMetadata implements MutableIvyModuleResolveMetadata {
     private final ImmutableList<Artifact> artifacts;
+    private final ImmutableMap<String, Configuration> configurations;
     private ImmutableList<Exclude> excludes;
     private ImmutableMap<NamespaceId, String> extraAttributes;
     private String branch;
@@ -57,7 +58,8 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
     }
 
     public DefaultMutableIvyModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<Configuration> configurations, Collection<? extends DependencyMetadata> dependencies, Collection<? extends Artifact> artifacts) {
-        super(id, componentIdentifier, toMap(configurations), ImmutableList.copyOf(dependencies));
+        super(id, componentIdentifier, ImmutableList.copyOf(dependencies));
+        this.configurations = toMap(configurations);
         this.artifacts = ImmutableList.copyOf(artifacts);
         this.excludes = ImmutableList.of();
         this.extraAttributes = ImmutableMap.of();
@@ -65,18 +67,24 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
 
     public DefaultMutableIvyModuleResolveMetadata(IvyModuleResolveMetadata metadata) {
         super(metadata);
+        this.configurations = metadata.getConfigurationDefinitions();
         this.artifacts = metadata.getArtifactDefinitions();
         this.excludes = metadata.getExcludes();
         this.branch = metadata.getBranch();
         this.extraAttributes = metadata.getExtraAttributes();
     }
 
-    private static Map<String, Configuration> toMap(Collection<Configuration> configurations) {
+    private static ImmutableMap<String, Configuration> toMap(Collection<Configuration> configurations) {
         ImmutableMap.Builder<String, Configuration> builder = ImmutableMap.builder();
         for (Configuration configuration : configurations) {
             builder.put(configuration.getName(), configuration);
         }
         return builder.build();
+    }
+
+    @Override
+    public ImmutableMap<String, Configuration> getConfigurationDefinitions() {
+        return configurations;
     }
 
     @Override

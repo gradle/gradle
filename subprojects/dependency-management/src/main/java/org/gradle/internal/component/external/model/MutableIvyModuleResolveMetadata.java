@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.component.external.descriptor.Artifact;
+import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.Exclude;
 
 import javax.annotation.Nullable;
@@ -33,12 +34,17 @@ public interface MutableIvyModuleResolveMetadata extends MutableModuleComponentR
     IvyModuleResolveMetadata asImmutable();
 
     /**
-     * Returns the Ivy definitions for artifacts of this module. This method is here to allow us to migrate away from the Ivy model and will be removed.
+     * Returns the Ivy definitions for the configurations of this module.
+     */
+    ImmutableMap<String, Configuration> getConfigurationDefinitions();
+
+    /**
+     * Returns the Ivy definitions for artifacts of this module.
      */
     ImmutableList<Artifact> getArtifactDefinitions();
 
     /**
-     * Returns the Ivy excludes of this component. This method is here to allow us to migrate away from the Ivy types and will be removed.
+     * Returns the Ivy excludes of this component.
      */
     ImmutableList<Exclude> getExcludes();
 

@@ -19,17 +19,20 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.component.external.descriptor.Artifact;
+import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ModuleSource;
 
 public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements IvyModuleResolveMetadata {
+    private final ImmutableMap<String, Configuration> configurationDefinitions;
     private final ImmutableList<Artifact> artifacts;
     private final ImmutableList<Exclude> excludes;
     private final ImmutableMap<NamespaceId, String> extraAttributes;
     private final String branch;
 
     DefaultIvyModuleResolveMetadata(MutableIvyModuleResolveMetadata metadata) {
-        super(metadata, metadata.getArtifactDefinitions(), metadata.getExcludes());
+        super(metadata, metadata.getConfigurationDefinitions(), metadata.getArtifactDefinitions(), metadata.getExcludes());
+        this.configurationDefinitions = metadata.getConfigurationDefinitions();
         this.branch = metadata.getBranch();
         this.artifacts = metadata.getArtifactDefinitions();
         this.excludes = metadata.getExcludes();
@@ -38,6 +41,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
 
     private DefaultIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, ModuleSource source) {
         super(metadata, source);
+        this.configurationDefinitions = metadata.configurationDefinitions;
         this.branch = metadata.branch;
         this.artifacts = metadata.artifacts;
         this.excludes = metadata.excludes;
@@ -52,6 +56,11 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
     @Override
     public MutableIvyModuleResolveMetadata asMutable() {
         return new DefaultMutableIvyModuleResolveMetadata(this);
+    }
+
+    @Override
+    public ImmutableMap<String, Configuration> getConfigurationDefinitions() {
+        return configurationDefinitions;
     }
 
     @Override

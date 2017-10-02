@@ -19,7 +19,6 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorBuilder;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.DependencyMetadata;
 
@@ -52,7 +51,7 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     }
 
     public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<? extends DependencyMetadata> dependencies) {
-        super(id, componentIdentifier, GradlePomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS, ImmutableList.copyOf(dependencies));
+        super(id, componentIdentifier, ImmutableList.copyOf(dependencies));
     }
 
     DefaultMutableMavenModuleResolveMetadata(MavenModuleResolveMetadata metadata) {
