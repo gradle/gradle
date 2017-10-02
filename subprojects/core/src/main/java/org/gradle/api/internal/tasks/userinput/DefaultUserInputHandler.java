@@ -16,12 +16,17 @@
 package org.gradle.api.internal.tasks.userinput;
 
 import com.google.common.base.CharMatcher;
+import com.google.common.collect.Lists;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.logging.events.UserInputRequestEvent;
 import org.gradle.internal.logging.events.UserInputResumeEvent;
 import org.gradle.internal.logging.sink.OutputEventRenderer;
 
+import java.util.List;
+
 public class DefaultUserInputHandler implements UserInputHandler {
+    private static final List<String> YES_NO_CHOICES = Lists.newArrayList("yes", "no");
     private final OutputEventRenderer outputEventRenderer;
     private final UserInputReader userInputReader;
 
@@ -31,8 +36,8 @@ public class DefaultUserInputHandler implements UserInputHandler {
     }
 
     @Override
-    public String getInput(InputRequest inputRequest) {
-        outputEventRenderer.onOutput(new UserInputRequestEvent(inputRequest.getPrompt()));
+    public Boolean askYesNoQuestion(String question) {
+        outputEventRenderer.onOutput(new UserInputRequestEvent(createPrompt(question)));
 
         try {
             while (true) {
@@ -44,13 +49,22 @@ public class DefaultUserInputHandler implements UserInputHandler {
 
                 String sanitizedInput = sanitizeInput(input);
 
-                if (inputRequest.isValid(sanitizedInput)) {
-                    return sanitizedInput;
+                if (YES_NO_CHOICES.contains(sanitizedInput)) {
+                    return BooleanUtils.toBoolean(sanitizedInput);
                 }
             }
         } finally {
             outputEventRenderer.onOutput(new UserInputResumeEvent());
         }
+    }
+
+    private String createPrompt(String question) {
+        StringBuilder prompt = new StringBuilder();
+        prompt.append(question);
+        prompt.append(" [");
+        prompt.append(StringUtils.join(YES_NO_CHOICES, ", "));
+        prompt.append("]");
+        return prompt.toString();
     }
 
     private boolean isInputCancelled(String input) {

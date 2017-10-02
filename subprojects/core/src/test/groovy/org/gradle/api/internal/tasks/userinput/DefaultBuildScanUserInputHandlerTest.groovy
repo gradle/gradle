@@ -34,13 +34,10 @@ class DefaultBuildScanUserInputHandlerTest extends Specification {
         def answer = buildScanUserInputHandler.askYesNoQuestion(question)
 
         then:
-        1 * userInputHandler.getInput(_ as MultipleChoiceInputRequest) >> input
-        answer == expectedAnswer
+        1 * userInputHandler.askYesNoQuestion(question) >> input
+        answer == input
 
         where:
-        input | expectedAnswer
-        'yes' | true
-        'no'  | false
-        null  | null
+        input << [true, false, null]
     }
 }

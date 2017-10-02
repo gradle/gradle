@@ -18,5 +18,5 @@ package org.gradle.api.internal.tasks.userinput;
 
 public interface UserInputHandler {
 
-    String getInput(InputRequest inputRequest);
+    Boolean askYesNoQuestion(String question);
 }

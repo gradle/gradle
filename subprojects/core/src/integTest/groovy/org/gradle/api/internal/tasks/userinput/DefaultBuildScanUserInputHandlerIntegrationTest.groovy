@@ -16,17 +16,119 @@
 
 package org.gradle.api.internal.tasks.userinput
 
+import org.gradle.util.ToBeImplemented
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 class DefaultBuildScanUserInputHandlerIntegrationTest extends AbstractUserInputHandlerIntegrationTest {
 
     private static final String YES = 'yes'
     private static final String NO = 'no'
+    private static final String PROMPT = "Accept license? [$YES, $NO]"
     private static final String DUMMY_TASK_NAME = 'doSomething'
+    private static final List<Boolean> VALID_BOOLEAN_CHOICES = [false, true]
+
+    def setup() {
+        file('buildSrc/src/main/java/BuildScanPlugin.java') << buildScanPlugin()
+        buildFile << buildScanPluginApplication()
+    }
 
     @Unroll
-    def "can ask for license acceptance from plugin and handle input '#input'"() {
-        file('buildSrc/src/main/java/BuildScanPlugin.java') << """
+    def "can ask for license acceptance in interactive build [daemon enabled: #daemon, rich console: #richConsole]"() {
+        given:
+        interactiveExecution()
+        withDaemon(daemon)
+        withRichConsole(richConsole)
+
+        when:
+        def gradleHandle = executer.withTasks(DUMMY_TASK_NAME).start()
+
+        then:
+        writeToStdInAndClose(gradleHandle, YES.bytes)
+        gradleHandle.waitForFinish()
+        gradleHandle.standardOutput.contains(PROMPT)
+        gradleHandle.standardOutput.contains(answerOutput(true))
+
+        where:
+        [daemon, richConsole] << [VALID_BOOLEAN_CHOICES, VALID_BOOLEAN_CHOICES].combinations()
+    }
+
+    @Unroll
+    def "use of ctrl-d when asking for license acceptance returns null [daemon enabled: #daemon, rich console: #richConsole]"() {
+        given:
+        interactiveExecution()
+        withDaemon(daemon)
+        withRichConsole(richConsole)
+
+        when:
+        def gradleHandle = executer.withTasks(DUMMY_TASK_NAME).start()
+
+        then:
+        writeToStdInAndClose(gradleHandle, EOF)
+        gradleHandle.waitForFinish()
+        gradleHandle.standardOutput.contains(PROMPT)
+        gradleHandle.standardOutput.contains(answerOutput(null))
+
+        where:
+        [daemon, richConsole] << [VALID_BOOLEAN_CHOICES, VALID_BOOLEAN_CHOICES].combinations()
+    }
+
+    @Unroll
+    def "can ask for license acceptance and handle valid input '#input'"() {
+        given:
+        interactiveExecution()
+
+        when:
+        def gradleHandle = executer.withTasks(DUMMY_TASK_NAME).start()
+
+        then:
+        writeToStdInAndClose(gradleHandle, stdin)
+        gradleHandle.waitForFinish()
+        gradleHandle.standardOutput.contains(PROMPT)
+        gradleHandle.standardOutput.contains(answerOutput(accepted))
+
+        where:
+        input    | stdin     | accepted
+        YES      | YES.bytes | true
+        NO       | NO.bytes  | false
+        'ctrl-d' | EOF       | null
+    }
+
+    def "can ask for license acceptance when build is executed in parallel"() {
+        given:
+        interactiveExecution()
+        withParallel()
+
+        buildFile << """
+            subprojects {
+                task $DUMMY_TASK_NAME
+            }
+        """
+        settingsFile << "include 'a', 'b', 'c'"
+
+        when:
+        def gradleHandle = executer.withTasks(DUMMY_TASK_NAME).start()
+
+        then:
+        writeToStdInAndClose(gradleHandle, YES.bytes)
+        gradleHandle.waitForFinish()
+        gradleHandle.standardOutput.contains(PROMPT)
+        gradleHandle.standardOutput.contains(answerOutput(true))
+    }
+
+    @Ignore
+    @ToBeImplemented
+    def "fails gracefully if console is not interactive"() {
+        when:
+        def gradleHandle = executer.withTasks(DUMMY_TASK_NAME).start()
+
+        then:
+        def failure = gradleHandle.waitForFailure()
+        failure.assertHasCause('Console does not support capturing input')
+    }
+
+    static String buildScanPlugin() {
+        """
             import org.gradle.api.Project;
             import org.gradle.api.Plugin;
 
@@ -42,26 +144,17 @@ class DefaultBuildScanUserInputHandlerIntegrationTest extends AbstractUserInputH
                 }
             }
         """
-        buildFile << """
+    }
+
+    static String buildScanPluginApplication() {
+        """
             apply plugin: BuildScanPlugin
             
             task $DUMMY_TASK_NAME
         """
-        interactiveExecution()
+    }
 
-        when:
-        def gradleHandle = executer.withTasks(DUMMY_TASK_NAME).start()
-
-        then:
-        writeToStdInAndClose(gradleHandle, stdin)
-        gradleHandle.waitForFinish()
-        gradleHandle.standardOutput.contains("Accept license? [$YES, $NO]")
-        gradleHandle.standardOutput.contains("License accepted: $accepted")
-
-        where:
-        input    | stdin     | accepted
-        YES      | YES.bytes | true
-        NO       | NO.bytes  | false
-        'ctrl-d' | EOF       | null
+    static String answerOutput(Boolean answer) {
+        "License accepted: $answer"
     }
 }

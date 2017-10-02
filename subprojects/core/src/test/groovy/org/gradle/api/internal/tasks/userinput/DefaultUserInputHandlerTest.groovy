@@ -24,14 +24,14 @@ import spock.lang.Subject
 
 class DefaultUserInputHandlerTest extends Specification {
 
-    private static final String TEXT = 'Enter username:'
+    private static final String TEXT = 'Accept license?'
     def outputEventRenderer = Mock(OutputEventRenderer)
     def userInputReader = Mock(UserInputReader)
     @Subject def userInputHandler = new DefaultUserInputHandler(outputEventRenderer, userInputReader)
 
-    def "can read valid user input"() {
+    def "can read sanitized input to yes/no question"() {
         when:
-        def input = userInputHandler.getInput(new DefaultInputRequest(TEXT))
+        def input = userInputHandler.askYesNoQuestion(TEXT)
 
         then:
         1 * outputEventRenderer.onOutput(_ as UserInputRequestEvent)
@@ -43,47 +43,22 @@ class DefaultUserInputHandlerTest extends Specification {
         where:
         enteredUserInput | sanitizedUserInput
         null             | null
-        'foobar'         | 'foobar'
-        'Hello World'    | 'Hello World'
-        '   abc   '      | 'abc'
-        ''               | ''
-        'ab\u0000cd'     | 'abcd'
+        'yes   '         | true
+        'yes'            | true
+        '   no   '       | false
+        'y\u0000es '     | true
     }
 
     def "re-requests user input if invalid"() {
         when:
-        def input = userInputHandler.getInput(new TestInputRequest(TEXT))
+        def input = userInputHandler.askYesNoQuestion(TEXT)
 
         then:
         1 * outputEventRenderer.onOutput(_ as UserInputRequestEvent)
         0 * outputEventRenderer._
-        1 * userInputReader.readInput() >> 'invalid'
-        1 * userInputReader.readInput() >> 'valid'
+        1 * userInputReader.readInput() >> 'bla'
+        1 * userInputReader.readInput() >> 'no'
         1 * outputEventRenderer.onOutput(_ as UserInputResumeEvent)
-        input == 'valid'
-    }
-
-    private static class TestInputRequest implements InputRequest {
-
-        private final String text
-
-        TestInputRequest(String text) {
-            this.text = text
-        }
-
-        @Override
-        String getText() {
-            text
-        }
-
-        @Override
-        String getPrompt() {
-            getText()
-        }
-
-        @Override
-        boolean isValid(String input) {
-            input == 'valid' ? true : false
-        }
+        input == false
     }
 }

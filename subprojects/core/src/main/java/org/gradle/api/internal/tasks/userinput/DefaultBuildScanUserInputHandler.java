@@ -16,13 +16,7 @@
 
 package org.gradle.api.internal.tasks.userinput;
 
-import com.google.common.collect.Lists;
-import org.apache.commons.lang.BooleanUtils;
-
-import java.util.List;
-
 public class DefaultBuildScanUserInputHandler implements BuildScanUserInputHandler {
-    private static final List<String> YES_NO_CHOICES = Lists.newArrayList("yes", "no");
     private final UserInputHandler userInputHandler;
 
     public DefaultBuildScanUserInputHandler(UserInputHandler userInputHandler) {
@@ -30,7 +24,6 @@ public class DefaultBuildScanUserInputHandler implements BuildScanUserInputHandl
     }
 
     public Boolean askYesNoQuestion(String question) {
-        String input = userInputHandler.getInput(new MultipleChoiceInputRequest(question, YES_NO_CHOICES));
-        return input != null ? BooleanUtils.toBoolean(input) : null;
+        return userInputHandler.askYesNoQuestion(question);
     }
 }
