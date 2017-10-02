@@ -58,10 +58,12 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         metadata.asImmutable().asMutable().componentId == newId
     }
 
-    def "builds and caches the dependency meta-data from the module descriptor"() {
+    def "builds and caches the dependency meta-data"() {
         given:
-        dependency("org", "module", "1.2")
-        dependency("org", "another", "1.2")
+        configuration("compile")
+        configuration("runtime", ["compile"])
+        dependency("org", "module", "1.2", ["compile"])
+        dependency("org", "another", "1.2", ["runtime"])
 
         when:
         def deps = metadata.dependencies
@@ -76,12 +78,28 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         immutable.dependencies.size() == 2
         immutable.dependencies[0].requested == newSelector("org", "module", "1.2")
         immutable.dependencies[1].requested == newSelector("org", "another", "1.2")
+        immutable.getConfiguration("compile").dependencies.size() == 1
+        immutable.getConfiguration("compile").dependencies[0] == immutable.dependencies[0]
+        immutable.getConfiguration("runtime").dependencies.size() == 2
+        immutable.getConfiguration("runtime").dependencies[0] == immutable.dependencies[0]
+        immutable.getConfiguration("runtime").dependencies[1] == immutable.dependencies[1]
 
         and:
         def copy = immutable.asMutable()
         copy.dependencies.size() == 2
         copy.dependencies[0].requested == newSelector("org", "module", "1.2")
         copy.dependencies[1].requested == newSelector("org", "another", "1.2")
+
+        and:
+        def immutable2 = copy.asImmutable()
+        immutable2.dependencies.size() == 2
+        immutable2.dependencies[0].requested == newSelector("org", "module", "1.2")
+        immutable2.dependencies[1].requested == newSelector("org", "another", "1.2")
+        immutable2.getConfiguration("compile").dependencies.size() == 1
+        immutable2.getConfiguration("compile").dependencies[0] == immutable.dependencies[0]
+        immutable2.getConfiguration("runtime").dependencies.size() == 2
+        immutable2.getConfiguration("runtime").dependencies[0] == immutable.dependencies[0]
+        immutable2.getConfiguration("runtime").dependencies[1] == immutable.dependencies[1]
     }
 
     def "can create default metadata"() {
@@ -175,11 +193,11 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         copy.contentHash == contentHash
     }
 
-    def "can replace the dependencies for the module"() {
-        def dependency1 = Stub(DependencyMetadata)
-        def dependency2 = Stub(DependencyMetadata)
-
+    def "can replace the dependencies for the component"() {
         when:
+        configuration("compile")
+        configuration("runtime", ["compile"])
+
         dependency("foo", "bar", "1.0")
         def metadata = getMetadata()
 
@@ -187,13 +205,28 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         metadata.dependencies*.requested*.toString() == ["foo:bar:1.0"]
 
         when:
+        def dependency1 = dependency("foo", "bar", "1.2", ["runtime"])
+        def dependency2 = dependency("foo", "baz", "1.2", ["compile"])
         metadata.dependencies = [dependency1, dependency2]
 
         then:
         metadata.dependencies == [dependency1, dependency2]
+
+        def immutable = metadata.asImmutable()
+        immutable.getConfiguration("compile").dependencies == [dependency2]
+        immutable.getConfiguration("runtime").dependencies == [dependency1, dependency2]
+
+        when:
+        def copy = immutable.asMutable()
+        copy.dependencies = [dependency1]
+
+        then:
+        def immutable2 = copy.asImmutable()
+        immutable2.getConfiguration("compile").dependencies == []
+        immutable2.getConfiguration("runtime").dependencies == [dependency1]
     }
 
-    def "can replace the artifacts for the module version"() {
+    def "can replace the artifacts for the component"() {
         when:
         configuration("runtime")
         def metadata = getMetadata()
@@ -208,10 +241,22 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
 
         def copy = immutable.asMutable()
         copy.artifactOverrides == [a1, a2]
+
+        when:
+        metadata.artifactOverrides = [a2]
+
+        then:
+        def immutable2 = metadata.asImmutable()
+        immutable2.artifactOverrides == [a2]
+        immutable2.getConfiguration("runtime").artifacts == [a2] as Set
     }
 
-    def dependency(String org, String module, String version) {
-        dependencies.add(new IvyDependencyMetadata(newSelector(org, module, version), ImmutableListMultimap.of()))
+    def dependency(String org, String module, String version, List<String> confs = []) {
+        def builder = ImmutableListMultimap.builder()
+        confs.each { builder.put(it, it) }
+        def dependency = new IvyDependencyMetadata(newSelector(org, module, version), builder.build())
+        dependencies.add(dependency)
+        return dependency
     }
 
     def configuration(String name, List<String> extendsFrom = []) {
