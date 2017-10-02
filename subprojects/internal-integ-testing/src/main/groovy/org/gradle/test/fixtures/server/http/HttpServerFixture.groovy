@@ -17,13 +17,10 @@
 package org.gradle.test.fixtures.server.http
 
 import com.google.common.collect.Sets
-import org.gradle.internal.BiAction
 import org.gradle.util.ports.FixedAvailablePortAllocator
-import org.mortbay.io.EndPoint
 import org.mortbay.jetty.Connector
 import org.mortbay.jetty.Handler
 import org.mortbay.jetty.HttpHeaders
-import org.mortbay.jetty.Request
 import org.mortbay.jetty.Server
 import org.mortbay.jetty.bio.SocketConnector
 import org.mortbay.jetty.handler.AbstractHandler
@@ -97,14 +94,6 @@ trait HttpServerFixture {
         this.portAllocatorEnabled = true
     }
 
-    void setSslPreHandler(BiAction<EndPoint,Request> handler) {
-        server.connectors.each { connector ->
-            if (connector instanceof InterceptableSslSocketConnector) {
-                connector.sslPreHandler = handler
-            }
-        }
-    }
-
     void start() {
         if (!configured) {
             HandlerCollection handlers = new HandlerCollection()
@@ -117,7 +106,7 @@ trait HttpServerFixture {
 
         connector = new SocketConnector()
         connector.port = portAllocatorEnabled ? FixedAvailablePortAllocator.instance.assignPort() : 0
-        server.setConnectors([connector] as Connector[])
+        server.addConnector(connector)
         server.start()
         for (int i = 0; i < 5; i++) {
             if (connector.localPort > 0) {
@@ -180,7 +169,7 @@ trait HttpServerFixture {
     }
 
     void enableSsl(String keyStore, String keyPassword, String trustStore = null, String trustPassword = null) {
-        sslConnector = new InterceptableSslSocketConnector()
+        sslConnector = new SslSocketConnector()
         sslConnector.keystore = keyStore
         sslConnector.keyPassword = keyPassword
         if (trustStore) {
@@ -220,16 +209,5 @@ trait HttpServerFixture {
         connector.stop()
         connector.close()
         server?.removeConnector(connector)
-    }
-}
-
-class InterceptableSslSocketConnector extends SslSocketConnector {
-    BiAction<EndPoint, Request> sslPreHandler
-
-    void customize(EndPoint endpoint, Request request) {
-        if (sslPreHandler) {
-            sslPreHandler.execute(endpoint, request)
-        }
-        super.customize(endpoint, request)
     }
 }

@@ -31,11 +31,9 @@ public class HttpClientConfigurerTest extends Specification {
     }
     HttpProxySettings proxySettings = Mock()
     HttpProxySettings secureProxySettings = Mock()
-    HttpTimeoutSettings timeoutSettings = Mock()
     HttpSettings httpSettings = Mock() {
         getProxySettings() >> proxySettings
         getSecureProxySettings() >> secureProxySettings
-        getTimeoutSettings() >> timeoutSettings
     }
     SslContextFactory sslContextFactory = Mock() {
         createSslContext() >> SSLContexts.createDefault()
@@ -111,19 +109,5 @@ public class HttpClientConfigurerTest extends Specification {
 
         then:
         httpClientBuilder.userAgent == UriTextResource.userAgentString
-    }
-
-    def "configures http client timeout"() {
-        when:
-        configurer.configure(httpClientBuilder)
-
-        then:
-        1 * httpSettings.authenticationSettings >> []
-        1 * httpSettings.proxySettings >> proxySettings
-        1 * httpSettings.sslContextFactory >> sslContextFactory
-        1 * timeoutSettings.connectionTimeoutMs >> 10000
-        2 * timeoutSettings.socketTimeoutMs >> 30000
-        httpClientBuilder.defaultRequestConfig.connectTimeout == 10000
-        httpClientBuilder.defaultRequestConfig.socketTimeout == 30000
     }
 }
