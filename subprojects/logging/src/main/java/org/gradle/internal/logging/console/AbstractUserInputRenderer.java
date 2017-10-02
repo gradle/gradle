@@ -21,13 +21,14 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.UserInputRequestEvent;
 import org.gradle.internal.logging.events.UserInputResumeEvent;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
 
 public abstract class AbstractUserInputRenderer implements OutputEventListener {
 
     final OutputEventListener delegate;
-    private final Deque<OutputEvent> eventQueue = new ArrayDeque<OutputEvent>();
+    private final List<OutputEvent> eventQueue = new ArrayList<OutputEvent>();
     private boolean paused;
 
     public AbstractUserInputRenderer(OutputEventListener delegate) {
@@ -69,12 +70,15 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
     }
 
     private void replayEvents() {
-        while (!eventQueue.isEmpty()) {
-            delegate.onOutput(eventQueue.remove());
+        ListIterator<OutputEvent> iterator = eventQueue.listIterator();
+
+        while (iterator.hasNext()) {
+            delegate.onOutput(iterator.next());
+            iterator.remove();
         }
     }
 
-    Deque<OutputEvent> getEventQueue() {
+    List<OutputEvent> getEventQueue() {
         return eventQueue;
     }
 
