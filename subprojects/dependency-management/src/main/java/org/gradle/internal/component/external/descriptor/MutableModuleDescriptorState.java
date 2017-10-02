@@ -21,10 +21,10 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 public class MutableModuleDescriptorState extends ModuleDescriptorState {
 
     public MutableModuleDescriptorState(ModuleComponentIdentifier componentIdentifier) {
-        super(componentIdentifier, "integration", true);
+        super(componentIdentifier, "integration");
     }
 
-    public MutableModuleDescriptorState(ModuleComponentIdentifier componentIdentifier, String status, boolean generated) {
-        super(componentIdentifier, status, generated);
+    public MutableModuleDescriptorState(ModuleComponentIdentifier componentIdentifier, String status) {
+        super(componentIdentifier, status);
     }
 }

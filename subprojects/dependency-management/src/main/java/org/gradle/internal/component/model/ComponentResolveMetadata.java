@@ -77,7 +77,10 @@ public interface ComponentResolveMetadata {
     @Nullable
     ConfigurationMetadata getConfiguration(String name);
 
-    boolean isGenerated();
+    /**
+     * Returns true when this metadata represents the default metadata provided for components with missing metadata files.
+     */
+    boolean isMissing();
 
     boolean isChanging();
 

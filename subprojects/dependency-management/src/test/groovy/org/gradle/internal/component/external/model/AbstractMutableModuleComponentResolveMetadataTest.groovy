@@ -25,14 +25,16 @@ import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.model.DependencyMetadata
+import org.gradle.internal.hash.HashValue
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import static org.gradle.internal.component.external.model.AbstractMutableModuleComponentResolveMetadata.EMPTY_CONTENT
 
 abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specification {
     def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-    def moduleDescriptor = new MutableModuleDescriptorState(id, "status", false)
+    def moduleDescriptor = new MutableModuleDescriptorState(id, "status")
     def configurations = []
     def dependencies = []
 
@@ -90,10 +92,15 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         expect:
         metadata.componentId == id
         metadata.dependencies.empty
+        !metadata.changing
+        !metadata.missing
+        metadata.contentHash == EMPTY_CONTENT
 
         def immutable = metadata.asImmutable()
         immutable.componentId == id
-        immutable.generated
+        !immutable.changing
+        !immutable.missing
+        immutable.contentHash == EMPTY_CONTENT
         immutable.getConfiguration("default")
         immutable.getConfiguration("default").artifacts.size() == 1
         immutable.getConfiguration("default").artifacts.first().name.name == id.module
@@ -101,6 +108,33 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         immutable.getConfiguration("default").artifacts.first().name.extension == 'jar'
         immutable.getConfiguration("default").artifacts.first().name.extension == 'jar'
         immutable.dependencies.empty
+    }
+
+    def "can override default values"() {
+        def contentHash = new HashValue("123")
+
+        def metadata = createMetadata(id)
+
+        given:
+        metadata.changing = true
+        metadata.missing = true
+        metadata.contentHash = contentHash
+
+        expect:
+        def immutable = metadata.asImmutable()
+        immutable.changing
+        immutable.missing
+        immutable.contentHash == contentHash
+
+        def copy = immutable.asMutable()
+        copy.changing
+        copy.missing
+        copy.contentHash == contentHash
+
+        def immutable2 = copy.asImmutable()
+        immutable2.changing
+        immutable2.missing
+        immutable2.contentHash == contentHash
     }
 
     def "can replace the dependencies for the module"() {

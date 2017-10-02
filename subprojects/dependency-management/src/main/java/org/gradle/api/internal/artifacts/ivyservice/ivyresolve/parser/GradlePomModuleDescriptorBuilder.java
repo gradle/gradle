@@ -111,7 +111,7 @@ public class GradlePomModuleDescriptorBuilder {
 
         String status = effectiveVersion != null && effectiveVersion.endsWith("SNAPSHOT") ? "integration" : "release";
 
-        descriptor = new MutableModuleDescriptorState(DefaultModuleComponentIdentifier.newId(group, module, effectiveVersion), status, false);
+        descriptor = new MutableModuleDescriptorState(DefaultModuleComponentIdentifier.newId(group, module, effectiveVersion), status);
     }
 
     public void addDependency(PomDependencyData dep) {

@@ -76,15 +76,15 @@ class DefaultVersionedComponentChooserTest extends Specification {
         }
 
         when:
-        1 * one.generated >> true
-        1 * two.generated >> false
+        1 * one.missing >> true
+        1 * two.missing >> false
         0 * componentSelectionRules.apply(_,_)
 
         then:
         chooser.selectNewestComponent(one, two) == two
 
         when:
-        1 * one.generated >> false
+        1 * one.missing >> false
         0 * componentSelectionRules.apply(_,_)
 
         then:

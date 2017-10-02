@@ -148,7 +148,7 @@ public class ModuleMetadataSerializer {
 
         private void writeSharedInfo(ModuleComponentResolveMetadata metadata) throws IOException {
             encoder.writeBinary(metadata.getContentHash().asByteArray());
-            ModuleDescriptorState md = metadata.getDescriptor();
+            encoder.writeBoolean(metadata.isMissing());
         }
 
         private void writeId(ModuleComponentIdentifier componentIdentifier) throws IOException {
@@ -164,7 +164,6 @@ public class ModuleMetadataSerializer {
             ModuleComponentIdentifier componentIdentifier = md.getComponentIdentifier();
             writeId(componentIdentifier);
             writeString(md.getStatus());
-            writeBoolean(md.isGenerated());
         }
 
         private void writeExtraInfo(Map<NamespaceId, String> extraInfo) throws IOException {
@@ -306,7 +305,6 @@ public class ModuleMetadataSerializer {
         private MutableModuleDescriptorState md;
         private ModuleComponentIdentifier id;
         private ModuleVersionIdentifier mvi;
-        private HashValue contentHash;
 
         private Reader(Decoder decoder, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableAttributesFactory attributesFactory) {
             this.decoder = decoder;
@@ -326,22 +324,19 @@ public class ModuleMetadataSerializer {
             }
         }
 
-        private void readSharedInfo() throws IOException {
-            contentHash = new HashValue(decoder.readBinary());
+        private void readSharedInfo(MutableModuleComponentResolveMetadata metadata) throws IOException {
+            metadata.setContentHash(new HashValue(decoder.readBinary()));
+            metadata.setMissing(decoder.readBoolean());
         }
 
         private MutableModuleComponentResolveMetadata readMaven() throws IOException {
             readInfoSection();
             List<DependencyMetadata> dependencies = readDependencies();
-            readSharedInfo();
-            String snapshotTimestamp = readNullableString();
-            String packaging = readNullableString();
-            boolean relocated = readBoolean();
             DefaultMutableMavenModuleResolveMetadata metadata = new DefaultMutableMavenModuleResolveMetadata(mvi, id, md, dependencies);
-            metadata.setPackaging(packaging);
-            metadata.setRelocated(relocated);
-            metadata.setSnapshotTimestamp(snapshotTimestamp);
-            metadata.setContentHash(contentHash);
+            readSharedInfo(metadata);
+            metadata.setSnapshotTimestamp(readNullableString());
+            metadata.setPackaging(readNullableString());
+            metadata.setRelocated(readBoolean());
             readVariants(metadata);
             return metadata;
         }
@@ -381,11 +376,10 @@ public class ModuleMetadataSerializer {
             List<DependencyMetadata> dependencies = readDependencies();
             List<Artifact> artifacts = readArtifacts();
             List<Exclude> excludes = readAllExcludes();
-            readSharedInfo();
             DefaultMutableIvyModuleResolveMetadata metadata = new DefaultMutableIvyModuleResolveMetadata(mvi, id, md, configurations, dependencies, artifacts);
+            readSharedInfo(metadata);
             String branch = readNullableString();
             metadata.setBranch(branch);
-            metadata.setContentHash(contentHash);
             metadata.setExtraAttributes(extraAttributes);
             metadata.setExcludes(excludes);
             return metadata;
@@ -396,9 +390,8 @@ public class ModuleMetadataSerializer {
 
             ModuleComponentIdentifier componentIdentifier = readId();
             String status = readString();
-            boolean generated = readBoolean();
 
-            md = new MutableModuleDescriptorState(componentIdentifier, status, generated);
+            md = new MutableModuleDescriptorState(componentIdentifier, status);
             mvi = moduleIdentifierFactory.moduleWithVersion(componentIdentifier.getGroup(), componentIdentifier.getModule(), componentIdentifier.getVersion());
         }
 

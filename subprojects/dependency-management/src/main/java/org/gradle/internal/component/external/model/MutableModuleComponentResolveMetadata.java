@@ -54,6 +54,9 @@ public interface MutableModuleComponentResolveMetadata {
     HashValue getContentHash();
     void setContentHash(HashValue hash);
 
+    boolean isMissing();
+    void setMissing(boolean missing);
+
     boolean isChanging();
     void setChanging(boolean changing);
 

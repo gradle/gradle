@@ -30,7 +30,7 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 abstract class AbstractModuleComponentResolveMetadataTest extends Specification {
 
     def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-    def moduleDescriptor = new MutableModuleDescriptorState(id, "status", false)
+    def moduleDescriptor = new MutableModuleDescriptorState(id, "status")
     def configurations = []
     def dependencies = []
 

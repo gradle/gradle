@@ -164,7 +164,8 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
             if (resource != null) {
                 // Use default empty metadata when the POM isn't present
                 if (metadata == null) {
-                    metadata = createDefaultComponentResolveMetaData(moduleComponentIdentifier);
+                    ModuleVersionIdentifier mvi = moduleIdentifierFactory.moduleWithVersion(moduleComponentIdentifier.getGroup(), moduleComponentIdentifier.getModule(), moduleComponentIdentifier.getVersion());
+                    metadata = new DefaultMutableMavenModuleResolveMetadata(mvi, moduleComponentIdentifier);
                 }
                 metadataParser.parse(resource, metadata);
             }
@@ -250,9 +251,9 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     }
 
     @Override
-    protected MutableMavenModuleResolveMetadata createDefaultComponentResolveMetaData(ModuleComponentIdentifier moduleComponentIdentifier) {
+    protected MutableMavenModuleResolveMetadata createMissingComponentMetadata(ModuleComponentIdentifier moduleComponentIdentifier) {
         ModuleVersionIdentifier mvi = moduleIdentifierFactory.moduleWithVersion(moduleComponentIdentifier.getGroup(), moduleComponentIdentifier.getModule(), moduleComponentIdentifier.getVersion());
-        return processMetaData(new DefaultMutableMavenModuleResolveMetadata(mvi, moduleComponentIdentifier));
+        return processMetaData(DefaultMutableMavenModuleResolveMetadata.missing(mvi, moduleComponentIdentifier));
     }
 
     protected MutableMavenModuleResolveMetadata parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {

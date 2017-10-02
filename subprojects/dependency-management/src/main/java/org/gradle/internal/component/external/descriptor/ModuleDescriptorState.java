@@ -25,20 +25,14 @@ public class ModuleDescriptorState {
     // The identifier extracted from the descriptor itself. May be different to the id of the containing module
     private final ModuleComponentIdentifier componentIdentifier;
     private final String status;
-    private final boolean generated;
 
-    public ModuleDescriptorState(ModuleComponentIdentifier componentIdentifier, String status, boolean generated) {
+    public ModuleDescriptorState(ModuleComponentIdentifier componentIdentifier, String status) {
         this.componentIdentifier = componentIdentifier;
         this.status = status;
-        this.generated = generated;
     }
 
     public ModuleComponentIdentifier getComponentIdentifier() {
         return componentIdentifier;
-    }
-
-    public boolean isGenerated() {
-        return generated;
     }
 
     public String getStatus() {

@@ -226,13 +226,13 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         Set<IvyArtifactName> artifacts = overrideMetadata.getArtifacts();
         for (IvyArtifactName artifact : getDependencyArtifactNames(moduleComponentIdentifier.getModule(), artifacts)) {
             if (artifactResolver.artifactExists(new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, artifact), result)) {
-                return createDefaultComponentResolveMetaData(moduleComponentIdentifier);
+                return createMissingComponentMetadata(moduleComponentIdentifier);
             }
         }
         return null;
     }
 
-    protected abstract S createDefaultComponentResolveMetaData(ModuleComponentIdentifier moduleComponentIdentifier);
+    protected abstract S createMissingComponentMetadata(ModuleComponentIdentifier moduleComponentIdentifier);
 
     protected abstract S parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, DescriptorParseContext context);
 

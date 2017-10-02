@@ -59,6 +59,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final ModuleVersionIdentifier moduleVersionIdentifier;
     private final ModuleComponentIdentifier componentIdentifier;
     private final boolean changing;
+    private final boolean missing;
     private final String status;
     private final List<String> statusScheme;
     @Nullable
@@ -76,6 +77,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         this.componentIdentifier = metadata.getComponentId();
         this.moduleVersionIdentifier = metadata.getId();
         changing = metadata.isChanging();
+        missing = metadata.isMissing();
         status = metadata.getStatus();
         statusScheme = metadata.getStatusScheme();
         moduleSource = metadata.getSource();
@@ -99,6 +101,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         this.componentIdentifier = metadata.getComponentId();
         this.moduleVersionIdentifier = metadata.getId();
         changing = metadata.isChanging();
+        missing = metadata.isMissing();
         status = metadata.getStatus();
         statusScheme = metadata.getStatusScheme();
         moduleSource = source;
@@ -131,8 +134,8 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     @Override
-    public boolean isGenerated() {
-        return descriptor.isGenerated();
+    public boolean isMissing() {
+        return missing;
     }
 
     @Override

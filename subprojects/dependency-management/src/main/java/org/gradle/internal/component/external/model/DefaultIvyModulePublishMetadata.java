@@ -51,7 +51,7 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
 
     public DefaultIvyModulePublishMetadata(ModuleComponentIdentifier id, String status) {
         this.id = id;
-        this.descriptor = new MutableModuleDescriptorState(id, status, true);
+        this.descriptor = new MutableModuleDescriptorState(id, status);
     }
 
     public DefaultIvyModulePublishMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor) {

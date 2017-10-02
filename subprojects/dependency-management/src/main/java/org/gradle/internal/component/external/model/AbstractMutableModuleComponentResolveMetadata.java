@@ -41,6 +41,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     private ModuleComponentIdentifier componentId;
     private ModuleVersionIdentifier id;
     private boolean changing;
+    private boolean missing;
     private String status;
     private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
     private ModuleSource moduleSource;
@@ -64,6 +65,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         this.componentId = metadata.getComponentId();
         this.id = metadata.getId();
         this.changing = metadata.isChanging();
+        this.missing = metadata.isMissing();
         this.status = metadata.getStatus();
         this.statusScheme = metadata.getStatusScheme();
         this.moduleSource = metadata.getSource();
@@ -112,6 +114,16 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     @Override
     public void setStatusScheme(List<String> statusScheme) {
         this.statusScheme = statusScheme;
+    }
+
+    @Override
+    public boolean isMissing() {
+        return missing;
+    }
+
+    @Override
+    public void setMissing(boolean missing) {
+        this.missing = missing;
     }
 
     @Override
